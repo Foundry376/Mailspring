@@ -371,11 +371,8 @@ export function createICSString(options: CreateEventOptions): string {
     // create a floating ICAL.Time, then manually stamp the TZID onto the property.
     // This produces: DTSTART;TZID=America/Chicago:20240115T140000
     //
-    // RFC 5545 requires a VTIMEZONE component to be present whenever TZID is used.
-    // Without it, some servers (Yahoo, etc.) ignore the TZID and treat the wall-clock
-    // time as UTC. We generate a minimal VTIMEZONE using the current UTC offset from
-    // moment-timezone — the TZID name is what most modern servers actually use to look
-    // up DST rules; the VTIMEZONE content just needs to be present and well-formed.
+    // RFC 5545 requires a VTIMEZONE whenever TZID is used; without it, some servers (Yahoo
+    // among them) ignore the TZID and read the wall clock as UTC. See createVTIMEZONEString.
     const momentTz = require('moment-timezone');
     const startM = momentTz(options.start).tz(options.timezone);
     const endM = momentTz(options.end).tz(options.timezone);

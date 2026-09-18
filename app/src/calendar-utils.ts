@@ -62,10 +62,9 @@ export function parseICSString(ics: string) {
  * TZID-relative time gives the instant it names, and describes any zone a VEVENT refers to
  * without one. RFC 7809 lets a server omit the VTIMEZONE for an IANA zone, and ical.js has no
  * zone data of its own, so such a value would otherwise read as floating local time. The
- * synthesised zone is the fixed offset in force at the property's own date, and the registry is
- * process-wide: the first file to name a zone without its VTIMEZONE fixes that offset for every
- * later file that also omits it, so a December Vienna file parsed after a July one reads 17:00 as
- * 15:00Z instead of 16:00Z. A file that carries the VTIMEZONE replaces it. An identifier
+ * synthesised zone carries the rules in force around the property's own date, and the registry is
+ * process-wide: the first file to name a zone without its VTIMEZONE fixes those rules for every
+ * later file that also omits it. A file that carries the VTIMEZONE replaces it. An identifier
  * moment-timezone does not know is left alone.
  */
 function registerTimezones(vcalendar: ICALComponent): void {
@@ -94,38 +93,106 @@ function registerTimezones(vcalendar: ICALComponent): void {
 }
 
 /**
- * Creates a minimal VTIMEZONE ICS string for the given IANA timezone.
+ * Builds a VTIMEZONE describing an IANA zone's offset rules.
  *
- * RFC 5545 requires a VTIMEZONE block whenever TZID is referenced. Most modern
- * CalDAV servers use the TZID name to look up their own DST rules, so the content
- * just needs to be present and well-formed. We derive the UTC offset from
- * moment-timezone for the given reference date (so the abbreviation and sign are
- * accurate for that point in time).
+ * RFC 5545 section 3.2.19 requires a VTIMEZONE for every TZID an object references, and
+ * section 3.6.5 makes it the authority for resolving those times. Servers with their own zone
+ * database resolve by TZID name and ignore the body, but ical.js, and every recipient reading
+ * the object directly, compute from what is written here: a body claiming one fixed offset puts
+ * every occurrence on the other side of a DST transition an hour out.
  *
- * @param tzId - IANA timezone identifier (e.g. 'America/Chicago')
- * @param referenceDate - Date used to determine the current UTC offset / abbreviation
+ * The rules come from moment-timezone rather than being invented: the two transitions bracketing
+ * `referenceDate` give the STANDARD and DAYLIGHT offsets, and each yearly RRULE is derived from
+ * its transition date. A zone with no DST in that era yields a single STANDARD.
+ *
+ * @param tzId - IANA timezone identifier (e.g. 'America/Chicago'), reproduced verbatim as the TZID
+ * @param referenceDate - The era whose rules are described; zones change theirs over time
  * @returns A VTIMEZONE ICS string (no surrounding VCALENDAR wrapper)
  */
 export function createVTIMEZONEString(tzId: string, referenceDate: Date): string {
   const momentTz = require('moment-timezone');
-  const m = momentTz(referenceDate).tz(tzId);
-  const utcOffsetMin = m.utcOffset(); // e.g. -360 for CST (UTC-6)
-  const absMin = Math.abs(utcOffsetMin);
-  const sign = utcOffsetMin >= 0 ? '+' : '-';
-  const offsetStr = `${sign}${String(Math.floor(absMin / 60)).padStart(2, '0')}${String(
-    absMin % 60
-  ).padStart(2, '0')}`;
-  return [
-    'BEGIN:VTIMEZONE',
-    `TZID:${tzId}`,
-    'BEGIN:STANDARD',
-    'DTSTART:19700101T000000',
-    `TZOFFSETFROM:${offsetStr}`,
-    `TZOFFSETTO:${offsetStr}`,
-    `TZNAME:${m.zoneAbbr()}`,
-    'END:STANDARD',
-    'END:VTIMEZONE',
-  ].join('\r\n');
+
+  const formatOffset = (utcOffsetMin: number) => {
+    const abs = Math.abs(utcOffsetMin);
+    const sign = utcOffsetMin >= 0 ? '+' : '-';
+    return `${sign}${String(Math.floor(abs / 60)).padStart(2, '0')}${String(abs % 60).padStart(
+      2,
+      '0'
+    )}`;
+  };
+
+  // Section 3.6.5: DTSTART is the wall clock at which the rule takes effect, read in the offset
+  // being left (TZOFFSETFROM).
+  const sample = (at: Date, offsetFromMin: number) => {
+    const local = momentTz(at).utcOffset(offsetFromMin);
+    const after = momentTz(at).tz(tzId);
+    return {
+      dtstart: local.format('YYYYMMDD[T]HHmmss'),
+      month: local.month() + 1,
+      // The EU switches on the *last* Sunday of the month, which is the fifth in some years and
+      // the fourth in others; BYDAY=-1SU is the rule those zones mean.
+      nth:
+        local.clone().add(7, 'days').month() !== local.month() ? -1 : Math.ceil(local.date() / 7),
+      weekday: ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'][local.day()],
+      offsetTo: after.utcOffset(),
+      offsetFrom: offsetFromMin,
+      name: after.zoneAbbr(),
+    };
+  };
+
+  const block = (kind: 'STANDARD' | 'DAYLIGHT', t: ReturnType<typeof sample>) => [
+    `BEGIN:${kind}`,
+    `DTSTART:${t.dtstart}`,
+    `RRULE:FREQ=YEARLY;BYMONTH=${t.month};BYDAY=${t.nth}${t.weekday}`,
+    `TZOFFSETFROM:${formatOffset(t.offsetFrom)}`,
+    `TZOFFSETTO:${formatOffset(t.offsetTo)}`,
+    `TZNAME:${t.name}`,
+    `END:${kind}`,
+  ];
+
+  // moment-timezone's `untils` are the instants each offset stops applying; the two bracketing
+  // the reference date are the DST rules in force around it.
+  const zone = momentTz.tz.zone(tzId);
+  const untils: number[] = (zone && zone.untils) || [];
+  const refMs = referenceDate.getTime();
+  const idx = untils.findIndex((u) => u !== null && u > refMs);
+  const transitions: Date[] = [];
+  if (idx > 0) {
+    for (const u of [untils[idx - 1], untils[idx]]) {
+      if (u !== null && isFinite(u)) transitions.push(new Date(u));
+    }
+  }
+
+  const samples = transitions.map((at) =>
+    // One millisecond before the transition is the offset being left behind.
+    sample(
+      at,
+      momentTz(new Date(at.getTime() - 1))
+        .tz(tzId)
+        .utcOffset()
+    )
+  );
+  const daylight = samples.find((t) => samples.some((o) => t.offsetTo > o.offsetTo));
+  const standard = samples.find((t) => t !== daylight);
+
+  const body: string[] = [];
+  if (daylight && standard) {
+    body.push(...block('STANDARD', standard), ...block('DAYLIGHT', daylight));
+  } else {
+    // No DST in this era: one STANDARD at the offset in force, and no RRULE because there is no
+    // recurring transition to describe.
+    const m = momentTz(referenceDate).tz(tzId);
+    body.push(
+      'BEGIN:STANDARD',
+      'DTSTART:19700101T000000',
+      `TZOFFSETFROM:${formatOffset(m.utcOffset())}`,
+      `TZOFFSETTO:${formatOffset(m.utcOffset())}`,
+      `TZNAME:${m.zoneAbbr()}`,
+      'END:STANDARD'
+    );
+  }
+
+  return ['BEGIN:VTIMEZONE', `TZID:${tzId}`, ...body, 'END:VTIMEZONE'].join('\r\n');
 }
 
 export function emailFromParticipantURI(uri: string): string | null {
