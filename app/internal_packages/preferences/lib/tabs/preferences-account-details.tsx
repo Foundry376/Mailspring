@@ -50,6 +50,40 @@ class AutoaddressControl extends Component<AutoaddressControlProps> {
   }
 }
 
+// The sync engine writes mailsync-<id>.log only once it has created its spdlog
+// logger, which is after it validates the account and identity JSON and after it
+// opens the log file itself (Mailspring-Sync main.cpp: the `return 1` paths at
+// :884-:961 all precede `spdlog::create("logger")` at :969). A failure before
+// that point - malformed account or identity JSON, a log file the engine cannot
+// open (on Windows only one sync worker may hold it), a binary that will not
+// launch - is reported only on stdout/stderr and reaches us as
+// `account.syncError`. Tailing the log alone shows the previous healthy run, or
+// nothing at all.
+export function describeSyncError(syncError: Account['syncError']) {
+  if (!syncError) {
+    return `Sync Error: none recorded`;
+  }
+  const { code, signal } = syncError;
+  const exit = signal ? `signal ${signal}` : `exit code ${code}`;
+
+  // `error` is an Error while the process that produced it is still the one we
+  // launched this session, and a plain object once it has been through config.json.
+  const error = syncError.error as Error | string | Record<string, unknown> | undefined;
+  let message = '';
+  if (error instanceof Error) {
+    message = error.message;
+  } else if (typeof error === 'string') {
+    message = error;
+  } else if (error) {
+    message = JSON.stringify(error);
+  }
+  return `Sync Error (${exit}): ${message || 'no message provided'}`;
+}
+
+function escapeHtml(text: string) {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 class PreferencesAccountDetails extends Component<
   {
     account: Account;
@@ -199,7 +233,7 @@ class PreferencesAccountDetails extends Component<
   };
 
   _onShowErrorDetails = async () => {
-    const { id, syncState, settings, provider } = this.props.account;
+    const { id, syncState, settings, provider, syncError } = this.props.account;
     const filepath = require('path').join(
       require('@electron/remote').app.getPath('temp'),
       `error-details-${id}-${Date.now()}.html`
@@ -215,12 +249,14 @@ class PreferencesAccountDetails extends Component<
         `IMAP Server: ${settings.imap_host}`,
         `SMTP Server: ${settings.smtp_host}`,
         `--------------------------------------------`,
+        describeSyncError(syncError),
+        `--------------------------------------------`,
         logs,
       ].join('\n');
 
       fs.writeFileSync(
         filepath,
-        `<div style="white-space: pre-wrap; font-family: monospace;">${result}</div>`
+        `<div style="white-space: pre-wrap; font-family: monospace;">${escapeHtml(result)}</div>`
       );
     } catch (err) {
       AppEnv.showErrorDialog({ title: 'Error', message: `Could not retrieve sync logs. ${err}` });
