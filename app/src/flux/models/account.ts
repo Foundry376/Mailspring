@@ -106,6 +106,7 @@ export class Account extends ModelWithMetadata {
     smtp_password: string;
     smtp_allow_insecure_ssl: boolean;
     smtp_security: 'SSL / TLS' | 'STARTTLS' | 'none';
+    refresh_client_id: string;
     refresh_token: string;
     container_folder: string;
   };

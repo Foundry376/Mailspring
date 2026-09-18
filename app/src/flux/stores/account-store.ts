@@ -14,6 +14,17 @@ const configAccountsKey = 'accounts';
 const configVersionKey = 'accountsVersion';
 const configСontainerFolderDefaultKey = 'containerFolderDefault';
 
+// mailsync picks the OAuth token endpoint from the account's `provider` alone
+// (MakeOAuthRefreshRequest in NetworkRequestUtils.cpp), so these are the only providers
+// whose refresh tokens it can exchange.
+const providersWithOAuthEndpoints = ['gmail', 'office365', 'outlook'];
+
+const oauthProviderForIMAPHost = {
+  'imap.gmail.com': 'gmail',
+  'outlook.office365.com': 'office365',
+  'outlook.office.com': 'office365',
+};
+
 export type IAliasSet = Array<Contact & { isAlias?: boolean }>;
 
 /*
@@ -88,12 +99,35 @@ class _AccountStore extends MailspringStore {
 
       // Run a few checks on account consistency. We want to display useful error
       // messages and these can result in very strange exceptions downstream otherwise.
+      this._repairProviderOfOAuthAccounts();
       this._enforceAccountsValidity();
     } catch (error) {
       AppEnv.reportError(error);
     }
 
     this._trigger();
+  };
+
+  // Builds through 1.24.1 dropped `provider` when addAccount merged a re-linked account
+  // into an existing one, so a Gmail account first added over IMAP kept provider: 'imap'
+  // after it was re-added through Google OAuth. mailsync then takes the XOAuth2 path
+  // (settings carry a refresh token) but resolves the token endpoint to "", and the curl
+  // request fails with CURLE_URL_MALFORMAT, which is not retryable - the sync worker
+  // calls abort() and MailsyncBridge restarts it until the account is marked failed.
+  _repairProviderOfOAuthAccounts = () => {
+    for (const account of this._accounts) {
+      if (!account.settings || !account.settings.refresh_client_id) continue;
+      if (providersWithOAuthEndpoints.includes(account.provider)) continue;
+
+      const provider = oauthProviderForIMAPHost[account.settings.imap_host];
+      if (!provider) continue;
+
+      console.warn(
+        `Account ${account.id} holds an OAuth refresh token but is marked "${account.provider}". ` +
+          `Correcting to "${provider}" so its access token can be refreshed.`
+      );
+      account.provider = provider;
+    }
   };
 
   _enforceAccountsValidity = () => {
@@ -245,11 +279,15 @@ class _AccountStore extends MailspringStore {
     if (existingIdx === -1) {
       this._accounts.push(cleanAccount);
     } else {
+      // Keep the existing id so the account's cached mail and metadata survive, but take
+      // everything the new link established - including `provider`, which decides how
+      // mailsync authenticates and whether it treats folders as Gmail labels.
       const existing = this._accounts[existingIdx];
       existing.syncState = Account.SYNC_STATE_OK;
       existing.name = cleanAccount.name;
       existing.authedAt = cleanAccount.authedAt;
       existing.emailAddress = cleanAccount.emailAddress;
+      existing.provider = cleanAccount.provider;
       existing.settings = cleanAccount.settings;
     }
 
