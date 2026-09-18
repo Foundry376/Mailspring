@@ -144,6 +144,26 @@ export default class MailspringWindow extends EventEmitter {
     }
 
     this.browserWindow = new BrowserWindow(browserWindowOptions);
+
+    // The main renderer runs with nodeIntegration:true and webviewTag:true, so any
+    // HTML-injection bug that plants a <webview> tag could otherwise request a
+    // Node-enabled guest and reach RCE. Force every attached guest to safe
+    // preferences regardless of the tag's attributes, and strip any preload it
+    // tries to specify. The only legitimate guest (the onboarding sign-in view in
+    // app/src/components/webview.tsx) displays remote web content and needs none
+    // of these privileges.
+    this.browserWindow.webContents.on('will-attach-webview', (_event, webPreferences, params) => {
+      delete (webPreferences as any).preload;
+      delete (params as any).preload;
+      delete (params as any).webpreferences;
+      delete (params as any).nodeintegration;
+      delete (params as any).nodeintegrationinsubframes;
+      webPreferences.nodeIntegration = false;
+      webPreferences.nodeIntegrationInSubFrames = false;
+      webPreferences.contextIsolation = true;
+      webPreferences.sandbox = true;
+    });
+
     require('@electron/remote/main').enable(this.browserWindow.webContents);
     (this.browserWindow as any).updateLoadSettings = this.updateLoadSettings;
 
