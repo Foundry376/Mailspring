@@ -71,6 +71,26 @@ describe('ChangeFolderTask', function () {
       expect(task.toJSON().sourceFolderIds).toEqual([]);
     });
 
+    it('drops the destination from sourceFolderIds', function () {
+      // Gmail: dragging from the All Mail folder onto a label scopes the move to All
+      // Mail and sends it to All Mail (mailbox-perspective actionsForReceivingThreads).
+      const t1 = makeThread('t1', 'ac-1', [allMail]);
+      const task = new ChangeFolderTask({
+        threads: [t1],
+        folder: allMail,
+        sourceFolderIds: [allMail.id],
+      } as any);
+      expect(task.sourceFolderIds).toEqual([]);
+      expect(() => task.willBeQueued()).not.toThrow();
+
+      const mixed = new ChangeFolderTask({
+        threads: [t1],
+        folder: archive,
+        sourceFolderIds: [inbox.id, archive.id],
+      } as any);
+      expect(mixed.sourceFolderIds).toEqual([inbox.id]);
+    });
+
     it('keeps sourceFolderIds and round-trips them through JSON', function () {
       const t1 = makeThread('t1', 'ac-1', [inbox]);
       const task = new ChangeFolderTask({
@@ -131,12 +151,9 @@ describe('ChangeFolderTask', function () {
       expect(() => task.willBeQueued()).not.toThrow();
     });
 
-    it('throws when sourceFolderIds contains the destination', function () {
-      const task = new ChangeFolderTask({
-        threadIds: ['t1'],
-        folder: archive,
-        sourceFolderIds: [archive.id],
-      } as any);
+    it('throws when sourceFolderIds was changed after construction to contain the destination', function () {
+      const task = new ChangeFolderTask({ threadIds: ['t1'], folder: archive } as any);
+      task.sourceFolderIds = [archive.id];
       expect(() => task.willBeQueued()).toThrow();
     });
   });
@@ -273,10 +290,52 @@ describe('ChangeFolderTask', function () {
       expect(undoTask.restorePlacements).toBeUndefined();
     });
 
-    it('throws when there is neither undoPlacements nor a single source folder', function () {
-      const t1 = makeThread('t1', 'ac-1', [inbox]);
-      const task = new ChangeFolderTask({ threads: [t1], folder: archive } as any);
-      expect(() => task.createUndoTask()).toThrow();
+    describe('without undoPlacements or a single source folder', function () {
+      it('sends each thread back to the folder it was in when the task was built', function () {
+        const sent = makeFolder('sent-id', 'sent', 'Sent');
+        const t1 = makeThread('t1', 'ac-1', [inbox, sent]);
+        const t2 = makeThread('t2', 'ac-1', [inbox]);
+        const t3 = makeThread('t3', 'ac-1', [trash]);
+        const task = new ChangeFolderTask({ threads: [t1, t2, t3], folder: archive } as any);
+
+        const undoTasks = task.createUndoTasks();
+        expect(undoTasks.length).toBe(2);
+        const [toInbox, toTrash] = undoTasks;
+        expect(toInbox.folder.id).toBe(inbox.id);
+        expect(toInbox.threadIds).toEqual(['t1', 't2']);
+        expect(toInbox.sourceFolderIds).toEqual([archive.id]);
+        expect(toInbox.isUndo).toBe(true);
+        expect(toTrash.folder.id).toBe(trash.id);
+        expect(toTrash.threadIds).toEqual(['t3']);
+        expect(toTrash.sourceFolderIds).toEqual([archive.id]);
+        expect(() => task.createUndoTask()).toThrow();
+      });
+
+      it('prefers a folder the move was scoped to over one it was not', function () {
+        const spam = makeFolder('spam-id', 'spam', 'Spam');
+        const t1 = makeThread('t1', 'ac-1', [inbox, spam]);
+        const task = new ChangeFolderTask({
+          threads: [t1],
+          folder: trash,
+          sourceFolderIds: [spam.id, 'other-folder-id'],
+        } as any);
+        const [undoTask] = task.createUndoTasks();
+        expect(undoTask.folder.id).toBe(spam.id);
+      });
+
+      it('falls back to a Sent copy only when nothing else was moved', function () {
+        const sent = makeFolder('sent-id', 'sent', 'Sent');
+        const t1 = makeThread('t1', 'ac-1', [sent]);
+        const task = new ChangeFolderTask({ threads: [t1], folder: trash } as any);
+        const [undoTask] = task.createUndoTasks();
+        expect(undoTask.folder.id).toBe(sent.id);
+      });
+
+      it('returns no undo tasks when the original folders are unknown', function () {
+        const task = new ChangeFolderTask({ threadIds: ['t1'], folder: archive } as any);
+        expect(task.createUndoTasks()).toEqual([]);
+        expect(() => task.createUndoTask()).toThrow();
+      });
     });
 
     it('does not carry undoPlacements onto a redo (identical) task', function () {

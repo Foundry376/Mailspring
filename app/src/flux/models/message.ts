@@ -260,15 +260,13 @@ export class Message extends ModelWithMetadata {
   // the CategoryStore. Folders the store does not know (not yet synced, or deleted) are
   // omitted, so this can be shorter than `folderIds()`.
   categories(): Category[] {
+    if (!this.accountId) {
+      return [];
+    }
     CategoryStore = CategoryStore || require('../stores/category-store').default;
     return this.folderIds()
       .map((id) => CategoryStore.byId(this.accountId, id))
       .filter(Boolean);
-  }
-
-  // Public: True if any copy of this message is in a folder with the given role.
-  isInFolderWithRole(role: string): boolean {
-    return this.categories().some((c) => c.role === role);
   }
 
   // Public: True if every copy of this message is in spam or trash. A message with no

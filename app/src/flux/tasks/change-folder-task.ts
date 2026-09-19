@@ -27,14 +27,18 @@ move. The engine decides per placement:
     folder role is not `sent` or `drafts`.
 
 Callers with a perspective (the mailbox the user is looking at) pass that folder as
-`sourceFolderIds`; TaskFactory, mail rules and MCP have none and omit it.
+`sourceFolderIds`; TaskFactory, mail rules and MCP have none and omit it. The destination
+is never a meaningful source, so the constructor drops it from `sourceFolderIds` (a Gmail
+perspective on All Mail can otherwise produce a move to All Mail scoped to All Mail).
 
 Undo: during its local phase the engine records the placements it moved as
 `undoPlacements` (`{ messageId: [{ folderId, remoteUID }] }`) on this task, the same way
-`DestroyDraftTask` receives `stubIds`. `createUndoTask()` copies that map onto the undo
+`DestroyDraftTask` receives `stubIds`. `createUndoTasks()` copies that map onto the undo
 task as `restorePlacements`, and the engine moves each copy back to its original folder.
 `undoPlacements` is only present on the task version streamed back from the engine
-(`UndoRedoStore` waits for the local phase before building the undo task).
+(`UndoRedoStore` waits for the local phase before building the undo task). When it never
+arrives, the undo is approximated from the folders the threads were in when the task was
+built (see `createUndoTasks`).
 */
 export class ChangeFolderTask extends ChangeMailTask {
   static attributes = {
@@ -60,6 +64,13 @@ export class ChangeFolderTask extends ChangeMailTask {
   undoPlacements?: PlacementsByMessageId;
   restorePlacements?: PlacementsByMessageId;
 
+  engineWritesUndoData = true;
+
+  // Folders each thread or message was in when the task was built, keyed by id. Not
+  // serialized: it only backs the approximate undo used when the engine never reports
+  // `undoPlacements`, and models built from JSON (engine echoes, redo copies) have none.
+  _foldersAtCreation: { [itemId: string]: Folder[] } = {};
+
   constructor(
     data: AttributeValues<typeof ChangeFolderTask.attributes> & {
       threads?: Thread[];
@@ -73,7 +84,22 @@ export class ChangeFolderTask extends ChangeMailTask {
         `ChangeFolderTask: You must provide a single folder. Got ${typeof this.folder}: ${JSON.stringify(this.folder)}`
       );
     }
-    this.sourceFolderIds = (this.sourceFolderIds || []).filter(Boolean);
+    this.sourceFolderIds = (this.sourceFolderIds || []).filter(
+      (id) => id && id !== this.folder?.id
+    );
+
+    for (const thread of data.threads || []) {
+      this._foldersAtCreation[thread.id] = (thread.folders || []).filter(
+        (f) => f instanceof Folder
+      );
+    }
+    for (const message of data.messages || []) {
+      if (message instanceof Message) {
+        this._foldersAtCreation[message.id] = message
+          .categories()
+          .filter((c): c is Folder => c instanceof Folder);
+      }
+    }
   }
 
   label() {
@@ -144,32 +170,63 @@ export class ChangeFolderTask extends ChangeMailTask {
     return task;
   }
 
-  createUndoTask() {
-    const task = super.createUndoTask();
-    task.sourceFolderIds = [];
+  // Returns the single undo task, for callers that cannot queue several; the approximate
+  // undo of a multi-source move needs one task per source folder and is only reachable
+  // through `createUndoTasks()`.
+  createUndoTask(): this {
+    const tasks = this.createUndoTasks();
+    if (tasks.length !== 1) {
+      throw new Error(`ChangeFolderTask: undo needs ${tasks.length} tasks; use createUndoTasks()`);
+    }
+    return tasks[0];
+  }
 
+  createUndoTasks(): this[] {
     if (this.undoPlacements && Object.keys(this.undoPlacements).length > 0) {
+      const task = super.createUndoTask();
+      task.sourceFolderIds = [];
       task.restorePlacements = this.undoPlacements;
       // `folder` is what the undo describes to the user and what an engine without
       // per-placement restore would move to; the first recorded source is the best
       // single answer.
       task.folder = this._firstRestoreFolder() || this.folder;
-      return task;
+      return [task];
     }
 
-    // The engine has not reported what it moved (offline, or it never ran). A move
-    // scoped to one source folder can still be reversed approximately by moving the
-    // copies now in the destination back to that folder.
-    const source = this._singleSourceFolder();
-    if (source) {
-      task.folder = source;
+    // The engine has not reported what it moved (offline, or it never ran). The move can
+    // still be reversed approximately by sending the copies now in the destination back
+    // to where each item came from: the folder the task was scoped to, else the folder
+    // the item was in when the task was built, one undo task per distinct folder.
+    const scopedSource = this._singleSourceFolder();
+    const groups = new Map<string, { folder: Folder; itemIds: string[] }>();
+    for (const itemId of [...this.threadIds, ...this.messageIds]) {
+      const folder = scopedSource || this._approximateRestoreFolderFor(itemId);
+      if (!folder) {
+        continue;
+      }
+      const group = groups.get(folder.id) || { folder, itemIds: [] };
+      group.itemIds.push(itemId);
+      groups.set(folder.id, group);
+    }
+    return [...groups.values()].map(({ folder, itemIds }) => {
+      const task = super.createUndoTask();
+      task.folder = folder;
       task.sourceFolderIds = [this.folder.id];
+      task.threadIds = itemIds.filter((id) => this.threadIds.includes(id));
+      task.messageIds = itemIds.filter((id) => this.messageIds.includes(id));
       return task;
-    }
+    });
+  }
 
-    throw new Error(
-      'ChangeFolderTask: cannot build an undo task before the sync engine has recorded undoPlacements'
+  // The folder an item most plausibly left: one the move was scoped to, else one the
+  // engine would have taken by default (not Sent or Drafts), else any it was in.
+  _approximateRestoreFolderFor(itemId: string): Folder | null {
+    const candidates = (this._foldersAtCreation[itemId] || []).filter(
+      (f) => f.id !== this.folder.id
     );
+    const scoped = candidates.filter((f) => this.sourceFolderIds.includes(f.id));
+    const takenByDefault = candidates.filter((f) => !['sent', 'drafts'].includes(f.role));
+    return scoped[0] || takenByDefault[0] || candidates[0] || null;
   }
 
   _singleSourceFolder(): Folder | null {
@@ -192,6 +249,9 @@ export class ChangeFolderTask extends ChangeMailTask {
   }
 
   _folderById(folderId: string): Folder | null {
+    if (!this.accountId) {
+      return null;
+    }
     CategoryStore = CategoryStore || require('../stores/category-store').default;
     const category = CategoryStore.byId(this.accountId, folderId);
     return category instanceof Folder ? category : null;

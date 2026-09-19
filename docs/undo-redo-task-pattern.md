@@ -135,22 +135,29 @@ export class ChangeFolderTask extends ChangeMailTask {
   undoPlacements?: PlacementsByMessageId;     // written by the engine: what moved, and from where
   restorePlacements?: PlacementsByMessageId;  // read by the engine on the undo task
 
-  createUndoTask() {
+  engineWritesUndoData = true;                // tells UndoRedoStore to wait for the engine's version
+
+  createUndoTasks() {
     const task = super.createUndoTask();      // isUndo = true
     task.restorePlacements = this.undoPlacements;
     task.folder = this._firstRestoreFolder() || this.folder;
-    return task;
+    return [task];
   }
 }
 ```
 
-Two consequences for anyone using this pattern:
+Three consequences for anyone using this pattern:
 
-1. `createUndoTask()` must run against the **engine-updated** version of the task, not the
-   object the client constructed. `UndoRedoStore.undo()` handles this: it resolves each task
-   through `TaskQueue.waitForPerformLocal()` (bounded by a short timeout, so an offline engine
-   degrades to an approximate undo rather than none) before calling `createUndoTask()`.
-2. `createIdenticalTask()` (used for redo) must strip the engine-written field so a re-run
+1. Set `engineWritesUndoData = true` on the task class. `UndoRedoStore.undo()` then resolves
+   each such task through `TaskQueue.waitForPerformLocal()` before building the undo, so it
+   runs against the **engine-updated** version. The wait is bounded (and abandoned early when
+   the engine never echoes the task back), so an offline engine degrades to an approximate
+   undo rather than none. Tasks without the flag, and tasks registered through
+   `Actions.queueUndoOnlyTask`, are reversed immediately from the client's copy.
+2. Implement `createUndoTasks()` when the approximate undo can need several tasks (one per
+   original folder), and return `[]` when nothing can be reversed; `createUndoTask()` stays
+   for callers that can only queue one.
+3. `createIdenticalTask()` (used for redo) must strip the engine-written field so a re-run
    starts with a clean snapshot.
 
 ## Implementation Steps

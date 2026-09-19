@@ -24,6 +24,10 @@ const MAX_CRASH_HISTORY = 10;
 
 const VERBOSE_UNTIL_KEY = 'core.sync.verboseUntil';
 
+// Model classes whose delta entries have already failed to inflate this session. The
+// same defect repeats on every delta for that class, so it is reported to Sentry once.
+const reportedInflationFailures = new Set<string>();
+
 // Inflates one delta's model JSONs, dropping any entry that cannot be inflated (an
 // unregistered `__cls`, a malformed row) so a single bad entry never aborts the rest of
 // the batch; the delta stream has no retry, so an abort would silently desync the UI.
@@ -39,6 +43,10 @@ function convertDeltaModels(modelJSONs: any[], modelClass: string) {
       models.push(model);
       rawJSONs.push(json);
     } catch (err) {
+      if (!reportedInflationFailures.has(modelClass)) {
+        reportedInflationFailures.add(modelClass);
+        AppEnv.reportError(err, { modelClass, json });
+      }
       console.warn(`Skipping ${modelClass} delta entry that could not be inflated: ${err}`, json);
     }
   }
