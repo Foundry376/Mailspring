@@ -386,17 +386,29 @@ export class DraftEditingSession extends MailspringStore {
     return false;
   }
 
-  // This function makes sure the draft is attached to a valid account, and changes
-  // it's accountId if the from address does not match the account for the from
-  // address.
-  //
+  // SMTP follows the draft's account. From is any of the user's identities
+  // (another account's primary is a valid send-as address). Replies stay on
+  // the account that received the thread. New compose uses the identity's
+  // accountId from the From picker.
   async ensureCorrectAccount() {
     const draft = this.draft();
     const from = draft.from[0];
     if (!from) {
       throw new Error('DraftEditingSession::ensureCorrectAccount - draft has no from address.');
     }
-    const account = AccountStore.accountForEmail(from.email);
+    if (!AccountStore.isMyEmail(from.email)) {
+      throw new Error(
+        'DraftEditingSession::ensureCorrectAccount - you can only send drafts from a configured account.'
+      );
+    }
+
+    if (draft.threadId) {
+      return this;
+    }
+
+    const account =
+      (from.accountId && AccountStore.accountForId(from.accountId)) ||
+      AccountStore.accountForEmail(from.email);
     if (!account) {
       throw new Error(
         'DraftEditingSession::ensureCorrectAccount - you can only send drafts from a configured account.'
