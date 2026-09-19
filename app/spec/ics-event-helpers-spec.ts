@@ -1614,6 +1614,59 @@ describe('ICSEventHelpers.createVTIMEZONEString', function () {
     expect(l).toContain('TZOFFSETTO:+1000');
   });
 
+  // A component is only as good as what a reader computes from it, so these read a date back
+  // through it rather than matching its lines.
+  const readThrough = (tz: string, reference: string, stamp: string) => {
+    ICAL.TimezoneService.remove(tz);
+    const { event } = parseICSString(
+      [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        ICSEventHelpers.createVTIMEZONEString(tz, new Date(reference)),
+        'BEGIN:VEVENT',
+        'UID:read-through@test',
+        `DTSTART;TZID=${tz}:${stamp}`,
+        'SUMMARY:Meeting',
+        'DTSTAMP:20240101T000000Z',
+        'END:VEVENT',
+        'END:VCALENDAR',
+      ].join('\r\n')
+    );
+    ICAL.TimezoneService.remove(tz);
+    return event.startDate.toJSDate().toISOString();
+  };
+
+  it('holds a zone that stopped changing its clocks at the offset it settled on', function () {
+    // The transitions either side of June 2014 in Europe/Moscow are three and a half years
+    // apart: the 2011 move to permanent summer time and the 2014 move back. Read as a DST pair
+    // they give the zone perpetual summer time it has not observed since 2011.
+    expect(readThrough('Europe/Moscow', '2014-06-15', '20140615T090000')).toBe(
+      '2014-06-15T05:00:00.000Z'
+    );
+    // MSK has been a fixed +03:00 since that second move, so 09:00 in 2024 is 06:00Z.
+    expect(readThrough('Europe/Moscow', '2014-06-15', '20240715T090000')).toBe(
+      '2024-07-15T06:00:00.000Z'
+    );
+  });
+
+  it('stops a zone that abolished DST at its last transition', function () {
+    // America/Mexico_City's 2022 pair is a genuine DST year, and its last. Unbounded rules put
+    // every later summer on CDT: 09:00 in July 2023 is 15:00Z at CST's -06:00, 14:00Z at CDT's.
+    expect(readThrough('America/Mexico_City', '2022-06-15', '20230715T090000')).toBe(
+      '2023-07-15T15:00:00.000Z'
+    );
+  });
+
+  it('writes whole minutes for an era whose offset has seconds in it', function () {
+    // America/Chicago ran on local mean time, -5:50:36, until 1883. Section 3.3.19 has no room
+    // for the seconds, and an unrounded offset renders as TZOFFSETFROM:-0550.60000000000002.
+    const offsets = lines('America/Chicago', '1880-01-15T12:00:00Z').filter((x) =>
+      x.startsWith('TZOFFSET')
+    );
+    expect(offsets.length).toBe(2);
+    for (const line of offsets) expect(line).toMatch(/^TZOFFSET(FROM|TO):[+-]\d{4}$/);
+  });
+
   it('emits a single STANDARD for a zone with no DST', function () {
     const l = lines('Asia/Kolkata', '2024-07-15T12:00:00Z');
     expect(l.filter((x) => x === 'BEGIN:STANDARD').length).toBe(1);

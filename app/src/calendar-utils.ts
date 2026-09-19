@@ -110,9 +110,14 @@ function registerTimezones(vcalendar: ICALComponent): void {
  * the earliest DTSTART to no rule at all and reads its wall clock as UTC, so a component anchored
  * in July 2024 would put a February 2024 occurrence six hours out.
  *
- * Zones whose transitions follow no yearly rule are not fully described. Morocco tracks Ramadan,
- * so no FREQ=YEARLY rule lands on Africa/Casablanca's transitions and one month a year reads an
- * hour out; vzic writes such zones as several blocks with explicit RDATEs.
+ * A pair of transitions is only read as a DST year when they fall within 366 days of each other,
+ * and the rules are bounded with UNTIL when moment knows of no transition after them, so that a
+ * permanent offset change and an abolished DST regime both settle on a fixed offset rather than
+ * repeating forever. What remains undescribed is a zone whose transitions are not an nth-weekday
+ * rule at all: Morocco tracks Ramadan, America/Santiago changes on the Sunday on or after 2
+ * September so a rule taken from one year is a week out in others, and Asia/Tehran used fixed
+ * calendar dates. Those read an hour out for part of the year; vzic writes them as several
+ * blocks with explicit RDATEs.
  *
  * @param tzId - IANA timezone identifier (e.g. 'America/Chicago'), reproduced verbatim as the TZID
  * @param referenceDate - The era whose rules are described; zones change theirs over time
@@ -122,7 +127,9 @@ export function createVTIMEZONEString(tzId: string, referenceDate: Date): string
   const momentTz = require('moment-timezone');
 
   const formatOffset = (utcOffsetMin: number) => {
-    const abs = Math.abs(utcOffsetMin);
+    // Pre-1900 dates read the zone's LMT offset, which has seconds in it: America/Chicago is
+    // -5:50:36. Section 3.3.19 admits only whole minutes.
+    const abs = Math.round(Math.abs(utcOffsetMin));
     const sign = utcOffsetMin >= 0 ? '+' : '-';
     return `${sign}${String(Math.floor(abs / 60)).padStart(2, '0')}${String(abs % 60).padStart(
       2,
@@ -158,13 +165,18 @@ export function createVTIMEZONEString(tzId: string, referenceDate: Date): string
       offsetTo: after.utcOffset(),
       offsetFrom: offsetFromMin,
       name: after.zoneAbbr(),
+      instant: at
+        .toISOString()
+        .replace(/[-:]/g, '')
+        .replace(/\.\d{3}/, ''),
     };
   };
 
-  const block = (kind: 'STANDARD' | 'DAYLIGHT', t: ReturnType<typeof sample>) => [
+  const block = (kind: 'STANDARD' | 'DAYLIGHT', t: ReturnType<typeof sample>, until?: string) => [
     `BEGIN:${kind}`,
     `DTSTART:${t.dtstart}`,
-    `RRULE:FREQ=YEARLY;BYMONTH=${t.month};BYDAY=${t.nth}${t.weekday}`,
+    `RRULE:FREQ=YEARLY;BYMONTH=${t.month};BYDAY=${t.nth}${t.weekday}` +
+      (until ? `;UNTIL=${until}` : ''),
     `TZOFFSETFROM:${formatOffset(t.offsetFrom)}`,
     `TZOFFSETTO:${formatOffset(t.offsetTo)}`,
     `TZNAME:${t.name}`,
@@ -183,6 +195,27 @@ export function createVTIMEZONEString(tzId: string, referenceDate: Date): string
       if (u !== null && isFinite(u)) transitions.push(new Date(u));
     }
   }
+  const YEAR_MS = 366 * 24 * 60 * 60 * 1000;
+  // An offset that outlasts a year, or that moment knows no end for, is not one half of a DST
+  // year. moment's last `untils` entry is Infinity.
+  const lasts = (from: number, to: number) => !isFinite(to) || to - from > YEAR_MS;
+
+  // Transitions over a year apart delimit permanent offsets rather than the halves of a DST
+  // year: Europe/Moscow's 2011 and 2014 moves bracket a June 2014 date, and read as a pair they
+  // invent perpetual summer time for a zone that has observed none since 2011.
+  let permanentChange: Date | null = null;
+  if (transitions.length === 2 && lasts(transitions[0].getTime(), transitions[1].getTime())) {
+    // Only when the new offset itself sticks: a 1900 reference brackets America/Chicago's 1883
+    // and 1918 changes, and the later one is the first day of a DST year.
+    if (lasts(transitions[1].getTime(), untils[idx + 1])) permanentChange = transitions[1];
+    transitions.length = 0;
+  }
+
+  // moment knows of no later transition, so this pair is the zone's last DST year: bound each
+  // rule at its own final transition. Section 3.6.5 continues the last observance indefinitely,
+  // so a reader then holds the standard offset — what America/Mexico_City, which abolished DST
+  // after 2022, actually does, rather than being an hour out every summer since.
+  const isFinalDSTYear = transitions.length === 2 && !isFinite(untils[idx + 1]);
 
   const samples = transitions.map((at) =>
     // One millisecond before the transition is the offset being left behind.
@@ -198,7 +231,10 @@ export function createVTIMEZONEString(tzId: string, referenceDate: Date): string
 
   const body: string[] = [];
   if (daylight && standard) {
-    body.push(...block('STANDARD', standard), ...block('DAYLIGHT', daylight));
+    body.push(
+      ...block('STANDARD', standard, isFinalDSTYear ? standard.instant : undefined),
+      ...block('DAYLIGHT', daylight, isFinalDSTYear ? daylight.instant : undefined)
+    );
   } else {
     // No DST in this era: one STANDARD at the offset in force, and no RRULE because there is no
     // recurring transition to describe.
@@ -211,6 +247,21 @@ export function createVTIMEZONEString(tzId: string, referenceDate: Date): string
       `TZNAME:${m.zoneAbbr()}`,
       'END:STANDARD'
     );
+    if (permanentChange) {
+      // A second observance for the move the era ends at. The registry is process-wide (see
+      // registerTimezones), so without it one historical invite would hold every later date the
+      // session reads in this zone at the superseded offset.
+      const after = momentTz(permanentChange).tz(tzId);
+      const at = momentTz(permanentChange).utcOffset(m.utcOffset());
+      body.push(
+        'BEGIN:STANDARD',
+        `DTSTART:${at.format('YYYYMMDDTHHmmss')}`,
+        `TZOFFSETFROM:${formatOffset(m.utcOffset())}`,
+        `TZOFFSETTO:${formatOffset(after.utcOffset())}`,
+        `TZNAME:${after.zoneAbbr()}`,
+        'END:STANDARD'
+      );
+    }
   }
 
   return ['BEGIN:VTIMEZONE', `TZID:${tzId}`, ...body, 'END:VTIMEZONE'].join('\r\n');
