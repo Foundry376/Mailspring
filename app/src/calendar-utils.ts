@@ -105,6 +105,15 @@ function registerTimezones(vcalendar: ICALComponent): void {
  * `referenceDate` give the STANDARD and DAYLIGHT offsets, and each yearly RRULE is derived from
  * its transition date. A zone with no DST in that era yields a single STANDARD.
  *
+ * Each rule's DTSTART is its first occurrence in 1970, the same anchor vzic and the ical-expander
+ * zone database use, rather than the reference year's transition: ical.js matches a date before
+ * the earliest DTSTART to no rule at all and reads its wall clock as UTC, so a component anchored
+ * in July 2024 would put a February 2024 occurrence six hours out.
+ *
+ * Zones whose transitions follow no yearly rule are not fully described. Morocco tracks Ramadan,
+ * so no FREQ=YEARLY rule lands on Africa/Casablanca's transitions and one month a year reads an
+ * hour out; vzic writes such zones as several blocks with explicit RDATEs.
+ *
  * @param tzId - IANA timezone identifier (e.g. 'America/Chicago'), reproduced verbatim as the TZID
  * @param referenceDate - The era whose rules are described; zones change theirs over time
  * @returns A VTIMEZONE ICS string (no surrounding VCALENDAR wrapper)
@@ -121,18 +130,30 @@ export function createVTIMEZONEString(tzId: string, referenceDate: Date): string
     )}`;
   };
 
+  // The nth (or, for a negative nth, the last) given weekday of the month in 1970.
+  const dayIn1970 = (month: number, nth: number, weekday: number) => {
+    const first = momentTz.utc([1970, month - 1, 1]);
+    if (nth > 0) {
+      return first.add(((weekday - first.day() + 7) % 7) + 7 * (nth - 1), 'days');
+    }
+    const last = first.endOf('month');
+    return last.subtract((last.day() - weekday + 7) % 7, 'days');
+  };
+
   // Section 3.6.5: DTSTART is the wall clock at which the rule takes effect, read in the offset
   // being left (TZOFFSETFROM).
   const sample = (at: Date, offsetFromMin: number) => {
     const local = momentTz(at).utcOffset(offsetFromMin);
     const after = momentTz(at).tz(tzId);
+    const month = local.month() + 1;
+    // The EU switches on the *last* Sunday of the month, which is the fifth in some years and
+    // the fourth in others; BYDAY=-1SU is the rule those zones mean.
+    const nth =
+      local.clone().add(7, 'days').month() !== local.month() ? -1 : Math.ceil(local.date() / 7);
     return {
-      dtstart: local.format('YYYYMMDD[T]HHmmss'),
-      month: local.month() + 1,
-      // The EU switches on the *last* Sunday of the month, which is the fifth in some years and
-      // the fourth in others; BYDAY=-1SU is the rule those zones mean.
-      nth:
-        local.clone().add(7, 'days').month() !== local.month() ? -1 : Math.ceil(local.date() / 7),
+      dtstart: `${dayIn1970(month, nth, local.day()).format('YYYYMMDD')}T${local.format('HHmmss')}`,
+      month,
+      nth,
       weekday: ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'][local.day()],
       offsetTo: after.utcOffset(),
       offsetFrom: offsetFromMin,

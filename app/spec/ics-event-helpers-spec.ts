@@ -1587,6 +1587,16 @@ describe('ICSEventHelpers.createVTIMEZONEString', function () {
     expect(standard).toContain('TZOFFSETFROM:-0500');
   });
 
+  it('anchors each rule in 1970, as the shipped zone database does', function () {
+    // ical.js matches a date before the earliest DTSTART to no rule and reads its wall clock as
+    // UTC, so a rule anchored at the reference year's own transition leaves every earlier date
+    // in the year unresolved. These are the lines ical-expander's zones-compiled.json carries.
+    const l = lines('America/Chicago', '2024-07-15T12:00:00Z');
+    expect(l).toContain('DTSTART:19700308T020000');
+    expect(l).toContain('DTSTART:19701101T020000');
+    expect(lines('Europe/Berlin', '2024-07-15T12:00:00Z')).toContain('DTSTART:19700329T020000');
+  });
+
   it("writes the EU's last-Sunday transitions as BYDAY=-1SU", function () {
     // Berlin switches on the last Sunday of March and October, the fifth Sunday in some years
     // and the fourth in others, so a positive ordinal would stop matching.
@@ -1657,6 +1667,29 @@ describe('ICSEventHelpers.createVTIMEZONEString', function () {
       });
       expect(occurrenceAt(ics, 2024, 10, 21)).toBe('2024-10-21T07:00:00.000Z');
       expect(occurrenceAt(ics, 2024, 10, 28)).toBe('2024-10-28T08:00:00.000Z');
+    });
+
+    it('reads a February meeting through a zone first registered from a July file', function () {
+      // registerTimezones is process-wide: the first VTIMEZONE-less file to name a zone fixes
+      // its rules for every later one. Anchored at 2024's own transitions, the earliest DTSTART
+      // is 10 March, so a February wall clock matches no rule and reads as UTC.
+      ICAL.TimezoneService.remove('America/Chicago');
+      const withoutVTIMEZONE = (uid: string, dtstart: string) =>
+        [
+          'BEGIN:VCALENDAR',
+          'VERSION:2.0',
+          'BEGIN:VEVENT',
+          `UID:${uid}`,
+          `DTSTART;TZID=America/Chicago:${dtstart}`,
+          `DTEND;TZID=America/Chicago:${dtstart.slice(0, 9)}100000`,
+          'SUMMARY:Standup',
+          'END:VEVENT',
+          'END:VCALENDAR',
+        ].join('\r\n');
+      parseICSString(withoutVTIMEZONE('july', '20240715T090000'));
+      const { event } = parseICSString(withoutVTIMEZONE('february', '20240215T090000'));
+      // 09:00 CST is 15:00Z; read as UTC it would be 09:00Z.
+      expect(event.startDate.toJSDate().toISOString()).toBe('2024-02-15T15:00:00.000Z');
     });
   });
 });
