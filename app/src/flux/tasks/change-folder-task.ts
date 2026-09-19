@@ -6,33 +6,59 @@ import { Message } from '../models/message';
 import { Thread } from '../models/thread';
 import { AttributeValues } from '../models/model';
 
-// Public: Create a new task to apply labels to a message or thread.
-//
-// Takes an options object of the form:
-//   - folder: The {Folder} or {Folder} IDs to move to
-//   - threads: An array of {Thread}s or {Thread} IDs
-//   - threads: An array of {Message}s or {Message} IDs
-//   - undoData: Since changing the folder is a destructive action,
-//   undo tasks need to store the configuration of what folders messages
-//   were in. When creating an undo task, we fill this parameter with
-//   that configuration
-//
+let CategoryStore = null;
+
+/** One physical copy of a message, as recorded by the sync engine before a move. */
+export interface Placement {
+  folderId: string;
+  remoteUID: number;
+}
+
+export type PlacementsByMessageId = { [messageId: string]: Placement[] };
+
+/*
+Public: Moves threads or messages to a folder.
+
+A message can have a copy in several folders at once, so the task describes which copies
+move. The engine decides per placement:
+
+  - destination role trash or spam: every placement of every message moves.
+  - otherwise: placements in `sourceFolderIds` if given, else every placement whose
+    folder role is not `sent` or `drafts`.
+
+Callers with a perspective (the mailbox the user is looking at) pass that folder as
+`sourceFolderIds`; TaskFactory, mail rules and MCP have none and omit it.
+
+Undo: during its local phase the engine records the placements it moved as
+`undoPlacements` (`{ messageId: [{ folderId, remoteUID }] }`) on this task, the same way
+`DestroyDraftTask` receives `stubIds`. `createUndoTask()` copies that map onto the undo
+task as `restorePlacements`, and the engine moves each copy back to its original folder.
+`undoPlacements` is only present on the task version streamed back from the engine
+(`UndoRedoStore` waits for the local phase before building the undo task).
+*/
 export class ChangeFolderTask extends ChangeMailTask {
   static attributes = {
     ...ChangeMailTask.attributes,
 
-    previousFolder: Attributes.Obj({
-      modelKey: 'previousFolder',
-      itemClass: Folder,
-    }),
     folder: Attributes.Obj({
       modelKey: 'folder',
       itemClass: Folder,
     }),
+    sourceFolderIds: Attributes.Collection({
+      modelKey: 'sourceFolderIds',
+    }),
+    undoPlacements: Attributes.Obj({
+      modelKey: 'undoPlacements',
+    }),
+    restorePlacements: Attributes.Obj({
+      modelKey: 'restorePlacements',
+    }),
   };
 
-  previousFolder: Folder;
   folder: Folder;
+  sourceFolderIds: string[];
+  undoPlacements?: PlacementsByMessageId;
+  restorePlacements?: PlacementsByMessageId;
 
   constructor(
     data: AttributeValues<typeof ChangeFolderTask.attributes> & {
@@ -40,35 +66,6 @@ export class ChangeFolderTask extends ChangeMailTask {
       messages?: Message[];
     } = {}
   ) {
-    if (!data.previousFolder) {
-      const folders = [];
-      const seenFolderIds = new Set<string>();
-      for (const t of data.threads || []) {
-        const f = t.folders?.find((f) => f?.id !== data.folder?.id) || t.folders?.[0];
-        if (f && !seenFolderIds.has(f.id)) {
-          seenFolderIds.add(f.id);
-          folders.push(f);
-        }
-      }
-      for (const m of data.messages || []) {
-        if (!seenFolderIds.has(m.folder.id)) {
-          seenFolderIds.add(m.folder.id);
-          folders.push(m.folder);
-        }
-      }
-      /* TODO: Right now, each task must have a single undo task. With folder moves,
-       * it's possible to start with mail from many folders and move it to one folder,
-       * and a single task can't represent the reverse. Right now, such moves are
-       * just undoable. Need to revisit this and make createUndoTask() return an array.
-       */
-      if (folders.length === 1) {
-        data.previousFolder = folders[0];
-        data.canBeUndone = true;
-      } else {
-        data.canBeUndone = false;
-      }
-    }
-
     super(data);
 
     if (this.folder && !(this.folder instanceof Folder)) {
@@ -76,6 +73,7 @@ export class ChangeFolderTask extends ChangeMailTask {
         `ChangeFolderTask: You must provide a single folder. Got ${typeof this.folder}: ${JSON.stringify(this.folder)}`
       );
     }
+    this.sourceFolderIds = (this.sourceFolderIds || []).filter(Boolean);
   }
 
   label() {
@@ -90,12 +88,29 @@ export class ChangeFolderTask extends ChangeMailTask {
       return this.taskDescription;
     }
 
+    const source = this._singleSourceFolder();
     if (this.threadIds.length > 1) {
-      return localized(`Moved %@ threads to %@`, this.threadIds.length, this.folder.displayName);
+      return source
+        ? localized(
+            `Moved %@ threads from %@ to %@`,
+            this.threadIds.length,
+            source.displayName,
+            this.folder.displayName
+          )
+        : localized(`Moved %@ threads to %@`, this.threadIds.length, this.folder.displayName);
     } else if (this.messageIds.length > 1) {
-      return localized(`Moved %@ messages to %@`, this.messageIds.length, this.folder.displayName);
+      return source
+        ? localized(
+            `Moved %@ messages from %@ to %@`,
+            this.messageIds.length,
+            source.displayName,
+            this.folder.displayName
+          )
+        : localized(`Moved %@ messages to %@`, this.messageIds.length, this.folder.displayName);
     }
-    return localized(`Moved to %@`, this.folder.displayName);
+    return source
+      ? localized(`Moved from %@ to %@`, source.displayName, this.folder.displayName)
+      : localized(`Moved to %@`, this.folder.displayName);
   }
 
   willBeQueued() {
@@ -110,6 +125,9 @@ export class ChangeFolderTask extends ChangeMailTask {
         'ChangeFolderTask: You must provide a `threads` or `messages` Array of models or IDs.'
       );
     }
+    if (this.sourceFolderIds.includes(this.folder.id)) {
+      throw new Error('ChangeFolderTask: `sourceFolderIds` must not contain the destination');
+    }
 
     super.willBeQueued();
   }
@@ -118,11 +136,64 @@ export class ChangeFolderTask extends ChangeMailTask {
     return this.folder.name === 'archive' || this.folder.name === 'all';
   }
 
+  // The engine fills `undoPlacements` as it runs; a re-queued copy must start empty so a
+  // stale snapshot is never mistaken for this run's.
+  createIdenticalTask(): this {
+    const task = super.createIdenticalTask();
+    delete task.undoPlacements;
+    return task;
+  }
+
   createUndoTask() {
     const task = super.createUndoTask();
-    const { folder, previousFolder } = task;
-    task.folder = previousFolder;
-    task.previousFolder = folder;
-    return task;
+    task.sourceFolderIds = [];
+
+    if (this.undoPlacements && Object.keys(this.undoPlacements).length > 0) {
+      task.restorePlacements = this.undoPlacements;
+      // `folder` is what the undo describes to the user and what an engine without
+      // per-placement restore would move to; the first recorded source is the best
+      // single answer.
+      task.folder = this._firstRestoreFolder() || this.folder;
+      return task;
+    }
+
+    // The engine has not reported what it moved (offline, or it never ran). A move
+    // scoped to one source folder can still be reversed approximately by moving the
+    // copies now in the destination back to that folder.
+    const source = this._singleSourceFolder();
+    if (source) {
+      task.folder = source;
+      task.sourceFolderIds = [this.folder.id];
+      return task;
+    }
+
+    throw new Error(
+      'ChangeFolderTask: cannot build an undo task before the sync engine has recorded undoPlacements'
+    );
+  }
+
+  _singleSourceFolder(): Folder | null {
+    if (!this.sourceFolderIds || this.sourceFolderIds.length !== 1) {
+      return null;
+    }
+    return this._folderById(this.sourceFolderIds[0]);
+  }
+
+  _firstRestoreFolder(): Folder | null {
+    for (const placements of Object.values(this.undoPlacements || {})) {
+      for (const { folderId } of placements) {
+        const folder = this._folderById(folderId);
+        if (folder) {
+          return folder;
+        }
+      }
+    }
+    return null;
+  }
+
+  _folderById(folderId: string): Folder | null {
+    CategoryStore = CategoryStore || require('../stores/category-store').default;
+    const category = CategoryStore.byId(this.accountId, folderId);
+    return category instanceof Folder ? category : null;
   }
 }

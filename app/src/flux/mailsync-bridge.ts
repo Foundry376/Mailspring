@@ -24,6 +24,27 @@ const MAX_CRASH_HISTORY = 10;
 
 const VERBOSE_UNTIL_KEY = 'core.sync.verboseUntil';
 
+// Inflates one delta's model JSONs, dropping any entry that cannot be inflated (an
+// unregistered `__cls`, a malformed row) so a single bad entry never aborts the rest of
+// the batch; the delta stream has no retry, so an abort would silently desync the UI.
+function convertDeltaModels(modelJSONs: any[], modelClass: string) {
+  const models: Model[] = [];
+  const rawJSONs: any[] = [];
+  for (const json of modelJSONs) {
+    try {
+      const model = Utils.convertToModel(json);
+      if (!model) {
+        continue;
+      }
+      models.push(model);
+      rawJSONs.push(json);
+    } catch (err) {
+      console.warn(`Skipping ${modelClass} delta entry that could not be inflated: ${err}`, json);
+    }
+  }
+  return { models, rawJSONs };
+}
+
 /*
 This class keeps track of how often Mailsync workers crash. If a mailsync
 worker exits more than 5 times in <5 minutes, we consider it "too many failures"
@@ -451,13 +472,16 @@ export default class MailsyncBridge {
       // dispatch the message to other windows
       ipcRenderer.send('mailsync-bridge-rebroadcast-to-all', msg);
 
-      const models = modelJSONs.map(Utils.convertToModel);
+      const { models, rawJSONs } = convertDeltaModels(modelJSONs, modelClass);
+      if (models.length === 0) {
+        continue;
+      }
       this._onIncomingChangeRecord(
         new DatabaseChangeRecord({
           type, // TODO BG move to "model" naming style, finding all uses might be tricky
           objectClass: modelClass,
           objects: models,
-          objectsRawJSON: modelJSONs,
+          objectsRawJSON: rawJSONs,
         })
       );
     }
@@ -486,13 +510,16 @@ export default class MailsyncBridge {
 
   _onIncomingRebroadcastMessage = (event: Electron.IpcRendererEvent, msg: string) => {
     const { type, modelJSONs, modelClass } = JSON.parse(msg);
-    const models = modelJSONs.map(Utils.convertToModel);
+    const { models, rawJSONs } = convertDeltaModels(modelJSONs, modelClass);
+    if (models.length === 0) {
+      return;
+    }
     DatabaseStore.trigger(
       new DatabaseChangeRecord({
         type,
         objectClass: modelClass,
         objects: models,
-        objectsRawJSON: modelJSONs,
+        objectsRawJSON: rawJSONs,
       })
     );
   };

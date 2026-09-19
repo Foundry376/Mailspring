@@ -93,6 +93,9 @@ class SearchMailboxPerspective extends MailboxPerspective {
         return [];
       }
       if (dest instanceof Folder) {
+        // Search results span every folder, not just the source perspective's, so no
+        // `sourceFolderIds` scope applies; the engine's default (every copy outside
+        // Sent and Drafts) is what "remove this result" means here.
         return new ChangeFolderTask({
           threads: accountThreads,
           source: 'Dragged out of list',

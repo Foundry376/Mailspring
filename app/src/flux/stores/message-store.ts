@@ -38,9 +38,14 @@ class _MessageStore extends MailspringStore {
     const viewing = FocusedPerspectiveStore.current().categoriesSharedRole();
     const viewingHiddenCategory = FolderNamesHiddenByDefault.includes(viewing);
 
+    // A message can have copies in several folders. It is hidden only when every copy is
+    // in spam or trash; when viewing spam or trash, any copy there is enough to show it.
     return this._items.filter((item) => {
-      const inHidden = item.folder ? FolderNamesHiddenByDefault.includes(item.folder.role) : false;
-      return viewingHiddenCategory ? inHidden || item.draft : !inHidden;
+      const roles = item.categories().map((c) => c.role);
+      const anyHidden = roles.some((r) => FolderNamesHiddenByDefault.includes(r));
+      const allHidden =
+        roles.length > 0 && roles.every((r) => FolderNamesHiddenByDefault.includes(r));
+      return viewingHiddenCategory ? anyHidden || item.draft : !allHidden;
     });
   }
 

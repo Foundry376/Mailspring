@@ -1,6 +1,14 @@
 import MailspringStore from 'mailspring-store';
 import * as Actions from '../actions';
 import { Task } from '../tasks/task';
+import TaskQueue from './task-queue';
+
+// Some tasks can only be reversed with data the sync engine writes onto them while
+// running their local phase (ChangeFolderTask.undoPlacements). Undo therefore builds
+// the undo task from the version streamed back from the engine, waiting at most this
+// long for it before falling back to the version the client queued (engine offline or
+// crashed, where an approximate undo beats none).
+const LOCAL_PHASE_WAIT_MS = 2000;
 
 interface UndoBlock {
   tasks?: Task[];
@@ -42,9 +50,18 @@ class UndoRedoStore extends MailspringStore {
           // no-op, tasks queued separately
         },
         undo: () => {
-          this._queueingTasks = true;
-          Actions.queueTasks(tasks.map((t) => t.createUndoTask()));
-          this._queueingTasks = false;
+          Promise.all(tasks.map((t) => this._latestVersionOf(t))).then((latest) => {
+            let undoTasks: Task[];
+            try {
+              undoTasks = latest.map((t) => t.createUndoTask());
+            } catch (err) {
+              AppEnv.reportError(err);
+              return;
+            }
+            this._queueingTasks = true;
+            Actions.queueTasks(undoTasks);
+            this._queueingTasks = false;
+          });
         },
         redo: () => {
           this._queueingTasks = true;
@@ -55,6 +72,13 @@ class UndoRedoStore extends MailspringStore {
       this._onQueueBlock(block);
     }
   };
+
+  _latestVersionOf<T extends Task>(task: T): Promise<T> {
+    const fallback = new Promise<T>((resolve) => {
+      setTimeout(() => resolve(task), LOCAL_PHASE_WAIT_MS);
+    });
+    return Promise.race([TaskQueue.waitForPerformLocal(task), fallback]);
+  }
 
   _onQueueBlock = (block: UndoBlock): void => {
     this._redo = [];

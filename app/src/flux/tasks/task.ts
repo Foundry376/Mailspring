@@ -64,7 +64,7 @@ export class Task extends Model {
   // Public: Return from `createIdenticalTask` and set a flag so your
   // `performLocal` and `performRemote` methods know that this is an undo
   // task.
-  createUndoTask() {
+  createUndoTask(): Task {
     throw new Error('Unimplemented');
   }
 

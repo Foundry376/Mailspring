@@ -120,6 +120,39 @@ export class SyncbackEventTask extends Task {
 }
 ```
 
+### Pattern 3: Engine-Written Snapshot (ChangeFolderTask)
+
+Sometimes the client cannot know the original state when it queues the task. A folder move
+is the canonical case: a message may have copies in several folders, and only the sync
+engine knows which copies it moved and from where. The engine writes that snapshot onto the
+task's data during its local phase (the same mechanism `DestroyDraftTask` uses to receive
+`stubIds`), and the task streams back to the client as a Task persist delta.
+
+```typescript
+export class ChangeFolderTask extends ChangeMailTask {
+  folder: Folder;
+  sourceFolderIds: string[];
+  undoPlacements?: PlacementsByMessageId;     // written by the engine: what moved, and from where
+  restorePlacements?: PlacementsByMessageId;  // read by the engine on the undo task
+
+  createUndoTask() {
+    const task = super.createUndoTask();      // isUndo = true
+    task.restorePlacements = this.undoPlacements;
+    task.folder = this._firstRestoreFolder() || this.folder;
+    return task;
+  }
+}
+```
+
+Two consequences for anyone using this pattern:
+
+1. `createUndoTask()` must run against the **engine-updated** version of the task, not the
+   object the client constructed. `UndoRedoStore.undo()` handles this: it resolves each task
+   through `TaskQueue.waitForPerformLocal()` (bounded by a short timeout, so an offline engine
+   degrades to an approximate undo rather than none) before calling `createUndoTask()`.
+2. `createIdenticalTask()` (used for redo) must strip the engine-written field so a re-run
+   starts with a clean snapshot.
+
 ## Implementation Steps
 
 ### Step 1: Add Undo Data Attributes
@@ -241,3 +274,4 @@ event.ics = newIcs;  // Now modify
 - `app/src/flux/tasks/change-mail-task.ts` - Base class for mail changes
 - `app/src/flux/tasks/syncback-metadata-task.ts` - Example of snapshot pattern
 - `app/src/flux/tasks/syncback-event-task.ts` - Calendar event undo implementation
+- `app/src/flux/tasks/change-folder-task.ts` - Engine-written snapshot (`undoPlacements`)
