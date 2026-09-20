@@ -1,4 +1,4 @@
-import { parseICSString, createVTIMEZONEString } from './calendar-utils';
+import { parseICSString, createVTIMEZONEString, resolveIanaZone } from './calendar-utils';
 
 export { createVTIMEZONEString };
 import { calendarDateFromUnix, shiftedDayStartUnix, calendarDaysBetween } from './calendar-date';
@@ -364,7 +364,11 @@ export function createICSString(options: CreateEventOptions): string {
   // Set summary (title)
   event.summary = options.summary;
 
-  if (!isAllDay && options.timezone) {
+  // moment substitutes the machine's zone for a name it has no data for, so an unknown zone
+  // takes the UTC path below instead.
+  const createZone = options.timezone ? resolveIanaZone(options.timezone) : null;
+
+  if (!isAllDay && createZone) {
     // ical.js TimezoneService only knows UTC/GMT/Z by default — IANA timezone names
     // like "America/Chicago" are never registered, so we can't use it for conversion.
     // Instead, use moment-timezone to extract the correct local time components and
@@ -374,8 +378,8 @@ export function createICSString(options: CreateEventOptions): string {
     // RFC 5545 requires a VTIMEZONE whenever TZID is used; without it, some servers (Yahoo
     // among them) ignore the TZID and read the wall clock as UTC. See createVTIMEZONEString.
     const momentTz = require('moment-timezone');
-    const startM = momentTz(options.start).tz(options.timezone);
-    const endM = momentTz(options.end).tz(options.timezone);
+    const startM = momentTz(options.start).tz(createZone);
+    const endM = momentTz(options.end).tz(createZone);
 
     const vtimezoneComp = new ical.Component(
       ical.parse(
@@ -492,12 +496,16 @@ export function updateEventTimes(ics: string, options: UpdateTimesOptions): stri
     throw new Error('Invalid ICS: no VEVENT component found');
   }
 
-  if (!isAllDay && options.timezone) {
+  // An unknown zone retimes through the zone the event's DTSTART carries, which keeps an Outlook
+  // "Customized Time Zone" and its wall clock.
+  const updateZone = options.timezone ? resolveIanaZone(options.timezone) : null;
+
+  if (!isAllDay && updateZone) {
     // User selected a specific timezone — encode wall-clock time in that zone.
     // This mirrors the timezone path in createICSString.
     const momentTz = require('moment-timezone');
-    const startM = momentTz(startDate).tz(options.timezone);
-    const endM = momentTz(endDate).tz(options.timezone);
+    const startM = momentTz(startDate).tz(updateZone);
+    const endM = momentTz(endDate).tz(updateZone);
 
     event.startDate = new ical.Time(
       {
