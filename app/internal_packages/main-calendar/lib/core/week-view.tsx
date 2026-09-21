@@ -264,12 +264,7 @@ export class WeekView extends React.Component<
             onChangeView={this.props.onChangeView}
             disabledViewButton={CalendarView.WEEK}
           >
-            <button
-              key="today"
-              className="btn"
-              onClick={this._onClickToday}
-              style={{ position: 'absolute', left: 10 }}
-            >
+            <button key="today" className="btn" onClick={this._onClickToday}>
               Today
             </button>
           </HeaderControls>

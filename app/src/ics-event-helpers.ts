@@ -16,6 +16,14 @@ function getICAL(): ICAL {
 }
 
 /**
+ * The current instant as a UTC ICAL.Time for DTSTAMP, which RFC 5545 section 3.8.7.2 requires
+ * in UTC. ICAL.Time.now() is floating local time and serializes without the Z.
+ */
+function nowUTC(ical: ICAL) {
+  return ical.Time.fromJSDate(new Date(), true);
+}
+
+/**
  * Options for creating a new ICS event
  */
 export interface CreateEventOptions {
@@ -507,7 +515,7 @@ export function createICSString(options: CreateEventOptions): string {
   }
 
   // Set timestamp
-  vevent.addPropertyWithValue('dtstamp', ical.Time.now());
+  vevent.addPropertyWithValue('dtstamp', nowUTC(ical));
 
   calendar.addSubcomponent(vevent);
   return calendar.toString();
@@ -601,7 +609,7 @@ export function updateEventTimes(ics: string, options: UpdateTimesOptions): stri
   }
 
   // Update DTSTAMP to indicate modification
-  vevent.updatePropertyWithValue('dtstamp', ical.Time.now());
+  vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
 
   // Increment SEQUENCE if present (for proper sync)
   const sequence = vevent.getFirstPropertyValue('sequence');
@@ -702,7 +710,7 @@ export function createRecurrenceException(
     : createICALTime(newEndDate, false, ical, originalStartZone);
 
   // Update DTSTAMP and increment SEQUENCE on the exception
-  const now = ical.Time.now();
+  const now = nowUTC(ical);
   masterVevent.updatePropertyWithValue('dtstamp', now);
   exceptionVevent.updatePropertyWithValue('dtstamp', now);
   const sequence = exceptionVevent.getFirstPropertyValue('sequence');
@@ -800,7 +808,7 @@ export function applyEditsToException(
     }
   }
 
-  exceptionVevent.updatePropertyWithValue('dtstamp', ical.Time.now());
+  exceptionVevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
 
   return root.toString();
 }
@@ -814,6 +822,12 @@ export function applyEditsToException(
  * exception times (e.g., an exception at 2AM remains at 2AM after shifting the base
  * series from 1AM to 3AM). Only RECURRENCE-ID shifts so ical-expander can still
  * substitute the exception for the correct (now-shifted) occurrence slot.
+ *
+ * The master's EXDATEs shift too: they name instants the rule does not occur at, so left
+ * behind they would exclude nothing.
+ *
+ * The delta is a fixed number of milliseconds, so a move across a DST change leaves the
+ * values on the far side of it an hour off, RECURRENCE-IDs and EXDATEs alike.
  *
  * @param ics - Master VCALENDAR ICS containing inline exception VEVENTs
  * @param deltaMs - Time delta in milliseconds (positive = forward, negative = backward)
@@ -831,31 +845,52 @@ export function shiftInlineExceptions(ics: string, deltaMs: number): string {
   // Register VTIMEZONE components so toJSDate() converts TZID-relative times correctly.
   registerTimezones(vcalendar, ical);
 
+  // Move an instant the way the master moves: whole days for a DATE value (a 23h or 25h DST
+  // delta must not truncate it into the previous day), a plain offset otherwise. A zoned value
+  // stays in its zone, because the property keeps its TZID parameter and a UTC value under a
+  // TZID is malformed (RFC 5545 section 3.3.5).
+  const shiftTime = (value: ICALTime) => {
+    const asDate = value.toJSDate();
+    if (value.isDate) {
+      return createAllDayTime(
+        new Date(
+          shiftedDayStartUnix(asDate.getTime() / 1000, Math.round(deltaMs / 86400000)) * 1000
+        ),
+        ical
+      );
+    }
+    const shifted = ical.Time.fromJSDate(new Date(asDate.getTime() + deltaMs), true);
+    const zone = value.zone;
+    const zoned = zone && zone.tzid && zone.tzid !== 'UTC' && zone.tzid !== 'floating';
+    return zoned ? shifted.convertToZone(zone) : shifted;
+  };
+
   for (const vevent of vcalendar.getAllSubcomponents('vevent')) {
     const ridProp = vevent.getFirstProperty('recurrence-id');
-    if (!ridProp) continue; // Skip the master VEVENT (no RECURRENCE-ID)
+    if (!ridProp) {
+      const exdateProps = vevent.getAllProperties('exdate');
+      if (exdateProps.length) {
+        for (const exProp of exdateProps) {
+          const values = exProp.getValues() as ICALTime[];
+          const shifted = values
+            .filter((v) => v && typeof v.toJSDate === 'function')
+            .map(shiftTime);
+          if (shifted.length === values.length && shifted.length) {
+            exProp.setValues(shifted);
+          }
+        }
+        vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
+      }
+      continue;
+    }
 
-    const ridValue = ridProp.getFirstValue() as any;
+    const ridValue = ridProp.getFirstValue() as ICALTime | null;
     if (!ridValue || typeof ridValue.toJSDate !== 'function') continue;
 
-    const ridDate = ridValue.toJSDate();
-
-    // A DATE-valued RECURRENCE-ID has to move in whole days, matching how the master shifts.
-    // deltaMs is 23h or 25h across a DST transition, and adding that to a date lands inside
-    // the same day, so createAllDayTime would truncate it back and detach the exception.
-    // An all-day delta is always whole days give or take the transition hour, so round it.
-    const newRidTime = (ridValue.isDate as boolean)
-      ? createAllDayTime(
-          new Date(
-            shiftedDayStartUnix(ridDate.getTime() / 1000, Math.round(deltaMs / 86400000)) * 1000
-          ),
-          ical
-        )
-      : // Keep as UTC (same format as createRecurrenceException)
-        ical.Time.fromJSDate(new Date(ridDate.getTime() + deltaMs), true);
+    const newRidTime = shiftTime(ridValue);
 
     vevent.updatePropertyWithValue('recurrence-id', newRidTime);
-    vevent.updatePropertyWithValue('dtstamp', ical.Time.now());
+    vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
   }
 
   return root.toString();
@@ -985,12 +1020,81 @@ export function addExclusionDate(ics: string, occurrenceStart: number, isAllDay:
   addExdateProperty(vevent, exdateTime, ical, originalZone);
 
   // Update DTSTAMP to indicate modification
-  vevent.updatePropertyWithValue('dtstamp', ical.Time.now());
+  vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
 
   // Increment SEQUENCE if present (for proper sync)
   const sequence = vevent.getFirstPropertyValue('sequence');
   if (sequence !== null) {
     vevent.updatePropertyWithValue('sequence', (parseInt(String(sequence), 10) || 0) + 1);
+  }
+
+  return root.toString();
+}
+
+/**
+ * Cancels the occurrence an inline exception VEVENT overrides: removes the VEVENT and excludes
+ * its slot on the master, in one write. Removing the VEVENT alone hands the slot back to the
+ * RRULE; the EXDATE is what cancels it.
+ *
+ * This is the only way to remove such an occurrence. The master and every exception share one
+ * calendar resource and the sync engine deletes by resource, so DestroyEventTask on an
+ * exception row takes the whole series with it (Foundry376/Mailspring-Sync#125 makes the
+ * engine refuse that form).
+ *
+ * @param ics - The master event's ICS data, including its inline exception VEVENTs
+ * @param recurrenceId - The RECURRENCE-ID of the exception to cancel, as stored on the row
+ * @returns The modified ICS, or the input unchanged when no exception matches
+ */
+export function removeInlineException(ics: string, recurrenceId: string): string {
+  const ical = getICAL();
+  const { root } = parseICSString(ics);
+
+  const vcalendar = root.name === 'vcalendar' ? root : null;
+  if (!vcalendar) return ics;
+
+  // Register VTIMEZONE components so a TZID-relative RECURRENCE-ID compares as the instant
+  // it names rather than as floating local time.
+  registerTimezones(vcalendar, ical);
+
+  // The row stores the RECURRENCE-ID as written ('20260302T060000Z', '20260302', or wall-clock
+  // text whose zone lives only on the property), so a zoned value is matched as text.
+  const wanted = recurrenceId.replace(/[-:]/g, '');
+  const utc = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/.exec(wanted);
+  const wantedMs = utc ? Date.UTC(+utc[1], +utc[2] - 1, +utc[3], +utc[4], +utc[5], +utc[6]) : null;
+
+  let master: ICALComponent | null = null;
+  let exception: ICALComponent | null = null;
+  let slot: ICALTime | null = null;
+  for (const vevent of vcalendar.getAllSubcomponents('vevent')) {
+    const ridProp = vevent.getFirstProperty('recurrence-id');
+    if (!ridProp) {
+      if (!master) master = vevent;
+      continue;
+    }
+    const ridValue = ridProp.getFirstValue() as ICALTime | null;
+    if (!ridValue || typeof ridValue.toJSDate !== 'function') continue;
+    const sameText = ridValue.toICALString() === wanted;
+    const sameInstant = wantedMs !== null && ridValue.toJSDate().getTime() === wantedMs;
+    if (sameText || sameInstant) {
+      exception = vevent;
+      slot = ridValue;
+    }
+  }
+
+  if (!master || !exception || !slot) return ics;
+
+  vcalendar.removeSubcomponent(exception);
+
+  // The EXDATE is the RECURRENCE-ID itself: the same instant, in the same zone and form, so
+  // it names the slot exactly the way the exception did.
+  addExdateProperty(master, slot.clone(), ical, slot.zone);
+  master.updatePropertyWithValue('dtstamp', nowUTC(ical));
+
+  // Cancelling an occurrence is a change the guests need to see, so advance SEQUENCE the way
+  // addExclusionDate does for a plain occurrence.
+  const sequence = master.getFirstPropertyValue('sequence');
+  if (sequence !== null) {
+    master.updatePropertyWithValue('sequence', (parseInt(String(sequence), 10) || 0) + 1);
   }
 
   return root.toString();
@@ -1032,7 +1136,7 @@ export function updateRecurrenceRule(ics: string, rruleString: string | null): s
   }
 
   // Update DTSTAMP to indicate modification
-  vevent.updatePropertyWithValue('dtstamp', ical.Time.now());
+  vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
 
   return root.toString();
 }
@@ -1074,7 +1178,7 @@ export function updateAttendees(
   }
 
   // Update DTSTAMP
-  vevent.updatePropertyWithValue('dtstamp', ical.Time.now());
+  vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
 
   return root.toString();
 }
@@ -1120,7 +1224,7 @@ export function updateEventProperty(
   if (!vevent) {
     throw new Error('Invalid ICS: no VEVENT component found');
   }
-  vevent.updatePropertyWithValue('dtstamp', ical.Time.now());
+  vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
 
   return root.toString();
 }
