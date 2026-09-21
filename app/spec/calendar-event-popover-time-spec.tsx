@@ -30,9 +30,8 @@ function makeOccurrence(): TimedOccurrence {
   } as TimedOccurrence;
 }
 
-// The popover wires both time fields to updateStart/updateEnd, and updateStart carries the end
-// along to preserve the duration. Driving the real pair together is what makes these assert the
-// outcome — neither date moves — instead of the instant a picker happens to emit.
+// Mirrors the popover's own wiring of these two fields (calendar-event-popover.tsx:534, :552);
+// a change to that JSX will not fail here.
 function renderTimeFields() {
   const popover: any = new CalendarEventPopover({
     event: makeOccurrence(),

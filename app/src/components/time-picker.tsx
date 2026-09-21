@@ -106,20 +106,24 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
   };
 
   _saveIfValid(rawText = '') {
+    // Compare the rendered text, not the parsed instant: re-parsing re-resolves an ambiguous
+    // fall-back wall clock, and a 24-hour locale's "05:30" trips _shouldAddTwelve.
+    if (rawText.trim() === this._valToTimeString(this.props.value)) {
+      return;
+    }
     // Locale-aware am/pm parsing!!
     const parsedMoment = moment(rawText, 'h:ma');
     if (parsedMoment.isValid()) {
       if (this._shouldAddTwelve(rawText) && parsedMoment.hour() < 12) {
-        parsedMoment.add(12, 'hours');
+        parsedMoment.hour(parsedMoment.hour() + 12);
       }
-      // 'h:ma' carries no date, so moment fills y/m/d from today. This field edits the clock
-      // time of the instant it was given and nothing else; blur re-parses the text it rendered,
-      // so without this a plain focus/blur would move the event to today.
-      const onDay = moment(this.props.value);
-      parsedMoment.year(onDay.year());
-      parsedMoment.dayOfYear(onDay.dayOfYear());
+      // 'h:ma' has no date tokens, so moment fills y/m/d from today.
+      const valueMoment = moment(this.props.value);
+      parsedMoment.year(valueMoment.year());
+      parsedMoment.dayOfYear(valueMoment.dayOfYear());
 
       if (parsedMoment.valueOf() === this.props.value) {
+        this.setState({ rawText: this._valToTimeString(this.props.value) });
         return;
       }
       this.props.onChange(parsedMoment.valueOf());
