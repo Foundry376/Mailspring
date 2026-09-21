@@ -112,6 +112,16 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
       if (this._shouldAddTwelve(rawText) && parsedMoment.hour() < 12) {
         parsedMoment.add(12, 'hours');
       }
+      // 'h:ma' carries no date, so moment fills y/m/d from today. This field edits the clock
+      // time of the instant it was given and nothing else; blur re-parses the text it rendered,
+      // so without this a plain focus/blur would move the event to today.
+      const onDay = moment(this.props.value);
+      parsedMoment.year(onDay.year());
+      parsedMoment.dayOfYear(onDay.dayOfYear());
+
+      if (parsedMoment.valueOf() === this.props.value) {
+        return;
+      }
       this.props.onChange(parsedMoment.valueOf());
     }
   }
