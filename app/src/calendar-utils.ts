@@ -62,7 +62,7 @@ export function parseICSString(ics: string) {
  * TZID-relative time gives the instant it names, and describes any zone a VEVENT refers to
  * without one. RFC 7809 lets a server omit the VTIMEZONE for an IANA zone, and ical.js has no
  * zone data of its own, so such a value would otherwise read as floating local time. The
- * synthesised zone carries the rules in force around the property's own date, and the registry is
+ * synthesised zone describes the property's own era and everything after it, and the registry is
  * process-wide: the first file to name a zone without its VTIMEZONE fixes those rules for every
  * later file that also omits it. A file that carries the VTIMEZONE replaces it. An identifier
  * moment-timezone does not know is left alone.
@@ -92,6 +92,25 @@ function registerTimezones(vcalendar: ICALComponent): void {
   }
 }
 
+let momentDataHorizonYear: number | null = null;
+
+/**
+ * The last year moment-timezone's data reaches. It runs every rule-based zone out to the same
+ * final year (2499 in tzdata 2026c) and then holds the last offset, so a transition in that year
+ * means the data stopped, not the zone.
+ */
+function dataHorizonYear(momentTz): number {
+  if (momentDataHorizonYear === null) {
+    momentDataHorizonYear = Math.max(
+      ...momentTz.tz.names().map((name: string) => {
+        const untils = momentTz.tz.zone(name).untils.filter(Number.isFinite);
+        return untils.length ? new Date(untils[untils.length - 1]).getUTCFullYear() : 0;
+      })
+    );
+  }
+  return momentDataHorizonYear;
+}
+
 /**
  * Builds a VTIMEZONE describing an IANA zone's offset rules.
  *
@@ -101,23 +120,30 @@ function registerTimezones(vcalendar: ICALComponent): void {
  * the object directly, compute from what is written here: a body claiming one fixed offset puts
  * every occurrence on the other side of a DST transition an hour out.
  *
- * The rules come from moment-timezone rather than being invented: the two transitions bracketing
- * `referenceDate` give the STANDARD and DAYLIGHT offsets, and each yearly RRULE is derived from
- * its transition date. A zone with no DST in that era yields a single STANDARD.
+ * The rules come from moment-timezone rather than being invented: a pair of transitions gives the
+ * STANDARD and DAYLIGHT offsets, and each yearly RRULE is derived from its transition date. A
+ * zone with no DST in that era yields a single STANDARD. An era still observing DST is described
+ * by the rule tzdata projects forward, the one the shipped zone database carries, so a series
+ * created under an earlier rule reads right today; an era that ended is described by the pair
+ * nearest `referenceDate`, since its final year may be irregular (Egypt's 2010 ends with a
+ * Ramadan break).
  *
  * Each rule's DTSTART is its first occurrence in 1970, the same anchor vzic and the ical-expander
  * zone database use, rather than the reference year's transition: ical.js matches a date before
  * the earliest DTSTART to no rule at all and reads its wall clock as UTC, so a component anchored
  * in July 2024 would put a February 2024 occurrence six hours out.
  *
- * A pair of transitions is only read as a DST year when they fall within 366 days of each other,
- * and the rules are bounded with UNTIL when moment knows of no transition after them, so that a
- * permanent offset change and an abolished DST regime both settle on a fixed offset rather than
- * repeating forever. What remains undescribed is a zone whose transitions are not an nth-weekday
- * rule at all: Morocco tracks Ramadan, America/Santiago changes on the Sunday on or after 2
- * September so a rule taken from one year is a week out in others, and Asia/Tehran used fixed
- * calendar dates. Those read an hour out for part of the year; vzic writes them as several
- * blocks with explicit RDATEs.
+ * Everything moment knows after the reference era is written too, so a series created before its
+ * zone dropped DST or moved its clock, and still running, reads right today: the rules carry
+ * UNTIL where the era ended, each later permanent offset change is an observance of its own, and
+ * a DST era that begins later gets its own pair of rules anchored at its first year. What remains
+ * undescribed is a rule change inside an era, whose earlier years read at the later rule (the US
+ * moved from the first Sunday of April to the second of March in 2007, so 20 March 2005 reads an
+ * hour out), and a zone whose transitions are not an nth-weekday rule at all:
+ * Morocco tracks Ramadan, America/Santiago changes on the Sunday on or after 2 September so a
+ * rule taken from one year is a week out in others, and Asia/Tehran used fixed calendar dates.
+ * Those read an hour out for part of the year; vzic writes them as several blocks with explicit
+ * RDATEs.
  *
  * @param tzId - IANA timezone identifier (e.g. 'America/Chicago'), reproduced verbatim as the TZID
  * @param referenceDate - The era whose rules are described; zones change theirs over time
@@ -147,94 +173,115 @@ export function createVTIMEZONEString(tzId: string, referenceDate: Date): string
     return last.subtract((last.day() - weekday + 7) % 7, 'days');
   };
 
-  // Section 3.6.5: DTSTART is the wall clock at which the rule takes effect, read in the offset
-  // being left (TZOFFSETFROM).
-  const sample = (at: Date, offsetFromMin: number) => {
-    const local = momentTz(at).utcOffset(offsetFromMin);
-    const after = momentTz(at).tz(tzId);
+  // moment's `untils` are the instants each offset stops applying: segment i runs from
+  // untils[i - 1] to untils[i] at offsets[i], minutes west of UTC, and the last entry is Infinity.
+  // A change of abbreviation alone is folded into the segment before it, since only offsets are
+  // described here: America/Ciudad_Juarez renamed -06:00 from MDT to CST in October 2022 in the
+  // middle of a DST year, and read as a transition that ends the year early.
+  const zone = momentTz.tz.zone(tzId);
+  const untils: number[] = [];
+  const offsets: number[] = [];
+  const names: string[] = [];
+  ((zone && zone.untils) || []).forEach((until: number, i: number) => {
+    if (offsets.length && offsets[offsets.length - 1] === zone.offsets[i]) {
+      untils[untils.length - 1] = until;
+      names[names.length - 1] = zone.abbrs[i];
+    } else {
+      untils.push(until);
+      offsets.push(zone.offsets[i]);
+      names.push(zone.abbrs[i]);
+    }
+  });
+
+  // The observance the transition into segment i begins. Section 3.6.5: DTSTART is the wall clock
+  // at which it takes effect, read in the offset being left (TZOFFSETFROM).
+  const observance = (i: number) => {
+    const at = untils[i - 1];
+    const offsetFrom = -offsets[i - 1];
+    const local = momentTz(at).utcOffset(offsetFrom);
     const month = local.month() + 1;
     // The EU switches on the *last* Sunday of the month, which is the fifth in some years and
     // the fourth in others; BYDAY=-1SU is the rule those zones mean.
     const nth =
       local.clone().add(7, 'days').month() !== local.month() ? -1 : Math.ceil(local.date() / 7);
     return {
-      dtstart: `${dayIn1970(month, nth, local.day()).format('YYYYMMDD')}T${local.format('HHmmss')}`,
-      month,
-      nth,
-      weekday: ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'][local.day()],
-      offsetTo: after.utcOffset(),
-      offsetFrom: offsetFromMin,
-      name: after.zoneAbbr(),
-      instant: at
-        .toISOString()
-        .replace(/[-:]/g, '')
-        .replace(/\.\d{3}/, ''),
+      day: local.format('YYYYMMDD'),
+      epochDay: dayIn1970(month, nth, local.day()).format('YYYYMMDD'),
+      time: local.format('HHmmss'),
+      rrule: `RRULE:FREQ=YEARLY;BYMONTH=${month};BYDAY=${nth}${
+        ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'][local.day()]
+      }`,
+      offsetFrom,
+      offsetTo: -offsets[i],
+      name: names[i],
     };
   };
 
-  const block = (kind: 'STANDARD' | 'DAYLIGHT', t: ReturnType<typeof sample>, until?: string) => [
+  const block = (
+    kind: 'STANDARD' | 'DAYLIGHT',
+    t: ReturnType<typeof observance>,
+    day: string,
+    rrule: string | null
+  ) => [
     `BEGIN:${kind}`,
-    `DTSTART:${t.dtstart}`,
-    `RRULE:FREQ=YEARLY;BYMONTH=${t.month};BYDAY=${t.nth}${t.weekday}` +
-      (until ? `;UNTIL=${until}` : ''),
+    `DTSTART:${day}T${t.time}`,
+    ...(rrule ? [rrule] : []),
     `TZOFFSETFROM:${formatOffset(t.offsetFrom)}`,
     `TZOFFSETTO:${formatOffset(t.offsetTo)}`,
     `TZNAME:${t.name}`,
     `END:${kind}`,
   ];
 
-  // moment-timezone's `untils` are the instants each offset stops applying; the two bracketing
-  // the reference date are the DST rules in force around it.
-  const zone = momentTz.tz.zone(tzId);
-  const untils: number[] = (zone && zone.untils) || [];
-  const refMs = referenceDate.getTime();
-  const idx = untils.findIndex((u) => u !== null && u > refMs);
-  const transitions: Date[] = [];
-  if (idx > 0) {
-    for (const u of [untils[idx - 1], untils[idx]]) {
-      if (u !== null && isFinite(u)) transitions.push(new Date(u));
-    }
-  }
+  // Section 3.6.5: an RRULE's UNTIL in a VTIMEZONE is always UTC.
+  const utc = (at: number) =>
+    new Date(at)
+      .toISOString()
+      .replace(/[-:]/g, '')
+      .replace(/\.\d{3}/, '');
+
   const YEAR_MS = 366 * 24 * 60 * 60 * 1000;
-  // An offset that outlasts a year, or that moment knows no end for, is not one half of a DST
-  // year. moment's last `untils` entry is Infinity.
-  const lasts = (from: number, to: number) => !isFinite(to) || to - from > YEAR_MS;
-
-  // Transitions over a year apart delimit permanent offsets rather than the halves of a DST
-  // year: Europe/Moscow's 2011 and 2014 moves bracket a June 2014 date, and read as a pair they
-  // invent perpetual summer time for a zone that has observed none since 2011.
-  let permanentChange: Date | null = null;
-  if (transitions.length === 2 && lasts(transitions[0].getTime(), transitions[1].getTime())) {
-    // Only when the new offset itself sticks: a 1900 reference brackets America/Chicago's 1883
-    // and 1918 changes, and the later one is the first day of a DST year.
-    if (lasts(transitions[1].getTime(), untils[idx + 1])) permanentChange = transitions[1];
-    transitions.length = 0;
-  }
-
-  // moment knows of no later transition, so this pair is the zone's last DST year: bound each
-  // rule at its own final transition. Section 3.6.5 continues the last observance indefinitely,
-  // so a reader then holds the standard offset — what America/Mexico_City, which abolished DST
-  // after 2022, actually does, rather than being an hour out every summer since.
-  const isFinalDSTYear = transitions.length === 2 && !isFinite(untils[idx + 1]);
-
-  const samples = transitions.map((at) =>
-    // One millisecond before the transition is the offset being left behind.
-    sample(
-      at,
-      momentTz(new Date(at.getTime() - 1))
-        .tz(tzId)
-        .utcOffset()
-    )
-  );
-  const daylight = samples.find((t) => samples.some((o) => t.offsetTo > o.offsetTo));
-  const standard = samples.find((t) => t !== daylight);
+  // One half of a DST year is shorter than a year; a longer segment, or the open-ended last one,
+  // is an offset the zone settled on.
+  const isDSTHalf = (i: number) => isFinite(untils[i]) && untils[i] - untils[i - 1] <= YEAR_MS;
 
   const body: string[] = [];
-  if (daylight && standard) {
-    body.push(
-      ...block('STANDARD', standard, isFinalDSTYear ? standard.instant : undefined),
-      ...block('DAYLIGHT', daylight, isFinalDSTYear ? daylight.instant : undefined)
-    );
+
+  // The two observances of a DST year, told apart by which sits at the greater offset.
+  const halves = (i: number) => {
+    const pair = [observance(i), observance(i + 1)];
+    const daylight = pair[0].offsetTo > pair[1].offsetTo ? pair[0] : pair[1];
+    return { DAYLIGHT: daylight, STANDARD: pair.find((t) => t !== daylight) };
+  };
+
+  // Writes the rule pair for the DST era that half-year `first` belongs to and returns the
+  // segment the caller continues from. Each rule starts at the era's first transition of its
+  // kind, or in 1970 for the era the reference falls in. An era that moment knows ended has its
+  // rules bounded just short of its last transition, which the caller writes as a permanent move:
+  // it may land on an offset neither rule names (Europe/Simferopol left its +02:00/+04:00 year
+  // for +03:00 in October 2014), and a rule whose date drifted in the final year still fires
+  // (America/Asuncion changed on 24 March 2024; the rule its 2023 date gives says the last
+  // Sunday, the 31st).
+  const describeEra = (first: number, anchor: 'epoch' | 'own'): number => {
+    let last = first;
+    while (isDSTHalf(last + 1)) last++;
+    const ended = new Date(untils[last]).getUTCFullYear() < dataHorizonYear(momentTz);
+    // A still-running era takes its latest rule: America/Indiana/Vincennes spent its first year
+    // on Central time before settling on Eastern.
+    const rules = halves(ended ? first : Math.max(first, last - 1));
+    const starts = halves(first);
+    const until = ended ? `;UNTIL=${utc(untils[last] - 1000)}` : '';
+    for (const kind of ['STANDARD', 'DAYLIGHT'] as const) {
+      const t = rules[kind];
+      body.push(
+        ...block(kind, t, anchor === 'epoch' ? t.epochDay : starts[kind].day, t.rrule + until)
+      );
+    }
+    return ended ? last : last + 1;
+  };
+
+  let i = untils.findIndex((u) => u > referenceDate.getTime());
+  if (isDSTHalf(i)) {
+    i = describeEra(i, 'epoch');
   } else {
     // No DST in this era: one STANDARD at the offset in force, and no RRULE because there is no
     // recurring transition to describe.
@@ -247,20 +294,16 @@ export function createVTIMEZONEString(tzId: string, referenceDate: Date): string
       `TZNAME:${m.zoneAbbr()}`,
       'END:STANDARD'
     );
-    if (permanentChange) {
-      // A second observance for the move the era ends at. The registry is process-wide (see
-      // registerTimezones), so without it one historical invite would hold every later date the
-      // session reads in this zone at the superseded offset.
-      const after = momentTz(permanentChange).tz(tzId);
-      const at = momentTz(permanentChange).utcOffset(m.utcOffset());
-      body.push(
-        'BEGIN:STANDARD',
-        `DTSTART:${at.format('YYYYMMDDTHHmmss')}`,
-        `TZOFFSETFROM:${formatOffset(m.utcOffset())}`,
-        `TZOFFSETTO:${formatOffset(after.utcOffset())}`,
-        `TZNAME:${after.zoneAbbr()}`,
-        'END:STANDARD'
-      );
+  }
+  // The registry is process-wide (see registerTimezones), so without what follows one historical
+  // invite would hold every later date the session reads in this zone at a superseded offset.
+  while (isFinite(untils[i])) {
+    if (isDSTHalf(i + 1)) {
+      i = describeEra(i + 1, 'own');
+    } else {
+      const t = observance(i + 1);
+      body.push(...block('STANDARD', t, t.day, null));
+      i++;
     }
   }
 

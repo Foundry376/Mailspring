@@ -1657,14 +1657,92 @@ describe('ICSEventHelpers.createVTIMEZONEString', function () {
     );
   });
 
+  it('bounds the rules of an era that ended after the reference', function () {
+    // October 2020 sits inside America/Mexico_City's last DST era, two years before it ended, so
+    // the transitions either side of it are a close pair with a successor. Left unbounded they
+    // repeat forever: 09:00 in July 2024 is 15:00Z at the CST the zone has kept, 14:00Z at CDT.
+    expect(readThrough('America/Mexico_City', '2020-10-15', '20240715T090000')).toBe(
+      '2024-07-15T15:00:00.000Z'
+    );
+  });
+
+  it('writes each permanent offset change after the era as its own observance', function () {
+    // Europe/Moscow's DST ended in March 2011 at +04:00, and October 2014 moved it to +03:00.
+    // Both are single transitions, not halves of a DST year: 09:00 in 2012 is 05:00Z, in 2024
+    // 06:00Z. Bounding the 2009 rules alone would hold +04:00 to this day.
+    expect(readThrough('Europe/Moscow', '2009-07-15', '20120715T090000')).toBe(
+      '2012-07-15T05:00:00.000Z'
+    );
+    expect(readThrough('Europe/Moscow', '2009-07-15', '20240715T090000')).toBe(
+      '2024-07-15T06:00:00.000Z'
+    );
+  });
+
+  it('describes a DST era that begins after the reference', function () {
+    // Africa/Cairo observed no DST from 2015 to 2022 and resumed in April 2023. A reference in
+    // that gap is one fixed +02:00; 09:00 EEST in July 2024 is 06:00Z, 07:00Z at the fixed offset.
+    expect(readThrough('Africa/Cairo', '2018-07-15', '20240715T090000')).toBe(
+      '2024-07-15T06:00:00.000Z'
+    );
+  });
+
+  it('describes an era still observing DST by the rule it settled on', function () {
+    // The US moved its spring transition from the first Sunday of April to the second of March
+    // in 2007. A series created in 2005 and still running needs the rule in force today, as the
+    // shipped zone database writes it: 09:00 CDT on 20 March 2024 is 14:00Z, and 15:00Z under the
+    // 2005 rule, which has that date on standard time.
+    expect(readThrough('America/Chicago', '2005-07-15', '20240320T090000')).toBe(
+      '2024-03-20T14:00:00.000Z'
+    );
+  });
+
+  it('describes a later era by the rule it settled on rather than its first year', function () {
+    // America/Indiana/Vincennes had no DST in 2005, spent 2006 on Central time and settled on
+    // Eastern in 2007. Its first year's pair puts every later summer at CDT: 09:00 EDT in July
+    // 2024 is 13:00Z, 14:00Z at CDT.
+    expect(readThrough('America/Indiana/Vincennes', '2005-07-15', '20240715T090000')).toBe(
+      '2024-07-15T13:00:00.000Z'
+    );
+  });
+
+  it('lets a rule whose date drifted in its final year fire before the era ends', function () {
+    // America/Asuncion's last change to standard time fell on 24 March 2024, while the rule its
+    // 2023 date gives, the last Sunday of March, says the 31st. Bounded at the 24th that rule
+    // never fires and the zone stays on summer time until DST is abolished that October: 09:00 in
+    // June 2024 is 13:00Z at -04:00, 12:00Z at -03:00.
+    expect(readThrough('America/Asuncion', '2022-10-15', '20240615T090000')).toBe(
+      '2024-06-15T13:00:00.000Z'
+    );
+  });
+
+  it('keeps a DST year whole across a rename in the middle of it', function () {
+    // America/Ciudad_Juarez's summer of 2022 was MDT until October and CST, the same -06:00,
+    // until it joined US rules that November. Read as a transition, the rename ends the era in
+    // March 2022 and the sliver after it seeds a rule pair with no year behind it: 09:00 MDT in
+    // July 2024 is 15:00Z, and reads 16:00Z.
+    expect(readThrough('America/Ciudad_Juarez', '2010-07-15', '20240715T090000')).toBe(
+      '2024-07-15T15:00:00.000Z'
+    );
+  });
+
   it('writes whole minutes for an era whose offset has seconds in it', function () {
     // America/Chicago ran on local mean time, -5:50:36, until 1883. Section 3.3.19 has no room
     // for the seconds, and an unrounded offset renders as TZOFFSETFROM:-0550.60000000000002.
     const offsets = lines('America/Chicago', '1880-01-15T12:00:00Z').filter((x) =>
       x.startsWith('TZOFFSET')
     );
-    expect(offsets.length).toBe(2);
+    expect(offsets).toContain('TZOFFSETTO:-0551');
     for (const line of offsets) expect(line).toMatch(/^TZOFFSET(FROM|TO):[+-]\d{4}$/);
+  });
+
+  it('writes a rename between equal offsets as a fixed offset, not a DST year', function () {
+    // Asia/Istanbul moved to permanent +03:00 in March 2016 and renamed it from EEST to +03 that
+    // September. A new name is not a new offset: read as a transition, the two bracket a June date
+    // less than a year apart and yield two rules at the same offset.
+    const l = lines('Asia/Istanbul', '2016-06-15T12:00:00Z');
+    expect(rules(l)).toEqual([]);
+    expect(l).not.toContain('BEGIN:DAYLIGHT');
+    expect(l).toContain('TZOFFSETTO:+0300');
   });
 
   it('emits a single STANDARD for a zone with no DST', function () {
