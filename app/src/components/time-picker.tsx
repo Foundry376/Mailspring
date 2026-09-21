@@ -10,7 +10,7 @@ const INTERVAL: [any, string] = [30, 'minutes'];
 
 type TimePickerProps = {
   value?: number;
-  onChange?: (...args: any[]) => any;
+  onChange?: (ms: number) => void;
   relativeTo?: number;
 };
 type TimePickerState = {
@@ -80,7 +80,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
       return;
     }
     this._gotoScrollStartOnUpdate = true;
-    this.props.onChange(newT);
+    this.props.onChange(newT.valueOf());
   }
 
   _onFocus = () => {
