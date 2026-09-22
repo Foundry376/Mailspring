@@ -55,6 +55,22 @@ describe('TimePicker', function timePicker() {
     expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe(`${EVENT_DAY} 16:00`);
   });
 
+  // 1 through 7 are read as afternoon; 8 and later are taken as typed, so a morning meeting
+  // does not need a meridiem.
+  it('promotes a bare hour only up to seven', () => {
+    const typeBareHour = (hour: string) => {
+      const { onChange, input } = renderPicker();
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value: hour } });
+      fireEvent.blur(input);
+      return lastEmitted(onChange).format('HH:mm');
+    };
+
+    expect(typeBareHour('7')).toBe('19:00');
+    expect(typeBareHour('8')).toBe('08:00');
+    expect(typeBareHour('12')).toBe('12:00');
+  });
+
   it('stays silent when the field is focused and blurred with no edit', () => {
     const { onChange, input } = renderPicker();
 
