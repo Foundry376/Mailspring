@@ -31,23 +31,21 @@ export class DatePicker extends React.Component<DatePickerProps, DatePickerState
     return this.props.value ? moment(this.props.value) : null;
   }
 
-  _onChange(newMoment: Moment) {
-    this.props.onChange(newMoment.valueOf());
-  }
-
-  // Both ways of changing the day go through here so they cannot disagree about the clock
-  // time: the arrow keys always kept it, the mini month used to replace it with midnight.
+  // Apply the time to the destination day rather than moving the value's own date: a
+  // same-day-next-year intermediate can land in that year's spring-forward gap and gain an hour.
   _changeDay(day: Moment) {
     const val = this.value();
-    if (!val) {
-      this._onChange(day);
-      return;
-    }
-    this._onChange(val.year(day.year()).dayOfYear(day.dayOfYear()));
+    const next = day.set({
+      hour: val.hour(),
+      minute: val.minute(),
+      second: val.second(),
+      millisecond: val.millisecond(),
+    });
+    this.props.onChange(next.valueOf());
   }
 
   _moveDay(numDays) {
-    this._changeDay(moment(this.props.value).add(numDays, 'days'));
+    this._changeDay(this.value().add(numDays, 'days'));
   }
 
   _onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {

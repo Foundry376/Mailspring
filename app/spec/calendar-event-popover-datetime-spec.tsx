@@ -32,8 +32,6 @@ function makeOccurrence(): TimedOccurrence {
   } as TimedOccurrence;
 }
 
-// Mirrors the popover's own wiring of these two fields (calendar-event-popover.tsx:534, :552);
-// a change to that JSX will not fail here.
 function makePopover() {
   const popover: any = new CalendarEventPopover({
     event: makeOccurrence(),
@@ -44,6 +42,8 @@ function makePopover() {
   return popover;
 }
 
+// This and renderStartDateField below copy the popover's own JSX wiring (calendar-event-popover.tsx
+// 532, 534, 552), so a change to those call sites will not fail anything here.
 function renderTimeFields() {
   const popover = makePopover();
 
@@ -68,8 +68,6 @@ function dayAndTime(unix: number) {
   return moment.unix(unix).format('YYYY-MM-DD HH:mm');
 }
 
-// The popover's "starts:" row wires a DatePicker beside the TimePicker, both to updateStart
-// (calendar-event-popover.tsx:532, :534).
 function renderStartDateField() {
   const popover = makePopover();
 

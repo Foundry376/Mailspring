@@ -4,25 +4,33 @@ import { render, fireEvent, cleanup } from '@testing-library/react';
 
 import { DatePicker } from '../../src/components/date-picker';
 
-// MiniMonthView tags each cell with local midnight of that day, so what the picker does with
-// the clock time of the value it was given is the whole question here.
 const EVENT_DAY = '2026-03-10';
-const TARGET_DAY = '2026-03-17';
 const VALUE = moment(`${EVENT_DAY} 15:00`, 'YYYY-MM-DD HH:mm').valueOf();
 
-// 1:30 AM happens twice on 2026-11-01 in the zone scripts/test.js pins: 06:30Z at -05:00, then
-// 07:30Z at -06:00. Picking a day says nothing about which, so this pins the same answer
-// secondsIntoDayUnix gives — the first.
-const AMBIGUOUS_VALUE = moment('2026-10-20 01:30', 'YYYY-MM-DD HH:mm').valueOf();
-const FALL_BACK_DAY = '2026-11-01';
+// 02:30 exists on this date but not on 2027-03-14, so a transplant that moves the value's own
+// date into the target year before moving the day passes through that gap and gains an hour.
+const GAP_ANNIVERSARY_VALUE = moment('2026-03-14 02:30', 'YYYY-MM-DD HH:mm').valueOf();
 
 describe('DatePicker', function datePicker() {
   afterEach(cleanup);
 
-  function renderPicker() {
+  function renderPicker(value = VALUE) {
     const onChange = jasmine.createSpy('onChange');
-    const { container } = render(<DatePicker value={VALUE} onChange={onChange} />);
-    return { onChange, picker: container.querySelector('.date-picker') as HTMLElement, container };
+    const { container } = render(<DatePicker value={value} onChange={onChange} />);
+    return { onChange, container, picker: container.querySelector('.date-picker') as HTMLElement };
+  }
+
+  // Opens the mini month, walks it to the target's month, and clicks that day's cell — the
+  // cells are keyed by local midnight (mini-month-view.tsx:95).
+  function pickDay(container: HTMLElement, picker: HTMLElement, target: string) {
+    fireEvent.focus(picker);
+    const day = moment(`${target} 00:00`, 'YYYY-MM-DD HH:mm');
+    const shown = () => moment(container.querySelector('.month-title').textContent, 'MMMM YYYY');
+    const [prev, next] = Array.from(container.querySelectorAll('.btn-icon'));
+    while (!shown().isSame(day, 'month')) {
+      fireEvent.click(shown().isBefore(day) ? next : prev);
+    }
+    fireEvent.click(container.querySelector(`.day[data-unix="${day.valueOf()}"]`) as HTMLElement);
   }
 
   function lastEmitted(onChange: jasmine.Spy) {
@@ -30,23 +38,43 @@ describe('DatePicker', function datePicker() {
   }
 
   it('keeps the clock time when a day is picked from the mini month', () => {
-    const { onChange, picker, container } = renderPicker();
+    const { onChange, container, picker } = renderPicker();
 
-    fireEvent.focus(picker);
-    const unix = moment(`${TARGET_DAY} 00:00`, 'YYYY-MM-DD HH:mm').valueOf();
-    fireEvent.click(container.querySelector(`.day[data-unix="${unix}"]`) as HTMLElement);
+    pickDay(container, picker, '2026-03-17');
 
     expect(onChange).toHaveBeenCalled();
-    expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe(`${TARGET_DAY} 15:00`);
+    expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe('2026-03-17 15:00');
+  });
+
+  it('keeps the clock time across a daylight-saving change', () => {
+    const { onChange, container, picker } = renderPicker();
+
+    pickDay(container, picker, '2026-11-01');
+
+    expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe('2026-11-01 15:00');
+  });
+
+  it('keeps the clock time when the destination is itself a spring-forward day', () => {
+    const { onChange, container, picker } = renderPicker();
+
+    pickDay(container, picker, '2026-03-08');
+
+    expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe('2026-03-08 15:00');
+  });
+
+  it('keeps the clock time when the value’s own date is a gap day in the target year', () => {
+    const { onChange, container, picker } = renderPicker(GAP_ANNIVERSARY_VALUE);
+
+    pickDay(container, picker, '2027-06-01');
+
+    expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe('2027-06-01 02:30');
   });
 
   it('lands on the first of two identical wall clocks when the day repeats an hour', () => {
-    const onChange = jasmine.createSpy('onChange');
-    const { container } = render(<DatePicker value={AMBIGUOUS_VALUE} onChange={onChange} />);
+    const value = moment('2026-10-20 01:30', 'YYYY-MM-DD HH:mm').valueOf();
+    const { onChange, container, picker } = renderPicker(value);
 
-    fireEvent.focus(container.querySelector('.date-picker') as HTMLElement);
-    const unix = moment(`${FALL_BACK_DAY} 00:00`, 'YYYY-MM-DD HH:mm').valueOf();
-    fireEvent.click(container.querySelector(`.day[data-unix="${unix}"]`) as HTMLElement);
+    pickDay(container, picker, '2026-11-01');
 
     expect(lastEmitted(onChange).valueOf()).toBe(Date.UTC(2026, 10, 1, 6, 30));
   });
