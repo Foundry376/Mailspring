@@ -1,8 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import classnames from 'classnames';
-import { EventOccurrence, occurrenceStartUnix, occurrenceEndUnix } from './calendar-data-source';
-import { calcEventColors } from './calendar-helpers';
+import {
+  EventOccurrence,
+  isTimed,
+  occurrenceStartUnix,
+  occurrenceEndUnix,
+} from './calendar-data-source';
+import { calcEventColors, formatShortTime } from './calendar-helpers';
 import { RecurringIcon } from './calendar-icons';
 import { HitZone } from './calendar-drag-types';
 import { detectHitZone, canMoveEvent, formatDragPreviewTime } from './calendar-drag-utils';
@@ -11,6 +16,8 @@ interface MonthViewEventProps {
   event: EventOccurrence;
   selected: boolean;
   focused: boolean;
+  /** Whether to lead with the start time: only for a timed event, in the cell of its first day */
+  showStartTime?: boolean;
   isDragging?: boolean;
   edgeZoneSize?: number;
   /** Whether the calendar containing this event is read-only */
@@ -206,7 +213,12 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
         onMouseDown={this._onMouseDown}
         tabIndex={0}
       >
-        <span className="month-view-event-title">{event.title}</span>
+        <span className="month-view-event-title">
+          {this.props.showStartTime && isTimed(event) && (
+            <span className="month-view-event-time">{formatShortTime(event.start)} </span>
+          )}
+          {event.title}
+        </span>
         {event.isRecurring && !event.isCancelled && !event.isException && (
           <RecurringIcon size={9} />
         )}

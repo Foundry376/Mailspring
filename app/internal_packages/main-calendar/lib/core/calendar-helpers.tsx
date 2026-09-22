@@ -333,6 +333,20 @@ export function clampEnd(startUnix: number, endUnix: number, isAllDay: boolean):
  * Only returns a string for events that are 1 hour or longer.
  * Returns null for shorter events or all-day events.
  */
+/**
+ * A time as compact as the locale allows: a 12-hour clock drops ":00" on the hour ("10 AM"),
+ * a 24-hour clock keeps LT ("10:00"), where a bare "10" would not read as a time.
+ */
+export function formatShortTime(unix: number): string {
+  const time = moment.unix(unix);
+  const lt = moment.localeData().longDateFormat('LT');
+  // moment's LT uses h for a 12-hour clock and H for a 24-hour one, as in time-picker.tsx
+  if (!/h/.test(lt) || time.minutes() !== 0) {
+    return time.format('LT');
+  }
+  return time.format(lt.replace(/[:.]mm/, ''));
+}
+
 export function formatEventTimeRange(
   startUnix: number,
   endUnix: number,
