@@ -179,6 +179,7 @@ export function calcEventColors(calendarId: string): {
   background: string;
   band: string;
   text: string;
+  selectedText: string;
 } {
   const baseColor = calcColor(calendarId);
   const parsed = parseColor(baseColor);
@@ -189,10 +190,12 @@ export function calcEventColors(calendarId: string): {
       background: baseColor,
       band: baseColor,
       text: 'inherit',
+      selectedText: 'white',
     };
   }
 
   const { r, g, b } = parsed;
+  const selectedText = textColorOnFill(parsed);
 
   const textParsed = getThemeTextColor();
   const mix = 0.4; // 40% calendar color, 60% theme text color
@@ -207,7 +210,21 @@ export function calcEventColors(calendarId: string): {
     band: `rgb(${r}, ${g}, ${b})`,
     // Calendar color mixed with theme text color for readability
     text: `rgb(${tr}, ${tg}, ${tb})`,
+    // Selection fills with the band color, so its text must read against that
+    selectedText,
   };
+}
+
+/** Black or white, whichever contrasts more with the fill (WCAG 2 relative luminance). */
+export function textColorOnFill({ r, g, b }: { r: number; g: number; b: number }): string {
+  const linear = (c: number) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  };
+  const luminance = 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
+  const contrastWithWhite = 1.05 / (luminance + 0.05);
+  const contrastWithBlack = (luminance + 0.05) / 0.05;
+  return contrastWithBlack > contrastWithWhite ? 'black' : 'white';
 }
 
 // Common video meeting URL patterns and their display names

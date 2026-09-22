@@ -142,6 +142,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     let styles: CSSProperties & {
       '--event-band-color'?: string;
       '--event-text-color'?: string;
+      '--event-selected-text-color'?: string;
     } = {};
     // Gaps between events are cut from the box, not drawn as borders, so the corners stay round.
     if (this.props.direction === 'vertical') {
@@ -160,6 +161,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     // Set CSS custom property for the left band color
     styles['--event-band-color'] = colors.band;
     styles['--event-text-color'] = colors.text;
+    styles['--event-selected-text-color'] = colors.selectedText;
 
     if (this.props.event.isCancelled) {
       // Cancelled events get a transparent background with colored border

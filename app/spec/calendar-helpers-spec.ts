@@ -3,6 +3,7 @@ import {
   inclusiveAllDayEnd,
   shiftEndWithStart,
   clampEnd,
+  textColorOnFill,
 } from '../internal_packages/main-calendar/lib/core/calendar-helpers';
 import {
   shiftedDayStartUnix,
@@ -170,5 +171,17 @@ describe('all-day day math at a DST transition', function () {
       const from = calendarDateFromUnix(shiftedDayStartUnix(start, 1));
       expect(calendarDaysBetween(from, calendarDateFromUnix(moved))).toBe(3);
     });
+  });
+});
+
+describe('textColorOnFill', function () {
+  it('puts black text on a light calendar color', function () {
+    expect(textColorOnFill({ r: 172, g: 222, b: 230 })).toBe('black'); // pale cyan
+    expect(textColorOnFill({ r: 255, g: 204, b: 0 })).toBe('black'); // yellow
+  });
+
+  it('puts white text on a dark calendar color', function () {
+    expect(textColorOnFill({ r: 23, g: 71, b: 173 })).toBe('white'); // deep blue
+    expect(textColorOnFill({ r: 176, g: 30, b: 40 })).toBe('white'); // dark red
   });
 });

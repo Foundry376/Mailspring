@@ -175,7 +175,7 @@ body.platform-win32 {
     &.selected {
       .default-header,
       .event-details {
-        color: @text-color-inverse;
+        color: var(--event-selected-text-color);
       }
     }
 
@@ -234,7 +234,7 @@ body.platform-win32 {
     }
 
     &.selected .recurring-icon {
-      color: @text-color-inverse;
+      color: var(--event-selected-text-color);
     }
 
     // Hide recurring icon on horizontal (all-day) events - too small
@@ -641,7 +641,7 @@ body.platform-win32 {
       }
 
       &.selected .recurring-icon {
-        color: @text-color-inverse;
+        color: var(--event-selected-text-color);
       }
 
       &:focus {
@@ -650,7 +650,7 @@ body.platform-win32 {
       }
 
       &.selected .month-view-event-title {
-        color: @text-color-inverse;
+        color: var(--event-selected-text-color);
         opacity: 1;
       }
 
@@ -941,18 +941,18 @@ body.platform-win32 {
       }
 
       &.selected {
-        background: @accent-primary;
+        background: var(--event-band-color);
         // Match thread-list .inverseContent() for legibility on dark backgrounds
         -webkit-font-smoothing: antialiased;
 
         .agenda-event-time,
         .agenda-event-title,
         .agenda-event-location {
-          color: @text-color-inverse;
+          color: var(--event-selected-text-color);
         }
 
         .agenda-event-color-bar {
-          background-color: @text-color-inverse !important;
+          background-color: var(--event-selected-text-color) !important;
         }
       }
 
