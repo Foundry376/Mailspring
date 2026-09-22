@@ -122,12 +122,14 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
       parsedMoment.year(valueMoment.year());
       parsedMoment.dayOfYear(valueMoment.dayOfYear());
 
-      if (parsedMoment.valueOf() === this.props.value) {
-        this.setState({ rawText: this._valToTimeString(this.props.value) });
+      if (parsedMoment.valueOf() !== this.props.value) {
+        this.props.onChange(parsedMoment.valueOf());
         return;
       }
-      this.props.onChange(parsedMoment.valueOf());
     }
+    // Nothing was emitted, so props.value will not change and componentDidUpdate will not
+    // re-derive the text. Put the field back on the time it is meant to be showing.
+    this.setState({ rawText: this._valToTimeString(this.props.value) });
   }
 
   // moment's LT uses h for a 12-hour clock and H for a 24-hour one. Test the hour token rather

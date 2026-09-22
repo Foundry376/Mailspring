@@ -102,6 +102,17 @@ describe('TimePicker', function timePicker() {
     expect(input.value).toBe(moment(VALUE).format('LT'));
   });
 
+  it('puts the field back on its value when the text cannot be parsed', () => {
+    const { onChange, input } = renderPicker();
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: '25' } });
+    fireEvent.blur(input);
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(input.value).toBe(moment(VALUE).format('LT'));
+  });
+
   it('emits milliseconds from the arrow keys', () => {
     const { onChange, input } = renderPicker();
 
