@@ -93,7 +93,7 @@ describe('TimePicker', function timePicker() {
   });
 
   // date-utils.ts runs moment.locale(navigator.language) at startup, so a German or Japanese
-  // user's field renders "05:30" — digits only, which is the shape _shouldAddTwelve promotes.
+  // user's field renders and accepts 24-hour text.
   describe('in a 24-hour locale', () => {
     beforeEach(() => moment.locale('de'));
     afterEach(() => moment.locale('en'));
@@ -106,6 +106,16 @@ describe('TimePicker', function timePicker() {
 
       expect(input.value).toBe('05:30');
       expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('reads a typed HH:mm as the hour that was typed', () => {
+      const { onChange, input } = renderPicker();
+
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value: '06:30' } });
+      fireEvent.blur(input);
+
+      expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe(`${EVENT_DAY} 06:30`);
     });
 
     it('reads a bare hour as the hour that was typed', () => {
@@ -121,7 +131,9 @@ describe('TimePicker', function timePicker() {
 
   // A meridiem test would get both of these wrong: lb is 24-hour but its LT carries a
   // bracketed "Auer", and si is 12-hour with a lowercase marker.
-  it('reads a bare hour by the locale\u2019s hour token, not its meridiem', () => {
+  describe('picking the clock a locale uses', () => {
+    afterEach(() => moment.locale('en'));
+
     const typeBareFive = () => {
       const { onChange, input } = renderPicker();
       fireEvent.focus(input);
@@ -130,13 +142,13 @@ describe('TimePicker', function timePicker() {
       return lastEmitted(onChange).format('HH:mm');
     };
 
-    moment.locale('lb');
-    expect(typeBareFive()).toBe('05:00');
+    it('reads the hour token rather than the meridiem', () => {
+      moment.locale('lb');
+      expect(typeBareFive()).toBe('05:00');
 
-    moment.locale('si');
-    expect(typeBareFive()).toBe('17:00');
-
-    moment.locale('en');
+      moment.locale('si');
+      expect(typeBareFive()).toBe('17:00');
+    });
   });
 
   it('emits milliseconds from the dropdown', () => {

@@ -106,8 +106,8 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
   };
 
   _saveIfValid(rawText = '') {
-    // Compare the rendered text, not the parsed instant: re-parsing re-resolves an ambiguous
-    // fall-back wall clock, and a 24-hour locale's "05:30" trips _shouldAddTwelve.
+    // Compare the rendered text, not the parsed instant: re-parsing an ambiguous fall-back
+    // wall clock re-resolves it to the earlier offset.
     if (rawText.trim() === this._valToTimeString(this.props.value)) {
       return;
     }
