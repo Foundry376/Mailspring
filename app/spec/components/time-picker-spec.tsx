@@ -56,8 +56,8 @@ describe('TimePicker', function timePicker() {
   });
 
   // 1 through 7 are read as afternoon; 8 and later are taken as typed, so a morning meeting
-  // does not need a meridiem.
-  it('promotes a bare hour only up to seven', () => {
+  // does not need a meridiem. 0 is the one hour nobody writes to mean the afternoon.
+  it('promotes a bare hour from one to seven only', () => {
     const typeBareHour = (hour: string) => {
       const { onChange, input } = renderPicker();
       fireEvent.focus(input);
@@ -66,6 +66,8 @@ describe('TimePicker', function timePicker() {
       return lastEmitted(onChange).format('HH:mm');
     };
 
+    expect(typeBareHour('0')).toBe('00:00');
+    expect(typeBareHour('1')).toBe('13:00');
     expect(typeBareHour('7')).toBe('19:00');
     expect(typeBareHour('8')).toBe('08:00');
     expect(typeBareHour('12')).toBe('12:00');

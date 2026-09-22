@@ -148,7 +148,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
     const simpleDigitMatch = rawText.match(/^(\d{1,2})(:\d{1,2})?$/);
     if (simpleDigitMatch && simpleDigitMatch.length > 0) {
       const hr = parseInt(simpleDigitMatch[1], 10);
-      if (hr <= 7) {
+      if (hr >= 1 && hr <= 7) {
         return true;
       }
     }
