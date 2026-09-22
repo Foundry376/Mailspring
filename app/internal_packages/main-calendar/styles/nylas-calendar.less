@@ -941,18 +941,18 @@ body.platform-win32 {
       }
 
       &.selected {
-        background: var(--event-band-color);
+        background: @accent-primary;
         // Match thread-list .inverseContent() for legibility on dark backgrounds
         -webkit-font-smoothing: antialiased;
 
         .agenda-event-time,
         .agenda-event-title,
         .agenda-event-location {
-          color: var(--event-selected-text-color);
+          color: @text-color-inverse;
         }
 
         .agenda-event-color-bar {
-          background-color: var(--event-selected-text-color) !important;
+          background-color: @text-color-inverse !important;
         }
       }
 

@@ -194,12 +194,6 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
         onClick={(e) => this.props.onEventClick(e, event)}
         onDoubleClick={(e) => this._onAgendaEventDoubleClick(e, event)}
         tabIndex={0}
-        style={
-          {
-            '--event-band-color': colors.band,
-            '--event-selected-text-color': colors.selectedText,
-          } as React.CSSProperties
-        }
       >
         <div className="agenda-event-color-bar" style={{ backgroundColor: colors.band }} />
         <div className="agenda-event-time">{this._formatEventTime(event)}</div>
