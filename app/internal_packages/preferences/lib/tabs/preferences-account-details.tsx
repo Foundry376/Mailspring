@@ -195,7 +195,7 @@ class PreferencesAccountDetails extends Component<
   };
 
   _onContactSupport = () => {
-    shell.openExternal('https://support.getmailspring.com/hc/en-us/requests/new');
+    shell.openExternal('https://community.getmailspring.com/c/sync/22');
   };
 
   _onShowErrorDetails = async () => {

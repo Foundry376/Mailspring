@@ -60,6 +60,8 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
   mounted = false;
   updateCount = 0;
   fallback: Direction;
+  placing = true;
+  resizeObserver: ResizeObserver;
 
   constructor(props: FixedPopoverProps) {
     super(props);
@@ -75,6 +77,8 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
     this.mounted = true;
     findDOMNode(this.refs.popoverContainer).addEventListener('animationend', this.onAnimationEnd);
     window.addEventListener('resize', this.onWindowResize);
+    this.resizeObserver = new ResizeObserver(this.onPopoverResized);
+    this.resizeObserver.observe(findDOMNode(this.refs.popover) as Element);
     _.defer(this.onPopoverRendered);
   }
 
@@ -99,6 +103,7 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
       this.onAnimationEnd
     );
     window.removeEventListener('resize', this.onWindowResize);
+    this.resizeObserver.disconnect();
   }
 
   onAnimationEnd = () => {
@@ -108,6 +113,19 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
   onWindowResize() {
     Actions.closePopover();
   }
+
+  // The content can change size once the popover is placed: the event card becomes the editor
+  // in place, and the taller box, still centred on its anchor, runs past the window. Placement
+  // starts over from the requested direction, as opening at the new size would.
+  onPopoverResized = () => {
+    if (!this.mounted || this.placing) {
+      return;
+    }
+    this.placing = true;
+    this.updateCount = 0;
+    this.fallback = this.props.fallbackDirection;
+    this.setState({ direction: this.props.direction, offset: {} }, this.onPopoverRendered);
+  };
 
   onPopoverRendered = () => {
     if (!this.mounted) {
@@ -128,6 +146,7 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
         // where it overflows. The direction that produced currentRect is kept, because the
         // correction is measured against it - so a popover given a fallbackDirection settles
         // in the direction that was tried last rather than the one originally asked for.
+        this.placing = false;
         this.setState({
           offset: this.computeClampedOffset({
             currentRect,
@@ -144,6 +163,7 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
       this.updateCount++;
       this.setState(newState);
     } else {
+      this.placing = false;
       this.setState({ visible: true });
     }
   };

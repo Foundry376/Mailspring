@@ -131,7 +131,7 @@ export default class ThreadSharingPopover extends React.Component<
             </label>
           )}
           <div className="meta">
-            <a href="https://community.getmailspring.com/t/share-email-conversations-with-shareable-links/165">
+            <a href="https://getmailspring.com/docs/share-email-conversations-with-shareable-links">
               {localized('Learn More')}
             </a>
           </div>

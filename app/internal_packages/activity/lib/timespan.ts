@@ -1,4 +1,4 @@
-import moment from 'moment';
+import moment, { Moment } from 'moment';
 import { localized } from 'mailspring-exports';
 
 export const DEFAULT_TIMESPAN_ID = '14';
@@ -42,4 +42,23 @@ export function getTimespanStartEnd(id: string) {
       .add(1, 'minute'),
     moment(),
   ];
+}
+
+export interface Timespan {
+  id: string;
+  startDate: Moment;
+  endDate: Moment;
+  days: number;
+}
+
+export function timespanForId(id: string): Timespan {
+  const [startDate, endDate] = getTimespanStartEnd(id);
+  // if the difference in days is 1, we need to display [0, 1] = 2 items
+  const days = endDate.diff(startDate, 'days') + 1;
+  return { id, startDate, endDate, days };
+}
+
+/** "Today", "Last N days" and the current month run through now rather than to a fixed end. */
+export function timespanEndsNow(timespan: Timespan) {
+  return !timespan.id.startsWith('month-') || timespan.id === 'month-0';
 }

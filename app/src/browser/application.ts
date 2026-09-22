@@ -461,7 +461,7 @@ export default class Application extends EventEmitter {
     });
 
     this.on('application:view-help', () => {
-      const helpUrl = 'https://community.getmailspring.com/docs';
+      const helpUrl = 'https://getmailspring.com/docs/';
       shell.openExternal(helpUrl);
     });
 

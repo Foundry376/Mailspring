@@ -1,4 +1,5 @@
-import { lastJSONResponse } from '../src/mailsync-process';
+import { EventEmitter } from 'events';
+import { lastJSONResponse, MailsyncProcess } from '../src/mailsync-process';
 
 describe('lastJSONResponse', function () {
   it('reads a result that has no trailing newline', function () {
@@ -59,5 +60,59 @@ describe('accumulating mailsync stdout', function () {
     const joined = Buffer.concat(chunks).toString('utf-8');
     expect(joined).toEqual(payload);
     expect(lastJSONResponse(joined)).toEqual({ error: 'Café serveur' });
+  });
+});
+
+describe('interpreting a mailsync exit', function () {
+  let proc: MailsyncProcess = null;
+  let child: any = null;
+
+  beforeEach(function () {
+    proc = new MailsyncProcess({ configDirPath: '/tmp', resourcePath: '/tmp', verbose: false });
+    child = new EventEmitter();
+    child.stdout = new EventEmitter();
+    child.stderr = new EventEmitter();
+    spyOn(proc as any, '_spawnProcess').andCallFake(() => {
+      (proc as any)._proc = child;
+    });
+  });
+
+  const errorFromTest = (stdout: string, code: number) => {
+    const promise = proc.test();
+    child.stdout.emit('data', Buffer.from(stdout, 'utf-8'));
+    child.emit('close', code, null);
+    return promise.then(
+      () => {
+        throw new Error('expected `test` to reject');
+      },
+      (err) => err
+    );
+  };
+
+  it('flags a failure the engine classified as this machine being offline', async function () {
+    const err = await errorFromTest(
+      '{"error":"ErrorConnection","error_service":"imap","error_offline":true,"log":"..."}',
+      1
+    );
+    expect(err.isNetworkError).toBe(true);
+  });
+
+  it('does not flag a failure the server itself reported', async function () {
+    const err = await errorFromTest(
+      '{"error":"ErrorAuthentication","error_service":"imap","error_offline":false,"log":"..."}',
+      1
+    );
+    expect(err.isNetworkError).toBe(false);
+  });
+
+  it('does not flag a result from an engine that predates the field', async function () {
+    const err = await errorFromTest('{"error":"ErrorConnection","error_service":"imap"}', 1);
+    expect(err.isNetworkError).toBe(false);
+  });
+
+  it('reports a crash as an unknown error, whatever the dump contains', async function () {
+    const err = await errorFromTest('terminate called\n{"offline":true,"retryable":true', 134);
+    expect(err.message).toContain('mailsync: 134');
+    expect(err.isNetworkError).toBe(undefined);
   });
 });

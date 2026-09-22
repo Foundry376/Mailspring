@@ -391,8 +391,11 @@ export class MailspringCalendar extends React.Component<
     );
   };
 
+  // Fires once the focused event has scrolled itself into view. Clearing the flag here keeps
+  // a later unrelated re-render from re-running that scroll (and reopening the popover).
   _onEventFocused = (occurrence: EventOccurrence) => {
     this._openEventPopover(occurrence);
+    this.setState({ focusedEvent: null });
   };
 
   _onDeleteSelectedEvents = async () => {

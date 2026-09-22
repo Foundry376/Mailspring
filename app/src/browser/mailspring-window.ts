@@ -144,6 +144,24 @@ export default class MailspringWindow extends EventEmitter {
     }
 
     this.browserWindow = new BrowserWindow(browserWindowOptions);
+
+    // Constrain every <webview> guest to low-privilege preferences regardless of
+    // the attributes on the tag, and strip any preload it requests. The only
+    // legitimate guest (the onboarding sign-in view in
+    // app/src/components/webview.tsx) displays remote web content and needs none
+    // of these privileges. Do not relax this. See GHSA-x8wg-258g-v28h.
+    this.browserWindow.webContents.on('will-attach-webview', (_event, webPreferences, params) => {
+      delete (webPreferences as any).preload;
+      delete (params as any).preload;
+      delete (params as any).webpreferences;
+      delete (params as any).nodeintegration;
+      delete (params as any).nodeintegrationinsubframes;
+      webPreferences.nodeIntegration = false;
+      webPreferences.nodeIntegrationInSubFrames = false;
+      webPreferences.contextIsolation = true;
+      webPreferences.sandbox = true;
+    });
+
     require('@electron/remote/main').enable(this.browserWindow.webContents);
     (this.browserWindow as any).updateLoadSettings = this.updateLoadSettings;
 

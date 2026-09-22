@@ -1,5 +1,50 @@
 # Mailspring Changelog
 
+## 1.25.0 (9/19/2026)
+
+Features:
+
+- The Activity panel has been redesigned around three tabs: a new **Feed** tab lists every open and click with search, filtering, grouping by recipient or message, collapsing of repeated events and CSV export; a new **Engagement** tab ranks your recipients by how much they open and click your mail; and **Reports** has a new design with more charts.
+- Added a "Go to Unread" navigation command (`g u` in the Gmail shortcut set), listed under View in the menu bar and rebindable from Preferences > Shortcuts.
+- On macOS, the base theme now matches the macOS 27 toolbar and window styling.
+
+Security:
+
+This version includes several patches for security vulnerabilities and is recommended for all users. Thanks 홍서연 at ENKI WhiteHat for detailed investigation and reporting.
+
+Bug Fixes:
+
+- Fixed initial sync silently dropping messages on servers that advertise CONDSTORE and QRESYNC (FastMail, Dovecot, Zoho and others). Only the first 1024 messages of each 5000-message chunk were ingested.
+- Fixed QRESYNC VANISHED handling that could unlink an entire folder's messages or drop expunges permanently on CONDSTORE+QRESYNC servers.
+- Fixed a crash loop when an IMAP server or gateway (DavMail, Proton Bridge, Zoho) lists the same mailbox twice.
+- Fixed Inbox and Sent appearing empty, with messages flickering between folders, on non-Gmail accounts that expose an `\All` mailbox. Messages that exist in both Inbox and Sent now consistently resolve to one folder.
+- Fixed SMTP connections failing on servers that enforce RFC 5321's requirement that EHLO/HELO carry a fully qualified domain name or address literal.
+- Fixed a sync-engine crash on launch when two accounts started contact sync in the same second and generated identical contact IDs. Random IDs are now seeded from the OS entropy source.
+- Fixed malformed OAuth token responses crashing the sync engine, and a task with a null JSON field wedging it.
+- Fixed Proton accounts losing their container folder, which placed Mailspring's helper folders (Snoozed) in the wrong place. `proton.me` addresses are now recognized, and Thunderbird autoconfig no longer overrides Mailspring's provider settings. (#2886)
+- Fixed adding a Gmail or Office 365 account while offline reporting "Unable to connect to the server / port you provided" instead of an offline error. (#2887)
+- Fixed the print window rendering inverted when the dark email render mode is enabled.
+- Fixed deleting a single moved occurrence of a recurring event deleting the entire series from the server. (#2866) Thanks @brhellman!
+- Fixed editing any field of a recurring event resetting its recurrence rule, so a fortnightly meeting became weekly and RDATE-only series lost their dates. (#2868) Thanks @brhellman!
+- Fixed moving a recurring series leaving its EXDATEs behind, so every cancelled occurrence came back on every guest's calendar. (#2867) Thanks @brhellman!
+- Fixed events with an IANA TZID whose VTIMEZONE the CalDAV server omitted (RFC 7809) reading as floating local time. (#2877) Thanks @brhellman!
+- Calendar edits now write DTSTAMP in UTC as required by RFC 5545. (#2873) Thanks @brhellman!
+- Fixed the calendar toolbar overlapping the date below ~800px wide, and day headings drifting from their columns. (#2870) Thanks @brhellman!
+- The event card and editor now scroll when they outgrow the window, so Save and Cancel are always reachable. (#2874, #2878) Thanks @brhellman!
+- Fixed a focused calendar event reopening its card and scrolling the grid on every re-render and view switch. (#2872) Thanks @brhellman! (#2882) Thanks @manilabui!
+- Fixed the time tooltip never appearing while dragging a calendar event. (#2871) Thanks @brhellman!
+- Fixed an invitation's date rendering in the same red as the conflict warning; the location is now a clickable link. (#2869) Thanks @brhellman!
+
+Improvements:
+
+- Knowledge base links throughout the app now point to the new documentation URLs.
+
+Developer:
+
+- The Windows build now fails if any shipped PE binary lacks a certificate table, and surfaces signtool's error when installer signing fails. (#2884)
+- Certificate failures in the sync engine are logged through MCLog instead of a stderr BIO.
+- Updated CONTRIBUTING.md with the current Node version and instructions for downloading mailsync.
+
 ## 1.24.1 (9/14/2026)
 
 Features:
@@ -857,9 +902,12 @@ If you are upgrading from an old version of Mailspring, download and run 1.12.0 
 
 If you're using the snap version of Mailspring, you may find that Mailspring forgets your passwords when you upgrade. I'm very sorry for the hassle this causes - issues with snap containment in version 1.12.0 caused Mailspring to lose many user's passwords during the upgrade process. If this applies to you, you may see password errors and need to:
 
-    Visit Preferences > Subscription and click Setup Mailspring ID and sign back in to your Mailspring account. (You should see an alert at launch that will remind you which email address you'd used for your Mailspring ID)
+    Visit Preferences > Subscription and click Setup Mailspring ID and sign back in to your Mailspring
+    account. (You should see an alert at launch that will remind you which email address you'd used
+    for your Mailspring ID)
 
-    Visit Preferences > Accounts and re-authenticate any accounts shown in red that are having connection difficulty.
+    Visit Preferences > Accounts and re-authenticate any accounts shown in red that are having
+    connection difficulty.
 
 ## 1.12.0 (10/09/2023)
 

@@ -1,0 +1,167 @@
+@import 'ui-variables';
+
+.engagement-board {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+
+  .engagement-body {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  // Shown above the (empty) columns so the layout is visible before any tracked mail exists.
+  .activity-feed-empty-state {
+    flex: none;
+    padding: 12px 20px 28px 20px;
+    .logo {
+      display: none;
+    }
+  }
+
+  .engagement-columns {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    gap: 16px;
+    padding: 0 20px 20px 20px;
+  }
+
+  .engagement-column {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    background: @background-secondary;
+    border-radius: @border-radius-large;
+
+    .column-header {
+      padding: 12px 14px 10px 14px;
+      border-bottom: 1px solid @border-color-divider;
+      .label {
+        font-weight: @font-weight-semi-bold;
+      }
+      .count {
+        margin-left: 8px;
+        color: @text-color-very-subtle;
+      }
+      .description {
+        margin-top: 2px;
+        font-size: @font-size-small;
+        color: @text-color-very-subtle;
+      }
+    }
+
+    .column-scroll {
+      flex: 1;
+      min-height: 0;
+      .scroll-region-content-inner {
+        padding: 10px;
+      }
+    }
+  }
+
+  .engagement-card {
+    background: @background-primary;
+    border-radius: @border-radius-base;
+    box-shadow: 0 0.5px 1.5px @standard-shadow-color;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+    font-size: @font-size-small;
+    color: @text-color-subtle;
+
+    &.stale {
+      opacity: 0.55;
+    }
+
+    // A long name gives way before the address disappears, and vice versa.
+    .title {
+      color: @text-color;
+      font-size: @font-size-base;
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      white-space: nowrap;
+      .name,
+      .detail {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .name {
+        font-weight: @font-weight-semi-bold;
+        flex: 0 3 auto;
+      }
+      .detail {
+        flex: 0 1 auto;
+        max-width: 60%;
+        color: @text-color-very-subtle;
+        font-size: @font-size-small;
+        &.contacts {
+          flex-shrink: 0;
+        }
+      }
+      .selectable {
+        cursor: text;
+      }
+    }
+    .stats {
+      margin-top: 2px;
+      color: @text-color-very-subtle;
+    }
+    .stats + .thread {
+      margin-top: 12px;
+    }
+    .thread {
+      margin-top: 4px;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      white-space: nowrap;
+      .subject {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        color: @text-color;
+        cursor: default;
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+      .status {
+        flex-shrink: 0;
+        color: @text-color-very-subtle;
+        img {
+          vertical-align: text-bottom;
+          margin-right: 6px;
+        }
+      }
+    }
+    .actions {
+      margin-top: 12px;
+      padding-top: 8px;
+      border-top: 1px solid fade(@border-color-divider, 60%);
+      display: flex;
+      justify-content: flex-end;
+      gap: 16px;
+      font-size: @font-size-smaller;
+      a {
+        color: @text-color-very-subtle;
+        cursor: default;
+        img {
+          margin-left: 7px;
+          vertical-align: baseline;
+          opacity: 0.6;
+        }
+        &:hover {
+          color: @text-color-link;
+        }
+      }
+    }
+  }
+}
