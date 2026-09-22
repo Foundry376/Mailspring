@@ -48,20 +48,33 @@ describe('DraftEditingSession.ensureCorrectAccount', function () {
     expect(session.draft().accountId).toBe(TEST_ACCOUNT_ID);
   });
 
-  it('throws on a reply whose From is not one of the user identities', async function () {
+  it('sends a reply from the account address when From is not an alias', async function () {
+    const account = AccountStore.accounts()[0];
     const session = sessionFor(
       makeDraft({
         threadId: 'thread-1',
-        from: [new Contact({ email: 'stranger@example.com' })],
+        from: [new Contact({ email: 'not-an-alias@example.com', name: 'Someone' })],
       } as any)
     );
 
-    try {
-      await session.ensureCorrectAccount();
-      expect('should have thrown').toBe('');
-    } catch (err) {
-      expect(err.message).toMatch(/configured account/);
-    }
+    await session.ensureCorrectAccount();
+
+    expect(session.draft().from[0].email).toBe(account.emailAddress);
+    expect(session.draft().accountId).toBe(account.id);
+    expect(Actions.queueTask).not.toHaveBeenCalled();
+  });
+
+  it('keeps a reply From that is an alias on the account', async function () {
+    const session = sessionFor(
+      makeDraft({
+        threadId: 'thread-1',
+        from: [new Contact({ email: TEST_ACCOUNT_ALIAS_EMAIL })],
+      } as any)
+    );
+
+    await session.ensureCorrectAccount();
+
+    expect(session.draft().from[0].email).toBe(TEST_ACCOUNT_ALIAS_EMAIL);
     expect(Actions.queueTask).not.toHaveBeenCalled();
   });
 
