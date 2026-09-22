@@ -3,10 +3,12 @@ import moment from 'moment';
 import { render, fireEvent, cleanup } from '@testing-library/react';
 
 import TimePicker from '../src/components/time-picker';
+import { DatePicker } from '../src/components/date-picker';
 import { CalendarEventPopover } from '../internal_packages/main-calendar/lib/core/calendar-event-popover';
 import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 
 const EVENT_DAY = '2026-03-10';
+const TARGET_DAY = '2026-03-17';
 const START = moment(`${EVENT_DAY} 15:00`, 'YYYY-MM-DD HH:mm').unix();
 const END = moment(`${EVENT_DAY} 16:00`, 'YYYY-MM-DD HH:mm').unix();
 
@@ -32,13 +34,18 @@ function makeOccurrence(): TimedOccurrence {
 
 // Mirrors the popover's own wiring of these two fields (calendar-event-popover.tsx:534, :552);
 // a change to that JSX will not fail here.
-function renderTimeFields() {
+function makePopover() {
   const popover: any = new CalendarEventPopover({
     event: makeOccurrence(),
     onEdit: () => {},
     onDelete: () => {},
   } as any);
   popover.setState = (update: object) => Object.assign(popover.state, update);
+  return popover;
+}
+
+function renderTimeFields() {
+  const popover = makePopover();
 
   const { container } = render(
     <div>
@@ -60,6 +67,36 @@ function renderTimeFields() {
 function dayAndTime(unix: number) {
   return moment.unix(unix).format('YYYY-MM-DD HH:mm');
 }
+
+// The popover's "starts:" row wires a DatePicker beside the TimePicker, both to updateStart
+// (calendar-event-popover.tsx:532, :534).
+function renderStartDateField() {
+  const popover = makePopover();
+
+  const { container } = render(
+    <DatePicker
+      value={popover.state.start * 1000}
+      onChange={(ts) => popover.updateStart(ts / 1000)}
+    />
+  );
+
+  return { popover, picker: container.querySelector('.date-picker') as HTMLElement, container };
+}
+
+describe('CalendarEventPopover date fields', function () {
+  afterEach(cleanup);
+
+  it('keeps both clock times when a new day is picked', () => {
+    const { popover, picker, container } = renderStartDateField();
+
+    fireEvent.focus(picker);
+    const unix = moment(`${TARGET_DAY} 00:00`, 'YYYY-MM-DD HH:mm').valueOf();
+    fireEvent.click(container.querySelector(`.day[data-unix="${unix}"]`) as HTMLElement);
+
+    expect(dayAndTime(popover.state.start)).toBe(`${TARGET_DAY} 15:00`);
+    expect(dayAndTime(popover.state.end)).toBe(`${TARGET_DAY} 16:00`);
+  });
+});
 
 describe('CalendarEventPopover time fields', function () {
   afterEach(cleanup);
