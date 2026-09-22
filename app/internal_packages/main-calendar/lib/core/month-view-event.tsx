@@ -8,7 +8,6 @@ import {
   occurrenceEndUnix,
 } from './calendar-data-source';
 import { calcEventColors, formatShortTime } from './calendar-helpers';
-import { RecurringIcon } from './calendar-icons';
 import { HitZone } from './calendar-drag-types';
 import { detectHitZone, canMoveEvent, formatDragPreviewTime } from './calendar-drag-utils';
 
@@ -229,9 +228,6 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
           )}
           {event.title}
         </span>
-        {event.isRecurring && !event.isCancelled && !event.isException && (
-          <RecurringIcon size={9} />
-        )}
       </div>
     );
   }

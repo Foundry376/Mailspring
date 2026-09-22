@@ -9,7 +9,6 @@ import {
   occurrenceEndUnix,
 } from './calendar-data-source';
 import { calcEventColors, extractMeetingDomain, formatEventTimeRange } from './calendar-helpers';
-import { RecurringIcon } from './calendar-icons';
 import { HitZone, ViewDirection } from './calendar-drag-types';
 import { detectHitZone, canMoveEvent, formatDragPreviewTime } from './calendar-drag-utils';
 import { DAY_DUR, columnSpan } from './week-view-helpers';
@@ -364,7 +363,6 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       selected && 'selected',
       event.isCancelled && 'cancelled',
       event.isPending && 'pending',
-      event.isException && 'exception',
       isDragging && 'dragging',
       this._canDrag() && 'draggable',
       event.isDragPreview && 'drag-preview',
@@ -411,8 +409,6 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
           {event.isCancelled ? <s>{event.title}</s> : event.title}
         </span>
         {this._renderEventDetails()}
-        {event.isRecurring && !event.isCancelled && !event.isException && <RecurringIcon />}
-        {event.isException && <span className="exception-tag">Modified</span>}
         <InjectedComponentSet
           className="event-injected-components"
           style={{ position: 'absolute' }}
