@@ -161,6 +161,16 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
     return 'default';
   }
 
+  // Timed chips go bare, as in Apple and Notion Calendar; all-day chips keep the tint so a
+  // multi-day event still reads as a bar. Selection fills either through CSS.
+  _backgroundColor(tint: string) {
+    const { event } = this.props;
+    if (event.isPending) {
+      return 'rgba(128, 128, 128, 0.15)';
+    }
+    return event.isAllDay ? tint : 'transparent';
+  }
+
   render() {
     const { event, selected, isDragging } = this.props;
     const colors = calcEventColors(event.calendarId);
@@ -179,7 +189,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
       '--event-text-color'?: string;
       '--event-selected-text-color'?: string;
     } = {
-      backgroundColor: event.isPending ? 'rgba(128, 128, 128, 0.15)' : colors.background,
+      backgroundColor: this._backgroundColor(colors.background),
       '--event-band-color': colors.band,
       '--event-text-color': colors.text,
       '--event-selected-text-color': colors.selectedText,
