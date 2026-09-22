@@ -120,16 +120,13 @@ export class SendDraftTask extends Task {
     if (!this.draft.from[0]) {
       throw new Error('SendDraftTask - you must populate `from` before sending.');
     }
-    const account = AccountStore.accountForEmail(this.draft.from[0].email);
-    if (!account) {
+    if (!AccountStore.accountForId(this.draft.accountId)) {
       throw new Error('SendDraftTask - you can only send drafts from a configured account.');
     }
-    if (this.draft.accountId !== account.id) {
-      throw new Error(
-        localized(
-          "The from address has changed since you started sending this draft. Double-check the draft and click 'Send' again."
-        )
-      );
+    // From is an identity, not the sending account. Account A can send as
+    // account B's address (provider send-as); SMTP follows draft.accountId.
+    if (!AccountStore.isMyEmail(this.draft.from[0].email)) {
+      throw new Error('SendDraftTask - you can only send drafts from a configured account.');
     }
   }
 
