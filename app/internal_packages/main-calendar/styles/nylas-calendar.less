@@ -27,8 +27,9 @@
   &.selected {
     background-color: var(--event-band-color) !important;
 
+    // Darkened in OKLCH so the band keeps its hue; mixing toward black greys out pale colors
     &:before {
-      background: color-mix(in srgb, var(--event-band-color), black 15%);
+      background: ~'oklch(from var(--event-band-color) calc(l - 0.15) c h)';
     }
   }
 }
