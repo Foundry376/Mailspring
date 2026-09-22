@@ -1,9 +1,14 @@
 import React from 'react';
 import moment from 'moment';
 import 'moment/locale/de';
+import 'moment/locale/lb';
+import 'moment/locale/si';
 import { render, fireEvent, cleanup } from '@testing-library/react';
 
 import TimePicker from '../../src/components/time-picker';
+
+// Requiring a locale file makes it the current one, so put the suite back where it was.
+moment.locale('en');
 
 // Clear of the 2026-03-08 transition, so a failed day assertion is a date bug, not a DST one.
 const EVENT_DAY = '2026-03-10';
@@ -102,6 +107,36 @@ describe('TimePicker', function timePicker() {
       expect(input.value).toBe('05:30');
       expect(onChange).not.toHaveBeenCalled();
     });
+
+    it('reads a bare hour as the hour that was typed', () => {
+      const { onChange, input } = renderPicker();
+
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value: '5' } });
+      fireEvent.blur(input);
+
+      expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe(`${EVENT_DAY} 05:00`);
+    });
+  });
+
+  // A meridiem test would get both of these wrong: lb is 24-hour but its LT carries a
+  // bracketed "Auer", and si is 12-hour with a lowercase marker.
+  it('reads a bare hour by the locale\u2019s hour token, not its meridiem', () => {
+    const typeBareFive = () => {
+      const { onChange, input } = renderPicker();
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value: '5' } });
+      fireEvent.blur(input);
+      return lastEmitted(onChange).format('HH:mm');
+    };
+
+    moment.locale('lb');
+    expect(typeBareFive()).toBe('05:00');
+
+    moment.locale('si');
+    expect(typeBareFive()).toBe('17:00');
+
+    moment.locale('en');
   });
 
   it('emits milliseconds from the dropdown', () => {

@@ -130,12 +130,21 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
     }
   }
 
+  // moment's LT uses h for a 12-hour clock and H for a 24-hour one. Test the hour token rather
+  // than the meridiem: lb writes "H:mm [Auer]" and si writes "a h:mm".
+  _isTwelveHourLocale() {
+    return /h/.test(moment.localeData().longDateFormat('LT'));
+  }
+
   /*
    * If you're going to punch only "2" into the time field, you probably
    * mean 2pm instead of 2am. The regex explicitly checks for only digits
    * (no meridiem indicators) and very basic use cases.
    */
   _shouldAddTwelve(rawText) {
+    if (!this._isTwelveHourLocale()) {
+      return false;
+    }
     const simpleDigitMatch = rawText.match(/^(\d{1,2})(:\d{1,2})?$/);
     if (simpleDigitMatch && simpleDigitMatch.length > 0) {
       const hr = parseInt(simpleDigitMatch[1], 10);
