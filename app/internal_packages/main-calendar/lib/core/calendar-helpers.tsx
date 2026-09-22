@@ -329,11 +329,6 @@ export function clampEnd(startUnix: number, endUnix: number, isAllDay: boolean):
 }
 
 /**
- * Format an event's time range for display (e.g., "12 – 1PM").
- * Only returns a string for events that are 1 hour or longer.
- * Returns null for shorter events or all-day events.
- */
-/**
  * A time as compact as the locale allows: a 12-hour clock drops ":00" on the hour ("10 AM"),
  * a 24-hour clock keeps LT ("10:00"), where a bare "10" would not read as a time.
  */
@@ -347,6 +342,11 @@ export function formatShortTime(unix: number): string {
   return time.format(lt.replace(/[:.]mm/, ''));
 }
 
+/**
+ * Format an event's time range for display (e.g., "12 – 1PM").
+ * Only returns a string for events that are 1 hour or longer.
+ * Returns null for shorter events or all-day events.
+ */
 export function formatEventTimeRange(
   startUnix: number,
   endUnix: number,
