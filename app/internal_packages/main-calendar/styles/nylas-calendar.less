@@ -1,5 +1,38 @@
 @import 'ui-variables';
 
+// Every calendar view draws its events with this, so they read as the same object.
+.event-chip() {
+  padding: 2px 4px 2px 8px; // Extra left padding for colored band
+  border-radius: 3px;
+  font-size: 11px;
+  line-height: 16px;
+
+  // Solid colored left band (Apple Calendar-style)
+  &:before {
+    content: '';
+    position: absolute;
+    width: 3px;
+    height: 100%;
+    left: 0;
+    top: 0;
+    background: var(--event-band-color, rgba(0, 0, 0, 0.3));
+    border-radius: 3px 0 0 3px;
+  }
+
+  &:hover {
+    box-shadow: 0 1px 4px @standard-shadow-color;
+  }
+
+  // Selection fills with the calendar's own color, as Apple and Notion Calendar do
+  &.selected {
+    background-color: var(--event-band-color) !important;
+
+    &:before {
+      background: color-mix(in srgb, var(--event-band-color), black 15%);
+    }
+  }
+}
+
 body.platform-win32 {
   .calendar-source-list {
     .colored-checkbox {
@@ -77,17 +110,11 @@ body.platform-win32 {
 
   .calendar-event {
     @interval-height: 21px;
+    .event-chip();
     position: absolute;
-    font-size: 11px;
-    line-height: 11px;
-    font-weight: 500;
     overflow: hidden;
     text-overflow: ellipsis;
-    min-height: @interval-height;
-
-    border-top: 0;
-    border-bottom: 2px solid @background-primary;
-    border-left: 0;
+    min-height: @interval-height - 2px; // less the gap calendar-event.tsx cuts from the box
 
     display: flex;
     flex-direction: column;
@@ -98,7 +125,6 @@ body.platform-win32 {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      margin: 4px 4px 0 6px; // Extra left margin for the colored band
       cursor: default;
       color: var(--event-text-color, inherit);
       opacity: 1;
@@ -109,7 +135,6 @@ body.platform-win32 {
     .event-details {
       display: flex;
       flex-direction: column;
-      margin: 2px 4px 3px 6px;
       font-size: 10px;
       line-height: 12px;
       font-weight: 400;
@@ -134,33 +159,9 @@ body.platform-win32 {
       }
     }
 
-    // Solid colored left band (Apple Calendar-style)
-    &:before {
-      content: '';
-      position: absolute;
-      width: 3px;
-      height: 100%;
-      left: 0;
-      top: 0;
-      background: var(--event-band-color, rgba(0, 0, 0, 0.3));
-      border-radius: 2px 0 0 2px;
-    }
-
     &.horizontal {
       white-space: nowrap;
       flex-direction: row;
-
-      // For horizontal events (all-day), remove vertical borders
-      // since drag handles are on left/right edges
-      border-top: 0;
-      border-bottom: 0;
-      border-left: 2px solid @background-primary;
-      border-right: 2px solid @background-primary;
-
-      // Remove the left accent bar for horizontal events
-      &:before {
-        display: none;
-      }
 
       // Hide event details in horizontal (all-day) view
       .event-details {
@@ -168,18 +169,13 @@ body.platform-win32 {
       }
 
       .default-header {
-        margin: 4px 1px 3px 4px;
         flex: 1;
       }
     }
     &.selected {
-      background-color: @accent-primary !important;
       .default-header,
       .event-details {
         color: @text-color-inverse;
-      }
-      &:before {
-        background: color-mix(in srgb, @accent-primary, black 15%);
       }
     }
 
@@ -268,16 +264,6 @@ body.platform-win32 {
     &.cancelled.exception {
       .exception-tag {
         display: none;
-      }
-    }
-
-    // Draggable events - cursor changes handled in JS
-    // Note: We can't use ::before/::after for resize handles because
-    // ::before is already used for the left accent bar
-    &.draggable {
-      // Slight highlight on hover to indicate draggability
-      &:hover {
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
       }
     }
 
@@ -626,29 +612,14 @@ body.platform-win32 {
     .month-view-event {
       @event-height: 20px;
 
+      .event-chip();
       height: @event-height;
       min-height: @event-height;
       max-height: @event-height;
-      padding: 2px 4px 2px 8px; // Extra left padding for colored band
-      border-radius: 3px;
-      font-size: 11px;
-      line-height: 16px;
       cursor: default;
       overflow: hidden;
       flex-shrink: 0;
       position: relative;
-
-      // Solid colored left band (Apple Calendar-style)
-      &:before {
-        content: '';
-        position: absolute;
-        width: 3px;
-        height: 100%;
-        left: 0;
-        top: 0;
-        background: var(--event-band-color, rgba(0, 0, 0, 0.3));
-        border-radius: 3px 0 0 3px;
-      }
 
       .month-view-event-title {
         display: block;
@@ -673,31 +644,19 @@ body.platform-win32 {
         color: @text-color-inverse;
       }
 
-      &:hover {
-        box-shadow: 0 1px 4px @standard-shadow-color;
-      }
-
       &:focus {
         outline: none;
         box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
       }
 
-      &.selected {
-        background-color: @accent-primary !important;
-
-        .month-view-event-title {
-          color: @text-color-inverse;
-          opacity: 1;
-        }
-
-        &:before {
-          background: color-mix(in srgb, @accent-primary, black 15%);
-        }
+      &.selected .month-view-event-title {
+        color: @text-color-inverse;
+        opacity: 1;
       }
 
       // Tentative/pending events: hatched diagonal stripes pattern
       &.pending {
-        background-image: ~"repeating-linear-gradient(45deg, transparent, transparent 3px, color-mix(in srgb, var(--event-band-color, rgba(0, 0, 0, 0.1)), transparent 80%) 3px, color-mix(in srgb, var(--event-band-color, rgba(0, 0, 0, 0.1)), transparent 80%) 4px)";
+        background-image: ~'repeating-linear-gradient(45deg, transparent, transparent 3px, color-mix(in srgb, var(--event-band-color, rgba(0, 0, 0, 0.1)), transparent 80%) 3px, color-mix(in srgb, var(--event-band-color, rgba(0, 0, 0, 0.1)), transparent 80%) 4px)';
         background-size: auto;
       }
 

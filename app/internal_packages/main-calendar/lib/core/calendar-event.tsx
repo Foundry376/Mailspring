@@ -14,6 +14,8 @@ import { HitZone, ViewDirection } from './calendar-drag-types';
 import { detectHitZone, canMoveEvent, formatDragPreviewTime } from './calendar-drag-utils';
 import { DAY_DUR, columnSpan } from './week-view-helpers';
 
+const EVENT_GAP = 2;
+
 interface CalendarEventProps {
   event: EventOccurrence;
   order: number;
@@ -141,13 +143,15 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       '--event-band-color'?: string;
       '--event-text-color'?: string;
     } = {};
+    // Gaps between events are cut from the box, not drawn as borders, so the corners stay round.
     if (this.props.direction === 'vertical') {
-      styles = this._getDimensions();
+      const d = this._getDimensions();
+      styles = { ...d, height: `calc(${d.height} - ${EVENT_GAP}px)` };
     } else if (this.props.direction === 'horizontal') {
       const d = this._getDimensions();
       styles = {
-        left: d.top,
-        width: d.height,
+        left: `calc(${d.top} + ${EVENT_GAP}px)`,
+        width: `calc(${d.height} - ${2 * EVENT_GAP}px)`,
         height: d.width,
         top: d.left,
       };
