@@ -31,8 +31,8 @@ Undo: during its local phase the engine records the folder each copy it moved ca
 `DestroyDraftTask` receives `stubIds`. `createUndoTasks()` copies that map onto the undo
 task as `restorePlacements`, scoped to this task's destination, and the engine moves one
 copy from the destination back to each recorded folder. `undoPlacements` is only present on the task version streamed back from the engine
-(`UndoRedoStore` waits for the local phase before building the undo task). When it never
-arrives, the undo is approximated from the folders the threads were in when the task was
+(`UndoRedoStore` waits for the local phase before building the undo task), and is `{}` when
+the move selected no copy. When it never arrives, the undo is approximated from the folders the threads were in when the task was
 built (see `createUndoTasks`).
 */
 export class ChangeFolderTask extends ChangeMailTask {
@@ -177,9 +177,11 @@ export class ChangeFolderTask extends ChangeMailTask {
   }
 
   createUndoTasks(): this[] {
-    if (this.undoPlacements && Object.keys(this.undoPlacements).length > 0) {
-      // `folder` only describes the undo to the user: the engine sends each copy to its
-      // recorded folder. None being known means they have all been deleted.
+    if (this.undoPlacements) {
+      // An empty map is the engine reporting that the move selected no copy, so there is
+      // nothing to send back. `folder` only describes the undo to the user: the engine
+      // sends each copy to its recorded folder. None being known means they have all been
+      // deleted.
       const folder = this._firstRestoreFolder();
       if (!folder) {
         return [];

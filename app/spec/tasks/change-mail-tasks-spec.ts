@@ -269,6 +269,12 @@ describe('ChangeFolderTask', function () {
       expect(task.createUndoTasks()).toEqual([]);
     });
 
+    it('returns no undo tasks when the engine reports that the move selected no copy', function () {
+      const task = taskAfterLocalPhase({});
+      expect(task.createUndoTasks()).toEqual([]);
+      expect(() => task.createUndoTask()).toThrow();
+    });
+
     it('serializes restorePlacements for the engine', function () {
       const undoPlacements = { 'm-1': [inbox.id] };
       const json = taskAfterLocalPhase(undoPlacements).createUndoTask().toJSON();
