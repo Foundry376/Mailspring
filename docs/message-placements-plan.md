@@ -3,12 +3,14 @@
 Technical plan for replacing `Message.remoteFolderId` / `remoteUID` with a `MessageFolder`
 join table so that a message can exist in more than one IMAP folder at once.
 
-Status: implemented on branch `message-placements` in both repos (engine: 6 commits over
-`0df7864`; client: 2 commits over `add26bb96`), 2026-09-20. Verified against Dovecot 2.3.21
-(all §5 Phase 6 scenarios) and on a migrated 284k-message database syncing Office 365, Yahoo
-and two Gmail accounts: zero folder/UID flips, 28 + 13 messages with placements in two folders,
-69 + 6 with duplicate copies in one folder, all stable. Line numbers below cite the pre-change
-tree at `203637b` and are approximate for the implemented code.
+Status: implemented on branch `message-placements` in both repos (engine: over `0df7864`,
+through `67469d4`; client: over `add26bb96`), 2026-09-20, then revised after a review pass
+(see §10). Verified against Dovecot 2.3.21 (all §5 Phase 6 scenarios) and on a migrated
+284k-message database syncing Office 365, Yahoo and two Gmail accounts: zero folder/UID flips,
+28 + 13 messages with placements in two folders, 69 + 6 with duplicate copies in one folder,
+all stable. The engine's `CLAUDE.md` ("Message Identity and Placements") is the maintained
+summary of the invariants; this document keeps the rationale. Line numbers below cite the
+pre-change tree at `203637b` and are approximate for the implemented code.
 
 ---
 
@@ -58,8 +60,10 @@ single-folder assumption is almost entirely a sync-engine fact: ~90 sites, conce
 - **Placement** — one physical copy on the server: `(account, folder, UID)` plus that copy's
   IMAP flags. A message has one or more placements. A placement is not a `MailModel` and is
   never streamed to the client on its own.
-- **Tombstone** — a placement whose UID the server no longer reports, kept for one full sync
-  pass so a move seen as "gone from A" before "present in B" does not delete the message.
+- **Orphan** — a message with no placement left, listed in `MessageOrphan` with the time it
+  lost its last copy. It is kept until the folders have been scanned in full since then, so
+  a move seen as "gone from A" before "present in B" does not delete the message. A vanished
+  copy of a message that still has another copy needs no grace: its row is deleted at once.
 
 ### 2.2 Schema
 
@@ -75,16 +79,21 @@ CREATE TABLE IF NOT EXISTS MessageFolder (
   starred         TINYINT(1)  NOT NULL DEFAULT 0,
   draft           TINYINT(1)  NOT NULL DEFAULT 0,
   remoteXGMLabels TEXT        NOT NULL DEFAULT '[]',
-  syncedAt        INTEGER     NOT NULL DEFAULT 0, -- bookkeeping only; the guard is on Message (§2.6)
-  unlinkedAt      INTEGER     NULL,               -- tombstone timestamp (§2.5)
   pendingFolderId VARCHAR(40) NULL                -- optimistic move in flight (§2.7)
+);
+-- messages with no MessageFolder row, and since when (§2.5)
+CREATE TABLE IF NOT EXISTS MessageOrphan (
+  messageId VARCHAR(40) PRIMARY KEY,
+  accountId VARCHAR(8)  NOT NULL,
+  since     INTEGER     NOT NULL
 );
 -- a (folder, UID) pair is unique on the server until UIDVALIDITY changes; UID 0 rows are exempt
 CREATE UNIQUE INDEX IF NOT EXISTS MessageFolderUIDIndex
   ON MessageFolder (accountId, folderId, remoteUID) WHERE remoteUID > 0;
 CREATE INDEX IF NOT EXISTS MessageFolderMessageIndex ON MessageFolder (messageId);
-CREATE INDEX IF NOT EXISTS MessageFolderUnlinkedIndex
-  ON MessageFolder (accountId, unlinkedAt) WHERE unlinkedAt IS NOT NULL;
+CREATE INDEX IF NOT EXISTS MessageOrphanSinceIndex ON MessageOrphan (accountId, since);
+-- drives the body-sync queries newest-first with a correlated placement check
+CREATE INDEX IF NOT EXISTS MessageListDateIndex ON Message (accountId, date DESC);
 ```
 
 Decisions folded into this DDL:
@@ -100,8 +109,8 @@ Decisions folded into this DDL:
   drafts and UIDVALIDITY-reset rows both use it.
 - `unread`/`starred`/`draft`/`remoteXGMLabels` live on the placement because IMAP flags are
   per-copy and `MessageAttributesMatch` (`MailStore.cpp:74`) compares per-UID.
-- `Message` keeps **derived** `unread`, `starred`, `draft` columns (OR across all placements,
-  including tombstones — see §2.6). The client declares them queryable and `draft = 1`
+- `Message` keeps **derived** `unread`, `starred`, `draft` columns (OR across its placements;
+  an orphan keeps the values it had — see §2.6). The client declares them queryable and `draft = 1`
   backs the draft list and MCP queries. `Message.remoteUID`, `remoteFolderId`,
   `remoteXGMLabels` and `MessageUIDScanIndex` are **removed** — no dead columns, no
   compatibility shims, so "is anything still reading the old location?" is answered by the
@@ -110,37 +119,56 @@ Decisions folded into this DDL:
   the new contract (§2.4).
 - `WITHOUT ROWID` was considered and rejected: the natural key includes `remoteUID`, which
   changes on relink and is 0 for drafts; a rowid table with a partial unique index is simpler.
+- A row carries no timestamp. The `syncedAt` guard is message-level (§2.6), and the only
+  time the sweep needs is when a message lost its *last* copy, which is per message.
+- The orphan record is a separate table rather than a `Message` column because
+  `MailStore::save` rebinds every `Message` column from the model, so a column written in
+  SQL by a bulk helper would be overwritten by the next save of a stale model.
 
-Measured on a 1.15 GB / 258k-message database (SQLite 3.51.1, bundled): the join table plus
-UID index costs ~240 B per placement (+62 MB, ~5% of the DB), and the hottest sync query
+Measured on a 1.15 GB / 258k-message database (SQLite 3.51.1, bundled), on a row layout with
+two more integer columns than the one above, so the size is an upper bound: the join table
+plus UID index costs ~240 B per placement (+62 MB, ~5% of the DB), and the hottest sync query
 (`fetchMessagesAttributesInRange` over 177k rows) drops from 0.79 s to 0.11 s because the
 fat `Message` row no longer has to be visited for `remoteXGMLabels`.
 
-### 2.3 Table is canonical; Message JSON carries a snapshot maintained incrementally
+### 2.3 Table is canonical; Message JSON carries a snapshot rebuilt on save
 
 Two sources of truth were proposed by different assessments (placements canonical in
 `Message._data` with the table as a derived index, vs. the table canonical with a JSON
-snapshot). The decision is **table-canonical**, with the JSON snapshot **maintained
-incrementally by the same helper that writes the row** — never rebuilt from a query.
+snapshot). The decision is **table-canonical**, with the JSON snapshot **rebuilt from the
+rows when a message whose rows changed is saved**.
 
-> Every change to the placement set goes through one of a small set of helpers that update
-> the `MessageFolder` row(s) and the message's `_data["folders"]` / derived flags in the
-> same call. There is no other writer of either.
+> Every change to the placement set goes through one of a small set of `MailStore` helpers.
+> A helper that takes a `Message` writes the row(s) and sets `Message::_placementsChanged`;
+> `Message::beforeSave` then runs `refreshMessageFromPlacements`, which rebuilds
+> `_data["folders"]`, the derived flags and labels, and the `MessageOrphan` record from the
+> rows, and clears the flag. There is no other writer of the table, the snapshot or the
+> orphan record.
 
-Why not rebuild the snapshot in `beforeSave`: it would cost an indexed read-join on every
-Message save — one query per message visited by any sync process that saves — and
-`beforeSave` does not always have the context to know which placement just changed. The
-helper approach costs nothing on the hot path, because every event that changes the folder
-set or flags already has the Message in hand:
+Rebuilding on every save would cost an indexed read on every `Message` save by any sync
+process. Keying it on the flag costs one query per save that changed rows and nothing
+otherwise, and it runs once however many helpers touched the message (a multi-copy move
+commits, re-marks and restores each copy). A helper cannot forget to update the snapshot,
+because it never does so itself. A caller that must see the result before deciding whether
+to save calls `refreshMessageFromPlacements` directly: `insertMessage` (the thread diff is
+applied before the save), `updateMessage` and `refreshMessagesInOpenTransaction` (skip the
+save and delta when nothing client-visible changed), and `performRemoteChangeOnMessages`
+(drops the deltas of a remote phase the client cannot see).
 
 | Event | Message loaded? | Helper |
 |---|---|---|
-| Scan finds a new/changed copy (`insertFallbackToUpdateMessage`) | yes — inserted, or found by id on the UNIQUE collision | `upsertPlacement(msg, folder, uid, attrs)` |
-| Task local/remote phase (move, flags, labels, send, draft destroy) | yes — inflated by the task | `setPlacementFlags`, `beginPlacementMove`, `commitPlacementMove`, `removePlacement` |
-| Sweep removes a zero-placement message | yes — `store->remove` needs it for `afterRemove` | `deleteExpiredTombstones` + `removeOrphanMessages` |
-| Copy vanishes from a folder (tombstone) | **no** — bulk `UPDATE … WHERE folderId AND remoteUID IN (…)` | `tombstonePlacements(folder, uids)` returns the affected `messageId`s; the caller loads those (and only those) to drop the folder from `folders` and save, so the client sees the copy leave (§2.5). Per *vanished* message, not per visited message. |
-| UIDVALIDITY reset / relink | no | SQL only. UIDs are not in the JSON, so nothing to maintain. |
-| Folder deleted on the server (`Folder::afterRemove`) | no | bulk delete, then load the affected messages as for tombstones. Rare. |
+| Scan finds a new/changed copy (`insertFallbackToUpdateMessage`) | yes — reloaded inside the transaction (§2.6) | `upsertPlacement(msg, folder, uid, attrs)`; Gmail also `removePlacementsOutsideFolder` (§2.8) |
+| Task local/remote phase (move, flags, labels, send, draft destroy) | yes — inflated by the task | `setPlacementUnread/Starred/Labels`, `beginPlacementMove`, `commitPlacementMove`, `abandonPlacementMove`, `removePlacement` |
+| Copy vanishes from a folder | **no** — bulk `DELETE … WHERE folderId AND remoteUID IN (…) RETURNING messageId` | `deleteVanishedPlacements(folder, uids / range)` records the messages left with no row in `MessageOrphan` in the same transaction and returns the affected ids; the caller loads those (and only those) in chunks of 100, marks and saves them, so the client sees the copy leave (§2.5). Per *vanished* message, not per visited message. |
+| UIDVALIDITY reset / relink | no | `resetPlacementUIDs` is SQL only; UIDs are not in the JSON, so nothing to maintain. `deleteUnassignedPlacements` then behaves like a vanish. |
+| Sweep removes an orphan | yes — `store->remove` needs it for `afterRemove` | `orphanMessageIdsBefore`, then `store->remove`; `Message::afterRemove` calls `deletePlacementsForMessage`, which also drops the orphan record |
+| Folder deleted on the server, or `ExpungeAllInFolder` | yes, in chunks of 100 | `detachMessagesFromFolder`: per chunk, `deletePlacementsForFolder` and the affected messages' refresh in one transaction; a message whose only copy was there is removed at once. Rare. |
+
+`MessageOrphan` is exact once a transaction commits: a message is listed if and only if it
+has no `MessageFolder` row. The bulk helpers record orphans in SQL in the same transaction
+as the delete because the snapshots are caught up in later transactions, and nothing but
+`MessageOrphan` leads back to a message that has no row; without it such a message would be
+invisible to the client and immortal in the database.
 
 Unchanged copies never load a Message at all: `syncFolderUIDRange` diffs
 `fetchMessagesAttributesInRange` (now a covering read of `MessageFolder`) against the server
@@ -161,12 +189,17 @@ Consequences:
   catch it (`mailsync-bridge.ts:454`), so a new streamed model class would abort delta
   batches on any client that doesn't register it.
 - `unsafeEraseTransactionDeltas` (used at `MailProcessor.cpp:557` and `TaskProcessor.cpp:891`
-  to hide UID-only rewrites) is no longer needed for placement work; the silent operations
-  never call `save`.
-- Drift between table and snapshot is a bug, not a state to tolerate. A debug-only
-  reconciliation query (`SELECT id FROM Message WHERE json(folders) != <group_concat of live
-  placements>`) is run by the test suite after every scenario in Phase 6 and can be exposed
-  as `--mode verify` for support.
+  to hide UID-only rewrites) is no longer needed for scan-side placement work; the silent
+  operations never call `save`. `performRemoteChangeOnMessages` still uses it to drop the
+  confirm save's deltas when the client-visible state did not change.
+- Drift between table and snapshot is a bug, not a state to tolerate. The engine test
+  harness (`mailsync/test/harness/invariants.py`) runs after every scenario once the engine
+  is quiescent and recomputes each incrementally maintained layer from the stored layer
+  below it: message `folders`, labels and flags from `MessageFolder`; thread folder/label
+  `_refs` and `_u`, unread and starred from the message snapshots; `ThreadCategory` from the
+  thread arrays; `ThreadCounts` from `ThreadCategory`; and `MessageOrphan` against the
+  messages with no row. A scenario opts out only explicitly. The same checks could be
+  exposed as `--mode verify` for support; that mode does not exist yet.
 
 ### 2.4 Message JSON contract
 
@@ -175,7 +208,7 @@ Consequences:
   "id": "…", "aid": "…", "v": 12, "threadId": "…", "hMsgId": "…", "date": 1758300000,
   "unread": true, "starred": false, "draft": false,   // derived: OR over placements
   "labels": ["\\Inbox", "\\Important"],               // Gmail: labels of the (single) placement
-  "folders": { "SqYhL6…": 1, "bcpXme…": 0 },          // folderId -> per-copy flag bits, live placements only
+  "folders": { "SqYhL6…": 1, "bcpXme…": 0 },          // folderId -> per-copy flag bits, OR-ed per folder
   "metadata": [ … ],                                  // unchanged
   "_sa": 1758300100                                   // syncedAt guard, message-level
 }
@@ -196,7 +229,7 @@ Consequences:
   message embeds two full Folder JSON copies (≈260 B); the map costs ≈45 B per placement.
 - With no role in the JSON, `priorityForFolderRole` has no remaining use and is deleted.
 
-### 2.5 Sync: tombstones and the end-of-pass sweep
+### 2.5 Sync: vanished copies, orphans and the end-of-pass sweep
 
 Today a UID that disappears from a folder scan sets `remoteUID = UINT32_MAX − phase` on the
 `Message` row and the message is deleted at the end of the *next* background pass if it has
@@ -219,32 +252,39 @@ New rules:
 
 | Event | Action |
 |---|---|
-| Folder scan finds a placement whose UID is gone (range diff, QRESYNC VANISHED, untagged EXPUNGE) | `UPDATE MessageFolder SET unlinkedAt = :now WHERE accountId=? AND folderId=? AND remoteUID IN (…)`. UID retained. Then recompute the message's `folders[]`/derived flags and **save it** — the client sees the copy leave that folder within seconds. |
-| Scan of folder B upserts a placement for a message that has tombstones | Insert/refresh the live row and, in the same transaction, delete every tombstone of that message: a live copy anywhere makes the tombstone moot. One `persist` with `folders: [B]`. |
-| A tombstoned UID reappears in the same folder | `fetchMessagesAttributesInRange` filters `unlinkedAt IS NULL`, so the UID is `!inFolder`, is fetched, hashes to the same id, and the upsert (`INSERT … ON CONFLICT(accountId, folderId, remoteUID) DO UPDATE`) clears `unlinkedAt`. This filter is load-bearing. |
-| End of every `syncNow` pass | `passStartedAt` recorded before the folder loop. Sweep: `DELETE FROM MessageFolder WHERE accountId=? AND unlinkedAt < :passStartedAt`; then messages with zero placements are loaded in chunks of 100 and removed via `store->remove` so `afterRemove` still fixes the thread, body and metadata and emits `unpersist`. Anything tombstoned before the pass began has had every folder scanned at least once since. Same deterministic grace for both workers. `unlinkPhase` is deleted. |
-| UIDVALIDITY change | `UPDATE MessageFolder SET remoteUID = 0 WHERE accountId=? AND folderId=?` (silent, no thread change). Heavy `1:*` rebuild upserts by `(messageId, folderId)` where `remoteUID = 0`, assigning the new UID. When the rebuild reports `!truncated`, tombstone what is still at UID 0. A truncated rebuild leaves the tail at UID 0 — still live, still visible — instead of feeding the sweep. |
+| Folder scan finds a placement whose UID is gone (range diff, QRESYNC VANISHED, untagged EXPUNGE) | `DELETE FROM MessageFolder WHERE accountId=? AND folderId=? AND remoteUID IN (…) RETURNING messageId` (`deleteVanishedPlacements`, chunks of 500). A message left with no row is recorded in `MessageOrphan` in the same transaction. The affected messages are then refreshed from their rows and **saved** — the client sees the copy leave that folder within seconds. A message that still has another copy is simply one folder smaller; no grace applies to it. |
+| Another message takes over a `(folder, UID)` (a UID reused without a UIDVALIDITY change, or claimed by a moved copy's commit) | The row moves to the new holder; the displaced message is marked and saved, and becomes an orphan if that was its last copy. |
+| Scan of folder B records a copy of an orphaned message | `upsertPlacement` inserts the row; the refresh on save finds a row and deletes the orphan record. One `persist` with `folders: {B}`. Same id, metadata and body. |
+| A vanished UID reappears in the same folder | It has no row, so the scan treats it as new, fetches it, hashes it to the same id and records it as above. |
+| End of every background `syncNow` pass | `passStartedAt` is recorded before the folder loop. `sweepExpiredOrphans(passStartedAt)` lists the orphans whose `since` is before the pass start and removes them in chunks of 100 through `store->remove`, so `Message::afterRemove` fixes the thread, deletes the body, metadata, rows and orphan record, and emits `unpersist`. Each chunk re-reads the orphan records inside its own transaction, because the foreground worker can revive a candidate (and orphan it again, restarting its grace) while earlier chunks run. The grace rule: **an orphan is removed once the folders have been scanned in full since it became one**, so a copy that moved elsewhere has been recorded and has cleared the record. It is keyed on a timestamp, so the foreground worker's orphans get the same grace as the background worker's. `unlinkPhase` is deleted. |
+| UIDVALIDITY change | `resetPlacementUIDs`: `UPDATE MessageFolder SET remoteUID = 0 WHERE accountId=? AND folderId=? AND remoteUID > 0` (silent, no thread change). The heavy `1:*` rebuild's upsert replaces the message's UID 0 row in that folder with the row at the new UID. When the rebuild reports `!truncated`, `deleteUnassignedPlacements` deletes what is still at UID 0, except drafts, exactly like a vanished copy. A truncated rebuild leaves the tail at UID 0 — still live, still visible — instead of feeding the sweep. |
+| Folder deleted on the server, or `ExpungeAllInFolder` | `detachMessagesFromFolder`: in chunks of 100, delete the folder's rows (and abandon moves pending into it) and refresh the affected messages in one transaction. A message whose only copy was there is removed at once; the copies are gone for good, so there is nothing to wait for. |
+
+> **TODO(sweep gating):** describe exactly when a pass counts as having scanned the folders
+> in full (which folders must have been covered, and how skipped folders, folders still in
+> initial sync and truncated fetches are treated). The sweep is skipped on a pass that does
+> not meet that condition, since a copy the pass did not reach would otherwise be treated
+> as gone.
 
 What the client sees on the stream for a move made in another client, plain IMAP:
-`persist Message X {folders: []}` + `persist Thread` when the source scan runs, then
-`persist Message X {folders: [Archive]}` + `persist Thread` when the destination scan runs.
+`persist Message X {folders: {}}` + `persist Thread` when the source scan runs, then
+`persist Message X {folders: {Archive}}` + `persist Thread` when the destination scan runs.
 Never an `unpersist`. Same id, metadata intact, body intact. If both land inside the 500 ms
 stream delay, `DeltaStreamItem::upsertModelJSON` merges them and the client sees one persist.
 
-Whether the intermediate `folders: []` state should be visible (message briefly in no folder)
-or hidden (treat tombstones as live for the folder set, skip the save) is a product call; the
-plan recommends **visible** — it is the truthful state, the delta is cheap, and it means a
-message deleted elsewhere disappears from Mailspring in seconds rather than one to two
-background passes (each ending in a 120 s sleep).
+Whether the intermediate `folders: {}` state should be visible (message briefly in no folder)
+or hidden (keep reporting the vanished copy's folder until the message is swept or found) is
+a product call; the design takes **visible** — it is the truthful state, the delta is cheap,
+and it means a message deleted elsewhere disappears from Mailspring's folder views in seconds
+rather than one to two background passes (each ending in a 120 s sleep).
 
 ### 2.6 Flags and the `syncedAt` guard
 
 - `Message.unread = ANY(placement.unread)`, likewise `starred`; `draft = ANY(placement.draft)
-  OR ANY(placement.folder.role == "drafts")` (today's rule at `Message.cpp:88-90`). The OR
-  runs over live **and** tombstoned placements so a message in transit does not flip
-  read → unread → read across the two events. Concretely: the tombstone helper removes the
-  folder's key from `folders` but leaves the derived flags untouched; the next `upsertPlacement`
-  recomputes them from the rows.
+  OR ANY(placement.folder.role == "drafts")` (today's rule at `Message.cpp:88-90`). A message
+  with no placement keeps the flags and labels it had, so a message whose only copy is in
+  transit does not flip read → unread → read across the two scans: the orphaned message
+  keeps its values and the destination copy's row supplies them again.
 - Per-folder unread on the thread (`folders[]._u`, which feeds `ThreadCategory.unread` and
   the `ThreadCounts` badge) uses the **placement's** flag: the Inbox copy unread counts for
   Inbox, the read Sent copy does not count for Sent. This is what stops the Yahoo badge churn.
@@ -252,19 +292,44 @@ background passes (each ending in a 120 s sleep).
   STOREs in every folder that holds a copy). Otherwise the next scan of the untouched copy
   re-derives `unread = true`.
 - The `syncedAt > syncDataTimestamp` guard (`MailProcessor.cpp:180-183`; set to now+24h by
-  `TaskProcessor.cpp:791` and reset at `:886`) **stays on the Message**. It is what stops a
-  scan of the *source* folder from resurrecting a copy the user just moved away, and after
-  the local phase the source placement is the thing being moved, so a per-placement
-  timestamp has nowhere to live. Trade-off accepted: while a move of one copy is in flight
-  (seconds, normally), server flag changes to the message's other copies are ignored — the
-  same as today.
+  `TaskProcessor.cpp:791` and reset at `:886`) **stays on the Message**. `_suc` counts the
+  tasks holding it; each task's remote phase releases its hold whether it succeeds or fails.
+  It is what stops a scan of the *source* folder from resurrecting a copy the user just
+  moved away or reverting a flag the user just changed, and after the local phase the
+  source placement is the thing being moved, so a per-placement timestamp has nowhere to
+  live. Trade-off accepted: while a task is in flight (seconds, normally), server flag
+  changes to the message's recorded copies are ignored — the same as today.
+- The guard protects **only copies already recorded**. A copy at a `(folder, UID)` the
+  message has no row for is recorded with the server's flags even while the lock is held,
+  and the lock is left for the task to release. Another client may have moved the message's
+  only copy while a task was in flight; skipping the new copy would leave the message an
+  orphan for the sweep, which would delete it with its body and metadata, and on a QRESYNC
+  server `CHANGEDSINCE` would already have moved past the copy. For the same reason a scan
+  never clears a row's `pendingFolderId`: a destination scan can land between a MOVE and
+  its commit, and only the task's commit or its failure settles the marker.
+- A failed remote phase releases the lock and settles the task's markers before the error
+  is reported. The IMAP change runs folder by folder and stops at the first failure; copies
+  already moved are committed, and the task's markers on the rest are dropped
+  (`abandonPlacementMove`), so the snapshot shows each copy where the server has it. A
+  failed flag task's local flags are left for the next scan that reports the copy to
+  correct; the per-copy values from before the task are not kept anywhere to restore.
+  Database errors are rethrown untouched, since they leave the task queued to run again.
+- The foreground and background workers can process the same server change for one
+  message at once. `updateMessage` therefore reloads the message and its placement inside
+  its `BEGIN IMMEDIATE` transaction, evaluates the guard and the placement comparison there,
+  and returns the message as saved. A message loaded before the transaction would let both
+  workers save from the same snapshot and apply the thread delta twice.
+  `insertFallbackToUpdateMessage` keeps a read-only pre-check so an unchanged copy opens no
+  transaction.
 
 ### 2.7 Optimistic moves without the `clientFolder` / `remoteFolder` split
 
 Today `_applyFolder` sets only `clientFolder` (`TaskProcessor.cpp:265-268`); the remote
 phase later rewrites `remoteFolder`/`remoteUID` and erases its own deltas. Under placements:
 
-- Local phase: for each placement selected for the move (§3.3), set `pendingFolderId = dest`.
+- Local phase: for each placement selected for the move (§3.1; §3.3 for an undo), set
+  `pendingFolderId = dest`. A copy at UID 0 is never selected: no scan can report where it
+  went, so a marker on it would show it in the destination forever.
   `folders[]` reports the placement under `dest`, the thread updates, one persist goes out.
   The row keeps its server `folderId`/`remoteUID` so the remote phase can address it.
 - Remote phase: group pending placements by server folder → one `UID MOVE` (or COPY +
@@ -272,7 +337,7 @@ phase later rewrites `remoteFolder`/`remoteUID` and erases its own deltas. Under
   `folderId = pendingFolderId, remoteUID = <COPYUID>, pendingFolderId = NULL`. Non-UIDPLUS
   servers keep today's tail-fetch-and-rehash fallback (`TaskProcessor.cpp:108-140`), which
   works because the id is folder-independent.
-- If the message **already has a live placement in `dest`**, the selected copy is still
+- If the message **already has a placement in `dest`**, the selected copy is still
   MOVEd and the destination ends with two placements, as it does for Exchange's duplicate
   Sent copies. Deleting the source copy instead would be a destructive server operation for
   a rare case (dragging a self-sent Inbox message into Sent) and would make undo recreate it
@@ -282,7 +347,7 @@ Deletion placeholders for drafts (`Message::messageWithDeletionPlaceholderFor`,
 `Message.cpp:34-55`) become a placeholder message that owns the draft's placement
 `(Drafts, uid)`, which is exactly what keeps the Drafts scan from re-inserting a draft the
 user deleted. The "stub with `remoteUID == 0` is never removed" leak
-(`TaskProcessor.cpp:980-991`) is cleaned up by the zero-placement sweep.
+(`TaskProcessor.cpp:980-991`) is cleaned up by the orphan sweep.
 
 ### 2.8 Gmail
 
@@ -292,8 +357,11 @@ on that placement. Labels-as-placements was considered and rejected: on Gmail `\
 placement could never carry a real UID, and every STORE/MOVE would still route through the
 All Mail copy. Two rules:
 
-- **Exclusivity:** a placement upserted in one of {all, spam, trash} removes the message's
-  placements in the other two. Gmail guarantees the three are mutually exclusive, and Gmail
+- **Exclusivity:** a placement upserted by a scan in one of {all, spam, trash} removes the
+  message's other placements at a real UID (`removePlacementsOutsideFolder`; local drafts at
+  UID 0 are left alone). Gmail is detected by the session's `X-GM-EXT-1` capability, which
+  the workers pass to their `MailProcessor` after login, not by the account's provider,
+  which is `imap` for a Gmail account added with generic IMAP settings. Gmail guarantees the three are mutually exclusive, and Gmail
   has no QRESYNC to VANISH the old copy promptly; without this rule a message trashed in the
   web UI would sit in both Inbox (via `\Inbox` on the All Mail placement) and Trash for up
   to a deep-scan interval.
@@ -318,7 +386,7 @@ MOVE to Trash (`:189-200`); thread labels copied onto an APPENDed sent message
 | iCloud / NetEase | folder-priority rule elects an owner among copies | delete the rule; both copies are placements. Keep the iCloud QRESYNC disable and the NetEase RFC 2971 ID exchange (unrelated). Reduce NetEase's "deep-scan every folder in the same pass so Sent can reclaim before phase cleanup" (`SyncWorker.cpp:342-370`) to a per-folder counts-changed trigger — the reclaim concern is gone, the UIDNEXT=0 detection need is not. |
 | ProtonMail Bridge `\All` | skipped entirely (`isDuplicateAllMail`, `SyncWorker.cpp:399-437`, #137) | **keep skipping.** Placements remove the flap, but syncing All Mail doubles header traffic and rows, puts every thread in "Archive" (the `[archive, all]` role group), and a delete from All Mail on Bridge is a delete everywhere — an ambiguity nothing else has to resolve today. The concrete Proton win is `Labels/*` folders, which stop ping-ponging. |
 | Office 365 / Exchange | 2–4 Sent Items copies churn UIDs every pass | each copy is a placement; flags/moves/expunges address all of them. Optional later: lengthen the gateway-copy wait in the send path so fewer duplicates are created. |
-| Non-QRESYNC servers generally (Gmail, iCloud, Yahoo, O365) | a move made elsewhere shows on the destination scan because latest-wins re-points the row | the destination placement appears on its scan; the source placement lingers until the source folder's shallow (2 min, top ~400 UIDs; Inbox after every IDLE wake) or deep (10 min) scan. Mitigation, Phase 5: when a scan adds a placement for a message that already has one in folder F on a non-QRESYNC session, queue `(F, uid)` and issue one `UID FETCH … (UID)` per F at the end of the pass, tombstoning what the server does not return. That is definitive duplicate-vs-move detection — what the priority table was approximating. |
+| Non-QRESYNC servers generally (Gmail, iCloud, Yahoo, O365) | a move made elsewhere shows on the destination scan because latest-wins re-points the row | the destination placement appears on its scan; the source placement lingers until the source folder's shallow (2 min, top ~400 UIDs; Inbox after every IDLE wake) or deep (10 min) scan. Mitigation, Phase 5: when a scan adds a placement for a message that already has one in folder F on a non-QRESYNC session, queue `(F, uid)` and issue one `UID FETCH … (UID)` per F at the end of the pass, deleting the rows of what the server does not return. That is definitive duplicate-vs-move detection — what the priority table was approximating. |
 | Dateless messages | id includes `folderPath:uid` (`MailUtils.cpp:684-694`) | unchanged: each copy is its own message with one placement; a move is delete + insert, as today. Not a placement bug. |
 
 ---
@@ -382,62 +450,80 @@ Mailspring ID, and costs hours on large accounts).
 migrate. Migrations autocommit per statement today (`MailStore.cpp:115-157`), so V10 must
 wrap itself explicitly.
 
-V10 does three things in one transaction: creates `MessageFolder` and backfills one
-placement per message; rebuilds the `Message` table without the three location columns; and
-rewrites each row's `data` JSON to the §2.4 contract. Rebuilding the table is how SQLite
-drops columns anyway (`ALTER TABLE … DROP COLUMN` rewrites the table per column — measured
-5.7 s each on the benchmark DB), so doing it once and folding the JSON rewrite into the same
-pass is the cheapest way to leave nothing behind.
+V10 does three things in one transaction: creates `MessageFolder` and `MessageOrphan` and
+backfills one placement per message; rebuilds the `Message` table without the three location
+columns; and rewrites each row's `data` JSON to the §2.4 contract. Rebuilding the table is how
+SQLite drops columns anyway (`ALTER TABLE … DROP COLUMN` rewrites the table per column —
+measured 5.7 s each on the benchmark DB), so doing it once and folding the JSON rewrite into
+the same pass is the cheapest way to leave nothing behind. A fresh database already gets the
+final `Message` shape from V1 and only creates the new tables and indexes. The exact
+statements are `V10_SETUP_QUERIES`, `V10_UPGRADE_QUERIES` and `V10_INDEX_QUERIES` in
+`mailsync/MailSync/constants.h`, run by `MailStore::_migrateToV10`; in outline:
 
 ```sql
 -- V10, inside BEGIN IMMEDIATE … COMMIT (busy timeout 60 s covers a lingering sync process)
-CREATE TABLE MessageFolder (…);                                  -- §2.2
+CREATE TABLE MessageFolder (…); CREATE TABLE MessageOrphan (…);  -- §2.2
 
--- 1. one placement per message, from the IMAP truth (remoteFolderId/remoteUID, not data.folder)
-INSERT INTO MessageFolder (accountId, messageId, folderId, remoteUID, unread, starred, draft, remoteXGMLabels, syncedAt, unlinkedAt)
-SELECT accountId, id, remoteFolderId,
-       CASE WHEN remoteUID > 4294967290 THEN 0 ELSE remoteUID END,
+-- 1. one placement per message, from the IMAP truth (remoteFolderId/remoteUID); a move whose
+--    remote phase has not run (data.folder.id != remoteFolderId) keeps it as a pending move
+INSERT INTO MessageFolder (accountId, messageId, folderId, remoteUID, unread, starred, draft, remoteXGMLabels, pendingFolderId)
+SELECT accountId, id, remoteFolderId, remoteUID,
        IFNULL(unread,0), IFNULL(starred,0), IFNULL(draft,0), IFNULL(remoteXGMLabels,'[]'),
-       IFNULL(CAST(json_extract(data,'$._sa') AS INTEGER), 0),
-       CASE WHEN remoteUID > 4294967290 THEN strftime('%s','now') ELSE NULL END
+       CASE WHEN json_extract(data,'$.folder.id') != remoteFolderId THEN json_extract(data,'$.folder.id') END
 FROM Message
-WHERE remoteFolderId IS NOT NULL AND remoteFolderId != '';
+WHERE remoteFolderId IS NOT NULL AND remoteFolderId != ''
+  AND remoteUID <= 4294967290 AND NOT (id LIKE 'deleted-%' AND remoteUID = 0);
 
--- 2. rebuild Message without remoteUID / remoteFolderId / remoteXGMLabels and with the new JSON
+-- 2. everything else is an orphan dated now: no folder, unlink sentinels, UID 0 deletion placeholders
+INSERT INTO MessageOrphan (messageId, accountId, since)
+SELECT id, accountId, strftime('%s','now') FROM Message
+WHERE remoteFolderId IS NULL OR remoteFolderId = ''
+   OR remoteUID > 4294967290 OR (id LIKE 'deleted-%' AND remoteUID = 0);
+
+-- 3. rebuild Message without remoteUID / remoteFolderId / remoteXGMLabels and with the new JSON;
+--    "folders" is keyed by the folder the client saw the message in
 CREATE TABLE Message_v10 (id VARCHAR(40) PRIMARY KEY, accountId VARCHAR(8), version INTEGER, data TEXT,
   headerMessageId VARCHAR(255), gMsgId VARCHAR(255), gThrId VARCHAR(255), subject VARCHAR(500), date DATETIME,
   draft TINYINT(1), unread TINYINT(1), starred TINYINT(1), replyToHeaderMessageId VARCHAR(255), threadId VARCHAR(40));
-INSERT INTO Message_v10
+INSERT INTO Message_v10 (…)                                     -- rows with a folder
 SELECT id, accountId, version,
-       json_set(
-         json_remove(data, '$.folder', '$.remoteFolder', '$.remoteUID', '$.remoteFolderId'),
-         '$.folders',
-         CASE WHEN remoteFolderId IS NULL OR remoteFolderId = '' OR remoteUID > 4294967290
-              THEN json('{}')
-              ELSE json_object(remoteFolderId, IFNULL(unread,0) | (IFNULL(starred,0) << 1) | (IFNULL(draft,0) << 2))
-         END),
-       headerMessageId, gMsgId, gThrId, subject, date, draft, unread, starred, replyToHeaderMessageId, threadId
-FROM Message;
+       json_set(json_remove(data, '$.folder', '$.remoteFolder', '$.remoteUID', '$.remoteFolderId'), '$.folders',
+                json_object(COALESCE(NULLIF(json_extract(data,'$.folder.id'), ''), remoteFolderId),
+                            IFNULL(unread,0) | (IFNULL(starred,0) << 1) | (IFNULL(draft,0) << 2))),
+       …
+FROM Message WHERE remoteFolderId IS NOT NULL AND remoteFolderId != '';
+INSERT INTO Message_v10 (…)                                     -- rows without one: folders = {}
+SELECT … json_set(json_remove(data, …), '$.folders', json('{}')) …
+FROM Message WHERE remoteFolderId IS NULL OR remoteFolderId = '';
 DROP TABLE Message;
 ALTER TABLE Message_v10 RENAME TO Message;
-CREATE INDEX MessageListThreadIndex ON Message(threadId, date ASC);
-CREATE INDEX MessageListHeaderMsgIdIndex ON Message(headerMessageId);
-CREATE INDEX MessageListDraftIndex ON Message(accountId, date DESC) WHERE draft = 1;
-CREATE INDEX MessageListUnifiedDraftIndex ON Message(date DESC) WHERE draft = 1;
+CREATE INDEX MessageListThreadIndex …; CREATE INDEX MessageListHeaderMsgIdIndex …;
+CREATE INDEX MessageListDraftIndex …; CREATE INDEX MessageListUnifiedDraftIndex …;
 
--- 3. placement indexes last (bulk insert is faster without them)
-CREATE UNIQUE INDEX MessageFolderUIDIndex …; CREATE INDEX MessageFolderMessageIndex …; CREATE INDEX MessageFolderUnlinkedIndex …;
+-- 4. placement indexes last (bulk insert is faster without them)
+CREATE UNIQUE INDEX MessageFolderUIDIndex …; CREATE INDEX MessageFolderMessageIndex …;
+CREATE INDEX MessageOrphanSinceIndex …; CREATE INDEX MessageListDateIndex …;
 PRAGMA user_version = 10;
 COMMIT;
 ```
 
+The rows with and without a folder are copied by separate statements rather than one `CASE`:
+`json_set` only embeds its argument as an object when the JSON subtype reaches it, and whether
+the subtype survives a `CASE` expression depends on the SQLite version; a lost subtype would
+store the map as a string.
+
 Rules and measurements:
 
-- Unlink sentinels (`remoteUID > UINT32_MAX − 5`) become tombstones dated now with
-  `folders = {}` in the JSON; the first pass's sweep deletes them as today would have. Local
-  drafts keep `remoteUID = 0` in the Drafts folder. Rows whose `data.folder.id` differs from
-  `remoteFolderId` (moves in flight; 15 of 258k in the benchmark DB) are migrated from the
-  IMAP truth; the pending `Task` row will re-run its remote phase and fix the placement.
+- Unlink sentinels (`remoteUID > UINT32_MAX − 5`) and `deleted-*` draft placeholders at UID 0
+  (the draft was never on the server, so no scan could ever retire them) get no row and an
+  orphan record dated now, which the first sweep removes through `Message::afterRemove`.
+  Their JSON keeps its folder key: the pre-V10 thread counted them in that folder, and
+  `afterRemove` balances the refcount from the snapshot, so until the sweep the snapshot
+  lists a folder the message has no row in. This is the one sanctioned exception to the
+  snapshot matching the rows. Local drafts keep `remoteUID = 0` in the Drafts folder.
+- Rows whose `data.folder.id` differs from `remoteFolderId` (moves in flight; 15 of 258k in
+  the benchmark DB) keep their server location with `pendingFolderId = data.folder.id`, so
+  the client keeps seeing the move and the queued `Task`'s remote phase commits it.
   `data.labels` (X-GM-LABELS) stays in the JSON as-is — it is the single Gmail placement's
   labels and the client reads it.
 - Exactly one placement per message is created, so thread refcounts, `ThreadCategory` and
@@ -445,14 +531,14 @@ Rules and measurements:
   ordinary scans afterwards and update threads through the normal upsert path. No rebuild.
 - Cost. Measured on 1.15 GB / 258,605 messages: placement backfill 4.5 s, one `Message`
   table rewrite ~6 s without JSON functions; with `json_set`/`json_remove` over 1.1 KB rows
-  budget ~10–15 s, plus ~1 s for indexes. Extrapolated to 1M messages: 40–60 s. The rewrite
-  needs free space for a second copy of the `Message` table (~450 MB here, ~1.7 GB at 1M) in
-  the WAL until commit, after which the old pages are reclaimed by the 30-day `VACUUM`. Print
-  `"\nRunning Migration"` so the client shows its progress window (`mailsync-process.ts:503-507`,
-  the V3 precedent). **Check free space ≥ 1.5× the `Message` table size before starting**
-  (`SELECT SUM(pgsize) FROM dbstat WHERE name='Message'` or `page_count × page_size` as a
-  ceiling), and make the failure message distinguish disk-full from corruption before the
-  client offers "Rebuild" (which deletes the database).
+  budget ~10–15 s, plus ~1 s for indexes. Extrapolated to 1M messages: 40–60 s. On the
+  benchmark database the file grows by 385 MB and the WAL peaks at about the same; the old
+  table's pages are reclaimed by the 30-day `VACUUM`. The engine prints `"\nRunning …"` so
+  the client shows its progress window (`mailsync-process.ts:503-507`, the V3 precedent).
+  **Free space is checked before starting**: at least 1.5× the database size
+  (`page_count × page_size`) on the volume holding `CONFIG_DIR_PATH`. The failure is a plain
+  error naming the disk and saying the database is intact, so the client's "problem with
+  your local email database" dialog does not read like corruption.
 - Atomicity: a crash mid-transaction rolls back DDL too, leaving `user_version = 9` and the
   original `Message` table; the next launch retries.
 - **Downgrade is not supported.** An older binary opening a V10 database fails on its first
@@ -460,11 +546,12 @@ Rules and measurements:
   error state; the remedy is Preferences → Rebuild (or deleting `edgehill.db`), which is a
   cache rebuild, not data loss — Mailspring is an IMAP cache. Document this in the release
   notes for the version that ships V10.
-- Add `DELETE FROM MessageFolder WHERE accountId = ?` to `ACCOUNT_RESET_QUERIES`
-  (`constants.h:34-54`).
-- Post-migration sanity: count messages with zero placements and log it; do not raw-DELETE
-  them (that bypasses `afterRemove` and skews thread counters). Expected: 0. Run the §2.3
-  reconciliation query once and log any mismatch.
+- `ACCOUNT_RESET_QUERIES` (`constants.h:34-54`) delete the account's `MessageFolder` and
+  `MessageOrphan` rows.
+- Post-migration: the engine logs the number of placements created and of messages without
+  a copy (the orphans above). Nothing is raw-deleted (that would bypass `afterRemove` and
+  skew thread counters). The harness scenario `migration-from-pre-placements-db` runs the
+  §2.3 invariant checks against a migrated database.
 
 ---
 
@@ -476,55 +563,55 @@ converted, which is the point — the compiler is the audit. Phase 4 ships in th
 since the client reads the new `folders` map. Within the branch, the order below is the
 order in which the pieces can be built and unit-tested.
 
-### Phase 0 — Bridge (done, uncommitted)
+### Phase 0 — Bridge (done; removed in Phase 2)
 
 Extend folder priority to any contest involving a real Sent folder on every provider
 (`MailProcessor.cpp:188-218`, Gmail excluded via the Label check). Stops the observed
-INBOX ↔ Sent flapping now. Deleted in Phase 2.
+INBOX ↔ Sent flapping until placements land. Deleted in Phase 2.
 
-### Phase 1 — Storage, migration and models (engine, ~700 lines)
+### Phase 1 — Storage, migration and models (engine, ~700 lines; done)
 
 | Item | Where |
 |---|---|
-| DDL, V10 migration, reset query, free-space check, progress line | `constants.h`, `MailStore.cpp:103-188`, `main.cpp:896-904` |
-| `MailStore` placement helpers with cached statements: `placementsForMessage`, `upsertPlacement` (ON CONFLICT), `tombstonePlacements(folderId, uids / range)`, `resetPlacementUIDs(folderId)`, `deleteExpiredTombstones(before)`, `orphanMessageIds(limit)`, `deletePlacementsForMessage`; rewrite `fetchMessagesAttributesInRange`, `fetchMessageUIDAtDepth` against `MessageFolder` (`unlinkedAt IS NULL`) | `MailStore.cpp/.hpp` |
+| DDL (`MessageFolder`, `MessageOrphan`), V10 migration, reset queries, free-space check, progress line | `constants.h`, `MailStore.cpp:103-188`, `main.cpp:896-904` |
+| Rewrite `fetchMessagesAttributesInRange`, `fetchMessageUIDAtDepth` against `MessageFolder` | `MailStore.cpp/.hpp` |
 | A `Placement` struct (not a `MailModel`) | new header |
-| Placement helpers that write the row **and** the message's `_data["folders"]` map + derived flags in one call (§2.3): `upsertPlacement(msg, folder, uid, attrs)`, `setPlacementFlags(msg, …)`, `beginPlacementMove(msg, placement, dest)`, `commitPlacementMove(...)`, `removePlacement(msg, placement)`, `clearTombstones(msg)`; bulk SQL-only helpers `tombstonePlacements(folder, uids) -> affected messageIds`, `resetPlacementUIDs(folder)`, `deleteExpiredTombstones(before)`, `orphanMessageIds(limit)`, `deletePlacementsForMessage(id)`; cached statements | `MailStore.cpp/.hpp` (or a `PlacementStore` helper owned by `MailStore`) |
+| Placement helpers with cached statements (§2.3). Per-message helpers write the row(s) and set `Message::_placementsChanged`: `upsertPlacement(msg, folder, uid, attrs)` (ON CONFLICT; returns a displaced message id), `removePlacementsOutsideFolder`, `setPlacementUnread/Starred/Labels`, `beginPlacementMove`, `commitPlacementMove`, `abandonPlacementMove`, `removePlacement`. `refreshMessageFromPlacements` rebuilds the snapshot and orphan record, called from `Message::beforeSave`. Bulk SQL-only helpers return the affected message ids and record orphans: `deleteVanishedPlacements(folder, uids / range)`, `resetPlacementUIDs(folder)`, `deleteUnassignedPlacements(folder)`, `deletePlacementsForFolder`, `deletePlacementsForMessage`; `orphanMessageIdsBefore(accountId, before[, among])` for the sweep | `MailStore.cpp/.hpp` |
 | Folder role/path cache by id on `MailStore` (same shape as `allLabelsCache`, invalidated on Folder save/remove) so `isInInbox` & co. resolve roles without embedding them per message | `MailStore.cpp/.hpp` |
-| `Message`: constructor no longer writes folder/UID into `_data`; `folderIds()`, `placementFlags(folderId)`; derived `unread/starred/draft` recomputed by the helpers; `afterRemove` deletes placements; `columnsForQuery`/`bindToQuery` drop three columns; `inAllMail`, `_isIn`, `isInInbox`, `isSentByUser` iterate `folders` keys through the role cache; `remoteFolder()`, `remoteFolderId()`, `remoteUID()`, `clientFolder()`, `clientFolderId()`, `setRemoteFolder()`, `setClientFolder()`, `setRemoteUID()`, `remoteXGMLabels()` setters **deleted** (labels move to the placement; `labels` in JSON is derived) | `Models/Message.cpp/.hpp` |
+| `Message`: constructor no longer writes folder/UID into `_data`; `folderIds()`, `placementFlags(folderId)`; derived `unread/starred/draft` rebuilt from the rows in `beforeSave` when `_placementsChanged` is set; `afterRemove` deletes placements and the orphan record; `columnsForQuery`/`bindToQuery` drop three columns; `inAllMail`, `_isIn`, `isInInbox`, `isSentByUser` iterate `folders` keys through the role cache; `remoteFolder()`, `remoteFolderId()`, `remoteUID()`, `clientFolder()`, `clientFolderId()`, `setRemoteFolder()`, `setClientFolder()`, `setRemoteUID()`, `remoteXGMLabels()` setters **deleted** (labels move to the placement; `labels` in JSON is derived) | `Models/Message.cpp/.hpp` |
 | `MessageSnapshot` carries the `folders` map (folderId → flag bits) + labels, captured from `_data` at load — no query; `Thread::applyMessageAttributeChanges` becomes a set-diff over distinct folders with per-placement `_u`; fix the precedence bug at `Thread.cpp:215/289` (`x - unread && inAllMail` stores a bool) | `Models/Thread.cpp` |
 | `queriesForUIDRangesInIndexSet` renames the column; callers execute it as an UPDATE | `MailUtils.cpp:484-528` |
-| `Folder::afterRemove` deletes the folder's placements, then the orphan sweep runs (today messages in a removed folder are orphaned forever) | `Models/Folder.cpp:81-87` |
+| A folder gone from the server: `MailProcessor::detachMessagesFromFolder` deletes its placements and repairs the affected messages in chunks of 100, removing those whose only copy was there, before the folder row is removed; `Folder::afterRemove` also deletes any rows left (today messages in a removed folder are orphaned forever) | `Models/Folder.cpp:81-87`, `SyncWorker.cpp` `syncFoldersAndLabels` |
 
-### Phase 2 — Sync core (engine, ~700 lines)
+### Phase 2 — Sync core (engine, ~700 lines; done)
 
 | Item | Where |
 |---|---|
-| `insertMessage` inserts the first placement in the same transaction; `updateMessage` → `upsertPlacement` (guard on `Message.syncedAt`, change detection against the `(folder, uid)` row, tombstone clearing, save only when derived state changed); `insertFallbackToUpdateMessage` also catches a placement unique-index collision (fg/bg race on the same UID) | `MailProcessor.cpp:87-298` |
+| `insertMessage` inserts the first placement in the same transaction; `updateMessage` → `upsertPlacement` (message and placement reloaded inside the transaction; guard on `Message.syncedAt` for recorded copies only; change detection against the `(folder, uid)` row; save only when the client-visible state changed); `insertFallbackToUpdateMessage` also catches a placement unique-index collision (fg/bg race on the same UID) | `MailProcessor.cpp:87-298` |
 | Delete the folder-priority block, `priorityForFolderRole`, the `isUnlinked` reclaim branch, all `UINT32_MAX` sentinel checks | `MailProcessor.cpp:188-242`, `MailUtils.cpp:408-432`, `SyncWorker.cpp:1343` |
-| `unlinkMessagesMatchingQuery` → `tombstonePlacements`; `deleteMessagesStillUnlinkedFromPhase` → timestamp sweep; remove `unlinkPhase`, add `passStartedAt` | `MailProcessor.cpp:519-600`, `SyncWorker.cpp:72, 676-678`, `.hpp:39` |
-| `syncFolderUIDRange`: `local` from placements; step 5 tombstones in chunks of 200; return `{message, uid}` pairs for the newest-first body ordering at `SyncWorker.cpp:584` | `SyncWorker.cpp:1028-1177` |
-| `syncFolderChangesViaCondstore`: collapse the find/update pair at `:1232-1244` into `insertFallbackToUpdateMessage`; VANISHED → tombstones | `SyncWorker.cpp:1179-1257` |
+| `unlinkMessagesMatchingQuery` → `deleteVanishedPlacements`; `deleteMessagesStillUnlinkedFromPhase` → `sweepExpiredOrphans(passStartedAt)`; remove `unlinkPhase`, add `passStartedAt` | `MailProcessor.cpp:519-600`, `SyncWorker.cpp:72, 676-678`, `.hpp:39` |
+| `syncFolderUIDRange`: `local` from placements; step 5 deletes vanished rows in chunks of 200; return `{message, uid}` pairs for the newest-first body ordering at `SyncWorker.cpp:584` | `SyncWorker.cpp:1028-1177` |
+| `syncFolderChangesViaCondstore`: collapse the find/update pair at `:1232-1244` into `insertFallbackToUpdateMessage`; VANISHED → `deleteVanishedPlacements` | `SyncWorker.cpp:1179-1257` |
 | UIDVALIDITY rebuild per §2.5 | `SyncWorker.cpp:439-486` |
-| Body fetch: `syncMessageBody(msg, preferredFolder)` picks the preferred folder's live placement with `uid > 0`, else any live non-spam/trash placement, and tries the next placement on `ErrorFetch`; rewrite the four raw SQL statements (`cleanMessageCache`, `countBodiesDownloaded`, `countBodiesNeeded`, `syncMessageBodies`) as joins with `COUNT(DISTINCT messageId)` | `SyncWorker.cpp:1282-1436` |
-| Gmail exclusivity rule (§2.8) in `upsertPlacement` | `MailProcessor.cpp` |
+| Body fetch: `syncMessageBody(msg, preferredFolder)` picks the preferred folder's placement with `uid > 0`, else any non-spam/trash placement, and tries the next placement on `ErrorFetch`; rewrite the four raw SQL statements (`cleanMessageCache`, `countBodiesDownloaded`, `countBodiesNeeded`, `syncMessageBodies`) as joins with `COUNT(DISTINCT messageId)` | `SyncWorker.cpp:1282-1436` |
+| Gmail exclusivity rule (§2.8) in `updateMessage`, gated on the `X-GM-EXT-1` capability (`MailProcessor::setIsGmail`) | `MailProcessor.cpp`, `SyncWorker.cpp` |
 | Trim NetEase all-folder deep-scan coupling to per-folder | `SyncWorker.cpp:342-370, 567` |
 | Comment at `SyncWorker.cpp:1000-1005` loses the "higher-priority folder owns it" cause; keep `shouldRetryTruncatedScan` for the `syncedAt` case | |
 
-### Phase 3 — Tasks (engine, ~550 lines)
+### Phase 3 — Tasks (engine, ~550 lines; done)
 
 | Item | Where |
 |---|---|
 | `performLocalChangeOnMessages` / `performRemoteChangeOnMessages`: iterate placements, group UIDs by server folder, key the reload map by placement row, per-placement confirm | `TaskProcessor.cpp:772-896`, signature in `.hpp:58-59` |
-| Move: `_applyFolder` sets `pendingFolderId` on the placements selected by §3.1; `_moveMessagesResilient` reads/writes per placement, MOVEs even when dest already has a copy, skips `uid == 0` (today a `remoteUID 0` draft in a moved thread sends UID 0 in the MOVE — latent bug); engine writes `undoPlacements`; handle `restorePlacements` on undo tasks (MOVE one destination copy back to each recorded source) | `TaskProcessor.cpp:70-160, 265-274` |
+| Move: `_applyFolder` sets `pendingFolderId` on the placements selected by §3.1; `_movesForMessage` selects the copies in both phases from the task data and current rows; `_moveMessagesResilient` reads/writes per placement, MOVEs even when dest already has a copy, skips `uid == 0` (today a `remoteUID 0` draft in a moved thread sends UID 0 in the MOVE — latent bug); engine writes `undoPlacements`; handle `restorePlacements` on undo tasks (`_restoreMovesForMessage`: MOVE one destination copy back to each recorded source); a failing folder stops the remote phase, commits the copies already moved, abandons the other markers and releases the lock before rethrowing | `TaskProcessor.cpp:70-160, 265-274` |
 | Flags: `_applyUnread`/`_applyStarred` set every placement; IMAP variants STORE per folder | `TaskProcessor.cpp:233-263` |
 | Labels: operate on the single Gmail placement | `TaskProcessor.cpp:276-349` |
 | Send: delete the remote draft via its placements; create the Sent placement (non-Gmail) or the All Mail placement (Gmail, §2.8); `SyncbackMetadataTask` by `localMessage->id()` is unchanged | `TaskProcessor.cpp:1486-1868` |
-| Drafts: `inflateClientDraftJSON` no longer needs to carry `remoteUID`/`remoteFolder`; `performLocalSaveDraft` preserves placements across the `_data` swap (automatic — they live in the table); destroy transfers the placement to the placeholder id; remote destroy iterates placements; a range scan never tombstones a `uid == 0` placement | `TaskProcessor.cpp:688-749, 898-993` |
-| `ExpungeAllInFolder`: delete the folder's placements in chunks, then sweep orphans. `GetMessageRFC2822`: pick a placement (prefer non-spam/trash, `uid > 0`). `GetManyRFC2822`: paginate `MessageFolder` on `(accountId, folderId, remoteUID)` and join `Message` for subject/date | `TaskProcessor.cpp:1919-2209` |
+| Drafts: `inflateClientDraftJSON` no longer needs to carry `remoteUID`/`remoteFolder`; `performLocalSaveDraft` preserves placements across the `_data` swap (automatic — they live in the table); destroy transfers the placement to the placeholder id; remote destroy iterates placements; a range scan never deletes a `uid == 0` placement | `TaskProcessor.cpp:688-749, 898-993` |
+| `ExpungeAllInFolder`: `detachMessagesFromFolder` with a 300 ms pause between chunks; a message whose only copy was there is removed at once. `GetMessageRFC2822`: pick a placement (prefer non-spam/trash, `uid > 0`). `GetManyRFC2822`: paginate `MessageFolder` on `(accountId, folderId, remoteUID)` and join `Message` for subject/date | `TaskProcessor.cpp:1919-2209` |
 | Every remaining compile error from the deleted `Message` accessors is a call site to convert; the branch is done when `grep -rn "remoteFolder\|remoteUID\|clientFolder" MailSync/` returns only the migration SQL | |
 
-### Phase 4 — Client (~4–6 days, dominated by task/undo semantics)
+### Phase 4 — Client (~4–6 days, dominated by task/undo semantics; done)
 
 | Item | Where |
 |---|---|
@@ -540,30 +627,38 @@ Nothing in the thread list, folder views, counts, search, drafts, printing, forw
 export, mail rules or drag/drop needs to change: they are thread-level or folder-scoped by
 construction.
 
-### Phase 5 — Provider follow-ups
+### Phase 5 — Provider follow-ups (not started)
 
 - Optional end-of-pass `UID FETCH` verification for non-QRESYNC sessions (§2.9).
 - Lengthen the gateway-copy wait in the send path on Exchange to reduce duplicate Sent copies.
 
-### Phase 6 — Verification
+### Phase 6 — Verification (done)
 
-Engine tests against Dovecot 2.3.21 with CONDSTORE+QRESYNC (the harness used for #140), and
-against the four live accounts (Office 365, Yahoo, two Gmail) from a wiped database:
+Engine tests in the black-box harness (`mailsync/test/`: YAML scenarios against a fake IMAP
+server and Dovecot 2.3.21 with CONDSTORE+QRESYNC), and against the four live accounts
+(Office 365, Yahoo, two Gmail) from a wiped database. After every scenario the harness also
+runs the §2.3 invariant checks, so each row below is additionally checked for snapshot,
+thread-count and orphan-record drift:
 
 | Scenario | Expected |
 |---|---|
 | Self-addressed mail on O365/Yahoo | one message, `folders: [INBOX, Sent Items]`, appears in both views, zero `FolderID` flips in the log, badge counts stable |
 | 2–4 copies in Sent Items | one message, one folder entry, zero `UID (a to b)` flips |
-| Move Inbox → Archive from another client (Dovecot QRESYNC, Gmail, O365) | `persist` with `folders: []` then `folders: [Archive]`; no `unpersist`; snooze metadata still attached |
-| Delete from another client | placement tombstoned, message removed at the end of the next pass, `unpersist` once |
+| Move Inbox → Archive from another client (Dovecot QRESYNC, Gmail, O365) | `persist` with `folders: {}` then `folders: {Archive}`; no `unpersist`; snooze metadata still attached |
+| Delete from another client | placement row deleted and the message orphaned, message removed by the end-of-pass sweep once the folders have been scanned in full, `unpersist` once |
 | UIDVALIDITY change on a 100k folder | one UPDATE, no deltas, all messages relinked; truncated rebuild keeps its tail |
 | Archive thread with a Sent copy from Inbox view | Inbox placement moves, Sent copy stays; undo restores exactly that placement |
+| Move into a folder that already holds a copy (`move-into-folder-holding-a-copy`) | the selected copy is MOVEd, not deleted; the destination holds two placements |
+| Undo queued before the move's remote phase (`undo-before-remote-phase`) | the undo's marker survives the move's commit; the copy ends where it started |
+| Server rejects the MOVE (`move-rejected-by-server`, NO [OVERQUOTA]) | the copy is shown where the server has it; lock released, so a later flag change from another client is applied |
+| Another client moves the only copy while a task is in flight (`remote-move-while-task-in-flight`) | the new copy is recorded under the lock; the message is not swept |
 | Trash thread | every placement moves |
 | Mark read from Inbox on a self-addressed message | both copies STOREd `\Seen`; thread not bold anywhere |
 | Gmail archive / trash / label / send / self-send | single placement moves between All/Spam/Trash; labels intact; sent message lands with an All Mail placement |
 | Draft create / edit / send / delete | one Drafts placement at uid 0 then real uid; placeholder prevents re-insert; no lingering stubs |
 | Migration on a 1 GB database | ~5 s, one placement per message, thread counts unchanged, app opens normally; crash mid-migration retries cleanly |
-| Foreground IDLE unlink then background sweep | ≥ one full pass of grace (the old phase bug) |
+| Foreground IDLE sees a copy vanish, then background sweep | the orphan gets ≥ one full pass of grace (the old phase bug) |
+| Both workers process the same change to one message | thread counters applied once (the invariant check's thread refcounts) |
 
 ---
 
@@ -588,8 +683,8 @@ against the four live accounts (Office 365, Yahoo, two Gmail) from a wiped datab
 
 - Header-hash message identity and everything keyed on it (threads, plugin metadata, cloud
   metadata, files, search).
-- The two-phase grace before deleting a message — now timestamp-based and only for messages
-  with zero placements.
+- The grace before deleting a message whose copy vanished — now timestamp-based, recorded
+  per message in `MessageOrphan`, and only for messages with no placement left.
 - The engine writing into a task's data as it executes it (`undoPlacements`), which follows
   the existing `DestroyDraftTask.stubIds`, `SyncbackMetadataTask.modelMetadataNewVersion`
   and `SendDraftTask._performRemoteRan` precedents.
@@ -603,8 +698,9 @@ against the four live accounts (Office 365, Yahoo, two Gmail) from a wiped datab
 |---|---|
 | Move latency on non-QRESYNC servers (source copy lingers until its folder is rescanned) | Gmail exclusivity rule; Inbox rescans after every IDLE wake; Phase 5 `UID FETCH` verification |
 | Semantic change of thread archive (Sent copies stay put) is user-visible | §3.1 rule with the trash/spam exception; `sourceFolderIds` from the perspective |
-| Two workers upserting the same `(folder, uid)` | catch the unique-index collision in `insertFallbackToUpdateMessage` as error 19 is caught today |
-| Placement snapshot in JSON drifting from the table | all writes go through the §2.3 helpers; no other writer; reconciliation query in the test suite and `--mode verify` |
+| Two workers upserting the same `(folder, uid)`, or updating the same message | catch the unique-index collision in `insertFallbackToUpdateMessage` as error 19 is caught today; `updateMessage` reloads the message inside its transaction (§2.6) |
+| Placement snapshot in JSON drifting from the table | all writes go through the §2.3 helpers; the snapshot is rebuilt from the rows on save; harness invariant checks after every scenario (`--mode verify` not built) |
+| A message left with no copy deleted while its copy is only in transit | orphans are removed only once the folders have been scanned in full since (§2.5); scans record a new copy even under a task's lock (§2.6) |
 | Migration rewrites the `Message` table (40–60 s and ~1.7 GB of WAL at 1M messages) | free-space check before starting; progress window; transaction rolls back cleanly; measured on the 258k benchmark before shipping |
 | DB growth (~240 B/placement) | −32 MB from dropping `MessageUIDScanIndex`, −~130 B/row from removing duplicated Folder JSON in `data`; net ≈ +3–4% |
 | Migration on disk-full | free-space check; distinguish from corruption before offering Rebuild; transaction rolls back cleanly |
@@ -626,3 +722,35 @@ against the four live accounts (Office 365, Yahoo, two Gmail) from a wiped datab
 Roughly two to three weeks of engine work and one week of client work, with the Gmail send
 path and the `ChangeFolderTask` source/undo contract as the two items most likely to need
 iteration.
+
+## 10. Revisions
+
+A review pass on the engine after the first implementation changed these parts of the design
+(engine commits on `message-placements`):
+
+- **Orphans instead of per-copy tombstones** (`362ff17`, `724621b`). Grace matters only once a
+  message has lost its *last* copy; per-copy tombstones cost a liveness filter on every
+  placement query, flags OR'd over copies that are gone, a revive path in the move commit and
+  a full-table orphan backstop. A vanished copy's row is now deleted at once and a message
+  with no row is listed in `MessageOrphan`; `MessageFolder.unlinkedAt`, the unused
+  `syncedAt` and their index were dropped and V10 was edited in place (it had not shipped).
+  The sweep re-checks each candidate's record inside its chunk transaction because the
+  foreground worker can revive and re-orphan it meanwhile.
+- **Snapshot rebuilt on save** (`0fa9b73`). Helpers that each re-derived the snapshot ran the
+  rebuild once per call in a multi-copy operation, and a helper that forgot it left the
+  snapshot stale; `_placementsChanged` plus `Message::beforeSave` does it once, always.
+- **No move dedupe; undo moves copies back** (`2f83306`). Deleting the source copy when the
+  destination already held one was a destructive server operation for a rare case and forced
+  undo to recreate copies by COPY. A selected copy is always moved, and `undoPlacements` /
+  `restorePlacements` record the folder each moved copy came from.
+- **The `syncedAt` lock protects only recorded copies** (`188a10f`, `61a6a9d`). Ignoring every
+  scan result under the lock dropped a copy another client moved during a task, and the sweep
+  then deleted the message. A failed remote phase leaked the lock and its pending markers;
+  it now commits what moved, abandons the rest and releases the lock.
+- **Gmail detected by capability** (`67469d4`). The provider is `imap` for a Gmail account
+  added with generic settings, which skipped the one-placement rule; `X-GM-EXT-1` is the
+  test the rest of the engine already used.
+- **Message reloaded inside the update transaction** (`5101b45`). Both workers could save
+  from the same stale message and apply one thread delta twice.
+- **Scenario-end invariant check** (`b798a52`). The harness recomputes every derived layer
+  from the one below it after each scenario; it found the double-count above.
