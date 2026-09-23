@@ -256,15 +256,30 @@ New rules:
 | Another message takes over a `(folder, UID)` (a UID reused without a UIDVALIDITY change, or claimed by a moved copy's commit) | The row moves to the new holder; the displaced message is marked and saved, and becomes an orphan if that was its last copy. |
 | Scan of folder B records a copy of an orphaned message | `upsertPlacement` inserts the row; the refresh on save finds a row and deletes the orphan record. One `persist` with `folders: {B}`. Same id, metadata and body. |
 | A vanished UID reappears in the same folder | It has no row, so the scan treats it as new, fetches it, hashes it to the same id and records it as above. |
-| End of every background `syncNow` pass | `passStartedAt` is recorded before the folder loop. `sweepExpiredOrphans(passStartedAt)` lists the orphans whose `since` is before the pass start and removes them in chunks of 100 through `store->remove`, so `Message::afterRemove` fixes the thread, deletes the body, metadata, rows and orphan record, and emits `unpersist`. Each chunk re-reads the orphan records inside its own transaction, because the foreground worker can revive a candidate (and orphan it again, restarting its grace) while earlier chunks run. The grace rule: **an orphan is removed once the folders have been scanned in full since it became one**, so a copy that moved elsewhere has been recorded and has cleared the record. It is keyed on a timestamp, so the foreground worker's orphans get the same grace as the background worker's. `unlinkPhase` is deleted. |
+| End of every background `syncNow` pass | `passStartedAt` is recorded before the folder loop. `sweepExpiredOrphans(sweepBefore)` lists the orphans whose `since` is before the sweep bound (at most the pass start; see Sweep gating below) and removes them in chunks of 100 through `store->remove`, so `Message::afterRemove` fixes the thread, deletes the body, metadata, rows and orphan record, and emits `unpersist`. Each chunk re-reads the orphan records inside its own transaction, because the foreground worker can revive a candidate (and orphan it again, restarting its grace) while earlier chunks run. The grace rule: **an orphan is removed once the folders have been scanned in full since it became one**, so a copy that moved elsewhere has been recorded and has cleared the record. It is keyed on a timestamp, so the foreground worker's orphans get the same grace as the background worker's. `unlinkPhase` is deleted. |
 | UIDVALIDITY change | `resetPlacementUIDs`: `UPDATE MessageFolder SET remoteUID = 0 WHERE accountId=? AND folderId=? AND remoteUID > 0` (silent, no thread change). The heavy `1:*` rebuild's upsert replaces the message's UID 0 row in that folder with the row at the new UID. When the rebuild reports `!truncated`, `deleteUnassignedPlacements` deletes what is still at UID 0, except drafts, exactly like a vanished copy. A truncated rebuild leaves the tail at UID 0 — still live, still visible — instead of feeding the sweep. |
 | Folder deleted on the server, or `ExpungeAllInFolder` | `detachMessagesFromFolder`: in chunks of 100, delete the folder's rows (and abandon moves pending into it) and refresh the affected messages in one transaction. A message whose only copy was there is removed at once; the copies are gone for good, so there is nothing to wait for. |
 
-> **TODO(sweep gating):** describe exactly when a pass counts as having scanned the folders
-> in full (which folders must have been covered, and how skipped folders, folders still in
-> initial sync and truncated fetches are treated). The sweep is skipped on a pass that does
-> not meet that condition, since a copy the pass did not reach would otherwise be treated
-> as gone.
+**Sweep gating.** The sweep never waits for a pass that covered everything; it lowers its
+bound for each folder the pass did not cover.
+
+- A folder is *covered* by a background pass when that pass's scan reached its whole range:
+  STATUS succeeded, the initial walk has reached UID 1, and no fetch in the pass (new mail,
+  shallow, deep, CONDSTORE gap scan, UIDVALIDITY rebuild) was truncated or failed. A skipped
+  duplicate `\All` folder counts as covered.
+- Each folder's `coveredAt` is the start of the last background pass that covered it. It is
+  kept in memory (`SyncWorker::folderCoveredAt`) and empty after a relaunch, which only makes
+  the sweep wait longer; persisting it would save every folder on every pass.
+- The sweep removes orphans whose `since` is before
+  `min over uncovered folders of max(coveredAt, passStart − 24h)`, or before `passStart`
+  when every folder was covered. Pass start rather than scan start is sound: an orphan
+  recorded before it lost its last copy before that folder's scan began.
+- The 24h floor keeps a folder that is never covered (a listed mailbox that refuses STATUS,
+  RFC 4314 §4, or one whose scan truncates every pass) from stalling the sweep for good. Past
+  it an orphan is swept even if that folder holds its last copy, which would come back without
+  plugin metadata if the folder became readable — accepted, since the user cannot see an
+  unreadable mailbox. The `ORPHAN_SWEEP_MAX_WAIT` environment variable (seconds) overrides
+  the 24h so the harness can reach it (`orphan-sweep-with-unreadable-folder`).
 
 What the client sees on the stream for a move made in another client, plain IMAP:
 `persist Message X {folders: {}}` + `persist Thread` when the source scan runs, then
@@ -752,5 +767,10 @@ A review pass on the engine after the first implementation changed these parts o
   test the rest of the engine already used.
 - **Message reloaded inside the update transaction** (`5101b45`). Both workers could save
   from the same stale message and apply one thread delta twice.
+- **Sweep bounded per folder** (`dc73817`). Running the sweep only after a pass that covered
+  every folder let one folder whose STATUS failed, or whose scan truncated, on every pass
+  disable it for good, so messages deleted on the server were never removed locally. The
+  bound now follows each uncovered folder's last full scan, capped at `ORPHAN_SWEEP_MAX_WAIT`
+  (see the sweep gating note in §2.5).
 - **Scenario-end invariant check** (`b798a52`). The harness recomputes every derived layer
   from the one below it after each scenario; it found the double-count above.
