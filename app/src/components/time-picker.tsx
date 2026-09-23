@@ -106,8 +106,8 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
   };
 
   _saveIfValid(rawText = '') {
-    // Compare the rendered text, not the parsed instant: re-parsing re-resolves an ambiguous
-    // fall-back wall clock, and a 24-hour locale's "05:30" trips _shouldAddTwelve.
+    // Compare the rendered text, not the parsed instant: re-parsing an ambiguous fall-back
+    // wall clock re-resolves it to the earlier offset.
     if (rawText.trim() === this._valToTimeString(this.props.value)) {
       return;
     }
@@ -122,12 +122,20 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
       parsedMoment.year(valueMoment.year());
       parsedMoment.dayOfYear(valueMoment.dayOfYear());
 
-      if (parsedMoment.valueOf() === this.props.value) {
-        this.setState({ rawText: this._valToTimeString(this.props.value) });
+      if (parsedMoment.valueOf() !== this.props.value) {
+        this.props.onChange(parsedMoment.valueOf());
         return;
       }
-      this.props.onChange(parsedMoment.valueOf());
     }
+    // Nothing was emitted, so props.value will not change and componentDidUpdate will not
+    // re-derive the text. Put the field back on the time it is meant to be showing.
+    this.setState({ rawText: this._valToTimeString(this.props.value) });
+  }
+
+  // moment's LT uses h for a 12-hour clock and H for a 24-hour one. Test the hour token rather
+  // than the meridiem: lb writes "H:mm [Auer]" and si writes "a h:mm".
+  _isTwelveHourLocale() {
+    return /h/.test(moment.localeData().longDateFormat('LT'));
   }
 
   /*
@@ -136,10 +144,13 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
    * (no meridiem indicators) and very basic use cases.
    */
   _shouldAddTwelve(rawText) {
+    if (!this._isTwelveHourLocale()) {
+      return false;
+    }
     const simpleDigitMatch = rawText.match(/^(\d{1,2})(:\d{1,2})?$/);
     if (simpleDigitMatch && simpleDigitMatch.length > 0) {
       const hr = parseInt(simpleDigitMatch[1], 10);
-      if (hr <= 7) {
+      if (hr >= 1 && hr <= 7) {
         return true;
       }
     }

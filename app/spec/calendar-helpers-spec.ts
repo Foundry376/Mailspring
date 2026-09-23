@@ -1,8 +1,13 @@
+import moment from 'moment';
+import 'moment/locale/de';
+import 'moment/locale/ko';
 // Import directly from the source file; the plugin isn't registered in mailspring-exports.
 import {
   inclusiveAllDayEnd,
   shiftEndWithStart,
   clampEnd,
+  textColorOnFill,
+  formatShortTime,
 } from '../internal_packages/main-calendar/lib/core/calendar-helpers';
 import {
   shiftedDayStartUnix,
@@ -10,6 +15,9 @@ import {
   calendarDateFromUnix,
   calendarDaysBetween,
 } from '../src/calendar-date';
+
+// Each moment/locale import above switches the global locale as it loads.
+moment.locale('en');
 
 /** Local midnight, as unix seconds — all-day times are built from local date components */
 function localDay(year: number, month1Indexed: number, day: number): number {
@@ -170,5 +178,43 @@ describe('all-day day math at a DST transition', function () {
       const from = calendarDateFromUnix(shiftedDayStartUnix(start, 1));
       expect(calendarDaysBetween(from, calendarDateFromUnix(moved))).toBe(3);
     });
+  });
+});
+
+describe('textColorOnFill', function () {
+  it('puts black text on a light calendar color', function () {
+    expect(textColorOnFill({ r: 172, g: 222, b: 230 })).toBe('black'); // pale cyan
+    expect(textColorOnFill({ r: 255, g: 204, b: 0 })).toBe('black'); // yellow
+  });
+
+  it('puts white text on a dark calendar color', function () {
+    expect(textColorOnFill({ r: 23, g: 71, b: 173 })).toBe('white'); // deep blue
+    expect(textColorOnFill({ r: 176, g: 30, b: 40 })).toBe('white'); // dark red
+  });
+});
+
+describe('formatShortTime', function () {
+  const at = (hour: number, minute: number) => new Date(2026, 8, 22, hour, minute).getTime() / 1000;
+  afterEach(() => moment.locale('en'));
+
+  it('drops :00 on the hour on a 12-hour clock', function () {
+    moment.locale('en');
+    expect(formatShortTime(at(10, 0))).toBe('10 AM');
+    expect(formatShortTime(at(22, 0))).toBe('10 PM');
+  });
+
+  it('keeps the minutes off the hour', function () {
+    moment.locale('en');
+    expect(formatShortTime(at(10, 30))).toBe('10:30 AM');
+  });
+
+  it('keeps a 24-hour clock whole, since a bare hour does not read as a time', function () {
+    moment.locale('de');
+    expect(formatShortTime(at(10, 0))).toBe('10:00');
+  });
+
+  it('shortens a 12-hour locale whose meridiem comes first', function () {
+    moment.locale('ko');
+    expect(formatShortTime(at(22, 0))).toBe(moment.unix(at(22, 0)).format('A h'));
   });
 });

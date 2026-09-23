@@ -9,10 +9,11 @@ import {
   occurrenceEndUnix,
 } from './calendar-data-source';
 import { calcEventColors, extractMeetingDomain, formatEventTimeRange } from './calendar-helpers';
-import { RecurringIcon } from './calendar-icons';
 import { HitZone, ViewDirection } from './calendar-drag-types';
 import { detectHitZone, canMoveEvent, formatDragPreviewTime } from './calendar-drag-utils';
 import { DAY_DUR, columnSpan } from './week-view-helpers';
+
+const EVENT_GAP = 2;
 
 interface CalendarEventProps {
   event: EventOccurrence;
@@ -140,14 +141,17 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     let styles: CSSProperties & {
       '--event-band-color'?: string;
       '--event-text-color'?: string;
+      '--event-selected-text-color'?: string;
     } = {};
+    // Gaps between events are cut from the box, not drawn as borders, so the corners stay round.
     if (this.props.direction === 'vertical') {
-      styles = this._getDimensions();
+      const d = this._getDimensions();
+      styles = { ...d, height: `calc(${d.height} - ${EVENT_GAP}px)` };
     } else if (this.props.direction === 'horizontal') {
       const d = this._getDimensions();
       styles = {
-        left: d.top,
-        width: d.height,
+        left: `calc(${d.top} + ${EVENT_GAP}px)`,
+        width: `calc(${d.height} - ${2 * EVENT_GAP}px)`,
         height: d.width,
         top: d.left,
       };
@@ -156,6 +160,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     // Set CSS custom property for the left band color
     styles['--event-band-color'] = colors.band;
     styles['--event-text-color'] = colors.text;
+    styles['--event-selected-text-color'] = colors.selectedText;
 
     if (this.props.event.isCancelled) {
       // Cancelled events get a transparent background with colored border
@@ -358,7 +363,6 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       selected && 'selected',
       event.isCancelled && 'cancelled',
       event.isPending && 'pending',
-      event.isException && 'exception',
       isDragging && 'dragging',
       this._canDrag() && 'draggable',
       event.isDragPreview && 'drag-preview',
@@ -405,8 +409,6 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
           {event.isCancelled ? <s>{event.title}</s> : event.title}
         </span>
         {this._renderEventDetails()}
-        {event.isRecurring && !event.isCancelled && !event.isException && <RecurringIcon />}
-        {event.isException && <span className="exception-tag">Modified</span>}
         <InjectedComponentSet
           className="event-injected-components"
           style={{ position: 'absolute' }}
