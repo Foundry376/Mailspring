@@ -468,6 +468,10 @@ class CategoryMailboxPerspective extends MailboxPerspective {
       return [];
     }
 
+    // Move only the copies the user is looking at; a copy of the same message in Sent
+    // (or any other folder) stays put. Labels are not placements, so they never scope.
+    const sourceFolderIds = currentCat instanceof Folder ? [currentCat.id] : [];
+
     if (myCat.role === 'all' && currentCat && currentCat instanceof Label) {
       // dragging from a label into All Mail? Make this an "archive" by removing the
       // label. Otherwise (Since labels are subsets of All Mail) it'd have no effect.
@@ -487,6 +491,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
           threads,
           source: 'Dragged into list',
           folder: myCat,
+          sourceFolderIds,
         }),
       ];
     }
@@ -499,6 +504,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
           threads,
           source: 'Dragged into list',
           folder: CategoryStore.getCategoryByRole(accountId, 'all'),
+          sourceFolderIds,
         }),
         new ChangeLabelsTask({
           threads,
@@ -568,6 +574,8 @@ class CategoryMailboxPerspective extends MailboxPerspective {
         threads: accountThreads,
         folder: preferred,
         source: source,
+        // Remove only the copies shown in this folder (see actionsForReceivingThreads).
+        sourceFolderIds: cat instanceof Folder && cat.id !== preferred.id ? [cat.id] : [],
       });
     });
   }

@@ -56,8 +56,7 @@ export class ChangeMailTask extends Task {
     this.accountId =
       this.accountId || (threads[0] || messages[0] || { accountId: undefined }).accountId;
 
-    // Set canBeUndone after super() — defaults to true for mail tasks
-    // unless explicitly overridden by subclasses (e.g. ChangeFolderTask).
+    // Set canBeUndone after super() so a subclass constructor can still override it.
     this.canBeUndone = canBeUndone !== undefined ? canBeUndone : true;
   }
 

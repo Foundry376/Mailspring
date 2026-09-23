@@ -120,6 +120,47 @@ export class SyncbackEventTask extends Task {
 }
 ```
 
+### Pattern 3: Engine-Written Snapshot (ChangeFolderTask)
+
+Sometimes the client cannot know the original state when it queues the task. A folder move
+is the canonical case: a message may have copies in several folders, and only the sync
+engine knows which copies it moved and from where. The engine writes that snapshot onto the
+task's data during its local phase (the same mechanism `DestroyDraftTask` uses to receive
+`stubIds`), and the task streams back to the client as a Task persist delta.
+
+```typescript
+export class ChangeFolderTask extends ChangeMailTask {
+  folder: Folder;
+  sourceFolderIds: string[];
+  undoPlacements?: SourceFoldersByMessageId;     // written by the engine: where each moved copy came from
+  restorePlacements?: SourceFoldersByMessageId;  // read by the engine on the undo task
+
+  engineWritesUndoData = true;                   // tells UndoRedoStore to wait for the engine's version
+
+  createUndoTasks() {
+    const task = super.createUndoTask();         // isUndo = true
+    task.folder = this._firstRestoreFolder();    // for the description only
+    task.sourceFolderIds = [this.folder.id];     // the copies to send back are in the destination
+    task.restorePlacements = this.undoPlacements;
+    return [task];
+  }
+}
+```
+
+Three consequences for anyone using this pattern:
+
+1. Set `engineWritesUndoData = true` on the task class. `UndoRedoStore.undo()` then resolves
+   each such task through `TaskQueue.waitForPerformLocal()` before building the undo, so it
+   runs against the **engine-updated** version. The wait is bounded (and abandoned early when
+   the engine never echoes the task back), so an offline engine degrades to an approximate
+   undo rather than none. Tasks without the flag, and tasks registered through
+   `Actions.queueUndoOnlyTask`, are reversed immediately from the client's copy.
+2. Implement `createUndoTasks()` when the approximate undo can need several tasks (one per
+   original folder), and return `[]` when nothing can be reversed; `createUndoTask()` stays
+   for callers that can only queue one.
+3. `createIdenticalTask()` (used for redo) must strip the engine-written field so a re-run
+   starts with a clean snapshot.
+
 ## Implementation Steps
 
 ### Step 1: Add Undo Data Attributes
@@ -241,3 +282,4 @@ event.ics = newIcs;  // Now modify
 - `app/src/flux/tasks/change-mail-task.ts` - Base class for mail changes
 - `app/src/flux/tasks/syncback-metadata-task.ts` - Example of snapshot pattern
 - `app/src/flux/tasks/syncback-event-task.ts` - Calendar event undo implementation
+- `app/src/flux/tasks/change-folder-task.ts` - Engine-written snapshot (`undoPlacements`)
