@@ -1,4 +1,5 @@
-import { Value } from 'slate';
+import * as Immutable from 'immutable';
+import { Block, Text, Value } from 'slate';
 import {
   convertFromHTML,
   convertToHTML,
@@ -8,6 +9,7 @@ import {
   ComposerEditor,
   normalizePlainTextForPaste,
 } from '../../../src/components/composer-editor/composer-editor';
+import { BLOCK_CONFIG } from '../../../src/components/composer-editor/base-block-plugins';
 
 describe('Composer HTML conversion', () => {
   it('drops near-white source text colors that would be unreadable on a light email background', () => {
@@ -65,6 +67,37 @@ describe('Composer HTML conversion', () => {
 
     expect(convertToHTML(value)).not.toContain('rgba(0, 0, 0, 0)');
     expect(convertToPlainText(value)).toContain('Hidden text');
+  });
+
+  it('marks empty editor blocks so pasted blank lines remain visible', () => {
+    const emptyBlock = Block.create({
+      type: BLOCK_CONFIG.div.type,
+      nodes: Immutable.List([Text.create('')]),
+    });
+    const rendered = BLOCK_CONFIG.div.render({
+      node: emptyBlock,
+      attributes: {},
+      children: null,
+      targetIsHTML: false,
+    } as any) as React.ReactElement<any>;
+
+    expect(rendered.props.className).toContain('empty-composer-block');
+  });
+
+  it('does not add the editor-only empty-block class to serialized HTML', () => {
+    const emptyBlock = Block.create({
+      type: BLOCK_CONFIG.div.type,
+      nodes: Immutable.List([Text.create('')]),
+    });
+    const rendered = BLOCK_CONFIG.div.render({
+      node: emptyBlock,
+      attributes: {},
+      children: null,
+      targetIsHTML: true,
+    } as any) as React.ReactElement<any>;
+
+    expect(rendered.type).toBe('br');
+    expect(rendered.props.className).toBeUndefined();
   });
 
   it('normalizes Windows line endings before plain-text paste', () => {

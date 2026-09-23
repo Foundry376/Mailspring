@@ -41,6 +41,13 @@
     div[contenteditable] {
       -webkit-user-modify: read-write !important;
     }
+
+    // Slate's zero-width placeholder does not always give an empty block a line box,
+    // notably in the inline reply composer. Keep model-level blank lines visible just
+    // as they will be after the HTML serializer turns these blocks into <br> elements.
+    .empty-composer-block {
+      min-height: 1.4em;
+    }
   }
 }
 
