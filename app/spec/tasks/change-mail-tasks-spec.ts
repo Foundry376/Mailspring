@@ -247,30 +247,30 @@ describe('ChangeFolderTask', function () {
 
     it('copies the engine-written undoPlacements to restorePlacements', function () {
       const undoPlacements = {
-        'm-1': [{ folderId: inbox.id, remoteUID: 41 }],
-        'm-2': [
-          { folderId: inbox.id, remoteUID: 42 },
-          { folderId: trash.id, remoteUID: 7 },
-        ],
+        'm-1': [inbox.id],
+        'm-2': [inbox.id, trash.id],
       };
       const undoTask = taskAfterLocalPhase(undoPlacements).createUndoTask();
       expect(undoTask.restorePlacements).toEqual(undoPlacements);
       expect(undoTask.undoPlacements).toBeUndefined();
-      expect(undoTask.sourceFolderIds).toEqual([]);
+      expect(undoTask.sourceFolderIds).toEqual([archive.id]);
       expect(undoTask.threadIds).toEqual(['t1']);
       expect(undoTask.isUndo).toBe(true);
     });
 
     it('sets folder to the first recorded source so the undo has a sensible description', function () {
-      const undoTask = taskAfterLocalPhase({
-        'm-1': [{ folderId: inbox.id, remoteUID: 41 }],
-      }).createUndoTask();
+      const undoTask = taskAfterLocalPhase({ 'm-1': [inbox.id] }).createUndoTask();
       expect(undoTask.folder.id).toBe(inbox.id);
-      expect(undoTask.description()).toBe('Moved to Inbox');
+      expect(undoTask.description()).toBe('Moved from archive to Inbox');
+    });
+
+    it('returns no undo tasks when none of the recorded folders still exists', function () {
+      const task = taskAfterLocalPhase({ 'm-1': ['deleted-folder-id'] });
+      expect(task.createUndoTasks()).toEqual([]);
     });
 
     it('serializes restorePlacements for the engine', function () {
-      const undoPlacements = { 'm-1': [{ folderId: inbox.id, remoteUID: 41 }] };
+      const undoPlacements = { 'm-1': [inbox.id] };
       const json = taskAfterLocalPhase(undoPlacements).createUndoTask().toJSON();
       expect(json.restorePlacements).toEqual(undoPlacements);
       expect(json.isUndo).toBe(true);
@@ -339,14 +339,12 @@ describe('ChangeFolderTask', function () {
     });
 
     it('does not carry undoPlacements onto a redo (identical) task', function () {
-      const task = taskAfterLocalPhase({ 'm-1': [{ folderId: inbox.id, remoteUID: 41 }] });
+      const task = taskAfterLocalPhase({ 'm-1': [inbox.id] });
       expect(task.createIdenticalTask().undoPlacements).toBeUndefined();
     });
 
     it('throws when attempting to create an undo of an undo', function () {
-      const undoTask = taskAfterLocalPhase({
-        'm-1': [{ folderId: inbox.id, remoteUID: 41 }],
-      }).createUndoTask();
+      const undoTask = taskAfterLocalPhase({ 'm-1': [inbox.id] }).createUndoTask();
       expect(() => undoTask.createUndoTask()).toThrow();
     });
   });

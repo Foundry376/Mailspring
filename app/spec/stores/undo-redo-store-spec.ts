@@ -47,7 +47,7 @@ describe('UndoRedoStore', function () {
 
   it('builds the undo task from the version the engine streamed back', async function () {
     const task = queueMove();
-    const undoPlacements = { 'm-1': [{ folderId: inbox.id, remoteUID: 12 }] };
+    const undoPlacements = { 'm-1': [inbox.id] };
     const fromEngine = new ChangeFolderTask({ ...task.toJSON(), status: 'remote', undoPlacements });
     spyOn(TaskQueue, 'waitForPerformLocal').andReturn(Promise.resolve(fromEngine));
 
@@ -57,6 +57,7 @@ describe('UndoRedoStore', function () {
     expect(queued.length).toBe(1);
     const [undoTask] = queued[0];
     expect(undoTask.restorePlacements).toEqual(undoPlacements);
+    expect(undoTask.sourceFolderIds).toEqual([archive.id]);
     expect(undoTask.isUndo).toBe(true);
   });
 

@@ -272,9 +272,11 @@ phase later rewrites `remoteFolder`/`remoteUID` and erases its own deltas. Under
   `folderId = pendingFolderId, remoteUID = <COPYUID>, pendingFolderId = NULL`. Non-UIDPLUS
   servers keep today's tail-fetch-and-rehash fallback (`TaskProcessor.cpp:108-140`), which
   works because the id is folder-independent.
-- If the message **already has a live placement in `dest`**, do not MOVE (the server would
-  then hold two copies and the unique index is fine with that, but the user asked for one):
-  remove the source copy with `_removeMessagesResilient` semantics and delete the source row.
+- If the message **already has a live placement in `dest`**, the selected copy is still
+  MOVEd and the destination ends with two placements, as it does for Exchange's duplicate
+  Sent copies. Deleting the source copy instead would be a destructive server operation for
+  a rare case (dragging a self-sent Inbox message into Sent) and would make undo recreate it
+  by COPY; other IMAP clients simply MOVE.
 
 Deletion placeholders for drafts (`Message::messageWithDeletionPlaceholderFor`,
 `Message.cpp:34-55`) become a placeholder message that owns the draft's placement
@@ -349,10 +351,18 @@ representable; adding UI for them is out of scope for this project.
 The client computes one `previousFolder` per task (`change-folder-task.ts:43-70`) and marks
 the task not undoable when sources are heterogeneous (`:59-63`). That is already lossy
 (undoing an archive of an Inbox + Sent thread moves the Sent copy to Inbox) and cannot express
-per-placement sources. Recommended: the engine writes `undoPlacements`
-(`{ messageId: [{folderId, remoteUID}] }`) into the task data in `performLocal` — the pattern
-`DestroyDraftTask` already uses for `stubIds` (`TaskProcessor.cpp:971`) — and the client's
-`createUndoTask` copies it to `restorePlacements` on the undo task. Multi-folder moves become
+per-placement sources. Implemented: the engine writes `undoPlacements`
+(`{ messageId: [folderId, ...] }`, the folder each moved copy was shown in, one entry per
+copy) into the task data in `performLocal` — the pattern `DestroyDraftTask` already uses
+for `stubIds` — and the client's `createUndoTasks` copies it to `restorePlacements` on the
+undo task, with `sourceFolderIds = [original destination]`. The undo moves as many of the
+message's copies in that destination back as there are entries, one per recorded folder.
+Copies are byte-identical, so it need not know which copy came from where; it prefers the
+copies still in flight to the destination and then the highest UIDs there (a moved copy
+lands above every UID the folder held, RFC 3501 2.3.1.1), which leaves a copy the
+destination already had in place. An undo queued before the move's remote phase marks the
+copies home in its local phase; the move's commit carries that marker onto the moved row
+and the undo's remote phase (FIFO after the move) moves it back. Multi-folder moves become
 undoable.
 
 ### 3.4 Visibility of the in-transit state
@@ -506,7 +516,7 @@ INBOX ↔ Sent flapping now. Deleted in Phase 2.
 | Item | Where |
 |---|---|
 | `performLocalChangeOnMessages` / `performRemoteChangeOnMessages`: iterate placements, group UIDs by server folder, key the reload map by placement row, per-placement confirm | `TaskProcessor.cpp:772-896`, signature in `.hpp:58-59` |
-| Move: `_applyFolder` sets `pendingFolderId` on the placements selected by §3.1; `_moveMessagesResilient` reads/writes per placement, handles "dest already has a copy" as remove-from-source, skips `uid == 0` (today a `remoteUID 0` draft in a moved thread sends UID 0 in the MOVE — latent bug); engine writes `undoPlacements`; handle `restorePlacements` on undo tasks (MOVE back the first source, COPY to additional sources) | `TaskProcessor.cpp:70-160, 265-274` |
+| Move: `_applyFolder` sets `pendingFolderId` on the placements selected by §3.1; `_moveMessagesResilient` reads/writes per placement, MOVEs even when dest already has a copy, skips `uid == 0` (today a `remoteUID 0` draft in a moved thread sends UID 0 in the MOVE — latent bug); engine writes `undoPlacements`; handle `restorePlacements` on undo tasks (MOVE one destination copy back to each recorded source) | `TaskProcessor.cpp:70-160, 265-274` |
 | Flags: `_applyUnread`/`_applyStarred` set every placement; IMAP variants STORE per folder | `TaskProcessor.cpp:233-263` |
 | Labels: operate on the single Gmail placement | `TaskProcessor.cpp:276-349` |
 | Send: delete the remote draft via its placements; create the Sent placement (non-Gmail) or the All Mail placement (Gmail, §2.8); `SyncbackMetadataTask` by `localMessage->id()` is unchanged | `TaskProcessor.cpp:1486-1868` |

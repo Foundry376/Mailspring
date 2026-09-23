@@ -132,15 +132,16 @@ task's data during its local phase (the same mechanism `DestroyDraftTask` uses t
 export class ChangeFolderTask extends ChangeMailTask {
   folder: Folder;
   sourceFolderIds: string[];
-  undoPlacements?: PlacementsByMessageId;     // written by the engine: what moved, and from where
-  restorePlacements?: PlacementsByMessageId;  // read by the engine on the undo task
+  undoPlacements?: SourceFoldersByMessageId;     // written by the engine: where each moved copy came from
+  restorePlacements?: SourceFoldersByMessageId;  // read by the engine on the undo task
 
-  engineWritesUndoData = true;                // tells UndoRedoStore to wait for the engine's version
+  engineWritesUndoData = true;                   // tells UndoRedoStore to wait for the engine's version
 
   createUndoTasks() {
-    const task = super.createUndoTask();      // isUndo = true
+    const task = super.createUndoTask();         // isUndo = true
+    task.folder = this._firstRestoreFolder();    // for the description only
+    task.sourceFolderIds = [this.folder.id];     // the copies to send back are in the destination
     task.restorePlacements = this.undoPlacements;
-    task.folder = this._firstRestoreFolder() || this.folder;
     return [task];
   }
 }

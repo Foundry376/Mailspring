@@ -8,13 +8,8 @@ import { AttributeValues } from '../models/model';
 
 let CategoryStore = null;
 
-/** One physical copy of a message, as recorded by the sync engine before a move. */
-export interface Placement {
-  folderId: string;
-  remoteUID: number;
-}
-
-export type PlacementsByMessageId = { [messageId: string]: Placement[] };
+/** The folder each copy of a message was shown in before a move, one entry per copy. */
+export type SourceFoldersByMessageId = { [messageId: string]: string[] };
 
 /*
 Public: Moves threads or messages to a folder.
@@ -31,11 +26,11 @@ Callers with a perspective (the mailbox the user is looking at) pass that folder
 is never a meaningful source, so the constructor drops it from `sourceFolderIds` (a Gmail
 perspective on All Mail can otherwise produce a move to All Mail scoped to All Mail).
 
-Undo: during its local phase the engine records the placements it moved as
-`undoPlacements` (`{ messageId: [{ folderId, remoteUID }] }`) on this task, the same way
+Undo: during its local phase the engine records the folder each copy it moved came from as
+`undoPlacements` (`{ messageId: [folderId, ...] }`) on this task, the same way
 `DestroyDraftTask` receives `stubIds`. `createUndoTasks()` copies that map onto the undo
-task as `restorePlacements`, and the engine moves each copy back to its original folder.
-`undoPlacements` is only present on the task version streamed back from the engine
+task as `restorePlacements`, scoped to this task's destination, and the engine moves one
+copy from the destination back to each recorded folder. `undoPlacements` is only present on the task version streamed back from the engine
 (`UndoRedoStore` waits for the local phase before building the undo task). When it never
 arrives, the undo is approximated from the folders the threads were in when the task was
 built (see `createUndoTasks`).
@@ -61,8 +56,8 @@ export class ChangeFolderTask extends ChangeMailTask {
 
   folder: Folder;
   sourceFolderIds: string[];
-  undoPlacements?: PlacementsByMessageId;
-  restorePlacements?: PlacementsByMessageId;
+  undoPlacements?: SourceFoldersByMessageId;
+  restorePlacements?: SourceFoldersByMessageId;
 
   engineWritesUndoData = true;
 
@@ -183,13 +178,16 @@ export class ChangeFolderTask extends ChangeMailTask {
 
   createUndoTasks(): this[] {
     if (this.undoPlacements && Object.keys(this.undoPlacements).length > 0) {
+      // `folder` only describes the undo to the user: the engine sends each copy to its
+      // recorded folder. None being known means they have all been deleted.
+      const folder = this._firstRestoreFolder();
+      if (!folder) {
+        return [];
+      }
       const task = super.createUndoTask();
-      task.sourceFolderIds = [];
+      task.folder = folder;
+      task.sourceFolderIds = [this.folder.id];
       task.restorePlacements = this.undoPlacements;
-      // `folder` is what the undo describes to the user and what an engine without
-      // per-placement restore would move to; the first recorded source is the best
-      // single answer.
-      task.folder = this._firstRestoreFolder() || this.folder;
       return [task];
     }
 
@@ -237,8 +235,8 @@ export class ChangeFolderTask extends ChangeMailTask {
   }
 
   _firstRestoreFolder(): Folder | null {
-    for (const placements of Object.values(this.undoPlacements || {})) {
-      for (const { folderId } of placements) {
+    for (const folderIds of Object.values(this.undoPlacements || {})) {
+      for (const folderId of folderIds) {
         const folder = this._folderById(folderId);
         if (folder) {
           return folder;
