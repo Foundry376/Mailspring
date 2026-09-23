@@ -1,0 +1,115 @@
+import React from 'react';
+import moment from 'moment';
+import 'moment/locale/de';
+import { render, fireEvent, cleanup } from '@testing-library/react';
+
+import TimePicker from '../../src/components/time-picker';
+
+// Clear of the 2026-03-08 transition, so a failed day assertion is a date bug, not a DST one.
+const EVENT_DAY = '2026-03-10';
+const VALUE = moment(`${EVENT_DAY} 15:00`, 'YYYY-MM-DD HH:mm').valueOf();
+
+// The second 1:30 AM of a fall-back day, in the America/Chicago zone scripts/test.js pins.
+// Re-parsing this field's own rendered text resolves the ambiguity to the earlier offset.
+const REPEATED_HOUR_VALUE = Date.UTC(2026, 10, 1, 7, 30);
+
+// An hour <= 7, so a 24-hour rendering of it ("05:30") is what _shouldAddTwelve reads as pm.
+const MORNING_VALUE = moment(`${EVENT_DAY} 05:30`, 'YYYY-MM-DD HH:mm').valueOf();
+
+describe('TimePicker', function timePicker() {
+  afterEach(cleanup);
+
+  function renderPicker(value = VALUE) {
+    const onChange = jasmine.createSpy('onChange');
+    const { container } = render(<TimePicker value={value} onChange={onChange} />);
+    return { onChange, container, input: container.querySelector('input') as HTMLInputElement };
+  }
+
+  function lastEmitted(onChange: jasmine.Spy) {
+    return moment(onChange.mostRecentCall.args[0]);
+  }
+
+  it('keeps the edited day when a new time is typed', () => {
+    const { onChange, input } = renderPicker();
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: '4:30pm' } });
+    fireEvent.blur(input);
+
+    expect(onChange).toHaveBeenCalled();
+    expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe(`${EVENT_DAY} 16:30`);
+  });
+
+  it('keeps the edited day when a bare hour is typed and read as pm', () => {
+    const { onChange, input } = renderPicker();
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: '4' } });
+    fireEvent.blur(input);
+
+    expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe(`${EVENT_DAY} 16:00`);
+  });
+
+  it('stays silent when the field is focused and blurred with no edit', () => {
+    const { onChange, input } = renderPicker();
+
+    fireEvent.focus(input);
+    fireEvent.blur(input);
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('stays silent on the repeated hour of a fall-back day', () => {
+    const { onChange, input } = renderPicker(REPEATED_HOUR_VALUE);
+
+    fireEvent.focus(input);
+    fireEvent.blur(input);
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('restores the canonical text when a typed time resolves to the value it already had', () => {
+    const { onChange, input } = renderPicker();
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: '3' } });
+    fireEvent.blur(input);
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(input.value).toBe(moment(VALUE).format('LT'));
+  });
+
+  it('emits milliseconds from the arrow keys', () => {
+    const { onChange, input } = renderPicker();
+
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+    expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe(`${EVENT_DAY} 15:30`);
+  });
+
+  // date-utils.ts runs moment.locale(navigator.language) at startup, so a German or Japanese
+  // user's field renders "05:30" — digits only, which is the shape _shouldAddTwelve promotes.
+  describe('in a 24-hour locale', () => {
+    beforeEach(() => moment.locale('de'));
+    afterEach(() => moment.locale('en'));
+
+    it('stays silent when the field is focused and blurred with no edit', () => {
+      const { onChange, input } = renderPicker(MORNING_VALUE);
+
+      fireEvent.focus(input);
+      fireEvent.blur(input);
+
+      expect(input.value).toBe('05:30');
+      expect(onChange).not.toHaveBeenCalled();
+    });
+  });
+
+  it('emits milliseconds from the dropdown', () => {
+    const { onChange, input, container } = renderPicker();
+
+    fireEvent.focus(input);
+    fireEvent.mouseDown(container.querySelector('.time-options .option') as HTMLElement);
+
+    expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe(`${EVENT_DAY} 00:00`);
+  });
+});
