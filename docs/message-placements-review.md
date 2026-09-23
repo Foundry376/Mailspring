@@ -1,6 +1,6 @@
 # Message placements: review pass changes and rationale
 
-September 2026. This covers engine commits `a5db80b..23eda76` and client commits `f3d8069b3`, `e477184c1`, `e8d49efa7` and `44927c5ef` on `message-placements`. The design as implemented is described in `message-placements-plan.md` and `mailsync/CLAUDE.md`. This document explains **why** the review pass changed it.
+September 2026. This covers engine commits `a5db80b..30f3e05` and client commits `f3d8069b3`, `e477184c1`, `e8d49efa7` and `44927c5ef` on `message-placements`. The design as implemented is described in `message-placements-plan.md` and `mailsync/CLAUDE.md`. This document explains **why** the review pass changed it.
 
 ## How the review was done
 
@@ -114,6 +114,12 @@ The engine writes `undoPlacements = {}` when a move selected no copies. The clie
 - A broken folder can delay orphan removal by at most 24h. It can no longer stop it.
 - Coverage is kept in memory, because writing it to `localStatus` would send every folder to the client on every pass. After a relaunch, folders count as never covered, which only makes the sweep wait longer.
 - The `ORPHAN_SWEEP_MAX_WAIT` environment variable overrides the limit for tests.
+
+### 10. After the reconcile round (`ef7d25e`, `6baedc8`, `30f3e05`)
+
+- **The sweep waits for an initial walk that is still progressing** (`ef7d25e`). A first sync of a very large folder can run for more than 24 hours; the reviewer watched a 203k-message All Mail take hours. The 24h cap would have stopped waiting for it, so an orphan whose other copy sat in the part not yet walked could have been swept and later re-created without metadata. A folder whose `syncedMinUID` dropped during the pass now holds the sweep with no cap. A walk that stops progressing falls back to the cap.
+- **The `LS_*` keys are shared through `constants.h`** (`6baedc8`), so the flag-repair reset can't silently diverge from the key the worker reads.
+- **The harness reports a mailsync killed by a signal as such** (`30f3e05`), rather than as a migration failure.
 
 ## Decided not to do
 
