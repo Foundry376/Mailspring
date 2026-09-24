@@ -47,7 +47,7 @@ describe('UndoRedoStore', function () {
 
   it('builds the undo task from the version the engine streamed back', async function () {
     const task = queueMove();
-    const undoPlacements = { 'm-1': [inbox.id] };
+    const undoPlacements = { 'm-1': [{ folderId: inbox.id, bits: 1 }] };
     const fromEngine = new ChangeFolderTask({ ...task.toJSON(), status: 'remote', undoPlacements });
     spyOn(TaskQueue, 'waitForPerformLocal').andReturn(Promise.resolve(fromEngine));
 

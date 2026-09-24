@@ -247,8 +247,11 @@ describe('ChangeFolderTask', function () {
 
     it('copies the engine-written undoPlacements to restorePlacements', function () {
       const undoPlacements = {
-        'm-1': [inbox.id],
-        'm-2': [inbox.id, trash.id],
+        'm-1': [{ folderId: inbox.id, bits: 1 }],
+        'm-2': [
+          { folderId: inbox.id, bits: 1 },
+          { folderId: trash.id, bits: 0 },
+        ],
       };
       const undoTask = taskAfterLocalPhase(undoPlacements).createUndoTask();
       expect(undoTask.restorePlacements).toEqual(undoPlacements);
@@ -259,13 +262,15 @@ describe('ChangeFolderTask', function () {
     });
 
     it('sets folder to the first recorded source so the undo has a sensible description', function () {
-      const undoTask = taskAfterLocalPhase({ 'm-1': [inbox.id] }).createUndoTask();
+      const undoTask = taskAfterLocalPhase({
+        'm-1': [{ folderId: inbox.id, bits: 0 }],
+      }).createUndoTask();
       expect(undoTask.folder.id).toBe(inbox.id);
       expect(undoTask.description()).toBe('Moved from archive to Inbox');
     });
 
     it('returns no undo tasks when none of the recorded folders still exists', function () {
-      const task = taskAfterLocalPhase({ 'm-1': ['deleted-folder-id'] });
+      const task = taskAfterLocalPhase({ 'm-1': [{ folderId: 'deleted-folder-id', bits: 0 }] });
       expect(task.createUndoTasks()).toEqual([]);
     });
 
@@ -276,7 +281,7 @@ describe('ChangeFolderTask', function () {
     });
 
     it('serializes restorePlacements for the engine', function () {
-      const undoPlacements = { 'm-1': [inbox.id] };
+      const undoPlacements = { 'm-1': [{ folderId: inbox.id, bits: 3 }] };
       const json = taskAfterLocalPhase(undoPlacements).createUndoTask().toJSON();
       expect(json.restorePlacements).toEqual(undoPlacements);
       expect(json.isUndo).toBe(true);
@@ -350,7 +355,9 @@ describe('ChangeFolderTask', function () {
     });
 
     it('throws when attempting to create an undo of an undo', function () {
-      const undoTask = taskAfterLocalPhase({ 'm-1': [inbox.id] }).createUndoTask();
+      const undoTask = taskAfterLocalPhase({
+        'm-1': [{ folderId: inbox.id, bits: 0 }],
+      }).createUndoTask();
       expect(() => undoTask.createUndoTask()).toThrow();
     });
   });

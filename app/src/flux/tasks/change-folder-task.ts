@@ -8,8 +8,14 @@ import { AttributeValues } from '../models/model';
 
 let CategoryStore = null;
 
-/** The folder each copy of a message was shown in before a move, one entry per copy. */
-export type SourceFoldersByMessageId = { [messageId: string]: string[] };
+/**
+ * The folder each copy of a message was shown in before a move, and that copy's flag bits
+ * (1 unread, 2 starred, 4 draft, as in `Message.folders`), one entry per copy. Copies share
+ * their bytes but not their flags, so the engine uses `bits` to send each one home.
+ */
+export type SourceFoldersByMessageId = {
+  [messageId: string]: { folderId: string; bits: number }[];
+};
 
 /*
 Public: Moves threads or messages to a folder.
@@ -26,14 +32,16 @@ Callers with a perspective (the mailbox the user is looking at) pass that folder
 is never a meaningful source, so the constructor drops it from `sourceFolderIds` (a Gmail
 perspective on All Mail can otherwise produce a move to All Mail scoped to All Mail).
 
-Undo: during its local phase the engine records the folder each copy it moved came from as
-`undoPlacements` (`{ messageId: [folderId, ...] }`) on this task, the same way
-`DestroyDraftTask` receives `stubIds`. `createUndoTasks()` copies that map onto the undo
-task as `restorePlacements`, scoped to this task's destination, and the engine moves one
-copy from the destination back to each recorded folder. `undoPlacements` is only present on the task version streamed back from the engine
+Undo: during its local phase the engine records the folder each copy it moved came from,
+with that copy's flag bits, as `undoPlacements` (`{ messageId: [{ folderId, bits }, ...] }`)
+on this task, the same way `DestroyDraftTask` receives `stubIds`. `createUndoTasks()` copies
+that map onto the undo task as `restorePlacements`, scoped to this task's destination, and
+the engine moves one copy from the destination back to each recorded folder, preferring a
+copy whose flags still match, so an unread Inbox copy and a read Sent copy each return
+home. `undoPlacements` is only present on the task version streamed back from the engine
 (`UndoRedoStore` waits for the local phase before building the undo task), and is `{}` when
-the move selected no copy. When it never arrives, the undo is approximated from the folders the threads were in when the task was
-built (see `createUndoTasks`).
+the move selected no copy. When it never arrives, the undo is approximated from the folders
+the threads were in when the task was built (see `createUndoTasks`).
 */
 export class ChangeFolderTask extends ChangeMailTask {
   static attributes = {
@@ -237,8 +245,8 @@ export class ChangeFolderTask extends ChangeMailTask {
   }
 
   _firstRestoreFolder(): Folder | null {
-    for (const folderIds of Object.values(this.undoPlacements || {})) {
-      for (const folderId of folderIds) {
+    for (const entries of Object.values(this.undoPlacements || {})) {
+      for (const { folderId } of entries) {
         const folder = this._folderById(folderId);
         if (folder) {
           return folder;

@@ -342,9 +342,10 @@ rather than one to two background passes (each ending in a 120 s sleep).
 Today `_applyFolder` sets only `clientFolder` (`TaskProcessor.cpp:265-268`); the remote
 phase later rewrites `remoteFolder`/`remoteUID` and erases its own deltas. Under placements:
 
-- Local phase: for each placement selected for the move (§3.1; §3.3 for an undo), set
-  `pendingFolderId = dest`. A copy at UID 0 is never selected: no scan can report where it
-  went, so a marker on it would show it in the destination forever.
+- Local phase: for each placement selected for the move (§3.1; §3.3 for an undo, which
+  also picks each copy's `dest` by its recorded flags), set `pendingFolderId = dest`. A
+  copy at UID 0 is never selected: no scan can report where it went, so a marker on it
+  would show it in the destination forever.
   `folders[]` reports the placement under `dest`, the thread updates, one persist goes out.
   The row keeps its server `folderId`/`remoteUID` so the remote phase can address it.
 - Remote phase: group pending placements by server folder → one `UID MOVE` (or COPY +
@@ -435,18 +436,20 @@ The client computes one `previousFolder` per task (`change-folder-task.ts:43-70`
 the task not undoable when sources are heterogeneous (`:59-63`). That is already lossy
 (undoing an archive of an Inbox + Sent thread moves the Sent copy to Inbox) and cannot express
 per-placement sources. Implemented: the engine writes `undoPlacements`
-(`{ messageId: [folderId, ...] }`, the folder each moved copy was shown in, one entry per
-copy) into the task data in `performLocal` — the pattern `DestroyDraftTask` already uses
-for `stubIds` — and the client's `createUndoTasks` copies it to `restorePlacements` on the
-undo task, with `sourceFolderIds = [original destination]`. The undo moves as many of the
-message's copies in that destination back as there are entries, one per recorded folder.
-Copies are byte-identical, so it need not know which copy came from where; it prefers the
-copies still in flight to the destination and then the highest UIDs there (a moved copy
-lands above every UID the folder held, RFC 3501 2.3.1.1), which leaves a copy the
-destination already had in place. An undo queued before the move's remote phase marks the
-copies home in its local phase; the move's commit carries that marker onto the moved row
-and the undo's remote phase (FIFO after the move) moves it back. Multi-folder moves become
-undoable.
+(`{ messageId: [{ folderId, bits }, ...] }`, the folder each moved copy was shown in and its
+`PLACEMENT_FLAG_*` bits, one entry per copy) into the task data in `performLocal` — the
+pattern `DestroyDraftTask` already uses for `stubIds` — and the client's `createUndoTasks`
+copies it to `restorePlacements` on the undo task, with `sourceFolderIds = [original
+destination]`. The undo moves as many of the message's copies in that destination back as
+there are entries, one per recorded folder. Copies share their bytes but not their flags (a
+self-sent message is typically unread in Inbox and read in Sent), so each entry first takes
+a copy whose bits still equal the recorded ones and the remaining entries pair in order.
+Both rounds prefer the copies still in flight to the destination and then the highest UIDs
+there (a moved copy lands above every UID the folder held, RFC 3501 2.3.1.1), which leaves a
+copy the destination already had in place. An undo queued before the move's remote phase
+marks the copies home in its local phase; the move's commit carries that marker onto the
+moved row and the undo's remote phase (FIFO after the move) moves it back. Multi-folder
+moves become undoable.
 
 ### 3.4 Visibility of the in-transit state
 
@@ -757,7 +760,8 @@ A review pass on the engine after the first implementation changed these parts o
 - **No move dedupe; undo moves copies back** (`2f83306`). Deleting the source copy when the
   destination already held one was a destructive server operation for a rare case and forced
   undo to recreate copies by COPY. A selected copy is always moved, and `undoPlacements` /
-  `restorePlacements` record the folder each moved copy came from.
+  `restorePlacements` record the folder each moved copy came from and, since 050cb39,
+  its flag bits, so copies with different flags each return to their own folder.
 - **The `syncedAt` lock protects only recorded copies** (`188a10f`, `61a6a9d`). Ignoring every
   scan result under the lock dropped a copy another client moved during a task, and the sweep
   then deleted the message. A failed remote phase leaked the lock and its pending markers;

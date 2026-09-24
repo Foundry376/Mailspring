@@ -69,9 +69,9 @@ Five callers still refresh explicitly, because they must see the result before d
 
 Other clients simply MOVE, and the model already supports two copies in one folder.
 
-**Change:** a selected copy is always moved. The undo data is `{messageId: [sourceFolderId, ...]}`, one entry per moved copy. Undo moves that many copies out of the original destination, highest UID first, back to the recorded folders. Copies already in the destination are never taken: RFC 3501 §2.3.1.1 guarantees a moved copy gets a UID above everything already in the folder.
+**Change:** a selected copy is always moved. The undo data is `{messageId: [{folderId, bits}, ...]}`, one entry per moved copy. Undo moves that many copies out of the original destination, highest UID first, back to the recorded folders. Copies already in the destination are never taken: RFC 3501 §2.3.1.1 guarantees a moved copy gets a UID above everything already in the folder.
 
-**Accepted trade-off:** copies of one message that have different flags can come back in each other's folders. For example, the unread Inbox copy of a trashed self-sent message may return as the read one. The copies are byte-identical, so nothing is lost. The owner accepted this.
+**Fixed trade-off** (`050cb39`): as first built, copies of one message with different flags could come back in each other's folders. It was observed on Office 365: a message with a read copy in Sent Items and an unread copy in Archive was trashed and undone, and the copies came back swapped on the server, leaving the thread bold in Sent Items. The owner decided to fix it. Each undo entry now carries the copy's flag bits, and the undo first pairs every entry with a copy whose bits still match. `undo-move-restores-placements` checks the server's flags per folder.
 
 ### 5. Record new copies even while a task holds the lock (`188a10f`) — bug 1
 **What was wrong:** while a task on a message was in flight (the 24h `_sa` lock), `updateMessage` recorded nothing, including a copy the engine had never seen. If another client moved the message's only copy during that window:
