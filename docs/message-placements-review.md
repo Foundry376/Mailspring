@@ -1,6 +1,6 @@
 # Message placements: review pass changes and rationale
 
-September 2026. This covers engine commits `a5db80b..30f3e05` and client commits `f3d8069b3`, `e477184c1`, `e8d49efa7` and `44927c5ef` on `message-placements`. The design as implemented is described in `message-placements-plan.md` and `mailsync/CLAUDE.md`. This document explains **why** the review pass changed it.
+September 2026. This covers engine commits `a5db80b..3f634db` and client commits `f3d8069b3`, `e477184c1`, `e8d49efa7` and `44927c5ef` on `message-placements`. The design as implemented is described in `message-placements-plan.md` and `mailsync/CLAUDE.md`. This document explains **why** the review pass changed it.
 
 ## How the review was done
 
@@ -120,6 +120,30 @@ The engine writes `undoPlacements = {}` when a move selected no copies. The clie
 - **The sweep waits for an initial walk that is still progressing** (`ef7d25e`). A first sync of a very large folder can run for more than 24 hours; the reviewer watched a 203k-message All Mail take hours. The 24h cap would have stopped waiting for it, so an orphan whose other copy sat in the part not yet walked could have been swept and later re-created without metadata. A folder whose `syncedMinUID` dropped during the pass now holds the sweep with no cap. A walk that stops progressing falls back to the cap.
 - **The `LS_*` keys are shared through `constants.h`** (`6baedc8`), so the flag-repair reset can't silently diverge from the key the worker reads.
 - **The harness reports a mailsync killed by a signal as such** (`30f3e05`), rather than as a migration failure.
+
+### 11. Found by live testing and research (`04a28db`, `bec025f`, `050cb39`, `12b853b`, `7bd93db`, `e5db7ed`, `aa8806b`, `9bf5084`, `3f634db`)
+
+These came from live testing against real Gmail, O365, Yahoo and Fastmail accounts and a local Cyrus server, and from follow-up research into other clients and servers.
+
+- **Yahoo returns wrong COPYUID mappings.** After a multi-message `UID MOVE`, Yahoo's COPYUID lists ascending ranges, but the UIDs it actually assigns are a permutation of that destination range: 2 of 18 pairs were correct. The engine trusted the map, recorded copies at other messages' UIDs, sent later moves and STOREs to the wrong message, and a displacement could then remove a message that still existed on the server.
+  - The engine now fetches headers for exactly the COPYUID destination set and matches by message id (`04a28db`). Single-message moves skip that fetch.
+  - A heavy scan that finds a row naming a different message repairs it (`bec025f`).
+  - A fake `yahoo` personality reproduces the permutation.
+  - This bug predates the branch.
+- **Undo restores each copy's flags** (`050cb39`, client `fd7a699d0`). The flag swap accepted in section 4 was seen on O365 in an ordinary trash-and-undo of a self-sent message, so undo data now records each copy's flag bits.
+- **Cyrus is a harness server kind** (`12b853b`, `7bd93db`). Fastmail runs Cyrus, configured with `altnamespace` and `/` as the separator. The Dovecot scenario set runs against it.
+- **A dropped connection is reported as a connection error** (`e5db7ed`). A connection closed mid-command came back as ErrorParse, so the client never showed its offline state. A one-line libetpan change makes EOF mid-line a stream error. The slow recoveries seen live turned out to be macOS sleep; see `tasks/03-connection-health.md`.
+- **The CHANGEDSINCE set is bounded at UIDNEXT−1 instead of `*`** (`9bf5084`).
+  - RFC 7162 §3.2.6 limits VANISHED to UIDs in the set, and `*` is the highest UID still in the mailbox. So Cyrus/Fastmail never reported expunges above it (cyrus-imapd #6071: fixed on master, not in any release), and messages deleted or moved from the top of a non-INBOX folder stayed visible until the daily gap scan.
+  - UIDNEXT−1 is the range RFC 7162 §3.2.5.1 uses for SELECT QRESYNC.
+  - Research found that almost no other client uses QRESYNC. Dovecot's leniency is why `1:*` looked like best practice.
+- **Guard against MESSAGELIMIT partial fetches** (`3f634db`).
+  - Yahoo advertises `MESSAGELIMIT=1000` (RFC 9738, which Yahoo co-authored). A live probe of a 1,100-message folder found it is not enforced, and research found Yahoo shows legacy clients a 10,000-message window instead.
+  - If a server does return `[MESSAGELIMIT …]`, the engine now deletes nothing below the lowest UID returned and treats the scan as incomplete.
+  - The guard keys on the response code, not the result count, because Yahoo returns more than it advertises.
+- `aa8806b` rewords evidence citations to describe the observations rather than point at local files.
+
+Follow-ups that research surfaced but this PR leaves out are written up in `tasks/`: provider quirk fixes, duplicate Sent copies, connection health, and cheaper deep scans.
 
 ## Decided not to do
 
