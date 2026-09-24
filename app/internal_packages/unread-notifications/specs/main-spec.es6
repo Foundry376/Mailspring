@@ -445,6 +445,7 @@ describe('UnreadNotifications', function UnreadNotifications() {
     spyOn(AppEnv.config, 'get').andCallFake(config => {
       if (config === 'core.notifications.enabled') return true;
       if (config === 'core.notifications.sounds') return true;
+      if (config === 'core.notifications.soundVolume') return 35;
       return undefined;
     });
 
@@ -456,7 +457,7 @@ describe('UnreadNotifications', function UnreadNotifications() {
         objectsRawJSON: getObjectsRawJson(['1'])
       });
       expect(AppEnv.config.get.calls[1].args[0]).toBe('core.notifications.sounds');
-      expect(SoundRegistry.playSound).toHaveBeenCalledWith('new-mail');
+      expect(SoundRegistry.playSound).toHaveBeenCalledWith('new-mail', { volume: 0.35 });
     });
   });
 
