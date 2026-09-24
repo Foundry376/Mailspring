@@ -4,8 +4,13 @@ Read `README.md` first for how to test.
 
 ## Symptoms
 
-- After a network drop, recovery took about 5 minutes on Fastmail and about 30 minutes on Yahoo (live tests, September 2026).
-- The dropped-connection fix in the placements PR classifies a closed stream as a connection error (a libetpan change: a mid-line EOF becomes a stream error) and resets the session. That fixes classification and the client's offline indicator. It does not fix the problems below.
+- After an apparent network drop, recovery took about 5 minutes on every account (live test, 2026-09-24).
+  - The logs and `pmset -g log` show the actual cause: the machine was sleeping. A DarkWake at 14:18:41, then maintenance sleep, then a full wake at 14:24:05.
+  - The engine's 120 s retry wait only counts awake time.
+  - Every retry opened a fresh connection. mailcore sets `mShouldDisconnect` on both ErrorParse and ErrorConnection, so there was no stale-session reuse.
+  - The foreground IDLE only noticed its dead socket when the client's `wake-workers` sent DONE.
+  - An earlier ~30-minute Yahoo stall (2026-09-23) couldn't be analysed because those logs had rotated away. A silently dead IDLE (below) is the likely cause.
+- The placements PR's `e5db7ed` fixed how the error is classified: a connection closed mid-command is now reported as ErrorConnection, so the client's offline state fires. It does not fix the problems below. Sleep/wake handling (#2 below) is the biggest real-world win.
 
 ## What the engine does today
 
