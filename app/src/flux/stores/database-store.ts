@@ -3,13 +3,14 @@ import path from 'path';
 import createDebug from 'debug';
 import childProcess, { ChildProcess } from 'child_process';
 import { LRUCache } from 'lru-cache';
-import Sqlite3 from 'better-sqlite3';
+import type Sqlite3 from 'better-sqlite3';
 
 import { ExponentialBackoffScheduler } from '../../backoff-schedulers';
 import { Model } from '../models/model';
 import MailspringStore from '../../global/mailspring-store';
 import * as Utils from '../models/utils';
 import Query from '../models/query';
+import { localized } from '../../intl';
 
 const debug = createDebug('app:RxDB');
 const debugVerbose = createDebug('app:RxDB:all');
@@ -48,9 +49,49 @@ function handleUnrecoverableDatabaseError(
   });
 }
 
+const SQLITE_MODULE_LOAD_RETRIES = 3;
+const SQLITE_MODULE_LOAD_RETRY_DELAY = 1000;
+
+// Loading the native better-sqlite3 binary can fail transiently under
+// Windows virtual memory pressure ("The paging file is too small for this
+// operation to complete", MAILSPRING-CLIENT-9) even though the database file
+// itself is fine. Retry a few times before giving up, rather than routing
+// the failure through handleUnrecoverableDatabaseError, which would wipe and
+// resync the local database for a problem that has nothing to do with it.
+async function requireSqlite3(): Promise<typeof import('better-sqlite3')> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return require('better-sqlite3');
+    } catch (err) {
+      if (attempt >= SQLITE_MODULE_LOAD_RETRIES) {
+        throw err;
+      }
+      await Promise.delay(SQLITE_MODULE_LOAD_RETRY_DELAY);
+    }
+  }
+}
+
+function handleUnavailableSqliteModule(err: Error) {
+  AppEnv.errorLogger.reportError(err);
+  AppEnv.showErrorDialog(
+    localized(
+      'Mailspring could not load its database engine. This usually happens when your computer is critically low on virtual memory (paging file / swap space). Please free up disk space or increase your paging file size, then restart your computer and try again.'
+    ),
+    { detail: err.toString() }
+  );
+}
+
 async function openDatabase(dbPath: string) {
+  let SqliteCtor: typeof import('better-sqlite3');
   try {
-    const db = new Sqlite3(dbPath, { readonly: true, timeout: 10000 }) as Sqlite3.Database;
+    SqliteCtor = await requireSqlite3();
+  } catch (err) {
+    handleUnavailableSqliteModule(err);
+    return null;
+  }
+
+  try {
+    const db = new SqliteCtor(dbPath, { readonly: true, timeout: 10000 }) as Sqlite3.Database;
 
     // https://www.sqlite.org/wal.html
     // WAL provides more concurrency as readers do not block writers and a writer
