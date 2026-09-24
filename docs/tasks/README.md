@@ -65,7 +65,7 @@ The harness has caught every bug we could model. The worst bugs, though, were fo
 - Fresh fixtures with unique subjects (e.g. `[PLT-Y-n]`), so a subject identifies a message unambiguously.
 - An evidence package for each bug: a README, verbatim raw log excerpts with file:line, a per-operation verification table, and a standalone repro script where possible. See `docs/evidence/yahoo-copyuid/` and `docs/evidence/cyrus-vanished-tail/`.
 
-Available accounts: Gmail (Workspace), Office 365, Yahoo, and a Fastmail trial (production Cyrus). There is also a local Cyrus server (`python3 mailsync/test/tools/cyrus_server.py start`, IMAP `127.0.0.1:1143`, `test`/`pass`, SMTP sink on `1025`). Don't read account credentials out of Mailspring's config without the owner's explicit OK.
+Available accounts: Gmail (Workspace), Office 365, Yahoo, and a Fastmail trial (production Cyrus). The Yahoo test account keeps a `PLT-Bulk` folder with 1100 messages for large-folder tests. With `UIDONLY` off, Yahoo did not enforce its advertised `MESSAGELIMIT=1000` on it (2026-09-24). There is also a local Cyrus server (`python3 mailsync/test/tools/cyrus_server.py start`, IMAP `127.0.0.1:1143`, `test`/`pass`, SMTP sink on `1025`). Don't read account credentials out of Mailspring's config without the owner's explicit OK.
 
 ## Lessons learned from the placements work
 
