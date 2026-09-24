@@ -46,7 +46,7 @@ RFC 2177 says to re-issue IDLE at least every 29 minutes. NAT devices and mobile
 ## Suggested changes, ranked
 
 1. **Cap IDLE at about 9–10 minutes,** then send DONE and re-IDLE, as Geary and K-9 do. This bounds silent push loss at about 10 minutes and costs one round trip every 10 minutes. It's a mailcore change, or pass a shorter delay through `idle()`.
-2. **Reconnect on wake and network change.**
+2. **Reconnect on wake and network change.** A live Wi-Fi test on 2026-09-24 confirmed this is the biggest gap. With Wi-Fi off for about 30 s, every account reported ErrorConnection and the offline banner appeared. Recovery then waited out the full 120 s worker sleep, about 2 minutes after the network had returned, because nothing woke the workers. The cheapest first step is client-only: on the renderer's `online` event, call `AppEnv.mailsyncBridge.sendSyncMailNow()`.
    - Electron: listen for `powerMonitor` `resume` and `unlock-screen` and the renderer's `online` event, and send `wake-workers` with a `reconnect` flag.
    - Engine: `disconnect()` both sessions instead of reusing them.
    - Debounce by about 3 s, because there is one engine per account.
