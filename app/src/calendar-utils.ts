@@ -1,4 +1,5 @@
 import { AccountStore, RegExpUtils } from 'mailspring-exports';
+import { findOneIana } from 'windows-iana';
 
 type ICAL = typeof import('ical.js').default;
 type ICALComponent = InstanceType<ICAL['Component']>;
@@ -66,29 +67,23 @@ const WHOLE_HISTORY = new Date(Date.UTC(1601, 0, 1));
  * zone data of its own, so such a value would otherwise read as floating local time. The registry
  * is process-wide, so the synthesised zone describes the zone's whole history: whichever file names
  * it first, a later file's older dates read right. It is written into no file, so it keeps tzdata's
- * forecast too. A file that carries the VTIMEZONE replaces it. An identifier moment-timezone does
- * not know is left alone.
+ * forecast too. A file that carries the VTIMEZONE replaces it. An identifier resolveIanaZone cannot
+ * place is left alone.
  */
 function registerTimezones(vcalendar: ICALComponent): void {
   for (const vtz of vcalendar.getAllSubcomponents('vtimezone')) {
     ICAL.TimezoneService.register(vtz);
   }
 
-  const momentTz = require('moment-timezone');
   for (const vevent of vcalendar.getAllSubcomponents('vevent')) {
     for (const prop of vevent.getAllProperties()) {
       const tzid = prop.getParameter('tzid');
       if (typeof tzid !== 'string' || ICAL.TimezoneService.has(tzid)) continue;
-      if (!momentTz.tz.zone(tzid)) continue;
+      const vtimezone = createVTIMEZONEString(tzid, WHOLE_HISTORY, Infinity);
+      if (!vtimezone) continue;
       ICAL.TimezoneService.register(
         new ICAL.Component(
-          ICAL.parse(
-            `BEGIN:VCALENDAR\r\nVERSION:2.0\r\n${createVTIMEZONEString(
-              tzid,
-              WHOLE_HISTORY,
-              Infinity
-            )}\r\nEND:VCALENDAR`
-          )
+          ICAL.parse(`BEGIN:VCALENDAR\r\nVERSION:2.0\r\n${vtimezone}\r\nEND:VCALENDAR`)
         ).getFirstSubcomponent('vtimezone')
       );
     }
@@ -112,6 +107,31 @@ function dataHorizonYear(momentTz): number {
     );
   }
   return momentDataHorizonYear;
+}
+
+/**
+ * The IANA zone whose rules a TZID describes, or null if none can be identified.
+ *
+ * A TZID is an opaque name (RFC 5545 section 3.2.19), and Outlook and Exchange write Windows
+ * zone names: "Central Standard Time" rather than "America/Chicago". moment-timezone has no
+ * data for those, and `moment().tz('Central Standard Time')` logs an error and hands back a
+ * moment in the machine's own zone, so an event authored in Outlook and edited here would be
+ * rewritten at the wrong wall clock by the difference between the two. windows-iana carries
+ * the CLDR mapping that closes it. What it does not carry are the display names Outlook also
+ * writes, "(UTC-06:00) Central Time (US & Canada)" and "Customized Time Zone" among them, which
+ * fall through to null.
+ *
+ * UTC and its aliases are refused as well, so the writers take their UTC path: a trailing Z is the
+ * form RFC 5545 section 3.3.5 gives UTC, and needs no VTIMEZONE. A machine whose moment.tz.guess()
+ * is 'UTC' reaches this.
+ */
+export function resolveIanaZone(tzId: string): string | null {
+  if (!tzId) return null;
+  if (['utc', 'gmt', 'etc/utc', 'etc/gmt', 'z'].includes(tzId.trim().toLowerCase())) return null;
+  const momentTz = require('moment-timezone');
+  if (momentTz.tz.zone(tzId)) return tzId;
+  const mapped = findOneIana(tzId);
+  return mapped && momentTz.tz.zone(mapped) ? mapped : null;
 }
 
 // "2,3,4,5,6,7,8" for 2: the days of a week-long BYMONTHDAY window starting on each day.
@@ -156,17 +176,23 @@ const ENUMERATED_YEARS = 10;
  * like everyone else's two-rule zone. An earlier `referenceDate` anchors in the year before it, so
  * the component can describe a zone's whole history.
  *
- * @param tzId - IANA timezone identifier (e.g. 'America/Chicago'), reproduced verbatim as the TZID
+ * @param tzId - Timezone identifier, IANA or a Windows name Outlook wrote (see resolveIanaZone).
+ *   It is reproduced verbatim as the component's TZID: an Exchange server understands its own
+ *   names, and RFC 5545 asks only that whatever name is used be defined in the same object.
  * @param referenceDate - The instant the component is written for
  * @param enumeratedYears - How far either side of the reference changes are written
- * @returns A VTIMEZONE ICS string (no surrounding VCALENDAR wrapper)
+ * @returns A VTIMEZONE ICS string (no surrounding VCALENDAR wrapper), or null when the
+ *   identifier names no zone we can describe; inventing rules for it would be worse than
+ *   leaving the calendar's own component alone.
  */
 export function createVTIMEZONEString(
   tzId: string,
   referenceDate: Date,
   enumeratedYears = ENUMERATED_YEARS
-): string {
+): string | null {
   const momentTz = require('moment-timezone');
+  const zoneId = resolveIanaZone(tzId);
+  if (!zoneId) return null;
   const WEEKDAYS = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
 
   // Pre-1900 dates read the zone's LMT offset, which has seconds in it: America/Chicago is
@@ -187,7 +213,7 @@ export function createVTIMEZONEString(
   // A change of abbreviation alone is folded into the segment before it, since only offsets are
   // described here: America/Ciudad_Juarez renamed -06:00 from MDT to CST in October 2022 in the
   // middle of a DST year, and read as a transition that ends the year early.
-  const zone = momentTz.tz.zone(tzId);
+  const zone = momentTz.tz.zone(zoneId);
   const untils: number[] = [];
   const offsets: number[] = [];
   const names: string[] = [];
@@ -300,7 +326,7 @@ export function createVTIMEZONEString(
       .replace(/\.\d{3}/, '');
 
   if (!untils.length) {
-    const m = momentTz(referenceDate).tz(tzId);
+    const m = momentTz(referenceDate).tz(zoneId);
     const offset = formatOffset(m.utcOffset());
     return [
       'BEGIN:VTIMEZONE',
@@ -358,7 +384,7 @@ export function createVTIMEZONEString(
   const isRule = (run: Run) => run.changes.length > 1;
 
   const current = untils.findIndex((u) => u > referenceDate.getTime());
-  const abbrAtReference = momentTz(referenceDate).tz(tzId).zoneAbbr();
+  const abbrAtReference = momentTz(referenceDate).tz(zoneId).zoneAbbr();
   // Every reference inside one segment gives the same component, save the abbreviation in force.
   const span = [enumeratedFrom, enumeratedUntil].map((t) => untils.findIndex((u) => u > t));
   const cacheKey = [tzId, current, ...span, anchorYear, abbrAtReference].join('|');
