@@ -1551,6 +1551,56 @@ describe('a TZID whose VTIMEZONE the server omitted', function () {
   });
 });
 
+describe('a VTIMEZONE that redefines UTC', function () {
+  const withZoneAt = (tzid: string, offset: string, uid: string) =>
+    [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Test//Test//EN',
+      'BEGIN:VTIMEZONE',
+      `TZID:${tzid}`,
+      'BEGIN:STANDARD',
+      'DTSTART:19700101T000000',
+      `TZOFFSETFROM:${offset}`,
+      `TZOFFSETTO:${offset}`,
+      `TZNAME:${tzid}`,
+      'END:STANDARD',
+      'END:VTIMEZONE',
+      'BEGIN:VEVENT',
+      `UID:${uid}@test`,
+      `DTSTART;TZID=${tzid}:20240115T150000`,
+      `DTEND;TZID=${tzid}:20240115T160000`,
+      'SUMMARY:Invitation',
+      'DTSTAMP:20240101T000000Z',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+
+  let originalUTC: InstanceType<typeof ICAL.Timezone>;
+
+  beforeEach(function () {
+    originalUTC = ICAL.TimezoneService.get('UTC');
+  });
+
+  afterEach(function () {
+    for (const name of ['UTC', 'GMT', 'Z']) ICAL.TimezoneService.register(originalUTC, name);
+  });
+
+  // ical.js registers each of these as UTC itself, and its registry outlives the file.
+  for (const tzid of ['UTC', 'GMT', 'Z']) {
+    it(`is not registered for ${tzid}, and leaves later ${tzid} times where they were`, function () {
+      parseICSString(withZoneAt(tzid, '+0500', `hostile-${tzid}`));
+      const midnight = new ICAL.Time(
+        { year: 2024, month: 1, day: 1, hour: 0, minute: 0, second: 0, isDate: false },
+        ICAL.Timezone.utcTimezone
+      );
+      expect(ICAL.TimezoneService.get(tzid).utcOffset(midnight)).toBe(0);
+      const { event } = parseICSString(withZoneAt(tzid, '+0000', `later-${tzid}`));
+      expect(event.startDate.toJSDate().toISOString()).toBe('2024-01-15T15:00:00.000Z');
+    });
+  }
+});
+
 describe('ICSEventHelpers.createVTIMEZONEString', function () {
   const lines = (tz: string, when: string) =>
     ICSEventHelpers.createVTIMEZONEString(tz, new Date(when)).split('\r\n');
