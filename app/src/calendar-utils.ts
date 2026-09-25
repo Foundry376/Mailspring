@@ -57,15 +57,17 @@ export function parseICSString(ics: string) {
   return { root, event };
 }
 
+const WHOLE_HISTORY = new Date(Date.UTC(1601, 0, 1));
+
 /**
  * Registers a VCALENDAR's VTIMEZONEs with the ICAL.js TimezoneService, so `toJSDate()` on a
  * TZID-relative time gives the instant it names, and describes any zone a VEVENT refers to
  * without one. RFC 7809 lets a server omit the VTIMEZONE for an IANA zone, and ical.js has no
- * zone data of its own, so such a value would otherwise read as floating local time. The
- * synthesised zone describes the property's own era and everything after it, and the registry is
- * process-wide: the first file to name a zone without its VTIMEZONE fixes those rules for every
- * later file that also omits it. A file that carries the VTIMEZONE replaces it. An identifier
- * moment-timezone does not know is left alone.
+ * zone data of its own, so such a value would otherwise read as floating local time. The registry
+ * is process-wide, so the synthesised zone describes the zone's whole history: whichever file names
+ * it first, a later file's older dates read right. It is written into no file, so it keeps tzdata's
+ * forecast too. A file that carries the VTIMEZONE replaces it. An identifier moment-timezone does
+ * not know is left alone.
  */
 function registerTimezones(vcalendar: ICALComponent): void {
   for (const vtz of vcalendar.getAllSubcomponents('vtimezone')) {
@@ -78,13 +80,14 @@ function registerTimezones(vcalendar: ICALComponent): void {
       const tzid = prop.getParameter('tzid');
       if (typeof tzid !== 'string' || ICAL.TimezoneService.has(tzid)) continue;
       if (!momentTz.tz.zone(tzid)) continue;
-      // Read the date off the raw value: hydrating it here would cache it as floating.
-      const [, y, m, d] = /^(\d{4})(\d{2})(\d{2})/.exec(String(prop.toJSON()[3])) || [];
-      const at = y ? new Date(Date.UTC(+y, +m - 1, +d)) : new Date();
       ICAL.TimezoneService.register(
         new ICAL.Component(
           ICAL.parse(
-            `BEGIN:VCALENDAR\r\nVERSION:2.0\r\n${createVTIMEZONEString(tzid, at)}\r\nEND:VCALENDAR`
+            `BEGIN:VCALENDAR\r\nVERSION:2.0\r\n${createVTIMEZONEString(
+              tzid,
+              WHOLE_HISTORY,
+              Infinity
+            )}\r\nEND:VCALENDAR`
           )
         ).getFirstSubcomponent('vtimezone')
       );
@@ -111,6 +114,19 @@ function dataHorizonYear(momentTz): number {
   return momentDataHorizonYear;
 }
 
+// "2,3,4,5,6,7,8" for 2: the days of a week-long BYMONTHDAY window starting on each day.
+const WEEK_FROM = Array.from({ length: 29 }, (_, first) =>
+  Array.from({ length: 7 }, (__, k) => first + k).join(',')
+);
+// "26,27,28,29,30,31" for 26 and 31: a window the month's end or start cuts short.
+const DAYS_FROM_TO = Array.from({ length: 32 }, (_, from) =>
+  Array.from({ length: 32 }, (__, to) =>
+    Array.from({ length: Math.max(0, to - from + 1) }, (___, k) => from + k).join(',')
+  )
+);
+const vtimezoneCache = new Map<string, string>();
+const ENUMERATED_YEARS = 10;
+
 /**
  * Builds a VTIMEZONE describing an IANA zone's offset rules.
  *
@@ -120,57 +136,50 @@ function dataHorizonYear(momentTz): number {
  * the object directly, compute from what is written here: a body claiming one fixed offset puts
  * every occurrence on the other side of a DST transition an hour out.
  *
- * The rules come from moment-timezone rather than being invented: a pair of transitions gives the
- * STANDARD and DAYLIGHT offsets, and each yearly RRULE is derived from its transition date. A
- * zone with no DST in that era yields a single STANDARD. An era still observing DST is described
- * by the rule tzdata projects forward, the one the shipped zone database carries, so a series
- * created under an earlier rule reads right today; an era that ended is described by the pair
- * nearest `referenceDate`, since its final year may be irregular (Egypt's 2010 ends with a
- * Ramadan break).
+ * Every offset change moment-timezone knows from the segment before the reference's to
+ * `enumeratedYears` past it is written, so a time in that span reads exactly as moment reads it.
+ * Years whose change falls on the same yearly rule share one RRULE: the nth or last weekday of a
+ * month (the US, the EU), a weekday on or after a date (America/Santiago's Sunday on or after 2
+ * September), a weekday among days the month's end or start cuts short, or a fixed date. A rule
+ * that stops carries UNTIL at its last change, and the rule the data runs out on carries none.
+ * A change no rule covers is an RDATE: Morocco's Ramadan suspensions, Asia/Tehran's 21 March in
+ * leap years, a final year whose date drifted (America/Asuncion's 24 March 2024).
  *
- * Each rule's DTSTART is its first occurrence in 1970, the same anchor vzic and the ical-expander
- * zone database use, rather than the reference year's transition: ical.js matches a date before
- * the earliest DTSTART to no rule at all and reads its wall clock as UTC, so a component anchored
- * in July 2024 would put a February 2024 occurrence six hours out.
+ * Past that span a zone continues only if every later change falls on a rule already in force;
+ * otherwise the offset in force at its end holds. The rest is tzdata's forecast, which governments
+ * revise (Asia/Gaza's Ramadan-dependent changes run to 2086), and this component is the authority
+ * for readers that honour it.
  *
- * Everything moment knows after the reference era is written too, so a series created before its
- * zone dropped DST or moved its clock, and still running, reads right today: the rules carry
- * UNTIL where the era ended, each later permanent offset change is an observance of its own, and
- * a DST era that begins later gets its own pair of rules anchored at its first year. What remains
- * undescribed is a rule change inside an era, whose earlier years read at the later rule (the US
- * moved from the first Sunday of April to the second of March in 2007, so 20 March 2005 reads an
- * hour out), and a zone whose transitions are not an nth-weekday rule at all:
- * Morocco tracks Ramadan, America/Santiago changes on the Sunday on or after 2 September so a
- * rule taken from one year is a week out in others, and Asia/Tehran used fixed calendar dates.
- * Those read an hour out for part of the year; vzic writes them as several blocks with explicit
- * RDATEs.
+ * The rules in force at `referenceDate` start in 1970, the anchor vzic and the ical-expander zone
+ * database use, rather than at their real first year: ical.js matches a date before the earliest
+ * DTSTART to no rule and reads its wall clock as UTC, and a created event's component should look
+ * like everyone else's two-rule zone. An earlier `referenceDate` anchors in the year before it, so
+ * the component can describe a zone's whole history.
  *
  * @param tzId - IANA timezone identifier (e.g. 'America/Chicago'), reproduced verbatim as the TZID
- * @param referenceDate - The era whose rules are described; zones change theirs over time
+ * @param referenceDate - The instant the component is written for
+ * @param enumeratedYears - How far either side of the reference changes are written
  * @returns A VTIMEZONE ICS string (no surrounding VCALENDAR wrapper)
  */
-export function createVTIMEZONEString(tzId: string, referenceDate: Date): string {
+export function createVTIMEZONEString(
+  tzId: string,
+  referenceDate: Date,
+  enumeratedYears = ENUMERATED_YEARS
+): string {
   const momentTz = require('moment-timezone');
+  const WEEKDAYS = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
 
+  // Pre-1900 dates read the zone's LMT offset, which has seconds in it: America/Chicago is
+  // -5:50:36. ical.js reads whole minutes only.
+  const wholeMinutes = (utcOffsetMin: number) =>
+    Math.sign(utcOffsetMin) * Math.round(Math.abs(utcOffsetMin));
   const formatOffset = (utcOffsetMin: number) => {
-    // Pre-1900 dates read the zone's LMT offset, which has seconds in it: America/Chicago is
-    // -5:50:36. Section 3.3.19 admits only whole minutes.
-    const abs = Math.round(Math.abs(utcOffsetMin));
+    const abs = Math.abs(wholeMinutes(utcOffsetMin));
     const sign = utcOffsetMin >= 0 ? '+' : '-';
     return `${sign}${String(Math.floor(abs / 60)).padStart(2, '0')}${String(abs % 60).padStart(
       2,
       '0'
     )}`;
-  };
-
-  // The nth (or, for a negative nth, the last) given weekday of the month in 1970.
-  const dayIn1970 = (month: number, nth: number, weekday: number) => {
-    const first = momentTz.utc([1970, month - 1, 1]);
-    if (nth > 0) {
-      return first.add(((weekday - first.day() + 7) % 7) + 7 * (nth - 1), 'days');
-    }
-    const last = first.endOf('month');
-    return last.subtract((last.day() - weekday + 7) % 7, 'days');
   };
 
   // moment's `untils` are the instants each offset stops applying: segment i runs from
@@ -193,44 +202,95 @@ export function createVTIMEZONEString(tzId: string, referenceDate: Date): string
     }
   });
 
-  // The observance the transition into segment i begins. Section 3.6.5: DTSTART is the wall clock
-  // at which it takes effect, read in the offset being left (TZOFFSETFROM).
-  const observance = (i: number) => {
-    const at = untils[i - 1];
+  const YEAR_MS = 366 * 24 * 60 * 60 * 1000;
+  const horizon = dataHorizonYear(momentTz);
+  const enumeratedSpan = enumeratedYears * 365.2425 * 24 * 60 * 60 * 1000;
+  const enumeratedFrom = referenceDate.getTime() - enumeratedSpan;
+  const enumeratedUntil = referenceDate.getTime() + enumeratedSpan;
+  const anchorYear = Math.min(1970, referenceDate.getUTCFullYear() - 1);
+
+  // The change into segment i. Section 3.6.5: DTSTART is the wall clock at which it takes effect,
+  // read in the offset being left (TZOFFSETFROM).
+  const change = (i: number) => {
     const offsetFrom = -offsets[i - 1];
-    const local = momentTz(at).utcOffset(offsetFrom);
-    const month = local.month() + 1;
-    // The EU switches on the *last* Sunday of the month, which is the fifth in some years and
-    // the fourth in others; BYDAY=-1SU is the rule those zones mean.
-    const nth =
-      local.clone().add(7, 'days').month() !== local.month() ? -1 : Math.ceil(local.date() / 7);
+    // Shifted by hand: moment's utcOffset(n) reads |n| < 16 as hours, which Europe/Paris's
+    // +00:09:21 LMT is not.
+    const local = momentTz.utc(untils[i - 1] + offsetFrom * 60 * 1000);
     return {
-      day: local.format('YYYYMMDD'),
-      epochDay: dayIn1970(month, nth, local.day()).format('YYYYMMDD'),
+      i,
+      at: untils[i - 1],
+      local,
+      year: local.year(),
+      month: local.month() + 1,
+      day: local.date(),
+      weekday: local.day(),
       time: local.format('HHmmss'),
-      rrule: `RRULE:FREQ=YEARLY;BYMONTH=${month};BYDAY=${nth}${
-        ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'][local.day()]
-      }`,
       offsetFrom,
       offsetTo: -offsets[i],
       name: names[i],
+      // Half of a DST year, which is shorter than a year, at the greater of the two offsets.
+      daylight: -offsets[i] > offsetFrom && untils[i] - untils[i - 1] <= YEAR_MS,
     };
   };
+  type Change = ReturnType<typeof change>;
 
-  const block = (
-    kind: 'STANDARD' | 'DAYLIGHT',
-    t: ReturnType<typeof observance>,
-    day: string,
-    rrule: string | null
-  ) => [
-    `BEGIN:${kind}`,
-    `DTSTART:${day}T${t.time}`,
-    ...(rrule ? [rrule] : []),
-    `TZOFFSETFROM:${formatOffset(t.offsetFrom)}`,
-    `TZOFFSETTO:${formatOffset(t.offsetTo)}`,
-    `TZNAME:${t.name}`,
-    `END:${kind}`,
-  ];
+  // The yearly rules a change falls on, most conventional first, as RRULE parts after BYMONTH.
+  const rulesFor = (c: Change) => {
+    const daysInMonth = new Date(Date.UTC(c.year, c.month, 0)).getUTCDate();
+    const shortestMonth = c.month === 2 ? 28 : daysInMonth;
+    const wd = WEEKDAYS[c.weekday];
+    const rules: string[] = [];
+    if (c.day <= 28) rules.push(`BYDAY=${Math.ceil(c.day / 7)}${wd}`);
+    if (c.day + 7 > daysInMonth) rules.push(`BYDAY=-1${wd}`);
+    for (let first = Math.max(1, c.day - 6); first <= c.day; first++) {
+      if (first + 6 > shortestMonth) break;
+      rules.push(`BYMONTHDAY=${WEEK_FROM[first]};BYDAY=${wd}`);
+    }
+    // A window the month's end or start cuts short, so some years hold no such weekday:
+    // Africa/Cairo changes after the last Thursday of October, on the Friday of its last six days
+    // or 1 November. Days count from the start, since ical.js expands a negative BYMONTHDAY with
+    // BYDAY to nothing; February's end moves, so it has none.
+    for (let first = daysInMonth - 5; c.month !== 2 && first <= c.day; first++) {
+      rules.push(`BYMONTHDAY=${DAYS_FROM_TO[first][daysInMonth]};BYDAY=${wd}`);
+    }
+    for (let last = c.day; last <= 6; last++) {
+      rules.push(`BYMONTHDAY=${DAYS_FROM_TO[1][last]};BYDAY=${wd}`);
+    }
+    rules.push(`BYMONTHDAY=${c.day}`);
+    return rules;
+  };
+
+  // The day a rule gives in a year, or null in a year it skips.
+  const ruleDate = (year: number, month: number, rule: string) => {
+    const first = momentTz.utc([year, month - 1, 1]);
+    const daysInMonth = first.daysInMonth();
+    const byDay = /BYDAY=(-?\d)?(\w\w)/.exec(rule);
+    const byMonthDay = /BYMONTHDAY=([\d,]+)/.exec(rule);
+    const days = byMonthDay
+      ? byMonthDay[1]
+          .split(',')
+          .map(Number)
+          .filter((d) => d <= daysInMonth)
+      : [];
+    if (!byDay) return days.length ? first.date(days[0]) : null;
+    const weekday = WEEKDAYS.indexOf(byDay[2]);
+    if (byMonthDay) {
+      const day = days.find((d) => first.clone().date(d).day() === weekday);
+      return day ? first.date(day) : null;
+    }
+    if (byDay[1] === '-1') {
+      const last = first.clone().endOf('month').startOf('day');
+      return last.subtract((last.day() - weekday + 7) % 7, 'days');
+    }
+    const start = first.date(7 * (+byDay[1] - 1) + 1);
+    return start.add((weekday - start.day() + 7) % 7, 'days');
+  };
+  const skips = (rule: string, month: number, fromYear: number, toYear: number) => {
+    for (let year = fromYear; year <= toYear; year++) {
+      if (ruleDate(year, month, rule)) return false;
+    }
+    return true;
+  };
 
   // Section 3.6.5: an RRULE's UNTIL in a VTIMEZONE is always UTC.
   const utc = (at: number) =>
@@ -239,75 +299,171 @@ export function createVTIMEZONEString(tzId: string, referenceDate: Date): string
       .replace(/[-:]/g, '')
       .replace(/\.\d{3}/, '');
 
-  const YEAR_MS = 366 * 24 * 60 * 60 * 1000;
-  // One half of a DST year is shorter than a year; a longer segment, or the open-ended last one,
-  // is an offset the zone settled on.
-  const isDSTHalf = (i: number) => isFinite(untils[i]) && untils[i] - untils[i - 1] <= YEAR_MS;
-
-  const body: string[] = [];
-
-  // The two observances of a DST year, told apart by which sits at the greater offset.
-  const halves = (i: number) => {
-    const pair = [observance(i), observance(i + 1)];
-    const daylight = pair[0].offsetTo > pair[1].offsetTo ? pair[0] : pair[1];
-    return { DAYLIGHT: daylight, STANDARD: pair.find((t) => t !== daylight) };
-  };
-
-  // Writes the rule pair for the DST era that half-year `first` belongs to and returns the
-  // segment the caller continues from. Each rule starts at the era's first transition of its
-  // kind, or in 1970 for the era the reference falls in. An era that moment knows ended has its
-  // rules bounded just short of its last transition, which the caller writes as a permanent move:
-  // it may land on an offset neither rule names (Europe/Simferopol left its +02:00/+04:00 year
-  // for +03:00 in October 2014), and a rule whose date drifted in the final year still fires
-  // (America/Asuncion changed on 24 March 2024; the rule its 2023 date gives says the last
-  // Sunday, the 31st).
-  const describeEra = (first: number, anchor: 'epoch' | 'own'): number => {
-    let last = first;
-    while (isDSTHalf(last + 1)) last++;
-    const ended = new Date(untils[last]).getUTCFullYear() < dataHorizonYear(momentTz);
-    // A still-running era takes its latest rule: America/Indiana/Vincennes spent its first year
-    // on Central time before settling on Eastern.
-    const rules = halves(ended ? first : Math.max(first, last - 1));
-    const starts = halves(first);
-    const until = ended ? `;UNTIL=${utc(untils[last] - 1000)}` : '';
-    for (const kind of ['STANDARD', 'DAYLIGHT'] as const) {
-      const t = rules[kind];
-      body.push(
-        ...block(kind, t, anchor === 'epoch' ? t.epochDay : starts[kind].day, t.rrule + until)
-      );
-    }
-    return ended ? last : last + 1;
-  };
-
-  let i = untils.findIndex((u) => u > referenceDate.getTime());
-  if (isDSTHalf(i)) {
-    i = describeEra(i, 'epoch');
-  } else {
-    // No DST in this era: one STANDARD at the offset in force, and no RRULE because there is no
-    // recurring transition to describe.
+  if (!untils.length) {
     const m = momentTz(referenceDate).tz(tzId);
-    body.push(
+    const offset = formatOffset(m.utcOffset());
+    return [
+      'BEGIN:VTIMEZONE',
+      `TZID:${tzId}`,
       'BEGIN:STANDARD',
-      'DTSTART:19700101T000000',
-      `TZOFFSETFROM:${formatOffset(m.utcOffset())}`,
-      `TZOFFSETTO:${formatOffset(m.utcOffset())}`,
+      `DTSTART:${anchorYear}0101T000000`,
+      `TZOFFSETFROM:${offset}`,
+      `TZOFFSETTO:${offset}`,
       `TZNAME:${m.zoneAbbr()}`,
-      'END:STANDARD'
-    );
-  }
-  // The registry is process-wide (see registerTimezones), so without what follows one historical
-  // invite would hold every later date the session reads in this zone at a superseded offset.
-  while (isFinite(untils[i])) {
-    if (isDSTHalf(i + 1)) {
-      i = describeEra(i + 1, 'own');
-    } else {
-      const t = observance(i + 1);
-      body.push(...block('STANDARD', t, t.day, null));
-      i++;
-    }
+      'END:STANDARD',
+      'END:VTIMEZONE',
+    ].join('\r\n');
   }
 
-  return ['BEGIN:VTIMEZONE', `TZID:${tzId}`, ...body, 'END:VTIMEZONE'].join('\r\n');
+  // Runs of years whose change has the same offsets, wall clock and rule, and whose rule gives no
+  // day in the years between them.
+  type Run = { changes: Change[]; rules: string[] };
+  const ruleKey = (c: Change) =>
+    [c.offsetFrom, c.offsetTo, c.name, c.time, c.month, c.daylight].join('|');
+  const lastOf = (run: Run) => run.changes[run.changes.length - 1];
+  const runsOut = (run: Run) =>
+    skips(run.rules[0], lastOf(run).month, lastOf(run).year + 1, horizon - 1);
+  const runsFrom = (firstChange: number) => {
+    const runs: Run[] = [];
+    const open = new Map<string, Run>();
+    for (let i = firstChange; i < untils.length; i++) {
+      const c = change(i);
+      // The data stops rather than the zone, and the last change sits on the open-ended segment.
+      if (c.year >= horizon) break;
+      const key = ruleKey(c);
+      const run = open.get(key);
+      const own = rulesFor(c);
+      const after = run ? lastOf(run).year : c.year;
+      const rules =
+        run && c.year > after
+          ? run.rules.filter((r) => own.includes(r) && skips(r, c.month, after + 1, c.year - 1))
+          : [];
+      if (rules.length) {
+        run.changes.push(c);
+        run.rules = rules;
+      } else {
+        const fresh = { changes: [c], rules: own };
+        runs.push(fresh);
+        open.set(key, fresh);
+      }
+    }
+    // Past the enumerated years a zone continues only on rules already in force; anything else
+    // there is forecast, so the offset in force at the end holds instead.
+    const beyond = runs.filter((run) => lastOf(run).at > enumeratedUntil);
+    if (beyond.every((run) => runsOut(run) && run.changes[0].at <= enumeratedUntil)) return runs;
+    return runs
+      .map((run) => ({ ...run, changes: run.changes.filter((c) => c.at <= enumeratedUntil) }))
+      .filter((run) => run.changes.length);
+  };
+  const isRule = (run: Run) => run.changes.length > 1;
+
+  const current = untils.findIndex((u) => u > referenceDate.getTime());
+  const abbrAtReference = momentTz(referenceDate).tz(tzId).zoneAbbr();
+  // Every reference inside one segment gives the same component, save the abbreviation in force.
+  const span = [enumeratedFrom, enumeratedUntil].map((t) => untils.findIndex((u) => u > t));
+  const cacheKey = [tzId, current, ...span, anchorYear, abbrAtReference].join('|');
+  if (vtimezoneCache.has(cacheKey)) return vtimezoneCache.get(cacheKey);
+
+  // A reference in the middle of a DST year anchors the rules its two halves run on. Anything else
+  // starts with the changes into its segment and the one before, those inside the span:
+  // Asia/Tokyo's 1951 summer stays out of a component written today.
+  const inDSTYear =
+    current >= 1 && isFinite(untils[current]) && untils[current] - untils[current - 1] <= YEAR_MS;
+  let runs = inDSTYear ? runsFrom(current) : [];
+  const anchored = runs.slice(0, 2).filter(isRule);
+  let firstChange = current + 1;
+  while (firstChange - 1 >= Math.max(1, current - 1) && untils[firstChange - 2] >= enumeratedFrom) {
+    firstChange--;
+  }
+  if (!anchored.length) runs = runsFrom(firstChange);
+
+  const observance = (c: Change, start: string, extra: string[]) => {
+    const kind = c.daylight ? 'DAYLIGHT' : 'STANDARD';
+    return [
+      `BEGIN:${kind}`,
+      `DTSTART:${start}`,
+      ...extra,
+      `TZOFFSETFROM:${formatOffset(c.offsetFrom)}`,
+      `TZOFFSETTO:${formatOffset(c.offsetTo)}`,
+      `TZNAME:${c.name}`,
+      `END:${kind}`,
+    ];
+  };
+  const rrule = (run: Run) => {
+    const last = run.changes[run.changes.length - 1];
+    // ical.js reads UNTIL back through the TZOFFSETFROM as written, so it is taken from that
+    // rounded offset: America/St_Johns's -3:30:52 would otherwise drop the rule's last year.
+    const untilAt = last.local.valueOf() - wholeMinutes(last.offsetFrom) * 60 * 1000;
+    const until = runsOut(run) ? '' : `;UNTIL=${utc(untilAt)}`;
+    return `RRULE:FREQ=YEARLY;BYMONTH=${run.changes[0].month};${run.rules[0]}${until}`;
+  };
+  const stamp = (c: Change) => c.local.format('YYYYMMDD[T]HHmmss');
+
+  // The rules projected back from the reference miss a previous change on another date: the US
+  // left DST on 29 October 2006, a week before the rule it adopted in 2007 gives.
+  if (anchored.length && current >= 2 && untils[current - 2] >= enumeratedFrom) {
+    const before = change(current - 1);
+    const onRule = anchored.some(
+      (run) =>
+        ruleKey(run.changes[0]) === ruleKey(before) &&
+        ruleDate(before.year, before.month, run.rules[0])?.date() === before.day
+    );
+    if (!onRule) runs.unshift({ changes: [before], rules: [] });
+  }
+
+  const head: string[][] = [];
+  if (anchored.length) {
+    for (const run of anchored) {
+      const first = run.changes[0];
+      let year = anchorYear;
+      while (!ruleDate(year, first.month, run.rules[0])) year++;
+      const day = ruleDate(year, first.month, run.rules[0]).format('YYYYMMDD');
+      head.push(observance(first, `${day}T${first.time}`, [rrule(run)]));
+    }
+    // STANDARD first, as every other writer orders the pair.
+    head.sort((a, b) => (a[0] === b[0] ? 0 : a[0] === 'BEGIN:STANDARD' ? -1 : 1));
+  } else {
+    const offset = formatOffset(-offsets[firstChange - 1]);
+    // Opens before the first change written, which for a reference in the 1970s can predate 1970.
+    const opening =
+      firstChange < untils.length ? Math.min(anchorYear, change(firstChange).year - 1) : anchorYear;
+    head.push([
+      'BEGIN:STANDARD',
+      `DTSTART:${opening}0101T000000`,
+      `TZOFFSETFROM:${offset}`,
+      `TZOFFSETTO:${offset}`,
+      `TZNAME:${firstChange - 1 === current ? abbrAtReference : names[firstChange - 1]}`,
+      'END:STANDARD',
+    ]);
+  }
+
+  // A change no rule covers joins the other one-off changes between the same offsets as an RDATE.
+  // ical.js stops counting an observance's DTSTART as an onset once it has an RDATE, so the first
+  // change is listed as one too.
+  const tail: { at: number; block: string[] }[] = [];
+  const oneOffs = new Map<string, Change[]>();
+  for (const run of runs) {
+    if (anchored.includes(run)) continue;
+    const first = run.changes[0];
+    if (isRule(run)) {
+      tail.push({ at: first.at, block: observance(first, stamp(first), [rrule(run)]) });
+    } else {
+      const key = [first.offsetFrom, first.offsetTo, first.name, first.daylight].join('|');
+      oneOffs.set(key, [...(oneOffs.get(key) || []), first]);
+    }
+  }
+  for (const group of oneOffs.values()) {
+    const rdates = group.length > 1 ? group.map((c) => `RDATE:${stamp(c)}`) : [];
+    tail.push({ at: group[0].at, block: observance(group[0], stamp(group[0]), rdates) });
+  }
+  tail.sort((a, b) => a.at - b.at);
+  const blocks = [...head, ...tail.map((t) => t.block)];
+
+  const vtimezone = ['BEGIN:VTIMEZONE', `TZID:${tzId}`, ...blocks.flat(), 'END:VTIMEZONE'].join(
+    '\r\n'
+  );
+  vtimezoneCache.set(cacheKey, vtimezone);
+  return vtimezone;
 }
 
 export function emailFromParticipantURI(uri: string): string | null {
