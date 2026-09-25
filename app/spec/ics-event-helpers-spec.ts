@@ -1827,9 +1827,9 @@ describe('ICSEventHelpers.createVTIMEZONEString', function () {
 
 describe('ICSEventHelpers.createVTIMEZONEString, for zones no single yearly rule describes', function () {
   // Each value is the instant moment-timezone gives the wall clock: what the component must read.
-  const readThrough = (tz: string, reference: string, wallClock: string) => {
+  const readThrough = (tz: string, reference: string, wallClock: string, years?: number) => {
     ICAL.TimezoneService.remove(tz);
-    const vtimezone = ICSEventHelpers.createVTIMEZONEString(tz, new Date(reference));
+    const vtimezone = ICSEventHelpers.createVTIMEZONEString(tz, new Date(reference), years);
     const { event } = parseICSString(
       [
         'BEGIN:VCALENDAR',
@@ -1887,6 +1887,91 @@ describe('ICSEventHelpers.createVTIMEZONEString, for zones no single yearly rule
     );
     expect(readThrough('Africa/Casablanca', '2024-07-01', '20261015T120000')).toBe(
       '2026-10-15T12:00:00.000Z'
+    );
+  });
+
+  it('reads the segment before the reference, inside a Ramadan suspension', function () {
+    expect(readThrough('Africa/Casablanca', '2024-09-01', '20240315T120000')).toBe(
+      '2024-03-15T12:00:00.000Z'
+    );
+    expect(readThrough('Africa/Casablanca', '2024-09-01', '20240215T120000')).toBe(
+      '2024-02-15T11:00:00.000Z'
+    );
+  });
+
+  it('reads the change before the reference where the rules it anchors fall a week later', function () {
+    // The US left DST on 29 October 2006; the 2007 rule puts that change on 5 November.
+    expect(readThrough('America/Chicago', '2007-09-01', '20061101T090000')).toBe(
+      '2006-11-01T15:00:00.000Z'
+    );
+  });
+
+  it('holds the last offset past ten years, save the rules already in force', function () {
+    // Morocco's 2025 suspension falls after 1 July 2024, ten years on; the +01 in force then holds.
+    expect(readThrough('Africa/Casablanca', '2014-07-01', '20240315T120000')).toBe(
+      '2024-03-15T12:00:00.000Z'
+    );
+    expect(readThrough('Africa/Casablanca', '2014-07-01', '20250301T120000')).toBe(
+      '2025-03-01T11:00:00.000Z'
+    );
+    expect(readThrough('America/Chicago', '2024-07-01', '20900115T090000')).toBe(
+      '2090-01-15T15:00:00.000Z'
+    );
+    // Egypt's rules from 2023 start after 2019, ten years on; the +02 in force then holds.
+    expect(readThrough('Africa/Cairo', '2009-07-01', '20300715T120000')).toBe(
+      '2030-07-15T10:00:00.000Z'
+    );
+  });
+
+  it("writes Egypt's change after the last Thursday of October as rules with no end", function () {
+    // Friday 1 November 2041 follows Thursday 31 October.
+    const lines = ICSEventHelpers.createVTIMEZONEString(
+      'Africa/Cairo',
+      new Date('2026-09-23')
+    ).split('\r\n');
+    expect(lines.filter((l) => l.startsWith('RRULE:'))).toEqual([
+      'RRULE:FREQ=YEARLY;BYMONTH=10;BYMONTHDAY=26,27,28,29,30,31;BYDAY=FR',
+      'RRULE:FREQ=YEARLY;BYMONTH=4;BYDAY=-1FR',
+      'RRULE:FREQ=YEARLY;BYMONTH=11;BYMONTHDAY=1;BYDAY=FR',
+    ]);
+    expect(readThrough('Africa/Cairo', '2026-09-23', '20411031T120000')).toBe(
+      '2041-10-31T09:00:00.000Z'
+    );
+    expect(readThrough('Africa/Cairo', '2026-09-23', '20411101T120000')).toBe(
+      '2041-11-01T10:00:00.000Z'
+    );
+    // In 2024 the change fell on 1 November, a year that rule gives no day in October.
+    expect(readThrough('Africa/Cairo', '2024-07-01', '20241101T120000')).toBe(
+      '2024-11-01T10:00:00.000Z'
+    );
+  });
+
+  it('writes a zone that never changed offset', function () {
+    expect(readThrough('Etc/GMT-3', '2026-09-23', '20260923T120000')).toBe(
+      '2026-09-23T09:00:00.000Z'
+    );
+  });
+
+  it('opens before a change from the 1960s that a 1970s reference writes', function () {
+    // French Guiana moved from -04:00 to -03:00 in October 1967.
+    expect(readThrough('America/Cayenne', '1975-07-01', '19750801T120000')).toBe(
+      '1975-08-01T15:00:00.000Z'
+    );
+    expect(readThrough('America/Cayenne', '1975-07-01', '19670115T120000')).toBe(
+      '1967-01-15T16:00:00.000Z'
+    );
+  });
+
+  it('writes the span around each reference, though two share a segment', function () {
+    // Turkey left EET for a permanent +03:00 in 2016: inside ten years of 2020, outside from 2027.
+    const blocks = (when: string) =>
+      ICSEventHelpers.createVTIMEZONEString('Europe/Istanbul', new Date(when))
+        .split('\r\n')
+        .filter((l) => l.startsWith('BEGIN:STANDARD') || l.startsWith('BEGIN:DAYLIGHT')).length;
+    expect(blocks('2027-07-01')).toBe(1);
+    expect(blocks('2020-07-01')).toBe(3);
+    expect(readThrough('Europe/Istanbul', '2020-07-01', '20151201T120000')).toBe(
+      '2015-12-01T10:00:00.000Z'
     );
   });
 
@@ -1976,7 +2061,7 @@ describe('ICSEventHelpers.createVTIMEZONEString, for zones no single yearly rule
   it('keeps the last year of a rule whose offset has seconds, which ical.js rounds', function () {
     // St. John's was -3:30:52 in 1918, written -0331; an UNTIL taken from the exact offset ends the
     // rule eight seconds before its 1918 change.
-    expect(readThrough('America/St_Johns', '1601-01-01', '19180420T120000')).toBe(
+    expect(readThrough('America/St_Johns', '1601-01-01', '19180420T120000', Infinity)).toBe(
       '1918-04-20T14:31:00.000Z'
     );
   });
@@ -1984,7 +2069,7 @@ describe('ICSEventHelpers.createVTIMEZONEString, for zones no single yearly rule
   it('reads the first months of 1970 through a zone described from its whole history', function () {
     // The component's opening offset starts before the zone's first change, not in 1970, where it
     // would override the history already written.
-    expect(readThrough('America/Chicago', '1601-01-01', '19700215T090000')).toBe(
+    expect(readThrough('America/Chicago', '1601-01-01', '19700215T090000', Infinity)).toBe(
       '1970-02-15T15:00:00.000Z'
     );
   });
