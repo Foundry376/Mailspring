@@ -34,15 +34,15 @@ The harness is in `mailsync/test`. It runs a real `mailsync` binary against a ma
 
 ```bash
 cd mailsync
-python3 -m pytest test --servers fake      # ~20 min; fake personalities: dovecot, plain, yahoo, icloud, courier, gmail, ...
-python3 -m pytest test --servers dovecot   # Docker; real Dovecot 2.3
-python3 -m pytest test --servers cyrus     # Docker; Cyrus 3.6, profiles fastmail / default-ns / plain
+pip install -r test/requirements.txt       # once: pytest, pytest-xdist, pyyaml
+python3 -m pytest test                     # ~6 min, in parallel: fake personalities, Dovecot 2.3 and Cyrus 3.6 (Docker)
+python3 -m pytest test --servers fake -k <name>   # narrow by server kind / scenario; -n 0 runs serially
 python3 test/run.py test/scenarios/<name>.yaml --server fake:yahoo --keep   # one scenario, keep artifacts
 ```
 
 Every behaviour change needs a scenario that **fails on the pre-change binary and passes after**. Before rebuilding, save the current binary somewhere, then run the scenario against it with `MAILSYNC_BIN=<path>`. Say in the commit whether the pre-change binary failed. For provider quirks, the fake server has personalities and hooks: `server.reject`, `server.pause`, `quirks` such as `copyuid-permuted`, capability suppression, and `every: true`. Add a new personality or quirk when you need one. `test/docs/adding-scenarios.md` explains how.
 
-All three suites must pass, with no new opt-outs from the invariant check. If a scenario is known to fail because of an engine bug you are not fixing, mark it `xfail` with the reason and write it up in `mailsync/test/docs/tasks/`.
+The whole run must pass (it ends with a list of every failed or xfailed case and its artifacts directory), with no new opt-outs from the invariant check. If a scenario is known to fail because of an engine bug you are not fixing, mark it `xfail` with the reason and write it up in `mailsync/test/docs/tasks/`.
 
 ### Building the engine without disturbing a running app
 
