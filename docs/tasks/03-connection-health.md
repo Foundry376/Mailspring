@@ -55,6 +55,10 @@ RFC 2177 says to re-issue IDLE at least every 29 minutes. NAT devices and mobile
 5. **On a connection-class error, reconnect and retry once immediately,** before backing off. This matters most when the session had sat idle for more than about 60 s. Alternatively, send a NOOP before reusing an idle background session.
 6. **Engine-side wake heartbeat, as a fallback for #2.** Compare the system and steady clocks every 30 s and treat a jump as a wake. This isn't verified on Windows or Linux.
 7. **Bound DNS resolution.** Low priority.
+8. **Classify transient server refusals as retryable.**
+   - **Observed** on O365 (engine 67033, 2026-09-24 21:00:49): `LIST "" "*"` got back `NO Server Unavailable. 15` + `* BYE Connection closed.`. The engine mapped this to `"key":"ErrorNonExistantFolder","retryable":false` (`syncFoldersAndLabels - fetchAllFolders`), so the process aborted and the client relaunched it.
+   - **Fix:** a `NO` on LIST, or a response carrying `* BYE`, during a transient Exchange outage should be ErrorConnection (retryable, offline), not a non-retryable folder error. Check how mailcore maps LIST failures to `ErrorNonExistantFolder`.
+   - **Related:** Yahoo occasionally returns a transient `ErrorAuthentication` on login (twice on 2026-09-25, followed by clean relaunches). Aborting on auth errors is by design, but consider one retry before aborting.
 
 Items 1–3 are the core. Item 4 is worth it if the vendor patch stays small.
 
