@@ -82,8 +82,34 @@ class UndoRedoStore extends MailspringStore {
         },
       };
       this._onQueueBlock(block);
+      if (reachesEngine && tasks.every((t) => t.engineWritesUndoData)) {
+        this._dropBlockIfNothingToUndo(block);
+      }
     }
   };
+
+  // A move whose local phase selected no copy (the engine reports `undoPlacements: {}`)
+  // changed nothing, so its entry and toast would offer an undo that does nothing.
+  _dropBlockIfNothingToUndo(block: UndoBlock): void {
+    Promise.all(block.tasks.map((t) => TaskQueue.waitForPerformLocal(t))).then((latest) => {
+      try {
+        if (latest.some((t) => t.createUndoTasks().length > 0)) {
+          return;
+        }
+      } catch {
+        return; // undo() reports the error if the user tries this entry
+      }
+      const idx = this._undo.indexOf(block);
+      if (idx === -1) {
+        return;
+      }
+      this._undo.splice(idx, 1);
+      if (this._mostRecentBlock === block) {
+        this._mostRecentBlock = null;
+      }
+      this.trigger();
+    });
+  }
 
   _latestVersionOf<T extends Task>(task: T, reachesEngine: boolean): Promise<T> {
     if (!reachesEngine || !task.engineWritesUndoData) {

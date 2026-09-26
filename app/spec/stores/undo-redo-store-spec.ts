@@ -167,6 +167,51 @@ describe('UndoRedoStore', function () {
     expect(console.warn).toHaveBeenCalled();
   });
 
+  describe('when the engine reports what a move selected', function () {
+    function engineVersionOf(task, undoPlacements) {
+      return new ChangeFolderTask({ ...task.toJSON(), status: 'remote', undoPlacements });
+    }
+
+    it('drops the entry of a move that selected no copy', async function () {
+      let resolveLocal;
+      spyOn(TaskQueue, 'waitForPerformLocal').andReturn(new Promise((r) => (resolveLocal = r)));
+      const task = queueMove();
+      expect(UndoRedoStore._undo.length).toBe(1);
+      expect(UndoRedoStore.getMostRecent()).not.toBe(null);
+
+      resolveLocal(engineVersionOf(task, {}));
+      await flushPromises();
+
+      expect(UndoRedoStore._undo.length).toBe(0);
+      expect(UndoRedoStore.getMostRecent()).toBe(null);
+    });
+
+    it('keeps the entry of a move that selected a copy', async function () {
+      let resolveLocal;
+      spyOn(TaskQueue, 'waitForPerformLocal').andReturn(new Promise((r) => (resolveLocal = r)));
+      const task = queueMove();
+
+      resolveLocal(engineVersionOf(task, { 'm-1': [{ folderId: inbox.id, bits: 1 }] }));
+      await flushPromises();
+
+      expect(UndoRedoStore._undo.length).toBe(1);
+    });
+
+    it('leaves a later entry alone when dropping an earlier one', async function () {
+      let resolveLocal;
+      spyOn(TaskQueue, 'waitForPerformLocal').andReturn(new Promise((r) => (resolveLocal = r)));
+      const task = queueMove();
+      const later = new ChangeStarredTask({ threadIds: ['t2'], accountId: 'ac-1', starred: true });
+      UndoRedoStore._onQueue(later);
+
+      resolveLocal(engineVersionOf(task, {}));
+      await flushPromises();
+
+      expect(UndoRedoStore._undo.map((b) => b.tasks[0])).toEqual([later]);
+      expect(UndoRedoStore.getMostRecent().tasks[0]).toBe(later);
+    });
+  });
+
   it('does not register the undo task itself as undoable', async function () {
     const task = queueMove();
     spyOn(TaskQueue, 'waitForPerformLocal').andReturn(Promise.resolve(task));
