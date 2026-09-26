@@ -8,6 +8,7 @@ These tasks came out of the message-placements review (September 2026, see `../m
 | [02-sent-copy-duplicates.md](02-sent-copy-duplicates.md) | Stop APPENDing a second Sent copy on providers that save one server-side (O365 has 67 duplicates) | Medium |
 | [03-connection-health.md](03-connection-health.md) | IDLE re-issue interval, backoff, reconnect on sleep/wake and network change, TCP keepalive | Medium; engine + client + possibly vendor |
 | [04-cheaper-deep-scans.md](04-cheaper-deep-scans.md) | Gate the full-folder scan on a count check; use UID SEARCH instead of FETCH FLAGS | Medium |
+| [05-device-dependent-thread-ids.md](05-device-dependent-thread-ids.md) | Thread ids depend on which message a device ingested first, so thread-level metadata (snooze, reminders) may not attach on another device | Design first, then medium–large |
 
 Recommended order: 01, 02, 03, 04. Task 04 changes the same scan paths as the Yahoo MESSAGELIMIT guard that landed with the placements PR, so read that code first.
 
