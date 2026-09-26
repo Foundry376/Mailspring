@@ -73,7 +73,9 @@ export default class WindowLauncher {
 
     // apply optional Linux properties
     if (process.platform === 'linux') {
-      const style = this.config.get('core.workspace.menubarStyle');
+      // The main process never loads config-schema, so its default must be repeated here or
+      // the renderer draws its own window controls inside a native frame (#2865).
+      const style = this.config.get('core.workspace.menubarStyle') || 'hamburger';
       if (style === 'autohide') {
         opts.autoHideMenuBar = true;
       }
