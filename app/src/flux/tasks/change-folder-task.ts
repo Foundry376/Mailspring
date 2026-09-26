@@ -28,7 +28,7 @@ move. The engine decides per placement:
     folder role is not `sent` or `drafts`.
 
 Callers with a perspective (the mailbox the user is looking at) pass that folder as
-`sourceFolderIds`; TaskFactory, mail rules and MCP have none and omit it. The destination
+`sourceFolderIds`; mail rules, MCP and other callers with no view omit it. The destination
 is never a meaningful source, so the constructor drops it from `sourceFolderIds` (a Gmail
 perspective on All Mail can otherwise produce a move to All Mail scoped to All Mail).
 

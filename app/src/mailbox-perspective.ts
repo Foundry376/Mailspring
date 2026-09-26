@@ -166,6 +166,15 @@ export class MailboxPerspective {
     return this._categoriesSharedRole;
   }
 
+  // The folder this perspective shows for an account, as `ChangeFolderTask.sourceFolderIds`,
+  // so a move takes only the copies the user is looking at. Labels are not placements and
+  // perspectives without a category (search, starred) have no copy to point at; both leave
+  // the choice to the engine.
+  sourceFolderIdsForAccount(accountId: string): string[] {
+    const cat = this.categories().find((c) => c.accountId === accountId);
+    return cat instanceof Folder ? [cat.id] : [];
+  }
+
   category(): Category | null {
     return this.categories().length === 1 ? this.categories()[0] : null;
   }
@@ -469,8 +478,8 @@ class CategoryMailboxPerspective extends MailboxPerspective {
     }
 
     // Move only the copies the user is looking at; a copy of the same message in Sent
-    // (or any other folder) stays put. Labels are not placements, so they never scope.
-    const sourceFolderIds = currentCat instanceof Folder ? [currentCat.id] : [];
+    // (or any other folder) stays put.
+    const sourceFolderIds = current.sourceFolderIdsForAccount(accountId);
 
     if (myCat.role === 'all' && currentCat && currentCat instanceof Label) {
       // dragging from a label into All Mail? Make this an "archive" by removing the
@@ -574,8 +583,7 @@ class CategoryMailboxPerspective extends MailboxPerspective {
         threads: accountThreads,
         folder: preferred,
         source: source,
-        // Remove only the copies shown in this folder (see actionsForReceivingThreads).
-        sourceFolderIds: cat instanceof Folder && cat.id !== preferred.id ? [cat.id] : [],
+        sourceFolderIds: this.sourceFolderIdsForAccount(accountId),
       });
     });
   }
