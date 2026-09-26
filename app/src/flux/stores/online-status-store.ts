@@ -33,6 +33,14 @@ class OnlineStatusStore extends MailspringStore {
     return Object.keys(this._offlineProcesses).length === 0;
   }
 
+  isAccountOnline(accountId: string) {
+    return !this._offlineProcesses[accountId];
+  }
+
+  offlineAccountIds() {
+    return Object.keys(this._offlineProcesses);
+  }
+
   onSyncProcessStateReceived = ({
     accountId,
     connectionError,
@@ -40,18 +48,24 @@ class OnlineStatusStore extends MailspringStore {
     accountId: string;
     connectionError: boolean;
   }) => {
-    const prevIsOnline = this.isOnline();
-
     if (connectionError && !this._offlineProcesses[accountId]) {
       console.warn(`Account ${accountId}: offline`);
       this._offlineProcesses[accountId] = true;
+      this.trigger();
     } else if (!connectionError && this._offlineProcesses[accountId]) {
       console.warn(`Account ${accountId}: online`);
       delete this._offlineProcesses[accountId];
       this.onMayBeOnline();
+      this.trigger();
     }
+  };
 
-    if (prevIsOnline !== this.isOnline()) {
+  // A relaunched mailsync process starts out believing it is online and only reports
+  // the end of a connection error it saw itself, so state from the exited process
+  // would otherwise never clear.
+  onSyncProcessExited = (accountId: string) => {
+    if (this._offlineProcesses[accountId]) {
+      delete this._offlineProcesses[accountId];
       this.trigger();
     }
   };
