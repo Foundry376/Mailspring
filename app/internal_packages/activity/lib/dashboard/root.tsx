@@ -351,8 +351,7 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
       if (dayIdx > days - 1) {
         return;
       }
-      const role = message.folder && message.folder.role;
-      if (role === 'spam' || role === 'trash') {
+      if (message.isInSpamOrTrashOnly()) {
         return;
       }
 

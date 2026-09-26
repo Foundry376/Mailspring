@@ -69,6 +69,7 @@ export function serializeMessageDetail(message: Message): Record<string, any> | 
     draft: message.draft,
     replyToHeaderMessageId: message.replyToHeaderMessageId,
     accountId: message.accountId,
+    folders: message.categories().map(serializeCategory),
   };
 }
 

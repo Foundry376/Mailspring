@@ -42,9 +42,9 @@ class AutoloadImagesStore extends MailspringStore {
 
   shouldBlockImagesIn = (message: Message) => {
     const spam = CategoryStore.getSpamCategory(message.accountId);
-    const spamFolderId = spam ? spam.id : undefined;
+    const inSpam = !!spam && message.folderIds().includes(spam.id);
 
-    if (AppEnv.config.get('core.reading.autoloadImages') && message.folder.id !== spamFolderId) {
+    if (AppEnv.config.get('core.reading.autoloadImages') && !inSpam) {
       return false;
     }
     if (this._whitelistEmails[Utils.toEquivalentEmailForm(message.fromContact().email)]) {
