@@ -21,6 +21,8 @@ let MailRulesStore: typeof import('./flux/stores/mail-rules-store').default = nu
 type MailRule = import('./flux/stores/mail-rules-store').MailRule;
 type MailRuleAction = MailRule['actions'][number];
 
+const PERFORM_LOCAL_TIMEOUT_MS = 10000;
+
 /**
 Folder and label ids are hashes of the IMAP path, so a rename or a namespace
 prefix applied by the server after the rule was created leaves `action.value`
@@ -274,9 +276,15 @@ class MailRulesProcessor {
         (t as any).canBeUndone = false;
       });
 
+      // Later rules read the thread back from the database, so they wait for these changes
+      // to land. The ceiling keeps an engine that never acknowledges the tasks (it exited
+      // mid-batch) from stalling every later rule and a reprocessing run.
       const performLocalPromises = actionTasks.map((t) => TaskQueue.waitForPerformLocal(t));
       Actions.queueTasks(actionTasks);
-      await performLocalPromises;
+      await Promise.race([
+        Promise.all(performLocalPromises),
+        new Promise((resolve) => setTimeout(resolve, PERFORM_LOCAL_TIMEOUT_MS)),
+      ]);
     } catch (err) {
       // Errors can occur if a mail rule specifies an invalid label or folder, etc.
       // Disable the rule. Disable the mail rule so the failure is reflected in the
