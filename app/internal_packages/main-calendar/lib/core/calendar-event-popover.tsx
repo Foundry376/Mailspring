@@ -805,11 +805,17 @@ function sortAttendeesByStatus(attendees: EventAttendee[]): EventAttendee[] {
   });
 }
 
+// A description is markup from whoever sent the invitation. DOMParser's document is inert, so the
+// images it references are never fetched; innerHTML on a live element fetched every one.
 function extractNotesFromDescription(description: string) {
-  const fragment = document.createDocumentFragment();
-  const descriptionRoot = document.createElement('root');
-  fragment.appendChild(descriptionRoot);
-  descriptionRoot.innerHTML = description;
+  const descriptionRoot = new DOMParser().parseFromString(description || '', 'text/html').body;
+
+  // An inert document has no layout for innerText to break lines by, so block boundaries become
+  // newlines here; Google writes each line of a description as <br>-separated HTML.
+  descriptionRoot.querySelectorAll('br').forEach((br) => br.replaceWith('\n'));
+  descriptionRoot
+    .querySelectorAll('p, div, li, tr, h1, h2, h3, h4, h5, h6, blockquote')
+    .forEach((block) => block.append('\n'));
 
   const els = descriptionRoot.querySelectorAll('meta[itemprop=description]');
   let notes: string = null;
@@ -818,7 +824,7 @@ function extractNotesFromDescription(description: string) {
       .map((el) => (el as HTMLMetaElement).content)
       .join('\n');
   } else {
-    notes = descriptionRoot.innerText;
+    notes = descriptionRoot.textContent;
   }
   // eslint-disable-next-line no-constant-condition
   while (true) {
