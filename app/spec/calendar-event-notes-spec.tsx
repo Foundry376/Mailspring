@@ -31,7 +31,7 @@ describe('the notes on an event card', function () {
   afterEach(() => cleanup());
 
   it('keeps each line of a description written as <br>-separated HTML', function () {
-    // The shape Google writes; innerText on a detached element ran the lines together.
+    // The shape Google writes.
     expect(renderCard('What happened last week?<br>What is the plan?<br><br>Keep it short.')).toBe(
       'What happened last week?\nWhat is the plan?\nKeep it short.'
     );
@@ -39,6 +39,14 @@ describe('the notes on an event card', function () {
 
   it('reads a plain-text description as it was', function () {
     expect(renderCard('Line one\nLine two')).toBe('Line one\nLine two');
+  });
+
+  it('reads the notes from itemprop=description meta tags that lead the description', function () {
+    expect(
+      renderCard(
+        '<meta itemprop="description" content="Quarterly planning"><meta itemprop="description" content="Bring laptops">'
+      )
+    ).toBe('Quarterly planning\nBring laptops');
   });
 
   describe('an image in the description', function () {
