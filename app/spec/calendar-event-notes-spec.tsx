@@ -37,6 +37,17 @@ describe('the notes on an event card', function () {
     );
   });
 
+  it('puts each paragraph of a description on its own line', function () {
+    expect(renderCard('<p>First</p><p>Second</p>')).toBe('First\nSecond\n');
+  });
+
+  it('puts each item of a list between <br> lines on its own line', function () {
+    // The shape Google writes for a bulleted agenda.
+    expect(renderCard('Agenda:<br><ul><li>Budget</li><li>Hiring</li></ul><br>Thanks')).toBe(
+      'Agenda:\nBudget\nHiring\nThanks'
+    );
+  });
+
   it('reads a plain-text description as it was', function () {
     expect(renderCard('Line one\nLine two')).toBe('Line one\nLine two');
   });
