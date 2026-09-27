@@ -35,6 +35,8 @@ import moveToApplications from './move-to-applications';
 import { MailsyncProcess } from '../mailsync-process';
 import Config from '../config';
 import { registerQuickpreviewIPCHandlers } from './quickpreview-ipc';
+import { guardAuxiliaryWindowNavigation } from './auxiliary-window-guard';
+import { isMailspringWindowContents } from './mailspring-window';
 import {
   handleWindowsToastXMLProtocolAction,
   registerNotificationIPCHandlers,
@@ -151,6 +153,7 @@ export default class Application extends EventEmitter {
     await this.oneTimeMoveToApplications();
     await this.oneTimeAddToDock();
 
+    guardAuxiliaryWindowNavigation();
     this.autoUpdateManager = new AutoUpdateManager(version, config, specMode);
     this.applicationMenu = new ApplicationMenu(version);
     this.windowManager = new WindowManager({
@@ -719,10 +722,13 @@ export default class Application extends EventEmitter {
     });
 
     ipcMain.on('command', (event, command, ...args) => {
+      if (!isMailspringWindowContents(event.sender)) return;
+      if (typeof command !== 'string' || !command.startsWith('application:')) return;
       this.emit(command, ...args);
     });
 
     ipcMain.on('window-command', (event, command, ...args) => {
+      if (!isMailspringWindowContents(event.sender)) return;
       const win = BrowserWindow.fromWebContents(event.sender);
       if (!win) return;
       win.emit(command, ...args);

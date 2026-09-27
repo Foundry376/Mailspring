@@ -83,7 +83,7 @@ export default class PrintWindow {
       webPreferences: {
         preload: preloadPath,
         nodeIntegration: false,
-        contextIsolation: false,
+        contextIsolation: true,
       },
     });
 
