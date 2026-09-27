@@ -128,6 +128,14 @@ class MessageBodyProcessor {
     return output;
   }
 
+  /**
+   * The whole body, sanitized and formatted exactly as for display but without the length
+   * clip. Not cached: it is only needed when the user asks to see a clipped message in full.
+   */
+  async processUnclipped(message: Message) {
+    return this._process(message, { clip: false });
+  }
+
   retrieveCached(message: Message) {
     const key = this._key(message);
     if (this._recentlyProcessedD[key]) {
@@ -144,14 +152,14 @@ class MessageBodyProcessor {
     return message.id;
   }
 
-  async _process(message: Message) {
+  async _process(message: Message, { clip = true }: { clip?: boolean } = {}) {
     if (typeof message.body !== 'string') {
       return { body: '', clipped: false };
     }
 
     let body = message.body;
     let clipped = false;
-    if (body.length > this.MAX_DISPLAY_LENGTH) {
+    if (clip && body.length > this.MAX_DISPLAY_LENGTH) {
       // We clip messages at 300,000 characters to avoid bringing Chromium to
       // a crawl. We will display a "message clipped notice" later.
       body = body.substr(0, this.MAX_DISPLAY_LENGTH);
