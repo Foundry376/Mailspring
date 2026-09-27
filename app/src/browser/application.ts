@@ -10,6 +10,7 @@ import {
   ipcMain,
   dialog,
   nativeImage,
+  powerMonitor,
   shell,
 } from 'electron';
 
@@ -691,6 +692,17 @@ export default class Application extends EventEmitter {
         event.returnValue = out;
       }
     });
+
+    // The sync engine's retry wait only counts awake time, so after sleep it can sit out
+    // its full 120s interval before reconnecting unless the main window wakes it.
+    const onSystemResumed = () => {
+      const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
+      if (main) {
+        main.sendMessage('system-resumed');
+      }
+    };
+    powerMonitor.on('resume', onSystemResumed);
+    powerMonitor.on('unlock-screen', onSystemResumed);
 
     app.on('activate', (event, hasVisibleWindows) => {
       if (!hasVisibleWindows) {

@@ -1,4 +1,5 @@
 import MailspringStore from 'mailspring-store';
+import { ipcRenderer } from 'electron';
 import _ from 'underscore';
 
 const MTC_CHECK_INTERVAL = 1000 * 60 * 5;
@@ -26,6 +27,11 @@ class OnlineStatusStore extends MailspringStore {
         }
         this._timeoutTargetTime = Date.now() + MTC_CHECK_INTERVAL;
       }, MTC_CHECK_INTERVAL);
+
+      // Without these the engine notices a returned network only when its 120s retry
+      // wait runs out.
+      window.addEventListener('online', () => this.onMayBeOnline());
+      ipcRenderer.on('system-resumed', () => this.onMayBeOnline());
     }
   }
 
