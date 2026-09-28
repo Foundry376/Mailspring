@@ -48,10 +48,13 @@ function accountFor(emailAddress: string, provider = 'imap', settings = {}) {
 }
 
 describe('expandAccountWithCommonSettings', function onboardingHelpersTests() {
+  let resolveMxSpy: jasmine.Spy;
+
   beforeEach(() => {
     // The MX lookup only feeds the Mailcore table's mx-match rules, and it is a real
     // network call - stub it so specs don't depend on DNS.
-    spyOn(dns, 'resolveMx').andCallFake((domain, callback) => callback(new Error('ENOTFOUND')));
+    resolveMxSpy = spyOn(dns, 'resolveMx');
+    resolveMxSpy.andCallFake((domain, callback) => callback(new Error('ENOTFOUND')));
     spyOn(AccountStore, 'containerFolderDefaultGetter').andReturn('');
   });
 
@@ -127,6 +130,18 @@ describe('expandAccountWithCommonSettings', function onboardingHelpersTests() {
   it('uses the Mailcore template for gmail without consulting autoconfig', async () => {
     stubAutoconfig(['gmail.com']);
     const account = await expandAccountWithCommonSettings(accountFor('user@gmail.com', 'gmail'));
+
+    expect(account.settings.imap_host).toEqual('imap.gmail.com');
+    expect(account.settings.smtp_host).toEqual('smtp.gmail.com');
+    expect(window.fetch).not.toHaveBeenCalled();
+  });
+
+  it('uses Google servers for a domain whose MX record is smtp.google.com', async () => {
+    resolveMxSpy.andCallFake((domain, callback) =>
+      callback(null, [{ exchange: 'SMTP.GOOGLE.COM', priority: 1 }])
+    );
+    stubAutoconfig(['workspace.example']);
+    const account = await expandAccountWithCommonSettings(accountFor('user@workspace.example'));
 
     expect(account.settings.imap_host).toEqual('imap.gmail.com');
     expect(account.settings.smtp_host).toEqual('smtp.gmail.com');
