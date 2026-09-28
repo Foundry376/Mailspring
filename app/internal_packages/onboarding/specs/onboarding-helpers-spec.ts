@@ -148,6 +148,29 @@ describe('expandAccountWithCommonSettings', function onboardingHelpersTests() {
     expect(window.fetch).not.toHaveBeenCalled();
   });
 
+  it('does not download autoconfig for an account added with Google sign-in', async () => {
+    stubAutoconfig(['workspace.example']);
+    const account = await expandAccountWithCommonSettings(
+      accountFor('user@workspace.example', 'gmail')
+    );
+
+    expect(account.settings.imap_host).toEqual('imap.gmail.com');
+    expect(account.settings.imap_port).toEqual(993);
+    expect(account.settings.smtp_host).toEqual('smtp.gmail.com');
+    expect(window.fetch).not.toHaveBeenCalled();
+  });
+
+  it('does not download autoconfig for an account added with Microsoft sign-in', async () => {
+    stubAutoconfig(['contoso.example']);
+    const account = await expandAccountWithCommonSettings(
+      accountFor('user@contoso.example', 'office365')
+    );
+
+    expect(account.settings.imap_host).toEqual('outlook.office365.com');
+    expect(account.settings.smtp_host).toEqual('smtp.office365.com');
+    expect(window.fetch).not.toHaveBeenCalled();
+  });
+
   it('uses the account type preset when the domain is not in either table', async () => {
     stubAutoconfig([]);
     const account = await expandAccountWithCommonSettings(
