@@ -46,6 +46,10 @@ function isSurrogateCodeUnitBeforeCursor(document: any, point: any) {
   return isSurrogateCodeUnit(node.text.charCodeAt(offset - 1));
 }
 
+export function stripCarriageReturns(text: string) {
+  return text.replace(/\r\n/g, '\n').replace(/\r/g, '');
+}
+
 function isBlockTypeOrWithinType(value: Value, type: string) {
   if (!value.focusBlock) {
     return false;
@@ -439,6 +443,21 @@ const plugins: ComposerEditorPlugin[] = [
   // Base implementation of BLOCK_CONFIG block types,
   // the "block" toolbar section, and serialization
   MailspringBaseBlockPlugin,
+
+  // Slate's drop handler splits dropped text on `\n` alone and inserts each line with
+  // insertText, so CRLF text dragged in from Windows apps leaves a `\r` on every line.
+  // A blank line becomes a block containing only `\r`, which renders with no height in
+  // the composer but is sent as `&nbsp;`. Plain-text paste is normalized separately in
+  // ComposerEditor.onPaste.
+  {
+    onCommand: function onCommand(command, editor: Editor, next: () => void) {
+      const text = command.type === 'insertText' && command.args[0];
+      if (typeof text !== 'string' || !text.includes('\r')) {
+        return next();
+      }
+      editor.command('insertText', stripCarriageReturns(text), ...command.args.slice(1));
+    },
+  },
 
   // Return creates soft newlines in code blocks
   When({

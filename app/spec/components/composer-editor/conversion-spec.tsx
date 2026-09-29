@@ -1,6 +1,7 @@
 import * as Immutable from 'immutable';
-import { Block, Text, Value } from 'slate';
+import { Block, Editor, Text, Value } from 'slate';
 import {
+  plugins,
   convertFromHTML,
   convertToHTML,
   convertToPlainText,
@@ -131,5 +132,26 @@ describe('Composer HTML conversion', () => {
     expect(convertToHTML(pasted)).not.toContain('&nbsp;');
     expect(preventDefault).toHaveBeenCalled();
     expect(next).not.toHaveBeenCalled();
+  });
+
+  it('does not leave carriage returns behind when CRLF text is dropped into the editor', () => {
+    const editor = new Editor({
+      plugins: plugins as any,
+      value: convertFromHTML('<div>Existing</div>'),
+    });
+    editor.moveToEndOfDocument().splitBlock();
+
+    // Mirrors slate-react's AfterPlugin.onDrop, which splits on `\n` and inserts each line.
+    'Dropped\r\n\r\nText\r\n\r\n\r\nEnd'.split('\n').forEach((line, i) => {
+      if (i > 0) editor.splitBlock();
+      editor.insertText(line);
+    });
+
+    const texts = editor.value.document
+      .getBlocks()
+      .toArray()
+      .map((b) => b.text);
+    expect(texts).toEqual(['Existing', 'Dropped', '', 'Text', '', '', 'End']);
+    expect(convertToHTML(editor.value)).not.toContain('&nbsp;');
   });
 });
