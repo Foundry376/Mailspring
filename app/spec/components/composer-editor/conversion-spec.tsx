@@ -1,6 +1,7 @@
 import * as Immutable from 'immutable';
-import { Block, Text, Value } from 'slate';
+import { Block, Editor, Text, Value } from 'slate';
 import {
+  plugins,
   convertFromHTML,
   convertToHTML,
   convertToPlainText,
@@ -131,5 +132,38 @@ describe('Composer HTML conversion', () => {
     expect(convertToHTML(pasted)).not.toContain('&nbsp;');
     expect(preventDefault).toHaveBeenCalled();
     expect(next).not.toHaveBeenCalled();
+  });
+
+  describe('dropping text into the editor', () => {
+    // Mirrors slate-react's AfterPlugin.onDrop, which splits on `\n` and inserts each line.
+    const drop = (text: string) => {
+      const editor = new Editor({
+        plugins: plugins as any,
+        value: convertFromHTML('<div>Existing</div>'),
+      });
+      editor.moveToEndOfDocument().splitBlock();
+      text.split('\n').forEach((line, i) => {
+        if (i > 0) editor.splitBlock();
+        editor.insertText(line);
+      });
+      return editor.value;
+    };
+    const blockTexts = (value: Value) =>
+      value.document
+        .getBlocks()
+        .toArray()
+        .map((b) => b.text);
+
+    it('does not leave carriage returns behind when CRLF text is dropped', () => {
+      const value = drop('Dropped\r\n\r\nText\r\n\r\n\r\nEnd');
+      expect(blockTexts(value)).toEqual(['Existing', 'Dropped', '', 'Text', '', '', 'End']);
+      expect(convertToHTML(value)).not.toContain('&nbsp;');
+    });
+
+    it('keeps CR-only line endings as line breaks rather than merging lines', () => {
+      const value = drop('line1\rline2\r\rline3');
+      expect(blockTexts(value)).toEqual(['Existing', 'line1\nline2\n\nline3']);
+      expect(convertToHTML(value)).toContain('line1<br/>line2<br/><br/>line3');
+    });
   });
 });
