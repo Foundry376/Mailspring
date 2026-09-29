@@ -98,15 +98,19 @@ export const BLOCK_CONFIG: {
         }
       }
 
+      const sourceClassName = node.data['className'] || node.data.get('className');
+      const className = [
+        sourceClassName,
+        !targetIsHTML && nodeIsEmpty(node) && 'empty-composer-block',
+      ]
+        .filter(Boolean)
+        .join(' ');
+
       if (targetIsHTML && nodeIsEmpty(node)) {
         return <br {...attributes} />;
       }
       return (
-        <div
-          {...attributes}
-          {...explicitHTMLAttributes}
-          className={node.data['className'] || node.data.get('className')}
-        >
+        <div {...attributes} {...explicitHTMLAttributes} className={className || undefined}>
           {children}
         </div>
       );
