@@ -46,8 +46,11 @@ function isSurrogateCodeUnitBeforeCursor(document: any, point: any) {
   return isSurrogateCodeUnit(node.text.charCodeAt(offset - 1));
 }
 
-export function stripCarriageReturns(text: string) {
-  return text.replace(/\r\n/g, '\n').replace(/\r/g, '');
+// Drops the trailing `\r` left by splitting CRLF text on `\n`, and treats any other
+// CR (CR-only line endings from classic Mac and some Office exports) as a line break,
+// matching normalizePlainTextForPaste.
+export function normalizeCarriageReturns(text: string) {
+  return text.replace(/\r$/, '').replace(/\r\n?/g, '\n');
 }
 
 function isBlockTypeOrWithinType(value: Value, type: string) {
@@ -455,7 +458,7 @@ const plugins: ComposerEditorPlugin[] = [
       if (typeof text !== 'string' || !text.includes('\r')) {
         return next();
       }
-      editor.command('insertText', stripCarriageReturns(text), ...command.args.slice(1));
+      editor.command('insertText', normalizeCarriageReturns(text), ...command.args.slice(1));
     },
   },
 
