@@ -161,7 +161,9 @@ export async function expandAccountWithCommonSettings(account: Account) {
   // only, so any key the provider table owns has to come from the template either way.
   let mstemplate = mailspringTemplateFor(domain, account.provider);
 
-  if (await TryThunderbirdAutoconfig(populated, account, mstemplate)) {
+  // An OAuth token is only accepted by its provider's servers. The servers in the domain's
+  // autoconfig file can be different ones, such as a mail server the domain used before.
+  if (!account.usesOAuth() && (await TryThunderbirdAutoconfig(populated, account, mstemplate))) {
     return applyContainerFolderDefault(populated);
   }
 
