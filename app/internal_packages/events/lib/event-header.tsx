@@ -10,10 +10,12 @@ import {
   Account,
   AccountStore,
   Calendar,
+  CalendarConflict,
   File,
   localized,
   DateUtils,
   CalendarUtils,
+  ICSEventHelpers,
   ICSParticipantStatus,
   Message,
   Event,
@@ -27,6 +29,7 @@ import {
   resolveRSVPTarget,
   resolveAddTo,
   planRSVPWrite,
+  conflictCalendarIds,
   RSVPTargetResolution,
 } from './rsvp-target';
 
@@ -90,6 +93,13 @@ export function eventForInvitation(
   return occurrence ? new ICAL.Event(occurrence) : null;
 }
 
+interface CalendarCopy {
+  rsvp: RSVPTargetResolution;
+  /** The row shown and answered: our own copy when there is one, else the first synced. */
+  display: Event | undefined;
+  synced: ICAL.Event | null;
+}
+
 interface EventHeaderProps {
   message: Message;
   file: File;
@@ -112,6 +122,10 @@ interface EventHeaderState {
   isOnCalendar?: boolean;
   /** Which calendar copy of this event, if any, our response will be written to. */
   rsvp?: RSVPTargetResolution;
+  /** The slot checked for conflicts: the next occurrence of a series, else the event itself. */
+  conflictWindow?: { start: number; end: number };
+  /** Everything already on our calendars that overlaps that slot. */
+  conflicts?: CalendarConflict[];
   /** Where the invitation would be added if we accept and it isn't on a calendar yet. */
   addTo?: Calendar;
   /** The calendars that could receive it, so the choice can be changed before answering. */
@@ -141,6 +155,8 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     syncedIcs: undefined,
     isOnCalendar: false,
     rsvp: undefined,
+    conflictWindow: undefined,
+    conflicts: undefined,
     addTo: undefined,
     addToChoices: undefined,
     inflight: undefined,
@@ -224,14 +240,77 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
         DatabaseStore.findAll<Calendar>(Calendar).where({ accountId: message.accountId })
       ),
       (calEvents: Event[], calendars: Calendar[]) => ({ calEvents, calendars })
-    ).subscribe(({ calEvents, calendars }) => {
-      if (this._mounted) this._onCalendarCopies(calEvents, calendars);
-    });
+    )
+      .flatMapLatest(({ calEvents, calendars }) => {
+        const copy = this._copyFor(calEvents, calendars);
+        const window = this._conflictWindowFor(copy);
+        // Bounded by the stored series span, so a handful of rows; findConflicts expands them.
+        return Rx.Observable.fromQuery(
+          DatabaseStore.findAll<Event>(Event).where([
+            Event.attributes.accountId.equal(message.accountId),
+            Event.attributes.recurrenceStart.lessThan(window.end),
+            Event.attributes.recurrenceEnd.greaterThan(window.start),
+          ])
+        ).map((nearby: Event[]) => ({ calEvents, calendars, nearby, copy, window }));
+      })
+      .subscribe(({ calEvents, calendars, nearby, copy, window }) => {
+        if (this._mounted) this._onCalendarCopies(calEvents, calendars, nearby, copy, window);
+      });
   }
 
-  _onCalendarCopies(calEvents: Event[], calendars: Calendar[]) {
+  /** Which copy of the invitation is ours to answer, and its VEVENT for this invitation. */
+  _copyFor(calEvents: Event[], calendars: Calendar[]): CalendarCopy {
     const addresses = this._accountAddresses();
     const rsvp = resolveRSVPTarget({ events: calEvents, calendars, addresses });
+    const display = rsvp.target ? rsvp.target.event : calEvents[0];
+    let synced: ICAL.Event | null = null;
+    if (display) {
+      try {
+        // An occurrence the copy has no VEVENT for keeps what the email said.
+        synced = eventForInvitation(display.ics, this.state.inviteRecurrenceIdStart);
+      } catch (e) {
+        console.warn(`EventHeader: Could not parse ICS data from calendar event: ${e.message}`);
+      }
+    }
+    return { rsvp, display, synced };
+  }
+
+  /**
+   * The slot conflicts are checked against: the occurrence the invitation is about, where the
+   * calendar copy now has it; else the next occurrence of the series, or the event itself.
+   */
+  _conflictWindowFor({ display, synced }: CalendarCopy): { start: number; end: number } {
+    const unix = (d: Date) => Math.round(d.getTime() / 1000);
+    const shown = synced || this.state.inviteEvent;
+    const upcoming =
+      this.state.inviteRecurrenceIdStart === undefined
+        ? ICSEventHelpers.upcomingOccurrence(
+            display ? display.ics : this.state.inviteIcs,
+            new Date()
+          )
+        : null;
+    return upcoming
+      ? { start: unix(upcoming.start), end: unix(upcoming.end) }
+      : { start: unix(shown.startDate.toJSDate()), end: unix(shown.endDate.toJSDate()) };
+  }
+
+  _onCalendarCopies(
+    calEvents: Event[],
+    calendars: Calendar[],
+    nearby: Event[],
+    { rsvp, display, synced }: CalendarCopy,
+    conflictWindow: { start: number; end: number }
+  ) {
+    const addresses = this._accountAddresses();
+    const busy = new Set(
+      conflictCalendarIds(calendars, AppEnv.config.get('mailspring.disabledCalendars') || [])
+    );
+    const conflicts = ICSEventHelpers.findConflicts({
+      events: nearby.filter((e) => busy.has(e.calendarId)),
+      ...conflictWindow,
+      addresses,
+      excludeIcsuid: this.state.inviteEvent.uid,
+    });
     const addTo = resolveAddTo({
       rsvp,
       calendars,
@@ -241,21 +320,15 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     });
     const next: Partial<EventHeaderState> = {
       rsvp,
+      conflicts,
+      conflictWindow,
       addTo: addTo ? addTo.addTo : undefined,
       addToChoices: addTo ? addTo.choices : undefined,
       isOnCalendar: calEvents.length > 0,
     };
-
-    const display = rsvp.target ? rsvp.target.event : calEvents[0];
     if (display) {
-      try {
-        // An occurrence the copy has no VEVENT for keeps what the email said.
-        const synced = eventForInvitation(display.ics, this.state.inviteRecurrenceIdStart);
-        if (synced) next.icsEvent = synced;
-        next.syncedIcs = display.ics;
-      } catch (e) {
-        console.warn(`EventHeader: Could not parse ICS data from calendar event: ${e.message}`);
-      }
+      if (synced) next.icsEvent = synced;
+      next.syncedIcs = display.ics;
     }
     this.setState(next as EventHeaderState);
   }
@@ -345,6 +418,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
                 <a onClick={this._onViewInCalendar}>{localized('View in Calendar')}</a>
               </div>
             )}
+            {icsMethod !== 'cancel' && this._renderConflicts()}
             {icsMethod === 'cancel'
               ? this._renderCancellation()
               : icsMethod === 'request'
@@ -363,6 +437,33 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       recurrenceIdStart: this.state.inviteRecurrenceIdStart,
     });
   };
+  // What Google Calendar shows as "Conflicts with...", so the answer needs no trip to the calendar.
+  _renderConflicts() {
+    const { conflicts } = this.state;
+    if (!conflicts || !conflicts.length) return false;
+
+    const timeFormat = DateUtils.getTimeFormat({ timeZone: false });
+    const label = (conflict: CalendarConflict) => {
+      const start = moment.unix(conflict.start).tz(DateUtils.timeZone).format(timeFormat);
+      const end = moment.unix(conflict.end).tz(DateUtils.timeZone).format(timeFormat);
+      return `${conflict.title || localized('(No title)')} (${start} - ${end})`;
+    };
+
+    return (
+      <div className="event-conflicts">
+        <div className="event-conflicts-title">
+          {conflicts.length === 1
+            ? localized('Conflicts with an event on your calendar')
+            : localized('Conflicts with %@ events on your calendar', conflicts.length)}
+        </div>
+        {conflicts.map((conflict) => (
+          <div className="event-conflict" key={`${conflict.eventId}-${conflict.start}`}>
+            {label(conflict)}
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   _renderSenderResponse() {
     const { icsEvent } = this.state;

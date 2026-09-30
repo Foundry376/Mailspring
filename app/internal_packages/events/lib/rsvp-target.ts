@@ -100,6 +100,20 @@ export function mayBeAddedToCalendar(organizerUri: string, addresses: string[]):
 }
 
 /**
+ * The calendars whose events are this account's busy time: not read-only feeds (holidays,
+ * fixtures), not calendars switched off in the sidebar, not ones the server says are someone else's.
+ */
+export function conflictCalendarIds(
+  calendars: Calendar[],
+  disabledCalendarIds: string[]
+): string[] {
+  const disabled = new Set(disabledCalendarIds);
+  return calendars
+    .filter((c) => !c.readOnly && !disabled.has(c.id) && !CalendarUtils.isSomeoneElsesCalendar(c))
+    .map((c) => c.id);
+}
+
+/**
  * The calendars an unsynced invitation may be added to, and the one preselected. `current`
  * is the user's own pick from an earlier tick, kept while it is still a choice.
  */

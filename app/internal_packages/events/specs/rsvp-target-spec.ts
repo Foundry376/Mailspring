@@ -4,6 +4,7 @@ import {
   resolveAddTo,
   planRSVPWrite,
   mayBeAddedToCalendar,
+  conflictCalendarIds,
 } from '../lib/rsvp-target';
 
 const ACCOUNT_ID = 'acct-1';
@@ -439,5 +440,25 @@ describe('planRSVPWrite', function () {
 
   it('writes nothing before the calendar copies have loaded', function () {
     expect(plan({ rsvp: undefined })).toBe(null);
+  });
+});
+
+describe('conflictCalendarIds', function () {
+  const theirs = calendar({ id: 'cal-theirs', name: 'Team', ownership: 'other' });
+
+  it("counts writable calendars that are shown and not someone else's", function () {
+    expect(conflictCalendarIds([MINE, SHARED, HOLIDAYS, theirs], [])).toEqual([MINE.id, SHARED.id]);
+  });
+
+  it('leaves out a calendar switched off in the sidebar', function () {
+    expect(conflictCalendarIds([MINE, SHARED], [SHARED.id])).toEqual([MINE.id]);
+  });
+
+  it('leaves out a read-only feed', function () {
+    expect(conflictCalendarIds([HOLIDAYS], [])).toEqual([]);
+  });
+
+  it("leaves out a calendar the server says is someone else's", function () {
+    expect(conflictCalendarIds([theirs], [])).toEqual([]);
   });
 });
