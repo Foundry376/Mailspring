@@ -1153,6 +1153,94 @@ export function stripITIPMethod(ics: string): string {
 }
 
 /**
+ * The iTIP COUNTER proposing another time for an invited VEVENT (RFC 5546 section 3.2.7): our
+ * ATTENDEE line alone, one occurrence named by `recurrenceId`, no recurrence. Null if not invited.
+ */
+export function createCounterProposal(
+  ics: string,
+  options: {
+    email: string;
+    start: Date;
+    end: Date;
+    comment?: string;
+    recurrenceId?: ICALTime | null;
+  }
+): string | null {
+  const ical = getICAL();
+  const { root } = parseICSString(ics);
+  const vevents =
+    root.name === 'vevent' ? [root] : (root.getAllSubcomponents('vevent') as ICALComponent[]);
+  const recurrenceIdOf = (c: ICALComponent) => c.getFirstPropertyValue('recurrence-id') as ICALTime;
+
+  const master = vevents.find((c) => !recurrenceIdOf(c));
+  const exception = options.recurrenceId
+    ? vevents.find(
+        (c) => recurrenceIdOf(c) && recurrenceIdOf(c).compare(options.recurrenceId) === 0
+      )
+    : undefined;
+  const source = exception || master || vevents[0];
+  if (!source) {
+    throw new Error('Invalid ICS: no VEVENT component found');
+  }
+  if (source.hasProperty('rrule') && !options.recurrenceId) {
+    throw new Error('A counter-proposal for a series must name the occurrence it counters');
+  }
+
+  const target = options.email.toLowerCase();
+  const mine = source.getAllProperties('attendee').find((prop) =>
+    prop
+      .getValues()
+      .map(String)
+      .some((v) => emailFromParticipantURI(v) === target)
+  );
+  if (!mine) {
+    return null;
+  }
+
+  const proposed = new ical.Component(ical.parse(source.toString())) as ICALComponent;
+  for (const name of ['rrule', 'rdate', 'exdate', 'attendee']) {
+    proposed.removeAllProperties(name);
+  }
+  if (options.recurrenceId) {
+    proposed.updatePropertyWithValue('recurrence-id', options.recurrenceId);
+  }
+
+  const attendee = ical.Property.fromString(mine.toICALString());
+  attendee.setParameter('partstat', 'TENTATIVE');
+  attendee.removeParameter('rsvp');
+  proposed.addProperty(attendee);
+
+  const event = new ical.Event(proposed);
+  if (event.startDate.isDate) {
+    event.startDate = dateOnly(ical, options.start);
+    event.endDate = dateOnly(ical, options.end);
+  } else {
+    event.startDate = ical.Time.fromJSDate(options.start, true);
+    event.endDate = ical.Time.fromJSDate(options.end, true);
+  }
+  proposed.updatePropertyWithValue('dtstamp', nowUTC(ical));
+  if (options.comment) {
+    proposed.updatePropertyWithValue('comment', options.comment);
+  }
+
+  const counter = new ical.Component(['vcalendar', [], []]);
+  counter.updatePropertyWithValue('prodid', '-//Mailspring//Calendar//EN');
+  counter.updatePropertyWithValue('version', '2.0');
+  counter.updatePropertyWithValue('calscale', 'GREGORIAN');
+  counter.updatePropertyWithValue('method', 'COUNTER');
+  counter.addSubcomponent(proposed);
+  return counter.toString();
+}
+
+/** The calendar day `date` falls on where the user is, as a DATE value. */
+function dateOnly(ical: ICAL, date: Date): ICALTime {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return ical.Time.fromDateString(
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+  );
+}
+
+/**
  * Sets one attendee's PARTSTAT in every VEVENT, leaving every other parameter and attendee as
  * they are (RFC 6638 section 3.2.5). Null when the address is not an attendee.
  */

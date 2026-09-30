@@ -11,12 +11,18 @@ import {
   Actions,
 } from 'mailspring-exports';
 
+/**
+ * Emails an iTIP message to a meeting organizer (RFC 5546): a REPLY with our status, or a
+ * COUNTER proposing another time. The sync engine reads an absent `method` as REPLY.
+ */
 export class EventRSVPTask extends Task {
   ics: string;
   icsRSVPStatus: ICSParticipantStatus;
   subject: string;
   messageId: string;
   organizerEmail: string;
+  method: 'REPLY' | 'COUNTER';
+  comment: string;
 
   static attributes = {
     ...Task.attributes,
@@ -35,6 +41,12 @@ export class EventRSVPTask extends Task {
     }),
     messageId: Attributes.String({
       modelKey: 'messageId',
+    }),
+    method: Attributes.String({
+      modelKey: 'method',
+    }),
+    comment: Attributes.String({
+      modelKey: 'comment',
     }),
   };
 
@@ -96,15 +108,46 @@ export class EventRSVPTask extends Task {
       messageId,
       ics: icsReplyData,
       icsRSVPStatus,
+      method: 'REPLY',
+    });
+  }
+
+  /** Sends the COUNTER that ICSEventHelpers.createCounterProposal built. */
+  static forProposingNewTime({
+    accountId,
+    to,
+    messageId,
+    ics,
+    summary,
+    comment,
+  }: {
+    accountId: string;
+    to: string;
+    messageId?: string;
+    ics: string;
+    summary: string;
+    comment?: string;
+  }) {
+    return new EventRSVPTask({
+      to,
+      subject: localized('New time proposed: %@', summary),
+      accountId,
+      messageId,
+      ics,
+      method: 'COUNTER',
+      comment,
     });
   }
 
   label() {
-    return localized('Sending RSVP');
+    return this.method === 'COUNTER'
+      ? localized('Proposing a new time')
+      : localized('Sending RSVP');
   }
 
   async onSuccess() {
-    if (this.messageId && this.icsRSVPStatus) {
+    // A counter-proposal is not an answer, so the RSVP buttons must not show one.
+    if (this.messageId && this.icsRSVPStatus && this.method !== 'COUNTER') {
       const msg = await DatabaseStore.find<Message>(Message, this.messageId);
       if (msg) {
         Actions.queueTask(
