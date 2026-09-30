@@ -545,6 +545,12 @@ class DraftStore extends MailspringStore {
       // ignores every later click of Send.
       this._draftsSending[headerMessageId] = false;
       this.trigger({ headerMessageId });
+      if (!session.draft()) {
+        return this._onUnexpectedNotFoundDuringSend(headerMessageId, {
+          ...diagnostics,
+          failedAt: 'session.draft() was null in ensureCorrectAccount',
+        });
+      }
       if (session.hasSendableFromAddress()) {
         AppEnv.showErrorDialog(localized('Sorry, this message could not be sent. %@', err.message));
         AppEnv.reportError(err, { headerMessageId });

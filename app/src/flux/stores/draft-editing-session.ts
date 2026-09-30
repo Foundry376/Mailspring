@@ -264,7 +264,7 @@ export class DraftEditingSession extends MailspringStore {
   // ensureCorrectAccount cannot send from an address that matches no account or
   // alias, eg: a draft synced from another client, or an alias since removed.
   hasSendableFromAddress() {
-    const from = this._draft.from[0];
+    const from = this._draft?.from[0];
     return !!(from && AccountStore.accountForEmail(from.email));
   }
 
