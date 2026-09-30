@@ -335,7 +335,8 @@ export class CalendarEventPopover extends React.Component<
       ics = ICSEventHelpers.updateRecurrenceRule(ics, repeatOptionToRRule(this.state.repeat));
     }
 
-    event.ics = ics;
+    // One save is one revision, however many helpers assembled it.
+    event.ics = ICSEventHelpers.bumpEventSequence(ics);
     // Re-derive the cached columns from the written ICS, not from state: for a recurring "all
     // events" edit the master DTSTART/DTEND are shifted+resized and differ from the edited
     // occurrence's times (matches modifyAllOccurrences). For a non-recurring edit this equals
@@ -390,8 +391,7 @@ export class CalendarEventPopover extends React.Component<
       attendees: this.state.attendees || [],
     });
 
-    // Update master event (now contains the inline exception VEVENT)
-    masterEvent.ics = updatedMasterIcs;
+    masterEvent.ics = ICSEventHelpers.bumpEventSequence(updatedMasterIcs, recurrenceId);
     masterEvent.recurrenceStart = this.state.start;
     masterEvent.recurrenceEnd = this.state.end;
 
