@@ -329,6 +329,10 @@ function buildPackagerOptions() {
     //   CFBundleDisplayName, CFBundleExecutable, CFBundleIdentifier, CFBundleName
     // See https://github.com/electron-userland/electron-packager/blob/master/mac.js#L50
     extendInfo: path.resolve(appDir, 'build', 'resources', 'mac', 'extra.plist'),
+    extraResource:
+      platform === 'darwin'
+        ? [path.resolve(appDir, 'build', 'resources', 'mac', 'new-mail.caf')]
+        : undefined,
     appBundleId: 'com.mailspring.mailspring',
     afterCopy: [
       runCopyPlatformSpecificResources,

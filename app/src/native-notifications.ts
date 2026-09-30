@@ -1,7 +1,6 @@
 /* eslint global-require: 0 */
 import { ipcRenderer } from 'electron';
 import { convertToPNG, getIcon, Context } from './linux-theme-utils';
-import { getDoNotDisturb as getMacDoNotDisturb } from './dnd-utils-macos';
 import { getDoNotDisturb as getLinuxDoNotDisturb } from './dnd-utils-linux';
 import { getDoNotDisturb as getWindowsDoNotDisturb } from './dnd-utils-windows';
 import pkg from './utils/package';
@@ -33,6 +32,7 @@ type INotificationOptions = {
   actions?: Array<{ type: 'button'; text: string }>;
   threadId?: string;
   messageId?: string;
+  playSound?: boolean;
   onActivate?: INotificationCallback;
 };
 
@@ -57,12 +57,20 @@ interface IIPCNotificationOptions {
   hasReply?: boolean;
   replyPlaceholder?: string;
   actions?: Array<{ type: 'button'; text: string }>;
+  playSound?: boolean;
   urgency?: 'low' | 'normal' | 'critical';
   timeoutType?: 'default' | 'never';
   toastXml?: string;
 }
 
 class NativeNotifications {
+  /**
+   * On macOS the new-mail sound is attached to the notification so the OS can silence it
+   * for Focus modes, honoring the user's per-app Focus exceptions and notification sound
+   * setting. Other platforms play it through SoundRegistry.
+   */
+  readonly playsSoundWithNotification = platform === 'darwin';
+
   private resolvedIcon: string = null;
   private callbacks: Map<string, INotificationCallback> = new Map();
 
@@ -105,8 +113,12 @@ class NativeNotifications {
     });
   }
 
+  /**
+   * Always false on macOS, which applies Focus to notifications itself. The only
+   * permission-free signal, the controlcenter "FocusModes" defaults key, tracks whether the
+   * Focus menu bar item is visible, so it reads true forever with "Always Show in Menu Bar".
+   */
   async doNotDisturb(): Promise<boolean> {
-    if (platform === 'darwin') return getMacDoNotDisturb();
     if (platform === 'linux') return getLinuxDoNotDisturb();
     if (platform === 'win32') return getWindowsDoNotDisturb();
     return false;
@@ -320,6 +332,7 @@ ${actionsXml}
     actions,
     threadId,
     messageId,
+    playSound,
     onActivate = () => {},
   }: INotificationOptions = {}): Promise<NotificationHandle | null> {
     if (await this.doNotDisturb()) {
@@ -341,6 +354,7 @@ ${actionsXml}
       icon: this.resolvedIcon,
       threadId,
       messageId,
+      playSound,
     };
 
     // macOS-specific features
@@ -392,15 +406,18 @@ ${actionsXml}
    *
    * @param count Number of unread messages
    * @param senders Array of sender names (will show up to 3)
+   * @param playSound Attach the new-mail sound (macOS only, see playsSoundWithNotification)
    * @param onActivate Callback when notification is clicked
    */
   async displaySummaryNotification({
     count,
     senders = [],
+    playSound,
     onActivate = () => {},
   }: {
     count: number;
     senders?: string[];
+    playSound?: boolean;
     onActivate?: INotificationCallback;
   }): Promise<NotificationHandle | null> {
     if (await this.doNotDisturb()) {
@@ -419,6 +436,7 @@ ${actionsXml}
       body: 'Click to view your inbox',
       tag: 'unread-summary',
       icon: this.resolvedIcon,
+      playSound,
     };
 
     // Use special summary toast XML on Windows

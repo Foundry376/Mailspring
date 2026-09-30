@@ -1,4 +1,3 @@
-import _ from 'underscore';
 import {
   Thread,
   Actions,
@@ -13,11 +12,13 @@ import {
 } from 'mailspring-exports';
 
 const WAIT_FOR_CHANGES_DELAY = 400;
+const NEW_MAIL_SOUND_QUIET_PERIOD = 5000;
 
 export class Notifier {
   activationTime = Date.now();
   unnotifiedQueue = [];
   hasScheduledNotify = false;
+  lastNewMailSoundRequest = 0;
   unlisteners: Array<() => void>;
   activeNotifications = {};
 
@@ -113,7 +114,7 @@ export class Notifier {
     });
   }
 
-  async _notifyAll() {
+  async _notifyAll(playSound: boolean) {
     // Extract unique sender names from the queue
     const count = this.unnotifiedQueue.length;
     const senders = [
@@ -124,18 +125,23 @@ export class Notifier {
       ),
     ] as string[];
 
-    await NativeNotifications.displaySummaryNotification({
-      count,
-      senders,
-      onActivate: () => {
-        AppEnv.displayWindow();
-      },
-    });
-    // Only remove the items we counted — new items may have been queued during the await
-    this.unnotifiedQueue.splice(0, count);
+    try {
+      await NativeNotifications.displaySummaryNotification({
+        count,
+        senders,
+        playSound,
+        onActivate: () => {
+          AppEnv.displayWindow();
+        },
+      });
+    } finally {
+      // Only remove the items we counted — new items may have been queued during the await.
+      // Removed on failure too, so a notification that throws isn't retried every 2s forever.
+      this.unnotifiedQueue.splice(0, count);
+    }
   }
 
-  async _notifyOne({ message, thread }) {
+  async _notifyOne({ message, thread }, playSound: boolean) {
     const from = message.from[0] ? message.from[0].displayName() : 'Unknown';
     const title = from;
     let subtitle = null;
@@ -155,6 +161,7 @@ export class Notifier {
       tag: `thread-${thread.id}`,
       threadId: thread.id,
       messageId: message.id,
+      playSound,
 
       // macOS inline reply
       canReply: true,
@@ -214,16 +221,21 @@ export class Notifier {
     }
   }
 
-  async _notifyMessages() {
+  async _notifyMessages(playSound = false) {
     // Set the guard immediately to prevent concurrent re-entry during async operations.
     // Without this, a second _onNewMessagesReceived call during the await below would
     // start a concurrent _notifyMessages, causing duplicate or conflicting notifications.
     this.hasScheduledNotify = true;
 
-    if (this.unnotifiedQueue.length >= 5) {
-      await this._notifyAll();
-    } else if (this.unnotifiedQueue.length > 0) {
-      await this._notifyOne(this.unnotifiedQueue.shift());
+    // A failure must not skip the guard reset below, or notifications stop until relaunch.
+    try {
+      if (this.unnotifiedQueue.length >= 5) {
+        await this._notifyAll(playSound);
+      } else if (this.unnotifiedQueue.length > 0) {
+        await this._notifyOne(this.unnotifiedQueue.shift(), playSound);
+      }
+    } catch (err) {
+      AppEnv.reportError(err);
     }
 
     if (this.unnotifiedQueue.length > 0) {
@@ -233,14 +245,13 @@ export class Notifier {
     }
   }
 
-  _playNewMailSound = _.debounce(
-    () => {
-      if (!AppEnv.config.get('core.notifications.sounds')) return;
-      SoundRegistry.playSound('new-mail');
-    },
-    5000,
-    true
-  );
+  // One sound per burst of mail: suppressed until mail has stopped arriving for the quiet period.
+  _shouldPlayNewMailSound() {
+    const now = Date.now();
+    const quiet = now - this.lastNewMailSoundRequest >= NEW_MAIL_SOUND_QUIET_PERIOD;
+    this.lastNewMailSoundRequest = now;
+    return quiet && !!AppEnv.config.get('core.notifications.sounds');
+  }
 
   _onNewMessagesReceived(newMessages) {
     if (newMessages.length === 0) {
@@ -281,8 +292,11 @@ export class Notifier {
         this.unnotifiedQueue.push({ message: msg, thread: threads[msg.threadId] });
       }
       if (!this.hasScheduledNotify) {
-        this._playNewMailSound();
-        this._notifyMessages();
+        const playSound = this._shouldPlayNewMailSound();
+        if (playSound && !NativeNotifications.playsSoundWithNotification) {
+          SoundRegistry.playSound('new-mail');
+        }
+        this._notifyMessages(playSound && NativeNotifications.playsSoundWithNotification);
       }
     });
   }
