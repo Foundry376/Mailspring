@@ -2340,3 +2340,16 @@ describe('ICSEventHelpers.createVTIMEZONEString, for zones no single yearly rule
     expect(instant).toBe('2021-07-15T04:30:00.000Z');
   });
 });
+
+describe('ICSEventHelpers.generateUID', function () {
+  it('is a UUID in the mailspring domain', function () {
+    expect(ICSEventHelpers.generateUID()).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}@mailspring$/
+    );
+  });
+
+  it('does not repeat', function () {
+    const uids = new Set(Array.from({ length: 1000 }, () => ICSEventHelpers.generateUID()));
+    expect(uids.size).toBe(1000);
+  });
+});
