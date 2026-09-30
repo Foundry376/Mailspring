@@ -1023,7 +1023,15 @@ export default class Application extends EventEmitter {
       return;
     }
 
-    const parts = url.parse(urlToOpen, true);
+    // url.parse throws on malformed input, and the URL comes from whatever app
+    // launched us (MAILSPRING-CLIENT-M2).
+    let parts: url.UrlWithParsedQuery;
+    try {
+      parts = url.parse(urlToOpen, true);
+    } catch (err) {
+      console.warn(`Ignoring URL - could not parse ${urlToOpen}: ${err.message}`);
+      return;
+    }
     const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
 
     if (!main) {
