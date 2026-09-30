@@ -369,6 +369,9 @@ body.is-blurred {
 
   .toolbar-window-controls {
     margin-top: ((@toolbar-height-darwin - 20px) / 2);
+    // Size to the buttons rather than stretching to the bar, so the strip
+    // below them still drags the window.
+    align-self: flex-start;
 
     // macOS 26+ gumdrops: 14px circles on a 23px pitch.
     button {
@@ -444,7 +447,9 @@ body.is-blurred {
 
     // Let column toolbars fill the bar so items without a fixed height can be
     // centered with flexbox instead of a line-height tied to the bar height.
-    [role='toolbar'] {
+    // Scoped to the columns: nested toolbars such as the traffic lights would
+    // otherwise overhang the bar and block window dragging below it.
+    .sheet-toolbar-container > [role='toolbar'] {
       height: 100%;
     }
     .item-back,
