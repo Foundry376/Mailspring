@@ -38,7 +38,7 @@ import {
   occurrenceEndUnix,
 } from './calendar-data-source';
 import { CalendarEventContextMenu } from './calendar-event-context-menu';
-import { openProposeNewTimePopover } from './calendar-rsvp';
+import { openProposeNewTimePopover, offerCounterInsteadOfMove } from './calendar-rsvp';
 import { CalendarView, DEFAULT_TIMED_EVENT_DURATION_SECONDS } from './calendar-constants';
 import { CalendarEmptyState } from './calendar-empty-state';
 import {
@@ -65,6 +65,7 @@ import {
   updateDragState,
   parseEventIdFromOccurrence,
   snapAllDayTimes,
+  canAttemptMove,
   canMoveEvent,
 } from './calendar-drag-utils';
 import { showRecurringEventDialog } from './recurring-event-dialog';
@@ -654,6 +655,16 @@ export class MailspringCalendar extends React.Component<
       config
     );
 
+    // A guest's drag starts so the attempt can be seen; once it is one, offer the counter instead.
+    if (
+      newDragState.isDragging &&
+      !canMoveEvent(newDragState.event, this._isCalendarReadOnly(newDragState.event.calendarId))
+    ) {
+      this.setState({ dragState: null });
+      offerCounterInsteadOfMove(newDragState.event);
+      return;
+    }
+
     // Only update state if something changed
     if (newDragState !== this.state.dragState) {
       this.setState({ dragState: newDragState });
@@ -722,6 +733,9 @@ export class MailspringCalendar extends React.Component<
     const occurrence = this.state.selectedEvents[0];
 
     if (!canMoveEvent(occurrence, this._isCalendarReadOnly(occurrence.calendarId))) {
+      if (canAttemptMove(occurrence, this._isCalendarReadOnly(occurrence.calendarId))) {
+        offerCounterInsteadOfMove(occurrence);
+      }
       return;
     }
 

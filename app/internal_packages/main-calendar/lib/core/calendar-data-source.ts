@@ -10,6 +10,7 @@ import {
   AndCompositeMatcher,
   OrCompositeMatcher,
   Contact,
+  Calendar,
 } from 'mailspring-exports';
 import IcalExpander from 'ical-expander';
 
@@ -136,8 +137,8 @@ interface OccurrenceBase {
    */
   isPending: boolean;
   /**
-   * True when this account is the event's ORGANIZER, or when the event has no organizer at
-   * all and is therefore nobody's meeting but ours. Governs who may reschedule it.
+   * True when this account organizes the event, or nobody does, or its ORGANIZER is a Google
+   * group-calendar id on a calendar the server says is ours. Governs who may reschedule it.
    */
   isMine: boolean;
   isException: boolean;
@@ -181,6 +182,14 @@ export type EventOccurrence = AllDayOccurrence | TimedOccurrence;
  */
 export type FocusedEventInfo = { id: string; start: number };
 
+/** The calendars the server (DAV:owner) says are this account's; a nameless default is not. */
+export function ownCalendarIds(calendars: Calendar[]): Set<string> {
+  return new Set(calendars.filter((c) => c.ownership === 'mine').map((c) => c.id));
+}
+
+/** The ORGANIZER Google writes on a secondary calendar's own events. */
+const GOOGLE_GROUP_CALENDAR = /@group\.calendar\.google\.com$/i;
+
 /** Strip mailto: prefix from email addresses (common in iCalendar data) */
 function normalizeEmail(email: string): string {
   return email.replace(/^mailto:/i, '');
@@ -208,8 +217,19 @@ export class CalendarDataSource {
     }
 
     const query = DatabaseStore.findAll<Event>(Event).where(matcher);
-    this.observable = Rx.Observable.fromQuery(query).flatMapLatest((results) =>
-      Rx.Observable.from([{ events: occurrencesForEvents(results, { startUnix, endUnix }) }])
+    // Google rewrites ORGANIZER on a secondary calendar to the calendar's own id, so which
+    // calendars are ours is part of knowing which meetings are.
+    const calendars = Rx.Observable.fromQuery(DatabaseStore.findAll<Calendar>(Calendar));
+    this.observable = Rx.Observable.combineLatest(
+      Rx.Observable.fromQuery(query),
+      calendars,
+      (results: Event[], cals: Calendar[]) => ({
+        events: occurrencesForEvents(results, {
+          startUnix,
+          endUnix,
+          ownCalendarIds: ownCalendarIds(cals),
+        }),
+      })
     );
     return this.observable;
   }
@@ -232,8 +252,9 @@ function occurrenceFromICS(args: {
   isRecurring: boolean;
   /** Defaults to whether the component carries a RECURRENCE-ID */
   isException?: boolean;
+  ownCalendarIds: Set<string>;
 }): EventOccurrence {
-  const { id, event, item, startTime, endTime } = args;
+  const { id, event, item, startTime, endTime, ownCalendarIds } = args;
   const startUnix = startTime.toJSDate().getTime() / 1000;
   const endUnix = endTime.toJSDate().getTime() / 1000;
 
@@ -254,7 +275,10 @@ function occurrenceFromICS(args: {
   const organizerEmail = item.organizer
     ? normalizeEmail(CalendarUtils.emailFromParticipantURI(String(item.organizer)) || '')
     : '';
-  const iAmOrganizer = !!organizerEmail && new Contact({ email: organizerEmail }).isMe();
+  const iAmOrganizer =
+    !!organizerEmail &&
+    (new Contact({ email: organizerEmail }).isMe() ||
+      (GOOGLE_GROUP_CALENDAR.test(organizerEmail) && ownCalendarIds.has(event.calendarId)));
 
   const isAllDay = !!startTime.isDate;
   const startDate = isAllDay
@@ -293,7 +317,11 @@ function occurrenceFromICS(args: {
 
 export function occurrencesForEvents(
   results: Event[],
-  { startUnix, endUnix }: { startUnix: number; endUnix: number }
+  {
+    startUnix,
+    endUnix,
+    ownCalendarIds = new Set<string>(),
+  }: { startUnix: number; endUnix: number; ownCalendarIds?: Set<string> }
 ) {
   const occurrences: EventOccurrence[] = [];
 
@@ -353,6 +381,7 @@ export function occurrencesForEvents(
               item,
               startTime: e.startDate,
               endTime: e.endDate,
+              ownCalendarIds,
               isRecurring: masterIsRecurring,
             })
           );
@@ -435,6 +464,7 @@ export function occurrencesForEvents(
             endTime: icsEvent.endDate,
             isRecurring: true, // exceptions only exist for a series
             isException: true,
+            ownCalendarIds,
           })
         );
       } catch (err) {

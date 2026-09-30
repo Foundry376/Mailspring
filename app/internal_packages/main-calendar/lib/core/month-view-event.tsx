@@ -9,7 +9,7 @@ import {
 } from './calendar-data-source';
 import { calcEventColors, formatShortTime } from './calendar-helpers';
 import { HitZone } from './calendar-drag-types';
-import { detectHitZone, canMoveEvent, formatDragPreviewTime } from './calendar-drag-utils';
+import { detectHitZone, canAttemptMove, formatDragPreviewTime } from './calendar-drag-utils';
 
 interface MonthViewEventProps {
   event: EventOccurrence;
@@ -91,12 +91,8 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
    * Check if this event can be dragged
    */
   _canDrag(): boolean {
-    // Drag preview events are not interactive
-    if (this.props.event.isDragPreview) {
-      return false;
-    }
     return (
-      canMoveEvent(this.props.event, this.props.isCalendarReadOnly) && !!this.props.onDragStart
+      canAttemptMove(this.props.event, this.props.isCalendarReadOnly) && !!this.props.onDragStart
     );
   }
 

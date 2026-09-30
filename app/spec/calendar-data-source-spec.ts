@@ -1,7 +1,9 @@
 // Import the function under test directly from the source file.
 // We use a relative path because the plugin is not registered in mailspring-exports.
 import { Event as MailspringEvent } from '../src/flux/models/event';
+import { Calendar } from '../src/flux/models/calendar';
 import {
+  ownCalendarIds,
   occurrencesForEvents,
   eventCoversDate,
   occurrenceStartUnix,
@@ -487,5 +489,48 @@ describe('focusedEventInfoForEvents', function () {
 
   it('has nothing to focus when the event is not on a calendar', function () {
     expect(focusedEventInfoForEvents([], NOW)).toBe(null);
+  });
+});
+
+describe('occurrencesForEvents and who organizes the event', function () {
+  const GROUP = 'ORGANIZER;CN=Team:mailto:abc123@group.calendar.google.com';
+  const range = {
+    startUnix: new Date(2026, 0, 1).getTime() / 1000,
+    endUnix: new Date(2027, 0, 1).getTime() / 1000,
+  };
+  const only = (ics: string, ownCalendarIds = new Set<string>()) =>
+    occurrencesForEvents([makeEvent(ics)], { ...range, ownCalendarIds })[0];
+
+  it('is ours when nobody organizes it', function () {
+    expect(only(icsFor('DTSTART:20260310T140000Z', 'DTEND:20260310T150000Z')).isMine).toBe(true);
+  });
+
+  it("is not ours when somebody else's address organizes it", function () {
+    const ics = icsFor(
+      'DTSTART:20260310T140000Z',
+      'DTEND:20260310T150000Z',
+      'ORGANIZER:mailto:ada@example.com'
+    );
+    expect(only(ics, new Set(['calendar-1'])).isMine).toBe(false);
+  });
+
+  it("is ours when Google's group-calendar organizer sits on a calendar the server says is ours", function () {
+    const ics = icsFor('DTSTART:20260310T140000Z', 'DTEND:20260310T150000Z', GROUP);
+    expect(only(ics, new Set(['calendar-1'])).isMine).toBe(true);
+  });
+
+  it('is not ours when that group-calendar organizer sits on a calendar shared into the account', function () {
+    const ics = icsFor('DTSTART:20260310T140000Z', 'DTEND:20260310T150000Z', GROUP);
+    expect(only(ics, new Set(['some-other-calendar'])).isMine).toBe(false);
+    expect(only(ics).isMine).toBe(false);
+  });
+});
+
+describe('ownCalendarIds', function () {
+  it('keeps only the calendars the server says are ours, not ones it says nothing about', function () {
+    const cal = (id: string, ownership: string) =>
+      new Calendar({ id, accountId: 'account-1', name: id, ownership } as any);
+    const ids = ownCalendarIds([cal('mine', 'mine'), cal('theirs', 'other'), cal('unknown', '')]);
+    expect([...ids]).toEqual(['mine']);
   });
 });

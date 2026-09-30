@@ -62,6 +62,7 @@ function makeOccurrence(title: string): TimedOccurrence {
     isAllDay: false,
     isCancelled: false,
     isPending: false,
+    isMine: true,
     isException: false,
     isRecurring: true,
     organizer: null,
@@ -189,5 +190,33 @@ describe('CalendarEventPopover save path and SEQUENCE', function () {
     await popover._saveOccurrenceException(event);
 
     expect(sequencesOf(queued[0].event.ics)).toEqual([0, 1]);
+  });
+});
+
+describe('CalendarEventPopover and who may edit', function () {
+  const popoverFor = (props: object) =>
+    new CalendarEventPopover({
+      event: makeOccurrence('Planning'),
+      onEdit: () => {},
+      onDelete: () => {},
+      ...props,
+    } as any) as any;
+
+  it('does not offer to edit a meeting somebody else organizes', function () {
+    const theirs = { ...makeOccurrence('Planning'), isMine: false };
+    expect(popoverFor({ event: theirs })._isEditable()).toBe(false);
+  });
+
+  it('offers to edit a meeting we organize on a writable calendar', function () {
+    expect(popoverFor({})._isEditable()).toBe(true);
+  });
+
+  it('never offers to edit on a read-only calendar', function () {
+    expect(popoverFor({ isCalendarReadOnly: true })._isEditable()).toBe(false);
+  });
+
+  it('always lets a new event be edited', function () {
+    const theirs = { ...makeOccurrence('Planning'), isMine: false };
+    expect(popoverFor({ event: theirs, isNewEvent: true })._isEditable()).toBe(true);
   });
 });
