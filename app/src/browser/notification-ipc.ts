@@ -22,7 +22,10 @@ interface NotificationOptions {
 }
 
 // Copied into Contents/Resources by build.js, where UNNotificationSound looks it up by name.
-const MAC_NEW_MAIL_SOUND = 'new-mail.caf';
+// Must be an MP3: NotificationCenter ignores .caf files in an app bundle (IMA4 and PCM alike)
+// and plays the default tone instead. https://developer.apple.com/forums/thread/716650
+// (FB11642483), reproduced on macOS 27.
+const MAC_NEW_MAIL_SOUND = 'new-mail.mp3';
 
 const handledWindowsToastXMLProtocolActionsForIds: string[] = [];
 
