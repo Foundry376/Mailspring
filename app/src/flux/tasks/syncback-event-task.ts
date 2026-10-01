@@ -161,6 +161,12 @@ export class SyncbackEventTask extends Task {
     return localized('Saving event...');
   }
 
+  // The engine's read-back after the PUT (DAVWorker::writeAndResyncEvent) updates only this row.
+  // A series' exception rows, and any exception this write added, arrive with the next full sync.
+  async onSuccess() {
+    AppEnv.mailsyncBridge.sendSyncCalendarNow(this.accountId);
+  }
+
   // Keys from TaskProcessor::perform{Local,Remote}SyncbackEvent and DAVWorker::writeAndResyncEvent.
   // Only the network ones (etag-conflict, no-calendar, not-found) leave the rejected edit on screen.
   onError({ key, debuginfo }: { key: string; debuginfo: string }) {
