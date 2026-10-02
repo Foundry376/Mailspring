@@ -68,6 +68,8 @@ interface EventHeaderState {
   icsMethod?: 'reply' | 'request' | 'cancel';
   icsEvent?: ICAL.Event;
   isOnCalendar?: boolean;
+  /** Set when the emailed invitation is about one occurrence of a series, in unix seconds. */
+  inviteRecurrenceIdStart?: number;
   inflight?: ICSParticipantStatus;
 }
 
@@ -129,6 +131,9 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
         icsEvent: event,
         icsMethod: normalizedMethod as 'reply' | 'request' | 'cancel',
         icsOriginalData: data.toString(),
+        inviteRecurrenceIdStart: event.recurrenceId
+          ? event.recurrenceId.toJSDate().getTime() / 1000
+          : undefined,
       });
 
       this._subscription = Rx.Observable.fromQuery(
@@ -238,6 +243,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     ipcRenderer.send('command', 'application:show-calendar', {
       icsuid: this.state.icsEvent.uid,
       accountId: this.props.message.accountId,
+      recurrenceIdStart: this.state.inviteRecurrenceIdStart,
     });
   };
 

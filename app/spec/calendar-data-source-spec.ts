@@ -414,6 +414,53 @@ describe('focusedEventInfoForEvents', function () {
     });
   });
 
+  describe('when the request names one occurrence of a series', function () {
+    const WEEKLY = icsFor(
+      'DTSTART:20260105T140000Z',
+      'DTEND:20260105T150000Z',
+      'RRULE:FREQ=WEEKLY'
+    );
+    const JUNE_22 = unix('2026-06-22T14:00:00Z');
+
+    it('focuses that occurrence rather than the next one', function () {
+      const series = withStart(WEEKLY, '2026-01-05T14:00:00Z');
+      expect(focusedEventInfoForEvents([series], NOW, JUNE_22)).toEqual({
+        id: `event-1-e${JUNE_22}`,
+        start: JUNE_22,
+      });
+    });
+
+    it('follows the occurrence to where it was moved', function () {
+      const moved = [
+        'BEGIN:VEVENT',
+        'UID:uid@test',
+        'RECURRENCE-ID:20260622T140000Z',
+        'DTSTART:20260624T160000Z',
+        'DTEND:20260624T170000Z',
+        'SUMMARY:Test Event',
+        'DTSTAMP:20260101T000000Z',
+        'END:VEVENT',
+      ].join('\n');
+      const series = withStart(
+        WEEKLY.replace('END:VCALENDAR', `${moved}\nEND:VCALENDAR`),
+        '2026-01-05T14:00:00Z'
+      );
+      expect(focusedEventInfoForEvents([series], NOW, JUNE_22).start).toBe(
+        unix('2026-06-24T16:00:00Z')
+      );
+    });
+
+    it('falls back to the next occurrence when that one was cancelled', function () {
+      const series = withStart(
+        WEEKLY.replace('RRULE:FREQ=WEEKLY', 'RRULE:FREQ=WEEKLY\nEXDATE:20260622T140000Z'),
+        '2026-01-05T14:00:00Z'
+      );
+      expect(focusedEventInfoForEvents([series], NOW, JUNE_22).start).toBe(
+        unix('2026-06-15T14:00:00Z')
+      );
+    });
+  });
+
   it('falls back to the first occurrence once nothing is upcoming', function () {
     const ended = withStart(
       icsFor('DTSTART:20260105T140000Z', 'DTEND:20260105T150000Z', 'RRULE:FREQ=WEEKLY;COUNT=3'),

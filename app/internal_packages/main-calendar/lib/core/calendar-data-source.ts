@@ -437,22 +437,59 @@ export function occurrencesForEvents(
 const UPCOMING_LOOKAHEAD_SECONDS = 366 * 86400;
 
 /**
- * The occurrence to focus for an event opened from outside the calendar: the next one from
- * `nowUnix`, or the event's first when none is upcoming.
+ * The occurrence of a series that `recurrenceIdStart` names. A moved occurrence is no longer
+ * at that instant, so its own VEVENT is read for where it went.
+ */
+function occurrenceForRecurrenceId(
+  events: Event[],
+  recurrenceIdStart: number
+): EventOccurrence | undefined {
+  const unix = (time: ICALTime) => time.toJSDate().getTime() / 1000;
+  const master = events.find((e) => !e.recurrenceId) || events[0];
+  let start = recurrenceIdStart;
+  try {
+    for (const vevent of CalendarUtils.parseICSString(master.ics).root.getAllSubcomponents(
+      'vevent'
+    )) {
+      const rid = vevent.getFirstPropertyValue('recurrence-id') as ICALTime | null;
+      if (rid && unix(rid) === recurrenceIdStart) {
+        start = unix(vevent.getFirstPropertyValue('dtstart') as ICALTime);
+      }
+    }
+  } catch (err) {
+    // occurrencesForEvents has its own fallback for a calendar object that won't parse
+  }
+  return occurrencesForEvents(events, { startUnix: start, endUnix: start + 86400 }).find(
+    (o) => (o.recurrenceIdStart ?? occurrenceStartUnix(o)) === recurrenceIdStart
+  );
+}
+
+/**
+ * The occurrence to focus for an event opened from outside the calendar: the one
+ * `recurrenceIdStart` names when the request is about a single occurrence of a series,
+ * otherwise the next one from `nowUnix`, or the event's first when none is upcoming.
  *
  * @param events - Every Event row sharing one UID, so a series' exceptions are placed.
  */
 export function focusedEventInfoForEvents(
   events: Event[],
-  nowUnix: number
+  nowUnix: number,
+  recurrenceIdStart?: number
 ): FocusedEventInfo | null {
   const byStart = (a: EventOccurrence, b: EventOccurrence) =>
     occurrenceStartUnix(a) - occurrenceStartUnix(b);
 
-  let [occurrence] = occurrencesForEvents(events, {
-    startUnix: nowUnix,
-    endUnix: nowUnix + UPCOMING_LOOKAHEAD_SECONDS,
-  }).sort(byStart);
+  let occurrence =
+    recurrenceIdStart !== undefined && events.length
+      ? occurrenceForRecurrenceId(events, recurrenceIdStart)
+      : undefined;
+
+  if (!occurrence) {
+    [occurrence] = occurrencesForEvents(events, {
+      startUnix: nowUnix,
+      endUnix: nowUnix + UPCOMING_LOOKAHEAD_SECONDS,
+    }).sort(byStart);
+  }
 
   if (!occurrence) {
     const firstStart = Math.min(...events.map((e) => e.recurrenceStart));

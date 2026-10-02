@@ -251,10 +251,14 @@ export class MailspringCalendar extends React.Component<
   // Another window asked to show an event here. See application:show-calendar.
   _onFocusEventMessage = async (
     _event: Electron.IpcRendererEvent,
-    { icsuid, accountId }: { icsuid: string; accountId: string }
+    {
+      icsuid,
+      accountId,
+      recurrenceIdStart,
+    }: { icsuid: string; accountId: string; recurrenceIdStart?: number }
   ) => {
     const events = await DatabaseStore.findAll<Event>(Event).where({ icsuid, accountId });
-    const info = focusedEventInfoForEvents(events, Date.now() / 1000);
+    const info = focusedEventInfoForEvents(events, Date.now() / 1000, recurrenceIdStart);
     if (info) {
       this._focusEvent(info);
     }
