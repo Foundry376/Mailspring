@@ -7,6 +7,7 @@ import {
   occurrenceStartUnix,
   occurrenceEndUnix,
   isEventSelected,
+  focusedEventInfoForEvents,
   EventOccurrence,
 } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 import { formatCalendarDate, parseCalendarDate } from '../src/calendar-date';
@@ -213,7 +214,11 @@ describe('occurrencesForEvents when expansion fails', function () {
         'DTEND;VALUE=DATE:20260623',
         'RECURRENCE-ID;VALUE=DATE:20260622'
       ),
-      { id: 'exc-1', recurrenceId: '20260622', recurrenceStart: new Date(2026, 5, 22).getTime() / 1000 } as any
+      {
+        id: 'exc-1',
+        recurrenceId: '20260622',
+        recurrenceStart: new Date(2026, 5, 22).getTime() / 1000,
+      } as any
     );
     const occs = occurrencesForEvents([master, exception], {
       startUnix: new Date(2026, 0, 1).getTime() / 1000,
@@ -283,9 +288,8 @@ describe('eventCoversDate', function () {
   });
 });
 
-
 describe('isEventSelected', function () {
-  const occ = (id: string) => ({ id } as EventOccurrence);
+  const occ = (id: string) => ({ id }) as EventOccurrence;
 
   it('matches by id even when the object identity differs', function () {
     // Selection is captured at click time; a data refresh gives the occurrence a fresh object,
@@ -302,7 +306,6 @@ describe('isEventSelected', function () {
     expect(isEventSelected([], occ('evt-1'))).toBe(false);
   });
 });
-
 
 describe('occurrence id stability across query ranges', function () {
   it('gives a recurring occurrence the same id in a wide and a narrow range', function () {
@@ -359,5 +362,130 @@ describe('occurrencesForEvents on a long-running series', function () {
       endUnix: Date.UTC(2026, 8, 6) / 1000,
     });
     expect(occs.length).toBe(1);
+  });
+});
+
+describe('focusedEventInfoForEvents', function () {
+  const unix = (iso: string) => new Date(iso).getTime() / 1000;
+  const NOW = unix('2026-06-15T12:00:00Z');
+  const withStart = (ics: string, iso: string) => makeEvent(ics, { recurrenceStart: unix(iso) });
+
+  it('focuses a one-off event that is still to come', function () {
+    const event = withStart(
+      icsFor('DTSTART:20260622T140000Z', 'DTEND:20260622T150000Z'),
+      '2026-06-22T14:00:00Z'
+    );
+    expect(focusedEventInfoForEvents([event], NOW)).toEqual({
+      id: `event-1-e${unix('2026-06-22T14:00:00Z')}`,
+      start: unix('2026-06-22T14:00:00Z'),
+    });
+  });
+
+  it('focuses the next occurrence of a series, not its first', function () {
+    const series = withStart(
+      icsFor('DTSTART:20260105T140000Z', 'DTEND:20260105T150000Z', 'RRULE:FREQ=WEEKLY'),
+      '2026-01-05T14:00:00Z'
+    );
+    // Mondays at 14:00Z; NOW is Monday 15 June at noon, so that afternoon's is next.
+    expect(focusedEventInfoForEvents([series], NOW).start).toBe(unix('2026-06-15T14:00:00Z'));
+  });
+
+  it('takes the nearest occurrence when it is an exception stored as its own row', function () {
+    const series = withStart(
+      icsFor('DTSTART:20260105T140000Z', 'DTEND:20260105T150000Z', 'RRULE:FREQ=WEEKLY'),
+      '2026-01-05T14:00:00Z'
+    );
+    // Today's occurrence, moved an hour earlier. Its row comes after the master's occurrences.
+    const moved = makeEvent(
+      icsFor(
+        'DTSTART:20260615T130000Z',
+        'DTEND:20260615T140000Z',
+        'RECURRENCE-ID:20260615T140000Z'
+      ),
+      {
+        id: 'event-2',
+        recurrenceId: '20260615T140000Z',
+        recurrenceStart: unix('2026-06-15T13:00:00Z'),
+      }
+    );
+    expect(focusedEventInfoForEvents([series, moved], NOW)).toEqual({
+      id: 'event-2-e0',
+      start: unix('2026-06-15T13:00:00Z'),
+    });
+  });
+
+  describe('when the request names one occurrence of a series', function () {
+    const WEEKLY = icsFor(
+      'DTSTART:20260105T140000Z',
+      'DTEND:20260105T150000Z',
+      'RRULE:FREQ=WEEKLY'
+    );
+    const JUNE_22 = unix('2026-06-22T14:00:00Z');
+
+    it('focuses that occurrence rather than the next one', function () {
+      const series = withStart(WEEKLY, '2026-01-05T14:00:00Z');
+      expect(focusedEventInfoForEvents([series], NOW, JUNE_22)).toEqual({
+        id: `event-1-e${JUNE_22}`,
+        start: JUNE_22,
+      });
+    });
+
+    it('follows the occurrence to where it was moved', function () {
+      const moved = [
+        'BEGIN:VEVENT',
+        'UID:uid@test',
+        'RECURRENCE-ID:20260622T140000Z',
+        'DTSTART:20260624T160000Z',
+        'DTEND:20260624T170000Z',
+        'SUMMARY:Test Event',
+        'DTSTAMP:20260101T000000Z',
+        'END:VEVENT',
+      ].join('\n');
+      const series = withStart(
+        WEEKLY.replace('END:VCALENDAR', `${moved}\nEND:VCALENDAR`),
+        '2026-01-05T14:00:00Z'
+      );
+      expect(focusedEventInfoForEvents([series], NOW, JUNE_22).start).toBe(
+        unix('2026-06-24T16:00:00Z')
+      );
+    });
+
+    it('falls back to the next occurrence when that one was cancelled', function () {
+      // Daily, so the day after the cancelled one is within reach and must not be taken.
+      const series = withStart(
+        WEEKLY.replace('RRULE:FREQ=WEEKLY', 'RRULE:FREQ=DAILY\nEXDATE:20260622T140000Z'),
+        '2026-01-05T14:00:00Z'
+      );
+      expect(focusedEventInfoForEvents([series], NOW, JUNE_22).start).toBe(
+        unix('2026-06-15T14:00:00Z')
+      );
+    });
+
+    it('still focuses an event whose calendar object will not parse', function () {
+      const broken = makeEvent('this is not valid ics', {
+        recurrenceStart: JUNE_22,
+        recurrenceEnd: JUNE_22 + 3600,
+      });
+      expect(focusedEventInfoForEvents([broken], NOW, JUNE_22)).toEqual({
+        id: 'event-1-e0',
+        start: JUNE_22,
+      });
+    });
+
+    it('has nothing to focus when the event is not on a calendar', function () {
+      expect(focusedEventInfoForEvents([], NOW, JUNE_22)).toBe(null);
+    });
+  });
+
+  it('falls back to the first occurrence once nothing is upcoming', function () {
+    const ended = withStart(
+      icsFor('DTSTART:20260105T140000Z', 'DTEND:20260105T150000Z', 'RRULE:FREQ=WEEKLY;COUNT=3'),
+      '2026-01-05T14:00:00Z'
+    );
+    expect(focusedEventInfoForEvents([ended], NOW).start).toBe(unix('2026-01-05T14:00:00Z'));
+  });
+
+  it('has nothing to focus when the event is not on a calendar', function () {
+    expect(focusedEventInfoForEvents([], NOW)).toBe(null);
   });
 });

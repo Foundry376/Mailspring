@@ -32,6 +32,7 @@ import {
   EventOccurrence,
   FocusedEventInfo,
   coveredDates,
+  focusedEventInfoForEvents,
   occurrenceStartUnix,
   occurrenceEndUnix,
 } from './calendar-data-source';
@@ -170,6 +171,8 @@ export class MailspringCalendar extends React.Component<
   componentDidMount() {
     this._disposable = this._subscribeToCalendars();
     this._unlisten = Actions.focusCalendarEvent.listen(this._focusEvent);
+    ipcRenderer.on('focus-calendar-event', this._onFocusEventMessage);
+    ipcRenderer.send('command', 'application:calendar-mounted');
     this._themeDisposable = AppEnv.themes.onDidChangeActiveThemes(() => {
       invalidateThemeTextColorCache();
       this.setState((s) => ({ themeVersion: s.themeVersion + 1 }));
@@ -183,6 +186,7 @@ export class MailspringCalendar extends React.Component<
     if (this._unlisten) {
       this._unlisten();
     }
+    ipcRenderer.removeListener('focus-calendar-event', this._onFocusEventMessage);
   }
 
   _subscribeToCalendars() {
@@ -242,6 +246,22 @@ export class MailspringCalendar extends React.Component<
 
   _focusEvent = (event: FocusedEventInfo) => {
     this.setState({ focusedMoment: moment(event.start * 1000), focusedEvent: event });
+  };
+
+  // Another window asked to show an event here. See application:show-calendar.
+  _onFocusEventMessage = async (
+    _event: Electron.IpcRendererEvent,
+    {
+      icsuid,
+      accountId,
+      recurrenceIdStart,
+    }: { icsuid: string; accountId: string; recurrenceIdStart?: number }
+  ) => {
+    const events = await DatabaseStore.findAll<Event>(Event).where({ icsuid, accountId });
+    const info = focusedEventInfoForEvents(events, Date.now() / 1000, recurrenceIdStart);
+    if (info) {
+      this._focusEvent(info);
+    }
   };
 
   _openEventPopover(eventModel: EventOccurrence) {

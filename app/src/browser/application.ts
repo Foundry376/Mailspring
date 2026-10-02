@@ -72,6 +72,7 @@ export default class Application extends EventEmitter {
   _initialized = false;
   _pendingLaunchOptions: any[] = [];
   _pendingUrls: string[] = [];
+  _pendingCalendarFocus: unknown;
 
   async start(options) {
     const { resourcePath, configDirPath, version, devMode, specMode, safeMode } = options;
@@ -445,9 +446,27 @@ export default class Application extends EventEmitter {
       }
     });
 
-    this.on('application:show-calendar', () => {
+    // `focusEvent` names an event to show; the menu item passes none. For a window that is not
+    // open yet it is held until the calendar reports it has mounted: the window is made from
+    // the hot window, which counts as loaded before then, so a message sent now is dropped.
+    this.on('application:show-calendar', (focusEvent?: unknown) => {
+      const open = this.windowManager.get(WindowManager.CALENDAR_WINDOW);
       this.windowManager.ensureWindow(WindowManager.CALENDAR_WINDOW, {});
       this.sendCalendarSync();
+      if (!open || (focusEvent && this._pendingCalendarFocus)) {
+        // New window, or one still mounting: the latest event asked for is the one to show.
+        this._pendingCalendarFocus = focusEvent;
+      } else if (focusEvent) {
+        open.sendMessage('focus-calendar-event', focusEvent);
+      }
+    });
+
+    this.on('application:calendar-mounted', () => {
+      if (!this._pendingCalendarFocus) return;
+      this.windowManager
+        .get(WindowManager.CALENDAR_WINDOW)
+        .sendMessage('focus-calendar-event', this._pendingCalendarFocus);
+      this._pendingCalendarFocus = undefined;
     });
 
     // The calendar window's MailsyncBridge has no sync clients, so a manual

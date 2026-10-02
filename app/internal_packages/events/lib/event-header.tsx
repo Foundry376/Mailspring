@@ -2,6 +2,7 @@ import { RetinaImg } from 'mailspring-component-kit';
 
 import React from 'react';
 import fs from 'fs';
+import { ipcRenderer } from 'electron';
 import {
   Rx,
   Actions,
@@ -66,6 +67,9 @@ interface EventHeaderState {
   icsOriginalData?: string;
   icsMethod?: 'reply' | 'request' | 'cancel';
   icsEvent?: ICAL.Event;
+  isOnCalendar?: boolean;
+  /** Set when the emailed invitation is about one occurrence of a series, in unix seconds. */
+  inviteRecurrenceIdStart?: number;
   inflight?: ICSParticipantStatus;
 }
 
@@ -86,6 +90,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     icsEvent: undefined,
     icsMethod: undefined,
     icsOriginalData: undefined,
+    isOnCalendar: false,
     inflight: undefined,
   };
 
@@ -126,6 +131,9 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
         icsEvent: event,
         icsMethod: normalizedMethod as 'reply' | 'request' | 'cancel',
         icsOriginalData: data.toString(),
+        inviteRecurrenceIdStart: event.recurrenceId
+          ? event.recurrenceId.toJSDate().getTime() / 1000
+          : undefined,
       });
 
       this._subscription = Rx.Observable.fromQuery(
@@ -134,7 +142,9 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
           accountId: message.accountId,
         })
       ).subscribe((calEvent) => {
-        if (!this._mounted || !calEvent) return;
+        if (!this._mounted) return;
+        this.setState({ isOnCalendar: !!calEvent });
+        if (!calEvent) return;
         try {
           this.setState({
             icsEvent: CalendarUtils.parseICSString(calEvent.ics).event,
@@ -213,6 +223,11 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
               <div className="event-time">{time}</div>
             </div>
             <div className="event-location">{renderLocation(icsEvent.location)}</div>
+            {this.state.isOnCalendar && (
+              <div className="event-view-in-calendar">
+                <a onClick={this._onViewInCalendar}>{localized('View in Calendar')}</a>
+              </div>
+            )}
             {icsMethod === 'cancel'
               ? this._renderCancellation()
               : icsMethod === 'request'
@@ -223,6 +238,14 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       </div>
     );
   }
+
+  _onViewInCalendar = () => {
+    ipcRenderer.send('command', 'application:show-calendar', {
+      icsuid: this.state.icsEvent.uid,
+      accountId: this.props.message.accountId,
+      recurrenceIdStart: this.state.inviteRecurrenceIdStart,
+    });
+  };
 
   _renderSenderResponse() {
     const { icsEvent } = this.state;
