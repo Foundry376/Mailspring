@@ -175,6 +175,14 @@ describe('EventHeader for an invitation to one occurrence of a series', function
     'SUMMARY:Huddle (as synced)',
   ];
 
+  // Another moved week, listed first in the calendar copy.
+  const OTHER_WEEK = [
+    'RECURRENCE-ID:20260908T194500Z',
+    'DTSTART:20260909T194500Z',
+    'DTEND:20260909T200000Z',
+    'SUMMARY:Huddle (another week)',
+  ];
+
   let icsPath: string;
 
   function render(emailed: string[], calendarIcs: string) {
@@ -205,7 +213,7 @@ describe('EventHeader for an invitation to one occurrence of a series', function
   });
 
   it("shows that occurrence from the calendar copy, not the series' first date", function () {
-    const text = render(EMAILED, vcalendar(SERIES, SYNCED));
+    const text = render(EMAILED, vcalendar(SERIES, OTHER_WEEK, SYNCED));
     runs(() => {
       expect(text('event-day')).toBe('Tuesday, September 15th');
       expect(text('event-title')).toBe('Huddle (as synced)');
