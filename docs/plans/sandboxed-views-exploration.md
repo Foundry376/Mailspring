@@ -500,6 +500,93 @@ Scores are field-level accuracy averaged per schema. Qwen's v2-prompt numbers we
 - **Backfilling 2,400 messages:** GLiNER alone takes about 3 minutes. GLiNER plus Qwen on the ~30% GLiNER leaves unfilled takes about 25 minutes on CPU. Low-end Windows is unmeasured, estimated 2–4× slower.
 - **Caveats:** the receipt and shipping sets are synthetic (the test inboxes hold only 8 real transactional emails), and all labels are one person's judgement. No Windows or Linux runs, and tier 0 is unproven on these inboxes (1.7% of bodies carry schema.org, none of them transactional).
 
+### 9.8 Decision: one model, Qwen3.5-0.8B (2026-10-02)
+
+The owner chose to bundle exactly one model. **We ship Qwen3.5-0.8B Q4_K_M (561 MB) through
+`node-llama-cpp`.** This replaces the two-model stack in §9.7 and the tier 2/3 split in §9.2.
+The pipeline is now tier 0 (schema.org) followed by one model.
+
+**Why Qwen and not GLiNER2.5-small:**
+
+| | Qwen3.5-0.8B | GLiNER2.5-small |
+|---|---|---|
+| Receipt / shipping field accuracy | **0.93 / 0.91** | 0.77 / 0.78 |
+| Merchant / order number | **0.91 / 0.85** | 0.68 / 0.45 |
+| Arbitrary View schemas | any flat JSON schema, enums, lists; free-form fields such as "promise" or "topics" | spans and label classification only; no paraphrase, no "null, never invent" |
+| p50 / p95 per message, CPU, 4 threads | 1.6 s / 2.0 s | 42–128 ms / 73–298 ms |
+| p50 per message, Metal | 0.5–0.6 s | n/a (CPU EP only) |
+| Download | 561 MB | 289 MB |
+
+Views write their own schemas, so the model has to cope with fields we've never seen. A span
+extractor can't fill a field that isn't a verbatim span ("is this a renewal?", "which
+city?"), and GLiNER's 0.45 on order numbers is the same weakness on a field that *is* a span.
+Speed is the cost. It is acceptable because extraction is a cached background backfill, not
+an interactive call, and because Views are told to parse cheap formats themselves and send
+only the misses (Rides needed the model for 9 of 46 emails).
+
+**Latency work: what helped and what didn't** (CPU, 98 receipt and shipping messages,
+average prompt 396 tokens):
+
+- **Decode dominates.** About 60 output tokens at about 39 tok/s on CPU (88 on Metal) take
+  roughly 1.5 s of the 2.2 s per message. Prefill of about 260 tokens takes 0.6 s (0.13 s on
+  Metal). Qwen tokenizes digits one at a time, so dates and order numbers are the expensive
+  part. Truncating input further barely helps.
+- **8 threads instead of 4:** no gain (1.67 s vs 1.61 s p50). Decode is memory-bound. Ship 4
+  threads, which leaves the UI cores alone.
+- **Reusing the shared prompt prefix:** no gain. Qwen3.5 is a hybrid recurrent model, so
+  llama.cpp can't keep a partial prefix state.
+- **4 parallel sequences in one context:** 1.47–2.27 s of wall time per message, versus 1.6 s
+  sequential. That isn't worth four times the KV memory.
+- **Speculative decoding from the input (`InputLookupTokenPredictor`):** 2–4× slower, and
+  accuracy fell to 0.66, because rejected drafts force recurrent state rollback. Don't use it.
+- **Chat template:** encoding `<|im_start|>` as real special tokens instead of plain text
+  raised receipts to 0.95 but cut classification to 0.49 and shipping to 0.87, and was slower.
+  The shipped template keeps the measured plain-text form. Revisit this once there is a larger
+  eval set.
+
+**Backfill for 2,400 messages, if every one needs the model:** about 65 minutes on CPU and
+about 24 minutes on Metal. The expected case is the misses only, roughly 20–30%: about
+15–20 minutes on CPU and 5–7 on Metal. The queue runs at low priority in a utility process,
+and the cache makes the cost one-time per (message, schema, model).
+
+**Not decided:** CPU-only Windows laptops are probably 2–4× slower, and that hasn't been
+measured. If they are too slow, the fallback is a fine-tuned 270M–350M model behind the same
+interface (§9.6), not a second runtime.
+
+**The generic prompt, and why grounding is mandatory** (measured with the production compiler
+in `views/lib/extraction/prompt.ts`, which builds the prompt from any View schema, rather than
+the per-task prompts of §9.7):
+
+- **No worked example.** An example with unrelated field names cut newsletter `publication`
+  from 0.95 to 0.73. Hints never carry sample values: with `e.g. "$23.10"` in the money hint,
+  the model reported $23.10 as the total of every marketing email that mentioned no price.
+- **The model fills fields on mail that doesn't contain them.** With `{ total: money }` on 80
+  non-receipt emails it returned a value 88% of the time: the nearest number, a street
+  address, a time, a salary range. A "relevant: true/false" question asked first in the same
+  prompt didn't help (95%).
+- **The host filters every answer deterministically** (`normalize.ts`):
+  - Copied values must occur in the email.
+  - Money must look like a charge (a currency marker or cents, and not a rate, range or
+    "K/M" figure), and the amount is the number next to the marker, so "38 minutes $0.00"
+    reads as $0.00.
+  - Dates must name a day or month.
+
+  The result: receipts total 52/53 correct, and 0/80 false positives on non-receipt mail.
+- **Generic-prompt field accuracy** (Metal): receipt 0.93, shipping 0.83, newsletter
+  publication 0.95, 7-way classification 0.58. Shipping `status` (0.56) is the weak field.
+  Telling `shipped` from `out_for_delivery` from `exception` needs per-value descriptions,
+  which Views can give through `instructions` or the field `description`.
+
+**In the app** (Rides View, 46 receipt-like emails over 24 months; its regex parses 37):
+
+- **Agreement:** with every email sent to the model, the model matched the regex amount on
+  36 of the 37 parsed emails.
+- **No invented amounts:** it returned no total for all 9 that the regex couldn't parse (Metropolis
+  promotions and Microsoft "sign in to view your invoice" notices that state no amount).
+- **Speed:** 44 s uncached on Metal (0.96 s per message including body loading), and 9.5 s
+  on a re-run from the answer cache.
+- **Before grounding:** the same View reported 46 receipts and an inflated total.
+
 ## 10. Implications from the idea catalog
 
 The catalog in Appendix A was used to check that the primitives are general enough:
@@ -784,6 +871,94 @@ agents (gap logs: `scratchpad/dogfood-a/GAPS.md`, `scratchpad/dogfood-b/GAPS.md`
 
 The real extraction tiers (§9.7) replace the `useExtract` stub. Regex-only parsing missed
 2 of 3 real receipt layouts in Rides.
+
+**Wave 4 status.** Items 1, 2, 3, 5, 6 and 7 are addressed:
+- **Edit loop:** the bridge drops a page's state on reload and pins calls to a per-document
+  nonce. Drafts and the `previewAndWait` diagnostics loop are in place; the contract is in
+  `views-authoring-loop.md`.
+- **Queries:** JSON queries are the primary form, with the search-layer bugs fixed.
+- **Identity:** resolved on the host, with `isMe` everywhere.
+- **Sidebar:** card and panel modes, behind a generic switcher.
+- **Docs and types:** the mismatches are fixed.
+- **Slow content:** `useContent` reports progress and a reason for every `null`.
+
+Extraction runs Qwen3.5-0.8B on-device (§9.8). Item 4 (exploration through MCP) is partly
+covered by the `count_mail` / `get_identity` MCP tools. Item 8 is sync-engine work: `List-Id`
+joins the extra-header allowlist, while GitHub-style data comes from body parsing.
+
+## 16. View creation workflow (direction, 2026-10-02)
+
+Most users won't have a desktop AI client, so creation runs against **an agent hosted on
+id.getmailspring.com**, not a local Claude. This is the reverse of Claude artifacts: the
+artifact is published *down* to the user's machine.
+
+**Flow**
+
+1. **Creation workspace (host-rendered).** A large free-form request box, plus an example
+   picker: a compact search bar over the user's mail. Results are dragged or checked into an
+   "Examples" tray. **Only tray items leave the device**, and the tray is the consent surface:
+   - Each item shows exactly the text that will be sent, after host-side cleanup (quoted text
+     and signatures stripped, attachments excluded by default).
+   - The user can trim the item down to a single message in a thread, or redact parts of it.
+   - It must be host-rendered (§14.4), never a View.
+2. **Local suggestions.** The on-device model (§9) can propose candidates from the request
+   without sending anything, e.g. "Found 12 shipping emails, add some?". The user still picks.
+3. **Submit.** The request and the tray contents go to the server. The agent writes
+   `manifest.json` + `View.jsx`, and the server returns a **signed revision**.
+4. **Verify and preview.** The client:
+   - verifies the signature against a public key pinned in the app binary;
+   - checks that the revision is bound to this account, view id and revision number, so a
+     revision can't be replayed onto another user or rolled back;
+   - loads it as a draft through the edit loop (`previewView`).
+5. **Automatic fix loop.** Diagnostics from the edit loop (compile and runtime errors,
+   bridge errors, render-ok) go back to the server automatically, with no mail content, for
+   up to N revisions before the user is shown a result.
+6. **Iterate.** The user sends feedback text and may add more examples. If the agent needs
+   more data, it *asks* ("I need an example of a delivered notification"), and the request
+   appears in the workspace for the user to fill from the picker. Nothing is pulled
+   automatically.
+7. **Install.** Promoting the draft shows the permission consent sheet (§5.3). Widening
+   permissions or network hosts in a later revision re-prompts.
+
+**Preview feedback (errors and screenshots)**
+
+Polishing a View needs the agent to see its errors and what it looks like, and a screenshot
+of a live preview contains whatever mail the View renders. That can go beyond the tray. The
+workspace discloses this up front: "While building, Mailspring sends error messages and
+screenshots of the preview to the agent." It also keeps a visible log of everything sent,
+with thumbnails. Two preview modes keep the automatic channel within what the user already
+consented to:
+
+- **Example-scoped preview (automatic).** The draft runs with a grant restricted to the tray's
+  messages and threads, so the bridge returns nothing else. Errors and screenshots from this
+  mode are sent automatically during the fix loop, because they can only contain consented
+  mail.
+- **Live preview (user-initiated).** The draft runs against the full mailbox, so the user
+  sees it on their real data. Error text is sent automatically. It is truncated, and View
+  stacks rarely carry mail. Screenshots are sent only when the user clicks "Send screenshot",
+  and the image is shown before it goes.
+
+An account-level setting can turn off screenshot sending entirely. The agent then works from
+errors and user feedback alone, and the workspace says so.
+
+**Notes**
+
+- **Signing proves origin, not safety.** It stops tampered or injected bundles. The sandbox
+  and the consent sheet remain the security boundary, because examples are attacker-written
+  mail that reaches the cloud agent (§3.3). Unsigned local Views (dev mode, bring-your-own
+  agent) stay allowed and are labelled as such.
+- **Envelope:** a JSON envelope `{ viewId, revision, accountId, manifest, files, sig }` is
+  simpler than a zip while Views are a single file.
+- **Retention:** the server keeps examples only for the build session (state the retention
+  period in the UI) and never uses them for training. Build sessions are metered server-side
+  (§14.2, `view-agent-build`).
+- **Version history:** drafts keep local revision history, so a user can roll back a bad
+  iteration.
+
+**MCP parity.** The capability layer is shared (§5.1), so new primitives (JSON queries,
+counts, identity, namespaced metadata) should also be MCP tools where that comes for free.
+Power users with a desktop AI client get the same reach, and the hosted agent and MCP share
+one vocabulary.
 
 ---
 

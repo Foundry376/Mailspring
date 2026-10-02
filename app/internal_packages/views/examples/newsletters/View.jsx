@@ -2,7 +2,12 @@ import React, { useMemo, useState } from 'react';
 import { Newspaper, Inbox, MailX, ExternalLink, ArrowLeft, Circle, BellOff } from 'lucide-react';
 import { useMessages, useCounts, useViewState, useTheme, modify, ui, MessageView } from '@mailspring/view';
 
-const WINDOW = 'since:"90 days ago"';
+// Newsletters are received mail carrying a List-Unsubscribe header. Day precision keeps the
+// filter identical across renders.
+const SINCE = new Date(Date.now() - 90 * 86400000).toISOString().slice(0, 10);
+const NEWSLETTERS = {
+  and: [{ listUnsubscribe: true }, { direction: 'received' }, { date: { after: SINCE } }],
+};
 const NEVER_OPENED_MIN = 3;
 
 // A publication is a sender display name: one address can carry several brands (NYT, NYT Cooking)
@@ -107,16 +112,16 @@ function Reader({ issue, pub, onBack }) {
 }
 
 export default function NewslettersView() {
-  const recent = useMessages({ search: WINDOW, limit: 1500 });
-  const unreadBySender = useCounts(`${WINDOW} is:unread`, 'sender');
-  const allBySender = useCounts(WINDOW, 'sender');
+  const recent = useMessages({ where: NEWSLETTERS, limit: 1500 });
+  const unreadBySender = useCounts({ where: { and: [NEWSLETTERS, { unread: true }] } }, 'sender');
+  const allBySender = useCounts({ where: NEWSLETTERS }, 'sender');
   const [pubFilter, setPubFilter] = useViewState('publication', null);
   const [tab, setTab] = useViewState('tab', 'issues');
   const [openId, setOpenId] = useState(null);
   const palette = useTheme().chart;
 
   const issues = useMemo(
-    () => recent.data.filter((m) => m.listUnsubscribe && !m.isSent && !m.draft && m.from),
+    () => recent.data.filter((m) => m.from),
     [recent.data]
   );
 

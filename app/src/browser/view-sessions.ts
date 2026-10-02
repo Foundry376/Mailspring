@@ -1,4 +1,4 @@
-import { ipcMain, session } from 'electron';
+import { BrowserWindow, IpcMain, session } from 'electron';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
@@ -33,10 +33,18 @@ export { VIEW_SCHEME, viewIdForPartition };
 // on the main process, which transpiles it synchronously.
 const MAX_VIEW_SOURCE_BYTES = 2 * 1024 * 1024;
 
-// A View renderer that can't answer a heartbeat for this long is killed and the host shows
-// its crash cover. Long synchronous work belongs in a Worker.
+// A visible View renderer that can't answer a heartbeat for this long is killed and the host
+// shows its crash cover. Long synchronous work belongs in a Worker.
 const HEARTBEAT_INTERVAL_MS = 5000;
 const HEARTBEAT_TIMEOUT_MS = 15000;
+
+// The host window reports which guests are on screen (ViewHost watches its own element), and
+// tells the host just before the watchdog kills a guest so it can record why.
+export const VISIBILITY_CHANNEL = 'mailspring-view:visibility';
+export const WATCHDOG_KILL_CHANNEL = 'mailspring-view:watchdog-kill';
+
+// Guests not in this set are hidden. Unknown guests count as visible until reported.
+const hiddenGuests = new Set<number>();
 
 const CONTENT_TYPES: { [ext: string]: string } = {
   '.html': 'text/html; charset=utf-8',
@@ -62,7 +70,9 @@ interface ViewPaths {
 function viewPaths(): ViewPaths {
   const { resourcePath, configDirPath, devMode } = global.application;
   const packageDir = path.join(resourcePath, 'internal_packages', 'views');
-  const bundleDirs = [path.join(configDirPath, 'views')];
+  // Same precedence as viewBundleRoots() in the views package: a draft previews over the
+  // installed copy of the View.
+  const bundleDirs = [path.join(configDirPath, 'views-drafts'), path.join(configDirPath, 'views')];
   if (devMode) {
     bundleDirs.push(path.join(packageDir, 'examples'));
   }
@@ -137,24 +147,35 @@ function shellHTML(vendor: VendorManifest) {
   ].join('\n');
 }
 
-const transpileCache = new Map<string, { key: string; output: string }>();
+const transpileCache = new Map<string, { revision: string; output: string }>();
+
+// Must match revisionOf() in internal_packages/views/lib/authoring/drafts.ts. The loader
+// reports it back so diagnostics name the revision that produced them.
+function revisionOf(source: string) {
+  return crypto.createHash('sha256').update(source, 'utf8').digest('hex').slice(0, 12);
+}
 
 // View.jsx is authored as an ES module with a default-exported component. Sucrase compiles it
 // to CommonJS, wrapped so the loader can run it against its own `require` without eval, which
 // the CSP forbids. Sucrase preserves line numbers, and the wrapper opens on the first line, so
 // a line in a view.js stack trace is the same line in View.jsx; the loader relies on this to
 // point error cards at the author's file. The inline source map is for DevTools.
+//
+// The cache is keyed by a hash of the source rather than its mtime, so a revision written
+// twice within the filesystem's timestamp resolution (as an authoring loop does) still
+// recompiles, and a revision that comes back is served from cache.
 function compiledViewSource(viewFile: string) {
-  const { mtimeMs, size } = fs.statSync(viewFile);
+  const { size } = fs.statSync(viewFile);
   if (size > MAX_VIEW_SOURCE_BYTES) {
     return `throw new Error('View.jsx is larger than ${MAX_VIEW_SOURCE_BYTES} bytes.');\n`;
   }
-  // mtime alone misses two writes within the filesystem's timestamp resolution.
-  const key = `${mtimeMs}:${size}`;
-  const cached = transpileCache.get(viewFile);
-  if (cached && cached.key === key) return cached.output;
-
   const source = fs.readFileSync(viewFile, 'utf8');
+  const revision = revisionOf(source);
+  const cached = transpileCache.get(viewFile);
+  if (cached && cached.revision === revision) return cached.output;
+
+  // No newline: the factory must open on line 1 to keep View.jsx's line numbers.
+  const header = `window.__mailspringViewRevision = ${JSON.stringify(revision)}; `;
   let output: string;
   try {
     const { transform } = require('sucrase');
@@ -169,13 +190,15 @@ function compiledViewSource(viewFile: string) {
       JSON.stringify({ ...sourceMap, sources: ['View.jsx'], sourcesContent: [source] })
     ).toString('base64');
     output =
+      header +
       `window.__mailspringViewFactory = function (require, module, exports) {${code}\n};\n` +
       `//# sourceMappingURL=data:application/json;base64,${map}\n`;
   } catch (err) {
-    // A syntax error becomes the View's load error, with the line and column Sucrase reports.
-    output = `window.__mailspringViewLoadError = ${JSON.stringify(`View.jsx: ${err.message}`)};\n`;
+    // A syntax error becomes the View's load error. Sucrase's message names View.jsx and
+    // ends with the line and column.
+    output = header + `window.__mailspringViewLoadError = ${JSON.stringify(err.message)};\n`;
   }
-  transpileCache.set(viewFile, { key, output });
+  transpileCache.set(viewFile, { revision, output });
   return output;
 }
 
@@ -230,17 +253,30 @@ function registerResources(viewId: string, entries: any[]): (string | null)[] {
   });
 }
 
-// Only the host window may mint tokens. View guests have no ipcRenderer of their own (their
-// preload exposes only the bridge), and this refuses them anyway.
-ipcMain.handle(REGISTER_RESOURCES_CHANNEL, (event, viewId: string, entries: any[]) => {
-  if (viewIdForSession(event.sender.session) || event.sender.getType() === 'webview') {
-    throw new Error('Not permitted');
-  }
-  if (typeof viewId !== 'string' || !viewIdForPartition(`${PARTITION_PREFIX}${viewId}`)) {
-    throw new Error('Invalid view id');
-  }
-  return registerResources(viewId, Array.isArray(entries) ? entries.slice(0, 500) : []);
-});
+/**
+ * Registered once at startup by Application, like the other main-process IPC handlers, so that
+ * importing this module (mailspring-window.ts does) has no side effects. Both channels are for
+ * the host window only: View guests have no ipcRenderer of their own (their preload exposes
+ * only the bridge), and are refused here anyway.
+ */
+export function registerViewSessionIPCHandlers(ipcMain: IpcMain) {
+  ipcMain.on(VISIBILITY_CHANNEL, (event, guestId: number, visible: boolean) => {
+    if (viewIdForSession(event.sender.session) || event.sender.getType() === 'webview') return;
+    if (typeof guestId !== 'number') return;
+    if (visible) hiddenGuests.delete(guestId);
+    else hiddenGuests.add(guestId);
+  });
+
+  ipcMain.handle(REGISTER_RESOURCES_CHANNEL, (event, viewId: string, entries: any[]) => {
+    if (viewIdForSession(event.sender.session) || event.sender.getType() === 'webview') {
+      throw new Error('Not permitted');
+    }
+    if (typeof viewId !== 'string' || !viewIdForPartition(`${PARTITION_PREFIX}${viewId}`)) {
+      throw new Error('Invalid view id');
+    }
+    return registerResources(viewId, Array.isArray(entries) ? entries.slice(0, 500) : []);
+  });
+}
 
 // Remote images are fetched from a session with no cookies or cache shared with anything else,
 // so a sender's tracking pixel learns no more than it would from the reading pane.
@@ -527,28 +563,65 @@ export function guardViewGuest(contents: Electron.WebContents) {
  * The View runs in its own process, so a busy loop can't freeze the app, but it can burn a
  * core indefinitely. Chromium's `unresponsive` event only fires when input is waiting, which
  * a View nobody is touching never has, so poll it instead.
+ *
+ * Only Views on screen are judged. A hidden guest (a sidebar View before a thread opens, an
+ * unselected sidebar panel, a minimized window) is throttled by Chromium and may not answer
+ * for a long time without being hung, so the clock stops while it's hidden and restarts when
+ * it shows.
  */
 function watchForHangs(contents: Electron.WebContents) {
   let pendingSince = 0;
+  const guestId = contents.id;
+  const isOnScreen = () => {
+    const host = contents.hostWebContents;
+    const win = host && BrowserWindow.fromWebContents(host);
+    return !hiddenGuests.has(guestId) && !!win && win.isVisible() && !win.isMinimized();
+  };
+  // A heartbeat sent to a page that then navigates or dies never settles, so the clock
+  // restarts with each page load and stops while there is no live renderer to ask.
+  let alive = true;
+  contents.on('did-start-loading', () => {
+    pendingSince = 0;
+  });
+  contents.on('dom-ready', () => {
+    alive = true;
+    pendingSince = 0;
+  });
+  contents.on('render-process-gone', () => {
+    alive = false;
+    pendingSince = 0;
+  });
   const timer = setInterval(() => {
     if (contents.isDestroyed()) {
       clearInterval(timer);
+      hiddenGuests.delete(guestId);
+      return;
+    }
+    if (!alive || !isOnScreen()) {
+      pendingSince = 0;
       return;
     }
     if (pendingSince) {
       if (Date.now() - pendingSince > HEARTBEAT_TIMEOUT_MS) {
         pendingSince = 0;
+        const host = contents.hostWebContents;
+        if (host && !host.isDestroyed()) host.send(WATCHDOG_KILL_CHANNEL, guestId);
         contents.forcefullyCrashRenderer();
       }
       return;
     }
-    pendingSince = Date.now();
+    const sentAt = Date.now();
+    pendingSince = sentAt;
     contents
       .executeJavaScript('0')
       .catch(() => {})
       .then(() => {
-        pendingSince = 0;
+        // Only the heartbeat currently being timed may stop the clock.
+        if (pendingSince === sentAt) pendingSince = 0;
       });
   }, HEARTBEAT_INTERVAL_MS);
-  contents.once('destroyed', () => clearInterval(timer));
+  contents.once('destroyed', () => {
+    clearInterval(timer);
+    hiddenGuests.delete(guestId);
+  });
 }

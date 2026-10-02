@@ -193,3 +193,9 @@ html[data-placement='thread-sidebar'] {
 .ms-message-attachment-size {
   color: var(--ms-muted, #777);
 }
+
+.mailspring-view-error-more {
+  margin-bottom: 12px;
+  font-size: 12px;
+  opacity: 0.7;
+}

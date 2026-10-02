@@ -65,26 +65,68 @@
   bridge.on('theme', applyTheme);
   bridge.call('theme.get').then(({ result }) => applyTheme(result));
 
-  // Errors: a readable card instead of a blank View. Uncaught errors outside React (in an
-  // event handler or a timer) leave the View running, so they only log.
-  const root = document.getElementById('root');
-  const React = window.React;
-  const h = React.createElement;
+  // Diagnostics: the host records what happens to each revision of the View
+  // (lib/authoring/diagnostics.ts) so an authoring loop can tell a working revision from a
+  // broken one. `page` names the revision this page loaded (a hash of View.jsx that
+  // view-sessions.ts compiles into view.js), and `mounted` starts the host's render-ok timer.
+  const report = (kind, details) =>
+    bridge.call('view.diagnostic', Object.assign({ kind }, details)).catch(() => {});
+  report('page', { revision: window.__mailspringViewRevision || null });
 
   // Sucrase keeps View.jsx's line numbers in view.js (see view-sessions.ts), so stack frames
   // can name the author's file directly.
   const authorStack = (stack) =>
     stack.replace(/mailspring-view:\/\/[^/\s]+\/view\.js:(\d+):(\d+)/g, 'View.jsx:$1:$2');
 
-  function ErrorCard({ error, phase }) {
+  // The error card shows the first error of the page rather than whichever one finally broke
+  // rendering: a failed call or a throwing handler often leaves state that makes a later render
+  // throw something unrelated ("c is not a function"). Later errors are still reported.
+  let firstError = null;
+  let errorCount = 0;
+
+  const reportError = (kind, error) => {
+    errorCount += 1;
+    if (!firstError) firstError = error;
     const message = (error && error.message) || String(error);
     const stack = authorStack((error && error.stack) || '');
+    // Prefixed so the host skips the console copy of an error it already has.
+    console.error('[mailspring-view]', error);
+    report(kind, { message, stack });
+  };
+
+  // Uncaught errors outside React (in an event handler or a timer) leave the View running,
+  // so they are reported but don't replace it with an error card.
+  window.addEventListener('error', (event) => {
+    reportError('runtime-error', event.error || { message: event.message });
+  });
+  window.addEventListener('unhandledrejection', (event) => {
+    reportError('unhandled-rejection', event.reason);
+  });
+
+  // Errors during render: a readable card instead of a blank View.
+  const root = document.getElementById('root');
+  const React = window.React;
+  const h = React.createElement;
+
+  function ErrorCard({ error, phase }) {
+    // The card renders before componentDidCatch reports `error`, so when an earlier error is
+    // shown, `error` itself is one of the later ones.
+    const shown = firstError || error;
+    const message = (shown && shown.message) || String(shown);
+    const stack = authorStack((shown && shown.stack) || '');
+    const later = firstError && firstError !== error ? errorCount : 0;
     return h(
       'div',
       { className: 'mailspring-view-error' },
       h('div', { className: 'mailspring-view-error-title' }, `This View ${phase}`),
       h('div', { className: 'mailspring-view-error-message' }, message),
       stack && h('pre', { className: 'mailspring-view-error-stack' }, stack),
+      later > 0 &&
+        h(
+          'div',
+          { className: 'mailspring-view-error-more' },
+          `${later} later error${later === 1 ? '' : 's'} in the View's diagnostics.`
+        ),
       h(
         'button',
         { className: 'mailspring-view-error-reload', onClick: () => window.location.reload() },
@@ -102,7 +144,7 @@
       return { error };
     }
     componentDidCatch(error) {
-      console.error(error);
+      reportError('runtime-error', error);
     }
     render() {
       if (this.state.error) return h(ErrorCard, { error: this.state.error, phase: 'crashed' });
@@ -110,10 +152,22 @@
     }
   }
 
+  // Rendered after the View in the same commit, so its effect runs once the View's first
+  // render (and its own effects) succeeded.
+  function MountSignal() {
+    React.useEffect(() => report('mounted'), []);
+    return null;
+  }
+
   const reactRoot = window.ReactDOM.createRoot(root);
   try {
     if (window.__mailspringViewLoadError) {
-      throw new Error(window.__mailspringViewLoadError);
+      const loadError = new Error(window.__mailspringViewLoadError);
+      loadError.stack = '';
+      console.error('[mailspring-view]', loadError.message);
+      report('compile-error', { message: loadError.message });
+      reactRoot.render(h(ErrorCard, { error: loadError, phase: 'failed to compile' }));
+      return;
     }
     if (typeof window.__mailspringViewFactory !== 'function') {
       throw new Error('View.jsx did not load. Check the console for a syntax error.');
@@ -124,9 +178,9 @@
     if (typeof View !== 'function') {
       throw new Error('View.jsx must `export default` a React component.');
     }
-    reactRoot.render(h(ErrorBoundary, null, h(View)));
+    reactRoot.render(h(ErrorBoundary, null, h(View), h(MountSignal)));
   } catch (err) {
-    console.error(err);
+    reportError('runtime-error', err);
     reactRoot.render(h(ErrorCard, { error: err, phase: 'failed to load' }));
   }
 })();

@@ -7,12 +7,15 @@ import {
   Thread,
 } from 'mailspring-exports';
 import { Grant, allowedAccountIds } from './grant';
+import { Filter, FilterMatcher, compileFilter } from './filter';
 
 /**
  * What a caller may ask for. The host turns this into a DatabaseStore query; callers never
  * supply SQL or Matchers, so they can't reach tables or columns outside their grant.
  */
 export interface MailQuery {
+  /** Structured filter (filter.ts). The preferred way to query. */
+  filter?: Filter;
   /** Mailspring search grammar, as typed in the search bar. */
   search?: string;
   accountId?: string;
@@ -25,6 +28,11 @@ export interface MailQuery {
   order?: 'newest' | 'oldest';
   limit: number;
   offset?: number;
+  /**
+   * Run in DatabaseStore's background agent rather than the renderer, so a slow query can't
+   * freeze the UI. Used for queries whose shape the caller controls.
+   */
+  background?: boolean;
 }
 
 // Restricts messages to those whose thread id is returned by `threadIdsSQL`. Search compiles
@@ -90,11 +98,19 @@ export function threadQuery(grant: Grant, q: MailQuery) {
       query = query.search(q.search);
     }
   }
+  if (q.filter) {
+    const sql = compileFilter('Thread', q.filter, {
+      accountIds: scopedAccountIds(grant, q.accountId),
+      metadataPluginId: q.metadataPluginId,
+    });
+    query = query.where(new FilterMatcher(sql) as any);
+  }
   const date = Thread.attributes.lastMessageReceivedTimestamp;
-  return query
+  query = query
     .order(q.order === 'oldest' ? date.ascending() : date.descending())
     .offset(q.offset || 0)
     .limit(q.limit);
+  return q.background ? query.background() : query;
 }
 
 export function messageQuery(grant: Grant, q: MailQuery) {
@@ -123,9 +139,17 @@ export function messageQuery(grant: Grant, q: MailQuery) {
       ) as any
     );
   }
+  if (q.filter) {
+    const sql = compileFilter('Message', q.filter, {
+      accountIds: scopedAccountIds(grant, q.accountId),
+      metadataPluginId: q.metadataPluginId,
+    });
+    query = query.where(new FilterMatcher(sql) as any);
+  }
   const date = Message.attributes.date;
-  return query
+  query = query
     .order(q.order === 'oldest' ? date.ascending() : date.descending())
     .offset(q.offset || 0)
     .limit(q.limit);
+  return q.background ? query.background() : query;
 }

@@ -30,6 +30,21 @@ const CATEGORIES = [
 const KNOWN_DOMAINS = CATEGORIES.flatMap((c) => c.domains);
 const RANGES = { 12: '12 months', 24: '24 months', 60: '5 years' };
 
+// Day precision keeps the filter identical across renders, so the hook doesn't resubscribe.
+const monthsAgo = (months) =>
+  new Date(Date.now() - months * 30.44 * 86400000).toISOString().slice(0, 10);
+
+function filterFor(months) {
+  return {
+    and: [
+      { or: [{ from: KNOWN_DOMAINS }, { subject: 'receipt' }, { subject: 'invoice' }] },
+      { direction: 'received' },
+      { date: { after: monthsAgo(months) } },
+    ],
+  };
+}
+
+// The same mail, as a search-bar query, for "show these in the mailbox".
 function searchFor(months) {
   const senders = KNOWN_DOMAINS.map((d) => `from:${d}`).join(' OR ');
   return `(${senders} OR subject:receipt OR subject:invoice) since:"${months} months ago"`;
@@ -115,13 +130,8 @@ export default function RidesView() {
   const theme = useTheme();
   const [range, setRange] = useViewState('range', '24');
   const search = searchFor(range);
-  const messages = useMessages({ search, limit: 1000 });
-
-  // Thread-level search also returns my replies in matching threads.
-  const receipts = useMemo(
-    () => messages.data.filter((m) => !m.isSent && !m.draft),
-    [messages.data]
-  );
+  const messages = useMessages({ where: filterFor(range), limit: 1000 });
+  const receipts = messages.data;
   const ids = useMemo(() => receipts.map((m) => m.id), [receipts]);
   const content = useContent(ids);
 

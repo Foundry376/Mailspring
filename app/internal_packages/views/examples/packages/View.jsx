@@ -75,6 +75,37 @@ const STATUS_LABEL = {
 
 const SEARCH_SENDERS = [...Object.values(CARRIERS).flatMap((c) => c.domains), ...RETAILER_DOMAINS];
 
+const SUBJECTS = [
+  'shipped',
+  'delivered',
+  'out for delivery',
+  'shipment',
+  'tracking',
+  'on its way',
+  'package',
+];
+
+// Day precision keeps the filter identical across renders, so the hook doesn't resubscribe.
+const monthsAgo = (months) =>
+  new Date(Date.now() - months * 30.44 * 86400000).toISOString().slice(0, 10);
+
+function filterFor(months) {
+  return {
+    and: [
+      {
+        or: [
+          { from: SEARCH_SENDERS },
+          ...SUBJECTS.map((subject) => ({ subject })),
+          { text: 'tracking number' },
+        ],
+      },
+      { direction: 'received' },
+      { date: { after: monthsAgo(months) } },
+    ],
+  };
+}
+
+// The same mail, as a search-bar query, for "show these in the mailbox".
 function searchFor(months) {
   const from = SEARCH_SENDERS.map((d) => `from:${d}`).join(' OR ');
   const subjects = [
@@ -251,11 +282,8 @@ function Section({ title, icon: Icon, items, empty }) {
 export default function PackagesView() {
   const [months, setMonths] = useViewState('months', 3);
   const search = searchFor(months);
-  const messages = useMessages({ search, limit: 400 });
-  const incoming = useMemo(
-    () => messages.data.filter((m) => !m.isSent && !m.draft),
-    [messages.data]
-  );
+  const messages = useMessages({ where: filterFor(months), limit: 400 });
+  const incoming = messages.data;
   const ids = useMemo(() => incoming.map((m) => m.id), [incoming]);
   const content = useContent(ids);
 

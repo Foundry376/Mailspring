@@ -11,7 +11,7 @@ function formatDate(iso) {
 }
 
 export default function HelloView() {
-  const { data: threads, loading, error } = useThreads({ search: 'in:inbox', limit: 20 });
+  const { data: threads, loading, error } = useThreads({ where: { in: 'inbox' }, limit: 20 });
 
   return (
     <div className="min-h-screen bg-ms-bg text-ms-text">

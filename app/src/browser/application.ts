@@ -35,6 +35,8 @@ import moveToApplications from './move-to-applications';
 import { MailsyncProcess } from '../mailsync-process';
 import Config from '../config';
 import { registerQuickpreviewIPCHandlers } from './quickpreview-ipc';
+import { registerExtractionIPCHandlers } from './extraction-service';
+import { registerViewSessionIPCHandlers } from './view-sessions';
 import { guardAuxiliaryWindowNavigation } from './auxiliary-window-guard';
 import { isMailspringWindowContents } from './mailspring-window';
 import {
@@ -929,6 +931,11 @@ export default class Application extends EventEmitter {
 
     registerQuickpreviewIPCHandlers(ipcMain);
     registerNotificationIPCHandlers(ipcMain);
+    registerViewSessionIPCHandlers(ipcMain);
+    registerExtractionIPCHandlers(ipcMain, {
+      configDirPath: this.configDirPath,
+      getOverridePath: () => this.config.get('core.views.extractionModelPath'),
+    });
   }
 
   sendCalendarSync(accountId?: string) {

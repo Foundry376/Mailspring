@@ -1,18 +1,14 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Users, Folder, Tag, Clock, Flame, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
-import { useAccounts, useCounts, useTheme, useViewState, getMessages, ui } from '@mailspring/view';
+import { useAccounts, useCounts, useTheme, useViewState, ui } from '@mailspring/view';
 
 const HIDDEN_ROLES = new Set(['all', 'sent', 'drafts', 'spam', 'trash', 'important', 'snoozed']);
 const ROBOT = /(^|[._+-])(no-?reply|do-?not-?reply|notifications?|notify|mailer-daemon|postmaster|bounce[s]?|alerts?|updates?|news|newsletter|info|support|hello|team|marketing)([._+-]|@)/i;
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const RANGES = { '3m': '3 months ago', '12m': '12 months ago', '3y': '3 years ago' };
+const RANGES = { '3m': 90, '12m': 365, '3y': 3 * 365 };
+// Day precision keeps the query identical across renders, so hooks don't resubscribe.
+const daysAgo = (days) => new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
 const LOST_AFTER_DAYS = 180;
-
-const emailOf = (key) => {
-  const s = String(key ?? '').toLowerCase();
-  const m = s.match(/<([^>]+)>/);
-  return (m ? m[1] : s).trim();
-};
 
 function prettyFromEmail(email) {
   const local = email.split('@')[0] || email;
@@ -33,10 +29,13 @@ function ago(iso) {
 }
 
 // Merges received (sender = them) and sent (sender = me, recipient = them) count rows per person.
-function mergePeople(senderRows, pairRows, isMe) {
+// Count rows flag my own addresses (including aliases) with `isMe` and carry display names.
+function mergePeople(senderRows, pairRows) {
   const people = new Map();
   const get = (email) => {
-    if (!people.has(email)) people.set(email, { email, received: 0, sent: 0, first: null, last: null });
+    if (!people.has(email)) {
+      people.set(email, { email, name: null, received: 0, sent: 0, first: null, last: null });
+    }
     return people.get(email);
   };
   const stamp = (p, r) => {
@@ -44,80 +43,23 @@ function mergePeople(senderRows, pairRows, isMe) {
     if (!p.last || r.last > p.last) p.last = r.last;
   };
   for (const r of senderRows) {
-    const email = emailOf(r.key.sender);
-    if (!email || isMe(email) || ROBOT.test(email)) continue;
+    const email = r.key.sender;
+    if (!email || r.isMe.sender || ROBOT.test(email)) continue;
     const p = get(email);
+    // Prefer the name they sign their own mail with; recipient names are often just the address.
+    p.name = r.labels.sender || p.name;
     p.received += r.count;
     stamp(p, r);
   }
   for (const r of pairRows) {
-    const from = emailOf(r.key.sender);
-    const to = emailOf(r.key.recipient);
-    if (!isMe(from) || !to || isMe(to) || ROBOT.test(to)) continue;
+    const to = r.key.recipient;
+    if (!r.isMe.sender || !to || r.isMe.recipient || ROBOT.test(to)) continue;
     const p = get(to);
+    p.name = p.name || r.labels.recipient || null;
     p.sent += r.count;
     stamp(p, r);
   }
   return [...people.values()].map((p) => ({ ...p, total: p.received + p.sent }));
-}
-
-// Count rows carry bare emails only. Display names (and whether an address is one of my aliases,
-// which useAccounts() doesn't list) come from Contact objects on a few messages per address.
-// Searches are chunked because one large OR query never resolves.
-const CHUNK = 4;
-function useContacts(emails) {
-  const [contacts, setContacts] = useState({});
-  const key = emails.join(',');
-  useEffect(() => {
-    const missing = emails.filter((e) => !(e in contacts));
-    if (!missing.length) return;
-    let cancelled = false;
-    (async () => {
-      for (let i = 0; i < missing.length && !cancelled; i += CHUNK) {
-        const chunk = missing.slice(i, i + CHUNK);
-        const found = {};
-        try {
-          const search = chunk.map((e) => `from:${e} OR to:${e}`).join(' OR ');
-          const { items } = await getMessages({ search, limit: 12 * CHUNK });
-          for (const m of items) {
-            for (const c of [m.from, ...m.to, ...m.cc]) {
-              const e = c?.email?.toLowerCase();
-              if (!chunk.includes(e)) continue;
-              found[e] ??= { name: null, isMe: false };
-              found[e].isMe ||= c.isMe || (c === m.from && m.isSent);
-              // Prefer the name they sign their own mail with; recipient names are often just the address.
-              const real = c.name && c.name.toLowerCase() !== e ? c.name : null;
-              if (real && (c === m.from || !found[e].name)) found[e].name = real;
-            }
-          }
-        } catch (err) {
-          // Leave these unresolved; the email-derived name is shown instead.
-        }
-        if (cancelled) return;
-        setContacts((prev) => {
-          const next = { ...prev };
-          for (const e of chunk) next[e] = found[e] || { name: null, isMe: false };
-          return next;
-        });
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [key]);
-  return contacts;
-}
-
-// Accounts don't list aliases and alias addresses arrive with isMe=false, so an address that uses
-// the same display name as my own sent mail is treated as mine.
-function useMyNames() {
-  const [names, setNames] = useState(new Set());
-  useEffect(() => {
-    getMessages({ search: 'in:sent', limit: 50 })
-      .then(({ items }) => setNames(new Set(items.filter((m) => m.isSent && m.from?.name).map((m) => m.from.name.toLowerCase()))))
-      .catch(() => {});
-  }, []);
-  return names;
 }
 
 function Section({ icon: Icon, title, right, children, className = '' }) {
@@ -206,7 +148,7 @@ function Heatmap({ rows, accent }) {
 export default function PeopleView() {
   const theme = useTheme();
   const [range, setRange] = useViewState('range', '3y');
-  const since = `since:"${RANGES[range]}"`;
+  const since = { where: { date: { after: daysAgo(RANGES[range]) } } };
 
   const accounts = useAccounts();
   const senders = useCounts(since, 'sender');
@@ -216,11 +158,6 @@ export default function PeopleView() {
   const allSenders = useCounts({}, 'sender');
   const allPairs = useCounts({}, ['sender', 'recipient']);
 
-  const myEmails = useMemo(
-    () => new Set(accounts.data.map((a) => a.email.toLowerCase())),
-    [accounts.data]
-  );
-  const isMe = (e) => myEmails.has(e);
   const roleOf = useMemo(() => {
     const m = {};
     for (const a of accounts.data) for (const c of a.categories) m[c.id] = c;
@@ -229,40 +166,32 @@ export default function PeopleView() {
 
   // "People" means two-way correspondence; a sender I never wrote to is a list or a robot.
   const candidates = useMemo(
-    () => mergePeople(senders.data, pairs.data, isMe).filter((p) => p.sent > 0).sort((a, b) => b.total - a.total).slice(0, 60),
-    [senders.data, pairs.data, myEmails]
+    () =>
+      mergePeople(senders.data, pairs.data)
+        .filter((p) => p.sent > 0)
+        .sort((a, b) => b.total - a.total),
+    [senders.data, pairs.data]
   );
-  const lostCandidates = useMemo(() => {
-    const cutoff = new Date(Date.now() - LOST_AFTER_DAYS * 86400000).toISOString();
-    return mergePeople(allSenders.data, allPairs.data, isMe)
+  const lost = useMemo(() => {
+    const cutoff = daysAgo(LOST_AFTER_DAYS);
+    return mergePeople(allSenders.data, allPairs.data)
       .filter((p) => p.last < cutoff && p.sent >= 2 && p.total >= 6)
       .sort((a, b) => b.total - a.total)
-      .slice(0, 30);
-  }, [allSenders.data, allPairs.data, myEmails]);
+      .slice(0, 12);
+  }, [allSenders.data, allPairs.data]);
 
-  const contacts = useContacts(
-    useMemo(() => [...new Set([...candidates.slice(0, 30), ...lostCandidates].map((p) => p.email))], [candidates, lostCandidates])
-  );
-  const myNames = useMyNames();
-  const myLocals = useMemo(() => new Set([...myEmails].map((e) => e.split('@')[0])), [myEmails]);
-  const notMe = (p) => {
-    const c = contacts[p.email];
-    const name = (c?.name || '').toLowerCase();
-    if (c?.isMe || myLocals.has(p.email.split('@')[0].split('+')[0])) return false;
-    return ![...myNames].some((n) => name === n || name.startsWith(`${n} (`));
-  };
-  const top = candidates.filter(notMe).slice(0, 15);
-  const lost = lostCandidates.filter(notMe).slice(0, 12);
+  const top = candidates.slice(0, 15);
   const topEmails = new Set(top.map((p) => p.email));
-
-  const correspondents = useMemo(
-    () => new Set(candidates.filter(notMe).map((p) => p.email)),
-    [candidates, contacts, myNames, myLocals]
-  );
+  const names = useMemo(() => {
+    const m = {};
+    for (const p of [...candidates, ...lost]) if (p.name) m[p.email] = p.name;
+    return m;
+  }, [candidates, lost]);
+  const correspondents = useMemo(() => new Set(candidates.map((p) => p.email)), [candidates]);
   const folders = useMemo(() => {
     const groups = new Map();
     for (const r of byFolder.data) {
-      const email = emailOf(r.key.sender);
+      const email = r.key.sender;
       if (!correspondents.has(email)) continue;
       const cat = roleOf[r.key.category];
       if (cat && HIDDEN_ROLES.has(cat.role)) continue;
@@ -289,7 +218,7 @@ export default function PeopleView() {
   const loading = senders.loading || pairs.loading || accounts.loading;
   const error = senders.error || pairs.error || byFolder.error || heat.error || allSenders.error || allPairs.error;
   const maxTotal = Math.max(1, ...top.map((p) => p.total));
-  const displayName = (e) => contacts[e]?.name || prettyFromEmail(e);
+  const displayName = (e) => names[e] || prettyFromEmail(e);
   const heatTotal = heat.data.reduce((s, r) => s + r.count, 0);
 
   return (

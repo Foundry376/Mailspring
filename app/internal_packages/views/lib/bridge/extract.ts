@@ -1,24 +1,36 @@
+import { Message } from 'mailspring-exports';
 import { contentFor, messagesWithBodies } from './bodies';
 import type { ViewGrant } from './grant';
+import {
+  FieldType,
+  Schema,
+  buildPrompt,
+  compileJsonSchema,
+  emailBlock,
+  schemaHash,
+} from '../extraction/prompt';
+import { normalizeAnswer } from '../extraction/normalize';
+import {
+  canSpendUnit,
+  cancelModelJobsForView,
+  extractionStatus,
+  runModel,
+  spendUnits,
+} from '../extraction/client';
+
+export type { Schema };
 
 /**
- * `ai.extract`, tier 0 only: values come from schema.org markup embedded in the message
- * (see content.ts). The on-device model tiers in the plan (§9) don't exist yet, so a message
- * without matching markup yields `value: null`. Jobs, streaming progress, caching, and the
- * quota stop are real, so Views written against this keep working when model tiers land.
+ * `ai.extract`. Each message goes through tier 0 first (schema.org markup embedded in the
+ * message, see content.ts), and only messages without matching markup go to the on-device
+ * model (docs/plans/sandboxed-views-exploration.md §9.8), which runs in a utility process via
+ * app/src/browser/extraction-service.ts.
  *
- * `core.views.extractQuotaForTesting` (a number) simulates the `smart-extraction` quota:
- * after that many messages miss tier 0 and would have needed the model, the job stops with
- * status 'quota'.
+ * Model work is metered as `smart-extraction` units: one per message the model actually
+ * reads. Cache hits and tier-0 answers are free. When the quota runs out the job stops with
+ * status 'quota', keeping everything answered so far. If the model isn't downloaded, misses
+ * come back `value: null` and progress carries `modelAvailable: false`.
  */
-
-type ScalarType = 'string' | 'number' | 'money' | 'date' | 'boolean';
-type FieldType =
-  | ScalarType
-  | { type: 'enum'; values: string[]; description?: string }
-  | { type: ScalarType; description?: string }
-  | { type: 'list'; of: any };
-export type Schema = { [field: string]: FieldType };
 
 export interface ExtractResult {
   messageId: string;
@@ -28,8 +40,16 @@ export interface ExtractResult {
 }
 
 const BATCH_SIZE = 25;
+// Small model batches keep progress flowing (one prompt is ~0.5 s on Metal, ~1.8 s on CPU)
+// and bound how much queued work a cancelled job leaves behind.
+const MODEL_BATCH_SIZE = 4;
 const MAX_MESSAGES = 2000;
+// Field accuracy of the bundled model on the eval set (§9.8). Grammar-constrained output has
+// no per-answer probability, so model answers report this rather than a made-up score.
+const MODEL_CONFIDENCE = 0.9;
 const cache = new Map<string, ExtractResult>();
+const jobsByView = new Map<string, Set<ExtractJob>>();
+const hiddenViews = new Set<string>();
 
 // Field names agents tend to write, mapped to the schema.org properties that carry them.
 const SYNONYMS: { [field: string]: string[] } = {
@@ -49,7 +69,7 @@ const SYNONYMS: { [field: string]: string[] } = {
 };
 
 function fieldType(t: FieldType): string {
-  return typeof t === 'string' ? t : t.type;
+  return typeof t === 'string' ? t : (t as any).type;
 }
 
 function findProperty(node: any, names: string[], depth = 0): any {
@@ -150,38 +170,93 @@ export interface ExtractJob {
 }
 
 /**
- * Runs one job, calling `onProgress` after each batch with the results produced in that
- * batch (not cumulative) and the running totals.
+ * Stops every extraction job a View started and drops its queued model prompts. Called when a
+ * View reloads or closes; answers already computed stay cached.
+ */
+export function cancelJobsForView(viewId: string) {
+  for (const job of jobsByView.get(viewId) || []) job.cancelled = true;
+  jobsByView.delete(viewId);
+  return cancelModelJobsForView(viewId);
+}
+
+/** Hidden Views' prompts queue behind visible Views' prompts. */
+export function setViewVisible(viewId: string, visible: boolean) {
+  if (visible) hiddenViews.delete(viewId);
+  else hiddenViews.add(viewId);
+}
+
+function promptMessage(message: Message, text: string) {
+  const from = (message.from && message.from[0]) || ({} as any);
+  return {
+    fromName: from.name || '',
+    fromEmail: from.email || '',
+    subject: message.subject || '',
+    date: message.date || new Date(),
+    text,
+  };
+}
+
+type Progress = {
+  results: ExtractResult[];
+  processed: number;
+  total: number;
+  status: 'running' | 'done' | 'quota';
+  modelAvailable?: boolean;
+};
+
+/**
+ * Runs one job, calling `onProgress` with the results produced since the last call (not
+ * cumulative) and the running totals.
  */
 export async function runExtractJob(
   grant: ViewGrant,
   ids: string[],
   schema: Schema,
   job: ExtractJob,
-  onProgress: (p: {
-    results: ExtractResult[];
-    processed: number;
-    total: number;
-    status: 'running' | 'done' | 'quota';
-  }) => void
+  onProgress: (p: Progress) => void,
+  opts: { instructions?: string } = {}
 ) {
-  const schemaKey = JSON.stringify(schema);
+  const jobs = jobsByView.get(grant.viewId) || new Set<ExtractJob>();
+  jobs.add(job);
+  jobsByView.set(grant.viewId, jobs);
+  try {
+    await run(grant, ids, schema, job, onProgress, opts);
+  } finally {
+    jobs.delete(job);
+  }
+}
+
+async function run(
+  grant: ViewGrant,
+  ids: string[],
+  schema: Schema,
+  job: ExtractJob,
+  onProgress: (p: Progress) => void,
+  { instructions }: { instructions?: string }
+) {
+  const hash = schemaHash(schema, instructions);
+  const jsonSchema = compileJsonSchema(schema);
   const targets = ids.slice(0, MAX_MESSAGES);
-  const quota = AppEnv.config.get('core.views.extractQuotaForTesting');
-  let modelUnits = 0;
+  const modelAvailable = (await extractionStatus()).available;
   let processed = 0;
+
+  const remember = (result: ExtractResult) => {
+    cache.set(`${result.messageId}:${hash}`, result);
+    return result;
+  };
 
   for (let i = 0; i < targets.length; i += BATCH_SIZE) {
     if (job.cancelled) return;
     const batchIds = targets.slice(i, i + BATCH_SIZE);
     const results: ExtractResult[] = [];
-    const uncached = batchIds.filter((id) => !cache.has(`${id}:${schemaKey}`));
+    const uncached = batchIds.filter((id) => !cache.has(`${id}:${hash}`));
     const messages = uncached.length ? await messagesWithBodies(grant, uncached) : [];
+    const misses: { message: Message; text: string }[] = [];
 
     for (const id of batchIds) {
-      const key = `${id}:${schemaKey}`;
-      if (cache.has(key)) {
-        results.push(cache.get(key));
+      const known = cache.get(`${id}:${hash}`);
+      if (known) {
+        results.push(known);
         processed += 1;
         continue;
       }
@@ -190,29 +265,82 @@ export async function runExtractJob(
         processed += 1;
         continue;
       }
-      const structured = contentFor(message, { text: false, structured: true }).structured;
-      const value = extractFromStructured(schema, structured);
-      if (!value && typeof quota === 'number' && modelUnits >= quota) {
-        onProgress({ results, processed, total: targets.length, status: 'quota' });
+      const content = contentFor(message, { text: true, structured: true });
+      const value = extractFromStructured(schema, content.structured);
+      if (value || !modelAvailable || !content.text) {
+        results.push(
+          remember({
+            messageId: id,
+            value,
+            confidence: value ? 1 : 0,
+            tier: value ? 'structured' : 'model',
+          })
+        );
+        processed += 1;
+        continue;
+      }
+      misses.push({ message, text: content.text });
+    }
+    if (results.length || !misses.length) {
+      onProgress({ results, processed, total: targets.length, status: 'running', modelAvailable });
+    }
+
+    for (let m = 0; m < misses.length; m += MODEL_BATCH_SIZE) {
+      if (job.cancelled) return;
+      const chunk = misses.slice(m, m + MODEL_BATCH_SIZE);
+      const cacheOnly = !canSpendUnit();
+      const answers = await runModel({
+        viewId: grant.viewId,
+        priority: hiddenViews.has(grant.viewId) ? 1 : 0,
+        schemaHash: hash,
+        jsonSchema,
+        cacheOnly,
+        items: chunk.map(({ message, text }) => ({
+          messageId: message.id,
+          prompt: buildPrompt(schema, promptMessage(message, text), instructions),
+        })),
+      });
+      if (job.cancelled) return;
+      spendUnits(answers.filter((a) => a && !a.cached).length);
+
+      const chunkResults: ExtractResult[] = [];
+      chunk.forEach(({ message, text }, idx) => {
+        const answer = answers[idx];
+        if (!answer) return;
+        const value = normalizeAnswer(
+          schema,
+          answer.value,
+          message.date || new Date(),
+          emailBlock(promptMessage(message, text))
+        );
+        chunkResults.push(
+          remember({
+            messageId: message.id,
+            value,
+            confidence: value ? MODEL_CONFIDENCE : 0,
+            tier: 'model',
+          })
+        );
+        processed += 1;
+      });
+      if (cacheOnly && chunkResults.length < chunk.length) {
+        onProgress({
+          results: chunkResults,
+          processed,
+          total: targets.length,
+          status: 'quota',
+          modelAvailable,
+        });
         return;
       }
-      if (!value) modelUnits += 1;
-      const result: ExtractResult = {
-        messageId: id,
-        value,
-        confidence: value ? 1 : 0,
-        tier: value ? 'structured' : 'model',
-      };
-      cache.set(key, result);
-      results.push(result);
-      processed += 1;
+      onProgress({
+        results: chunkResults,
+        processed,
+        total: targets.length,
+        status: 'running',
+        modelAvailable,
+      });
     }
-    onProgress({
-      results,
-      processed,
-      total: targets.length,
-      status: processed >= targets.length ? 'done' : 'running',
-    });
   }
-  if (targets.length === 0) onProgress({ results: [], processed: 0, total: 0, status: 'done' });
+  onProgress({ results: [], processed, total: targets.length, status: 'done', modelAvailable });
 }

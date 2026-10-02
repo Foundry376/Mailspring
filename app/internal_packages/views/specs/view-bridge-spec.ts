@@ -1,4 +1,4 @@
-import { ViewBridge, CALL_CHANNEL } from '../lib/view-bridge';
+import { ViewBridge, CALL_CHANNEL, HELLO_CHANNEL } from '../lib/view-bridge';
 import { HANDLERS, mailQuery, BridgeContext } from '../lib/bridge/handlers';
 import { ViewGrant, ViewPermission } from '../lib/bridge/grant';
 import { serializeThreadSummary } from '../lib/bridge/serializers';
@@ -151,13 +151,19 @@ describe('ViewBridge dispatch limits', function () {
   function fakeWebview() {
     const replies = [];
     let listener = null;
+    let helloSent = false;
     return {
       replies,
       addEventListener: (name, fn) => (listener = fn),
       removeEventListener: () => {},
       send: (channel, payload) => replies.push(payload),
-      call: (id, method, params) =>
-        listener({ channel: CALL_CHANNEL, args: [{ id, method, params }] }),
+      call: (id, method, params) => {
+        if (!helloSent) {
+          helloSent = true;
+          listener({ channel: HELLO_CHANNEL, args: [{ page: 'p1' }] });
+        }
+        return listener({ channel: CALL_CHANNEL, args: [{ page: 'p1', id, method, params }] });
+      },
     };
   }
 

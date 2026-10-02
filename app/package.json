@@ -44,6 +44,7 @@
     "moment-timezone": "^0.6.0",
     "mousetrap": "^1.6.5",
     "node-emoji": "^2.2.0",
+    "node-llama-cpp": "^3.22.1",
     "optimist": "0.4.0",
     "pick-react-known-prop": "0.x.x",
     "proxyquire": "1.3.1",

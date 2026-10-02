@@ -1,5 +1,6 @@
 {
   "name": "Thread Facts",
   "placement": "thread-sidebar",
+  "sidebar": { "mode": "card" },
   "permissions": ["mail.read"]
 }

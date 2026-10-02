@@ -13,10 +13,15 @@ Status: draft for prototyping, 2026-10-02.
 
 ```
 my-view/
-  manifest.json   { id, name, version, placement: "page" | "thread-sidebar",
+  manifest.json   { name, placement: "page" | "thread-sidebar",
+                    sidebar?: { mode: "card" | "panel", title? },   // thread-sidebar only (§1.1)
                     permissions: [...], network: ["api.example.com"] }
   View.jsx        export default function View() { ... }
 ```
+
+The View's id is its folder name (lowercase letters, digits and `-`). It keys the View's
+storage partition and its metadata namespace (`view:<id>`). `id` and `version` fields in the
+manifest are accepted and ignored for now.
 
 | Allowed import | Notes |
 |---|---|
@@ -25,14 +30,56 @@ my-view/
 | `lucide-react` | Icons. |
 | `@mailspring/view` | Everything in §3. |
 
-- **Styling:** Tailwind utility classes, compiled at runtime and offline. Semantic theme colors
-  are provided as `bg-ms-bg`, `bg-ms-panel`, `text-ms-text`, `text-ms-muted`, `border-ms-border`,
-  `text-ms-accent` / `bg-ms-accent`, `text-ms-danger`. `dark:` follows the Mailspring theme.
+- **Styling:** Tailwind utility classes, compiled at runtime and offline. Every key of
+  `Theme.colors` (§3.6) is a Tailwind color: `bg-ms-bg`, `bg-ms-panel`, `text-ms-text`,
+  `text-ms-muted`, `border-ms-border`, `text-ms-accent` / `bg-ms-accent`, `text-ms-danger`,
+  `text-ms-success`, `text-ms-warning`, `text-ms-link`, `text-ms-heading`. They are also CSS
+  variables (`var(--ms-accent)`). `dark:` follows the Mailspring theme, not the OS.
 - **Network:** the global `fetch` works for hosts in `manifest.network` and fails for every
   other host. Credentials the user saved for those hosts are attached by the host. Views never
   see secrets.
 - **What isn't available:** other imports and CDN URLs fail at load time. There is no Node and
   no `require`.
+
+### 1.1 Thread-sidebar Views: card and panel modes
+
+A View with `"placement": "thread-sidebar"` picks one of two modes in its manifest:
+
+```json
+{
+  "name": "Sender Context",
+  "placement": "thread-sidebar",
+  "sidebar": { "mode": "panel", "title": "History" },
+  "permissions": ["mail.read"]
+}
+```
+
+| | `card` (default) | `panel` |
+|---|---|---|
+| Where | Stacked with the contact cards, below the contact profile | Fills the whole sidebar, chosen from the switcher at the top of it |
+| Chrome | The host draws the standard `.sidebar-section` card: 5px inset, 5px radius, 1px border, 15px padding, theme background. With `title`, it adds the same uppercase section heading as other cards. | None. The host insets the View 15px on each side to line up with the switcher. |
+| Height | Content height, reported automatically by the runtime (clamped 32–900px). | The full sidebar height. The View scrolls itself. |
+| Lifetime | One webview per View, kept across thread changes. Hidden while no thread is open. | Same, and also kept while another panel is selected. |
+| Events | `context` on every thread change; `visibility` when shown or hidden. | Same; `visibility` is false while another panel is selected. |
+
+**Authoring rule:** draw no card, border or background of your own. Render content on a
+transparent background with `text-ms-*` colours, and the host chrome makes it look native in
+every theme. Pick `panel` when the View needs more than a card's worth of vertical space, or
+is a different "mode" of the sidebar (a CRM record, an agenda) rather than an addition to the
+contact information.
+
+#### The sidebar switcher
+
+The switcher (`message-list/lib/sidebar-panels.tsx`) is generic, not specific to Views. It
+appears only when at least one panel is registered:
+
+- **Contact** is the default panel: everything registered at the `MessageListSidebar`
+  location (participant picker, contact cards, card-mode Views).
+- Any component registered for the `MessageListSidebar:Panel` role with a static
+  `sidebarPanel = { id, title }` becomes another choice. It receives an `active` prop and stays
+  mounted while hidden. A built-in Calendar Agenda panel would register the same way.
+- The choice is remembered in `core.messageListSidebar.panel`, and falls back to Contact when
+  its provider disappears.
 
 ## 2. Transport (`window.mailspring`)
 
@@ -40,9 +87,12 @@ The low-level surface is exposed by the preload through `contextBridge`. View au
 use it directly; `@mailspring/view` is built on it.
 
 ```ts
-window.mailspring.call(method: string, params: object): Promise<any>        // rejects with ViewError JSON
+window.mailspring.call(method: string, params: object): Promise<{ result } | { error: ViewErrorJSON }>
 window.mailspring.on(event: string, cb: (payload) => void): () => void      // returns unsubscribe
 ```
+
+`call` always resolves, with an envelope: `contextBridge` drops everything but `message` from a
+rejected Error, so errors travel as data and `@mailspring/view` rethrows them as `ViewError`.
 
 | Method | Params → result | Permission |
 |---|---|---|
@@ -50,6 +100,7 @@ window.mailspring.on(event: string, cb: (payload) => void): () => void      // r
 | `threads.find` | `{ query, offset? }` → `{ items: ThreadSummary[], hasMore }` | `mail.read` |
 | `messages.find` | `{ query, offset? }` → `{ items: MessageSummary[], hasMore }` | `mail.read` |
 | `counts.find` | `{ query, groupBy }` → `CountRow[]` | `mail.read` |
+| `identity.get` | `{}` → `Identity` | `mail.read` |
 | `events.find` | `{ start, end, search? }` → `Event[]` | `calendar.read` |
 | `subscribe` | `{ kind: 'threads'\|'messages'\|'counts'\|'events'\|'accounts', params }` → `{ subId }` | as the matching `find` |
 | `unsubscribe` | `{ subId }` → `{}` | none |
@@ -87,19 +138,78 @@ function with the same arguments. Every write is a plain async function.**
 
 ### 3.1 Queries
 
+Every read takes a `Query`. Filters are JSON: the host validates them and compiles them straight
+to SQL, so there is no query syntax to get wrong and every field has one documented meaning.
+
 ```ts
-type Query = string | {
-  search?: string;        // Mailspring search grammar (§3.8). Omit for "everything".
-  accountId?: string;
-  categoryId?: string;    // a folder or label id from useAccounts()
-  threadId?: string;      // messages only
-  ids?: string[];         // exact ids, max 500
-  tagged?: boolean;       // only items that carry this View's metadata
-  limit?: number;         // threads default 100, max 1000; messages default 100, max 2000
+type Query = {
+  where?: Filter;          // omit for "everything"
+  threadId?: string;       // messages only
+  ids?: string[];          // exact ids, max 500
+  tagged?: boolean;        // only items that carry this View's metadata
+  limit?: number;          // threads default 100, max 1000; messages default 100, max 2000
   order?: 'newest' | 'oldest';   // default 'newest'
+  search?: string;         // search-bar syntax (§3.8), for text the user typed
 };
-// A plain string is shorthand for { search: string }.
+// A plain string is shorthand for { search: string }. Unknown keys are an error, so a filter
+// written at the top level ({ from: 'x' }) fails with a hint to move it under `where`.
+
+type Addr = string;        // 'a@b.com' (exact) or 'b.com' / '@b.com' (domain and subdomains)
+
+type Filter =               // each object has exactly one key
+  | { and: Filter[] } | { or: Filter[] } | { not: Filter }
+  // Message fields. In a thread query they mean "the thread has a message that matches".
+  | { from: Addr | Addr[] }
+  | { to: Addr | Addr[] }                    // to, cc or bcc
+  | { participant: Addr | Addr[] }           // from, to, cc or bcc
+  | { direction: 'sent' | 'received' }      // sent = from one of my addresses (useIdentity)
+  | { hasAttachment: boolean }               // inline images don't count
+  | { listUnsubscribe: boolean }             // has a List-Unsubscribe header: newsletters, lists
+  // Thread fields. In a message query they mean "the message's thread matches".
+  | { in: string | string[] }                // role ('inbox', 'sent', 'archive', 'trash', 'spam',
+                                             // 'drafts', 'all', 'important', 'snoozed'), a
+                                             // folder/label id, or its name; unknown names error
+  | { text: string }                         // full-text search, see below
+  // Either.
+  | { subject: string }                      // case-insensitive substring
+  | { unread: boolean } | { starred: boolean }
+  | { account: string | string[] }
+  | { date: { after?: string; before?: string } }   // ISO dates; after is inclusive, before exclusive.
+                                             // Messages: the message date. Threads: latest message.
+  | { tagged: boolean }                      // carries this View's metadata
+  | { search: string };                      // search-bar syntax as one term
 ```
+
+```js
+// Ride receipts from the last year
+useMessages({
+  where: { and: [
+    { from: ['uber.com', 'lyft.com'] },
+    { direction: 'received' },
+    { date: { after: '2025-10-01' } },
+  ] },
+  limit: 500,
+});
+
+// Unread inbox threads with an attachment
+useThreads({ where: { and: [{ in: 'inbox' }, { unread: true }, { hasAttachment: true }] } });
+
+// Everything with one person
+useMessages({ where: { participant: 'alice@example.com' }, limit: 300 });
+```
+
+- **`text` semantics:** words, not substrings. Every word must appear somewhere in the
+  thread (subject, participants, folder names or body). Words are stemmed, so `riding` matches
+  "rides". Punctuation is ignored, and there's no prefix or phrase matching. Use `subject` for
+  substrings and `from`/`to` for addresses.
+- **Limits:** at most 8 levels of nesting, 200 terms, 500 values across all address lists, and
+  16 words per `text`. Exceeding one is `ViewError('limit')`. A malformed filter is
+  `ViewError('invalid')` with the path of the offending term.
+- **Timeouts:** one-shot reads that take longer than 15 seconds reject with
+  `ViewError('timeout')`. Queries run off the UI thread, so a slow one never freezes the app.
+- **Dates in filters should be stable across renders.** Hooks key subscriptions by the query's
+  JSON, so `new Date().toISOString()` resubscribes on every render. Round to the day:
+  `new Date(Date.now() - 90 * 864e5).toISOString().slice(0, 10)`.
 
 ### 3.2 Reads
 
@@ -111,7 +221,8 @@ function useMessages(q: Query): Live<MessageSummary[]>;
 function useCounts(q: Query, groupBy: Dim | [Dim, Dim]): Live<CountRow[]>;
 function useEvents(range: { start: Date | string; end: Date | string; search?: string }): Live<Event[]>;
 function useAccounts(): Live<Account[]>;
-function useContent(ids: string[], opts?: ContentOpts): Live<Record<string, MessageContent>>;  // cached, not live
+function useIdentity(): Identity | null;                // null until loaded
+function useContent(ids: string[], opts?: ContentOpts): Live<Record<string, MessageContent>> & { loaded: number; total: number };  // cached, not live
 function useSelectedThread(): { thread: ThreadSummary; messages: MessageSummary[] } | null;   // sidebar placement
 function useTheme(): Theme;
 function useViewState<T>(key: string, initial: T): [T, (v: T) => void];   // device-local localStorage, survives reloads
@@ -120,14 +231,27 @@ function getThreads(q: Query & { offset?: number }): Promise<{ items: ThreadSumm
 function getMessages(q: Query & { offset?: number }): Promise<{ items: MessageSummary[]; hasMore: boolean }>;
 function getCounts(q: Query, groupBy: Dim | [Dim, Dim]): Promise<CountRow[]>;
 function getEvents(range: {...}): Promise<Event[]>;
-function getContent(ids: string[], opts?: ContentOpts): Promise<Record<string, MessageContent>>;  // max 50 ids/call
+function getContent(ids: string[], opts?: ContentOpts): Promise<Record<string, MessageContent>>;  // batched internally
+function getIdentity(): Promise<Identity>;
 
 type ContentOpts = { text?: boolean /* default true */; html?: boolean; structured?: boolean; includeQuoted?: boolean /* default false */ };
-type MessageContent = { text?: string; html?: string; structured?: object[] /* schema.org JSON-LD/microdata */ };
+type MessageContent = {
+  text?: string | null; html?: string | null; structured?: object[];  // schema.org JSON-LD/microdata
+  reason?: 'body_unavailable' | 'not_found';   // why text is null: the body hasn't downloaded yet
+};                                             // (retried on the next request), or no such message
 
 type Dim = 'sender' | 'recipient' | 'category' | 'account' | 'thread'
          | 'year' | 'month' | 'week' | 'day' | 'weekday' | 'hour';
-type CountRow = { key: Partial<Record<Dim, string | number>>; count: number; first: string; last: string };
+type CountRow = {
+  key: Partial<Record<Dim, string | number>>;   // sender/recipient keys are lowercase addresses
+  labels: Partial<Record<Dim, string>>;          // display names: sender, recipient, category, account
+  isMe: { sender?: boolean; recipient?: boolean };  // person keys that are one of my addresses
+  count: number; first: string; last: string;
+};
+type Identity = {
+  accounts: { id: string; email: string; name: string }[];
+  addresses: string[];   // lowercase: account addresses, aliases, and every address found in Sent
+};
 ```
 
 `useCounts` runs on **messages** and aggregates in SQL on the host. It is the single analytics
@@ -135,7 +259,13 @@ primitive: volume heatmaps, top senders, people by folder, lost touch, spend cou
 replaces pulling thousands of rows across the bridge. Rows come back sorted by `count`
 descending, with at most 5,000 rows. `first` and `last` are ISO dates of the oldest and newest
 message in the group. `month` keys look like `"2026-03"`, `week` keys like `"2026-W14"`,
-`weekday` is 0–6 with Sunday as 0, and `hour` is 0–23 in local time.
+`weekday` is 0–6 with Sunday as 0, and `hour` is 0–23 in local time. `recipient` counts the
+To line only, once per recipient.
+
+**Identity.** `useIdentity()` lists the user's accounts and every address they send from,
+including aliases that aren't configured in Mailspring (found by scanning Sent mail). The host
+uses the same set everywhere: `Contact.isMe`, `MessageSummary.isSent`, `CountRow.isMe` and the
+`direction` filter all agree, so Views never need their own "is this me?" heuristics.
 
 ### 3.3 Extraction
 
@@ -168,8 +298,21 @@ type ExtractResult = {
   - `date` → ISO string (relative phrases are resolved against the message date)
   - `enum` → exactly one of `values`, or `null`
 - **Classification is extraction with an enum field.** For example,
-  `{ kind: { type: 'enum', values: ['receipt', 'shipping', 'bill'] } }`. The host routes
-  enum-only schemas to its classification head, so there is no separate `classify` call.
+  `{ kind: { type: 'enum', values: ['receipt', 'shipping', 'bill'] } }`. There is no separate
+  `classify` call. The model is reliable at receipt/shipping/bill, not at fine distinctions
+  such as newsletter vs. alert; prefer sender, `listUnsubscribe` and counts for those.
+- **How values are produced:** tier `structured` is schema.org markup embedded in the email
+  (exact, free). Tier `model` is one on-device model, Qwen3.5-0.8B, run by the host with a
+  host-owned prompt and output constrained to your schema. `instructions` (≤500 characters
+  reach the prompt) are appended as extra guidance. Nothing leaves the machine.
+- **The host validates model answers before you see them**, because small models fill fields
+  with the nearest plausible text. A `string` value must appear in the email; `money` must look
+  like a charge (a currency marker or cents, not a rate, range or "K" figure); a `date` must
+  name a day or month. A value that fails becomes `null`, so treat `null` as "not stated" and
+  never as zero.
+- **Speed:** about 0.6–0.9 s per message with GPU acceleration and ~1.8 s on CPU, so run regex
+  or structured data first and send only the misses (Example B). If the model isn't installed,
+  progress carries `modelAvailable: false` and model-tier values are `null`.
 - **Caching and metering:** results are cached per (message, schema, model). Cache hits are
   free. Model-tier work counts against the `smart-extraction` quota. When the quota runs out,
   `status` becomes `'quota'`, `results` keeps everything finished so far, and the host shows the
@@ -208,9 +351,13 @@ function attachmentUrl(id: string): Promise<string>;   // usable in <img src>, <
 <MessageView messageId={id} compact />    // header + snippet, expands on click
 ```
 
-`<MessageView>` renders host-sanitized HTML in a nested sandboxed frame, follows the user's
-remote-image setting, and its Reply button calls `ui.reply`. It requires `mail.bodies`. In most
-cases, prefer `ui.showThread(id)`, which opens the real reading pane.
+`<MessageView>` renders the full HTML body as the reading pane does: host-sanitized, images
+proxied by the host, the user's remote-image setting applied, and dark-mode colors adjusted. It
+shows headers, attachment chips and a Reply button that calls `ui.reply`, and requires
+`mail.bodies`. In most cases, prefer `ui.showThread(id)`, which opens the real reading pane.
+
+On a page View, `ui.showThread` opens the reading pane beside the View, which narrows the View
+(to about 470px in a default window). Lay out with flex/grid and test narrow widths.
 
 ### 3.6 Serialized shapes
 
@@ -224,7 +371,8 @@ interface Category { id: string; accountId: string; name: string; kind: 'folder'
 interface Account  { id: string; label: string; email: string; provider: string; categories: Category[] }
 
 interface ThreadSummary {
-  id: string; accountId: string; subject: string; snippet: string;
+  id: string; accountId: string; subject: string;
+  snippet: string | null;            // newest message's snippet; null until a body has downloaded
   unread: boolean; starred: boolean;
   participants: Contact[];
   categories: Category[];
@@ -237,9 +385,9 @@ interface ThreadSummary {
 
 interface MessageSummary {
   id: string; threadId: string; accountId: string;
-  subject: string; snippet: string; date: string;
+  subject: string; snippet: string | null; date: string;   // snippet: null until the body downloads
   from: Contact | null; to: Contact[]; cc: Contact[]; bcc: Contact[];
-  isSent: boolean;                   // from one of my accounts
+  isSent: boolean;                   // from one of my addresses (see useIdentity)
   unread: boolean; starred: boolean; draft: boolean;
   categories: Category[];
   attachments: Attachment[];
@@ -261,12 +409,14 @@ interface Event {
 
 interface Theme {
   mode: 'light' | 'dark';
-  colors: { bg; panel; text; muted; border; accent; danger };     // resolved CSS colors
+  colors: { bg; panel; text; muted; border; accent; danger; success; warning; link; heading };
+                                     // resolved CSS colors; also Tailwind ms-* colors
   chart: string[];                   // 8 categorical series colors, legible in this mode
+  font: { family: string; size: string };
 }
 
 class ViewError extends Error {
-  code: 'permission' | 'quota' | 'invalid' | 'not_found' | 'limit' | 'unavailable' | 'internal';
+  code: 'permission' | 'quota' | 'invalid' | 'not_found' | 'limit' | 'timeout' | 'unavailable' | 'internal';
   feature?: string;                  // for 'quota': which metered feature
   permission?: string;               // for 'permission': what the manifest lacks
 }
@@ -286,24 +436,29 @@ class ViewError extends Error {
 | Hidden Views | While the View is hidden (sheet not visible, sidebar collapsed), the host pauses pushes and sends one fresh snapshot when it becomes visible. |
 | Access control | Accounts and folders excluded from this View's grant are absent, not errors. |
 
-### 3.8 Search grammar (same as the main search bar and MCP `search_mail`)
+### 3.8 Search grammar (for text the user types)
+
+`{ search }` and `ui.search()` take the main search bar's syntax. Use it to pass through
+something the user typed, or to open the same mail in the mailbox. Build queries in code with
+`where` (§3.1).
 
 | Syntax | Meaning |
 |---|---|
-| `from:` `to:` `subject:` | address or text match |
+| `from:` `to:` `subject:` | address or text match (word prefix, stemmed) |
+| `field:(a OR b)` | the field applies to every term in the group |
 | `in:inbox` `in:sent` `in:trash` `in:archive` … | folder or label by role, or by name for custom folders |
 | `is:unread` `is:read` `is:starred` `is:unstarred` | flags |
 | `has:attachment` | attachments |
 | `before:` `since:` `after:` | `2026/05/31`, `yesterday`, `"3 months ago"` |
 | `AND` (default between terms), `OR`, `NOT`, `( )`, `"exact phrase"` | combining terms |
 
-Example: `(from:uber.com OR from:lyft.com) subject:(trip OR ride) since:"12 months ago"`.
+Search matches threads, so in a message query it returns every message of a matching thread.
 
 ### 3.9 Permissions summary
 
 | Permission | Unlocks |
 |---|---|
-| `mail.read` | `useThreads`/`useMessages`/`useCounts`/`useAccounts`/`useSelectedThread` (+ `get*`), `ui.*` |
+| `mail.read` | `useThreads`/`useMessages`/`useCounts`/`useAccounts`/`useIdentity`/`useSelectedThread` (+ `get*`), `ui.*` |
 | `mail.bodies` | `useContent`/`getContent`, `useExtract`/`extract`, `<MessageView>`, `attachmentUrl` |
 | `metadata.own` | `setMetadata` (`meta` and `tagged` are readable with `mail.read`) |
 | `mail.modify` | `modify` |
@@ -316,11 +471,11 @@ The five archetypes from the plan:
 
 | Archetype | Primitives |
 |---|---|
-| Extract and chart | `useMessages(search)` → (`getContent` + own parser) → `useExtract` for misses → recharts |
+| Extract and chart | `useMessages({ where })` → (`getContent` + own parser) → `useExtract` for misses → recharts |
 | Deadline timeline | `useMessages` + `useExtract({ due: 'date' })`, optionally `useEvents` |
 | Pipeline board | `useThreads({ tagged: true })` + `setMetadata` + `ui.showThread` |
 | Entity-centric grouping | `useExtract({ caseNo: 'string' })` or a regex over subjects, grouped in JS; `useCounts` for totals |
-| Beside the open thread | `useSelectedThread` + `useThreads`/`useCounts` keyed on participants, + `fetch` |
+| Beside the open thread | `useSelectedThread` + `useThreads`/`useCounts` with `{ participant }`, + `fetch` |
 
 The catalog. ✓ means fully expressible, ◐ means expressible with a stated compromise, and ✗
 means not expressible.
@@ -333,27 +488,27 @@ means not expressible.
 | Trip timeline | ✓ | `getContent({structured})` (FlightReservation, …) + extract fallback + `useEvents` |
 | Return windows | ✓ | structured `Order` / extract `{orderDate, returnBy: date}` |
 | Receipt/warranty locker | ◐ | extract over bodies; **PDF text isn't extracted**, only `attachmentUrl` for viewing (Open decision 4) |
-| Tax collector | ◐ | search `has:attachment` + filename/subject heuristics; same PDF limitation |
+| Tax collector | ◐ | `{ hasAttachment: true }` + filename/subject heuristics; same PDF limitation |
 | Medical/insurance | ✓ | extract `{provider, amount: money, kind: enum}` |
 | School and kids | ✓ | extract `{event, date, actionRequired: boolean}` |
 | Ticket wallet | ✓ | structured `EventReservation` + extract |
-| Account inventory | ✓ | `useCounts(search:'subject:(welcome OR "verify your email" OR "new sign-in")', 'sender')` + extract `{service}` |
-| Waiting on | ✓ | `useThreads('in:sent')` filtered on `lastSentAt > lastReceivedAt` |
+| Account inventory | ✓ | `useCounts({ where: { or: [{ subject: 'welcome' }, { subject: 'verify your email' }, { subject: 'new sign-in' }] } }, 'sender')` + extract `{service}` |
+| Waiting on | ✓ | `useThreads({ where: { direction: 'sent' } })` filtered on `lastSentAt > lastReceivedAt` |
 | Who I owe replies | ✓ | threads where `lastReceivedAt > lastSentAt`; reply latency from `useMessages({threadId})` |
 | Volume heatmap | ✓ | `useCounts(q, ['weekday','hour'])` |
-| Newsletter reader | ✓ | `useMessages` + `<MessageView>`; "never opened" via `is:unread` + `useCounts('sender')` |
+| Newsletter reader | ✓ | `useMessages({ where: { listUnsubscribe: true } })` + `<MessageView>`; "never opened" via `useCounts` with `{ unread: true }` vs. without |
 | Coupon wallet | ✓ | extract `{code, discount, expires: date}` |
-| Attachment gallery | ✓ | `useMessages('has:attachment')` → `attachments` + `attachmentUrl` |
-| Lost touch | ✓ | `useCounts('in:sent', 'recipient')` → `last` older than 6 months and `count` high |
-| Intro graph | ✓ | search `subject:intro OR "meet"` + extract `{introducer, introduced}` |
-| Commitments | ✓ | `in:sent` + extract `{promise, due: date}` (model tier, quality TBD) |
+| Attachment gallery | ✓ | `useMessages({ where: { hasAttachment: true } })` → `attachments` + `attachmentUrl` |
+| Lost touch | ✓ | `useCounts({ where: { direction: 'sent' } }, 'recipient')` → `last` older than 6 months and `count` high |
+| Intro graph | ✓ | `{ or: [{ subject: 'intro' }, { text: 'meet' }] }` + extract `{introducer, introduced}` |
+| Commitments | ✓ | `{ direction: 'sent' }` + extract `{promise, due: date}` (model tier, quality TBD) |
 | Job seeker funnel | ✓ | extract `{company, stage: enum}` + `setMetadata` overrides |
 | Recruiter pipeline | ✓ | pipeline board |
 | CRM / deals going cold | ✓ | pipeline board + `lastSentAt`/`lastReceivedAt` |
 | Investor deal flow | ✓ | pipeline board + attachments |
 | Portfolio metrics | ◐ | extract `{company, mrr: money, burn: money}` from bodies; metrics inside PDF/deck attachments ✗ |
 | Lawyer matters | ✓ | regex/extract `{matter}` + group; deadlines via extract |
-| Billable reconstruction | ✓ | `useMessages('in:sent')` grouped by matter and day |
+| Billable reconstruction | ✓ | `useMessages({ where: { direction: 'sent' } })` grouped by matter and day |
 | Freelancer invoices | ✓ | extract `{client, amount: money, status: enum}` |
 | Academic submissions | ✓ | extract `{paper, venue, status: enum}` |
 | OSS maintainer | ◐ | from/subject/body footer ("you were mentioned"); `X-GitHub-Reason` header isn't available (Open decision 5); GitHub API via `fetch` |
@@ -363,7 +518,7 @@ means not expressible.
 | Event/wedding planner | ✓ | extract `{vendor, quote: money}` + board |
 | Journalist embargoes | ✓ | extract `{embargo: date}` |
 | Executive assistant | ✓ | `useEvents` + waiting-on |
-| People by folder | ✓ | `useCounts(q, ['sender','category'])` |
+| People by folder | ✓ | `useCounts(q, ['sender','category'])`, with `labels` for names and `isMe` to drop the user |
 | Kanban | ✓ | Example A |
 | Stripe customer sidebar | ✓ | `useSelectedThread` + `fetch('https://api.stripe.com/...')` |
 | Contact context sidebar | ✓ | Example C |
@@ -393,17 +548,31 @@ means not expressible.
 > - **Imports:** only `react`, `recharts`, `lucide-react`, and `@mailspring/view`. No other
 >   packages, CDNs, or `require`.
 > - **Style:** use Tailwind. Use the theme colors `bg-ms-bg`, `bg-ms-panel`, `text-ms-text`,
->   `text-ms-muted`, `border-ms-border`, `text-ms-accent`, `bg-ms-accent`, never hard-coded
->   grays, so the View works in light and dark themes. For chart colors use
->   `useTheme().chart[i]`.
+>   `text-ms-muted`, `border-ms-border`, `text-ms-accent`, `bg-ms-accent`, `text-ms-danger`,
+>   `text-ms-success`, `text-ms-warning`, never hard-coded grays, so the View works in light and
+>   dark themes. For chart colors use `useTheme().chart[i]`. Recharts tooltips default to a
+>   white box: pass `contentStyle={{ background: theme.colors.panel, borderColor:
+>   theme.colors.border, color: theme.colors.text }}`.
+> - **Width:** page Views get narrower when the user opens a thread beside them. Use flexible
+>   layouts.
 > - **Data is live:** `useThreads(query)`, `useMessages(query)`, and `useCounts(query, groupBy)`
->   re-render automatically when mail changes. Queries use Gmail-style search strings, e.g.
->   `useMessages('from:uber.com subject:trip since:"1 year ago"')`. Every hook returns
->   `{ data, loading, error }`. `data` is never undefined.
+>   re-render automatically when mail changes. Every hook returns `{ data, loading, error }`, and
+>   `data` is never undefined. Pass `null` for "no query yet".
+> - **Queries are JSON.** Put filters under `where`, one key per object, combined with
+>   `and`/`or`/`not`:
+>   `useMessages({ where: { and: [{ from: ['uber.com', 'lyft.com'] }, { direction: 'received' }] }, limit: 500 })`.
+>   Addresses can be exact (`a@b.com`) or a domain (`uber.com`). `subject` is a substring,
+>   `text` is word search, `in` takes a role like `'inbox'` or a folder name. Keep date values
+>   at day precision so the query doesn't change on every render. Only use the `search` string
+>   syntax to pass along text the user typed.
 > - **Counting:** use `useCounts` for anything that counts or groups messages, such as top
 >   senders, volume over time, or per-folder breakdowns. Do not fetch thousands of messages to
->   count them in JS.
-> - **Reading message text:** `getContent(ids)` / `useContent(ids)` return plain text. For
+>   count them in JS. Person rows carry a display name in `labels` and `isMe` flags.
+> - **The user:** `isMe` on contacts, `isSent` on messages, `{ direction: 'sent' }` and
+>   `useIdentity()` all know every address the user sends from, including aliases. Don't guess
+>   from `useAccounts()`.
+> - **Reading message text:** `getContent(ids)` / `useContent(ids)` return plain text, with
+>   `reason` set when it's null (body not downloaded yet, or no such message). For
 >   regular senders (receipts, alerts), parse the text with a regex first. Use
 >   `useExtract({ ids, schema })` only for messages your parser missed. It runs an on-device
 >   model, is metered, and may stop early with `status: 'quota'`. When that happens, render the
@@ -418,11 +587,13 @@ means not expressible.
 >   - View settings: `useViewState(key, initial)`.
 > - **Opening mail:** `ui.showThread(thread.id)` opens the real reading pane. Don't render
 >   message bodies yourself unless the design needs inline mail. In that case, use
->   `<MessageView messageId={id} />`.
+>   `<MessageView messageId={id} />`, which renders the full message like the reading pane.
 > - **Never set `innerHTML` or use `dangerouslySetInnerHTML` with email content.** Subjects and
 >   bodies are written by strangers. Render text with JSX.
 > - **Sidebar Views:** (`placement: "thread-sidebar"`) call `useSelectedThread()` to get the
->   open thread. Keep them compact. Height is automatic.
+>   open thread. Pick `"sidebar": { "mode": "card" }` (default; compact, height is automatic)
+>   or `"panel"` (fills the sidebar behind the switcher). **Draw no card, border or background
+>   of your own**: the host draws the chrome.
 > - **Network:** `fetch` only reaches hosts listed in `manifest.network`.
 > - **Permissions:** declare only what you use in `manifest.permissions`: `mail.read`,
 >   `mail.bodies`, `metadata.own`, `mail.modify`, `calendar.read`.
@@ -442,7 +613,7 @@ const COLUMNS = ['Inbox', 'To do', 'Waiting', 'Done'];
 
 export default function View() {
   const board = useThreads({ tagged: true, limit: 500 });
-  const inbox = useThreads({ search: 'in:inbox', limit: 40 });
+  const inbox = useThreads({ where: { in: 'inbox' }, limit: 40 });
   const [dragId, setDragId] = useState(null);
 
   const all = [...board.data, ...inbox.data.filter((t) => !t.meta)];
@@ -503,7 +674,15 @@ import { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useMessages, useContent, useExtract, useTheme, ui } from '@mailspring/view';
 
-const SEARCH = '(from:uber.com OR from:lyft.com) (subject:trip OR subject:ride OR subject:receipt) since:"12 months ago"';
+const SINCE = new Date(Date.now() - 365 * 864e5).toISOString().slice(0, 10);
+const RIDES = {
+  and: [
+    { from: ['uber.com', 'lyft.com'] },
+    { or: [{ subject: 'trip' }, { subject: 'ride' }, { subject: 'receipt' }] },
+    { direction: 'received' },
+    { date: { after: SINCE } },
+  ],
+};
 
 // Tier 1: deterministic parser for the common receipt layouts.
 function parseTotal(text) {
@@ -513,7 +692,7 @@ function parseTotal(text) {
 
 export default function View() {
   const theme = useTheme();
-  const messages = useMessages({ search: SEARCH, limit: 1000 });
+  const messages = useMessages({ where: RIDES, limit: 1000 });
   const ids = messages.data.map((m) => m.id);
   const content = useContent(ids);
 
@@ -560,14 +739,18 @@ export default function View() {
           <BarChart data={rows}>
             <XAxis dataKey="month" stroke={theme.colors.muted} />
             <YAxis stroke={theme.colors.muted} tickFormatter={(v) => `$${v}`} />
-            <Tooltip formatter={(v) => `$${v.toFixed(2)}`} />
+            <Tooltip
+              formatter={(v) => `$${v.toFixed(2)}`}
+              contentStyle={{ background: theme.colors.panel, borderColor: theme.colors.border, color: theme.colors.text }}
+            />
             <Legend />
             <Bar dataKey="Uber" stackId="a" fill={theme.chart[0]} />
             <Bar dataKey="Lyft" stackId="a" fill={theme.chart[1]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
-      <button className="self-start text-sm text-ms-accent" onClick={() => ui.search(SEARCH)}>
+      <button className="self-start text-sm text-ms-accent"
+              onClick={() => ui.search('from:uber.com OR from:lyft.com since:"12 months ago"')}>
         Show these {messages.data.length} receipts in the inbox
       </button>
     </div>
@@ -582,15 +765,20 @@ import { LineChart, Line, ResponsiveContainer } from 'recharts';
 import { Mail, Folder } from 'lucide-react';
 import { useSelectedThread, useCounts, useThreads, useTheme, ui } from '@mailspring/view';
 
+const YEAR_AGO = new Date(Date.now() - 365 * 864e5).toISOString().slice(0, 10);
+
 export default function View() {
   const selected = useSelectedThread();
   const person = selected?.thread.participants.find((p) => !p.isMe);
-  const q = person ? `from:${person.email} OR to:${person.email}` : null;
+  const withThem = person ? { participant: person.email } : null;
   const theme = useTheme();
 
-  const monthly = useCounts(q ? `${q} since:"12 months ago"` : { ids: [] }, 'month');
-  const folders = useCounts(q ?? { ids: [] }, 'category');
-  const recent = useThreads(q ? { search: q, limit: 6 } : { ids: [] });
+  const monthly = useCounts(
+    withThem && { where: { and: [withThem, { date: { after: YEAR_AGO } }] } },
+    'month'
+  );
+  const folders = useCounts(withThem && { where: withThem }, 'category');
+  const recent = useThreads(withThem && { where: withThem, limit: 6 });
 
   if (!person) return null;
 
@@ -617,7 +805,7 @@ export default function View() {
         {folders.data.slice(0, 4).map((r) => (
           <div key={r.key.category} className="flex items-center gap-2 text-xs">
             <Folder size={12} className="text-ms-muted" />
-            <span className="flex-1 truncate">{r.key.category}</span>
+            <span className="flex-1 truncate">{r.labels.category}</span>
             <span className="text-ms-muted">{r.count}</span>
           </div>
         ))}
@@ -636,18 +824,18 @@ export default function View() {
 }
 ```
 
-Example C shows a rough edge: `useCounts(…, 'category')` returns category **ids** as keys, and
-mapping them to names needs `useAccounts()`. See Open decision 2.
+`useCounts(…, 'category')` keys rows by category id; `labels.category` carries the name.
 
 ## 7. Open decisions
 
 | # | Decision | Recommendation |
 |---|---|---|
 | 1 | React vs. Preact in the View runtime | **React 18.** Agents write React artifacts fluently. Size doesn't matter for local files, and Preact's compat quirks would cost coaching. |
-| 2 | Group keys for `category`/`account`/`sender`: ids only, or labels too | **Return `{ key, label }` pairs:** `key.category` stays the id, plus `labels: { category: 'Receipts' }` on each row. Example C shows why. |
+| 2 | Group keys for `category`/`account`/`sender`: ids only, or labels too | **Implemented:** keys stay ids or addresses; `labels` carries names for category, account, sender and recipient, and `isMe` flags person keys. |
 | 3 | Tailwind delivery | **Vendor the Tailwind v4 browser build** with an `@theme` block that maps `ms-*` colors to host CSS variables. It gives full JIT with no build step. |
 | 4 | PDF/attachment text | **Add `getContent(ids, { attachments: true })` returning extracted PDF text** once a local PDF text extractor exists. Many finance and tax Views need it, and extraction should also accept attachment ids. Not in v1. |
-| 5 | Headers (`List-Id`, `List-Unsubscribe`, `X-GitHub-Reason`) | **Answered (2026-10-02):** the sync engine persists only `List-Unsubscribe` and `List-Unsubscribe-Post` (Message JSON `hListUnsub`/`hListUnsubPost`, exposed on the model as `listUnsubscribe`/`listUnsubscribePost`) and `Importance` (`hImportance`, not on the model). `List-Id` and `X-GitHub-Reason` are not stored anywhere, and `extraHeaders` is empty on all 27,471 synced messages in the dev DB (it's only used for outgoing drafts). **Changed:** `MessageSummary.listUnsubscribe` is now exposed. A general header allowlist needs a Mailspring-Sync change to persist the headers first. |
+| 5 | Headers (`List-Id`, `List-Unsubscribe`, `X-GitHub-Reason`) | **Owner decision (2026-10-02):** add `List-Id` to the sync engine's extra-header allowlist (keep the allowlist; storing every header costs too much). GitHub-style needs are met by parsing bodies. |
+| 5 | Header storage today | **Answered (2026-10-02):** the sync engine persists only `List-Unsubscribe` and `List-Unsubscribe-Post` (Message JSON `hListUnsub`/`hListUnsubPost`, exposed on the model as `listUnsubscribe`/`listUnsubscribePost`) and `Importance` (`hImportance`, not on the model). `List-Id` and `X-GitHub-Reason` are not stored anywhere, and `extraHeaders` is empty on all 27,471 synced messages in the dev DB (it's only used for outgoing drafts). **Changed:** `MessageSummary.listUnsubscribe` is now exposed. A general header allowlist needs a Mailspring-Sync change to persist the headers first. |
 | 6 | Read-only tracking metadata (opens and clicks) | **Defer.** Add a `tracking.read` permission later. The Activity panel already covers it. |
 | 7 | `mail.modify` in v1 | **Include it**, opt-in per manifest. Triage boards are among the most compelling Views, and every change is undoable. |
 | 8 | Message vs. thread metadata | **Support both.** Boards use threads and extraction-backed Views use messages. Examples should steer toward threads. |
@@ -667,12 +855,16 @@ implementation are marked **CHANGED**.
 |---|---|
 | `threads/messages/counts/events/accounts` find + subscribe | Implemented. |
 | **CHANGED:** transport ids | `subscribe` takes `{ subId, kind, params }` and `ai.extract` takes `{ jobId, … }`, with ids **chosen by the View runtime**. Listeners are registered before the host can emit, so the first snapshot can't race the reply. `unsubscribe`/`ai.cancel` are as specified. |
-| **CHANGED:** message search | The search grammar compiles only against Thread + ThreadSearch, so `useMessages(search)` returns messages whose **thread** matches. `from:uber.com` also includes my replies in those threads. Filter on `m.from` / `m.isSent` when it matters. |
-| **CHANGED:** `CountRow.labels` | Open decision 2 implemented: rows carry `labels: { category?, account? }` with readable names. `week` keys use SQLite `%W` (Monday-based week of year), not strict ISO weeks. |
+| **CHANGED:** queries are JSON (wave 4) | `where` filters (§3.1) compile directly to SQL in `mcp-server/lib/capabilities/filter.ts`: message fields via `json_each` over `Message.data`, thread fields via `ThreadCategory`/`ThreadSearch`, each wrapped as "has a message"/"thread matches" across targets, with OR'd message terms sharing one subquery. Validated with explicit limits; unknown keys and folder names are errors. The search grammar is still accepted (`search`), and in message queries it still matches at the thread level. |
+| Search grammar fixes (wave 4) | `subject:(a OR b)` used to parse as a subject match on `(` and silently return nothing; a field followed by a group now applies to every term (`search-query-parser.ts`, with specs). The "80-term OR hangs" report did not reproduce as slow SQL (an 80-term FTS query takes ~40 ms); View queries now run in DatabaseStore's background agent and one-shot reads time out after 15 s with `ViewError('timeout')`, so a slow query can neither freeze the UI nor hang a View. |
+| Identity (wave 4) | `identity.get` / `useIdentity()`. Addresses = configured accounts and aliases plus every From address in Sent folders (or Gmail `\Sent`), rescanned every 10 minutes. `Contact.isMe`, `isSent`, `CountRow.isMe` and `direction` all use it. |
+| MCP parity (wave 4) | `search_mail` takes the same JSON `filter`; new `count_mail` (the `useCounts` dimensions) and `get_identity` tools. Same grant, serializers and audit log. |
+| **CHANGED:** `CountRow.labels` / `isMe` | Rows carry `labels` with names for `category`, `account`, `sender` and `recipient` (the most common display name in the group), and `isMe` for person keys. `week` keys use SQLite `%W` (Monday-based week of year), not strict ISO weeks. |
 | Counts and folder exclusion | Account scope is applied in SQL; per-folder exclusion is not (Views currently get a full-account grant). |
 | `setMetadata(target, null)` | Stored as `{}` because metadata rows can't be deleted. Empty values read back as `meta: null`, and `tagged` queries skip them. Undo restores the previous value. |
-| `useExtract` / `extract` | Tier 0 only (schema.org JSON-LD + microdata, with common field-name synonyms such as `carrier`→`provider`). Messages without markup return `value: null, tier: 'model'`. Caching, batching, progress, and the quota stop are real. `core.views.extractQuotaForTesting = N` simulates the quota after N model-tier messages. |
-| `useContent` / `getContent` | Implemented, including host-side HTML→text with one line per block (table rows stay on one line) and quoted-text stripping. Missing bodies are fetched and waited for up to 10 s. |
+| `useExtract` / `extract` (wave 4) | Tier 0 (schema.org JSON-LD + microdata, with field-name synonyms such as `carrier`→`provider`), then Qwen3.5-0.8B in a utility process (`app/src/browser/extraction-service.ts`, node-llama-cpp, JSON-schema-constrained), batches of 4, then host-side validation (`views/lib/extraction/normalize.ts`). Results cached in `<configDir>/extraction-cache.db` by (message, schema + instructions, model). Jobs are cancelled when a View reloads, and hidden Views' prompts queue behind visible ones. Quota is a local monthly `smart-extraction` meter for now; `core.views.extractQuotaForTesting = N` forces it. |
+| `useContent` / `getContent` | Implemented, including host-side HTML→text with one line per block (table rows stay on one line) and quoted-text stripping. Missing bodies are fetched and waited for up to 10 s per batch; each id comes back with `reason` when text is null, `body_unavailable` results are retried on the next request rather than cached, and `useContent` reports `loaded`/`total`. |
+| Thread snippets | Threads have no stored snippet. `threads.find` and live `useThreads` subscriptions fill it from the newest message that has one; threads whose bodies haven't been fetched keep `snippet: null`. |
 | `ui.reply` `body` option | Ignored for now; the reply opens empty in a popout composer. |
 | `ui.search` | Submits the query to the main search bar. |
 | `messages.renderable` | Implemented: `{ ids (≤10), includeQuoted? }` → `{ [id]: { html, plaintext } }`. The body goes through `MessageBodyProcessor` (sanitizer, MessageViewExtensions, the user's remote-image policy), quoted text is collapsed, and it is wrapped in the theme's `email-frame.less` styles. Every image (`cid:`, http(s), CSS `url()`) is rewritten to `mailspring-view://<id>/_res/<token>`; tokens are minted in the main process at the host window's request, so a View can't send the image proxy anywhere an email didn't. Remote images are fetched from a cookie-less session, image types only, no loopback/private hosts. |
@@ -680,7 +872,9 @@ implementation are marked **CHANGED**.
 | `<MessageView>` | Header (avatar, from, to, date, Reply), the renderable body in an `<iframe sandbox="allow-same-origin" srcdoc>` (no scripts; same-origin only so the View can size it and route clicks: `http(s)` → `ui.openExternal`, `mailto:` → `ui.compose`), and attachment chips. `compact` shows the snippet until clicked. The transparent-vs-white-page decision runs the reading pane's own `email-color-detection` module, served to Views as `_runtime/email-colors.js`, so dark themes match EmailFrame. |
 | **CHANGED:** query options | `useThreads(search, { limit })`, `useMessages(search, opts)`, `getThreads(search, opts)` and `getMessages(search, opts)` merge the second argument into the query object. Agents write this form unprompted. |
 | Badges | `ui.setBadge(n)` shows `n` on the View's sidebar entry. The last count is remembered across launches, because a page View only runs while open. |
-| Error cards | View.jsx is compiled by Sucrase, which preserves line numbers, so stack frames in the error card read `View.jsx:LINE:COL`. A syntax error shows Sucrase's message with its position. |
+| Error cards | View.jsx is compiled by Sucrase, which preserves line numbers, so stack frames in the error card read `View.jsx:LINE:COL`. A syntax error shows Sucrase's message with its position. The card shows the **first** error of the page (often the cause of a later render crash) and counts the rest, which are in the View's diagnostics. |
+| Page nonce (wave 4) | The preload announces a random nonce per document (`mailspring-view:hello`) and stamps every call with it. The host ignores calls from any other page and stamps replies, so a reload can't deliver an old page's reply to the new page. Only the top-level document gets `window.mailspring`; frames inside a View (message bodies) don't. |
+| Sidebar modes (wave 4) | §1.1. Implemented in `views/lib/sidebar-view.tsx` and the generic switcher in `message-list/lib/sidebar-panels.tsx`. |
 | Hooks with `null` | Open decision 12 implemented: `useThreads(null)` etc. return empty data with `loading: false`. |
 | Errors | Spec codes throughout; an unknown method is `invalid`. |
 | Hidden Views | Emitting `visibility: { visible: false }` from the host pauses pushes; each subscription's latest snapshot is sent on resume. |

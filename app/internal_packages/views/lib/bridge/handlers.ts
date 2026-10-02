@@ -19,9 +19,16 @@ import {
 } from 'mailspring-exports';
 import { isMessageAllowed, isThreadAllowed } from '../../../mcp-server/lib/capabilities/grant';
 import { messageQuery, threadQuery, MailQuery } from '../../../mcp-server/lib/capabilities/queries';
-import { ViewError } from './errors';
+import { ViewError, withTimeout } from './errors';
+import { FilterError, validateFilter } from '../../../mcp-server/lib/capabilities/filter';
+import { currentIdentity } from '../../../mcp-server/lib/capabilities/identity';
 import { ViewGrant, requirePermission } from './grant';
-import { serializeAccount, serializeMessageSummary, serializeThreadSummary } from './serializers';
+import {
+  fillThreadSnippets,
+  serializeAccount,
+  serializeMessageSummary,
+  serializeThreadSummary,
+} from './serializers';
 import { countMessages, Dim, DIMS } from './counts';
 import { contentFor, messagesWithBodies } from './bodies';
 import { eventQuery, parseRange, serializeEvents } from './events';
@@ -48,6 +55,7 @@ export const LIMITS = {
 };
 
 const QueryObject = z.object({
+  where: z.any().optional(),
   search: z.string().optional(),
   accountId: z.string().optional(),
   categoryId: z.string().optional(),
@@ -69,19 +77,41 @@ export function parse<T>(schema: z.ZodType<T>, value: any): T {
 }
 
 /** Turns a View's Query into the shared MailQuery, applying defaults and caps. */
+const QUERY_KEYS = Object.keys(QueryObject.shape);
+
 export function mailQuery(
   grant: ViewGrant,
   kind: 'threads' | 'messages',
   query: any,
   offset?: number
 ): MailQuery {
+  if (query && typeof query === 'object' && !Array.isArray(query)) {
+    const unknown = Object.keys(query).filter((k) => !QUERY_KEYS.includes(k) && k !== 'offset');
+    if (unknown.length) {
+      throw new ViewError(
+        'invalid',
+        `query: unknown option "${unknown[0]}". Filters go under "where", e.g. ` +
+          `{ where: { ${unknown[0]}: ... }, limit: 50 }`
+      );
+    }
+  }
   const q = parse(QueryParam, query);
   const obj = typeof q === 'string' ? { search: q } : q;
   const { default: defaultLimit, max } = LIMITS[kind];
   if (obj.limit > max) {
     throw new ViewError('limit', `${kind} queries return at most ${max} items`);
   }
+  let filter;
+  if (obj.where !== undefined) {
+    try {
+      filter = validateFilter(obj.where);
+    } catch (err) {
+      throw toViewError(err);
+    }
+  }
   return {
+    filter,
+    background: true,
     search: obj.search,
     accountId: obj.accountId,
     categoryId: obj.categoryId,
@@ -92,6 +122,16 @@ export function mailQuery(
     limit: obj.limit || defaultLimit,
     offset: offset || 0,
   };
+}
+
+/** Runs a DatabaseStore query (a thenable) as a real Promise. */
+function run<T>(query: { then: (...args: any[]) => any }): Promise<T> {
+  return new Promise<T>((resolve, reject) => query.then(resolve, reject));
+}
+
+/** FilterErrors become ViewErrors with the same code; anything else is rethrown as-is. */
+export function toViewError(err: any) {
+  return err instanceof FilterError ? new ViewError(err.code, err.message) : err;
 }
 
 // Writes of `null` are stored as `{}` (metadata rows can't be deleted), so `tagged` queries
@@ -118,11 +158,19 @@ export function messagesPage(grant: ViewGrant, q: MailQuery, messages: Message[]
 }
 
 export function threadsFindQuery(grant: ViewGrant, q: MailQuery) {
-  return threadQuery(grant.scope, { ...q, limit: q.limit + 1 });
+  try {
+    return threadQuery(grant.scope, { ...q, limit: q.limit + 1 });
+  } catch (err) {
+    throw toViewError(err);
+  }
 }
 
 export function messagesFindQuery(grant: ViewGrant, q: MailQuery) {
-  return messageQuery(grant.scope, { ...q, limit: q.limit + 1 });
+  try {
+    return messageQuery(grant.scope, { ...q, limit: q.limit + 1 });
+  } catch (err) {
+    throw toViewError(err);
+  }
 }
 
 export function parseGroupBy(groupBy: any): Dim[] {
@@ -230,18 +278,31 @@ export const HANDLERS: { [method: string]: Handler } = {
   'threads.find': async ({ grant }, { query, offset }) => {
     requirePermission(grant, 'mail.read');
     const q = mailQuery(grant, 'threads', query, offset);
-    return threadsPage(grant, q, await threadsFindQuery(grant, q));
+    const page = threadsPage(
+      grant,
+      q,
+      await withTimeout(run<Thread[]>(threadsFindQuery(grant, q)))
+    );
+    await fillThreadSnippets(page.items);
+    return page;
   },
 
   'messages.find': async ({ grant }, { query, offset }) => {
     requirePermission(grant, 'mail.read');
     const q = mailQuery(grant, 'messages', query, offset);
-    return messagesPage(grant, q, await messagesFindQuery(grant, q));
+    return messagesPage(grant, q, await withTimeout(run<Message[]>(messagesFindQuery(grant, q))));
   },
 
   'counts.find': ({ grant }, { query, groupBy }) => {
     requirePermission(grant, 'mail.read');
-    return countMessages(grant, mailQuery(grant, 'messages', query), parseGroupBy(groupBy));
+    return withTimeout(
+      countMessages(grant, mailQuery(grant, 'messages', query), parseGroupBy(groupBy))
+    );
+  },
+
+  'identity.get': ({ grant }) => {
+    requirePermission(grant, 'mail.read');
+    return currentIdentity();
   },
 
   'events.find': async ({ grant }, params) => {
@@ -262,9 +323,13 @@ export const HANDLERS: { [method: string]: Handler } = {
       }),
       params
     );
+    // Every requested id gets an entry; `reason` says why text is missing.
     const out = {};
+    for (const id of ids) out[id] = { text: null, reason: 'not_found' };
     for (const message of await messagesWithBodies(grant, ids)) {
-      out[message.id] = contentFor(message, opts);
+      const content: any = contentFor(message, opts);
+      if (message.body === null) content.reason = 'body_unavailable';
+      out[message.id] = content;
     }
     return out;
   },

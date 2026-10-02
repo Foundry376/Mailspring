@@ -27,12 +27,20 @@ import {
 } from './bridge/handlers';
 import { countMessages } from './bridge/counts';
 import { eventQuery, parseRange, serializeEvents } from './bridge/events';
-import { ExtractJob, runExtractJob, validateSchema } from './bridge/extract';
+import {
+  ExtractJob,
+  cancelJobsForView,
+  runExtractJob,
+  setViewVisible,
+  validateSchema,
+} from './bridge/extract';
+import { fillThreadSnippets } from './bridge/serializers';
 
 // Channel names shared with runtime/bridge.preload.js.
 export const CALL_CHANNEL = 'mailspring-view:call';
 export const REPLY_CHANNEL = 'mailspring-view:reply';
 export const EVENT_CHANNEL = 'mailspring-view:event';
+export const HELLO_CHANNEL = 'mailspring-view:hello';
 
 const MAX_SUBSCRIPTIONS = 16;
 const MAX_RESPONSE_BYTES = 4 * 1024 * 1024;
@@ -55,6 +63,8 @@ interface Subscription {
 export interface ViewBridgeOptions {
   /** Extra methods merged over the built-ins, e.g. `ui.setHeight` for sidebar Views. */
   handlers?: { [method: string]: Handler };
+  /** Told about every call that fails, for the View's diagnostics. Params are not passed on. */
+  onCallError?: (method: string, error: { code: string; message: string }, params: any) => void;
 }
 
 function sizeChecked(payload: any) {
@@ -74,8 +84,15 @@ function sizeChecked(payload: any) {
  * Disposing it tears down every subscription and extraction job the View started.
  */
 export class ViewBridge {
-  readonly grant: ViewGrant;
+  grant: ViewGrant;
   private webview: Electron.WebviewTag;
+  private options: ViewBridgeOptions;
+  // Incremented whenever the guest starts a new page. Async work started by an older page
+  // checks it before registering anything, so nothing outlives the page that asked for it.
+  private generation = 0;
+  // The nonce the guest's preload announced for its current document. Calls carrying any
+  // other nonce come from a page that is being torn down and are ignored.
+  private page: string | null = null;
   private ctx: BridgeContext;
   private handlers: { [method: string]: Handler };
   private subscriptions = new Map<string, Subscription>();
@@ -88,6 +105,7 @@ export class ViewBridge {
 
   constructor(viewId: string, webview: Electron.WebviewTag, options: ViewBridgeOptions = {}) {
     this.webview = webview;
+    this.options = options;
     this.grant = grantForView(viewId);
     this.ctx = {
       viewId,
@@ -102,10 +120,36 @@ export class ViewBridge {
   dispose() {
     this.webview.removeEventListener('ipc-message', this.onIPCMessage);
     this.unlistenTheme();
+    this.dropPageState();
+    setViewVisible(this.ctx.viewId, true);
+  }
+
+  /**
+   * Called when the guest starts loading a new page (reload, hot reload, or a new revision).
+   * Everything the previous page started is torn down before the new page can call in, so
+   * the runtime's subscription and job ids only need to be unique within one page. The grant
+   * is re-read because a new revision may declare different permissions.
+   */
+  resetPage() {
+    this.dropPageState();
+    this.page = null;
+    this.visible = true;
+    setViewVisible(this.ctx.viewId, true);
+    this.callTokens = CALL_BURST;
+    this.callTokensAt = Date.now();
+    this.grant = grantForView(this.ctx.viewId);
+    this.ctx.grant = this.grant;
+  }
+
+  private dropPageState() {
+    this.generation += 1;
     for (const sub of this.subscriptions.values()) sub.dispose();
     this.subscriptions.clear();
     for (const job of this.jobs.values()) job.cancelled = true;
     this.jobs.clear();
+    cancelJobsForView(this.ctx.viewId).catch(() => {
+      // The extraction service may not be running; there is nothing queued to drop then.
+    });
   }
 
   /**
@@ -120,6 +164,7 @@ export class ViewBridge {
   private setVisible(visible: boolean) {
     if (visible === this.visible) return;
     this.visible = visible;
+    setViewVisible(this.ctx.viewId, visible);
     if (!visible) return;
     for (const sub of this.subscriptions.values()) {
       if (sub.pending !== undefined) {
@@ -165,10 +210,14 @@ export class ViewBridge {
       case 'threads': {
         requirePermission(grant, 'mail.read');
         const q = mailQuery(grant, 'threads', params.query);
-        return Rx.Observable.fromQuery(threadsFindQuery(grant, q)).map((threads: Thread[]) => {
-          const { items, hasMore } = threadsPage(grant, q, threads);
-          return { data: items, hasMore };
-        });
+        return Rx.Observable.fromQuery(threadsFindQuery(grant, q)).flatMapLatest(
+          (threads: Thread[]) => {
+            const { items, hasMore } = threadsPage(grant, q, threads);
+            return Rx.Observable.fromPromise(
+              fillThreadSnippets(items).then(() => ({ data: items, hasMore }))
+            );
+          }
+        );
       }
       case 'messages': {
         requirePermission(grant, 'mail.read');
@@ -221,8 +270,12 @@ export class ViewBridge {
           z.object({ subId: z.string().min(1), kind: z.string() }),
           params
         );
-        if (this.subscriptions.has(subId)) {
-          throw new ViewError('invalid', `Subscription ${subId} already exists.`);
+        // A page reusing an id replaces its own subscription; ids from earlier pages are
+        // already gone (resetPage).
+        const existing = this.subscriptions.get(subId);
+        if (existing) {
+          existing.dispose();
+          this.subscriptions.delete(subId);
         }
         if (this.subscriptions.size >= MAX_SUBSCRIPTIONS) {
           throw new ViewError(
@@ -261,12 +314,13 @@ export class ViewBridge {
 
       'ai.extract': async (ctx, params) => {
         requirePermission(this.grant, 'mail.bodies');
-        const { jobId, schema, ids, query } = parse(
+        const { jobId, schema, ids, query, instructions } = parse(
           z.object({
             jobId: z.string().min(1),
             schema: z.any(),
             ids: z.array(z.string()).optional(),
             query: z.any().optional(),
+            instructions: z.string().max(2000).optional(),
           }),
           params
         );
@@ -276,6 +330,7 @@ export class ViewBridge {
         } catch (err) {
           throw new ViewError('invalid', err.message);
         }
+        const generation = this.generation;
         let targetIds = ids;
         if (!targetIds) {
           if (query === undefined) throw new ViewError('invalid', 'Pass ids or query.');
@@ -284,12 +339,20 @@ export class ViewBridge {
           targetIds = messagesPage(this.grant, q, messages).items.map((m) => m.id);
         }
         const job: ExtractJob = { cancelled: false };
+        if (generation !== this.generation) return { jobId, total: 0 };
         this.jobs.set(jobId, job);
-        runExtractJob(this.grant, targetIds, validSchema, job, (progress) => {
-          if (job.cancelled) return;
-          this.emit('ai.progress', { jobId, ...progress });
-          if (progress.status !== 'running') this.jobs.delete(jobId);
-        }).catch((err) => {
+        runExtractJob(
+          this.grant,
+          targetIds,
+          validSchema,
+          job,
+          (progress) => {
+            if (job.cancelled) return;
+            this.emit('ai.progress', { jobId, ...progress });
+            if (progress.status !== 'running') this.jobs.delete(jobId);
+          },
+          { instructions }
+        ).catch((err) => {
           this.jobs.delete(jobId);
           this.emit('ai.progress', {
             jobId,
@@ -338,8 +401,24 @@ export class ViewBridge {
   }
 
   private onIPCMessage = async (event: Electron.IpcMessageEvent) => {
+    if (event.channel === HELLO_CHANNEL) {
+      // The preload's first message on every document. Nothing the new page asked for can
+      // exist yet, so anything still registered belongs to the page it replaces.
+      const { page } = event.args[0] || ({} as any);
+      if (typeof page !== 'string' || page === this.page) return;
+      if (this.page !== null) this.dropPageState();
+      this.page = page;
+      return;
+    }
     if (event.channel !== CALL_CHANNEL) return;
-    const { id, method, params } = event.args[0] || ({} as any);
+    const { page, id, method, params } = event.args[0] || ({} as any);
+    // Calls from a document that is being replaced get no reply: it would arrive at the new
+    // document, whose preload ignores replies stamped with another page's nonce anyway.
+    if (page !== this.page) return;
+    const generation = this.generation;
+    const reply = (payload: any) => {
+      if (generation === this.generation) this.send(REPLY_CHANNEL, { page, ...payload });
+    };
     try {
       if (!this.takeCallToken()) {
         throw new ViewError('limit', 'Too many bridge calls. Slow down and retry.');
@@ -355,15 +434,21 @@ export class ViewBridge {
       const run = () => Promise.resolve(handler(this.ctx, params || {}));
       // Subscription bookkeeping and theme reads are too frequent to be useful in the log.
       const result =
-        method === 'unsubscribe' || method === 'theme.get' || method === 'ui.setHeight'
+        method === 'unsubscribe' ||
+        method === 'theme.get' ||
+        method === 'ui.setHeight' ||
+        method === 'view.diagnostic'
           ? await run()
           : await audited(`view:${this.ctx.viewId}`, method, params, run);
-      this.send(REPLY_CHANNEL, { id, result: sizeChecked(result === undefined ? null : result) });
+      reply({ id, result: sizeChecked(result === undefined ? null : result) });
     } catch (err) {
       if (!(err instanceof ViewError)) this.warn(String(method), err);
       const error =
         err instanceof ViewError ? err.toJSON() : { code: 'internal', message: err.message };
-      this.send(REPLY_CHANNEL, { id, error });
+      if (this.options.onCallError && generation === this.generation) {
+        this.options.onCallError(String(method), error, params);
+      }
+      reply({ id, error });
     }
   };
 }

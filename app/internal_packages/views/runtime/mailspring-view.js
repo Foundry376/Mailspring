@@ -29,8 +29,11 @@
   const isSidebar =
     new URLSearchParams(window.location.hash.slice(1)).get('placement') === 'thread-sidebar';
 
+  // Ids are unique per page load, so a reloaded View can't collide with subscriptions the host
+  // still holds for the previous page.
+  const pageToken = Math.random().toString(36).slice(2, 8);
   let nextId = 1;
-  const uid = (prefix) => `${prefix}${nextId++}`;
+  const uid = (prefix) => `${prefix}${pageToken}-${nextId++}`;
 
   // ── Subscriptions ─────────────────────────────────────────────────────────
   // Data arrives as `subscription` events tagged with an id the View chose, so a listener is
@@ -135,36 +138,64 @@
     for (let i = 0; i < missing.length; i += CONTENT_BATCH) {
       const batch = missing.slice(i, i + CONTENT_BATCH);
       const result = await call('messages.content', { ids: batch, ...opts });
-      for (const id of batch) contentCache.set(`${id}:${optsKey}`, result[id] || null);
+      for (const id of batch) {
+        const value = result[id] || { text: null, reason: 'not_found' };
+        if (isFinal(value)) contentCache.set(`${id}:${optsKey}`, value);
+        else contentCache.set(`${id}:${optsKey}:pending`, value);
+      }
     }
+    return readContentCache(ids, opts);
+  }
+
+  function readContentCache(ids, opts) {
+    const optsKey = JSON.stringify(opts);
     const out = {};
     for (const id of ids) {
-      const value = contentCache.get(`${id}:${optsKey}`);
+      const value =
+        contentCache.get(`${id}:${optsKey}`) || contentCache.get(`${id}:${optsKey}:pending`);
       if (value) out[id] = value;
     }
     return out;
   }
 
+  // Content whose body wasn't downloaded yet is retried on the next request instead of being
+  // cached as missing.
+  const isFinal = (value) => value && value.reason !== 'body_unavailable';
+
   // Not live: content for new ids is fetched as the id list grows, and partial results render
   // as each batch arrives.
   function useContent(ids, opts) {
     const key = JSON.stringify([ids || [], opts || {}]);
-    const [state, setState] = useState({ data: {}, loading: !!(ids && ids.length), error: null });
+    const total = ids ? ids.length : 0;
+    const [state, setState] = useState({
+      data: {},
+      loading: total > 0,
+      error: null,
+      loaded: 0,
+      total,
+    });
     useEffect(() => {
       let cancelled = false;
       const list = ids || [];
       if (list.length === 0) {
-        setState({ data: {}, loading: false, error: null });
+        setState({ data: {}, loading: false, error: null, loaded: 0, total: 0 });
         return undefined;
       }
-      setState((s) => ({ ...s, loading: true, error: null }));
+      setState((s) => ({ ...s, loading: true, error: null, total: list.length }));
       (async () => {
         try {
           for (let i = 0; i < list.length && !cancelled; i += CONTENT_BATCH) {
             const upto = list.slice(0, i + CONTENT_BATCH);
-            const data = await getContent(upto, opts || {});
+            await getContent(list.slice(i, i + CONTENT_BATCH), opts || {});
+            const data = readContentCache(upto, opts || {});
             if (!cancelled) {
-              setState({ data, loading: i + CONTENT_BATCH < list.length, error: null });
+              setState({
+                data,
+                loading: i + CONTENT_BATCH < list.length,
+                error: null,
+                loaded: Math.min(upto.length, list.length),
+                total: list.length,
+              });
             }
           }
         } catch (error) {
@@ -256,6 +287,34 @@
       return cancel;
     }, [key]);
     return state;
+  }
+
+  // ── Identity ──────────────────────────────────────────────────────────────
+
+  let identityPromise = null;
+  const getIdentity = () => {
+    if (!identityPromise) {
+      identityPromise = call('identity.get').catch((err) => {
+        identityPromise = null;
+        throw err;
+      });
+    }
+    return identityPromise;
+  };
+
+  function useIdentity() {
+    const [value, setValue] = useState(null);
+    useEffect(() => {
+      let cancelled = false;
+      getIdentity().then(
+        (identity) => !cancelled && setValue(identity),
+        () => {}
+      );
+      return () => {
+        cancelled = true;
+      };
+    }, []);
+    return value;
   }
 
   // ── Writes ────────────────────────────────────────────────────────────────
@@ -600,12 +659,14 @@
     useSelectedThread,
     useTheme,
     useViewState,
+    useIdentity,
     // One-shot reads
     getThreads,
     getMessages,
     getCounts,
     getEvents,
     getContent,
+    getIdentity,
     // Extraction
     useExtract,
     extract,

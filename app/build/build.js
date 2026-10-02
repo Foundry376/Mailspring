@@ -23,6 +23,30 @@ const tmpdir = path.resolve(os.tmpdir(), 'nylas-build');
 const packageJSON = require(path.join(appDir, 'package.json'));
 const { compilerOptions } = require(path.join(appDir, 'tsconfig.json'));
 
+/**
+ * Paths, relative to `node_modules`, of a package and everything it depends on, including the
+ * platform binary packages it lists as optional dependencies.
+ */
+function dependencyClosure(rootPackage) {
+  const found = new Set();
+  const visit = (name, fromDir) => {
+    for (let dir = fromDir; ; dir = path.dirname(dir)) {
+      const pkgDir = path.join(dir, 'node_modules', name);
+      if (fs.existsSync(path.join(pkgDir, 'package.json'))) {
+        if (found.has(pkgDir)) return;
+        found.add(pkgDir);
+        const pkg = JSON.parse(fs.readFileSync(path.join(pkgDir, 'package.json'), 'utf8'));
+        const deps = Object.assign({}, pkg.dependencies, pkg.optionalDependencies);
+        Object.keys(deps).forEach((dep) => visit(dep, pkgDir));
+        return;
+      }
+      if (path.dirname(dir) === dir) return; // optional dependency for another platform
+    }
+  };
+  visit(rootPackage, appDir);
+  return [...found].map((pkgDir) => path.relative(path.join(appDir, 'node_modules'), pkgDir));
+}
+
 const sourceGlobs = [
   'internal_packages/**/*.ts',
   'internal_packages/**/*.tsx',
@@ -47,10 +71,10 @@ function spawn(options) {
     const stdout = [];
     const stderr = [];
     const proc = childSpawn(options.cmd, options.args, options.opts);
-    proc.stdout.on('data', data => stdout.push(data.toString()));
-    proc.stderr.on('data', data => stderr.push(data.toString()));
+    proc.stdout.on('data', (data) => stdout.push(data.toString()));
+    proc.stderr.on('data', (data) => stderr.push(data.toString()));
     proc.on('error', reject);
-    proc.on('close', exitCode => {
+    proc.on('close', (exitCode) => {
       const result = { stdout: stdout.join(''), stderr: stderr.join(''), code: exitCode };
       if (exitCode !== 0) {
         console.error(result.stderr);
@@ -66,9 +90,9 @@ const symlinkedPackages = [];
 function resolveRealSymlinkPaths() {
   console.log('---> Resolving symlinks');
   const dirs = ['internal_packages', 'src', 'spec', 'node_modules'];
-  dirs.forEach(dir => {
+  dirs.forEach((dir) => {
     const absoluteDir = path.join(appDir, dir);
-    fs.readdirSync(absoluteDir).forEach(packageName => {
+    fs.readdirSync(absoluteDir).forEach((packageName) => {
       const relativePackageDir = path.join(dir, packageName);
       const absolutePackageDir = path.join(absoluteDir, packageName);
       const realPackagePath = fs.realpathSync(absolutePackageDir).replace('/private/', '/');
@@ -126,8 +150,8 @@ function writeFileEnsureDir(filePath, contents) {
 
 function runTranspilers({ buildPath }) {
   console.log('---> Running TypeScript Compiler');
-  sourceGlobs.forEach(pattern => {
-    glob.sync(pattern, { cwd: buildPath }).forEach(relPath => {
+  sourceGlobs.forEach((pattern) => {
+    glob.sync(pattern, { cwd: buildPath }).forEach((relPath) => {
       const tsPath = path.join(buildPath, relPath);
       const tsCode = fs.readFileSync(tsPath).toString();
       if (/(node_modules|\.js$)/.test(tsPath)) return;
@@ -150,7 +174,7 @@ async function runUploadSourceMapsToSentry({ buildPath }) {
   const mapFiles = glob.sync('**/*.js.map', { cwd: buildPath });
 
   const cleanup = () => {
-    mapFiles.forEach(relPath => fs.unlinkSync(path.join(buildPath, relPath)));
+    mapFiles.forEach((relPath) => fs.unlinkSync(path.join(buildPath, relPath)));
     console.log(`---> Cleaned up ${mapFiles.length} source map files`);
   };
 
@@ -241,6 +265,11 @@ function buildPackagerOptions() {
           '**/src/tasks/**',
           '**/src/quickpreview/**',
           '**/mcp-stdio-bridge.js',
+          // On-device extraction (src/browser/extraction-service.ts) runs node-llama-cpp in a
+          // utility process. It is ESM with native binaries, so the worker, the package and
+          // everything it imports live on disk and are imported from app.asar.unpacked.
+          '**/src/browser/extraction-worker.js',
+          ...dependencyClosure('node-llama-cpp').map((dir) => `**/node_modules/${dir}/**`),
           '**/static/all_licenses.html',
           '**/static/extensions/**',
           '**/node_modules/spellchecker/**',
@@ -294,7 +323,7 @@ function buildPackagerOptions() {
           // "Developer ID Application" certs: signing with one the profile doesn't list makes
           // amfid reject the restricted entitlements and the app refuses to launch.
           identity: process.env.APPLE_SIGNING_IDENTITY,
-          optionsForFile: filePath => {
+          optionsForFile: (filePath) => {
             // Only the main app bundle gets the full entitlements plist,
             // which includes restricted entitlements (keychain-access-groups,
             // com.apple.developer.*) that are validated against the embedded
@@ -412,7 +441,9 @@ async function createDebInstaller() {
     const { stdout } = await spawn({ cmd: 'du', args: ['-sk', contentsDir] });
     installedSize = stdout.split(/\s+/).shift() || '200000';
   } catch (err) {
-    console.warn(`---> du failed (${err.message}), defaulting installed size to ${installedSize}KB`);
+    console.warn(
+      `---> du failed (${err.message}), defaulting installed size to ${installedSize}KB`
+    );
   }
 
   const data = {
@@ -489,7 +520,7 @@ async function main() {
   // app/build/create-signed-windows-installer.js because of path issues.
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error(err);
   process.exit(1);
 });

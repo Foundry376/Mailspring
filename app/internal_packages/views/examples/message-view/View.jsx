@@ -4,7 +4,7 @@ import { useMessages, MessageView, ui } from '@mailspring/view';
 // Exercises <MessageView>: the newest inbox messages, the selected one expanded and the rest
 // compact, rendered the way the reading pane renders them.
 export default function MessageViewDemo() {
-  const { data: messages, loading } = useMessages({ search: 'in:inbox', limit: 6 });
+  const { data: messages, loading } = useMessages({ where: { in: 'inbox' }, limit: 6 });
   const [selected, setSelected] = useState(null);
   const current = selected || (messages[0] && messages[0].id);
 

@@ -1,11 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { ArrowDownLeft, ArrowUpRight, Clock, MessagesSquare, Mail, Search } from 'lucide-react';
-import { useSelectedThread, useAccounts, useCounts, useThreads, useMessages, useTheme, ui } from '@mailspring/view';
+import { useSelectedThread, useCounts, useThreads, useMessages, useTheme, ui } from '@mailspring/view';
 
 const lc = (s) => String(s ?? '').toLowerCase();
-
-const ymd = (d) => `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/01`;
 
 // The twelve months ending at `end`, so an old relationship still shows its last active year.
 function twelveMonthsEnding(end) {
@@ -16,7 +14,7 @@ function twelveMonthsEnding(end) {
   }
   const start = new Date(end.getFullYear(), end.getMonth() - 11, 1);
   const after = new Date(end.getFullYear(), end.getMonth() + 1, 1);
-  return { months, search: `after:${ymd(new Date(start - 86400000))} before:${ymd(after)}` };
+  return { months, range: { after: start.toISOString(), before: after.toISOString() } };
 }
 
 function duration(ms) {
@@ -81,26 +79,26 @@ function Heading({ children }) {
 export default function SenderContext() {
   const selected = useSelectedThread();
   const theme = useTheme();
-  const accounts = useAccounts();
   const [picked, setPicked] = useState(null);
 
-  const myEmails = useMemo(() => new Set(accounts.data.map((a) => lc(a.email))), [accounts.data]);
   const others = (selected?.thread.participants || []).filter((p) => !p.isMe);
   const lastInbound = selected && [...selected.messages].reverse().find((m) => !m.isSent && m.from);
   const defaultEmail = lc(lastInbound?.from?.email || others[0]?.email);
   const email = others.some((p) => lc(p.email) === picked) ? picked : defaultEmail;
   const person = others.find((p) => lc(p.email) === email) || lastInbound?.from;
 
-  const q = email ? `from:${email} OR to:${email}` : null;
-  const totals = useCounts(q, 'sender');
+  const withThem = email ? { participant: email } : null;
+  const totals = useCounts(withThem && { where: withThem }, 'sender');
   const lastContact = totals.data.reduce((d, r) => (!d || r.last > d ? r.last : d), null);
   const span = useMemo(() => twelveMonthsEnding(lastContact ? new Date(lastContact) : new Date()), [lastContact?.slice(0, 7)]);
-  const monthly = useCounts(q && lastContact ? `(${q}) ${span.search}` : null, ['month', 'sender']);
-  const recent = useThreads(q ? { search: q, limit: 6 } : null);
-  const history = useMessages(q ? { search: q, limit: 300 } : null);
+  const monthly = useCounts(
+    withThem && lastContact ? { where: { and: [withThem, { date: span.range }] } } : null,
+    ['month', 'sender']
+  );
+  const recent = useThreads(withThem && { where: withThem, limit: 6 });
+  const history = useMessages(withThem && { where: withThem, limit: 300 });
 
   const isThem = (key) => lc(key) === email;
-  const isMine = (key) => myEmails.has(lc(key));
 
   const summary = useMemo(() => {
     let received = 0;
@@ -109,14 +107,14 @@ export default function SenderContext() {
     let last = null;
     for (const r of totals.data) {
       const them = isThem(r.key.sender);
-      if (!them && !isMine(r.key.sender)) continue;
+      if (!them && !r.isMe.sender) continue;
       if (them) received += r.count;
       else sent += r.count;
       if (!first || r.first < first) first = r.first;
       if (!last || r.last > last) last = r.last;
     }
     return { received, sent, first, last };
-  }, [totals.data, email, myEmails]);
+  }, [totals.data, email]);
 
   const series = useMemo(() => {
     const months = span.months;
@@ -125,10 +123,10 @@ export default function SenderContext() {
       const row = rows[r.key.month];
       if (!row) continue;
       if (isThem(r.key.sender)) row.them += r.count;
-      else if (isMine(r.key.sender)) row.me += r.count;
+      else if (r.isMe.sender) row.me += r.count;
     }
     return months.map((m) => rows[m]);
-  }, [monthly.data, span, email, myEmails]);
+  }, [monthly.data, span, email]);
 
   const latency = useMemo(() => replyTimes(history.data, email), [history.data, email]);
   const myMedian = median(latency.mine);
@@ -137,13 +135,13 @@ export default function SenderContext() {
 
   if (!selected || !email) return null;
 
-  const loading = totals.loading || accounts.loading;
+  const loading = totals.loading;
   const otherThreads = recent.data.filter((t) => t.id !== selected.thread.id).slice(0, 5);
   const monthLabel = (m) => new Date(`${m}-15`).toLocaleDateString([], { month: 'short', year: '2-digit' });
 
   return (
-    // Matches the host's .sidebar-section cards: 5px inset, 5px radius, 1px border, 15px padding.
-    <div className="mx-[5px] mb-[5px] rounded-[5px] border border-ms-border bg-ms-bg p-[15px] text-[13px] text-ms-text space-y-4">
+    // The host draws the sidebar chrome (a card, or the full panel), so the View adds none.
+    <div className="text-[13px] text-ms-text space-y-4">
       <div>
         <div className="font-semibold truncate">{person?.name || email}</div>
         <div className="text-xs text-ms-muted truncate">{email}</div>
@@ -235,7 +233,7 @@ export default function SenderContext() {
           ))}
           {!recent.loading && otherThreads.length === 0 && <div className="text-xs text-ms-muted">This is your only thread together.</div>}
         </div>
-        <button onClick={() => ui.search(q)} className="mt-1.5 flex items-center gap-1 text-xs text-ms-accent hover:underline">
+        <button onClick={() => ui.search(`from:${email} OR to:${email}`)} className="mt-1.5 flex items-center gap-1 text-xs text-ms-accent hover:underline">
           <Search size={11} /> All mail with {(person?.name || email).split(' ')[0]}
         </button>
       </div>

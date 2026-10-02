@@ -15,6 +15,7 @@ import {
   getCounts,
   getEvents,
   getContent,
+  getIdentity,
   extract,
   setMetadata,
   modify,
@@ -198,6 +199,82 @@ export default function ApiSmoke() {
           await getThreads({ search: 'in:inbox', limit: 5000 });
         } catch (err) {
           assert(err instanceof ViewError && err.code === 'limit', `wrong error ${err.code}`);
+          return err.message;
+        }
+        throw new Error('no error');
+      });
+      await check(record, 'JSON: where (in + unread)', async () => {
+        const { items } = await getThreads({ where: { and: [{ in: 'inbox' }, { unread: true }] }, limit: 5 });
+        assert(items.every((t) => t.unread), 'returned a read thread');
+        return `${items.length} unread inbox threads`;
+      });
+      await check(record, 'JSON: direction sent (message-level)', async () => {
+        const { items } = await getMessages({ where: { direction: 'sent' }, limit: 20 });
+        assert(items.length > 0, 'no sent messages');
+        assert(items.every((m) => m.isSent && m.from && m.from.isMe), 'a non-sent message came back');
+        return `${items.length} sent`;
+      });
+      await check(record, 'JSON: participant (80 addresses)', async () => {
+        const identity = await getIdentity();
+        const people = Array.from({ length: 79 }, (_, i) => `nobody${i}@example.invalid`);
+        const started = performance.now();
+        const { items } = await getMessages({
+          where: { participant: [...people, identity.addresses[0]] },
+          limit: 10,
+        });
+        const ms = Math.round(performance.now() - started);
+        assert(items.length > 0, 'no results');
+        return `${items.length} messages in ${ms}ms`;
+      });
+      await check(record, 'string: 80-term OR', async () => {
+        const terms = Array.from({ length: 40 }, (_, i) => `from:p${i}@example.invalid OR to:p${i}@example.invalid`);
+        const started = performance.now();
+        await getMessages({ search: terms.join(' OR '), limit: 10 });
+        return `resolved in ${Math.round(performance.now() - started)}ms`;
+      });
+      await check(record, 'string: field group', async () => {
+        const grouped = await getThreads({ search: 'subject:(invoice OR receipt OR linkedin)', limit: 50 });
+        const ored = await getThreads({
+          search: 'subject:invoice OR subject:receipt OR subject:linkedin',
+          limit: 50,
+        });
+        assert(grouped.items.length === ored.items.length, `${grouped.items.length} vs ${ored.items.length}`);
+        assert(grouped.items.length > 0, 'no results');
+        return `${grouped.items.length} threads`;
+      });
+      await check(record, 'identity', async () => {
+        const identity = await getIdentity();
+        assert(identity.accounts.length > 0, 'no accounts');
+        assert(identity.addresses.length >= identity.accounts.length, 'missing addresses');
+        return `${identity.accounts.length} accounts, ${identity.addresses.length} addresses`;
+      });
+      await check(record, 'counts: names + isMe', async () => {
+        const rows = await getCounts({ where: { direction: 'sent' } }, 'sender');
+        assert(rows.length > 0 && rows.every((r) => r.isMe.sender), 'sent rows not flagged isMe');
+        const received = await getCounts({ where: { direction: 'received' } }, 'sender');
+        assert(received.some((r) => r.labels.sender), 'no sender names');
+        return `${rows.length} own addresses; e.g. ${received.find((r) => r.labels.sender).labels.sender}`;
+      });
+      await check(record, 'snippets on threads', async () => {
+        const { items } = await getThreads({ where: { in: 'inbox' }, limit: 20 });
+        const withSnippet = items.filter((t) => t.snippet).length;
+        assert(withSnippet > 0, 'no thread snippets');
+        return `${withSnippet}/${items.length}`;
+      });
+      await check(record, 'error: where at top level', async () => {
+        try {
+          await getThreads({ from: 'uber.com' });
+        } catch (err) {
+          assert(err.code === 'invalid' && /where/.test(err.message), err.message);
+          return err.message;
+        }
+        throw new Error('no error');
+      });
+      await check(record, 'error: unknown folder', async () => {
+        try {
+          await getThreads({ where: { in: 'Definitely Not A Folder' } });
+        } catch (err) {
+          assert(err.code === 'invalid', `wrong error ${err.code}`);
           return err.message;
         }
         throw new Error('no error');

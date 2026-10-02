@@ -818,3 +818,64 @@ body.platform-win32 {
     width: 1px;
   }
 }
+
+//////////////////////////
+// sidebar-panels       //
+//////////////////////////
+// Switcher between the Contact cards and any `MessageListSidebar:Panel` providers. While a
+// non-Contact panel is active, every other component in the sidebar column is hidden and the
+// panel fills the column.
+.sidebar-panels {
+  display: flex;
+  flex-direction: column;
+
+  &.panel-active {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .sidebar-panel-switcher {
+    display: flex;
+    margin: 10px 5px 5px 5px;
+    padding: 2px;
+    border-radius: @border-radius-base;
+    background: fade(@text-color, 6%);
+  }
+
+  .sidebar-panel-tab {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 3px 8px;
+    border: 0;
+    border-radius: @border-radius-small;
+    background: transparent;
+    color: @text-color-subtle;
+    font-size: 12px;
+    cursor: default;
+
+    &:hover {
+      color: @text-color;
+    }
+    &.active {
+      background: @background-primary;
+      color: @text-color;
+      box-shadow: 0 0.5px 1.5px rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  .sidebar-panel {
+    flex: 1;
+    min-height: 0;
+    flex-direction: column;
+  }
+}
+
+.column-MessageListSidebar,
+.view-reading-pane-sidebar {
+  :has(> .sidebar-panels.panel-active) > :not(.sidebar-panels) {
+    display: none !important;
+  }
+}

@@ -3,5 +3,6 @@
   "name": "Sender Context",
   "version": "1.0.0",
   "placement": "thread-sidebar",
+  "sidebar": { "mode": "panel", "title": "History" },
   "permissions": ["mail.read"]
 }

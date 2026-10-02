@@ -1,5 +1,15 @@
-import { Account, Category, Contact, File, Label, Message, Thread } from 'mailspring-exports';
+import {
+  Account,
+  Category,
+  Contact,
+  DatabaseStore,
+  File,
+  Label,
+  Message,
+  Thread,
+} from 'mailspring-exports';
 import { isMessageAllowed, isThreadAllowed } from '../../../mcp-server/lib/capabilities/grant';
+import { isMyAddress } from '../../../mcp-server/lib/capabilities/identity';
 import type { ViewGrant } from './grant';
 
 // Authorization + output shaping for everything that crosses the View bridge (shapes in
@@ -12,8 +22,10 @@ function iso(date: Date | null | undefined): string | null {
   return date && !isNaN(date.getTime()) ? date.toISOString() : null;
 }
 
+// `Contact.isMe` only knows configured accounts and aliases; the identity also includes
+// addresses the user has sent from, so old aliases don't show up as other people.
 export function serializeContact(c: Contact) {
-  return { name: c.name || '', email: c.email, isMe: c.isMe() };
+  return { name: c.name || '', email: c.email, isMe: c.isMe() || isMyAddress(c.email) };
 }
 
 export function serializeCategory(c: Category) {
@@ -65,7 +77,7 @@ export function serializeThreadSummary(grant: ViewGrant, thread: Thread) {
     id: thread.id,
     accountId: thread.accountId,
     subject: thread.subject,
-    snippet: thread.snippet,
+    snippet: thread.snippet || null,
     unread: !!thread.unread,
     starred: !!thread.starred,
     participants,
@@ -86,13 +98,13 @@ export function serializeMessageSummary(grant: ViewGrant, message: Message) {
     threadId: message.threadId,
     accountId: message.accountId,
     subject: message.subject,
-    snippet: message.snippet,
+    snippet: message.snippet || null,
     date: iso(message.date),
     from: from ? serializeContact(from) : null,
     to: (message.to || []).map(serializeContact),
     cc: (message.cc || []).map(serializeContact),
     bcc: (message.bcc || []).map(serializeContact),
-    isSent: message.isFromMe(),
+    isSent: message.isFromMe() || !!(from && isMyAddress(from.email)),
     unread: !!message.unread,
     starred: !!message.starred,
     draft: !!message.draft,
@@ -106,3 +118,25 @@ export function serializeMessageSummary(grant: ViewGrant, message: Message) {
 
 export type ThreadSummary = ReturnType<typeof serializeThreadSummary>;
 export type MessageSummary = ReturnType<typeof serializeMessageSummary>;
+
+/**
+ * Threads have no stored snippet; the thread list shows the newest message snippet, so this
+ * does the same with one query. Message snippets exist only once the body has been fetched,
+ * so some threads keep `snippet: null`.
+ */
+export async function fillThreadSnippets(items: ThreadSummary[]) {
+  const missing = items.filter((t) => t && !t.snippet).map((t) => t.id);
+  if (missing.length === 0) return items;
+  const ids = missing.map((id) => `'${id.replace(/'/g, "''")}'`).join(', ');
+  const rows = await (DatabaseStore as any)._query(
+    "SELECT `threadId`, json_extract(`data`, '$.snippet') AS `snippet` FROM `Message` " +
+      `WHERE \`threadId\` IN (${ids}) AND \`draft\` = 0 ` +
+      "AND json_extract(`data`, '$.snippet') IS NOT NULL ORDER BY `date` ASC",
+    [],
+    true
+  );
+  const latest = new Map<string, string>();
+  for (const row of rows) latest.set(row.threadId, row.snippet);
+  for (const t of items) if (t && !t.snippet) t.snippet = latest.get(t.id) || null;
+  return items;
+}

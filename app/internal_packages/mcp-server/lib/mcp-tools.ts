@@ -49,6 +49,21 @@ import {
   onAuditLogChanged,
 } from './capabilities/audit';
 import { threadQuery } from './capabilities/queries';
+import { FilterError, validateFilter } from './capabilities/filter';
+import { countMessages, DIMS } from './capabilities/counts';
+import { currentIdentity } from './capabilities/identity';
+
+const FILTER_DESCRIPTION =
+  'Structured JSON filter, an alternative to `query` that avoids search-syntax parsing. Each ' +
+  'object has exactly one key. Combinators: {and:[...]}, {or:[...]}, {not:{...}}. Message ' +
+  'fields (a thread matches if any of its messages does): {from: addr|addr[]}, {to: ...} ' +
+  '(to/cc/bcc), {participant: ...}, {direction:"sent"|"received"}, {hasAttachment:bool}, ' +
+  '{listUnsubscribe:bool}. Thread fields: {in: role|folderId|name} (roles: inbox, sent, ' +
+  'drafts, trash, spam, archive, all), {text:"words"} (full-text, every word must appear, ' +
+  'stemmed), {subject:"substring"}, {unread:bool}, {starred:bool}, {account:id}, ' +
+  '{date:{after?:ISO, before?:ISO}}, {search:"search-bar syntax"}. An addr is a full address ' +
+  '("a@b.com") or a domain ("uber.com", matching subdomains too). Example: ' +
+  '{and:[{from:["uber.com","lyft.com"]},{date:{after:"2026-01-01"}}]}';
 
 // Plugin IDs used by the built-in open-tracking and link-tracking packages
 // (see app/internal_packages/open-tracking/package.json and link-tracking/package.json).
@@ -396,7 +411,11 @@ export function registerTools(server: McpServer) {
     'search_mail',
     'Search for email threads using query syntax. Keywords: from:<email>, to:<email>, subject:<text>, in:<folder> (matches a folder/label\'s standard role when it has one, e.g. "in:sent", "in:inbox", "in:trash", "in:drafts", "in:spam", "in:archive" — this works across providers without needing to look up folder names first; falls back to matching the folder/path name for custom folders/labels), is:unread|read|starred|unstarred, has:attachment, before:<date>/since:<date>/after:<date> (accepts natural language like "yesterday", "2 days ago", "last week", or an exact date like "2018/05/31"). Combine terms with AND (the default between adjacent terms), OR, and NOT; use parentheses to group and "quoted phrases" for exact matches. Examples: \'in:sent project alpha\', \'from:alice is:unread\', \'(to:bob OR to:carol) has:attachment\'.',
     {
-      query: z.string().describe('Search query string'),
+      query: z
+        .string()
+        .optional()
+        .describe('Search query string. Optional when `filter` is given.'),
+      filter: z.record(z.string(), z.any()).optional().describe(FILTER_DESCRIPTION),
       accountId: z.string().optional().describe('Optional account ID to scope the search'),
       limit: z.number().optional().default(150).describe('Max results to return (default 150)'),
       offset: z
@@ -406,18 +425,27 @@ export function registerTools(server: McpServer) {
         .describe('Number of results to skip for pagination (default 0)'),
     },
     'read',
-    async ({ query, accountId, limit, offset }) => {
+    async ({ query, filter, accountId, limit, offset }) => {
       if (accountId) {
         const err = checkAccountAccess(accountId);
         if (err) return errorResult(err);
       }
+      if (!query && !filter) return errorResult('Provide `query`, `filter`, or both.');
 
-      const dbQuery = threadQuery(mcpGrant(), {
-        search: query,
-        accountId,
-        limit: limit || 150,
-        offset: offset || 0,
-      });
+      let dbQuery;
+      try {
+        dbQuery = threadQuery(mcpGrant(), {
+          search: query,
+          filter: filter ? validateFilter(filter) : undefined,
+          accountId,
+          limit: limit || 150,
+          offset: offset || 0,
+          background: !!filter,
+        });
+      } catch (err) {
+        if (err instanceof FilterError) return errorResult(err.message);
+        throw err;
+      }
 
       const threads = await dbQuery;
       // Folder-level exclusion can't be pushed into this query cheaply (it's
@@ -429,6 +457,74 @@ export function registerTools(server: McpServer) {
         .map((t) => serializeThreadSummary(t, { includeMessageCount: true }))
         .filter((r): r is Record<string, any> => r !== null);
       return textResult(results);
+    }
+  );
+
+  defineTool(
+    server,
+    'count_mail',
+    'Count messages grouped by one or two dimensions, computed in SQL (fast over large mailboxes). ' +
+      'Use it for top senders/recipients, volume over time, per-folder breakdowns and activity ' +
+      'heatmaps instead of paging through search results. Rows are sorted by count, descending, and ' +
+      'carry `first`/`last` message dates. Person dimensions (sender, recipient) include a display ' +
+      'name in `labels` and an `isMe` flag; category and account rows include readable names.',
+    {
+      groupBy: z
+        .array(z.enum(DIMS as [string, ...string[]]))
+        .min(1)
+        .max(2)
+        .describe(
+          'Dimensions: sender, recipient, category, account, thread, year, month, week, day, weekday (0=Sunday), hour (local)'
+        ),
+      query: z.string().optional().describe('Search query string, as in search_mail'),
+      filter: z.record(z.string(), z.any()).optional().describe(FILTER_DESCRIPTION),
+      accountId: z.string().optional().describe('Optional account ID to scope the count'),
+      limit: z.number().optional().default(100).describe('Max rows to return (default 100)'),
+    },
+    'read',
+    async ({ groupBy, query, filter, accountId, limit }) => {
+      if (accountId) {
+        const err = checkAccountAccess(accountId);
+        if (err) return errorResult(err);
+      }
+      try {
+        const rows = await countMessages(
+          mcpGrant(),
+          {
+            search: query,
+            filter: filter ? validateFilter(filter) : undefined,
+            accountId,
+            limit: undefined,
+            background: true,
+          },
+          groupBy as any
+        );
+        return textResult(rows.slice(0, limit || 100));
+      } catch (err) {
+        if (err instanceof FilterError) return errorResult(err.message);
+        throw err;
+      }
+    }
+  );
+
+  defineTool(
+    server,
+    'get_identity',
+    "The user's own accounts and every address they send from, including aliases and addresses " +
+      'found in Sent mail. Use it to tell the user apart from the people they correspond with.',
+    {},
+    'read',
+    async () => {
+      const identity = await currentIdentity();
+      const allowed = new Set(getAllowedAccountIds(identity.accounts.map((a) => a.id)));
+      const accounts = identity.accounts.filter((a) => allowed.has(a.id));
+      // Aliases and Sent-folder addresses aren't attributed to an account, so they're only
+      // returned when no account is excluded from MCP access.
+      const addresses =
+        accounts.length === identity.accounts.length
+          ? identity.addresses
+          : accounts.map((a) => a.email.toLowerCase());
+      return textResult({ accounts, addresses });
     }
   );
 

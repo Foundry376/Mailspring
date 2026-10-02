@@ -130,18 +130,36 @@
   }
 }
 
-.sidebar-view {
-  display: flex;
+// Card mode reuses the contact card's `.sidebar-section` chrome (message-list.less), so a
+// View drawn on a transparent background sits inside the same border, radius and padding.
+.sidebar-view-card {
   // The sidebar column scrolls as a whole; a View squeezed below its content height would
   // scroll inside itself instead.
   flex-shrink: 0;
-  // The height set inline is the View's content height, so the border goes outside it.
-  box-sizing: content-box;
-  border-top: 1px solid @border-color-divider;
+
+  .sidebar-view-frame {
+    display: flex;
+    // The height set inline is the View's content height, measured inside the card padding.
+    box-sizing: content-box;
+
+    > .view-host {
+      flex: 1;
+      min-width: 0;
+      background: transparent;
+    }
+  }
+}
+
+// Panel mode draws no card; the inset lines the View's content up with the switcher above it.
+.sidebar-view-panel {
+  flex: 1;
+  min-height: 0;
+  padding: 5px 15px 15px 15px;
 
   > .view-host {
     flex: 1;
     min-width: 0;
+    background: transparent;
   }
 }
 
