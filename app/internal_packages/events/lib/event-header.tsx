@@ -219,8 +219,8 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
             </div>
             <div className="event-location">{renderLocation(icsEvent.location)}</div>
             {this.state.isOnCalendar && (
-              <div className="event-view-in-calendar" onClick={this._onViewInCalendar}>
-                {localized('View in Calendar')}
+              <div className="event-view-in-calendar">
+                <a onClick={this._onViewInCalendar}>{localized('View in Calendar')}</a>
               </div>
             )}
             {icsMethod === 'cancel'
