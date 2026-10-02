@@ -433,3 +433,37 @@ export function occurrencesForEvents(
 
   return occurrences;
 }
+
+const UPCOMING_LOOKAHEAD_SECONDS = 366 * 86400;
+
+/**
+ * The occurrence to focus for an event opened from outside the calendar: the next one from
+ * `nowUnix`, or the event's first when none is upcoming.
+ *
+ * @param events - Every Event row sharing one UID, so a series' exceptions are placed.
+ */
+export function focusedEventInfoForEvents(
+  events: Event[],
+  nowUnix: number
+): FocusedEventInfo | null {
+  if (!events.length) {
+    return null;
+  }
+  const byStart = (a: EventOccurrence, b: EventOccurrence) =>
+    occurrenceStartUnix(a) - occurrenceStartUnix(b);
+
+  let [occurrence] = occurrencesForEvents(events, {
+    startUnix: nowUnix,
+    endUnix: nowUnix + UPCOMING_LOOKAHEAD_SECONDS,
+  }).sort(byStart);
+
+  if (!occurrence) {
+    const firstStart = Math.min(...events.map((e) => e.recurrenceStart));
+    [occurrence] = occurrencesForEvents(events, {
+      startUnix: firstStart,
+      endUnix: firstStart + 86400,
+    }).sort(byStart);
+  }
+
+  return occurrence ? { id: occurrence.id, start: occurrenceStartUnix(occurrence) } : null;
+}

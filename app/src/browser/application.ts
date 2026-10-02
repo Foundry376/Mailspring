@@ -445,9 +445,15 @@ export default class Application extends EventEmitter {
       }
     });
 
-    this.on('application:show-calendar', () => {
+    // `focus` names an event to show once the window is up; the menu item passes none.
+    this.on('application:show-calendar', (focus?: { icsuid: string; accountId: string }) => {
       this.windowManager.ensureWindow(WindowManager.CALENDAR_WINDOW, {});
       this.sendCalendarSync();
+      if (focus) {
+        this.windowManager
+          .get(WindowManager.CALENDAR_WINDOW)
+          .sendMessage('focus-calendar-event', focus);
+      }
     });
 
     // The calendar window's MailsyncBridge has no sync clients, so a manual
