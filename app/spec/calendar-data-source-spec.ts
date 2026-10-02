@@ -451,13 +451,29 @@ describe('focusedEventInfoForEvents', function () {
     });
 
     it('falls back to the next occurrence when that one was cancelled', function () {
+      // Daily, so the day after the cancelled one is within reach and must not be taken.
       const series = withStart(
-        WEEKLY.replace('RRULE:FREQ=WEEKLY', 'RRULE:FREQ=WEEKLY\nEXDATE:20260622T140000Z'),
+        WEEKLY.replace('RRULE:FREQ=WEEKLY', 'RRULE:FREQ=DAILY\nEXDATE:20260622T140000Z'),
         '2026-01-05T14:00:00Z'
       );
       expect(focusedEventInfoForEvents([series], NOW, JUNE_22).start).toBe(
         unix('2026-06-15T14:00:00Z')
       );
+    });
+
+    it('still focuses an event whose calendar object will not parse', function () {
+      const broken = makeEvent('this is not valid ics', {
+        recurrenceStart: JUNE_22,
+        recurrenceEnd: JUNE_22 + 3600,
+      });
+      expect(focusedEventInfoForEvents([broken], NOW, JUNE_22)).toEqual({
+        id: 'event-1-e0',
+        start: JUNE_22,
+      });
+    });
+
+    it('has nothing to focus when the event is not on a calendar', function () {
+      expect(focusedEventInfoForEvents([], NOW, JUNE_22)).toBe(null);
     });
   });
 

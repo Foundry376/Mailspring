@@ -457,7 +457,7 @@ function occurrenceForRecurrenceId(
       }
     }
   } catch (err) {
-    // occurrencesForEvents has its own fallback for a calendar object that won't parse
+    // No rows, or a calendar object that won't parse. occurrencesForEvents handles both.
   }
   return occurrencesForEvents(events, { startUnix: start, endUnix: start + 86400 }).find(
     (o) => (o.recurrenceIdStart ?? occurrenceStartUnix(o)) === recurrenceIdStart
@@ -480,7 +480,7 @@ export function focusedEventInfoForEvents(
     occurrenceStartUnix(a) - occurrenceStartUnix(b);
 
   let occurrence =
-    recurrenceIdStart !== undefined && events.length
+    recurrenceIdStart !== undefined
       ? occurrenceForRecurrenceId(events, recurrenceIdStart)
       : undefined;
 
