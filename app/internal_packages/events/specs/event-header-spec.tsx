@@ -251,20 +251,22 @@ describe('EventHeader for an invitation to one occurrence of a series', function
     });
   });
 
+  let queueTask: jasmine.Spy;
+
   // Clicks Decline and returns the ICS of the reply that was queued.
   function declineAndGetReply(text: ReturnType<typeof render>): string {
     const decline = ReactTestUtils.scryRenderedDOMComponentsWithClass(text.header, 'btn-rsvp').find(
       (button) => button.textContent === 'Decline'
     );
     ReactTestUtils.Simulate.click(decline);
-    return (Actions.queueTask as jasmine.Spy).mostRecentCall.args[0].ics;
+    return queueTask.mostRecentCall.args[0].ics;
   }
 
   beforeEach(function () {
     spyOn(AccountStore, 'accountForEmail').andCallFake((email: string) =>
       email === 'me@example.com' ? ({ id: 'a1' } as any) : null
     );
-    spyOn(Actions, 'queueTask');
+    queueTask = spyOn(Actions, 'queueTask');
   });
 
   it('answers for that occurrence alone, not for the series', function () {
