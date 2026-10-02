@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { parseICSString, createVTIMEZONEString, resolveIanaZone } from './calendar-utils';
 
 export { createVTIMEZONEString };
@@ -72,12 +73,15 @@ export interface RecurrenceInfo {
 }
 
 /**
- * Generates a unique ID for calendar events
+ * Generates a unique ID for calendar events.
+ *
+ * RFC 7986 section 5.3 asks for a UID with the uniqueness properties of a UUID, and warns
+ * against deriving one from anything the event itself contains. `Math.random()` is not a
+ * source a collision argument can rest on - V8 gives it 128 bits of internal state but no
+ * guarantee across contexts - so this takes the platform's CSPRNG-backed generator.
  */
 export function generateUID(): string {
-  const timestamp = Date.now().toString(36);
-  const random = Math.random().toString(36).substring(2, 15);
-  return `${timestamp}-${random}@mailspring`;
+  return `${crypto.randomUUID()}@mailspring`;
 }
 
 /**
