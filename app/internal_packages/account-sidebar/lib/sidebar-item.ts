@@ -12,8 +12,12 @@ import {
   CategoryStore,
   Actions,
   RegExpUtils,
+  DragDropTypes,
   localized,
   TaskQueue,
+  DatabaseStore,
+  Thread,
+  TaskFactory,
 } from 'mailspring-exports';
 
 import * as SidebarActions from './sidebar-actions';
@@ -166,6 +170,38 @@ const onExportMboxFolder = function (item: ISidebarItem) {
   );
 };
 
+const onMarkAllAsRead = function (item: ISidebarItem) {
+  const category = item.perspective.category();
+  if (!category) {
+    return;
+  }
+
+  const matchers = [
+    Thread.attributes.categories.containsAny([category.id]),
+    Thread.attributes.unread.equal(true),
+  ];
+  if (!['spam', 'trash'].includes(category.role)) {
+    matchers.push(Thread.attributes.inAllMail.equal(true));
+  }
+
+  DatabaseStore.findAll<Thread>(Thread)
+    .where(matchers)
+    .then((threads) => {
+      if (threads.length === 0) {
+        return;
+      }
+      Actions.queueTask(
+        TaskFactory.taskForSettingUnread({
+          threads,
+          unread: false,
+          source: 'Sidebar Context Menu: Mark All As Read',
+          canBeUndone: true,
+        })
+      );
+    })
+    .catch(AppEnv.reportError);
+};
+
 function detectFolderSeparator(accountId: string): string {
   // Check category paths for known prefixes — most reliable signal
   for (const cat of CategoryStore.categories(accountId)) {
@@ -281,7 +317,7 @@ export default class SidebarItem {
         onCollapseToggled: toggleItemCollapsed,
 
         onDrop(item, event) {
-          const jsonString = event.dataTransfer.getData('mailspring-threads-data');
+          const jsonString = event.dataTransfer.getData(DragDropTypes.ThreadsDragType);
           let jsonData = null;
           try {
             jsonData = JSON.parse(jsonString);
@@ -297,7 +333,7 @@ export default class SidebarItem {
         shouldAcceptDrop(item, event) {
           const target = item.perspective;
           const current = FocusedPerspectiveStore.current();
-          if (!event.dataTransfer.types.includes('mailspring-threads-data')) {
+          if (!event.dataTransfer.types.includes(DragDropTypes.ThreadsDragType)) {
             return false;
           }
           if (target.isEqual(current)) {
@@ -306,10 +342,7 @@ export default class SidebarItem {
 
           // We can't inspect the drag payload until drop, so we use a dataTransfer
           // type to encode the account IDs of threads currently being dragged.
-          const accountsType = event.dataTransfer.types.find((t) =>
-            t.startsWith('mailspring-accounts=')
-          );
-          const accountIds = (accountsType || '').replace('mailspring-accounts=', '').split(',');
+          const accountIds = DragDropTypes.accountIdsForDragTypes(event.dataTransfer.types);
           return target.canReceiveThreadsFromAccountIds(accountIds);
         },
 
@@ -337,6 +370,9 @@ export default class SidebarItem {
     if (opts.exportable == null) {
       const role = categories[0] != null ? categories[0].role : null;
       opts.exportable = !role || !EXCLUDED_EXPORT_ROLES.has(role);
+    }
+    if (opts.onMarkAllAsRead == null && perspective.category()) {
+      opts.onMarkAllAsRead = onMarkAllAsRead;
     }
     opts.contextMenuLabel = contextMenuLabel;
     return this.forPerspective(id, perspective, opts);

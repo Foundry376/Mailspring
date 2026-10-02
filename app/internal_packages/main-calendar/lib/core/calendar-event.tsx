@@ -9,14 +9,21 @@ import {
   occurrenceEndUnix,
 } from './calendar-data-source';
 import { calcEventColors, extractMeetingDomain, formatEventTimeRange } from './calendar-helpers';
-import { RecurringIcon } from './calendar-icons';
 import { HitZone, ViewDirection } from './calendar-drag-types';
 import { detectHitZone, canMoveEvent, formatDragPreviewTime } from './calendar-drag-utils';
+import { DAY_DUR, columnSpan } from './week-view-helpers';
+
+const EVENT_GAP = 2;
 
 interface CalendarEventProps {
   event: EventOccurrence;
   order: number;
   selected: boolean;
+  /**
+   * The span this event is positioned within. Day columns pass one day, exclusive — its real
+   * length, not 86400. The all-day row passes the whole buffered week, and reads it only as a
+   * day count, so the two disagree by a second there without effect.
+   */
   scopeEnd: number;
   scopeStart: number;
   direction: 'horizontal' | 'vertical';
@@ -38,12 +45,7 @@ interface CalendarEventProps {
   onFocused: (event: EventOccurrence) => void;
 
   /** Called when a drag operation starts on this event */
-  onDragStart?: (
-    event: EventOccurrence,
-    mouseEvent: React.MouseEvent,
-    hitZone: HitZone,
-    mouseTime: number
-  ) => void;
+  onDragStart?: (event: EventOccurrence, mouseEvent: React.MouseEvent, hitZone: HitZone) => void;
 }
 
 interface CalendarEventState {
@@ -71,40 +73,40 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
   };
 
   componentDidMount() {
-    this._scrollFocusedEventIntoView();
+    this._revealOnFocusGained(false);
   }
 
-  componentDidUpdate() {
-    this._scrollFocusedEventIntoView();
+  componentDidUpdate(prevProps: CalendarEventProps) {
+    this._revealOnFocusGained(prevProps.focused);
   }
 
-  _scrollFocusedEventIntoView() {
-    const { focused } = this.props;
-    if (!focused) {
+  // Announce focus only as it arrives: onFocused opens the card and the reveal scrolls to it, so
+  // doing both on every update reopens the card and jumps the grid on any re-render.
+  _revealOnFocusGained(wasFocused: boolean) {
+    const { focused, event, onFocused } = this.props;
+    if (!focused || wasFocused) {
       return;
     }
     const eventNode = ReactDOM.findDOMNode(this);
     if (!eventNode) {
       return;
     }
-    const { event, onFocused } = this.props;
-    (eventNode as any).scrollIntoViewIfNeeded(true);
+    // centerIfNeeded false: scroll the minimum distance to reveal it, not to the middle.
+    (eventNode as any).scrollIntoViewIfNeeded(false);
     onFocused(event);
   }
 
   _getDimensions() {
     const event = this.props.event;
 
-    // top/height are fractions of the scope. Timed events fill a day vertically by instant;
-    // all-day events fill the week horizontally (remapped in _getStyles) by whole days, so their
-    // fraction is computed in date space — DST-immune, unlike a seconds-based fraction would be.
+    // Fractions of the scope: timed events by wall clock down a day column, all-day events by
+    // whole days across the week (remapped in _getStyles).
     let top: number | string;
     let height: number | string;
     if (isTimed(event)) {
-      const scopeLen = this.props.scopeEnd - this.props.scopeStart;
-      const duration = event.end - event.start;
-      top = Math.max((event.start - this.props.scopeStart) / scopeLen, 0);
-      height = Math.min((duration - this._overflowBefore()) / scopeLen, 1);
+      const span = columnSpan(event, { start: this.props.scopeStart, end: this.props.scopeEnd });
+      top = span.top / DAY_DUR;
+      height = (span.bottom - span.top) / DAY_DUR;
     } else {
       const scopeStartDate = CalendarDateUtils.calendarDateFromUnix(this.props.scopeStart);
       const scopeDays = Math.round((this.props.scopeEnd - this.props.scopeStart) / 86400);
@@ -139,14 +141,17 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     let styles: CSSProperties & {
       '--event-band-color'?: string;
       '--event-text-color'?: string;
+      '--event-selected-text-color'?: string;
     } = {};
+    // Gaps between events are cut from the box, not drawn as borders, so the corners stay round.
     if (this.props.direction === 'vertical') {
-      styles = this._getDimensions();
+      const d = this._getDimensions();
+      styles = { ...d, height: `calc(${d.height} - ${EVENT_GAP}px)` };
     } else if (this.props.direction === 'horizontal') {
       const d = this._getDimensions();
       styles = {
-        left: d.top,
-        width: d.height,
+        left: `calc(${d.top} + ${EVENT_GAP}px)`,
+        width: `calc(${d.height} - ${2 * EVENT_GAP}px)`,
         height: d.width,
         top: d.left,
       };
@@ -155,6 +160,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     // Set CSS custom property for the left band color
     styles['--event-band-color'] = colors.band;
     styles['--event-text-color'] = colors.text;
+    styles['--event-selected-text-color'] = colors.selectedText;
 
     if (this.props.event.isCancelled) {
       // Cancelled events get a transparent background with colored border
@@ -168,11 +174,6 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       styles.backgroundColor = colors.background;
     }
     return styles;
-  }
-
-  _overflowBefore() {
-    const event = this.props.event;
-    return isTimed(event) ? Math.max(this.props.scopeStart - event.start, 0) : 0;
   }
 
   /**
@@ -221,31 +222,6 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
   };
 
   /**
-   * Calculate the time at the mouse position within this event's scope
-   */
-  _getMouseTime(e: React.MouseEvent<HTMLDivElement>): number {
-    const bounds = e.currentTarget.getBoundingClientRect();
-    const { scopeStart, scopeEnd, direction } = this.props;
-    const scopeLen = scopeEnd - scopeStart;
-
-    let percent: number;
-    if (direction === 'vertical') {
-      // Vertical layout: Y position determines time
-      percent = (e.clientY - bounds.top) / bounds.height;
-    } else {
-      // Horizontal layout: X position determines time
-      percent = (e.clientX - bounds.left) / bounds.width;
-    }
-
-    // Clamp to [0, 1] and calculate time
-    percent = Math.max(0, Math.min(1, percent));
-    // Drag works in unix throughout, so hand it an instant even for all-day events.
-    const start = occurrenceStartUnix(this.props.event);
-    const eventDuration = occurrenceEndUnix(this.props.event) - start;
-    return start + percent * eventDuration;
-  }
-
-  /**
    * Initiate drag on mouse down
    */
   _onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -261,12 +237,9 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     // Prevent text selection during drag
     e.preventDefault();
 
-    // Calculate the time at the click position within this event
-    const mouseTime = this._getMouseTime(e);
-
-    // Notify parent of drag start
+    // No time is passed: the container's hit-test supplies it as this mousedown bubbles.
     if (this.props.onDragStart) {
-      this.props.onDragStart(this.props.event, e, this.state.hitZone, mouseTime);
+      this.props.onDragStart(this.props.event, e, this.state.hitZone);
     }
   };
 
@@ -390,7 +363,6 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       selected && 'selected',
       event.isCancelled && 'cancelled',
       event.isPending && 'pending',
-      event.isException && 'exception',
       isDragging && 'dragging',
       this._canDrag() && 'draggable',
       event.isDragPreview && 'drag-preview',
@@ -437,8 +409,6 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
           {event.isCancelled ? <s>{event.title}</s> : event.title}
         </span>
         {this._renderEventDetails()}
-        {event.isRecurring && !event.isCancelled && !event.isException && <RecurringIcon />}
-        {event.isException && <span className="exception-tag">Modified</span>}
         <InjectedComponentSet
           className="event-injected-components"
           style={{ position: 'absolute' }}

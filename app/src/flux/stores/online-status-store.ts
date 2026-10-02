@@ -1,4 +1,5 @@
 import MailspringStore from 'mailspring-store';
+import { ipcRenderer } from 'electron';
 import _ from 'underscore';
 
 const MTC_CHECK_INTERVAL = 1000 * 60 * 5;
@@ -26,11 +27,24 @@ class OnlineStatusStore extends MailspringStore {
         }
         this._timeoutTargetTime = Date.now() + MTC_CHECK_INTERVAL;
       }, MTC_CHECK_INTERVAL);
+
+      // Without these the engine notices a returned network only when its 120s retry
+      // wait runs out.
+      window.addEventListener('online', () => this.onMayBeOnline());
+      ipcRenderer.on('system-resumed', () => this.onMayBeOnline());
     }
   }
 
   isOnline() {
     return Object.keys(this._offlineProcesses).length === 0;
+  }
+
+  isAccountOnline(accountId: string) {
+    return !this._offlineProcesses[accountId];
+  }
+
+  offlineAccountIds() {
+    return Object.keys(this._offlineProcesses);
   }
 
   onSyncProcessStateReceived = ({
@@ -40,18 +54,24 @@ class OnlineStatusStore extends MailspringStore {
     accountId: string;
     connectionError: boolean;
   }) => {
-    const prevIsOnline = this.isOnline();
-
     if (connectionError && !this._offlineProcesses[accountId]) {
       console.warn(`Account ${accountId}: offline`);
       this._offlineProcesses[accountId] = true;
+      this.trigger();
     } else if (!connectionError && this._offlineProcesses[accountId]) {
       console.warn(`Account ${accountId}: online`);
       delete this._offlineProcesses[accountId];
       this.onMayBeOnline();
+      this.trigger();
     }
+  };
 
-    if (prevIsOnline !== this.isOnline()) {
+  // A relaunched mailsync process starts out believing it is online and only reports
+  // the end of a connection error it saw itself, so state from the exited process
+  // would otherwise never clear.
+  onSyncProcessExited = (accountId: string) => {
+    if (this._offlineProcesses[accountId]) {
+      delete this._offlineProcesses[accountId];
       this.trigger();
     }
   };

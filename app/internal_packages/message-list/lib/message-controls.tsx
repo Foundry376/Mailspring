@@ -9,6 +9,7 @@ import {
   EmlUtils,
   Thread,
   Message,
+  ComponentRegistry,
 } from 'mailspring-exports';
 import { RetinaImg, ButtonDropdown, Menu } from 'mailspring-component-kit';
 
@@ -135,6 +136,20 @@ export default class MessageControls extends React.Component<MessageControlsProp
     menu.append(
       new SystemMenuItem({ label: localized('Download as .eml'), click: this._onDownloadEml })
     );
+
+    const actionItems = ComponentRegistry.findComponentsMatching({
+      role: 'MessageActionMenuItem',
+    }) as Array<{
+      getMenuItem: (props: MessageControlsProps) => { label: string; click: () => void };
+    }>;
+    if (actionItems.length > 0) {
+      menu.append(new SystemMenuItem({ type: 'separator' }));
+      for (const ActionItem of actionItems) {
+        const item = ActionItem.getMenuItem(this.props);
+        menu.append(new SystemMenuItem({ label: item.label, click: item.click }));
+      }
+    }
+
     menu.popup({});
   };
 

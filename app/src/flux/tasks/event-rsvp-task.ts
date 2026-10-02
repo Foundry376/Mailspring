@@ -63,19 +63,25 @@ export class EventRSVPTask extends Task {
       );
     }
 
-    // Update the replying attendee's participation status
-    me.component.setParameter('partstat', icsRSVPStatus);
-
     // Set METHOD to REPLY at the calendar level
     root.updatePropertyWithValue('method', 'REPLY');
 
-    // Per RFC 5546, a REPLY must have exactly one ATTENDEE - the replying user.
-    // Remove all other attendees from the VEVENT, keeping only the self-participant.
-    const vevent = root.getFirstSubcomponent('vevent');
-    const allAttendees = vevent.getAllProperties('attendee');
-    for (const attendee of allAttendees) {
-      if (attendee !== me.component) {
-        vevent.removeProperty(attendee);
+    // Per RFC 5546 section 3.2.3 a REPLY names exactly one ATTENDEE - the person replying.
+    // Every VEVENT has to be cleaned, not just the master: an invitation to a series carries
+    // its modified occurrences as further VEVENTs, and leaving their guest lists intact ships
+    // the organizer a REPLY that also purports to speak for everyone else.
+    const myEmail = me.email.toLowerCase();
+    for (const vevent of root.getAllSubcomponents('vevent')) {
+      for (const attendee of vevent.getAllProperties('attendee')) {
+        const isMine = attendee
+          .getValues()
+          .some((v) => CalendarUtils.emailFromParticipantURI(String(v)) === myEmail);
+        if (isMine) {
+          attendee.setParameter('partstat', icsRSVPStatus);
+          attendee.removeParameter('rsvp');
+        } else {
+          vevent.removeProperty(attendee);
+        }
       }
     }
 
@@ -100,17 +106,22 @@ export class EventRSVPTask extends Task {
   async onSuccess() {
     if (this.messageId && this.icsRSVPStatus) {
       const msg = await DatabaseStore.find<Message>(Message, this.messageId);
-      if (!msg) return;
-      Actions.queueTask(
-        SyncbackMetadataTask.forSaving({
-          model: msg,
-          pluginId: 'event-rsvp',
-          value: {
-            status: this.icsRSVPStatus,
-            time: Date.now(),
-          },
-        })
-      );
+      if (msg) {
+        Actions.queueTask(
+          SyncbackMetadataTask.forSaving({
+            model: msg,
+            pluginId: 'event-rsvp',
+            value: {
+              status: this.icsRSVPStatus,
+              time: Date.now(),
+            },
+          })
+        );
+      }
     }
+
+    // Pull the provider's latest calendar state after any RSVP response. Calendar
+    // views observe the local Event table and update as soon as this sync lands.
+    AppEnv.mailsyncBridge.sendSyncCalendarNow(this.accountId);
   }
 }

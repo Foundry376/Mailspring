@@ -1,0 +1,64 @@
+import moment, { Moment } from 'moment';
+import { localized } from 'mailspring-exports';
+
+export const DEFAULT_TIMESPAN_ID = '14';
+
+export function getTimespanOptions() {
+  return [
+    { id: '0', name: localized('Today') },
+    { id: '7', name: localized('Last 7 Days') },
+    { id: '14', name: localized('Last 2 Weeks') },
+    { id: '28', name: localized('Last 4 Weeks') },
+    { id: '-', name: '-', divider: true },
+    ...[0, 1, 2].map((n) => {
+      return {
+        id: `month-${n}`,
+        name: moment().subtract(n, 'month').format(localized('MMMM YYYY')),
+      };
+    }),
+  ];
+}
+
+export function getTimespanStartEnd(id: string) {
+  if (id.startsWith('month-')) {
+    const n = Number(id.split('-').pop());
+    const current = n === 0;
+    return [
+      moment().startOf('month').subtract(n, 'month').add(1, 'minute'),
+      current
+        ? moment()
+        : moment()
+            .startOf('month')
+            .subtract(n - 1, 'month')
+            .subtract(1, 'minute'),
+    ];
+  }
+  return [
+    // Let's say its Friday at 6PM. "Last 7 days" is beginning of last friday through now?
+    // That'd technically be 8 days, inclusive. Instead, make it Saturday midnight -> Friday 6PM
+    moment()
+      .startOf('day')
+      .subtract(Math.max(0, Number(id) - 1), 'day')
+      .add(1, 'minute'),
+    moment(),
+  ];
+}
+
+export interface Timespan {
+  id: string;
+  startDate: Moment;
+  endDate: Moment;
+  days: number;
+}
+
+export function timespanForId(id: string): Timespan {
+  const [startDate, endDate] = getTimespanStartEnd(id);
+  // if the difference in days is 1, we need to display [0, 1] = 2 items
+  const days = endDate.diff(startDate, 'days') + 1;
+  return { id, startDate, endDate, days };
+}
+
+/** "Today", "Last N days" and the current month run through now rather than to a fixed end. */
+export function timespanEndsNow(timespan: Timespan) {
+  return !timespan.id.startsWith('month-') || timespan.id === 'month-0';
+}

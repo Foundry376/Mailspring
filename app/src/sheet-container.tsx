@@ -7,11 +7,27 @@ import Toolbar from './sheet-toolbar';
 import { Flexbox } from './components/flexbox';
 import { InjectedComponentSet } from './components/injected-component-set';
 import { SheetDeclaration } from './flux/stores/workspace-store';
+import { Disposable } from 'rx-core';
 
 interface SheetContainerState {
   stack: SheetDeclaration[];
   mode: string;
   error?: string;
+}
+
+/*
+Marks a stacked-under subtree inert, so it takes no focus and no pointer events.
+
+Spread rather than written as `inert={...}`: `inert` is a real HTML attribute that React
+passes straight through, but it is absent from React 17's JSX types. The augmentation in
+types/react-ext.d.ts declares it and does not take effect, because two copies of
+@types/react are installed - one under app/node_modules, one at the repo root - and both
+register a global JSX namespace, so the copy that wins the JSX check is not the copy the
+`declare module 'react'` augmentation merges into. Spreading sidesteps the attribute-name
+check without asserting anything about the element.
+*/
+function inertWhenStacked(stacked: boolean): { inert?: '' } {
+  return stacked ? { inert: '' } : {};
 }
 
 export default class SheetContainer extends React.Component<
@@ -22,6 +38,7 @@ export default class SheetContainer extends React.Component<
 
   _toolbarComponents = {};
   unsubscribe?: () => void;
+  windowPropsDisposable?: Disposable;
 
   constructor(props) {
     super(props);
@@ -30,6 +47,9 @@ export default class SheetContainer extends React.Component<
 
   componentDidMount() {
     this.unsubscribe = WorkspaceStore.listen(this._onStoreChange);
+    // A hot window mounts with the empty window's load settings and receives the real
+    // ones (including `toolbar`) only when it is assigned a window type.
+    this.windowPropsDisposable = AppEnv.onWindowPropsReceived(this._onStoreChange);
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
@@ -42,6 +62,9 @@ export default class SheetContainer extends React.Component<
   componentWillUnmount() {
     if (this.unsubscribe) {
       this.unsubscribe();
+    }
+    if (this.windowPropsDisposable) {
+      this.windowPropsDisposable.dispose();
     }
   }
 
@@ -109,7 +132,7 @@ export default class SheetContainer extends React.Component<
         style={{ order: 0, zIndex: 3 }}
         onClick={this._onToolbarDoubleClick}
       >
-        <div inert={this.state.stack.length > 1 ? '' : undefined}>{components[0]}</div>
+        <div {...inertWhenStacked(this.state.stack.length > 1)}>{components[0]}</div>
         <TransitionGroup component={null}>
           {components.slice(1).map((comp) => (
             <CSSTransition key={comp.key} classNames="opacity-125ms" timeout={125}>
@@ -158,7 +181,7 @@ export default class SheetContainer extends React.Component<
           style={{ order: 2, flex: 1, position: 'relative', zIndex: 1 }}
           aria-label={localized('Email workspace')}
         >
-          <div inert={totalSheets > 1 ? '' : undefined}>{sheetComponents[0]}</div>
+          <div {...inertWhenStacked(totalSheets > 1)}>{sheetComponents[0]}</div>
           <TransitionGroup component={null}>
             {sheetComponents.slice(1).map((comp) => (
               <CSSTransition key={comp.key} classNames="sheet-stack" timeout={125}>

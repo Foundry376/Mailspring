@@ -30,6 +30,10 @@ export class Calendar extends Model {
       modelKey: 'readOnly',
       jsonKey: 'read_only',
     }),
+    ownership: Attributes.String({
+      modelKey: 'ownership',
+      jsonKey: 'owner',
+    }),
     color: Attributes.String({
       modelKey: 'color',
       jsonKey: 'color',
@@ -43,6 +47,8 @@ export class Calendar extends Model {
   public name: string;
   public description: string;
   public readOnly: boolean;
+  /** The server's DAV:owner verdict (RFC 3744 section 5.1); '' when it gave none. */
+  public ownership: 'mine' | 'other' | '';
   public color: string;
   public order: number;
 

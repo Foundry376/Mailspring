@@ -3,6 +3,9 @@ import { localized, MailspringAPIRequest } from 'mailspring-exports';
 import { CopyButton, RetinaImg } from 'mailspring-component-kit';
 
 function buildShareHTML(htmlEl: HTMLElement, styleEl: HTMLStyleElement) {
+  // The serialized stylesheet carries the active theme's colours, so the page
+  // background must match or a dark theme exports as dark cards on white.
+  const { backgroundColor, color } = window.getComputedStyle(document.body);
   return `
     <!DOCTYPE html>
     <html lang="en">
@@ -17,6 +20,8 @@ function buildShareHTML(htmlEl: HTMLElement, styleEl: HTMLStyleElement) {
       font-size: 14px;
       margin: 40px auto;
       max-width: 1000px;
+      background: ${backgroundColor};
+      color: ${color};
     }
     .hidden-on-web {
       display: none !important;
@@ -70,8 +75,8 @@ export default class ShareButton extends React.Component<
     const link = await MailspringAPIRequest.postStaticPage({
       key: `activity-${Date.now()}`,
       html: buildShareHTML(
-        document.querySelector('style[source-path*="activity/styles/index.less"]'),
-        document.querySelector('.activity-dashboard')
+        document.querySelector('.activity-dashboard'),
+        document.querySelector('style[source-path*="activity/styles/index.less"]')
       ),
     });
     if (!this._mounted) {
@@ -92,11 +97,12 @@ export default class ShareButton extends React.Component<
   };
 
   render() {
+    const { link, loading } = this.state;
     return (
-      <div style={{ display: 'flex' }}>
-        <div className="btn" onClick={this._onShareReport} style={{ minWidth: 150 }}>
+      <>
+        <div className="btn" onClick={this._onShareReport}>
           {localized('Share this Report')}
-          {this.state.loading && (
+          {loading && (
             <RetinaImg
               name="inline-loading-spinner.gif"
               mode={RetinaImg.Mode.ContentDark}
@@ -104,19 +110,13 @@ export default class ShareButton extends React.Component<
             />
           )}
         </div>
-        {this.state.link && (
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            <input
-              ref={(el) => (this._linkEl = el)}
-              type="url"
-              value={this.state.link}
-              style={{ width: 300, marginLeft: 10 }}
-              readOnly
-            />
-            <CopyButton className="copy-to-clipboard" text={this.state.link} />
+        {link && (
+          <div className="share-link">
+            <input ref={(el) => (this._linkEl = el)} type="url" value={link} readOnly />
+            <CopyButton text={link} />
           </div>
         )}
-      </div>
+      </>
     );
   }
 }

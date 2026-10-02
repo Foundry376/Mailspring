@@ -55,10 +55,11 @@
       display: inline-block;
       width: 100%;
 
+      // Not .event-conflicts red: a meeting with no conflicts must not look as though it has one.
       .event-day {
+        color: @text-color-subtle;
         display: block;
         font-size: @font-size-large;
-        color: #e64d65;
       }
 
       .event-time {

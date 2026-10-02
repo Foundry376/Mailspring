@@ -41,11 +41,18 @@
     div[contenteditable] {
       -webkit-user-modify: read-write !important;
     }
+
+    // Slate's zero-width placeholder does not always give an empty block a line box,
+    // notably in the inline reply composer. Keep model-level blank lines visible just
+    // as they will be after the HTML serializer turns these blocks into <br> elements.
+    .empty-composer-block {
+      min-height: 1.4em;
+    }
   }
 }
 
 .RichEditor-root blockquote {
-  border-left: 2px solid #eee;
+  border-left: 2px solid @border-color-divider;
   color: mix(@text-color, purple, 50%);
   margin: 0;
   padding: 0 0 0 10px;
@@ -597,6 +604,29 @@ body.platform-win32 {
   .attachments-area {
     padding: 0;
     margin: 0 8px;
+  }
+}
+
+// Placeholder shown while a thread dragged onto the composer is being fetched
+// from the sync engine and written out as a .eml file. Indented to line up
+// with .nylas-attachment-item, which it sits alongside.
+.attaching-messages {
+  display: flex;
+  align-items: center;
+  margin: 0 0 @spacing-standard @spacing-standard;
+  color: @text-color-subtle;
+  font-size: @font-size-small;
+
+  .spinner {
+    width: auto;
+    margin-right: @spacing-half;
+
+    > div {
+      width: 6px;
+      height: 6px;
+      margin-right: 2px;
+      margin-left: 0;
+    }
   }
 }
 

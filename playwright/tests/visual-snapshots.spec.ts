@@ -4,7 +4,6 @@ import {
   closeApp,
   focusThread,
   openThread,
-  executeInRenderer,
   clickSidebarFolder,
 } from '../helpers';
 
@@ -38,13 +37,13 @@ async function setThemeAndLayout(theme: string, layout: string) {
   // which recompiles all LESS stylesheets against the new theme.
   // Layout: WorkspaceStore only reads core.workspace.mode at construction,
   // so we must call _onSelectLayoutMode() directly to switch at runtime.
-  await executeInRenderer(
-    electronApp,
-    `(function() {
-      AppEnv.config.set('core.theme', '${theme}');
-      var WorkspaceStore = require('mailspring-exports').WorkspaceStore;
-      WorkspaceStore._onSelectLayoutMode('${layout}');
-    })()`
+  await mainWindow.evaluate(
+    ([theme, layout]) => {
+      const w = window as any;
+      w.AppEnv.config.set('core.theme', theme);
+      w.$m.WorkspaceStore._onSelectLayoutMode(layout);
+    },
+    [theme, layout]
   );
 
   // Theme change triggers LESS recompilation for all stylesheets — wait for it

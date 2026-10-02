@@ -184,7 +184,7 @@ export function shouldDisplayAsImage(
   const name = file.filename || file.fileName || file.name || '';
   const size = file.size || file.fileSize || 0;
   const ext = path.extname(name).toLowerCase();
-  const extensions = ['.jpg', '.bmp', '.gif', '.png', '.jpeg'];
+  const extensions = ['.jpg', '.bmp', '.gif', '.png', '.jpeg', '.webp'];
 
   return extensions.includes(ext) && size > 512 && size < 1024 * 1024 * 5;
 }

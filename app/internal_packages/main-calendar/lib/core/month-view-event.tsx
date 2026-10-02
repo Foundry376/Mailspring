@@ -1,9 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import classnames from 'classnames';
-import { EventOccurrence, occurrenceStartUnix, occurrenceEndUnix } from './calendar-data-source';
-import { calcEventColors } from './calendar-helpers';
-import { RecurringIcon } from './calendar-icons';
+import {
+  EventOccurrence,
+  isTimed,
+  occurrenceStartUnix,
+  occurrenceEndUnix,
+} from './calendar-data-source';
+import { calcEventColors, formatShortTime } from './calendar-helpers';
 import { HitZone } from './calendar-drag-types';
 import { detectHitZone, canMoveEvent, formatDragPreviewTime } from './calendar-drag-utils';
 
@@ -11,6 +15,8 @@ interface MonthViewEventProps {
   event: EventOccurrence;
   selected: boolean;
   focused: boolean;
+  /** Whether to lead with the start time: only for a timed event, in the cell of its first day */
+  showStartTime?: boolean;
   isDragging?: boolean;
   edgeZoneSize?: number;
   /** Whether the calendar containing this event is read-only */
@@ -18,12 +24,7 @@ interface MonthViewEventProps {
   onClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
   onDoubleClick: (event: EventOccurrence) => void;
   onFocused: (event: EventOccurrence) => void;
-  onDragStart?: (
-    event: EventOccurrence,
-    mouseEvent: React.MouseEvent,
-    hitZone: HitZone,
-    mouseTime: number
-  ) => void;
+  onDragStart?: (event: EventOccurrence, mouseEvent: React.MouseEvent, hitZone: HitZone) => void;
 }
 
 interface MonthViewEventState {
@@ -44,23 +45,26 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
   };
 
   componentDidMount() {
-    this._scrollFocusedEventIntoView();
+    this._revealOnFocusGained(false);
   }
 
-  componentDidUpdate() {
-    this._scrollFocusedEventIntoView();
+  componentDidUpdate(prevProps: MonthViewEventProps) {
+    this._revealOnFocusGained(prevProps.focused);
   }
 
-  _scrollFocusedEventIntoView() {
+  // Announce focus only as it arrives: onFocused opens the card and the reveal scrolls to it, so
+  // doing both on every update reopens the card and jumps the grid on any re-render.
+  _revealOnFocusGained(wasFocused: boolean) {
     const { focused, event, onFocused } = this.props;
-    if (!focused) {
+    if (!focused || wasFocused) {
       return;
     }
     const eventNode = ReactDOM.findDOMNode(this);
     if (!eventNode) {
       return;
     }
-    (eventNode as any).scrollIntoViewIfNeeded?.(true);
+    // centerIfNeeded false: scroll the minimum distance to reveal it, not to the middle.
+    (eventNode as any).scrollIntoViewIfNeeded?.(false);
     onFocused(event);
   }
 
@@ -137,13 +141,9 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
     // Note: Don't call stopPropagation() - the event needs to bubble to
     // CalendarEventContainer so it can track _mouseIsDown state
 
-    // For month view events, use the event's start time as the mouse time
-    // since day-level snapping doesn't require precise time positioning
-    const mouseTime = occurrenceStartUnix(this.props.event);
-
     // Notify parent of drag start
     if (this.props.onDragStart) {
-      this.props.onDragStart(this.props.event, e, this.state.hitZone, mouseTime);
+      this.props.onDragStart(this.props.event, e, this.state.hitZone);
     }
   };
 
@@ -158,6 +158,16 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
       return this.state.hitZone.cursor;
     }
     return 'default';
+  }
+
+  // Timed chips go bare, as in Apple and Notion Calendar; all-day chips keep the tint so a
+  // multi-day event still reads as a bar. Selection fills either through CSS.
+  _backgroundColor(tint: string) {
+    const { event } = this.props;
+    if (event.isPending) {
+      return 'rgba(128, 128, 128, 0.15)';
+    }
+    return event.isAllDay ? tint : 'transparent';
   }
 
   render() {
@@ -176,10 +186,12 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
     const style: React.CSSProperties & {
       '--event-band-color'?: string;
       '--event-text-color'?: string;
+      '--event-selected-text-color'?: string;
     } = {
-      backgroundColor: event.isPending ? 'rgba(128, 128, 128, 0.15)' : colors.background,
+      backgroundColor: this._backgroundColor(colors.background),
       '--event-band-color': colors.band,
       '--event-text-color': colors.text,
+      '--event-selected-text-color': colors.selectedText,
       cursor: this._getCursorStyle(),
     };
 
@@ -210,10 +222,12 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
         onMouseDown={this._onMouseDown}
         tabIndex={0}
       >
-        <span className="month-view-event-title">{event.title}</span>
-        {event.isRecurring && !event.isCancelled && !event.isException && (
-          <RecurringIcon size={9} />
-        )}
+        <span className="month-view-event-title">
+          {this.props.showStartTime && isTimed(event) && (
+            <span className="month-view-event-time">{formatShortTime(event.start)} </span>
+          )}
+          {event.title}
+        </span>
       </div>
     );
   }

@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { escapeHTML } from 'underscore.string';
 
 import React from 'react';
 import {
@@ -111,9 +112,14 @@ export default class MessageItemBody extends React.Component<
       require('@electron/remote').app.getPath('temp'),
       `${message.id}.html`
     );
-    // Prepend charset meta tag to ensure proper encoding (fixes garbled text for non-ASCII characters)
-    const htmlWithCharset = `<meta charset="UTF-8">\n${message.body}`;
-    fs.writeFileSync(filepath, htmlWithCharset);
+    // The full body gets the same sanitizing and formatting as the reading pane; only the
+    // length clip is skipped.
+    const { body } = await MessageBodyProcessor.processUnclipped(message);
+    const html = message.plaintext
+      ? `<div style="white-space: pre-wrap">${escapeHTML(body)}</div>`
+      : this._mergeBodyWithFiles(body);
+    // The charset tag keeps non-ASCII text from rendering garbled
+    fs.writeFileSync(filepath, `<meta charset="UTF-8">\n${html}`);
     const win = new BrowserWindow({
       title: `${message.subject}`,
       width: 800,

@@ -63,41 +63,43 @@ export class HeaderControls extends React.Component<{
   render() {
     return (
       <div className="header-controls" onClick={(e) => e.stopPropagation()}>
+        <div className="side-controls">{this.props.children}</div>
         <div className="center-controls">
           {this._renderPrevAction()}
           <span className="title">{this.props.title}</span>
           {this._renderNextAction()}
         </div>
-        <div className="view-controls">
-          {[
-            {
-              view: CalendarView.DAY,
-              isDisabled: CalendarView.DAY === this.props.disabledViewButton,
-            },
-            {
-              view: CalendarView.WEEK,
-              isDisabled: CalendarView.WEEK === this.props.disabledViewButton,
-            },
-            {
-              view: CalendarView.MONTH,
-              isDisabled: CalendarView.MONTH === this.props.disabledViewButton,
-            },
-            {
-              view: CalendarView.AGENDA,
-              isDisabled: CalendarView.AGENDA === this.props.disabledViewButton,
-            },
-          ].map((buttonOptions) => (
-            <button
-              key={buttonOptions.view}
-              className={buttonOptions.isDisabled ? 'cur-view-btn' : 'view-btn'}
-              onClick={() => this._changeView(buttonOptions.view)}
-              disabled={buttonOptions.isDisabled}
-            >
-              {buttonOptions.view}
-            </button>
-          ))}
+        <div className="side-controls">
+          <div className="view-controls">
+            {[
+              {
+                view: CalendarView.DAY,
+                isDisabled: CalendarView.DAY === this.props.disabledViewButton,
+              },
+              {
+                view: CalendarView.WEEK,
+                isDisabled: CalendarView.WEEK === this.props.disabledViewButton,
+              },
+              {
+                view: CalendarView.MONTH,
+                isDisabled: CalendarView.MONTH === this.props.disabledViewButton,
+              },
+              {
+                view: CalendarView.AGENDA,
+                isDisabled: CalendarView.AGENDA === this.props.disabledViewButton,
+              },
+            ].map((buttonOptions) => (
+              <button
+                key={buttonOptions.view}
+                className={buttonOptions.isDisabled ? 'cur-view-btn' : 'view-btn'}
+                onClick={() => this._changeView(buttonOptions.view)}
+                disabled={buttonOptions.isDisabled}
+              >
+                {buttonOptions.view}
+              </button>
+            ))}
+          </div>
         </div>
-        {this.props.children}
       </div>
     );
   }

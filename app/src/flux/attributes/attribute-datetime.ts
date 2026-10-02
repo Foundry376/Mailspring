@@ -4,6 +4,11 @@ import { Matcher } from './matcher';
 /*
 Public: The value of this attribute is always a Javascript `Date`, or `null`.
 
+Ordered comparison matchers accept only a `Date`. The column stores unix seconds, so a raw
+number would produce correct SQL, but `Matcher.evaluate` (used by live
+QuerySubscriptions to classify change deltas in memory) compares against the
+model's `Date`, and `Date < number` coerces the Date to milliseconds.
+
 Section: Database
 */
 export class AttributeDateTime extends Attribute {
@@ -31,25 +36,25 @@ export class AttributeDateTime extends Attribute {
   }
 
   // Public: Returns a {Matcher} for objects greater than the provided value.
-  greaterThan(val) {
+  greaterThan(val: Date) {
     this._assertPresentAndQueryable('greaterThan', val);
     return new Matcher(this, '>', val);
   }
 
   // Public: Returns a {Matcher} for objects less than the provided value.
-  lessThan(val) {
+  lessThan(val: Date) {
     this._assertPresentAndQueryable('lessThan', val);
     return new Matcher(this, '<', val);
   }
 
   // Public: Returns a {Matcher} for objects greater than the provided value.
-  greaterThanOrEqualTo(val) {
+  greaterThanOrEqualTo(val: Date) {
     this._assertPresentAndQueryable('greaterThanOrEqualTo', val);
     return new Matcher(this, '>=', val);
   }
 
   // Public: Returns a {Matcher} for objects less than the provided value.
-  lessThanOrEqualTo(val) {
+  lessThanOrEqualTo(val: Date) {
     this._assertPresentAndQueryable('lessThanOrEqualTo', val);
     return new Matcher(this, '<=', val);
   }

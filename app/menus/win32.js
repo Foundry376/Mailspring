@@ -91,6 +91,7 @@ module.exports = {
           command: 'navigation:go-to-inbox',
           id: 'first',
         },
+        { label: localized('Go to %@', localized('Unread')), command: 'navigation:go-to-unread' },
         { label: localized('Go to %@', localized('Starred')), command: 'navigation:go-to-starred' },
         { label: localized('Go to %@', localized('Sent Mail')), command: 'navigation:go-to-sent' },
         { label: localized('Go to %@', localized('Drafts')), command: 'navigation:go-to-drafts' },

@@ -60,25 +60,40 @@ module.exports = ErrorLogger = (function () {
     if (this.inSpecMode) {
       return;
     }
-    // Without a message and a stack, an error logged to Sentry shows up as
-    // "Unknown error" with only the IPC handler frame, which is unactionable.
-    // Wrap such inputs in a real Error here so we capture the call site as
-    // the stack and describe the original input in the message.
+    // An error reported without a stack shows up in Sentry attributed to
+    // wherever `new Error()` happened to run to give it one — for JSON
+    // reparsed in the main process's `report-error` IPC handler (see
+    // application.ts), that's the same IPC handler frame for every caller,
+    // regardless of the error's real origin (window.onerror, uncaughtException,
+    // unhandledrejection forwarding a bare rejection reason, or an explicit
+    // reportError() call). Every stackless error, whatever its message,
+    // collapses into one unactionable Sentry issue. Wrap such inputs in a
+    // real Error *here*, in the renderer, before the IPC hop: since callers
+    // differ, this call site's stack differs too, so Sentry attributes and
+    // groups them separately going forward. Keep the original message when
+    // there is one — only the stack is synthetic.
     var hasMessage =
       error && typeof error.message === 'string' && error.message.length > 0;
     var hasStack = error && typeof error.stack === 'string' && error.stack.length > 0;
-    if (!hasMessage && !hasStack) {
-      var description;
-      try {
-        description = JSON.stringify(error);
-      } catch (e) {
-        description = Object.prototype.toString.call(error);
+    if (!hasStack) {
+      var message;
+      if (hasMessage) {
+        message = error.message;
+      } else {
+        var description;
+        try {
+          description = JSON.stringify(error);
+        } catch (e) {
+          description = Object.prototype.toString.call(error);
+        }
+        message = 'Empty error reported (' + description + ')';
       }
-      var wrapped = new Error('Empty error reported (' + description + ')');
+      var wrapped = new Error(message);
       if (error && typeof error === 'object') {
-        // Copy any other useful fields from the original, but never let an
-        // empty `message`/`stack` on the input clobber the wrap's real values
-        // — that would defeat the whole purpose of wrapping.
+        // Copy any other useful fields from the original, but never let a
+        // missing `stack` (or, when we just fell back to the description
+        // above, an empty `message`) on the input clobber the wrap's real
+        // values — that would defeat the whole purpose of wrapping.
         try {
           var keys = Object.getOwnPropertyNames(error);
           for (var i = 0; i < keys.length; i++) {

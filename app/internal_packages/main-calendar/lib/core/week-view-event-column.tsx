@@ -16,6 +16,7 @@ import { DragState, HitZone } from './calendar-drag-types';
 interface WeekViewEventColumnProps {
   events: EventOccurrence[];
   day: Moment;
+  /** Exclusive — the next column's start, so a DST day is not assumed to be 86400s */
   dayEnd: number;
   focusedEvent: FocusedEventInfo | null;
   onEventClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
@@ -26,8 +27,7 @@ interface WeekViewEventColumnProps {
   onEventDragStart: (
     event: EventOccurrence,
     mouseEvent: React.MouseEvent,
-    hitZone: HitZone,
-    mouseTime: number
+    hitZone: HitZone
   ) => void;
   /** Set of calendar IDs that are read-only */
   readOnlyCalendarIds: Set<string>;
@@ -59,16 +59,15 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
       'event-column': true,
       weekend: day.day() === 0 || day.day() === 6,
     });
-    const overlap = overlapForEvents(events);
     const dayStart = day.unix();
-    const dayEndUnix = dayStart + 86400; // 24 hours in seconds
+    const overlap = overlapForEvents(events, { start: dayStart, end: dayEnd });
 
     return (
       <div
         className={className}
         key={day.valueOf()}
         data-calendar-start={dayStart}
-        data-calendar-end={dayEndUnix}
+        data-calendar-end={dayEnd}
         data-calendar-type="day-column"
       >
         {events.map((e) => (

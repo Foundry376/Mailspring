@@ -328,3 +328,36 @@ describe('occurrence id stability across query ranges', function () {
     expect(w.id).toBe(n.id);
   });
 });
+
+describe('occurrencesForEvents on a long-running series', function () {
+  // ical-expander steps forward from DTSTART with no way to seek, so the iteration cap bounds
+  // how far back a series may begin rather than how much a window costs. At the fixed 100 a
+  // weekly meeting that started in 2022 ran out around early 2024 and rendered nothing at all -
+  // no error, no gap, just absent from the calendar.
+  const weeklySince2022 = () =>
+    makeEvent(
+      icsFor('DTSTART:20220308T130000Z', 'DTEND:20220308T140000Z', 'RRULE:FREQ=WEEKLY;BYDAY=TU'),
+      { recurrenceStart: Date.UTC(2022, 2, 8, 13, 0, 0) / 1000 } as any
+    );
+
+  it('still reaches a week four years after the series began', function () {
+    const occs = occurrencesForEvents([weeklySince2022()], {
+      startUnix: Date.UTC(2026, 7, 30) / 1000,
+      endUnix: Date.UTC(2026, 8, 6) / 1000,
+    });
+    expect(occs.length).toBe(1);
+    expect(new Date(occurrenceStartUnix(occs[0]) * 1000).getUTCDate()).toBe(1);
+  });
+
+  it('expands a series that began this year the same way', function () {
+    const recent = makeEvent(
+      icsFor('DTSTART:20260804T130000Z', 'DTEND:20260804T140000Z', 'RRULE:FREQ=WEEKLY;BYDAY=TU'),
+      { recurrenceStart: Date.UTC(2026, 7, 4, 13, 0, 0) / 1000 } as any
+    );
+    const occs = occurrencesForEvents([recent], {
+      startUnix: Date.UTC(2026, 7, 30) / 1000,
+      endUnix: Date.UTC(2026, 8, 6) / 1000,
+    });
+    expect(occs.length).toBe(1);
+  });
+});

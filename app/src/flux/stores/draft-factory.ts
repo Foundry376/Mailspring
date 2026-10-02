@@ -4,6 +4,7 @@ import { AccountStore } from './account-store';
 import ContactStore from './contact-store';
 import { MessageStore } from './message-store';
 import FocusedPerspectiveStore from './focused-perspective-store';
+import FocusedContentStore from './focused-content-store';
 import { localized } from '../../intl';
 import { Contact } from '../models/contact';
 import { Message } from '../models/message';
@@ -271,6 +272,29 @@ class DraftFactory {
     });
   }
 
+  async createDraftForSendAgain(message: Message) {
+    // Reuse the same attachment preparation path as forwarding. This ensures files are
+    // available locally when the duplicated draft is eventually sent.
+    message.files.forEach((file) => Actions.fetchFile(file));
+
+    const draft = await this.createDraft({
+      to: [...message.to],
+      cc: [...message.cc],
+      bcc: [...message.bcc],
+      from: [...message.from],
+      subject: message.subject,
+      files: [...message.files],
+      accountId: message.accountId,
+    });
+
+    // Assign these after createDraft so its new-message formatting defaults do not alter
+    // the original content. This is intentionally a new message with no reply / forward
+    // metadata or thread association.
+    draft.body = message.body || (message.plaintext ? '' : '<br/>');
+    draft.plaintext = message.plaintext;
+    return draft;
+  }
+
   async createDraftForResurfacing(thread: Thread, threadMessageId: string, body: string) {
     const account = AccountStore.accountForId(thread.accountId);
     let replyToHeaderMessageId = threadMessageId;
@@ -407,13 +431,20 @@ class DraftFactory {
   _accountForNewDraft() {
     const defAccountId = AppEnv.config.get('core.sending.defaultAccountIdForSend');
     const account = AccountStore.accountForId(defAccountId);
-    if (account) {
-      return account;
+    if (account) return account;
+
+    const perspectiveAccountIds = FocusedPerspectiveStore.current().accountIds;
+
+    if (perspectiveAccountIds.length > 1) {
+      const focusedThread = FocusedContentStore.focused('thread');
+      if (focusedThread && perspectiveAccountIds.includes(focusedThread.accountId)) {
+        const focusedAccount = AccountStore.accountForId(focusedThread.accountId);
+        if (focusedAccount) return focusedAccount;
+      }
     }
-    const focusedAccountId = FocusedPerspectiveStore.current().accountIds[0];
-    if (focusedAccountId) {
-      return AccountStore.accountForId(focusedAccountId);
-    }
+
+    const focusedAccountId = perspectiveAccountIds[0];
+    if (focusedAccountId) return AccountStore.accountForId(focusedAccountId);
     return AccountStore.accounts()[0];
   }
 }

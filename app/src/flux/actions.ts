@@ -382,6 +382,14 @@ export const composeReply = create('composeReply', ActionScopeWindow);
 export const composeForward = create('composeForward', ActionScopeWindow);
 
 /*
+  Public: Create an editable copy of a sent message and open it in a new composer
+  window. Recipients, subject, body, sender identity, and attachments are preserved.
+
+  *Scope: Window*
+  */
+export const composeSendAgain = create('composeSendAgain', ActionScopeWindow);
+
+/*
   Public: Compose and send a new draft for forwarding the provided threadId and messageId. See
   {::composeReply} for parameters and behavior.
 

@@ -139,11 +139,17 @@ expect(task).not.toBeNull();
 expect(task.threadIds.length).toBeGreaterThan(0);
 ```
 
-The capture system works by injecting a listener on `Actions.queueTask` in the renderer via `webContents.executeJavaScript()`, storing task data in a hidden DOM element that Playwright can read via locators.
+The capture system uses `page.evaluate` to listen on `Actions.queueTask` / `Actions.queueTasks` in the main window and push a serializable summary of each task onto `window.__capturedTasks`, which `getCapturedTasks` / `waitForCapturedTask` read back.
 
 ### Executing JavaScript in the Renderer
 
-Mailspring restricts `window.eval()` for security. To run arbitrary JS in the renderer, use the `executeInRenderer` pattern (defined in helpers.ts):
+Mailspring disables `window.eval()` for security, but `app/static/index.js` skips that when `process.env.PLAYWRIGHT` is set (which `launchApp` does), so `page.evaluate`, `locator.evaluate`, `locator.evaluateAll`, and `locator.allTextContents` all work in tests. Prefer locator assertions (`toHaveText`, `toHaveCount`, `toHaveValue`) where they fit, and reach for `evaluate` when you need DOM or store state they can't express.
+
+The `Content-Security-Policy` in `app/static/index.html` (no `'unsafe-eval'`) stays in force under the harness; it doesn't interfere because Playwright evaluates through the DevTools protocol, which Chromium exempts from page CSP.
+
+If you see `Sorry, Mailspring does not support window.eval()` in a test, the app was launched without the `PLAYWRIGHT` env var — check that the test goes through `launchApp`.
+
+To run JS in the main window from the main process (for example before the page is ready to receive `evaluate` calls), use the `executeInRenderer` pattern (defined in helpers.ts):
 
 ```typescript
 await electronApp.evaluate(async ({ BrowserWindow }, js) => {
@@ -156,7 +162,7 @@ await electronApp.evaluate(async ({ BrowserWindow }, js) => {
 }, code);
 ```
 
-This bypasses the eval restriction by going through the main process's `webContents.executeJavaScript()`.
+This goes through the main process's `webContents.executeJavaScript()` and only targets the main window; use `page.evaluate` on the composer `Page` for popout windows.
 
 ## Common Pitfalls
 
@@ -352,7 +358,7 @@ const threadId = await mainWindow.evaluate(() => {
 });
 ```
 
-Note: Direct `evaluate` calls in the renderer may be blocked by Mailspring's eval restriction. Use the `executeInRenderer` pattern via `electronApp.evaluate` if needed.
+Note: `evaluate` relies on `window.eval`, which Mailspring only leaves enabled when launched with `PLAYWRIGHT=1` (see "Executing JavaScript in the Renderer").
 
 ## Patterns for Common Test Scenarios
 

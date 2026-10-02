@@ -42,6 +42,7 @@ class FocusedPerspectiveStore extends MailspringStore {
     AppEnv.commands.add(document.body, {
       'navigation:go-to-inbox': () => this._setPerspectiveByName('inbox'),
       'navigation:go-to-sent': () => this._setPerspectiveByName('sent'),
+      'navigation:go-to-unread': () => this._setUnreadPerspective(),
       'navigation:go-to-starred': () =>
         this._setPerspective(MailboxPerspective.forStarred(this._current.accountIds)),
       'navigation:go-to-drafts': () =>
@@ -195,6 +196,16 @@ class FocusedPerspectiveStore extends MailspringStore {
     if (![WorkspaceStore.Sheet.Preferences, WorkspaceStore.Sheet.Threads].includes(top)) {
       Actions.popToRootSheet();
     }
+  }
+
+  _setUnreadPerspective() {
+    const inboxes = this._current.accountIds
+      .map((id) => CategoryStore.getCategoryByRole(id, 'inbox'))
+      .filter(Boolean);
+    if (inboxes.length === 0) {
+      return;
+    }
+    this._setPerspective(MailboxPerspective.forUnread(inboxes));
   }
 
   _setPerspectiveByName(categoryName: string) {

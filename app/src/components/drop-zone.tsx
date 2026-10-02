@@ -70,8 +70,20 @@ export class DropZone extends React.Component<DropZoneProps> {
       <div
         {...otherProps}
         onDragOver={(event) => {
-          if (event.target instanceof HTMLElement && event.target.closest('[data-slate-editor]'))
+          // Drags that start inside the Slate editor (moving an inline image, say)
+          // are Slate's to manage - it sets the drop effect and shows a caret, and
+          // preventing the default here would hide it. Anything we've said we'll
+          // accept still needs preventDefault, even over the editor: a
+          // contenteditable refuses drags it has no way to insert - like a dragged
+          // thread, which carries only our own dataTransfer types - so without it
+          // no drop event ever fires in the middle of the composer.
+          if (
+            event.target instanceof HTMLElement &&
+            event.target.closest('[data-slate-editor]') &&
+            !this.props.shouldAcceptDrop(event)
+          ) {
             return;
+          }
           const allowed = event.dataTransfer.effectAllowed;
           if (allowed && allowed !== 'all' && allowed !== 'uninitialized') {
             // Only set dropEffect if it's a valid value (not 'all' or 'uninitialized')

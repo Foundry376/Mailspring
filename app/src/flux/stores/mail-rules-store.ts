@@ -4,8 +4,10 @@ import * as Utils from '../models/utils';
 import * as Actions from '../actions';
 import { Thread } from '../models/thread';
 import { Message } from '../models/message';
+import { Contact } from '../models/contact';
 import DatabaseStore from '../stores/database-store';
 import CategoryStore from '../stores/category-store';
+import { AccountStore } from '../stores/account-store';
 import MailRulesProcessor from '../../mail-rules-processor';
 import { localized } from '../../intl';
 
@@ -33,6 +35,9 @@ export interface MailRule extends Template {
   actions: [
     {
       value: string;
+      // Display name of the folder / label chosen for `value`, used to re-resolve the
+      // category when its id changes (folder ids are hashes of the IMAP path).
+      valueName?: string;
       templateKey: string;
     },
   ];
@@ -43,7 +48,7 @@ class MailRulesStore extends MailspringStore {
   _reprocessing: {
     [accountId: string]: {
       count: number;
-      lastTimestamp: number;
+      lastTimestamp: Date | null;
       inboxCategoryId: string;
     };
   } = {};
@@ -101,25 +106,42 @@ class MailRulesStore extends MailspringStore {
   _onDatabaseChanged = (record: DatabaseChangeRecord<Message>) => {
     if (record.type !== 'persist' || record.objectClass !== Message.name) return;
 
-    // Note: Mailsync processes incoming new emails in two phases. First it fetches the
-    // message metadata (headers, etc.) and then it fetches the body separately. We want
-    // to run mail rules when the BODY is ready. To ensure we wait for the body and
-    // that the mail rules only run once on the message (and not in subsequent updates,
-    // eg: marking as read), the sync engine attaches a custom `fullSyncComplete` flag
-    // that is only true once when both parts are ready.
-    const newIds = record.objectsRawJSON
-      .filter((json) => json.fullSyncComplete)
-      .map((json) => json.id);
+    // The sync engine sets `rulesReady` on exactly one delta per message: the first one on
+    // which the message has both its body and a copy outside Sent / Drafts / Spam / Trash.
+    // For mail the user sent to themself, that is the delta that records the Inbox copy,
+    // which can arrive well after the Sent copy. That delta always carries the body, which
+    // "Body contains" conditions read.
+    const newIds = record.objectsRawJSON.filter((json) => json.rulesReady).map((json) => json.id);
     if (newIds.length === 0) return;
 
     const newMessages = record.objects.filter(
-      (m) => newIds.includes(m.id) && !m.draft && m.date && m.date.valueOf() > this._autoSince
+      (m) =>
+        newIds.includes(m.id) &&
+        !m.draft &&
+        m.date &&
+        m.date.valueOf() > this._autoSince &&
+        !this._isSentToOthers(m)
     );
 
     if (newMessages.length > 0) {
       MailRulesProcessor.processMessages(newMessages);
     }
   };
+
+  /*
+  Mail this account sent to other people, which the engine also flags once the user files it
+  out of Sent (or another client files it elsewhere). Like Thunderbird, Outlook and Apple Mail,
+  rules apply to mail that arrives, never to the user's own sent mail. Mail from another of the
+  user's accounts is still incoming to this one.
+  */
+  _isSentToOthers(message: Message) {
+    const isThisAccount = (c: Contact) =>
+      AccountStore.accountForEmail(c.email)?.id === message.accountId;
+    return (
+      message.from.some(isThisAccount) &&
+      ![...message.to, ...message.cc, ...message.bcc].some(isThisAccount)
+    );
+  }
 
   _onDeleteMailRule = (id: string) => {
     this._rules = this._rules.filter((f) => f.id !== id);
@@ -160,6 +182,9 @@ class MailRulesStore extends MailspringStore {
 
   _onUpdateMailRule = (id: string, properties: Partial<MailRule>) => {
     const existing = this._rules.find((f) => id === f.id);
+    if (!existing) {
+      return;
+    }
     Object.assign(existing, properties);
     this._saveMailRules();
     this.trigger();
@@ -195,6 +220,11 @@ class MailRulesStore extends MailspringStore {
   // Reprocessing Existing Mail
 
   _onStartReprocessing = (aid: string) => {
+    // The preferences UI explains this to the user before dispatching; here we only
+    // avoid walking the entire inbox for nothing.
+    if (!this._rules.some((r) => r.accountId === aid && !r.disabled)) {
+      return;
+    }
     const inboxCategory = CategoryStore.getCategoryByRole(aid, 'inbox');
     if (!inboxCategory) {
       AppEnv.showErrorDialog(

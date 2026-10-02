@@ -62,9 +62,9 @@ you'll want to get the source, build it, and run it locally.
 
 ## Installing Prerequisites
 
-You'll need git and a recent version of Node.JS (currently v16.X is recommended
-with npm v8.1.2+). [nvm](https://github.com/creationix/nvm) is also highly
-recommended. Based on your platform, you'll also need:
+You'll need git and a recent version of Node.JS (v20 LTS is recommended and is
+what CI uses; v16.17+ with npm v8+ is the minimum). [nvm](https://github.com/creationix/nvm)
+is also highly recommended. Based on your platform, you'll also need:
 
 **Windows:**
 
@@ -94,6 +94,17 @@ cd mailspring
 npm install
 npm start
 ```
+
+### The Mailsync binary
+
+Mailspring's sync engine ([Mailsync](https://github.com/Foundry376/Mailspring-Sync))
+is a separate C++ program that the app spawns per account. You don't need to build
+it: the `postinstall` step of `npm install` downloads the prebuilt `mailsync`
+binary matching the `mailsync` submodule's pinned commit from S3 and unpacks it
+into `./app`. If you've checked out the submodule (`git submodule update --init`)
+in order to work on the sync engine, postinstall skips the download and expects you
+to build it yourself; remove the submodule checkout and re-run `npm run postinstall`
+to go back to the prebuilt binary.
 
 ## Development Workflow
 

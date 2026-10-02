@@ -176,7 +176,8 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
       this.props.item.onEdited != null ||
       this.props.item.onExport != null ||
       this.props.item.onExportMbox != null ||
-      this.props.item.onCreateChild != null
+      this.props.item.onCreateChild != null ||
+      this.props.item.onMarkAllAsRead != null
     );
   };
 
@@ -271,54 +272,49 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
     const item = this.props.item;
     const contextMenuLabel = item.contextMenuLabel || item.name;
     const { Menu, MenuItem } = require('@electron/remote');
-    const menu = new Menu();
+    const isLabel = contextMenuLabel.toLowerCase() === 'label';
 
-    if (this.props.item.onEdited) {
-      menu.append(
-        new MenuItem({
-          label: `${localized(`Rename`)} ${contextMenuLabel}`,
-          click: this._onEdit,
-        })
-      );
-    }
-
-    if (this.props.item.onDelete) {
-      menu.append(
-        new MenuItem({
-          label: `${localized(`Delete`)} ${contextMenuLabel}`,
-          click: this._onDelete,
-        })
-      );
-    }
-
-    if (this.props.item.onCreateChild) {
-      const isLabel = contextMenuLabel.toLowerCase() === 'label';
-      menu.append(
-        new MenuItem({
+    // Groups: act on contents, organize the folder itself (destructive last), export.
+    const groups: { label: string; click: () => void }[][] = [
+      [
+        item.onMarkAllAsRead && {
+          label: localized('Mark All as Read'),
+          click: () => this._runCallback('onMarkAllAsRead'),
+        },
+      ],
+      [
+        item.onCreateChild && {
           label: isLabel ? localized(`New Sublabel...`) : localized(`New Subfolder...`),
           click: this._onCreateChildTriggered,
-        })
-      );
-    }
-
-    if (this.props.item.onExport) {
-      menu.append(
-        new MenuItem({
+        },
+        item.onEdited && {
+          label: `${localized(`Rename`)} ${contextMenuLabel}`,
+          click: this._onEdit,
+        },
+        item.onDelete && {
+          label: `${localized(`Delete`)} ${contextMenuLabel}`,
+          click: this._onDelete,
+        },
+      ],
+      [
+        item.onExport && {
           label: localized(`Export folder as .eml files...`),
           click: () => this._runCallback('onExport'),
-        })
-      );
-    }
-
-    if (this.props.item.onExportMbox) {
-      menu.append(
-        new MenuItem({
+        },
+        item.onExportMbox && {
           label: localized(`Export folder as .mbox file...`),
           click: () => this._runCallback('onExportMbox'),
-        })
-      );
-    }
+        },
+      ],
+    ];
 
+    const menu = new Menu();
+    for (const group of groups) {
+      const entries = group.filter(Boolean);
+      if (entries.length === 0) continue;
+      if (menu.items.length > 0) menu.append(new MenuItem({ type: 'separator' }));
+      entries.forEach((entry) => menu.append(new MenuItem(entry)));
+    }
     return menu;
   };
 

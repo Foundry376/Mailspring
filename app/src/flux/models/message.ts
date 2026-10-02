@@ -5,17 +5,28 @@ import { File } from './file';
 import * as Utils from './utils';
 import { Event } from './event';
 import { Contact } from './contact';
-import { Folder } from './folder';
+import { Category } from './category';
 import * as Attributes from '../attributes';
 import { ModelWithMetadata } from './model-with-metadata';
 import { AttributeValues } from './model';
+
+let CategoryStore = null;
+
+/** Per-placement flag bits in the `folders` map (see `Message.folders`). */
+export const PlacementFlags = {
+  Unread: 1,
+  Starred: 2,
+  Draft: 4,
+};
 
 /*
 Public: The Message model represents an email message or draft.
 
 Messages are a sub-object of threads. The content of a message === immutable (with the
-exception being drafts). Mailspring does not support operations such as move || delete on
-individual messages; those operations should be performed on the message’s thread.
+exception being drafts). A message may have a physical copy in more than one IMAP folder at
+once (a self-addressed message lives in both Inbox and Sent); `folders` lists every folder
+that currently holds a copy. Mailspring has no UI for moving || deleting individual messages;
+those operations are performed on the message's thread.
 All messages are part of a thread, even if that thread has only one message.
 
 ## Attributes
@@ -58,6 +69,11 @@ All messages are part of a thread, even if that thread has only one message.
 `threadId`: {AttributeString} The ID of the Message's parent {Thread}. Queryable.
 
 `replyToHeaderMessageId`: {AttributeString} The headerMessageID of a {Message} that this message is in reply to.
+
+`folders`: {AttributeObject} A map from folder id to that copy's flag bits ({PlacementFlags}),
+ with one key per folder the message currently has a live copy in. The sync engine owns this
+ map; resolve entries to {Folder}s with `categories()`. Message-level `unread` / `starred` /
+ `draft` are derived across all copies.
 
 This class also inherits attributes from {Model}
 
@@ -172,10 +188,9 @@ export class Message extends ModelWithMetadata {
       modelKey: 'forwardedHeaderMessageId',
     }),
 
-    folder: Attributes.Obj({
+    folders: Attributes.Obj({
       queryable: false,
-      modelKey: 'folder',
-      itemClass: Folder,
+      modelKey: 'folders',
     }),
 
     listUnsubscribe: Attributes.String({
@@ -207,7 +222,12 @@ export class Message extends ModelWithMetadata {
   public draft: boolean;
   public replyToHeaderMessageId: string;
   public forwardedHeaderMessageId: string;
-  public folder: Folder;
+  /**
+   * folderId -> PlacementFlags bits, one entry per live copy. Left undefined (and omitted
+   * from `toJSON()`) on drafts the client creates, so the engine's own placement record
+   * is not overwritten by a client that has never been told about it.
+   */
+  public folders?: { [folderId: string]: number };
   public listUnsubscribe: string;
   public listUnsubscribePost: string;
 
@@ -229,6 +249,31 @@ export class Message extends ModelWithMetadata {
     this.replyTo = this.replyTo || [];
     this.files = this.files || [];
     this.events = this.events || [];
+  }
+
+  // Public: Returns the ids of the folders this message currently has a copy in.
+  folderIds(): string[] {
+    return Object.keys(this.folders || {});
+  }
+
+  // Public: Returns the {Folder}s this message currently has a copy in, resolved through
+  // the CategoryStore. Folders the store does not know (not yet synced, or deleted) are
+  // omitted, so this can be shorter than `folderIds()`.
+  categories(): Category[] {
+    if (!this.accountId) {
+      return [];
+    }
+    CategoryStore = CategoryStore || require('../stores/category-store').default;
+    return this.folderIds()
+      .map((id) => CategoryStore.byId(this.accountId, id))
+      .filter(Boolean);
+  }
+
+  // Public: True if every copy of this message is in spam or trash. A message with no
+  // resolvable folders is not considered hidden.
+  isInSpamOrTrashOnly(): boolean {
+    const categories = this.categories();
+    return categories.length > 0 && categories.every((c) => ['spam', 'trash'].includes(c.role));
   }
 
   toJSON() {

@@ -278,15 +278,21 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
       return false;
     }
 
-    const folder = this.props.message.folder;
-    if (!folder || folder.role === 'al') {
+    const folders = this.props.message.categories().filter((f) => f.role !== 'all');
+    if (folders.length === 0) {
       return false;
     }
 
     return (
       <div className="header-row">
         <div className="header-label">{localized('Folder')}:&nbsp;</div>
-        <div className="header-name">{folder.displayName}</div>
+        <div className="header-name">
+          {folders.map((f) => (
+            <span key={f.id} className="message-folder-chip">
+              {f.displayName}
+            </span>
+          ))}
+        </div>
       </div>
     );
   }

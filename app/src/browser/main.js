@@ -168,7 +168,11 @@ const parseCommandLine = argv => {
   const safeMode = args['safe'];
   const background = args['background'];
   const configDirPath = args['config-dir-path'];
-  const specDirectory = args['spec-directory'];
+  const specDirectory = args['spec-directory'] && path.resolve(args['spec-directory']);
+  if (specDirectory && !fs.existsSync(specDirectory)) {
+    process.stderr.write(`--spec-directory does not exist: ${specDirectory}\n`);
+    process.exit(1);
+  }
   const specFilePattern = args['spec-file-pattern'];
   const showSpecsInWindow = specMode === 'window';
   const resourcePath = path.normalize(path.resolve(path.dirname(path.dirname(__dirname))));
@@ -360,6 +364,12 @@ const start = () => {
   }
 
   setupCompileCache(configDirPath, options.devMode);
+
+  // Must precede `ready`: disableHardwareAcceleration() has no effect afterward.
+  require('./hardware-acceleration-recovery').applyPersistentSoftwareRendering(
+    app,
+    configDirPath
+  );
 
   const onOpenFileBeforeReady = (event, file) => {
     event.preventDefault();

@@ -471,7 +471,8 @@
       "alt2\\.gmail-smtp-in\\.l\\.google\\.com",
       "alt3\\.gmail-smtp-in\\.l\\.google\\.com",
       "alt4\\.gmail-smtp-in\\.l\\.google\\.com",
-      "gmail-smtp-in\\.l\\.google\\.com"
+      "gmail-smtp-in\\.l\\.google\\.com",
+      "smtp\\.google\\.com"
     ],
     "domain-match": ["googlemail\\.com", "gmail\\.com"],
     "mailboxes": {

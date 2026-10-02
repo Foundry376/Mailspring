@@ -17,7 +17,7 @@ describe('QuotedHTMLTransformer', function () {
     );
   };
 
-  for (let n = 1; n <= 28; n++) {
+  for (let n = 1; n <= 29; n++) {
     it(`properly parses email_${n}`, function () {
       const opts = { keepIfWholeBodyIsQuote: true };
       const actual = removeQuotedHTML(`email_${n}.html`, opts).trim();
@@ -370,6 +370,13 @@ On Thu, Mar 3, 2016 I went to my writing club and wrote:
       const input0 = 'hello<br><br>world<br><br><blockquote>foolololol</blockquote>';
       const expect0 = 'hello<br><br>world';
       expect(QuotedHTMLTransformer.removeQuotedHTML(input0)).toEqual(expect0);
+    });
+
+    it('keeps body content that Gmail placed inside div.gmail_signature', function () {
+      const input = `<div dir="ltr"><div>Hi Alex</div><div><br></div><div>Here is the link to the files.</div><div><div dir="ltr" class="gmail_signature" data-smartmail="gmail_signature"><div dir="ltr"><div><br></div><div><a href="https://example.com/files">FILES</a></div><div><br></div><span>Thanks and have a great day</span><br><br><table><tbody><tr><td><p><b>Jane Doe</b></p></td></tr></tbody></table></div></div></div></div>`;
+      const output = QuotedHTMLTransformer.removeQuotedHTML(input);
+      expect(output).toContain('FILES');
+      expect(output).toContain('Thanks and have a great day');
     });
 
     it('works as expected when body tag inside the html', function () {

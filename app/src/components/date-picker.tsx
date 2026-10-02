@@ -1,4 +1,4 @@
-import moment from 'moment';
+import moment, { Moment } from 'moment';
 import classnames from 'classnames';
 import React from 'react';
 import { DateUtils } from 'mailspring-exports';
@@ -6,8 +6,7 @@ import { MiniMonthView, TabGroupContext } from 'mailspring-component-kit';
 
 type DatePickerProps = {
   value?: number;
-  onChange?: (...args: any[]) => any;
-  dateFormat?: string;
+  onChange?: (ms: number) => void;
 };
 type DatePickerState = {
   focused: boolean;
@@ -20,7 +19,6 @@ export class DatePicker extends React.Component<DatePickerProps, DatePickerState
   context!: React.ContextType<typeof TabGroupContext>;
 
   static defaultProps = {
-    dateFormat: null, // Default to valueOf
     onChange: () => {},
   };
 
@@ -33,17 +31,21 @@ export class DatePicker extends React.Component<DatePickerProps, DatePickerState
     return this.props.value ? moment(this.props.value) : null;
   }
 
-  _onChange(newMoment) {
-    if (this.props.dateFormat) {
-      return this.props.onChange(newMoment.format(this.props.dateFormat));
-    }
-    return this.props.onChange(newMoment.valueOf());
+  // Apply the time to the destination day rather than moving the value's own date: a
+  // same-day-next-year intermediate can land in that year's spring-forward gap and gain an hour.
+  _changeDay(day: Moment) {
+    const val = this.value();
+    const next = day.set({
+      hour: val.hour(),
+      minute: val.minute(),
+      second: val.second(),
+      millisecond: val.millisecond(),
+    });
+    this.props.onChange(next.valueOf());
   }
 
   _moveDay(numDays) {
-    const val = this.value();
-    const day = val.dayOfYear();
-    this._onChange(val.dayOfYear(day + numDays));
+    this._changeDay(this.value().add(numDays, 'days'));
   }
 
   _onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -69,7 +71,7 @@ export class DatePicker extends React.Component<DatePickerProps, DatePickerState
   };
 
   _onSelectDay = (newTimestamp) => {
-    this._onChange(moment(newTimestamp));
+    this._changeDay(moment(newTimestamp));
     this.context?.shiftFocus(1);
   };
 

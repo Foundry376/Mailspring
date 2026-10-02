@@ -100,3 +100,7 @@ img.content-light {
 body.is-blurred .sheet-toolbar-container {
   background: #000;
 }
+// macOS keeps the flat toolbar color when the window is blurred.
+body.platform-darwin.is-blurred .sheet-toolbar-container {
+  background: @panel-background-color;
+}

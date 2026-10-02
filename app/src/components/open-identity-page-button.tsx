@@ -33,12 +33,20 @@ export default class OpenIdentityPageButton extends React.Component<
       source: this.props.source,
       campaign: this.props.campaign,
       content: this.props.label,
-    }).then((url) => {
-      this.setState({ loading: false });
-      if (/^https?:\/\/.+/i.test(url)) {
-        shell.openExternal(url);
+    }).then(
+      (url) => {
+        this.setState({ loading: false });
+        if (/^https?:\/\/.+/i.test(url)) {
+          shell.openExternal(url);
+        }
+      },
+      () => {
+        // No identity is set (eg. the user is signed out) - stop showing the
+        // loading spinner rather than leaving it stuck and letting the
+        // rejection go unhandled.
+        this.setState({ loading: false });
       }
-    });
+    );
   };
 
   render() {

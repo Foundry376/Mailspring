@@ -13,6 +13,7 @@ import {
 } from 'mailspring-exports';
 import { MIN_EVENT_DURATION_SECONDS } from './calendar-constants';
 import { EventOccurrence, isTimed } from './calendar-data-source';
+import { dayFraction } from './week-view-helpers';
 
 // Cache of calendar colors synced from CalDAV servers
 const calendarColorCache: Map<string, string> = new Map();
@@ -178,6 +179,7 @@ export function calcEventColors(calendarId: string): {
   background: string;
   band: string;
   text: string;
+  selectedText: string;
 } {
   const baseColor = calcColor(calendarId);
   const parsed = parseColor(baseColor);
@@ -188,10 +190,12 @@ export function calcEventColors(calendarId: string): {
       background: baseColor,
       band: baseColor,
       text: 'inherit',
+      selectedText: 'white',
     };
   }
 
   const { r, g, b } = parsed;
+  const selectedText = textColorOnFill(parsed);
 
   const textParsed = getThemeTextColor();
   const mix = 0.4; // 40% calendar color, 60% theme text color
@@ -206,7 +210,21 @@ export function calcEventColors(calendarId: string): {
     band: `rgb(${r}, ${g}, ${b})`,
     // Calendar color mixed with theme text color for readability
     text: `rgb(${tr}, ${tg}, ${tb})`,
+    // Selection fills with the band color, so its text must read against that
+    selectedText,
   };
+}
+
+/** Black or white, whichever contrasts more with the fill (WCAG 2 relative luminance). */
+export function textColorOnFill({ r, g, b }: { r: number; g: number; b: number }): string {
+  const linear = (c: number) => {
+    const s = c / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  };
+  const luminance = 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
+  const contrastWithWhite = 1.05 / (luminance + 0.05);
+  const contrastWithBlack = (luminance + 0.05) / 0.05;
+  return contrastWithBlack > contrastWithWhite ? 'black' : 'white';
 }
 
 // Common video meeting URL patterns and their display names
@@ -308,6 +326,20 @@ export function clampEnd(startUnix: number, endUnix: number, isAllDay: boolean):
     ? CalendarDateUtils.nextDayStartUnix(CalendarDateUtils.calendarDateFromUnix(startUnix))
     : startUnix + MIN_EVENT_DURATION_SECONDS;
   return Math.max(endUnix, floor);
+}
+
+/**
+ * A time as compact as the locale allows: a 12-hour clock drops ":00" on the hour ("10 AM"),
+ * a 24-hour clock keeps LT ("10:00"), where a bare "10" would not read as a time.
+ */
+export function formatShortTime(unix: number): string {
+  const time = moment.unix(unix);
+  const lt = moment.localeData().longDateFormat('LT');
+  // moment's LT uses h for a 12-hour clock and H for a 24-hour one, as in time-picker.tsx
+  if (!/h/.test(lt) || time.minutes() !== 0) {
+    return time.format('LT');
+  }
+  return time.format(lt.replace(/[:.]mm/, ''));
 }
 
 /**
@@ -454,10 +486,6 @@ export async function createCalendarEvent(options: CreateCalendarEventOptions): 
  * with no timed selection, fall back to the midday default.
  */
 export function centerGridScroll(viewportEl: HTMLElement, selectedEvent?: EventOccurrence): void {
-  let dayFraction = 0.5;
-  if (selectedEvent && isTimed(selectedEvent)) {
-    const m = moment.unix(selectedEvent.start);
-    dayFraction = (m.hour() * 3600 + m.minute() * 60) / 86400;
-  }
-  viewportEl.scrollTop = viewportEl.scrollHeight * dayFraction - viewportEl.clientHeight / 2;
+  const fraction = selectedEvent && isTimed(selectedEvent) ? dayFraction(selectedEvent.start) : 0.5;
+  viewportEl.scrollTop = viewportEl.scrollHeight * fraction - viewportEl.clientHeight / 2;
 }

@@ -12,17 +12,20 @@ import * as Attributes from '../../src/flux/attributes';
 const strAttr = Attributes.String({ modelKey: 'name', queryable: true });
 const numAttr = Attributes.Number({ modelKey: 'count', queryable: true });
 const boolAttr = Attributes.Boolean({ modelKey: 'active', queryable: true });
+const dateAttr = Attributes.DateTime({ modelKey: 'when', queryable: true });
 
 class SimpleModel extends Model {
   name: string;
   count: number;
   active: boolean;
+  when: Date;
   tags: string[];
   static attributes = {
     ...Model.attributes,
     name: strAttr,
     count: numAttr,
     active: boolAttr,
+    when: dateAttr,
   };
 }
 
@@ -264,6 +267,36 @@ describe('Matcher', function matcherSpecs() {
       it('returns false when the model value does not match the pattern', () => {
         const matcher = new Matcher(strAttr, 'like', 'xyz');
         expect(matcher.evaluate(model({ name: 'hello world' }))).toBe(false);
+      });
+    });
+
+    describe('DateTime attributes', () => {
+      const t = 1_000_000; // unix seconds
+      const at = (seconds: number) => model({ when: new Date(seconds * 1000) });
+
+      it('compares Date bounds by time, not object identity', () => {
+        expect(new Matcher(dateAttr, '=', new Date(t * 1000)).evaluate(at(t))).toBe(true);
+        expect(new Matcher(dateAttr, '!=', new Date(t * 1000)).evaluate(at(t))).toBe(false);
+        expect(dateAttr.lessThan(new Date(t * 1000)).evaluate(at(t - 1))).toBe(true);
+        expect(dateAttr.lessThan(new Date(t * 1000)).evaluate(at(t + 1))).toBe(false);
+        expect(dateAttr.greaterThan(new Date(t * 1000)).evaluate(at(t + 1))).toBe(true);
+        expect(dateAttr.greaterThan(new Date(t * 1000)).evaluate(at(t - 1))).toBe(false);
+        expect(dateAttr.lessThanOrEqualTo(new Date(t * 1000)).evaluate(at(t))).toBe(true);
+        expect(dateAttr.greaterThanOrEqualTo(new Date(t * 1000)).evaluate(at(t))).toBe(true);
+      });
+
+      it('reads a numeric bound as unix seconds, matching the SQL column', () => {
+        expect(new Matcher(dateAttr, '<', t).evaluate(at(t - 1))).toBe(true);
+        expect(new Matcher(dateAttr, '<', t).evaluate(at(t + 1))).toBe(false);
+        expect(new Matcher(dateAttr, '>', t).evaluate(at(t + 1))).toBe(true);
+        expect(new Matcher(dateAttr, '>', t).evaluate(at(t - 1))).toBe(false);
+        expect(new Matcher(dateAttr, '=', t).evaluate(at(t))).toBe(true);
+      });
+
+      it('treats a null model value as matching only equal(null)', () => {
+        const m = model({ when: null });
+        expect(new Matcher(dateAttr, '=', null).evaluate(m)).toBe(true);
+        expect(new Matcher(dateAttr, '=', new Date(t * 1000)).evaluate(m)).toBe(false);
       });
     });
 

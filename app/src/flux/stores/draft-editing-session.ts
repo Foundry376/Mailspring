@@ -261,10 +261,27 @@ export class DraftEditingSession extends MailspringStore {
     this._mountedEditor = editor;
   }
 
+  // ensureCorrectAccount cannot send from an address that matches no account or
+  // alias, eg: a draft synced from another client, or an alias since removed.
+  hasSendableFromAddress() {
+    const from = this._draft?.from[0];
+    return !!(from && AccountStore.accountForEmail(from.email));
+  }
+
+  static unsendableFromAddressMessage() {
+    return localized(
+      'The From address is not one of your accounts or aliases. Choose a From address and try again.'
+    );
+  }
+
   validateDraftForSending() {
     const miscWarnings = [];
     const miscErrors = [];
     const hasAttachment = this._draft.files && this._draft.files.length > 0;
+
+    if (!this.hasSendableFromAddress()) {
+      miscErrors.push(DraftEditingSession.unsendableFromAddressMessage());
+    }
 
     if (this._draft.subject.length === 0) {
       miscWarnings.push(localized('The subject field is blank.'));
@@ -423,6 +440,9 @@ export class DraftEditingSession extends MailspringStore {
           files: draft.files,
           replyTo: draft.replyTo,
           subject: draft.subject,
+          // Carry over plugin metadata (open/link tracking, send-later) so toggles the
+          // user enabled aren't silently reset when the draft moves between accounts.
+          pluginMetadata: draft.pluginMetadata,
           headerMessageId: draft.headerMessageId,
           accountId: account.id,
           unread: false,

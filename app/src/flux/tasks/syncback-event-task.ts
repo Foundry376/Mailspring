@@ -160,4 +160,33 @@ export class SyncbackEventTask extends Task {
   label() {
     return localized('Saving event...');
   }
+
+  // The engine's read-back after the PUT (DAVWorker::writeAndResyncEvent) updates only this row.
+  // A series' exception rows, and any exception this write added, arrive with the next full sync.
+  async onSuccess() {
+    AppEnv.mailsyncBridge.sendSyncCalendarNow(this.accountId);
+  }
+
+  // Keys from TaskProcessor::perform{Local,Remote}SyncbackEvent and DAVWorker::writeAndResyncEvent.
+  // Only the network ones (etag-conflict, no-calendar, not-found) leave the rejected edit on screen.
+  onError({ key, debuginfo }: { key: string; debuginfo: string }) {
+    const messages: { [key: string]: string } = {
+      'etag-conflict': localized(
+        'This event was changed by another client. Refresh the calendar and make your change again.'
+      ),
+      'ics-incomplete': localized(
+        'This series already has modified occurrences on the server. Refresh the calendar and edit it again.'
+      ),
+      'invalid-ics': localized('The event could not be read.'),
+      'no-calendar': localized('The calendar this event belongs to is no longer available.'),
+      'not-found': localized('This event no longer exists.'),
+    };
+    AppEnv.showErrorDialog(
+      {
+        title: localized('Unable to save event'),
+        message: messages[key] || `${localized('An unknown error has occurred')}: ${key}`,
+      },
+      { detail: debuginfo }
+    );
+  }
 }

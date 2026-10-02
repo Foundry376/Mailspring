@@ -228,10 +228,14 @@ function buildPackagerOptions() {
           '*.dll',
           '*.pdb',
           '*.node',
+          // Windows tray icons: Electron loads .ico via LoadImage, which needs a real
+          // file on disk rather than a copy extracted from the asar on every change.
+          '*.ico',
           '**/vendor/**',
           'examples/**',
           '**/src/tasks/**',
           '**/src/quickpreview/**',
+          '**/mcp-stdio-bridge.js',
           '**/static/all_licenses.html',
           '**/static/extensions/**',
           '**/node_modules/spellchecker/**',
@@ -281,6 +285,10 @@ function buildPackagerOptions() {
           // Contents/embedded.provisionprofile. It must be set here at the
           // top level — it is not a per-file option.
           provisioningProfile: process.env.APPLE_PROVISIONING_PROFILE_PATH,
+          // Name or SHA-1 of the signing certificate. Needed when a keychain holds several
+          // "Developer ID Application" certs: signing with one the profile doesn't list makes
+          // amfid reject the restricted entitlements and the app refuses to launch.
+          identity: process.env.APPLE_SIGNING_IDENTITY,
           optionsForFile: filePath => {
             // Only the main app bundle gets the full entitlements plist,
             // which includes restricted entitlements (keychain-access-groups,
@@ -325,6 +333,10 @@ function buildPackagerOptions() {
     //   CFBundleDisplayName, CFBundleExecutable, CFBundleIdentifier, CFBundleName
     // See https://github.com/electron-userland/electron-packager/blob/master/mac.js#L50
     extendInfo: path.resolve(appDir, 'build', 'resources', 'mac', 'extra.plist'),
+    extraResource:
+      platform === 'darwin'
+        ? [path.resolve(appDir, 'build', 'resources', 'mac', 'new-mail.mp3')]
+        : undefined,
     appBundleId: 'com.mailspring.mailspring',
     afterCopy: [
       runCopyPlatformSpecificResources,

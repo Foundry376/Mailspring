@@ -111,7 +111,15 @@ export class Model {
       if (attrValue === undefined) {
         continue;
       }
-      json[attr.jsonKey || key] = attr.toJSON(attrValue);
+      // An attribute that serializes to `undefined` is asking to be left out entirely
+      // (see AttributeString). Dropping the key here rather than relying on
+      // JSON.stringify keeps in-memory consumers - clone(), window props - seeing the
+      // same shape the sync engine receives.
+      const jsonValue = attr.toJSON(attrValue);
+      if (jsonValue === undefined) {
+        continue;
+      }
+      json[attr.jsonKey || key] = jsonValue;
     }
     json.__cls = this.ctor.name;
     return json;

@@ -7,9 +7,37 @@ import { ComposerEditorPlugin } from './types';
 export const UNEDITABLE_TYPE = 'uneditable';
 export const UNEDITABLE_TAGS = ['table', 'img', 'center', 'signature'];
 
+// UneditableNode re-renders on every composer change, but SanitizeTransformer
+// has no internal cache and a block's HTML rarely changes, so sanitizing inline
+// would run DOMPurify on every keystroke. Memoize by the exact input string —
+// the sanitizer is a pure function of (input, static config) — and bound the
+// map so a long editing session with many distinct blocks can't grow it without
+// limit.
+const sanitizeCache = new Map<string, string>();
+const SANITIZE_CACHE_MAX = 100;
+
+function sanitizeUneditableHtml(raw: string): string {
+  if (!raw) return '';
+  const cached = sanitizeCache.get(raw);
+  if (cached !== undefined) return cached;
+  const clean = SanitizeTransformer.runSync(raw);
+  // Map iterates in insertion order, so deleting the first key is FIFO eviction.
+  if (sanitizeCache.size >= SANITIZE_CACHE_MAX) {
+    sanitizeCache.delete(sanitizeCache.keys().next().value);
+  }
+  sanitizeCache.set(raw, clean);
+  return clean;
+}
+
 function UneditableNode(props) {
   const { attributes, node, editor, targetIsHTML, isFocused, children } = props;
-  const __html = node.data.get ? node.data.get('html') : node.data.html;
+  // Sanitize at the rendering boundary rather than trusting data.html. Not every
+  // path that produces an uneditable block runs it through the HTML deserializer
+  // that would otherwise clean this value, so sanitize here before it reaches the
+  // DOM. The result is memoized, so an already-clean value costs a map lookup
+  // rather than a DOMPurify run. See GHSA-2x8h-f5qm-f779.
+  const rawHtml = node.data.get ? node.data.get('html') : node.data.html;
+  const __html = sanitizeUneditableHtml(rawHtml);
 
   if (targetIsHTML) {
     return <div dangerouslySetInnerHTML={{ __html }} />;

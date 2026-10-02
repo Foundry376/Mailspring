@@ -14,6 +14,7 @@ import {
   Actions,
   Utils,
   CanvasUtils,
+  DragDropTypes,
   ChangeStarredTask,
   ChangeFolderTask,
   ChangeLabelsTask,
@@ -242,8 +243,11 @@ class ThreadList extends React.Component<
 
     const canvas = CanvasUtils.canvasForDragging('threads', data.threadIds.length);
     event.dataTransfer.setDragImage(canvas, 10, 10);
-    event.dataTransfer.setData('mailspring-threads-data', JSON.stringify(data));
-    event.dataTransfer.setData(`mailspring-accounts=${data.accountIds.join(',')}`, '1');
+    event.dataTransfer.setData(DragDropTypes.ThreadsDragType, JSON.stringify(data));
+    event.dataTransfer.setData(
+      `${DragDropTypes.AccountsDragTypePrefix}${data.accountIds.join(',')}`,
+      '1'
+    );
   };
 
   _onDragEnd = (event: React.DragEvent) => {};

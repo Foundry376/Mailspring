@@ -72,6 +72,59 @@ export function nextDayStartUnix(date: CalendarDate): number {
 }
 
 /**
+ * Wall-clock seconds since the local midnight of the date an instant falls on: 10:30 is 37800
+ * on a 23- or 25-hour day too. Not `unix - dayStartUnix(date)`, which is elapsed time and sits
+ * an hour off the clock after a DST transition.
+ */
+export function secondsIntoDay(unixSeconds: number): number {
+  const d = new Date(unixSeconds * 1000);
+  return d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds();
+}
+
+/**
+ * The instant at a wall-clock offset into a date, in the local zone. The inverse of
+ * `secondsIntoDay` wherever the clock reading exists once; a time inside a spring-forward gap
+ * resolves forward, and a time the fall-back repeats resolves to its first occurrence.
+ */
+export function secondsIntoDayUnix(date: CalendarDate, seconds: number): number {
+  const utc = new Date(date * MS_PER_DAY);
+  return (
+    new Date(utc.getUTCFullYear(), utc.getUTCMonth(), utc.getUTCDate(), 0, 0, seconds).getTime() /
+    1000
+  );
+}
+
+/**
+ * The first instant on this instant's date with its clock reading — the instant a wall-clock
+ * grid maps that reading to. Only differs from the instant inside the second occurrence of a
+ * fall-back repeated hour, where it is an hour earlier.
+ */
+export function firstOccurrenceUnix(unixSeconds: number): number {
+  return secondsIntoDayUnix(calendarDateFromUnix(unixSeconds), secondsIntoDay(unixSeconds));
+}
+
+/**
+ * `instant`, or the other instant with the same clock reading on the reference's side of a
+ * fall-back transition — the one sharing its UTC offset. A repeated reading names two instants;
+ * this picks the one a gesture relative to `reference` means. Candidates half an hour away
+ * cover zones whose DST shift is 30 minutes (Lord Howe Island).
+ */
+export function sameOffsetOccurrenceUnix(instant: number, reference: number): number {
+  const reading = secondsIntoDay(instant);
+  const offset = new Date(reference * 1000).getTimezoneOffset();
+  if (new Date(instant * 1000).getTimezoneOffset() === offset) {
+    return instant;
+  }
+  for (const delta of [-3600, -1800, 1800, 3600]) {
+    const alt = instant + delta;
+    if (secondsIntoDay(alt) === reading && new Date(alt * 1000).getTimezoneOffset() === offset) {
+      return alt;
+    }
+  }
+  return instant;
+}
+
+/**
  * The start of the date `days` after the one this instant falls on.
  *
  * A migration bridge for callers that still hold instants. It goes away as they move to

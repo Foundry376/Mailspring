@@ -309,7 +309,18 @@ export function occurrencesForEvents(
     // Expand the master event's ICS (handles exceptions in same ICS file)
     if (master) {
       try {
-        const icalExpander = new IcalExpander({ ics: master.ics, maxIterations: 100 });
+        // The budget is derived from the series' own frequency rather than fixed. It was
+        // 100, which is not a limit on work but on how far back a series may begin: a
+        // weekly meeting older than about two years never reached the present, so it
+        // expanded to nothing and vanished from the calendar entirely.
+        const icalExpander = new IcalExpander({
+          ics: master.ics,
+          maxIterations: ICSEventHelpers.expansionIterationBudget(
+            master.ics,
+            master.recurrenceStart,
+            endUnix
+          ),
+        });
         const expanded = icalExpander.between(new Date(startUnix * 1000), new Date(endUnix * 1000));
 
         const masterIsRecurring = ICSEventHelpers.isRecurringEvent(master.ics);

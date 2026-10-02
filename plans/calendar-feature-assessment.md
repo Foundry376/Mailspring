@@ -173,7 +173,6 @@ app/
 │   │   │       ├── event-search-bar.tsx    # Search (STUBBED)
 │   │   │       ├── current-time-indicator.tsx # Red "now" line
 │   │   │       ├── event-grid-background.tsx  # Canvas grid lines
-│   │   │       ├── event-timerange-picker.tsx # Date/time input
 │   │   │       └── event-attendees-input.tsx  # Attendee management
 │   │   │
 │   │   └── styles/

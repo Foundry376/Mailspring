@@ -22,6 +22,7 @@ export class ArchiveButton extends React.Component<{ items: Thread[] }> {
     const tasks = TaskFactory.tasksForArchiving({
       threads: this.props.items,
       source: 'Toolbar Button: Thread List',
+      perspective: FocusedPerspectiveStore.current(),
     });
     Actions.queueTasks(tasks);
     Actions.popSheet();

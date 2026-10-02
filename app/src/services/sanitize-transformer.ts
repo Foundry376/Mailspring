@@ -277,12 +277,27 @@ class SanitizeTransformer {
     return DOMPurify.sanitize(bodyHTML, {
       ALLOWED_TAGS: AllowedTags,
       ALLOWED_ATTR: AllowedAttributes,
+      // DOMPurify permits every data-* attribute by default, independently of
+      // ALLOWED_ATTR. Some are reserved attributes that other parts of the app
+      // treat as trusted, so they must not survive from untrusted mail. Nothing
+      // in the email-display or composer paths reads data-* off sanitized mail,
+      // so drop the whole class rather than allowlisting individual names. See
+      // GHSA-2x8h-f5qm-f779.
+      ALLOW_DATA_ATTR: false,
       // Explicit allowlist of safe URI schemes for email content.
       // file: is intentionally absent — legitimate attachment file:// paths are
       // injected programmatically after sanitization, never from raw email HTML.
       ALLOWED_URI_REGEXP:
         /^(?:(?:https?|ftps?|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|(?!file:)[a-z+.-]+(?:[^a-z+.\-:]|$))/i,
       KEEP_CONTENT: true,
+      // Emails routinely put their entire stylesheet in <head>. DOMPurify
+      // returns `body.innerHTML`, so without this the parser puts those
+      // <style> blocks in <head> and they are discarded before the allow-list
+      // is ever consulted. FORCE_BODY prepends a throwaway element so the
+      // parser opens <body> immediately and head-level content is sanitized
+      // and kept inline. <base>, <link> and <meta> are still dropped by the
+      // allow-list, and the @import hook above now actually sees these sheets.
+      FORCE_BODY: true,
     });
   }
 

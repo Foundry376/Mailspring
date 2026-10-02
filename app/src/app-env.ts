@@ -777,7 +777,11 @@ export default class AppEnvConstructor {
   // This also means that the windowType has changed and a different set of
   // plugins needs to be loaded.
   populateHotWindow(newLoadSettings) {
+    const previousWindowType = loadSettings.windowType;
     loadSettings = newLoadSettings;
+
+    document.body.classList.remove(`window-type-${previousWindowType}`);
+    document.body.classList.add(`window-type-${loadSettings.windowType}`);
 
     this.packages.activatePackages(loadSettings.windowType);
 

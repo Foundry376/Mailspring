@@ -1,5 +1,6 @@
 import moment, { Moment } from 'moment';
 import React from 'react';
+import { ipcRenderer } from 'electron';
 import {
   Rx,
   DatabaseStore,
@@ -101,8 +102,7 @@ export interface MailspringCalendarViewProps extends EventRendererProps {
   onEventDragStart: (
     event: EventOccurrence,
     mouseEvent: React.MouseEvent,
-    hitZone: HitZone,
-    mouseTime: number
+    hitZone: HitZone
   ) => void;
 
   /** Set of calendar IDs that are read-only (events in these calendars cannot be dragged) */
@@ -391,8 +391,11 @@ export class MailspringCalendar extends React.Component<
     );
   };
 
+  // Fires once the focused event has scrolled itself into view. Clearing the flag here keeps
+  // a later unrelated re-render from re-running that scroll (and reopening the popover).
   _onEventFocused = (occurrence: EventOccurrence) => {
     this._openEventPopover(occurrence);
+    this.setState({ focusedEvent: null });
   };
 
   _onDeleteSelectedEvents = async () => {
@@ -452,6 +455,21 @@ export class MailspringCalendar extends React.Component<
       // Check if this is a recurring event (and not already an exception)
       const isRecurring = ICSEventHelpers.isRecurringEvent(event.ics);
 
+      if (event.isRecurrenceException()) {
+        // Deleting a moved occurrence means cancelling it on the master; see
+        // removeInlineException for why the row must never be destroyed on its own.
+        const master = await DatabaseStore.findBy<Event>(Event, {
+          accountId: event.accountId,
+          calendarId: event.calendarId,
+          icsuid: event.icsuid,
+          recurrenceId: '',
+        });
+        if (master) {
+          await this._cancelExceptionOccurrence(master, event);
+          return;
+        }
+      }
+
       if (isRecurring && !event.isRecurrenceException()) {
         // Show recurring event dialog
         const choice = await showRecurringEventDialog('delete', occurrence.title);
@@ -508,6 +526,40 @@ export class MailspringCalendar extends React.Component<
     Actions.queueTask(task);
   }
 
+  /** Cancels the occurrence an inline exception overrides, by editing the master. */
+  async _cancelExceptionOccurrence(masterEvent: Event, exceptionEvent: Event) {
+    const undoData = {
+      ics: masterEvent.ics,
+      recurrenceStart: masterEvent.recurrenceStart,
+      recurrenceEnd: masterEvent.recurrenceEnd,
+    };
+
+    const updated = ICSEventHelpers.removeInlineException(
+      masterEvent.ics,
+      exceptionEvent.recurrenceId
+    );
+    if (updated === masterEvent.ics) {
+      // The row and its master disagree about which occurrence this is. Both live in one
+      // resource, so a DELETE would take the series; refuse rather than guess.
+      AppEnv.showErrorDialog({
+        title: localized('Delete Failed'),
+        message: localized(
+          'This occurrence could not be found in its series. Refresh the calendar and try again.'
+        ),
+      });
+      return;
+    }
+
+    masterEvent.ics = updated;
+    Actions.queueTask(
+      SyncbackEventTask.forUpdating({
+        event: masterEvent,
+        undoData,
+        description: localized('Delete occurrence'),
+      })
+    );
+  }
+
   /**
    * Delete an entire event (or series)
    */
@@ -523,26 +575,14 @@ export class MailspringCalendar extends React.Component<
   }
 
   /**
-   * Handle drag start from an event
+   * A grab waiting for its position: the event's mousedown lands here first, then bubbles to
+   * the CalendarEventContainer, whose hit-test hands _onCalendarMouseDown the grid time and
+   * container coordinates under the cursor — the same frame every later drag target uses.
    */
-  _onEventDragStart = (
-    event: EventOccurrence,
-    mouseEvent: React.MouseEvent,
-    hitZone: HitZone,
-    mouseTime: number
-  ) => {
-    const config = this._getDragConfig();
+  _pendingDrag: { event: EventOccurrence; hitZone: HitZone } | null = null;
 
-    const dragState = createDragState(
-      event,
-      hitZone,
-      mouseTime,
-      mouseEvent.clientX,
-      mouseEvent.clientY,
-      config
-    );
-
-    this.setState({ dragState });
+  _onEventDragStart = (event: EventOccurrence, _mouseEvent: React.MouseEvent, hitZone: HitZone) => {
+    this._pendingDrag = { event, hitZone };
   };
 
   /**
@@ -609,11 +649,21 @@ export class MailspringCalendar extends React.Component<
     this._persistDragChange(dragState);
   };
 
-  /**
-   * Handle mouse down on calendar
-   */
-  _onCalendarMouseDown = (_args: CalendarEventArgs) => {
-    // No-op: mouseUp handles drag completion, mouseMove handles drag updates
+  _onCalendarMouseDown = (args: CalendarEventArgs) => {
+    const pending = this._pendingDrag;
+    this._pendingDrag = null;
+    if (!pending || args.time === null) {
+      return;
+    }
+    const dragState = createDragState(
+      pending.event,
+      pending.hitZone,
+      args.time,
+      args.x,
+      args.y,
+      this._getDragConfig()
+    );
+    this.setState({ dragState });
   };
 
   /**
@@ -873,11 +923,8 @@ export class MailspringCalendar extends React.Component<
     AppEnv.config.set(CALENDAR_LIST_VISIBLE, visible);
   };
 
-  /**
-   * Refresh calendars by triggering a sync.
-   */
   _onRefreshCalendars = () => {
-    AppEnv.mailsyncBridge.sendSyncMailNow();
+    ipcRenderer.send('command', 'application:sync-calendar');
   };
 
   _shouldShowEmptyState() {

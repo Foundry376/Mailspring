@@ -8,7 +8,7 @@ import {
   isEventSelected,
 } from './calendar-data-source';
 import { MonthViewEvent } from './month-view-event';
-import { localized } from 'mailspring-exports';
+import { localized, CalendarDateUtils } from 'mailspring-exports';
 import { DragState, HitZone } from './calendar-drag-types';
 
 interface MonthViewDayCellProps {
@@ -27,8 +27,7 @@ interface MonthViewDayCellProps {
   onEventDragStart: (
     event: EventOccurrence,
     mouseEvent: React.MouseEvent,
-    hitZone: HitZone,
-    mouseTime: number
+    hitZone: HitZone
   ) => void;
   /** Set of calendar IDs that are read-only */
   readOnlyCalendarIds: Set<string>;
@@ -83,6 +82,7 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
       'is-other-month': !isCurrentMonth,
     });
 
+    const date = CalendarDateUtils.calendarDateFromUnix(day.unix());
     const dayStartUnix = day.clone().startOf('day').unix();
     const dayEndUnix = day.clone().endOf('day').unix();
 
@@ -108,6 +108,7 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
               event={event}
               selected={this._isEventSelected(event)}
               focused={focusedEvent?.id === event.id}
+              showStartTime={event.startDate === date}
               onClick={onEventClick}
               onDoubleClick={onEventDoubleClick}
               onFocused={onEventFocused}

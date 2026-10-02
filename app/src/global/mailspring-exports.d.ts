@@ -208,6 +208,8 @@ export type FsUtils = typeof import('../fs-utils');
 export const FsUtils: FsUtils;
 export type CanvasUtils = typeof import('../canvas-utils');
 export const CanvasUtils: CanvasUtils;
+export type DragDropTypes = typeof import('../drag-drop-types');
+export const DragDropTypes: DragDropTypes;
 export type RegExpUtils = typeof import('../regexp-utils').default;
 export const RegExpUtils: RegExpUtils;
 export type MenuHelpers = typeof import('../menu-helpers');

@@ -4,37 +4,19 @@ import {
   Actions,
   Thread,
   Message,
-  Contact,
   DatabaseStore,
   NativeNotifications,
   FocusedPerspectiveStore,
 } from 'mailspring-exports';
 
-interface ActivityAction {
-  messageId: string;
-  threadId: string;
-  title: string;
-  recipient: Contact | null;
-  pluginId: string;
-  timestamp: number;
-}
-
 import * as ActivityActions from './activity-actions';
 import ActivityDataSource from './activity-data-source';
-import { configForPluginId, LINK_TRACKING_ID, OPEN_TRACKING_ID } from './plugin-helpers';
-
-export function pluckByEmail(recipients: Contact[], email: string) {
-  if (email) {
-    return recipients.find((r) => r.email === email);
-  } else if (recipients.length === 1) {
-    return recipients[0];
-  }
-  return null;
-}
+import { configForPluginId } from './plugin-helpers';
+import { ActivityEvent, eventsForMessage } from './activity-events';
 
 class ActivityEventStore extends MailspringStore {
   _throttlingTimestamps = {};
-  _actions = [];
+  _actions: ActivityEvent[] = [];
   _unreadCount = 0;
   _messages?: Message[];
   _subscription: Rx.IDisposable;
@@ -69,12 +51,12 @@ class ActivityEventStore extends MailspringStore {
     return this._actions;
   }
 
-  actionIsUnseen(action: ActivityAction) {
+  actionIsUnseen(action: ActivityEvent) {
     if (!AppEnv.savedState.activityListViewed) return true;
     return action.timestamp >= AppEnv.savedState.activityListViewed;
   }
 
-  actionIsUnnotified(action: ActivityAction) {
+  actionIsUnnotified(action: ActivityEvent) {
     if (!AppEnv.savedState.activityListNotified) return true;
     return action.timestamp >= AppEnv.savedState.activityListNotified;
   }
@@ -91,16 +73,26 @@ class ActivityEventStore extends MailspringStore {
   focusThread(threadId: string) {
     AppEnv.displayWindow();
     Actions.closePopover();
+    this._withThread(threadId, (thread) => {
+      Actions.ensureCategoryIsFocused('sent', thread.accountId);
+      Actions.setFocus({ collection: 'thread', item: thread });
+    });
+  }
+
+  popoutThread(threadId: string) {
+    this._withThread(threadId, (thread) => Actions.popoutThread(thread));
+  }
+
+  _withThread(threadId: string, callback: (thread: Thread) => void) {
     DatabaseStore.find<Thread>(Thread, threadId).then((thread) => {
       if (!thread) {
         AppEnv.reportError(
-          new Error(`ActivityEventStore::focusThread: Can't find thread: ${threadId}`)
+          new Error(`ActivityEventStore::_withThread: Can't find thread: ${threadId}`)
         );
         AppEnv.showErrorDialog(localized(`Can't find the selected thread in your mailbox`));
         return;
       }
-      Actions.ensureCategoryIsFocused('sent', thread.accountId);
-      Actions.setFocus({ collection: 'thread', item: thread });
+      callback(thread);
     });
   }
 
@@ -126,27 +118,16 @@ class ActivityEventStore extends MailspringStore {
       return;
     }
 
-    // Build actions and notifications
+    const includeRepeats = !!AppEnv.config.get(
+      'core.notifications.enabledForRepeatedTrackingEvents'
+    );
 
     this._messages
       .filter((m) => sidebarAccountIds.includes(m.accountId))
       .forEach((message) => {
-        const openMetadata = message.metadataForPluginId(OPEN_TRACKING_ID);
-        const linkMetadata = message.metadataForPluginId(LINK_TRACKING_ID);
-        if (openMetadata && openMetadata.open_count > 0) {
-          this._appendActionsForMessage(message, OPEN_TRACKING_ID, (cb) => {
-            openMetadata.open_data.forEach((open) => cb(open, message.subject));
-          });
-        }
-        if (linkMetadata && linkMetadata.links) {
-          this._appendActionsForMessage(message, LINK_TRACKING_ID, (cb) => {
-            for (const link of linkMetadata.links) {
-              for (const click of link.click_data) {
-                cb(click, link.title || link.url);
-              }
-            }
-          });
-        }
+        const events = eventsForMessage(message, { includeRepeats });
+        this._actions.push(...events);
+        this._unreadCount += events.filter((e) => this.actionIsUnseen(e)).length;
       });
 
     this._actions = this._actions.sort((a, b) => b.timestamp - a.timestamp);
@@ -183,49 +164,6 @@ class ActivityEventStore extends MailspringStore {
 
     this._onNotificationsPosted();
     this.trigger();
-  }
-
-  _appendActionsForMessage(
-    message: Message,
-    pluginId: string,
-    actionLoopFn: (
-      cb: (event: { recipient: string; timestamp: number }, title: string) => void
-    ) => void
-  ) {
-    const recipients = message.to.concat(message.cc, message.bcc);
-
-    let actions = [];
-    actionLoopFn(({ recipient, timestamp }, title) => {
-      actions.push({
-        messageId: message.id,
-        threadId: message.threadId,
-        title: title,
-        recipient: pluckByEmail(recipients, recipient),
-        pluginId: pluginId,
-        timestamp: timestamp,
-      });
-    });
-
-    // If the user oes not want to receive repeated tracking notifications for emails,
-    // only show the first tracking event for each title / recipient pair, so you'd get
-    // - Ben opened link 1
-    // X Ben opened link 1
-    // - Ben opened link 2
-    // X Ben opened link 1
-    // - Mark opened link 1
-    if (!AppEnv.config.get('core.notifications.enabledForRepeatedTrackingEvents')) {
-      const seen = {};
-      actions = actions.sort((a, b) => a.timestamp - b.timestamp); // oldest to newest
-      actions = actions.filter((a) => {
-        const key = `${a.title}${a.recipient && a.recipient.email}`;
-        if (seen[key]) return false;
-        seen[key] = true;
-        return true;
-      });
-    }
-
-    this._actions.push(...actions);
-    this._unreadCount += actions.filter((a) => this.actionIsUnseen(a)).length;
   }
 }
 

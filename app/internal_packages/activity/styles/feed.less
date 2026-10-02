@@ -1,0 +1,297 @@
+@import 'ui-variables';
+
+.activity-dashboard {
+  .activity-tabs {
+    display: flex;
+    margin: 0 20px;
+    border-bottom: 1px solid @border-color-divider;
+
+    .tab {
+      cursor: default;
+      padding: @padding-base-vertical @padding-base-horizontal * 1.5;
+      margin-bottom: -1px;
+      border-bottom: 2px solid transparent;
+      color: @text-color-subtle;
+      font-size: @font-size-base * 1.1;
+      font-weight: 500;
+
+      &:hover {
+        color: @text-color;
+      }
+      &.active {
+        color: @text-color;
+        border-bottom-color: @accent-primary;
+      }
+      &:focus-visible {
+        outline: 2px solid @accent-primary;
+        outline-offset: -2px;
+      }
+    }
+  }
+}
+
+// Shared by the Feed and Engagement tabs.
+.activity-dashboard {
+  .activity-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: @padding-base-horizontal;
+    margin: 0 20px 12px 20px;
+    flex-shrink: 0;
+
+    .toolbar-search {
+      flex: 1 1 220px;
+      min-width: 160px;
+      max-width: 360px;
+    }
+    .spacer {
+      flex: 1 1 0;
+    }
+    // Labels match the buttons' type size so the row reads as one control strip.
+    .group-by,
+    .toolbar-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: @font-size-small;
+      color: @text-color-subtle;
+      white-space: nowrap;
+      margin: 0;
+      font-weight: normal;
+      input {
+        margin: 0;
+      }
+    }
+    .group-by .dropdown-menu .menu {
+      width: 140px;
+    }
+    .event-count {
+      font-size: @font-size-small;
+      color: @text-color-very-subtle;
+      white-space: nowrap;
+    }
+  }
+
+  // Sized and outlined like .btn so it sits flush with the other controls.
+  .segmented-control {
+    display: inline-flex;
+    border-radius: @border-radius-base;
+    background: @background-primary;
+    font-size: @font-size-small;
+    box-shadow:
+      0 0.5px 0 @btn-border-color,
+      0 -0.5px 0 @btn-border-color,
+      0.5px 0 0 @btn-border-color,
+      -0.5px 0 0 @btn-border-color,
+      0 0.5px 1px @btn-border-color;
+
+    .segment {
+      cursor: default;
+      height: 1.9em;
+      line-height: 1.9em;
+      padding: 0 0.8em;
+      color: @btn-default-text-color;
+      white-space: nowrap;
+      &:first-child {
+        border-radius: @border-radius-base 0 0 @border-radius-base;
+      }
+      &:last-child {
+        border-radius: 0 @border-radius-base @border-radius-base 0;
+      }
+      & + .segment {
+        box-shadow: -0.5px 0 0 @btn-border-color;
+      }
+      &.active {
+        background: @accent-primary;
+        color: @text-color-inverse;
+      }
+      &:focus-visible {
+        outline: 2px solid @accent-primary;
+        outline-offset: -2px;
+      }
+    }
+  }
+
+  .activity-feed-empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 20px;
+    color: @text-color-subtle;
+
+    img.logo {
+      background-color: @text-color-very-subtle;
+      margin-bottom: 20px;
+    }
+    h3 {
+      color: @text-color;
+      margin: 0 0 8px 0;
+    }
+    .lead {
+      margin: 0 0 24px 0;
+    }
+    .steps {
+      text-align: left;
+      margin: 0 0 20px 0;
+      padding-left: 22px;
+      li {
+        margin-bottom: 10px;
+        line-height: 24px;
+      }
+      .step-icon {
+        display: inline-block;
+        vertical-align: middle;
+        margin: 0 4px;
+        padding: 2px 5px;
+        border-radius: @border-radius-base;
+        background: @background-secondary;
+        border: 1px solid @border-color-divider;
+        img {
+          background-color: @accent-primary;
+          vertical-align: middle;
+        }
+      }
+    }
+    .hint {
+      color: @text-color-very-subtle;
+      font-size: @font-size-small;
+      margin: 0 0 24px 0;
+    }
+  }
+}
+
+.activity-feed {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+
+  .activity-feed-scroll {
+    flex: 1;
+    min-height: 0;
+    .scroll-region-content-inner {
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+    }
+  }
+
+  .empty-note {
+    color: @text-color-very-subtle;
+    text-align: center;
+    max-width: 500px;
+    margin: 50px auto;
+    img {
+      vertical-align: middle;
+    }
+  }
+
+  .activity-feed-table {
+    padding: 0 20px 45px 20px;
+
+    table {
+      width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: @background-primary;
+      text-align: left;
+      color: @text-color-very-subtle;
+      font-weight: 400;
+      padding: 0 @padding-base-horizontal 6px 0;
+      // A border on a sticky cell scrolls away under border-collapse; the
+      // shadow stays attached to the header.
+      box-shadow: inset 0 -1px 0 @border-color-divider;
+
+      &.time {
+        width: 190px;
+      }
+      &.recipient {
+        width: 26%;
+      }
+    }
+
+    td {
+      padding: 0 @padding-base-horizontal 0 0;
+      line-height: 32px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    a {
+      color: inherit;
+      cursor: default;
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+
+    .event-row {
+      border-bottom: 1px solid fade(@border-color-divider, 25%);
+    }
+    .time {
+      color: @text-color-subtle;
+      line-height: 18px;
+      padding-top: 6px;
+      padding-bottom: 6px;
+    }
+    .delay {
+      display: block;
+      font-size: @font-size-small;
+      color: @text-color-very-subtle;
+    }
+    .email {
+      color: @text-color-very-subtle;
+    }
+    .activity-icon {
+      vertical-align: text-bottom;
+      margin-right: 6px;
+    }
+    .occurrences {
+      color: @text-color-very-subtle;
+      margin-left: 4px;
+    }
+    .link {
+      color: @text-color-link;
+      margin-left: 6px;
+      &:hover {
+        color: @text-color-link-hover;
+      }
+    }
+    .subject {
+      color: @text-color-subtle;
+    }
+
+    .group-row td {
+      padding-top: 18px;
+      line-height: 24px;
+      border-bottom: 1px solid @border-color-divider;
+    }
+    .group-row .label {
+      font-weight: @font-weight-semi-bold;
+      .email {
+        font-weight: normal;
+      }
+    }
+    .group-row .count {
+      color: @text-color-very-subtle;
+      margin-left: 8px;
+      & + .count::before {
+        content: '·';
+        margin-right: 8px;
+      }
+    }
+  }
+}

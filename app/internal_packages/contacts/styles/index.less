@@ -322,3 +322,35 @@
     flex-shrink: 0;
   }
 }
+
+// The macOS 26+ toolbar is taller and uses a capsule-shaped search field, so
+// the search input is centered in the bar instead of top-aligned.
+:where(body.platform-darwin) .contact-search {
+  padding-top: 0;
+  display: flex;
+  align-items: center;
+
+  input {
+    height: @toolbar-btn-height-darwin;
+    line-height: @toolbar-btn-height-darwin;
+    padding-left: 30px;
+    padding-right: 30px;
+    border: 0;
+    border-radius: (@toolbar-btn-height-darwin / 2);
+    box-shadow: @shadow-border;
+    &:focus {
+      border: 0;
+      box-shadow: 0 0 0 1.5px @accent-primary;
+    }
+  }
+  .search-accessory.search {
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .search-accessory.clear {
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}

@@ -32,6 +32,7 @@ class AttachmentStore extends MailspringStore {
   _filePreviewPaths = {};
   _filesDirectory: string = path.join(AppEnv.getConfigDirPath(), 'files');
   _lastDownloadDirectory: string;
+  _pendingAddsByDraft: { [headerMessageId: string]: Promise<void> } = {};
 
   constructor() {
     super();
@@ -425,14 +426,49 @@ class AttachmentStore extends MailspringStore {
     });
   };
 
-  _onAddAttachment = async ({
+  // Adds are serialized per draft so files land on the draft in dispatch
+  // order rather than the order their copies happen to finish.
+  _onAddAttachment = ({
     headerMessageId,
     filePath,
     inline = false,
     onCreated = (file: File) => {},
+  }: {
+    headerMessageId: string;
+    filePath: string;
+    inline?: boolean;
+    onCreated?: (file: File) => void;
   }) => {
     this._assertIdPresent(headerMessageId);
 
+    // Chain links swallow rejections so a single failed add can't poison the
+    // rest of the chain for this draft.
+    const previous = this._pendingAddsByDraft[headerMessageId] || Promise.resolve();
+    const current = previous
+      .then(() => this._addAttachmentNow({ headerMessageId, filePath, inline, onCreated }))
+      .catch((err) => AppEnv.reportError(err));
+    this._pendingAddsByDraft[headerMessageId] = current;
+    current.then(() => {
+      if (this._pendingAddsByDraft[headerMessageId] === current) {
+        delete this._pendingAddsByDraft[headerMessageId];
+      }
+    });
+    return current;
+  };
+
+  // Errors are surfaced in a dialog rather than rejected so one failed file
+  // never blocks the rest of the chain for the same draft.
+  async _addAttachmentNow({
+    headerMessageId,
+    filePath,
+    inline,
+    onCreated,
+  }: {
+    headerMessageId: string;
+    filePath: string;
+    inline: boolean;
+    onCreated: (file: File) => void;
+  }) {
     try {
       const filename = path.basename(filePath);
       const stats = await this._getFileStats(filePath);
@@ -468,7 +504,7 @@ class AttachmentStore extends MailspringStore {
     } catch (err) {
       AppEnv.showErrorDialog(err.message);
     }
-  };
+  }
 
   _onRemoveAttachment = async (headerMessageId: string, fileToRemove: File) => {
     if (!fileToRemove) {

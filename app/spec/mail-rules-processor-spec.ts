@@ -6,6 +6,8 @@ import {
   DatabaseStore,
   TaskQueue,
   Actions,
+  CategoryStore,
+  Folder,
 } from 'mailspring-exports';
 
 const MailRulesProcessor = require('../src/mail-rules-processor').default;
@@ -203,4 +205,126 @@ describe('MailRulesProcessor', function () {
         });
       });
     }));
+
+  describe('_applyRuleToMessage ordering', function () {
+    it("does not finish until the rule's tasks have run locally", async function () {
+      let resolveLocal;
+      spyOn(TaskQueue, 'waitForPerformLocal').andReturn(new Promise((r) => (resolveLocal = r)));
+      spyOn(Actions, 'queueTasks');
+      const rule = Tests[0].rule;
+      const thread = new Thread({ accountId: rule.accountId, unread: true });
+
+      let finished = false;
+      const done = MailRulesProcessor._applyRuleToMessage(
+        rule,
+        new Message({ accountId: rule.accountId }),
+        thread
+      ).then(() => (finished = true));
+
+      await new Promise((r) => window.originalSetTimeout(r, 0));
+      expect(Actions.queueTasks).toHaveBeenCalled();
+      expect(finished).toBe(false);
+
+      resolveLocal();
+      await done;
+      expect(finished).toBe(true);
+    });
+
+    it('stops waiting for an engine that never runs the tasks', async function () {
+      spyOn(TaskQueue, 'waitForPerformLocal').andReturn(new Promise(() => {}));
+      spyOn(Actions, 'queueTasks');
+      const rule = Tests[0].rule;
+
+      let finished = false;
+      MailRulesProcessor._applyRuleToMessage(
+        rule,
+        new Message({ accountId: rule.accountId }),
+        new Thread({ accountId: rule.accountId, unread: true })
+      ).then(() => (finished = true));
+
+      await new Promise((r) => window.originalSetTimeout(r, 0));
+      expect(finished).toBe(false);
+      advanceClock(10001);
+      await new Promise((r) => window.originalSetTimeout(r, 0));
+      expect(finished).toBe(true);
+    });
+  });
+
+  describe('category resolution', function () {
+    const accountId = 'b5djvgcuhj6i3x8nm53d0vnjm';
+    const folder = new Folder({ id: 'new-id', accountId, path: 'INBOX/Receipts' });
+
+    beforeEach(function () {
+      spyOn(TaskQueue, 'waitForPerformLocal');
+      spyOn(Actions, 'queueTasks');
+      spyOn(Actions, 'disableMailRule');
+      spyOn(CategoryStore, 'byId').andCallFake((aid, id) => (id === 'new-id' ? folder : undefined));
+      spyOn(CategoryStore, 'categories').andReturn([folder]);
+    });
+
+    const ruleFor = (action) => ({
+      id: 'rule-1',
+      name: 'Receipts',
+      accountId,
+      conditions: [{ templateKey: 'subject', comparatorKey: 'contains', value: 'receipt' }],
+      conditionMode: 'any',
+      actions: [action],
+    });
+
+    it('falls back to the display name when the id is gone', function () {
+      const rule = ruleFor({
+        templateKey: 'changeFolder',
+        value: 'stale-id',
+        valueName: 'Receipts',
+      });
+      waitsForPromise(() =>
+        MailRulesProcessor._applyRuleToMessage(
+          rule,
+          new Message({ accountId }),
+          new Thread({ accountId })
+        ).then(() => {
+          expect(Actions.queueTasks).toHaveBeenCalled();
+          expect(Actions.disableMailRule).not.toHaveBeenCalled();
+          expect(rule.actions[0].value).toBe('stale-id');
+        })
+      );
+    });
+
+    it('disables the rule when neither the id nor the name resolves', function () {
+      const rule = ruleFor({ templateKey: 'changeFolder', value: 'stale-id', valueName: 'Nope' });
+      waitsForPromise(() =>
+        MailRulesProcessor._applyRuleToMessage(
+          rule,
+          new Message({ accountId }),
+          new Thread({ accountId })
+        ).then(() => {
+          expect(Actions.queueTasks).not.toHaveBeenCalled();
+          expect(Actions.disableMailRule).toHaveBeenCalledWith(
+            'rule-1',
+            'Error: The folder could not be found.'
+          );
+        })
+      );
+    });
+
+    it('disables the rule when the name matches more than one category', function () {
+      const twin = new Folder({ id: 'twin-id', accountId, path: 'Receipts' });
+      (CategoryStore.categories as jasmine.Spy).andReturn([folder, twin]);
+      const rule = ruleFor({
+        templateKey: 'changeFolder',
+        value: 'stale-id',
+        valueName: 'Receipts',
+      });
+      waitsForPromise(() =>
+        MailRulesProcessor._applyRuleToMessage(
+          rule,
+          new Message({ accountId }),
+          new Thread({ accountId })
+        ).then(() => {
+          expect(Actions.queueTasks).not.toHaveBeenCalled();
+          expect(Actions.disableMailRule).toHaveBeenCalled();
+        })
+      );
+    });
+  });
 });

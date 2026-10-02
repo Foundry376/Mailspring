@@ -49,7 +49,7 @@
     "better-sqlite3": "^12.8.0",
     "chalk": "1.x.x",
     "devtron": "^1.4.0",
-    "electron": "43.4.1",
+    "electron": "44.5.1",
     "electron-playwright-helpers": "^2.1.0",
     "electron-winstaller": "5.4.0",
     "eslint": "^8.0.0",
@@ -86,5 +86,12 @@
   },
   "overrides": {
     "tar": "7.5.21"
-  }
+  },
+  "allowScripts": {
+    "better-sqlite3@12.11.1": true,
+    "electron-winstaller@5.4.0": true,
+    "highlight.js@9.18.5": true,
+    "@sentry/cli@2.58.6": true
+  },
+  "packageManager": "yarn@4.17.1+sha512.ccbfabf7d7b6b32075088be9386fb9a2e00bb6887ef07fa56effabc890a56d53da1ccc4128d62db245fcbd3961b236d75335bdf7d5320ed6eafb7588b7ad4697"
 }

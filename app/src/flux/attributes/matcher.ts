@@ -89,7 +89,18 @@ export class Matcher {
     if (modelValue instanceof Function) {
       modelValue = modelValue();
     }
-    const matcherValue = this.val;
+    let matcherValue = this.val;
+
+    // Dates are compared as milliseconds so `=` is not object identity and so a
+    // numeric bound is read as the unix seconds the column stores, matching whereSQL.
+    if (modelValue instanceof Date) {
+      modelValue = modelValue.getTime();
+      if (matcherValue instanceof Date) {
+        matcherValue = matcherValue.getTime();
+      } else if (typeof matcherValue === 'number') {
+        matcherValue = matcherValue * 1000;
+      }
+    }
 
     const asId = (v) => (v && v.id ? v.id : v);
 

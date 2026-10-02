@@ -168,7 +168,11 @@ export class EventAttendeesInput extends React.Component<EventAttendeesInputProp
         ref="textField"
         tokens={this.props.attendees}
         tokenKey={(p) => p.email}
-        tokenIsValid={(p) => ContactStore.isValidContact(p)}
+        // An attendee is a plain {email, name, partstat} record read out of the event's ICS,
+        // never a Contact, so ContactStore.isValidContact - an `instanceof Contact` test -
+        // called every invitee invalid and drew the malformed-address underline under all of
+        // them. Validate the address itself.
+        tokenIsValid={(p) => new Contact({ email: p.email }).isValid()}
         tokenRenderer={TokenRenderer}
         onRequestCompletions={(input) => ContactStore.searchContacts(input)}
         shouldBreakOnKeydown={this._shouldBreakOnKeydown}

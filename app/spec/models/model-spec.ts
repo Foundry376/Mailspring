@@ -237,6 +237,20 @@ describe('Model', function modelSpecs() {
         this.model.toJSON();
       }).toThrow();
     });
+
+    describe('Attributes.String', () => {
+      it('should omit null values so that mailsync reads them as absent', () => {
+        this.model.accountId = null;
+        const json = this.model.toJSON();
+        expect('aid' in json).toBe(false);
+        expect(JSON.parse(JSON.stringify(json)).aid).toBe(undefined);
+      });
+
+      it('should keep the empty string, which is distinct from null', () => {
+        this.model.accountId = '';
+        expect(this.model.toJSON().aid).toBe('');
+      });
+    });
   });
 
   describe('matches', () => {

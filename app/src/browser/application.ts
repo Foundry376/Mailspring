@@ -1,7 +1,18 @@
 /* eslint global-require: "off" */
 
 import '../safe-shell';
-import { BrowserWindow, Menu, app, ipcMain, dialog, nativeImage, shell } from 'electron';
+import {
+  BrowserWindow,
+  ClipboardItem,
+  Menu,
+  app,
+  clipboard,
+  ipcMain,
+  dialog,
+  nativeImage,
+  powerMonitor,
+  shell,
+} from 'electron';
 
 import fs from 'fs';
 import url from 'url';
@@ -24,13 +35,14 @@ import moveToApplications from './move-to-applications';
 import { MailsyncProcess } from '../mailsync-process';
 import Config from '../config';
 import { registerQuickpreviewIPCHandlers } from './quickpreview-ipc';
+import { guardAuxiliaryWindowNavigation } from './auxiliary-window-guard';
+import { isMailspringWindowContents } from './mailspring-window';
 import {
   handleWindowsToastXMLProtocolAction,
   registerNotificationIPCHandlers,
 } from './notification-ipc';
 import WindowsTaskbarManager from './windows-taskbar-manager';
-
-let clipboard = null;
+import { resetThemeForRecovery } from './theme-recovery';
 
 // The application's singleton class.
 //
@@ -141,6 +153,7 @@ export default class Application extends EventEmitter {
     await this.oneTimeMoveToApplications();
     await this.oneTimeAddToDock();
 
+    guardAuxiliaryWindowNavigation();
     this.autoUpdateManager = new AutoUpdateManager(version, config, specMode);
     this.applicationMenu = new ApplicationMenu(version);
     this.windowManager = new WindowManager({
@@ -434,10 +447,13 @@ export default class Application extends EventEmitter {
 
     this.on('application:show-calendar', () => {
       this.windowManager.ensureWindow(WindowManager.CALENDAR_WINDOW, {});
-      const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
-      if (main) {
-        main.sendMessage('run-calendar-sync');
-      }
+      this.sendCalendarSync();
+    });
+
+    // The calendar window's MailsyncBridge has no sync clients, so a manual
+    // refresh has to be routed through the main window's bridge.
+    this.on('application:sync-calendar', (accountId?: string) => {
+      this.sendCalendarSync(accountId);
     });
 
     this.on('application:show-contacts', () => {
@@ -449,7 +465,7 @@ export default class Application extends EventEmitter {
     });
 
     this.on('application:view-help', () => {
-      const helpUrl = 'https://community.getmailspring.com/docs';
+      const helpUrl = 'https://getmailspring.com/docs/';
       shell.openExternal(helpUrl);
     });
 
@@ -587,13 +603,6 @@ export default class Application extends EventEmitter {
       } else if (app.setBadgeCount) {
         app.setBadgeCount(value.length ? value.replace('+', '') / 1 : 0);
       }
-      // app.setBadgeCount relies on libunity, which is absent on KDE/Fedora and
-      // many non-Ubuntu desktops (the badge silently no-ops there). Emit the raw
-      // Unity LauncherEntry signal so the taskbar badge works on those too.
-      if (process.platform === 'linux') {
-        const count = value && value.length ? parseInt(value.replace('+', ''), 10) || 0 : 0;
-        require('./linux-launcher-entry').emitLauncherEntryBadge(count);
-      }
     });
 
     const dockMenu = Menu.buildFromTemplate([
@@ -646,14 +655,24 @@ export default class Application extends EventEmitter {
 
       const buttonIndex = dialog.showMessageBoxSync({
         type: 'warning',
-        buttons: [localized('Reset Theme'), localized('Continue')],
+        buttons: [localized('Reset Theme and Restart'), localized('Continue')],
         defaultId: 0,
         message,
-        detail,
+        detail: `${detail}\n\n${localized(
+          'Reset Theme and Restart restores the bundled automatic, light, and dark themes, clears cached theme styles, and restarts Mailspring. Your accounts, mail, plugins, and other settings are not changed.'
+        )}`,
       });
       if (buttonIndex === 0) {
         userResetTheme = true;
-        this.config.set('core.theme', '');
+        const cacheClearErrors = resetThemeForRecovery(this.config, this.configDirPath);
+        for (const error of cacheClearErrors) {
+          console.warn(`Theme was reset but a compiled LESS cache could not be removed: ${error}`);
+        }
+        // Relaunch rather than recompiling in place: the renderer still holds
+        // the failed theme's cache open, and a clean start is the only way to
+        // guarantee the bundled themes load without leftover state.
+        app.relaunch();
+        app.quit();
       }
     });
 
@@ -677,6 +696,17 @@ export default class Application extends EventEmitter {
       }
     });
 
+    // The sync engine's retry wait only counts awake time, so after sleep it can sit out
+    // its full 120s interval before reconnecting unless the main window wakes it.
+    const onSystemResumed = () => {
+      const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
+      if (main) {
+        main.sendMessage('system-resumed');
+      }
+    };
+    powerMonitor.on('resume', onSystemResumed);
+    powerMonitor.on('unlock-screen', onSystemResumed);
+
     app.on('activate', (event, hasVisibleWindows) => {
       if (!hasVisibleWindows) {
         this.ensureWindowsForTokenState();
@@ -692,10 +722,13 @@ export default class Application extends EventEmitter {
     });
 
     ipcMain.on('command', (event, command, ...args) => {
+      if (!isMailspringWindowContents(event.sender)) return;
+      if (typeof command !== 'string' || !command.startsWith('application:')) return;
       this.emit(command, ...args);
     });
 
     ipcMain.on('window-command', (event, command, ...args) => {
+      if (!isMailspringWindowContents(event.sender)) return;
       const win = BrowserWindow.fromWebContents(event.sender);
       if (!win) return;
       win.emit(command, ...args);
@@ -779,13 +812,12 @@ export default class Application extends EventEmitter {
 
     ipcMain.on('write-image-to-clipboard', (event, dataURL) => {
       // This can't be done from the renderer due to https://github.com/electron/electron/issues/8151
-      clipboard = require('electron').clipboard;
-      clipboard.writeImage(nativeImage.createFromDataURL(dataURL));
+      const png = nativeImage.createFromDataURL(dataURL).toPNG();
+      clipboard.write([new ClipboardItem({ 'image/png': new Blob([png], { type: 'image/png' }) })]);
     });
 
     ipcMain.on('write-text-to-selection-clipboard', (event, selectedText) => {
-      clipboard = require('electron').clipboard;
-      clipboard.writeText(selectedText, 'selection');
+      if (clipboard.selection) clipboard.selection.writeText(selectedText);
     });
 
     ipcMain.on('account-setup-successful', () => {
@@ -892,6 +924,13 @@ export default class Application extends EventEmitter {
     registerNotificationIPCHandlers(ipcMain);
   }
 
+  sendCalendarSync(accountId?: string) {
+    const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
+    if (main) {
+      main.sendMessage('run-calendar-sync', accountId);
+    }
+  }
+
   // Public: Executes the given command.
   //
   // If it isn't handled globally, delegate to the currently focused window.
@@ -984,7 +1023,15 @@ export default class Application extends EventEmitter {
       return;
     }
 
-    const parts = url.parse(urlToOpen, true);
+    // url.parse throws on malformed input, and the URL comes from whatever app
+    // launched us (MAILSPRING-CLIENT-M2).
+    let parts: url.UrlWithParsedQuery;
+    try {
+      parts = url.parse(urlToOpen, true);
+    } catch (err) {
+      console.warn(`Ignoring URL - could not parse ${urlToOpen}: ${err.message}`);
+      return;
+    }
     const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
 
     if (!main) {

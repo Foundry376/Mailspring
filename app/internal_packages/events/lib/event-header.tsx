@@ -15,11 +15,47 @@ import {
   Event,
   EventRSVPTask,
   DatabaseStore,
+  RegExpUtils,
 } from 'mailspring-exports';
 import ICAL from 'ical.js';
 import { findOneIana } from 'windows-iana';
 
 const moment = require('moment-timezone');
+
+const TEL_URI = /tel:\S+?(?=[.,;:]*(?:\s|$))/gi;
+
+/**
+ * A LOCATION is usually the video-call URL, most often followed by the rooms booked for it, so
+ * each URL or tel: URI in it is linked and the rest stays text.
+ */
+export function renderLocation(location: string | undefined): React.ReactNode {
+  if (!location) return null;
+
+  const links: Array<{ start: number; end: number; href: string }> = [];
+  for (const pattern of [RegExpUtils.urlRegex(), TEL_URI]) {
+    for (const match of location.matchAll(pattern)) {
+      const start = match.index;
+      const end = start + match[0].length;
+      if (links.some((l) => start < l.end && end > l.start)) continue;
+      links.push({ start, end, href: match[0] });
+    }
+  }
+  if (!links.length) return location;
+
+  const nodes: React.ReactNode[] = [];
+  let cursor = 0;
+  for (const { start, end, href } of links.sort((a, b) => a.start - b.start)) {
+    if (start > cursor) nodes.push(location.slice(cursor, start));
+    nodes.push(
+      <a key={start} href={href}>
+        {location.slice(start, end)}
+      </a>
+    );
+    cursor = end;
+  }
+  if (cursor < location.length) nodes.push(location.slice(cursor));
+  return nodes;
+}
 
 interface EventHeaderProps {
   message: Message;
@@ -176,7 +212,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
             <div>
               <div className="event-time">{time}</div>
             </div>
-            <div className="event-location">{icsEvent.location}</div>
+            <div className="event-location">{renderLocation(icsEvent.location)}</div>
             {icsMethod === 'cancel'
               ? this._renderCancellation()
               : icsMethod === 'request'

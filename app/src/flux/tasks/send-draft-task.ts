@@ -31,9 +31,8 @@ function applyExtensionTransforms(draft: Message, recipient: Contact) {
     draft.body = before;
     return after;
   } else {
-    const fragment = document.createDocumentFragment();
-    const draftBodyRootNode = document.createElement('root');
-    fragment.appendChild(draftBodyRootNode);
+    // An inert document, so images in the body aren't fetched while it is transformed
+    const draftBodyRootNode = document.implementation.createHTMLDocument('').createElement('root');
     draftBodyRootNode.innerHTML = draft.body;
 
     for (const ext of extensions) {

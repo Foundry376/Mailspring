@@ -20,7 +20,7 @@ body.platform-win32 {
       padding: 0 5px;
       .windows-btn-bg;
       &:hover {
-        background: #e5e5e5;
+        background: @background-secondary;
       }
       &.btn-icon:hover {
         color: @text-color;
@@ -429,6 +429,10 @@ body.platform-win32 {
         display: block;
         font-weight: @font-weight-normal;
         margin-left: 0;
+      }
+
+      .message-folder-chip + .message-folder-chip::before {
+        content: ', ';
       }
     }
 

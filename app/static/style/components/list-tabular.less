@@ -76,6 +76,18 @@
   }
 }
 
+:where(body.platform-darwin) {
+  .sheet-toolbar .selection-bar {
+    height: @toolbar-height-darwin;
+    .absolute {
+      height: (@toolbar-height-darwin - 1px);
+      .inner .centered {
+        line-height: @toolbar-height-darwin;
+      }
+    }
+  }
+}
+
 body.platform-win32 {
   .sheet-toolbar .selection-bar {
     .absolute {
