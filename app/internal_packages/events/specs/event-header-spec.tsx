@@ -1,9 +1,18 @@
 import React from 'react';
 import ReactTestUtils from 'react-dom/test-utils';
 import fs from 'fs';
+import moment from 'moment';
 import os from 'os';
 import path from 'path';
-import { Rx, AttachmentStore, File, Message } from 'mailspring-exports';
+import {
+  Actions,
+  AccountStore,
+  Rx,
+  AttachmentStore,
+  Event,
+  File,
+  Message,
+} from 'mailspring-exports';
 import { EventHeader, renderLocation } from '../lib/event-header';
 
 // A LOCATION as Zoom rooms write it: the join URL, then the rooms booked for the meeting.
@@ -135,6 +144,150 @@ describe('EventHeader location', function () {
         ]);
         expect(location.textContent).toBe(ZOOM_WITH_ROOMS);
       });
+    });
+  });
+});
+
+describe('EventHeader for an invitation to one occurrence of a series', function () {
+  const vcalendar = (...vevents: string[][]) =>
+    [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Test//Test//EN',
+      ...vevents.flatMap((lines) => [
+        'BEGIN:VEVENT',
+        'UID:huddle@test',
+        ...lines,
+        'DTSTAMP:20260901T000000Z',
+        'END:VEVENT',
+      ]),
+      'END:VCALENDAR',
+    ].join('\r\n');
+
+  const GUESTS = [
+    'ORGANIZER:mailto:ada@example.com',
+    'ATTENDEE;PARTSTAT=ACCEPTED:mailto:ada@example.com',
+    'ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:me@example.com',
+  ];
+
+  // A weekly meeting since 2025. The email is about 15 September 2026, moved later.
+  const SERIES = [
+    'DTSTART:20250923T140000Z',
+    'DTEND:20250923T141500Z',
+    'RRULE:FREQ=WEEKLY',
+    'SUMMARY:Huddle',
+    ...GUESTS,
+  ];
+  const EMAILED = [
+    'RECURRENCE-ID:20260915T140000Z',
+    'DTSTART:20260915T150000Z',
+    'DTEND:20260915T151500Z',
+    'SUMMARY:Huddle',
+    ...GUESTS,
+  ];
+  const SYNCED = [
+    'RECURRENCE-ID:20260915T140000Z',
+    'DTSTART:20260915T160000Z',
+    'DTEND:20260915T161500Z',
+    'SUMMARY:Huddle (as synced)',
+    ...GUESTS,
+  ];
+
+  // Another moved week, listed first in the calendar copy.
+  const OTHER_WEEK = [
+    'RECURRENCE-ID:20260908T140000Z',
+    'DTSTART:20260909T140000Z',
+    'DTEND:20260909T141500Z',
+    'SUMMARY:Huddle (another week)',
+    ...GUESTS,
+  ];
+
+  // The header prints the day in the local zone, so the expectation is formed the same way
+  // rather than spelled out: no instant falls on one date in every zone the suite may run in.
+  const dayOf = (iso: string) => moment(iso).format('dddd, MMMM Do');
+
+  let icsPath: string;
+
+  function render(emailed: string[], calendarIcs: string) {
+    icsPath = path.join(os.tmpdir(), `event-header-spec-${process.pid}.ics`);
+    fs.writeFileSync(
+      icsPath,
+      vcalendar(emailed).replace('VERSION:2.0', 'VERSION:2.0\r\nMETHOD:REQUEST')
+    );
+    spyOn(AttachmentStore, 'pathForFile').andReturn(icsPath);
+    spyOn(Rx.Observable, 'fromQuery').andReturn(
+      Rx.Observable.just(new Event({ id: 'e1', accountId: 'a1', ics: calendarIcs } as any))
+    );
+    const header = ReactTestUtils.renderIntoDocument(
+      <EventHeader
+        message={new Message({ accountId: 'a1' })}
+        file={new File({ id: 'f1', filename: 'invite.ics' })}
+      />
+    ) as unknown as EventHeader;
+    const text = (className: string) =>
+      ReactTestUtils.scryRenderedDOMComponentsWithClass(header, className)[0]?.textContent;
+    // The link is rendered once the calendar copy has been applied.
+    waitsFor(() => !!text('event-view-in-calendar'));
+    return Object.assign(text, { header });
+  }
+
+  afterEach(function () {
+    fs.unlinkSync(icsPath);
+  });
+
+  it("shows that occurrence from the calendar copy, not the series' first date", function () {
+    const text = render(EMAILED, vcalendar(SERIES, OTHER_WEEK, SYNCED));
+    runs(() => {
+      expect(text('event-day')).toBe(dayOf('2026-09-15T16:00:00Z'));
+      expect(text('event-title')).toBe('Huddle (as synced)');
+    });
+  });
+
+  it('keeps what the email said when the calendar copy has no entry for it', function () {
+    const text = render(EMAILED, vcalendar(SERIES));
+    runs(() => {
+      expect(text('event-day')).toBe(dayOf('2026-09-15T15:00:00Z'));
+      expect(text('event-title')).toBe('Huddle');
+    });
+  });
+
+  let queueTask: jasmine.Spy;
+
+  // Clicks Decline and returns the ICS of the reply that was queued.
+  function declineAndGetReply(text: ReturnType<typeof render>): string {
+    const decline = ReactTestUtils.scryRenderedDOMComponentsWithClass(text.header, 'btn-rsvp').find(
+      (button) => button.textContent === 'Decline'
+    );
+    ReactTestUtils.Simulate.click(decline);
+    return queueTask.mostRecentCall.args[0].ics;
+  }
+
+  beforeEach(function () {
+    spyOn(AccountStore, 'accountForEmail').andCallFake((email: string) =>
+      email === 'me@example.com' ? ({ id: 'a1' } as any) : null
+    );
+    queueTask = spyOn(Actions, 'queueTask');
+  });
+
+  it('answers for that occurrence alone, not for the series', function () {
+    const text = render(EMAILED, vcalendar(SERIES, OTHER_WEEK, SYNCED));
+    runs(() => {
+      const reply = declineAndGetReply(text);
+      expect(reply.split('BEGIN:VEVENT').length - 1).toBe(1);
+      expect(reply).toContain('RECURRENCE-ID:20260915T140000Z');
+      expect(reply).not.toContain('RRULE');
+    });
+  });
+
+  it('still shows, and answers from, the calendar copy for an invitation to the whole series', function () {
+    const text = render(
+      SERIES,
+      vcalendar([...SERIES.slice(0, 3), 'SUMMARY:Huddle (as synced)', ...GUESTS])
+    );
+    runs(() => {
+      expect(text('event-day')).toBe(dayOf('2025-09-23T14:00:00Z'));
+      expect(text('event-title')).toBe('Huddle (as synced)');
+      expect(declineAndGetReply(text)).toContain('SUMMARY:Huddle (as synced)');
     });
   });
 });
