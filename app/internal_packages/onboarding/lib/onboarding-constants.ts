@@ -60,7 +60,16 @@ export const O365_SCOPES = [
 
 // Re-created only at onboarding page load / auth session start because storing
 // verifier would require additional state refactoring
-export const CODE_VERIFIER = crypto.randomUUID();
+//
+// 32 random bytes base64url-encode to exactly 43 characters, the minimum length
+// RFC 7636 §4.1 allows (`code-verifier = 43*128unreserved`). A UUID is only 36
+// characters and authorization servers that enforce the minimum reject it.
+export const CODE_VERIFIER = crypto
+  .randomBytes(32)
+  .toString('base64')
+  .replace(/\+/g, '-')
+  .replace(/\//g, '_')
+  .replace(/=/g, '');
 export const CODE_CHALLENGE = crypto
   .createHash('sha256')
   .update(CODE_VERIFIER, 'utf8')
