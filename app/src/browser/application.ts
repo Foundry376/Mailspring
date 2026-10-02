@@ -453,10 +453,11 @@ export default class Application extends EventEmitter {
       const open = this.windowManager.get(WindowManager.CALENDAR_WINDOW);
       this.windowManager.ensureWindow(WindowManager.CALENDAR_WINDOW, {});
       this.sendCalendarSync();
-      if (open && focusEvent) {
-        open.sendMessage('focus-calendar-event', focusEvent);
-      } else {
+      if (!open || (focusEvent && this._pendingCalendarFocus)) {
+        // New window, or one still mounting: the latest event asked for is the one to show.
         this._pendingCalendarFocus = focusEvent;
+      } else if (focusEvent) {
+        open.sendMessage('focus-calendar-event', focusEvent);
       }
     });
 
