@@ -169,9 +169,14 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
         if (!calEvent) return;
         try {
           const synced = eventForInvitation(calEvent.ics, inviteRecurrenceIdStart);
-          if (synced) {
-            this.setState({ icsEvent: synced, icsOriginalData: calEvent.ics });
-          }
+          if (!synced) return;
+          // The reply is built from icsOriginalData. For one occurrence that stays the emailed
+          // copy, which describes it alone; the calendar object would answer for the series.
+          this.setState(
+            inviteRecurrenceIdStart === undefined
+              ? { icsEvent: synced, icsOriginalData: calEvent.ics }
+              : { icsEvent: synced }
+          );
         } catch (e) {
           console.warn(`EventHeader: Could not parse ICS data from calendar event: ${e.message}`);
         }
