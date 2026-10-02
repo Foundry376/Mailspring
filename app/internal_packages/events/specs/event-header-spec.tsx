@@ -251,27 +251,33 @@ describe('EventHeader for an invitation to one occurrence of a series', function
     });
   });
 
-  it('answers for that occurrence alone, not for the series', function () {
+  // Clicks Decline and returns the ICS of the reply that was queued.
+  function declineAndGetReply(text: ReturnType<typeof render>): string {
+    const decline = ReactTestUtils.scryRenderedDOMComponentsWithClass(text.header, 'btn-rsvp').find(
+      (button) => button.textContent === 'Decline'
+    );
+    ReactTestUtils.Simulate.click(decline);
+    return (Actions.queueTask as jasmine.Spy).mostRecentCall.args[0].ics;
+  }
+
+  beforeEach(function () {
     spyOn(AccountStore, 'accountForEmail').andCallFake((email: string) =>
       email === 'me@example.com' ? ({ id: 'a1' } as any) : null
     );
-    const queueTask = spyOn(Actions, 'queueTask');
+    spyOn(Actions, 'queueTask');
+  });
+
+  it('answers for that occurrence alone, not for the series', function () {
     const text = render(EMAILED, vcalendar(SERIES, OTHER_WEEK, SYNCED));
     runs(() => {
-      const decline = ReactTestUtils.scryRenderedDOMComponentsWithClass(
-        text.header,
-        'btn-rsvp'
-      ).find((button) => button.textContent === 'Decline');
-      ReactTestUtils.Simulate.click(decline);
-
-      const reply: string = queueTask.mostRecentCall.args[0].ics;
+      const reply = declineAndGetReply(text);
       expect(reply.split('BEGIN:VEVENT').length - 1).toBe(1);
       expect(reply).toContain('RECURRENCE-ID:20260915T140000Z');
       expect(reply).not.toContain('RRULE');
     });
   });
 
-  it('still shows the calendar copy for an invitation to the whole series', function () {
+  it('still shows, and answers from, the calendar copy for an invitation to the whole series', function () {
     const text = render(
       SERIES,
       vcalendar([...SERIES.slice(0, 3), 'SUMMARY:Huddle (as synced)', ...GUESTS])
@@ -279,6 +285,7 @@ describe('EventHeader for an invitation to one occurrence of a series', function
     runs(() => {
       expect(text('event-day')).toBe(dayOf('2025-09-23T14:00:00Z'));
       expect(text('event-title')).toBe('Huddle (as synced)');
+      expect(declineAndGetReply(text)).toContain('SUMMARY:Huddle (as synced)');
     });
   });
 });
