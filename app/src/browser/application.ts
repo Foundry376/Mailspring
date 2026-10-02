@@ -445,14 +445,18 @@ export default class Application extends EventEmitter {
       }
     });
 
-    // `focus` names an event to show once the window is up; the menu item passes none.
-    this.on('application:show-calendar', (focus?: { icsuid: string; accountId: string }) => {
-      this.windowManager.ensureWindow(WindowManager.CALENDAR_WINDOW, {});
+    // `focusEvent` names an event to show; the menu item passes none. A window that is already
+    // open gets it as a message. A new one gets it as a window prop, because the window is
+    // made from the hot window, which counts as loaded before the calendar has mounted.
+    this.on('application:show-calendar', (focusEvent?: { icsuid: string; accountId: string }) => {
+      const open = this.windowManager.get(WindowManager.CALENDAR_WINDOW);
+      this.windowManager.ensureWindow(
+        WindowManager.CALENDAR_WINDOW,
+        focusEvent ? { windowProps: { focusEvent } } : {}
+      );
       this.sendCalendarSync();
-      if (focus) {
-        this.windowManager
-          .get(WindowManager.CALENDAR_WINDOW)
-          .sendMessage('focus-calendar-event', focus);
+      if (open && focusEvent) {
+        open.sendMessage('focus-calendar-event', focusEvent);
       }
     });
 
