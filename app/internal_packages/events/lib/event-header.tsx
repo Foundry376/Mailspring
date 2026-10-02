@@ -58,6 +58,27 @@ export function renderLocation(location: string | undefined): React.ReactNode {
   return nodes;
 }
 
+/**
+ * The VEVENT of a synced calendar object that an invitation is about. An invitation for one
+ * occurrence of a series names it by RECURRENCE-ID; the object's first VEVENT is the series.
+ *
+ * @returns null when the invitation names an occurrence the object has no VEVENT for.
+ */
+export function eventForInvitation(
+  calendarIcs: string,
+  recurrenceIdStart: number | undefined
+): ICAL.Event | null {
+  const { root, event } = CalendarUtils.parseICSString(calendarIcs);
+  if (recurrenceIdStart === undefined) {
+    return event;
+  }
+  const occurrence = root.getAllSubcomponents('vevent').find((vevent) => {
+    const rid = vevent.getFirstPropertyValue('recurrence-id') as ICAL.Time | null;
+    return rid && rid.toJSDate().getTime() / 1000 === recurrenceIdStart;
+  });
+  return occurrence ? new ICAL.Event(occurrence) : null;
+}
+
 interface EventHeaderProps {
   message: Message;
   file: File;
@@ -127,13 +148,14 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       // Normalize to known methods: request, reply, cancel. Default unknown methods to request.
       const normalizedMethod =
         methodLower === 'reply' || methodLower === 'cancel' ? methodLower : 'request';
+      const inviteRecurrenceIdStart = event.recurrenceId
+        ? event.recurrenceId.toJSDate().getTime() / 1000
+        : undefined;
       this.setState({
         icsEvent: event,
         icsMethod: normalizedMethod as 'reply' | 'request' | 'cancel',
         icsOriginalData: data.toString(),
-        inviteRecurrenceIdStart: event.recurrenceId
-          ? event.recurrenceId.toJSDate().getTime() / 1000
-          : undefined,
+        inviteRecurrenceIdStart,
       });
 
       this._subscription = Rx.Observable.fromQuery(
@@ -146,10 +168,10 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
         this.setState({ isOnCalendar: !!calEvent });
         if (!calEvent) return;
         try {
-          this.setState({
-            icsEvent: CalendarUtils.parseICSString(calEvent.ics).event,
-            icsOriginalData: calEvent.ics,
-          });
+          const synced = eventForInvitation(calEvent.ics, inviteRecurrenceIdStart);
+          if (synced) {
+            this.setState({ icsEvent: synced, icsOriginalData: calEvent.ics });
+          }
         } catch (e) {
           console.warn(`EventHeader: Could not parse ICS data from calendar event: ${e.message}`);
         }
