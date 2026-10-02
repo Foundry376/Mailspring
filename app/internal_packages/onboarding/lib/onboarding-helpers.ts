@@ -231,6 +231,7 @@ export async function buildGmailAccountFromAuthResponse(code: string) {
       client_id: GMAIL_CLIENT_ID,
       client_secret: GMAIL_CLIENT_SECRET,
       redirect_uri: `http://127.0.0.1:${LOCAL_SERVER_PORT}`,
+      code_verifier: CODE_VERIFIER,
       grant_type: 'authorization_code',
     }
   );
@@ -375,6 +376,8 @@ export async function buildMicrosoftAccountFromAuthResponse(
   return account;
 }
 
+// PKCE binds the authorization code to this client, which is the CSRF protection a
+// `state` parameter would otherwise provide (RFC 7636 §1, OWASP OAuth 2.0 Cheat Sheet).
 export function buildGmailAuthURL() {
   return `https://accounts.google.com/o/oauth2/auth?${qs.stringify({
     client_id: GMAIL_CLIENT_ID,
@@ -382,6 +385,8 @@ export function buildGmailAuthURL() {
     response_type: 'code',
     scope: GMAIL_SCOPES.join(' '),
     access_type: 'offline',
+    code_challenge: CODE_CHALLENGE,
+    code_challenge_method: 'S256',
     prompt: 'select_account consent',
   })}`;
 }
