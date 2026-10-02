@@ -459,7 +459,7 @@ export function focusedEventInfoForEvents(
     [occurrence] = occurrencesForEvents(events, {
       startUnix: firstStart,
       endUnix: firstStart + 86400,
-    }).sort(byStart);
+    });
   }
 
   return occurrence ? { id: occurrence.id, start: occurrenceStartUnix(occurrence) } : null;
