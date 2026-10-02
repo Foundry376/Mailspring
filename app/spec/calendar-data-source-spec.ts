@@ -390,26 +390,28 @@ describe('focusedEventInfoForEvents', function () {
     expect(focusedEventInfoForEvents([series], NOW).start).toBe(unix('2026-06-15T14:00:00Z'));
   });
 
-  it('takes the nearest occurrence when a later one has been moved', function () {
-    // ical-expander returns a moved occurrence ahead of the regular ones.
-    const moved = [
-      'BEGIN:VEVENT',
-      'UID:uid@test',
-      'RECURRENCE-ID:20260706T140000Z',
-      'DTSTART:20260706T160000Z',
-      'DTEND:20260706T170000Z',
-      'SUMMARY:Test Event',
-      'DTSTAMP:20260101T000000Z',
-      'END:VEVENT',
-    ].join('\n');
+  it('takes the nearest occurrence when it is an exception stored as its own row', function () {
     const series = withStart(
-      icsFor('DTSTART:20260105T140000Z', 'DTEND:20260105T150000Z', 'RRULE:FREQ=WEEKLY').replace(
-        'END:VCALENDAR',
-        `${moved}\nEND:VCALENDAR`
-      ),
+      icsFor('DTSTART:20260105T140000Z', 'DTEND:20260105T150000Z', 'RRULE:FREQ=WEEKLY'),
       '2026-01-05T14:00:00Z'
     );
-    expect(focusedEventInfoForEvents([series], NOW).start).toBe(unix('2026-06-15T14:00:00Z'));
+    // Today's occurrence, moved an hour earlier. Its row comes after the master's occurrences.
+    const moved = makeEvent(
+      icsFor(
+        'DTSTART:20260615T130000Z',
+        'DTEND:20260615T140000Z',
+        'RECURRENCE-ID:20260615T140000Z'
+      ),
+      {
+        id: 'event-2',
+        recurrenceId: '20260615T140000Z',
+        recurrenceStart: unix('2026-06-15T13:00:00Z'),
+      }
+    );
+    expect(focusedEventInfoForEvents([series, moved], NOW)).toEqual({
+      id: 'event-2-e0',
+      start: unix('2026-06-15T13:00:00Z'),
+    });
   });
 
   it('falls back to the first occurrence once nothing is upcoming', function () {

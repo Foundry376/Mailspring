@@ -446,9 +446,6 @@ export function focusedEventInfoForEvents(
   events: Event[],
   nowUnix: number
 ): FocusedEventInfo | null {
-  if (!events.length) {
-    return null;
-  }
   const byStart = (a: EventOccurrence, b: EventOccurrence) =>
     occurrenceStartUnix(a) - occurrenceStartUnix(b);
 
