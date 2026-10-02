@@ -1,0 +1,5 @@
+{
+  "name": "Thread Facts",
+  "placement": "thread-sidebar",
+  "permissions": ["mail.read"]
+}

@@ -66,6 +66,7 @@
     "slate-when": "^0.2.0",
     "snarkdown": "2.0.0",
     "source-map-support": "^0.5.21",
+    "sucrase": "^3.35.1",
     "tld": "^0.0.2",
     "underscore": "^1.13.7",
     "underscore.string": "^3.3.5",

@@ -1,0 +1,10 @@
+[
+  { "module": ["react"], "file": "react.production.min.js", "global": "React", "version": "18.3.1", "license": "MIT" },
+  { "module": ["react-dom", "react-dom/client"], "file": "react-dom.production.min.js", "global": "ReactDOM", "version": "18.3.1", "license": "MIT" },
+  { "module": ["react-is"], "file": "react-is.production.min.js", "global": "ReactIs", "version": "18.3.1", "license": "MIT" },
+  { "module": ["prop-types"], "file": "prop-types.min.js", "global": "PropTypes", "version": "15.8.1", "license": "MIT" },
+  { "module": ["recharts"], "file": "recharts.min.js", "global": "Recharts", "version": "3.10.1", "license": "MIT" },
+  { "module": null, "file": "react-lowercase-alias.js", "global": "react", "version": "1.0.0", "license": "MIT" },
+  { "module": ["lucide-react"], "file": "lucide-react.min.js", "global": "LucideReact", "version": "1.0.0", "license": "ISC" },
+  { "module": null, "file": "tailwindcss-browser.min.js", "global": null, "version": "4.3.3", "license": "MIT" }
+]

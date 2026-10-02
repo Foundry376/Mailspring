@@ -1,0 +1,191 @@
+@import 'ui-variables';
+
+.views-root {
+  display: flex;
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+
+  &.mode-splitVertical {
+    flex-direction: column;
+  }
+
+  > .view-host {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+  }
+}
+
+.view-host {
+  position: relative;
+  display: flex;
+  background: @background-primary;
+
+  .view-host-webview {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+
+    webview {
+      flex: 1;
+      border: 0;
+    }
+  }
+}
+
+.view-host-cover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: @padding-base-vertical * 2;
+  padding: @padding-large-horizontal;
+  background: fade(@background-primary, 92%);
+  color: @text-color-subtle;
+  text-align: center;
+
+  .view-host-cover-title {
+    font-size: @font-size-large;
+  }
+  .view-host-cover-actions {
+    display: flex;
+    gap: @padding-base-horizontal;
+  }
+}
+
+.view-reading-pane-region {
+  display: flex;
+  border-left: 1px solid @border-color-divider;
+
+  .mode-splitVertical & {
+    border-left: 0;
+    border-top: 1px solid @border-color-divider;
+  }
+}
+
+.view-reading-pane {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  background: @background-secondary;
+
+  .view-reading-pane-toolbar {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    padding: 0 @padding-small-horizontal;
+    border-bottom: 1px solid @border-color-divider;
+  }
+
+  .view-reading-pane-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .view-reading-pane-messages {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .view-reading-pane-sidebar {
+    width: 260px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    border-left: 1px solid @border-color-divider;
+    background: @background-off-primary;
+  }
+}
+
+.view-reading-pane-rail {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  width: 24px;
+  padding-top: @padding-large-vertical;
+  border-left: 1px solid @border-color-divider;
+  background: @background-secondary;
+  cursor: pointer;
+
+  &.mode-splitVertical {
+    width: auto;
+    height: 24px;
+    padding-top: 0;
+    align-items: center;
+    border-left: 0;
+    border-top: 1px solid @border-color-divider;
+  }
+
+  img {
+    background-color: @text-color-subtle;
+  }
+  &:hover img {
+    background-color: @text-color;
+  }
+}
+
+.sidebar-view {
+  display: flex;
+  // The sidebar column scrolls as a whole; a View squeezed below its content height would
+  // scroll inside itself instead.
+  flex-shrink: 0;
+  // The height set inline is the View's content height, so the border goes outside it.
+  box-sizing: content-box;
+  border-top: 1px solid @border-color-divider;
+
+  > .view-host {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+// Each child carries one theme token in `color` (or `font-*`) so theme-tokens.ts can read the
+// resolved value with getComputedStyle and push it into Views.
+.views-theme-probe {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: none;
+  [data-token='background'] {
+    color: @background-primary;
+  }
+  [data-token='background-secondary'] {
+    color: @background-secondary;
+  }
+  [data-token='text'] {
+    color: @text-color;
+  }
+  [data-token='text-subtle'] {
+    color: @text-color-subtle;
+  }
+  [data-token='text-heading'] {
+    color: @text-color-heading;
+  }
+  [data-token='link'] {
+    color: @text-color-link;
+  }
+  [data-token='accent'] {
+    color: @accent-primary;
+  }
+  [data-token='border'] {
+    color: @border-color-primary;
+  }
+  [data-token='success'] {
+    color: @color-success;
+  }
+  [data-token='warning'] {
+    color: @color-warning;
+  }
+  [data-token='danger'] {
+    color: @color-danger;
+  }
+  [data-token='font'] {
+    font-family: @font-family;
+    font-size: @font-size-base;
+  }
+}

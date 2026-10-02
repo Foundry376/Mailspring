@@ -38,6 +38,10 @@ const sourceGlobs = [
   '!internal_packages/**/node_modules/**/*.jsx',
 ];
 
+// View.jsx files are compiled at runtime by the app (src/browser/view-sessions.ts), so they
+// must ship as source. sourceGlobs' negated patterns are not applied by runTranspilers.
+const runtimeCompiledSources = /internal_packages[/\\]views[/\\]examples[/\\]/;
+
 function spawn(options) {
   return new Promise((resolve, reject) => {
     const stdout = [];
@@ -127,6 +131,7 @@ function runTranspilers({ buildPath }) {
       const tsPath = path.join(buildPath, relPath);
       const tsCode = fs.readFileSync(tsPath).toString();
       if (/(node_modules|\.js$)/.test(tsPath)) return;
+      if (runtimeCompiledSources.test(tsPath)) return;
       if (tsPath.endsWith('.d.ts')) return;
       const outPath = tsPath.replace(path.extname(tsPath), '.js');
       console.log(`  ---> Compiling ${tsPath.slice(tsPath.indexOf('/app') + 4)}`);

@@ -301,6 +301,16 @@ const start = () => {
         supportFetchAPI: true,
         corsEnabled: true,
       }
+    },
+    {
+      // Sandboxed Views; served per-session by view-sessions.ts. `standard` gives each
+      // View its own origin (mailspring-view://<viewId>/) so its storage is isolated.
+      scheme: 'mailspring-view',
+      privileges: {
+        standard: true,
+        secure: true,
+        supportFetchAPI: true,
+      }
     }
   ])
 

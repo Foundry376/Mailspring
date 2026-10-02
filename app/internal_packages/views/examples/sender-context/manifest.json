@@ -1,0 +1,7 @@
+{
+  "id": "sender-context",
+  "name": "Sender Context",
+  "version": "1.0.0",
+  "placement": "thread-sidebar",
+  "permissions": ["mail.read"]
+}

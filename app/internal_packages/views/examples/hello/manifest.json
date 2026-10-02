@@ -1,0 +1,5 @@
+{
+  "name": "Hello View",
+  "placement": "page",
+  "permissions": ["mail.read"]
+}

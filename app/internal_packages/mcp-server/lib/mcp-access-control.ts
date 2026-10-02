@@ -1,4 +1,12 @@
 import type { Thread, Message } from 'mailspring-exports';
+import {
+  Grant,
+  allowedAccountIds,
+  isAccountAllowed as grantIsAccountAllowed,
+  isFolderAllowed as grantIsFolderAllowed,
+  isThreadAllowed as grantIsThreadAllowed,
+  isMessageAllowed as grantIsMessageAllowed,
+} from './capabilities/grant';
 
 type AccessLevel = 'read-only' | 'read-write' | 'read-write-send';
 
@@ -28,57 +36,46 @@ export function checkAccessLevel(category: 'read' | 'write' | 'send'): string | 
 }
 
 // ── Pure predicates ──────────────────────────────────────────────────────
-// Single source of truth for account/folder access. Every other check in
-// this file (string-returning helpers, batch asserts) and the serializers in
-// mcp-serializers.ts are built on top of these, so there is exactly one
-// place that interprets `core.mcp.enabledAccounts`.
+// MCP's view of the shared capability grant (capabilities/grant.ts). `mcpGrant()` is the one
+// place that interprets `core.mcp.enabledAccounts`; every check below, the batch asserts,
+// and the serializers in mcp-serializers.ts are built on it.
+
+export function mcpGrant(): Grant {
+  const { enabledAccounts } = getMcpConfig();
+  const configured = Object.keys(enabledAccounts);
+  const excludedFolderIds: Grant['excludedFolderIds'] = {};
+  for (const accountId of configured) {
+    excludedFolderIds[accountId] = enabledAccounts[accountId]?.excludedFolderIds || [];
+  }
+  return {
+    // If no account configuration exists, all accounts are enabled by default.
+    accountIds:
+      configured.length === 0 ? null : configured.filter((id) => !!enabledAccounts[id]?.enabled),
+    excludedFolderIds,
+  };
+}
 
 export function isAccountAllowed(accountId: string): boolean {
-  const { enabledAccounts } = getMcpConfig();
-  // If no account configuration exists, all accounts are enabled by default.
-  if (Object.keys(enabledAccounts).length === 0) return true;
-  return !!enabledAccounts[accountId]?.enabled;
+  return grantIsAccountAllowed(mcpGrant(), accountId);
 }
 
 export function isFolderAllowed(accountId: string, folderId: string): boolean {
-  if (!isAccountAllowed(accountId)) return false;
-  const { enabledAccounts } = getMcpConfig();
-  const excluded = enabledAccounts[accountId]?.excludedFolderIds || [];
-  return !excluded.includes(folderId);
+  return grantIsFolderAllowed(mcpGrant(), accountId, folderId);
 }
 
-// A thread can carry multiple categories/labels (e.g. Gmail). Exclusion
-// wins: if ANY category on the thread is excluded, the thread is blocked,
-// even if it also carries an allowed category. Otherwise exclusion could be
-// bypassed trivially by any thread that also happens to carry an unrelated
-// allowed label (e.g. most Gmail threads also carry "INBOX").
 export function isThreadAllowed(thread: Pick<Thread, 'accountId' | 'categories'>): boolean {
-  if (!isAccountAllowed(thread.accountId)) return false;
-  const { enabledAccounts } = getMcpConfig();
-  const excluded = enabledAccounts[thread.accountId]?.excludedFolderIds || [];
-  if (excluded.length === 0) return true;
-  return !(thread.categories || []).some((c) => excluded.includes(c.id));
+  return grantIsThreadAllowed(mcpGrant(), thread);
 }
 
-// Same exclusion-wins rule as `isThreadAllowed`: a message with a copy in any
-// excluded folder is blocked, even if another copy sits in an allowed folder.
 export function isMessageAllowed(message: Pick<Message, 'accountId' | 'folderIds'>): boolean {
-  if (!isAccountAllowed(message.accountId)) return false;
-  const { enabledAccounts } = getMcpConfig();
-  const excluded = enabledAccounts[message.accountId]?.excludedFolderIds || [];
-  if (excluded.length === 0) return true;
-  return !message.folderIds().some((id) => excluded.includes(id));
+  return grantIsMessageAllowed(mcpGrant(), message);
 }
 
-// Returns the subset of `allAccountIds` permitted for MCP access. When no
-// account configuration exists, every account is allowed — mirrors
-// `isAccountAllowed`'s default-open behavior. Used to scope DB queries
-// (e.g. `Thread.attributes.accountId.in(...)`) and to filter account/folder
-// listings before they're returned to the caller.
+// Returns the subset of `allAccountIds` permitted for MCP access. Used to scope DB queries
+// (e.g. `Thread.attributes.accountId.in(...)`) and to filter account/folder listings before
+// they're returned to the caller.
 export function getAllowedAccountIds(allAccountIds: string[]): string[] {
-  const { enabledAccounts } = getMcpConfig();
-  if (Object.keys(enabledAccounts).length === 0) return allAccountIds;
-  return allAccountIds.filter(isAccountAllowed);
+  return allowedAccountIds(mcpGrant(), allAccountIds);
 }
 
 // Fail-closed batch check used by mutating tools: if any thread in the batch

@@ -23,7 +23,6 @@ import {
   TaskFactory,
   TaskQueue,
   Actions,
-  SearchQueryParser,
 } from 'mailspring-exports';
 import {
   checkAccessLevel,
@@ -34,12 +33,22 @@ import {
   isMessageAllowed,
   getAllowedAccountIds,
   assertThreadsAllowed,
+  mcpGrant,
 } from './mcp-access-control';
 import {
   serializeThreadSummary,
   serializeThreadDetail,
   serializeMessageDetail,
 } from './mcp-serializers';
+import {
+  type AuditEntry,
+  addAuditEntry,
+  audited,
+  clearAuditLog,
+  getAuditLog,
+  onAuditLogChanged,
+} from './capabilities/audit';
+import { threadQuery } from './capabilities/queries';
 
 // Plugin IDs used by the built-in open-tracking and link-tracking packages
 // (see app/internal_packages/open-tracking/package.json and link-tracking/package.json).
@@ -217,38 +226,8 @@ function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export interface AuditEntry {
-  timestamp: number;
-  toolName: string;
-  params: string;
-  resultSummary: string;
-  durationMs: number;
-}
-
-let auditLog: AuditEntry[] = [];
-let auditListeners: (() => void)[] = [];
-
-export function getAuditLog(): AuditEntry[] {
-  return auditLog;
-}
-
-export function clearAuditLog() {
-  auditLog = [];
-  auditListeners.forEach((fn) => fn());
-}
-
-export function onAuditLogChanged(fn: () => void) {
-  auditListeners.push(fn);
-  return () => {
-    auditListeners = auditListeners.filter((l) => l !== fn);
-  };
-}
-
-function addAuditEntry(entry: AuditEntry) {
-  auditLog.push(entry);
-  if (auditLog.length > 50) auditLog.shift();
-  auditListeners.forEach((fn) => fn());
-}
+export type { AuditEntry };
+export { getAuditLog, clearAuditLog, onAuditLogChanged };
 
 function textResult(data: any) {
   return { content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] };
@@ -272,25 +251,11 @@ async function withAudit(
   params: Record<string, any>,
   fn: () => Promise<ToolResult>
 ) {
-  const start = Date.now();
   try {
-    const result = await fn();
-    addAuditEntry({
-      timestamp: Date.now(),
-      toolName,
-      params: JSON.stringify(params).slice(0, 200),
-      resultSummary: result.isError ? 'error' : 'ok',
-      durationMs: Date.now() - start,
-    });
-    return result;
+    return await audited('mcp', toolName, params, fn, (result) =>
+      result.isError ? 'error' : 'ok'
+    );
   } catch (err) {
-    addAuditEntry({
-      timestamp: Date.now(),
-      toolName,
-      params: JSON.stringify(params).slice(0, 200),
-      resultSummary: `error: ${(err as Error).message}`.slice(0, 100),
-      durationMs: Date.now() - start,
-    });
     return errorResult((err as Error).message);
   }
 }
@@ -337,7 +302,7 @@ export function registerResources(server: McpServer) {
       const start = Date.now();
       const audit = (resultSummary: string) =>
         addAuditEntry({
-          timestamp: Date.now(),
+          source: 'mcp',
           toolName: 'resources/read',
           params: uri.href.slice(0, 200),
           resultSummary,
@@ -447,25 +412,12 @@ export function registerTools(server: McpServer) {
         if (err) return errorResult(err);
       }
 
-      let dbQuery = DatabaseStore.findAll<Thread>(Thread);
-      if (accountId) {
-        dbQuery = dbQuery.where({ accountId });
-      } else {
-        // Scope the query to allowed accounts up front so pagination
-        // (`.limit()` below) counts against already-allowed rows.
-        const allowedIds = getAllowedAccountIds(AccountStore.accounts().map((a) => a.id));
-        dbQuery = dbQuery.where(Thread.attributes.accountId.in(allowedIds));
-      }
-      try {
-        const parsed = SearchQueryParser.parse(query);
-        dbQuery = dbQuery.structuredSearch(parsed);
-      } catch {
-        dbQuery = dbQuery.search(query);
-      }
-      dbQuery = dbQuery
-        .order(Thread.attributes.lastMessageReceivedTimestamp.descending())
-        .offset(offset || 0)
-        .limit(limit || 150);
+      const dbQuery = threadQuery(mcpGrant(), {
+        search: query,
+        accountId,
+        limit: limit || 150,
+        offset: offset || 0,
+      });
 
       const threads = await dbQuery;
       // Folder-level exclusion can't be pushed into this query cheaply (it's

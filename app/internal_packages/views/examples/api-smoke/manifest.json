@@ -1,0 +1,5 @@
+{
+  "name": "API Smoke Test",
+  "placement": "page",
+  "permissions": ["mail.read", "mail.bodies", "metadata.own", "mail.modify", "calendar.read"]
+}

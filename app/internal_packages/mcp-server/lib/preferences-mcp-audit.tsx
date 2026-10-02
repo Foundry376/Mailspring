@@ -35,7 +35,7 @@ export default class PreferencesMcpAudit extends React.Component<Record<string, 
       <div className="mcp-audit">
         <div className="mcp-audit-header">
           <h6>{localized('Activity Log')}</h6>
-          <button className="btn btn-small" onClick={clearAuditLog}>
+          <button className="btn btn-small" onClick={() => clearAuditLog()}>
             {localized('Clear Log')}
           </button>
         </div>

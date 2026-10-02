@@ -1,0 +1,195 @@
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--ms-bg, #fff);
+  color: var(--ms-text, #231f20);
+  font-family: var(--ms-font-family, system-ui, sans-serif);
+  font-size: var(--ms-font-size, 14px);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Sidebar Views size to their content (the runtime reports it with ui.setHeight), so they
+   must not stretch to the webview's current height. */
+html[data-placement='thread-sidebar'],
+html[data-placement='thread-sidebar'] body,
+html[data-placement='thread-sidebar'] #root {
+  height: auto;
+}
+
+/* …and they sit on the host sidebar's own background rather than painting a page color.
+   Only content taller than the host's height clamp scrolls. */
+html[data-placement='thread-sidebar'] body {
+  background: transparent;
+}
+html[data-placement='thread-sidebar'] {
+  overflow-x: hidden;
+}
+
+.mailspring-view-error {
+  margin: 24px;
+  padding: 16px;
+  border: 1px solid var(--ms-border, #ddd);
+  border-left: 3px solid var(--ms-danger, #d9534f);
+  border-radius: 6px;
+  background: var(--ms-panel, #f6f6f6);
+  font-size: 13px;
+}
+
+.mailspring-view-error-title {
+  font-weight: 600;
+  color: var(--ms-danger, #d9534f);
+  margin-bottom: 4px;
+}
+
+.mailspring-view-error-message {
+  margin-bottom: 10px;
+  word-break: break-word;
+}
+
+.mailspring-view-error-stack {
+  max-height: 240px;
+  overflow: auto;
+  margin: 0 0 12px;
+  padding: 8px;
+  border-radius: 4px;
+  background: var(--ms-bg, #fff);
+  color: var(--ms-muted, #777);
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 11px;
+  white-space: pre-wrap;
+}
+
+.mailspring-view-error-reload {
+  font: inherit;
+  padding: 4px 12px;
+  border: 1px solid var(--ms-border, #ccc);
+  border-radius: 4px;
+  background: var(--ms-bg, #fff);
+  color: var(--ms-text, #231f20);
+  cursor: pointer;
+}
+
+/* <MessageView>: the reading pane's message card, drawn with the host theme's tokens. */
+.ms-message {
+  border: 1px solid var(--ms-border, #ddd);
+  border-radius: 6px;
+  background: var(--ms-bg, #fff);
+  color: var(--ms-text, #231f20);
+  overflow: hidden;
+}
+.ms-message + .ms-message {
+  margin-top: 10px;
+}
+.ms-message-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+}
+.ms-message:not(.expanded) .ms-message-header {
+  cursor: pointer;
+}
+.ms-message-avatar {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ms-accent, #419bf9);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+}
+.ms-message-participants {
+  flex: 1;
+  min-width: 0;
+}
+.ms-message-from {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ms-message-from-name {
+  font-weight: 600;
+  color: var(--ms-heading, inherit);
+}
+.ms-message-from-email {
+  margin-left: 6px;
+  color: var(--ms-muted, #777);
+  font-size: 0.92em;
+}
+.ms-message-to {
+  color: var(--ms-muted, #777);
+  font-size: 0.92em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ms-message-date {
+  flex-shrink: 0;
+  color: var(--ms-muted, #777);
+  font-size: 0.92em;
+}
+.ms-message-reply {
+  flex-shrink: 0;
+  font: inherit;
+  font-size: 0.92em;
+  padding: 3px 10px;
+  border: 1px solid var(--ms-border, #ccc);
+  border-radius: 4px;
+  background: var(--ms-panel, #f6f6f6);
+  color: var(--ms-text, inherit);
+  cursor: pointer;
+}
+.ms-message-reply:hover {
+  border-color: var(--ms-accent, #419bf9);
+}
+.ms-message-body {
+  padding: 0 16px 14px 58px;
+}
+.ms-message-snippet {
+  color: var(--ms-muted, #777);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ms-message.expanded .ms-message-snippet {
+  white-space: normal;
+}
+.ms-message-frame {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+}
+.ms-message-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 16px 14px 58px;
+}
+.ms-message-attachment {
+  display: inline-flex;
+  gap: 6px;
+  max-width: 240px;
+  padding: 3px 8px;
+  border: 1px solid var(--ms-border, #ddd);
+  border-radius: 4px;
+  background: var(--ms-panel, #f6f6f6);
+  font-size: 0.88em;
+}
+.ms-message-attachment-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ms-message-attachment-size {
+  color: var(--ms-muted, #777);
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Message View Demo",
+  "placement": "page",
+  "permissions": ["mail.read", "mail.bodies"]
+}
