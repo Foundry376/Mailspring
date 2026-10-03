@@ -135,6 +135,11 @@ interface OccurrenceBase {
    * - Events where the current user is an attendee but hasn't accepted (NEEDS-ACTION or TENTATIVE)
    */
   isPending: boolean;
+  /**
+   * True when this account is the event's ORGANIZER, or when the event has no organizer at
+   * all and is therefore nobody's meeting but ours. Governs who may reschedule it.
+   */
+  isMine: boolean;
   isException: boolean;
   /**
    * For exception occurrences only: the Unix timestamp (seconds) of the **original**
@@ -246,6 +251,11 @@ function occurrenceFromICS(args: {
   const myPartstat = myAttendee?.partstat?.toUpperCase();
   const isAwaitingMyResponse = myAttendee && myPartstat !== 'ACCEPTED' && myPartstat !== 'DECLINED';
 
+  const organizerEmail = item.organizer
+    ? normalizeEmail(CalendarUtils.emailFromParticipantURI(String(item.organizer)) || '')
+    : '';
+  const iAmOrganizer = !!organizerEmail && new Contact({ email: organizerEmail }).isMe();
+
   const isAllDay = !!startTime.isDate;
   const startDate = isAllDay
     ? dateFromICALTime(startTime)
@@ -268,10 +278,11 @@ function occurrenceFromICS(args: {
     endDate,
     isCancelled: status === 'CANCELLED',
     isPending: status === 'TENTATIVE' || !!isAwaitingMyResponse,
+    isMine: !organizerEmail || iAmOrganizer,
     isException: args.isException ?? !!rid,
     recurrenceIdStart: rid ? (rid as any).toJSDate().getTime() / 1000 : undefined,
     isRecurring: args.isRecurring,
-    organizer: item.organizer ? { email: item.organizer } : null,
+    organizer: organizerEmail ? { email: organizerEmail } : null,
     attendees,
   };
 
@@ -374,6 +385,7 @@ export function occurrencesForEvents(
             endDate,
             isCancelled: false,
             isPending: false,
+            isMine: true,
             isException: false,
             isRecurring: false,
             organizer: null,

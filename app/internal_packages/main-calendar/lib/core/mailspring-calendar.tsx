@@ -33,9 +33,12 @@ import {
   FocusedEventInfo,
   coveredDates,
   focusedEventInfoForEvents,
+  isEventSelected,
   occurrenceStartUnix,
   occurrenceEndUnix,
 } from './calendar-data-source';
+import { CalendarEventContextMenu } from './calendar-event-context-menu';
+import { openProposeNewTimePopover } from './calendar-rsvp';
 import { CalendarView, DEFAULT_TIMED_EVENT_DURATION_SECONDS } from './calendar-constants';
 import { CalendarEmptyState } from './calendar-empty-state';
 import {
@@ -83,6 +86,7 @@ export interface EventRendererProps {
   selectedEvents: EventOccurrence[];
   onEventClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
   onEventDoubleClick: (event: EventOccurrence) => void;
+  onEventContextMenu: (event: EventOccurrence) => void;
   onEventFocused: (event: EventOccurrence) => void;
 }
 
@@ -330,6 +334,24 @@ export class MailspringCalendar extends React.Component<
     this._openEventPopover(occurrence);
   };
 
+  _onEventContextMenu = (occurrence: EventOccurrence) => {
+    // Right-clicking an event that isn't selected selects it first, so the menu acts on what
+    // is highlighted - and so pressing Delete afterwards means the same thing.
+    if (!isEventSelected(this.state.selectedEvents, occurrence)) {
+      this.setState({ selectedEvents: [occurrence], focusedEvent: null });
+    }
+
+    const readOnly = this._isCalendarReadOnly(occurrence.calendarId);
+    new CalendarEventContextMenu({
+      occurrence,
+      readOnly,
+      editable: !readOnly && occurrence.isMine,
+      onOpen: () => this._openEventPopover(occurrence),
+      onDelete: () => this._deleteEvent(occurrence),
+      onProposeNewTime: () => openProposeNewTimePopover(occurrence),
+    }).displayMenu();
+  };
+
   /**
    * Handle double-click on the calendar background to create a new event.
    * The CalendarEventArgs contains the time at the click position.
@@ -381,6 +403,7 @@ export class MailspringCalendar extends React.Component<
       isRecurring: false,
       isCancelled: false,
       isPending: false,
+      isMine: true,
       isException: false,
       organizer: null,
       attendees: [],
@@ -530,11 +553,13 @@ export class MailspringCalendar extends React.Component<
       recurrenceEnd: masterEvent.recurrenceEnd,
     };
 
-    // Add EXDATE to exclude this occurrence
-    masterEvent.ics = ICSEventHelpers.addExclusionDate(
-      masterEvent.ics,
-      occurrenceStartUnix(occurrence),
-      occurrence.isAllDay
+    // Add EXDATE to exclude this occurrence.
+    masterEvent.ics = ICSEventHelpers.bumpEventSequence(
+      ICSEventHelpers.addExclusionDate(
+        masterEvent.ics,
+        occurrenceStartUnix(occurrence),
+        occurrence.isAllDay
+      )
     );
 
     // Queue syncback with undo support
@@ -570,7 +595,7 @@ export class MailspringCalendar extends React.Component<
       return;
     }
 
-    masterEvent.ics = updated;
+    masterEvent.ics = ICSEventHelpers.bumpEventSequence(updated);
     Actions.queueTask(
       SyncbackEventTask.forUpdating({
         event: masterEvent,
@@ -974,6 +999,7 @@ export class MailspringCalendar extends React.Component<
         onCalendarDoubleClick={this._onCalendarDoubleClick}
         onEventClick={this._onEventClick}
         onEventDoubleClick={this._onEventDoubleClick}
+        onEventContextMenu={this._onEventContextMenu}
         onEventFocused={this._onEventFocused}
         dragState={this.state.dragState}
         onEventDragStart={this._onEventDragStart}

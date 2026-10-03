@@ -46,6 +46,7 @@ function makeOccurrence(overrides: OccurrenceOverrides = {}): EventOccurrence {
     description: '',
     isCancelled: false,
     isPending: false,
+    isMine: true,
     isException: false,
     isRecurring: false,
     organizer: null,
