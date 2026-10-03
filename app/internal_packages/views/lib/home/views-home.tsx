@@ -11,13 +11,7 @@ import { openView } from '../authoring';
 import { Starter, installStarter, listStarters } from './starters';
 import { ThumbnailEvents, thumbnailPath } from './thumbnails';
 import { removeView } from './view-actions';
-import {
-  editWithAI,
-  isBuilding,
-  listenToSessions,
-  newViewId,
-  startAuthoring,
-} from './agent-adapter';
+import { isBuilding, listenToSessions, newViewId, startAuthoring } from './agent-adapter';
 
 interface ViewsHomeState {
   views: ViewManifest[];
@@ -93,15 +87,6 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
     }
     // The authoring panel that just opened is all the feedback this needs.
     this.setState({ creating: false, name: '', request: '', notice: null });
-  };
-
-  _onEditWithAI = async (view: ViewManifest) => {
-    try {
-      if (view.placement === 'page') openView(view.id);
-      await editWithAI(view.id, view.name);
-    } catch (err) {
-      showError(err);
-    }
   };
 
   _onAddStarter = (starter: Starter, asDraft: boolean) => {
@@ -254,11 +239,6 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
           {view.source === 'draft' && (
             <button className="btn" onClick={() => this._guard(() => promoteDraft(view.id))}>
               {localized('Keep')}
-            </button>
-          )}
-          {removable && (
-            <button className="btn" onClick={() => this._onEditWithAI(view)}>
-              {localized('Edit with AI')}
             </button>
           )}
           {declaredCredentials(view.id).length > 0 && (

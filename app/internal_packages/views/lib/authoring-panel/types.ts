@@ -67,6 +67,7 @@ export interface AgentSessionState {
   revisions: RevisionEntry[];
   usage: { listCostCents: number; maxListCostCents: number } | null;
   error: { code: string; message: string } | null;
+  intro?: 'try' | 'edit' | null;
 }
 
 export interface SessionStoreLike {
@@ -93,4 +94,9 @@ export interface SessionActionsLike {
   stopBudget(viewId: string): Promise<void>;
   install(viewId: string): Promise<void>;
   discard(viewId: string): Promise<void>;
+  /** Leaves a View's intro for the composer, attaching to its server session if it has one. */
+  chat?(viewId: string): Promise<void>;
+  /** Shows the panel's intro for a View without contacting the backend. */
+  preview?(viewId: string, name: string, intro: 'try' | 'edit'): Promise<void>;
+  resume?(viewId: string, name: string): Promise<void>;
 }

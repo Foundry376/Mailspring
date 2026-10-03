@@ -145,6 +145,12 @@ export interface AgentSessionState {
   revisions: RevisionEntry[];
   usage: { listCostCents: number; maxListCostCents: number } | null;
   error: { code: string; message: string } | null;
+  /**
+   * How the panel greets a View the user hasn't talked to the agent about yet: `try` for a
+   * starter being previewed (offers Install or Chat), `edit` for an existing View opened for
+   * changes. Opening either never creates an agent session; the first message does.
+   */
+  intro?: 'try' | 'edit' | null;
 }
 
 export class AgentAPIError extends Error {

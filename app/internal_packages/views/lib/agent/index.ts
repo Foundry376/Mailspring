@@ -1,4 +1,4 @@
-export { AgentSessionStore, AgentActions, newViewId } from './store';
+export { AgentSessionStore, AgentActions, isUntouched, newViewId } from './store';
 export { AgentClient } from './client';
 export {
   AgentAPIError,

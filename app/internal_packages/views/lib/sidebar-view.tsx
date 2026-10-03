@@ -5,6 +5,7 @@ import { ViewBridge } from './view-bridge';
 import { serializeThreadSummary, serializeMessageSummary } from './bridge/serializers';
 import { ViewManifest } from './view-registry';
 import { sidebarOptionsFor } from './sidebar/sidebar-options';
+import { EditViewButton } from './authoring-panel/edit-view-button';
 
 const MIN_HEIGHT = 32;
 const MAX_HEIGHT = 900;
@@ -146,6 +147,7 @@ export function createSidebarViewComponent(view: ViewManifest) {
         return (
           <div className="sidebar-view sidebar-view-panel" style={{ display }}>
             {this._renderHost()}
+            <EditViewButton viewId={view.id} variant="sidebar" />
           </div>
         );
       }
@@ -159,6 +161,7 @@ export function createSidebarViewComponent(view: ViewManifest) {
           <div className="sidebar-view-frame" style={{ height: this.state.height }}>
             {this._renderHost()}
           </div>
+          <EditViewButton viewId={view.id} variant="sidebar" />
         </aside>
       );
     }

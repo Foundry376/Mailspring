@@ -12,6 +12,8 @@ import {
   TranscriptEntry,
 } from './types';
 import { installedViews } from '../view-registry';
+import { openViewsHome } from '../home/view-actions';
+import { editButtonRect, focusedPageViewId } from './launch';
 
 const GEOMETRY_KEY = 'views-authoring-panel-geometry';
 const EDGE = 12;
@@ -19,8 +21,9 @@ const MIN_WIDTH = 360;
 const MIN_HEIGHT = 220;
 const COLLAPSED_HEIGHT = 40;
 const COLLAPSED_WIDTH = 380;
-// Matches the ap-pop-out animation in authoring-panel.less.
+// Match the ap-pop-out and ap-morph-out animations in authoring-panel.less.
 const EXIT_MS = 170;
+const MORPH_OUT_MS = 200;
 // A turn that started longer ago than this is a resumed session, not a turn worth timing.
 const MAX_TURN_AGE_MS = 30 * 60 * 1000;
 // While the agent asks for a screenshot, the thumbnail is recaptured this often so it shows
@@ -37,7 +40,16 @@ function autoGrow(el: HTMLTextAreaElement | null) {
   el.style.height = `${Math.min(el.scrollHeight + 2, TEXTAREA_MAX_HEIGHT)}px`;
 }
 
-type PanelAnim = 'enter' | 'exit' | 'expand' | 'collapse' | null;
+type PanelAnim = 'enter' | 'exit' | 'morph-in' | 'morph-out' | 'expand' | 'collapse' | null;
+
+// Where the View's Edit button sits relative to the panel's bottom-right corner, so the panel
+// can grow out of it and shrink back into it, and the scale that makes the panel button-sized.
+interface Morph {
+  x: number;
+  y: number;
+  sx: number;
+  sy: number;
+}
 
 interface Geometry {
   right: number;
@@ -178,8 +190,39 @@ function anchorCorner(g: Geometry) {
   };
 }
 
+// The panel morphs to and from the Edit button only while the button's View is on screen.
+function morphFor(viewId: string, g: Geometry): Morph | null {
+  if (focusedPageViewId() !== viewId) return null;
+  const rect = editButtonRect(viewId);
+  if (!rect || g.collapsed) return null;
+  // Measured from the panel's bottom-right corner, which stays put whatever its height (the
+  // preview card makes the panel shorter than its saved geometry).
+  return {
+    x: window.innerWidth - g.right - (rect.left + rect.width / 2),
+    y: window.innerHeight - g.bottom - (rect.top + rect.height / 2),
+    sx: rect.width / g.width,
+    sy: rect.height / g.height,
+  };
+}
+
+function isUntouched(session: AgentSessionState) {
+  return session.transcript.length === 0 && !session.working && !session.pendingRequest;
+}
+
+// The starter preview card shows until the user chats or installs.
+function showsTryCard(session: AgentSessionState) {
+  return session.intro === 'try' && isUntouched(session);
+}
+
+// An intro holds one card or one prompt, so the panel hugs it until the conversation starts.
+function isCompactIntro(session: AgentSessionState) {
+  return !!session.intro && isUntouched(session) && !session.error;
+}
+
 // Header status when the agent isn't busy; busy phases come from busyLabel.
 function statusLine(session: AgentSessionState): { text: string; tone: string } {
+  if (showsTryCard(session)) return { text: 'Preview', tone: 'attention' };
+  if (isCompactIntro(session)) return { text: 'Ask for a change', tone: 'muted' };
   const rev = latestRevision(session);
   switch (session.status) {
     case 'budget_reached':
@@ -233,6 +276,7 @@ interface State {
   busySince: number | null;
   busyLines: string[];
   now: number;
+  morph: Morph | null;
 }
 
 /**
@@ -267,6 +311,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     busySince: null,
     busyLines: [],
     now: Date.now(),
+    morph: null,
   };
 
   componentDidMount() {
@@ -375,11 +420,15 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     if (!session) {
       // Keep rendering the last session while the close animation plays.
       if (!this.state.session || this.state.leaving) return;
-      this.setState({ leaving: true, anim: 'exit', busySince: null });
+      const morph = morphFor(this.state.session.viewId, this.state.geometry);
+      this.setState({ leaving: true, anim: morph ? 'morph-out' : 'exit', morph, busySince: null });
       clearTimeout(this._exitTimer);
-      this._exitTimer = setTimeout(() => {
-        this.setState({ session: null, leaving: false, anim: null, confirmingInstall: false });
-      }, EXIT_MS);
+      this._exitTimer = setTimeout(
+        () => {
+          this.setState({ session: null, leaving: false, anim: null, confirmingInstall: false });
+        },
+        morph ? MORPH_OUT_MS : EXIT_MS
+      );
       return;
     }
 
@@ -388,10 +437,12 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
       const sameView = s.session && !s.leaving && s.session.viewId === session.viewId;
       const wasBusy = sameView && isBusy(s.session);
       const busy = isBusy(session);
+      const morph = sameView ? s.morph : morphFor(session.viewId, s.geometry);
       return {
         session,
         leaving: false,
-        anim: sameView ? s.anim : 'enter',
+        morph,
+        anim: sameView ? s.anim : morph ? 'morph-in' : 'enter',
         confirmingInstall: sameView ? s.confirmingInstall : false,
         answer: sameView && session.pendingRequest ? s.answer : '',
         busySince: !busy ? null : wasBusy && s.busySince ? s.busySince : turnStartedAt(session),
@@ -539,6 +590,11 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
 
   _toggleCollapsed = () => {
     const g = this.state.geometry;
+    // Over its own View the panel minimizes back into the Edit button rather than to a pill.
+    if (!g.collapsed && this.state.session && morphFor(this.state.session.viewId, g)) {
+      this._close();
+      return;
+    }
     this.setState((s) => ({
       anim: g.collapsed ? 'expand' : 'collapse',
       animFlip: s.animFlip + 1,
@@ -582,7 +638,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
         <button
           className="ap-icon-btn"
           onClick={this._toggleCollapsed}
-          aria-label={this.state.geometry.collapsed ? 'Expand' : 'Collapse'}
+          aria-label={this.state.geometry.collapsed ? 'Expand' : 'Minimize'}
         >
           {this.state.geometry.collapsed ? '▴' : '▾'}
         </button>
@@ -596,9 +652,12 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
   _renderTranscript(session: AgentSessionState) {
     return (
       <div className="ap-transcript" ref={(el) => (this._transcriptEl = el)}>
-        {session.transcript.length === 0 && (
+        {showsTryCard(session) && this._renderTryCard(session)}
+        {session.transcript.length === 0 && !showsTryCard(session) && (
           <div className="ap-empty">
-            Describe the View you want, then drag a few example emails onto this panel.
+            {session.intro === 'edit'
+              ? 'What would you like to change? Describe it, and drag in example emails if it helps.'
+              : 'Describe the View you want, then drag a few example emails onto this panel.'}
           </div>
         )}
         {session.transcript.map((entry) => this._renderEntry(session, entry))}
@@ -663,6 +722,49 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
       (t) => t.kind === 'request' && t.toolUseId === pending.toolUseId
     );
   }
+
+  // A starter being tried: nothing has been sent to the agent, and nothing will be until the
+  // user chats and sends a message.
+  _renderTryCard(session: AgentSessionState) {
+    return (
+      <div className="ap-try">
+        <div className="ap-try-text">
+          You're previewing the <strong>{session.name}</strong> view. Install it, or chat to
+          customize it.
+        </div>
+        {this.state.confirmingInstall ? (
+          this._renderConsent(session)
+        ) : (
+          <div className="ap-try-footer">
+            <button className="ap-link" onClick={this._onRemovePreview}>
+              Remove preview
+            </button>
+            <span className="ap-ready-spacer" />
+            <button
+              className="ap-btn"
+              onClick={() => this._run((a, v) => (a.chat ? a.chat(v) : Promise.resolve()))}
+            >
+              Chat
+            </button>
+            <button
+              className="ap-btn ap-btn-primary"
+              onClick={() => this.setState({ confirmingInstall: true })}
+            >
+              Install
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  _onRemovePreview = () => {
+    const session = this.state.session;
+    if (!session) return;
+    // The draft is the View, so the page it was showing goes away with it.
+    if (focusedPageViewId() === session.viewId) openViewsHome();
+    this._run((a, v) => a.discard(v));
+  };
 
   _renderRevisionCard(key: string, rev: RevisionEntry) {
     return (
@@ -876,7 +978,13 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
             </li>
           ))}
         </ul>
-        <div className="ap-actions">
+        <div className="ap-actions ap-actions-end">
+          <button
+            className="ap-btn ap-btn-ghost"
+            onClick={() => this.setState({ confirmingInstall: false })}
+          >
+            Cancel
+          </button>
           <button
             className="ap-btn ap-btn-primary"
             onClick={() => {
@@ -885,12 +993,6 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
             }}
           >
             Install
-          </button>
-          <button
-            className="ap-btn ap-btn-ghost"
-            onClick={() => this.setState({ confirmingInstall: false })}
-          >
-            Cancel
           </button>
         </div>
       </div>
@@ -982,15 +1084,18 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
   // While the agent is asking for something, the request's own controls are the only actions,
   // so the free-text composer steps aside and the transcript gets the room.
   _renderComposer(session: AgentSessionState) {
+    // The preview card carries its own actions until the user chooses Chat.
+    if (showsTryCard(session)) return null;
     const pending = session.pendingRequest;
     if (pending) {
       return pending.kind === 'examples' ? (
         <div className="ap-footer">{this._renderStaged(session)}</div>
       ) : null;
     }
-    const placeholder = session.transcript.length
-      ? 'Tell the agent what to change…'
-      : 'Describe the View you want…';
+    const placeholder =
+      session.transcript.length || session.intro
+        ? 'Tell the agent what to change…'
+        : 'Describe the View you want…';
     const disabled = session.status === 'terminated' || session.status === 'budget_reached';
     return (
       <div className="ap-footer">
@@ -1025,11 +1130,14 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     const { session, geometry, dragDepth, anim, animFlip, leaving } = this.state;
     if (!session) return null;
 
+    // The preview card is short, so the panel hugs it instead of opening at chat height.
+    const compact = !geometry.collapsed && isCompactIntro(session);
     const style = {
       right: geometry.right,
       bottom: geometry.bottom,
       width: geometry.collapsed ? Math.min(COLLAPSED_WIDTH, geometry.width) : geometry.width,
-      height: geometry.collapsed ? COLLAPSED_HEIGHT : geometry.height,
+      height: geometry.collapsed ? COLLAPSED_HEIGHT : compact ? undefined : geometry.height,
+      maxHeight: compact ? geometry.height : undefined,
       ...anchorCorner(geometry),
     } as React.CSSProperties;
 
@@ -1037,11 +1145,20 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
       anim === 'expand' || anim === 'collapse'
         ? `anim-${anim}-${animFlip % 2}`
         : anim && `anim-${anim}`;
+    const { morph } = this.state;
+    if (morph && (anim === 'morph-in' || anim === 'morph-out')) {
+      Object.assign(style, {
+        '--ap-morph-origin': `calc(100% - ${morph.x}px) calc(100% - ${morph.y}px)`,
+        '--ap-msx': morph.sx,
+        '--ap-msy': morph.sy,
+      });
+    }
 
     return (
       <div
         className={classnames('views-authoring-panel', animClass, {
           collapsed: geometry.collapsed,
+          compact,
           leaving,
           'drop-target': dragDepth > 0,
           'has-request': !!session.pendingRequest,
@@ -1054,7 +1171,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
         role="complementary"
         aria-label="View authoring assistant"
       >
-        {!geometry.collapsed && (
+        {!geometry.collapsed && !compact && (
           <div className="ap-resize" onMouseDown={this._onResizeMouseDown} title="Resize" />
         )}
         {this._renderHeader(session)}

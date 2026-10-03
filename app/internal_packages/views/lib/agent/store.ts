@@ -394,6 +394,8 @@ class AgentSessionStoreImpl extends MailspringStore {
           abort.signal,
           () => {
             opened = true;
+            // The View has a live server session after all, so messages go to it directly.
+            rt.needsSession = null;
             this.update(viewId, (s) => ({
               status: s.status === 'connecting' || s.status === 'error' ? 'idle' : s.status,
               error: null,
@@ -740,6 +742,7 @@ class AgentSessionStoreImpl extends MailspringStore {
       status: 'connecting',
       working: true,
       error: null,
+      intro: null,
       transcript: echo
         ? [...s.transcript, { id: localId('user'), role: 'user', text: request, ts: Date.now() }]
         : s.transcript,
@@ -791,6 +794,37 @@ class AgentSessionStoreImpl extends MailspringStore {
   setActive(viewId: string | null) {
     this.active = viewId;
     this.trigger();
+  }
+
+  /**
+   * Shows the panel for a View without contacting the backend: the `try` card for a starter
+   * being previewed, or an empty `edit` composer. A session the user already talked to keeps
+   * its transcript. Nothing is created until the first message, which goes through start(),
+   * since the View may never have had a session (the backend resumes one if it does).
+   */
+  preview(viewId: string, name: string, intro: 'try' | 'edit') {
+    const existing = this.session(viewId);
+    this.ensure(viewId, name);
+    const rt = this.runtime(viewId);
+    if (!rt.abort && (!existing || isUntouched(existing))) {
+      rt.needsSession = rt.needsSession || 'none';
+      this.update(viewId, () => ({ status: 'idle', working: false, error: null, intro }));
+    }
+    this.setActive(viewId);
+  }
+
+  /**
+   * Moves a View from its intro to the composer. Attaches to the View's server session if it
+   * has one, which replays its history; a `no_session` answer leaves the next message to
+   * start one. Reading the stream never creates a session.
+   */
+  async chat(viewId: string) {
+    this.update(viewId, () => ({ intro: 'edit' }));
+    try {
+      await this.openStream(viewId);
+    } catch {
+      // fail() already recorded no_session / session_outdated (or surfaced the error).
+    }
   }
 
   async sendMessage(viewId: string, text: string) {
@@ -1024,6 +1058,11 @@ class AgentSessionStoreImpl extends MailspringStore {
   }
 }
 
+/** True for a session the user hasn't sent anything in and the agent isn't working on. */
+export function isUntouched(s: AgentSessionState) {
+  return s.transcript.length === 0 && !s.working && !s.pendingRequest;
+}
+
 export const AgentSessionStore = new AgentSessionStoreImpl();
 
 /** The actions the authoring panel and entry points call. All return promises, including
@@ -1033,6 +1072,9 @@ export const AgentActions = {
     AgentSessionStore.start(opts),
   resume: async (viewId: string, name: string) => AgentSessionStore.resume(viewId, name),
   setActive: async (viewId: string | null) => AgentSessionStore.setActive(viewId),
+  preview: async (viewId: string, name: string, intro: 'try' | 'edit') =>
+    AgentSessionStore.preview(viewId, name, intro),
+  chat: async (viewId: string) => AgentSessionStore.chat(viewId),
   sendMessage: async (viewId: string, text: string) => AgentSessionStore.sendMessage(viewId, text),
   attachThreads: async (viewId: string, threadIds: string[]) =>
     AgentSessionStore.attachThreads(viewId, threadIds),

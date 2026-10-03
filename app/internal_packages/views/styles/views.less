@@ -1,6 +1,7 @@
 @import 'ui-variables';
 
 .views-root {
+  position: relative;
   display: flex;
   flex: 1;
   height: 100%;
@@ -59,6 +60,7 @@
   // The sidebar column scrolls as a whole; a View squeezed below its content height would
   // scroll inside itself instead.
   flex-shrink: 0;
+  position: relative;
 
   .sidebar-view-frame {
     display: flex;
@@ -75,6 +77,7 @@
 
 // Panel mode draws no card; the inset lines the View's content up with the switcher above it.
 .sidebar-view-panel {
+  position: relative;
   flex: 1;
   min-height: 0;
   padding: 5px 15px 15px 15px;

@@ -15,7 +15,7 @@ import { watchViewFolders } from './authoring/watcher';
 import { ViewAuthoring } from './authoring';
 import { registerAuthoringPanel, unregisterAuthoringPanel } from './authoring-panel';
 import { ViewsHomePerspective } from './home/views-home-perspective';
-import { ViewToolbarActions } from './home/edit-with-ai-button';
+import { ViewToolbarActions } from './home/view-toolbar-actions';
 import { captureThumbnailsOnRender } from './home/thumbnails';
 
 let sidebarExtensions = [];

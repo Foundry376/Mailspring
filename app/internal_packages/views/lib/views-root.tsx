@@ -4,6 +4,7 @@ import { ViewHost } from './view-host';
 import { ViewMailboxPerspective } from './view-mailbox-perspective';
 import { ViewsHomePerspective } from './home/views-home-perspective';
 import { ViewsHome } from './home/views-home';
+import { EditViewButton } from './authoring-panel';
 
 interface ViewsRootState {
   viewId: string | null;
@@ -58,6 +59,7 @@ export class ViewsRoot extends React.Component<Record<string, never>, ViewsRootS
     return (
       <div className="views-root">
         {viewId ? <ViewHost key={viewId} viewId={viewId} placement="page" /> : null}
+        {viewId ? <EditViewButton key={`edit-${viewId}`} viewId={viewId} variant="page" /> : null}
       </div>
     );
   }
