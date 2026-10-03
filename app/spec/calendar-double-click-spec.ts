@@ -1,4 +1,5 @@
 import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
+import { CalendarEventContextMenu } from '../internal_packages/main-calendar/lib/core/calendar-event-context-menu';
 import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 
 const occurrence = {
@@ -18,5 +19,50 @@ describe('double-clicking a calendar event', function () {
     const open = spyOn(calendar, '_openEventPopover');
     calendar._onEventDoubleClick(occurrence);
     expect(open).toHaveBeenCalledWith(occurrence, true);
+  });
+});
+
+describe("the context menu's open item", function () {
+  function calendarWith(readOnlyCalendarIds: string[]) {
+    const calendar: any = new MailspringCalendar({} as any);
+    calendar.state = {
+      ...calendar.state,
+      calendarsLoaded: true,
+      readOnlyCalendarIds: new Set(readOnlyCalendarIds),
+      selectedEvents: [occurrence],
+    };
+    spyOn(calendar, '_openEventPopover');
+    return calendar;
+  }
+
+  function menuFor(calendar: any, occ: TimedOccurrence) {
+    const display = spyOn(CalendarEventContextMenu.prototype, 'displayMenu');
+    calendar._onEventContextMenu(occ);
+    return (display.mostRecentCall.object as any).opts;
+  }
+
+  it('is Edit Event, and opens the editor, for a meeting we organize', function () {
+    const calendar = calendarWith([]);
+    const menu = menuFor(calendar, occurrence);
+    expect(menu.editable).toBe(true);
+    menu.onOpen();
+    expect(calendar._openEventPopover).toHaveBeenCalledWith(occurrence, true);
+  });
+
+  it("is View Event, and keeps the card, for somebody else's meeting", function () {
+    const calendar = calendarWith([]);
+    const theirs = { ...occurrence, isMine: false } as TimedOccurrence;
+    const menu = menuFor(calendar, theirs);
+    expect(menu.editable).toBe(false);
+    menu.onOpen();
+    expect(calendar._openEventPopover).toHaveBeenCalledWith(theirs, false);
+  });
+
+  it('keeps the card on a read-only calendar, even for our own event', function () {
+    const calendar = calendarWith(['c']);
+    const menu = menuFor(calendar, occurrence);
+    expect(menu.editable).toBe(false);
+    menu.onOpen();
+    expect(calendar._openEventPopover).toHaveBeenCalledWith(occurrence, false);
   });
 });

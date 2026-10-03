@@ -345,11 +345,12 @@ export class MailspringCalendar extends React.Component<
     }
 
     const readOnly = this._isCalendarReadOnly(occurrence.calendarId);
+    const editable = !readOnly && occurrence.isMine;
     new CalendarEventContextMenu({
       occurrence,
       readOnly,
-      editable: !readOnly && occurrence.isMine,
-      onOpen: () => this._openEventPopover(occurrence, !readOnly && occurrence.isMine),
+      editable,
+      onOpen: () => this._openEventPopover(occurrence, editable),
       onDelete: () => this._deleteEvent(occurrence),
       onProposeNewTime: () => openProposeNewTimePopover(occurrence),
     }).displayMenu();
