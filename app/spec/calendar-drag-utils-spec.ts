@@ -15,6 +15,7 @@ import {
   createDragState,
   updateDragState,
   allDayColumnStartUnix,
+  canAttemptMove,
 } from '../internal_packages/main-calendar/lib/core/calendar-drag-utils';
 import {
   DEFAULT_DRAG_CONFIG,
@@ -46,6 +47,7 @@ function makeOccurrence(overrides: OccurrenceOverrides = {}): EventOccurrence {
     description: '',
     isCancelled: false,
     isPending: false,
+    isMine: true,
     isException: false,
     isRecurring: false,
     organizer: null,
@@ -826,5 +828,36 @@ describe('createDragState anchored on the grid', function () {
       DEFAULT_DRAG_CONFIG
     );
     expect(dragged.previewStart).toBe(start + HOUR);
+  });
+});
+
+describe('canAttemptMove', function () {
+  it("lets a guest's drag begin, so it can be answered with the offer to counter", function () {
+    expect(canAttemptMove(makeOccurrence({ isMine: false } as any))).toBe(true);
+  });
+
+  it('refuses a drag on a read-only calendar, a cancelled event or a drag preview', function () {
+    expect(canAttemptMove(makeOccurrence(), true)).toBe(false);
+    expect(canAttemptMove(makeOccurrence({ isCancelled: true } as any))).toBe(false);
+    expect(canAttemptMove(makeOccurrence({ isDragPreview: true } as any))).toBe(false);
+  });
+});
+
+describe('canMoveEvent and the organizer', function () {
+  it("refuses to reschedule someone else's meeting", function () {
+    const theirs = makeOccurrence({ isMine: false } as any);
+    expect(canMoveEvent(theirs)).toBe(false);
+  });
+
+  it('allows rescheduling a meeting we organise', function () {
+    expect(canMoveEvent(makeOccurrence({ isMine: true } as any))).toBe(true);
+  });
+
+  it('still refuses on a read-only calendar even when the meeting is ours', function () {
+    expect(canMoveEvent(makeOccurrence({ isMine: true } as any), true)).toBe(false);
+  });
+
+  it('still refuses a cancelled meeting that is ours', function () {
+    expect(canMoveEvent(makeOccurrence({ isMine: true, isCancelled: true } as any))).toBe(false);
   });
 });
