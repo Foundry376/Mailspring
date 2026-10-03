@@ -1,4 +1,5 @@
 import moment from 'moment';
+import { AccountStore, Actions, SyncbackEventTask, TaskQueue } from 'mailspring-exports';
 import 'moment/locale/de';
 import 'moment/locale/ko';
 // Import directly from the source file; the plugin isn't registered in mailspring-exports.
@@ -8,6 +9,7 @@ import {
   clampEnd,
   textColorOnFill,
   formatShortTime,
+  createCalendarEvent,
 } from '../internal_packages/main-calendar/lib/core/calendar-helpers';
 import {
   shiftedDayStartUnix,
@@ -216,5 +218,41 @@ describe('formatShortTime', function () {
   it('shortens a 12-hour locale whose meridiem comes first', function () {
     moment.locale('ko');
     expect(formatShortTime(at(22, 0))).toBe(moment.unix(at(22, 0)).format('A h'));
+  });
+});
+
+describe('createCalendarEvent and the organizer', function () {
+  const unfold = (ics: string) => ics.replace(/\r\n[ \t]/g, '').split(/\r?\n/);
+  let queued: any[];
+
+  beforeEach(function () {
+    queued = [];
+    spyOn(AccountStore, 'accountForId').andReturn({ emailAddress: 'me@example.com', name: 'Me' });
+    spyOn(Actions, 'queueTask').andCallFake((task) => queued.push(task));
+    spyOn(Actions, 'focusCalendarEvent');
+    spyOn(SyncbackEventTask, 'forCreating').andCallFake((opts) => opts);
+    spyOn(TaskQueue, 'waitForPerformRemote').andReturn(Promise.resolve());
+  });
+
+  const options = (attendees: Array<{ email: string; name?: string }>) => ({
+    summary: 'Kickoff',
+    start: new Date('2026-03-01T14:00:00Z'),
+    end: new Date('2026-03-01T15:00:00Z'),
+    isAllDay: false,
+    calendarId: 'cal',
+    accountId: 'acct',
+    attendees,
+  });
+
+  it('names the account as organizer and accepted attendee when the event has guests', async function () {
+    await createCalendarEvent(options([{ email: 'bo@example.com', name: 'Bo' }]));
+    const lines = unfold(queued[0].event.ics);
+    expect(lines).toContain('ORGANIZER;CN=Me:mailto:me@example.com');
+    expect(lines).toContain('ATTENDEE;CN=Me;PARTSTAT=ACCEPTED:mailto:me@example.com');
+  });
+
+  it('leaves a private appointment without an organizer', async function () {
+    await createCalendarEvent(options([]));
+    expect(queued[0].event.ics).not.toContain('ORGANIZER');
   });
 });

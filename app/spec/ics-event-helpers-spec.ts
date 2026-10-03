@@ -2353,3 +2353,234 @@ describe('ICSEventHelpers.generateUID', function () {
     expect(uids.size).toBe(1000);
   });
 });
+
+// ---------------------------------------------------------------------------
+
+const MEETING_WITH_ROOM_ICS = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Test//Test//EN
+BEGIN:VEVENT
+UID:meeting-uid@test
+DTSTART:20260301T140000Z
+DTEND:20260301T150000Z
+SUMMARY:Design Review
+DTSTAMP:20260101T000000Z
+ORGANIZER;CN=Ada:mailto:ada@example.com
+ATTENDEE;CN=Ada;ROLE=CHAIR;PARTSTAT=ACCEPTED:mailto:ada@example.com
+ATTENDEE;CN=Room 1;CUTYPE=RESOURCE;ROLE=NON-PARTICIPANT;PARTSTAT=ACCEPTED:mailto:room1@example.com
+ATTENDEE;CN=Bo;PARTSTAT=TENTATIVE:mailto:bo@example.com
+SEQUENCE:0
+END:VEVENT
+END:VCALENDAR`;
+
+const unfoldLines = (ics: string) => ics.replace(/\r\n[ \t]/g, '').split(/\r?\n/);
+const attendeeLine = (ics: string, email: string) =>
+  unfoldLines(ics).find((l) => l.startsWith('ATTENDEE') && l.toLowerCase().includes(email));
+
+// What the editor hands back for guests it read from the event.
+const sameGuests = [
+  { email: 'ada@example.com', name: 'Ada', partstat: 'ACCEPTED' },
+  { email: 'room1@example.com', name: 'Room 1', partstat: 'ACCEPTED' },
+  { email: 'bo@example.com', name: 'Bo', partstat: 'TENTATIVE' },
+];
+
+describe('ICSEventHelpers.updateAttendees', function () {
+  it('keeps parameters the editor never supplies when guests are unchanged', function () {
+    const result = ICSEventHelpers.updateAttendees(MEETING_WITH_ROOM_ICS, sameGuests);
+    expect(attendeeLine(result, 'room1@example.com')).toContain('CUTYPE=RESOURCE');
+    expect(attendeeLine(result, 'room1@example.com')).toContain('ROLE=NON-PARTICIPANT');
+    expect(attendeeLine(result, 'ada@example.com')).toContain('ROLE=CHAIR');
+  });
+
+  it('keeps each guest their existing response, without asking them to answer again', function () {
+    const result = ICSEventHelpers.updateAttendees(MEETING_WITH_ROOM_ICS, sameGuests);
+    expect(attendeeLine(result, 'bo@example.com')).toContain('PARTSTAT=TENTATIVE');
+    expect(attendeeLine(result, 'bo@example.com')).not.toContain('RSVP=');
+  });
+
+  it('adds a new guest as a required participant awaiting a response', function () {
+    const result = ICSEventHelpers.updateAttendees(MEETING_WITH_ROOM_ICS, [
+      ...sameGuests,
+      { email: 'cy@example.com', name: 'Cy' },
+    ]);
+    const line = attendeeLine(result, 'cy@example.com');
+    expect(line).toContain('CN=Cy');
+    expect(line).toContain('PARTSTAT=NEEDS-ACTION');
+    expect(line).toContain('ROLE=REQ-PARTICIPANT');
+    expect(line).toContain('RSVP=TRUE');
+  });
+
+  it('adds a guest typed as a bare address without a CN', function () {
+    const result = ICSEventHelpers.updateAttendees(MEETING_WITH_ROOM_ICS, [
+      ...sameGuests,
+      { email: 'cy@example.com', name: null },
+    ]);
+    expect(attendeeLine(result, 'cy@example.com')).not.toContain('CN=');
+  });
+
+  it('removes a guest dropped from the list', function () {
+    const result = ICSEventHelpers.updateAttendees(
+      MEETING_WITH_ROOM_ICS,
+      sameGuests.filter((g) => g.email !== 'bo@example.com')
+    );
+    expect(attendeeLine(result, 'bo@example.com')).toBe(undefined);
+    expect(attendeeLine(result, 'ada@example.com')).not.toBe(undefined);
+  });
+
+  it('matches a guest by address whatever its case', function () {
+    const result = ICSEventHelpers.updateAttendees(MEETING_WITH_ROOM_ICS, [
+      ...sameGuests.filter((g) => g.email !== 'room1@example.com'),
+      { email: 'Room1@Example.com', name: 'Room 1', partstat: 'ACCEPTED' },
+    ]);
+    expect(unfoldLines(result).filter((l) => l.startsWith('ATTENDEE')).length).toBe(3);
+    expect(attendeeLine(result, 'room1@example.com')).toContain('CUTYPE=RESOURCE');
+  });
+});
+
+describe('ICSEventHelpers.applyEditsToException and the guest list', function () {
+  const WEEKLY_WITH_ROOM_ICS = MEETING_WITH_ROOM_ICS.replace(
+    'SEQUENCE:0',
+    'RRULE:FREQ=WEEKLY\nSEQUENCE:0'
+  );
+  const exceptionVevent = (ics: string) =>
+    unfoldLines(ics)
+      .join('\n')
+      .split('BEGIN:VEVENT')
+      .find((v) => v.includes('RECURRENCE-ID'));
+
+  it('keeps the room and the chair when one occurrence is retitled', function () {
+    const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
+      WEEKLY_WITH_ROOM_ICS,
+      Date.UTC(2026, 2, 8, 14) / 1000,
+      Date.UTC(2026, 2, 8, 15) / 1000,
+      Date.UTC(2026, 2, 8, 16) / 1000,
+      false
+    );
+    const result = ICSEventHelpers.applyEditsToException(masterIcs, recurrenceId, {
+      summary: 'Design Review (moved)',
+      attendees: [...sameGuests, { email: 'cy@example.com', name: 'Cy' }],
+    });
+    const exception = exceptionVevent(result);
+    expect(exception).toContain('SUMMARY:Design Review (moved)');
+    expect(exception).toContain('CUTYPE=RESOURCE');
+    expect(exception).toContain('ROLE=CHAIR');
+    expect(exception).toContain('PARTSTAT=TENTATIVE:mailto:bo@example.com');
+    expect(exception).toContain(
+      'PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT;RSVP=TRUE:mailto:cy@example.com'
+    );
+  });
+});
+
+const SOLO_EVENT_ICS = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Test//Test//EN
+BEGIN:VEVENT
+UID:solo-uid@test
+DTSTART:20260301T140000Z
+DTEND:20260301T150000Z
+SUMMARY:Focus Time
+DTSTAMP:20260101T000000Z
+END:VEVENT
+END:VCALENDAR`;
+
+describe('ICSEventHelpers.updateAttendees naming an organizer', function () {
+  const me = { email: 'me@example.com', name: 'Me' };
+  const organizerLines = (ics: string) => unfoldLines(ics).filter((l) => l.startsWith('ORGANIZER'));
+
+  it('names the organizer, attending, when the first guest is added to an event without one', function () {
+    const result = ICSEventHelpers.updateAttendees(
+      SOLO_EVENT_ICS,
+      [{ email: 'bo@example.com' }],
+      me
+    );
+    expect(organizerLines(result)).toEqual(['ORGANIZER;CN=Me:mailto:me@example.com']);
+    expect(attendeeLine(result, 'me@example.com')).toBe(
+      'ATTENDEE;CN=Me;PARTSTAT=ACCEPTED:mailto:me@example.com'
+    );
+  });
+
+  it('promotes the organizer listed as a guest instead of adding a second line', function () {
+    const result = ICSEventHelpers.updateAttendees(
+      SOLO_EVENT_ICS,
+      [{ email: 'bo@example.com' }, { email: 'ME@example.com', name: 'Me' }],
+      me
+    );
+    const mine = unfoldLines(result).filter(
+      (l) => l.startsWith('ATTENDEE') && l.toLowerCase().includes('me@example.com')
+    );
+    expect(mine.length).toBe(1);
+    expect(mine[0]).toContain('PARTSTAT=ACCEPTED');
+    expect(mine[0]).not.toContain('RSVP=');
+  });
+
+  it('writes no CN for an account without a name', function () {
+    const result = ICSEventHelpers.updateAttendees(SOLO_EVENT_ICS, [{ email: 'bo@example.com' }], {
+      email: 'me@example.com',
+    });
+    expect(organizerLines(result)).toEqual(['ORGANIZER:mailto:me@example.com']);
+    expect(attendeeLine(result, 'me@example.com')).not.toContain('CN=');
+  });
+
+  it("does not take over an event that already names someone else's organizer", function () {
+    const result = ICSEventHelpers.updateAttendees(MEETING_WITH_ROOM_ICS, sameGuests, me);
+    expect(organizerLines(result)).toEqual(['ORGANIZER;CN=Ada:mailto:ada@example.com']);
+    expect(attendeeLine(result, 'me@example.com')).toBe(undefined);
+  });
+
+  it('leaves an event with no guests without an organizer', function () {
+    const result = ICSEventHelpers.updateAttendees(SOLO_EVENT_ICS, [], me);
+    expect(organizerLines(result)).toEqual([]);
+  });
+
+  it('names nobody when the caller has no organizer to offer', function () {
+    const result = ICSEventHelpers.updateAttendees(SOLO_EVENT_ICS, [{ email: 'bo@example.com' }]);
+    expect(organizerLines(result)).toEqual([]);
+  });
+});
+
+describe('ICSEventHelpers.applyEditsToException naming an organizer', function () {
+  it('names the organizer on every VEVENT of the series, attending only where there are guests', function () {
+    const weekly = SOLO_EVENT_ICS.replace('DTSTAMP', 'RRULE:FREQ=WEEKLY\nDTSTAMP');
+    const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
+      weekly,
+      Date.UTC(2026, 2, 8, 14) / 1000,
+      Date.UTC(2026, 2, 8, 14) / 1000,
+      Date.UTC(2026, 2, 8, 15) / 1000,
+      false
+    );
+    const result = ICSEventHelpers.applyEditsToException(masterIcs, recurrenceId, {
+      attendees: [{ email: 'bo@example.com', name: 'Bo' }],
+      organizer: { email: 'me@example.com', name: 'Me' },
+    });
+    const [master, exception] = unfoldLines(result).join('\n').split('BEGIN:VEVENT').slice(1);
+    expect(master).toContain('ORGANIZER;CN=Me:mailto:me@example.com');
+    expect(master).not.toContain('ATTENDEE');
+    expect(exception).toContain('ORGANIZER;CN=Me:mailto:me@example.com');
+    expect(exception).toContain('ATTENDEE;CN=Me;PARTSTAT=ACCEPTED:mailto:me@example.com');
+  });
+});
+
+describe('ICSEventHelpers.createICSString and the organizer', function () {
+  const at = (iso: string) => new Date(iso);
+
+  it('lists the organizer as attending alongside the guests', function () {
+    const ics = ICSEventHelpers.createICSString({
+      summary: 'Kickoff',
+      start: at('2026-03-01T14:00:00Z'),
+      end: at('2026-03-01T15:00:00Z'),
+      organizer: { email: 'me@example.com', name: 'Me' },
+      attendees: [{ email: 'bo@example.com', name: 'Bo' }],
+    });
+    expect(unfoldLines(ics)).toContain('ATTENDEE;CN=Me;PARTSTAT=ACCEPTED:mailto:me@example.com');
+  });
+
+  it('names no organizer on an event without guests', function () {
+    const ics = ICSEventHelpers.createICSString({
+      summary: 'Focus time',
+      start: at('2026-03-01T14:00:00Z'),
+      end: at('2026-03-01T15:00:00Z'),
+      organizer: { email: 'me@example.com', name: 'Me' },
+    });
+    expect(ics).not.toContain('ORGANIZER');
+  });
+});

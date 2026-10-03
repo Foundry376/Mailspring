@@ -1,5 +1,10 @@
 import crypto from 'crypto';
-import { parseICSString, createVTIMEZONEString, resolveIanaZone } from './calendar-utils';
+import {
+  parseICSString,
+  emailFromParticipantURI,
+  createVTIMEZONEString,
+  resolveIanaZone,
+} from './calendar-utils';
 
 export { createVTIMEZONEString };
 import { calendarDateFromUnix, shiftedDayStartUnix, calendarDaysBetween } from './calendar-date';
@@ -439,16 +444,6 @@ export function createICSString(options: CreateEventOptions): string {
     event.location = options.location;
   }
 
-  // Set organizer
-  if (options.organizer) {
-    const organizer = new ical.Property('organizer');
-    organizer.setValue(`mailto:${options.organizer.email}`);
-    if (options.organizer.name) {
-      organizer.setParameter('cn', options.organizer.name);
-    }
-    vevent.addProperty(organizer);
-  }
-
   // Set attendees
   if (options.attendees) {
     for (const attendee of options.attendees) {
@@ -462,6 +457,9 @@ export function createICSString(options: CreateEventOptions): string {
       prop.setParameter('rsvp', 'TRUE');
       vevent.addProperty(prop);
     }
+  }
+  if (options.organizer) {
+    nameOrganizer(vevent, options.organizer);
   }
 
   // Set recurrence rule
@@ -705,7 +703,8 @@ export function applyEditsToException(
     summary?: string;
     location?: string;
     description?: string;
-    attendees?: Array<{ email: string; name?: string | null; partstat?: string }>;
+    attendees?: AttendeeInput[];
+    organizer?: Organizer;
   }
 ): string {
   const ical = getICAL();
@@ -753,18 +752,10 @@ export function applyEditsToException(
     exceptionICALEvent.location = edits.location;
   }
   if (edits.attendees !== undefined) {
-    exceptionVevent.removeAllProperties('attendee');
-    for (const attendee of edits.attendees) {
-      const prop = new ical.Property('attendee');
-      prop.setValue(`mailto:${attendee.email}`);
-      if (attendee.name) {
-        prop.setParameter('cn', attendee.name);
-      }
-      prop.setParameter('partstat', attendee.partstat || 'NEEDS-ACTION');
-      prop.setParameter('role', 'REQ-PARTICIPANT');
-      prop.setParameter('rsvp', 'TRUE');
-      exceptionVevent.addProperty(prop);
-    }
+    reconcileAttendees(exceptionVevent, edits.attendees);
+  }
+  if (edits.organizer) {
+    nameOrganizer(vcalendar, edits.organizer);
   }
 
   exceptionVevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
@@ -1093,17 +1084,78 @@ export function updateRecurrenceRule(ics: string, rruleString: string | null): s
   return root.toString();
 }
 
+type AttendeeInput = { email: string; name?: string | null };
+type Organizer = { email: string; name?: string };
+
 /**
- * Updates the attendees (ATTENDEE properties) on an event's ICS data.
- * Replaces all existing attendees with the provided list.
- *
- * @param ics - The original ICS string
- * @param attendees - Array of attendee objects
- * @returns The modified ICS string
+ * Guests already on the VEVENT are left exactly as they are, so parameters the editor never
+ * sees - CUTYPE=RESOURCE on a room, ROLE=CHAIR, DELEGATED-TO - survive an unrelated edit.
  */
+function reconcileAttendees(vevent: ICALComponent, attendees: AttendeeInput[]): void {
+  const existing = new Map(
+    vevent
+      .getAllProperties('attendee')
+      .map((prop) => [emailFromParticipantURI(String(prop.getFirstValue())), prop] as const)
+  );
+  const wanted = new Set<string | null>(attendees.map((a) => a.email.toLowerCase()));
+
+  for (const [email, prop] of existing) {
+    if (!wanted.has(email)) {
+      vevent.removeProperty(prop);
+    }
+  }
+  for (const attendee of attendees) {
+    if (existing.has(attendee.email.toLowerCase())) {
+      continue;
+    }
+    const prop = vevent.addPropertyWithValue('attendee' as any, `mailto:${attendee.email}`);
+    if (attendee.name) {
+      prop.setParameter('cn', attendee.name);
+    }
+    prop.setParameter('partstat', 'NEEDS-ACTION');
+    prop.setParameter('role', 'REQ-PARTICIPANT');
+    prop.setParameter('rsvp', 'TRUE');
+  }
+}
+
+/**
+ * With guests, a VEVENT must name its ORGANIZER (RFC 5545 section 3.8.4.3) and a CalDAV server sends
+ * invitations only for an organizer it hosts (RFC 6638 section 3.2.1); one already named is kept.
+ * The organizer is also an accepted attendee, as Google writes 3962 of 3967 meetings in a live DB.
+ */
+function nameOrganizer(root: ICALComponent, organizer: Organizer): void {
+  const vevents = root.name === 'vevent' ? [root] : root.getAllSubcomponents('vevent');
+  const withGuests = vevents.filter((v) => v.getAllProperties('attendee').length > 0);
+  if (!withGuests.length || vevents.some((v) => v.getFirstProperty('organizer'))) {
+    return;
+  }
+  for (const vevent of vevents) {
+    const prop = vevent.addPropertyWithValue('organizer' as any, `mailto:${organizer.email}`);
+    if (organizer.name) {
+      prop.setParameter('cn', organizer.name);
+    }
+  }
+  const email = organizer.email.toLowerCase();
+  for (const vevent of withGuests) {
+    let mine = vevent
+      .getAllProperties('attendee')
+      .find((p) => emailFromParticipantURI(String(p.getFirstValue())) === email);
+    if (!mine) {
+      mine = vevent.addPropertyWithValue('attendee' as any, `mailto:${organizer.email}`);
+      if (organizer.name) {
+        mine.setParameter('cn', organizer.name);
+      }
+    }
+    mine.setParameter('partstat', 'ACCEPTED');
+    mine.removeParameter('rsvp');
+  }
+}
+
+/** Sets the first VEVENT's guest list to `attendees`; see reconcileAttendees and nameOrganizer. */
 export function updateAttendees(
   ics: string,
-  attendees: Array<{ email: string; name?: string | null; partstat?: string }>
+  attendees: AttendeeInput[],
+  organizer?: Organizer
 ): string {
   const ical = getICAL();
   const { root } = parseICSString(ics);
@@ -1113,20 +1165,9 @@ export function updateAttendees(
     throw new Error('Invalid ICS: no VEVENT component found');
   }
 
-  // Remove all existing attendees
-  vevent.removeAllProperties('attendee');
-
-  // Add new attendees
-  for (const attendee of attendees) {
-    const prop = new ical.Property('attendee');
-    prop.setValue(`mailto:${attendee.email}`);
-    if (attendee.name) {
-      prop.setParameter('cn', attendee.name);
-    }
-    prop.setParameter('partstat', attendee.partstat || 'NEEDS-ACTION');
-    prop.setParameter('role', 'REQ-PARTICIPANT');
-    prop.setParameter('rsvp', 'TRUE');
-    vevent.addProperty(prop);
+  reconcileAttendees(vevent, attendees);
+  if (organizer) {
+    nameOrganizer(root, organizer);
   }
 
   // Update DTSTAMP
