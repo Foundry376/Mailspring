@@ -191,6 +191,46 @@ async function runUploadSourceMapsToSentry({ buildPath }) {
   }
 }
 
+function canCompileIconComposerIcon() {
+  try {
+    execSync('actool --version', { stdio: ['ignore', 'pipe', 'pipe'] });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// @electron/packager 20 looks for a sibling Icon Composer `.icon` next to the
+// `.icns` and compiles it with `actool`. That tool ships only with Xcode 26+,
+// not Command Line Tools; without it packaging dies with:
+//   xcode-select: error: tool 'actool' requires Xcode
+// Isolate the `.icns` so local unsigned builds still work. CI macOS runners
+// have Xcode and keep the Liquid Glass catalog.
+// https://github.com/electron/packager/issues/1831
+function resolveDarwinIconPath() {
+  const icns = path.resolve(appDir, 'build', 'resources', 'mac', 'mailspring.icns');
+  const iconComposer = path.resolve(appDir, 'build', 'resources', 'mac', 'mailspring.icon');
+  if (!fs.existsSync(iconComposer) || canCompileIconComposerIcon()) {
+    return icns;
+  }
+
+  fsExtra.mkdirpSync(tmpdir);
+  const fallback = path.join(tmpdir, 'mailspring.icns');
+  fs.copyFileSync(icns, fallback);
+  console.log(
+    '---> Skipping Icon Composer .icon (actool/Xcode 26+ not available); using .icns'
+  );
+  return fallback;
+}
+
+function packagerIcon() {
+  if (platform === 'darwin') return resolveDarwinIconPath();
+  if (platform === 'win32') {
+    return path.resolve(appDir, 'build', 'resources', 'win', 'mailspring-square.ico');
+  }
+  return undefined;
+}
+
 function buildPackagerOptions() {
   // See: https://github.com/electron-userland/electron-packager/blob/master/usage.txt
   return {
@@ -208,11 +248,7 @@ function buildPackagerOptions() {
       darwin: process.env.OVERRIDE_TO_INTEL ? 'x64' : process.arch,
       linux: process.arch,
     }[platform],
-    icon: {
-      darwin: path.resolve(appDir, 'build', 'resources', 'mac', 'mailspring.icns'),
-      win32: path.resolve(appDir, 'build', 'resources', 'win', 'mailspring-square.ico'),
-      linux: undefined,
-    }[platform],
+    icon: packagerIcon(),
     name: { darwin: 'Mailspring', win32: 'Mailspring', linux: 'mailspring' }[platform],
     appCopyright: `Copyright (C) 2014-${new Date().getFullYear()} Foundry 376, LLC. All rights reserved.`,
     derefSymlinks: false,
