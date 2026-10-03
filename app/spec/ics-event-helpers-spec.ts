@@ -567,11 +567,10 @@ describe('ICSEventHelpers.removeInlineException', function () {
     expect(result).toContain('RRULE');
   });
 
-  it('advances SEQUENCE on the master, so guests take the cancellation', function () {
-    expect(masterWithException).toContain('SEQUENCE:0');
+  it('leaves SEQUENCE to the caller, who revises once for the whole cancellation', function () {
     const result = ICSEventHelpers.removeInlineException(masterWithException, recurrenceId);
-    expect(result).toContain('SEQUENCE:1');
-    expect(result).not.toContain('SEQUENCE:0');
+    expect(result).toContain('SEQUENCE:0');
+    expect(result).not.toContain('SEQUENCE:1');
   });
 
   it('returns the ICS unchanged when no exception matches', function () {
@@ -635,7 +634,6 @@ describe('ICSEventHelpers.removeInlineException', function () {
       expect(result).toContain('EXDATE;TZID=Europe/Vienna:20260917T170000');
       // The exclusion that was already there survives untouched.
       expect(result).toContain('EXDATE;TZID=Europe/Vienna:20261001T170000');
-      expect(result).toContain('SEQUENCE:3');
     });
 
     it('also matches the slot when the row stores it as UTC', function () {
@@ -892,18 +890,11 @@ describe('ICSEventHelpers.addExclusionDate', function () {
     expect(hasProperty(result, 'RRULE')).toBe(true);
   });
 
-  it('increments SEQUENCE when the property is present', function () {
+  it('leaves SEQUENCE to the caller', function () {
+    // Excluding an occurrence is one part of a revision; the caller revises once.
     const result = ICSEventHelpers.addExclusionDate(DAILY_STANDUP_ICS, T_OCC2_START, false);
     const seqValue = getPropertyValue(result, 'SEQUENCE');
-    expect(seqValue ? parseInt(seqValue, 10) : 0).toBe(1);
-  });
-
-  it('does not increment SEQUENCE when the property is absent', function () {
-    // ICS without SEQUENCE
-    const noSeqIcs = DAILY_STANDUP_ICS.replace(/\r?\nSEQUENCE:0/g, '');
-    const result = ICSEventHelpers.addExclusionDate(noSeqIcs, T_OCC2_START, false);
-    // Should not crash, and no SEQUENCE should appear
-    expect(result).toBeDefined();
+    expect(seqValue ? parseInt(seqValue, 10) : 0).toBe(0);
   });
 
   it('handles all-day events (DATE value format)', function () {
@@ -2351,5 +2342,339 @@ describe('ICSEventHelpers.generateUID', function () {
   it('does not repeat', function () {
     const uids = new Set(Array.from({ length: 1000 }, () => ICSEventHelpers.generateUID()));
     expect(uids.size).toBe(1000);
+  });
+});
+
+const INVITE_ICS = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Test//Test//EN
+METHOD:REQUEST
+BEGIN:VEVENT
+UID:invite-uid@test
+DTSTART:20260301T140000Z
+DTEND:20260301T150000Z
+SUMMARY:Project Kickoff
+DTSTAMP:20260101T000000Z
+ORGANIZER;CN=Ada:mailto:ada@example.com
+ATTENDEE;CN=Ada;ROLE=CHAIR;PARTSTAT=ACCEPTED:mailto:ada@example.com
+ATTENDEE;CN=Me;ROLE=REQ-PARTICIPANT;CUTYPE=INDIVIDUAL;RSVP=TRUE;PARTSTAT=NEEDS-ACTION:mailto:me@example.com
+ATTENDEE;CN=Bo;ROLE=REQ-PARTICIPANT;PARTSTAT=TENTATIVE:mailto:bo@example.com
+SEQUENCE:0
+END:VEVENT
+END:VCALENDAR`;
+
+describe('ICSEventHelpers.updateAttendeeStatus', function () {
+  const attendeeLine = (ics: string, email: string) =>
+    ics
+      .replace(/\r\n[ \t]/g, '')
+      .split(/\r?\n/)
+      .find((l) => l.startsWith('ATTENDEE') && l.toLowerCase().includes(email));
+
+  it('sets PARTSTAT on the matching attendee only', function () {
+    const result = ICSEventHelpers.updateAttendeeStatus(INVITE_ICS, 'me@example.com', 'ACCEPTED');
+    expect(result).not.toBe(null);
+    expect(attendeeLine(result, 'me@example.com')).toContain('PARTSTAT=ACCEPTED');
+    expect(attendeeLine(result, 'ada@example.com')).toContain('PARTSTAT=ACCEPTED');
+    expect(attendeeLine(result, 'bo@example.com')).toContain('PARTSTAT=TENTATIVE');
+  });
+
+  it('preserves the other parameters on the attendee it updates', function () {
+    const result = ICSEventHelpers.updateAttendeeStatus(INVITE_ICS, 'me@example.com', 'DECLINED');
+    const line = attendeeLine(result, 'me@example.com');
+    expect(line).toContain('CN=Me');
+    expect(line).toContain('ROLE=REQ-PARTICIPANT');
+    expect(line).toContain('CUTYPE=INDIVIDUAL');
+  });
+
+  it('drops RSVP=TRUE once a response has been given', function () {
+    const result = ICSEventHelpers.updateAttendeeStatus(INVITE_ICS, 'me@example.com', 'ACCEPTED');
+    expect(attendeeLine(result, 'me@example.com')).not.toContain('RSVP=TRUE');
+  });
+
+  it('matches the address case-insensitively', function () {
+    const result = ICSEventHelpers.updateAttendeeStatus(INVITE_ICS, 'ME@Example.COM', 'TENTATIVE');
+    expect(result).not.toBe(null);
+    expect(attendeeLine(result, 'me@example.com')).toContain('PARTSTAT=TENTATIVE');
+  });
+
+  it('returns null when the address is not an attendee', function () {
+    expect(ICSEventHelpers.updateAttendeeStatus(INVITE_ICS, 'nobody@example.com', 'ACCEPTED')).toBe(
+      null
+    );
+  });
+
+  it('answers every VEVENT of a series, master and inline exceptions alike', function () {
+    const seriesIcs = INVITE_ICS.replace(
+      'END:VCALENDAR',
+      `BEGIN:VEVENT
+UID:invite-uid@test
+RECURRENCE-ID:20260308T140000Z
+DTSTART:20260308T150000Z
+DTEND:20260308T160000Z
+SUMMARY:Project Kickoff
+DTSTAMP:20260101T000000Z
+ATTENDEE;CN=Me;PARTSTAT=NEEDS-ACTION:mailto:me@example.com
+SEQUENCE:0
+END:VEVENT
+END:VCALENDAR`
+    );
+    const result = ICSEventHelpers.updateAttendeeStatus(seriesIcs, 'me@example.com', 'ACCEPTED');
+    const mine = result
+      .replace(/\r\n[ \t]/g, '')
+      .split(/\r?\n/)
+      .filter((l) => l.startsWith('ATTENDEE') && l.toLowerCase().includes('me@example.com'));
+    expect(mine.length).toBe(2);
+    expect(mine.every((l) => l.includes('PARTSTAT=ACCEPTED'))).toBe(true);
+  });
+
+  it('refreshes DTSTAMP so the server sees a newer revision', function () {
+    const result = ICSEventHelpers.updateAttendeeStatus(INVITE_ICS, 'me@example.com', 'ACCEPTED');
+    expect(result).not.toContain('DTSTAMP:20260101T000000Z');
+  });
+});
+
+describe('ICSEventHelpers.stripITIPMethod', function () {
+  const unfold = (ics: string) => ics.replace(/\r\n[ \t]/g, '').split(/\r?\n/);
+
+  it('removes METHOD so the object can be stored as a calendar entry', function () {
+    const result = ICSEventHelpers.stripITIPMethod(INVITE_ICS);
+    expect(unfold(result).find((l) => l.startsWith('METHOD'))).toBe(undefined);
+  });
+
+  it('leaves the event itself intact', function () {
+    const result = ICSEventHelpers.stripITIPMethod(INVITE_ICS);
+    const lines = unfold(result);
+    expect(lines.find((l) => l.startsWith('UID:'))).toBe('UID:invite-uid@test');
+    expect(lines.filter((l) => l.startsWith('ATTENDEE')).length).toBe(3);
+    expect(lines.find((l) => l.startsWith('ORGANIZER'))).toContain('ada@example.com');
+  });
+
+  it('is a no-op on an object that has no METHOD', function () {
+    const once = ICSEventHelpers.stripITIPMethod(INVITE_ICS);
+    expect(ICSEventHelpers.stripITIPMethod(once)).toBe(once);
+  });
+});
+
+const RECURRING_INVITE_ICS = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Test//Test//EN
+METHOD:REQUEST
+BEGIN:VEVENT
+UID:series-invite@test
+RECURRENCE-ID:20260309T140000Z
+DTSTART:20260310T090000Z
+DTEND:20260310T100000Z
+SUMMARY:Weekly Sync (moved)
+DTSTAMP:20260101T000000Z
+SEQUENCE:2
+ORGANIZER;CN=Ada:mailto:ada@example.com
+ATTENDEE;CN=Ada;ROLE=CHAIR;PARTSTAT=ACCEPTED:mailto:ada@example.com
+ATTENDEE;CN=Me;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION:mailto:me@example.com
+END:VEVENT
+BEGIN:VEVENT
+UID:series-invite@test
+DTSTART:20260302T140000Z
+DTEND:20260302T150000Z
+RRULE:FREQ=WEEKLY;COUNT=6
+EXDATE:20260316T140000Z
+SUMMARY:Weekly Sync
+DTSTAMP:20260101T000000Z
+SEQUENCE:2
+ORGANIZER;CN=Ada:mailto:ada@example.com
+ATTENDEE;CN=Ada;ROLE=CHAIR;PARTSTAT=ACCEPTED:mailto:ada@example.com
+ATTENDEE;CN=Me;ROLE=REQ-PARTICIPANT;RSVP=TRUE;PARTSTAT=NEEDS-ACTION:mailto:me@example.com
+ATTENDEE;CN=Bo;PARTSTAT=TENTATIVE:mailto:bo@example.com
+END:VEVENT
+END:VCALENDAR`;
+
+describe('ICSEventHelpers.createCounterProposal', function () {
+  const unfold = (ics: string) => ics.replace(/\r\n[ \t]/g, '').split(/\r?\n/);
+  const line = (ics: string, prefix: string) => unfold(ics).find((l) => l.startsWith(prefix));
+  const occurrence = (iso: string) => ICAL.Time.fromDateTimeString(iso);
+
+  const propose = (ics = INVITE_ICS, extra = {}) =>
+    ICSEventHelpers.createCounterProposal(ics, {
+      email: 'me@example.com',
+      start: new Date('2026-03-02T16:00:00Z'),
+      end: new Date('2026-03-02T17:00:00Z'),
+      ...extra,
+    });
+
+  it('declares METHOD:COUNTER', function () {
+    expect(line(propose(), 'METHOD:')).toBe('METHOD:COUNTER');
+  });
+
+  it('keeps the UID and ORGANIZER so the organizer can match it to the invitation', function () {
+    expect(line(propose(), 'UID:')).toBe('UID:invite-uid@test');
+    expect(line(propose(), 'ORGANIZER')).toContain('mailto:ada@example.com');
+  });
+
+  it('carries the proposed times', function () {
+    const ics = propose();
+    expect(line(ics, 'DTSTART')).toBe('DTSTART:20260302T160000Z');
+    expect(line(ics, 'DTEND')).toBe('DTEND:20260302T170000Z');
+  });
+
+  it('lists only the proposer, tentative, with the parameters the organizer gave them', function () {
+    const attendees = unfold(propose()).filter((l) => l.startsWith('ATTENDEE'));
+    expect(attendees.length).toBe(1);
+    expect(attendees[0]).toContain('mailto:me@example.com');
+    expect(attendees[0]).toContain('CN=Me');
+    expect(attendees[0]).toContain('ROLE=REQ-PARTICIPANT');
+    expect(attendees[0]).toContain('CUTYPE=INDIVIDUAL');
+    expect(attendees[0]).toContain('PARTSTAT=TENTATIVE');
+    expect(attendees[0]).not.toContain('RSVP=TRUE');
+  });
+
+  it('matches the proposer however their address is cased', function () {
+    expect(propose(INVITE_ICS, { email: 'ME@Example.COM' })).not.toBe(null);
+  });
+
+  it('refreshes DTSTAMP so a later proposal supersedes an earlier one', function () {
+    expect(line(propose(), 'DTSTAMP:')).not.toBe('DTSTAMP:20260101T000000Z');
+  });
+
+  it('includes a comment when one is given, and none otherwise', function () {
+    expect(line(propose(INVITE_ICS, { comment: 'Clashes with my standup' }), 'COMMENT')).toContain(
+      'Clashes with my standup'
+    );
+    expect(line(propose(), 'COMMENT')).toBe(undefined);
+  });
+
+  it('returns null when the proposer is not an attendee', function () {
+    expect(propose(INVITE_ICS, { email: 'nobody@example.com' })).toBe(null);
+  });
+
+  it('keeps an all-day invitation on dates', function () {
+    const allDay = INVITE_ICS.replace(
+      'DTSTART:20260301T140000Z',
+      'DTSTART;VALUE=DATE:20241012'
+    ).replace('DTEND:20260301T150000Z', 'DTEND;VALUE=DATE:20241013');
+    const ics = propose(allDay, {
+      start: new Date(2026, 9, 13, 0, 0, 0),
+      end: new Date(2026, 9, 14, 0, 0, 0),
+    });
+    expect(line(ics, 'DTSTART')).toBe('DTSTART;VALUE=DATE:20261013');
+    expect(line(ics, 'DTEND')).toBe('DTEND;VALUE=DATE:20261014');
+  });
+
+  describe('for a recurring invitation', function () {
+    it('counters one occurrence, named by RECURRENCE-ID, rather than moving the series', function () {
+      const ics = propose(RECURRING_INVITE_ICS, {
+        recurrenceId: occurrence('2026-03-23T14:00:00Z'),
+      });
+      expect(line(ics, 'RECURRENCE-ID')).toBe('RECURRENCE-ID:20260323T140000Z');
+      expect(line(ics, 'RRULE')).toBe(undefined);
+      expect(line(ics, 'EXDATE')).toBe(undefined);
+      expect(line(ics, 'DTSTART')).toBe('DTSTART:20260302T160000Z');
+      expect(line(ics, 'SUMMARY')).toBe('SUMMARY:Weekly Sync');
+    });
+
+    it('keeps the series UID and sequence', function () {
+      const ics = propose(RECURRING_INVITE_ICS, {
+        recurrenceId: occurrence('2026-03-23T14:00:00Z'),
+      });
+      expect(line(ics, 'UID:')).toBe('UID:series-invite@test');
+      expect(line(ics, 'SEQUENCE:')).toBe('SEQUENCE:2');
+    });
+
+    it('builds on the modified occurrence when the one countered has been moved', function () {
+      const ics = propose(RECURRING_INVITE_ICS, {
+        recurrenceId: occurrence('2026-03-09T14:00:00Z'),
+      });
+      expect(line(ics, 'RECURRENCE-ID')).toBe('RECURRENCE-ID:20260309T140000Z');
+      expect(line(ics, 'SUMMARY')).toBe('SUMMARY:Weekly Sync (moved)');
+    });
+
+    it('refuses to counter a series without naming the occurrence', function () {
+      expect(() => propose(RECURRING_INVITE_ICS)).toThrow();
+    });
+
+    it('keeps the RECURRENCE-ID of an invitation to a single occurrence', function () {
+      const single = RECURRING_INVITE_ICS.replace(
+        /BEGIN:VEVENT\r?\nUID:series-invite@test\r?\nDTSTART:20260302[\s\S]*?END:VEVENT\r?\n/,
+        ''
+      );
+      expect(single).not.toContain('RRULE');
+      const ics = propose(single);
+      expect(line(ics, 'RECURRENCE-ID')).toBe('RECURRENCE-ID:20260309T140000Z');
+      expect(line(ics, 'DTSTART')).toBe('DTSTART:20260302T160000Z');
+    });
+  });
+
+  it('leaves the invitation it was built from untouched', function () {
+    const before = INVITE_ICS;
+    propose();
+    expect(INVITE_ICS).toBe(before);
+  });
+});
+
+describe('SEQUENCE, so guests see an update as an update', function () {
+  const unfold = (ics: string) => ics.replace(/\r\n[ \t]/g, '').split(/\r?\n/);
+  const seq = (ics: string) => {
+    const line = unfold(ics).find((l) => l.startsWith('SEQUENCE:'));
+    return line ? parseInt(line.split(':')[1], 10) : null;
+  };
+
+  it('advances a revision by exactly one', function () {
+    expect(seq(ICSEventHelpers.bumpEventSequence(SIMPLE_ICS))).toBe(1);
+  });
+
+  it('advances from an existing value rather than resetting', function () {
+    const withSeq = SIMPLE_ICS.replace('SEQUENCE:0', 'SEQUENCE:4');
+    expect(seq(ICSEventHelpers.bumpEventSequence(withSeq))).toBe(5);
+  });
+
+  it('advances an event that never had one, since absent means zero', function () {
+    // RFC 5545 section 3.7.4.
+    const noSeq = SIMPLE_ICS.replace('SEQUENCE:0\r\n', '').replace('SEQUENCE:0\n', '');
+    expect(seq(ICSEventHelpers.bumpEventSequence(noSeq))).toBe(1);
+  });
+
+  it('advances once for a save that touched times, guests and recurrence together', function () {
+    // The popover runs all three on one save, which is still one revision.
+    let ics = ICSEventHelpers.updateEventTimes(SIMPLE_ICS, {
+      start: Math.round(new Date('2026-03-01T16:00:00Z').getTime() / 1000),
+      end: Math.round(new Date('2026-03-01T17:00:00Z').getTime() / 1000),
+      isAllDay: false,
+    });
+    ics = ICSEventHelpers.updateAttendees(ics, [{ email: 'new@example.com' }]);
+    ics = ICSEventHelpers.updateRecurrenceRule(ics, 'FREQ=WEEKLY');
+    expect(seq(ics)).toBe(0);
+    expect(seq(ICSEventHelpers.bumpEventSequence(ics))).toBe(1);
+  });
+
+  it('revises a lone occurrence that arrived without its series', function () {
+    // 8 of the 87 invitations mailed to the dev account are a single VEVENT with a RECURRENCE-ID.
+    const lone = SIMPLE_ICS.replace('DTSTART:', 'RECURRENCE-ID:20260301T140000Z\r\nDTSTART:');
+    expect(seq(ICSEventHelpers.bumpEventSequence(lone))).toBe(1);
+  });
+
+  it('revises a bare VEVENT with no VCALENDAR around it', function () {
+    const bare = SIMPLE_ICS.slice(
+      SIMPLE_ICS.indexOf('BEGIN:VEVENT'),
+      SIMPLE_ICS.indexOf('END:VCALENDAR')
+    ).trim();
+    expect(bare.startsWith('BEGIN:VEVENT')).toBe(true);
+    expect(seq(ICSEventHelpers.bumpEventSequence(bare))).toBe(1);
+  });
+
+  it('refuses to revise an occurrence the file does not contain', function () {
+    expect(() => ICSEventHelpers.bumpEventSequence(SIMPLE_ICS, '20991231T060000Z')).toThrow();
+  });
+
+  it('advances the named occurrence rather than the series', function () {
+    const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
+      DAILY_STANDUP_ICS,
+      T_OCC2_START,
+      T_OCC2_START + 3600,
+      T_OCC2_START + 7200,
+      false
+    );
+    const bumped = ICSEventHelpers.bumpEventSequence(masterIcs, recurrenceId);
+    const sequences = unfold(bumped)
+      .filter((l) => l.startsWith('SEQUENCE:'))
+      .map((l) => parseInt(l.split(':')[1], 10));
+    expect(sequences).toEqual([0, 1]);
   });
 });

@@ -9,7 +9,7 @@ import {
 } from './calendar-data-source';
 import { calcEventColors, formatShortTime } from './calendar-helpers';
 import { HitZone } from './calendar-drag-types';
-import { detectHitZone, canMoveEvent, formatDragPreviewTime } from './calendar-drag-utils';
+import { detectHitZone, canAttemptMove, formatDragPreviewTime } from './calendar-drag-utils';
 
 interface MonthViewEventProps {
   event: EventOccurrence;
@@ -23,6 +23,7 @@ interface MonthViewEventProps {
   isCalendarReadOnly?: boolean;
   onClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
   onDoubleClick: (event: EventOccurrence) => void;
+  onContextMenu?: (event: EventOccurrence) => void;
   onFocused: (event: EventOccurrence) => void;
   onDragStart?: (event: EventOccurrence, mouseEvent: React.MouseEvent, hitZone: HitZone) => void;
 }
@@ -73,6 +74,14 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
     this.props.onClick(e, this.props.event);
   };
 
+  _onContextMenu = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (this.props.onContextMenu) {
+      this.props.onContextMenu(this.props.event);
+    }
+  };
+
   _onDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
     this.props.onDoubleClick(this.props.event);
@@ -82,12 +91,8 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
    * Check if this event can be dragged
    */
   _canDrag(): boolean {
-    // Drag preview events are not interactive
-    if (this.props.event.isDragPreview) {
-      return false;
-    }
     return (
-      canMoveEvent(this.props.event, this.props.isCalendarReadOnly) && !!this.props.onDragStart
+      canAttemptMove(this.props.event, this.props.isCalendarReadOnly) && !!this.props.onDragStart
     );
   }
 
@@ -217,6 +222,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
         style={style}
         onClick={this._onClick}
         onDoubleClick={this._onDoubleClick}
+        onContextMenu={this._onContextMenu}
         onMouseMove={this._onMouseMove}
         onMouseLeave={this._onMouseLeave}
         onMouseDown={this._onMouseDown}

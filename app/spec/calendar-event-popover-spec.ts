@@ -62,6 +62,7 @@ function makeOccurrence(title: string): TimedOccurrence {
     isAllDay: false,
     isCancelled: false,
     isPending: false,
+    isMine: true,
     isException: false,
     isRecurring: true,
     organizer: null,
@@ -88,6 +89,18 @@ async function openEditor(event: MailspringEvent, title: string) {
 
 function rruleOf(ics: string): string | undefined {
   return (/^RRULE:(.*)$/m.exec(ics) || [])[1];
+}
+
+/** SEQUENCE of each VEVENT in file order; null where a VEVENT has none. */
+function sequencesOf(ics: string): (number | null)[] {
+  return ics
+    .replace(/\r\n[ \t]/g, '')
+    .split('BEGIN:VEVENT')
+    .slice(1)
+    .map((v) => {
+      const m = /^SEQUENCE:(\d+)$/m.exec(v);
+      return m ? parseInt(m[1], 10) : null;
+    });
 }
 
 describe('CalendarEventPopover save path and the recurrence rule', function () {
@@ -135,5 +148,75 @@ describe('CalendarEventPopover save path and the recurrence rule', function () {
 
     expect(queued.length).toBe(1);
     expect(rruleOf(queued[0].event.ics)).toBe('FREQ=DAILY');
+  });
+});
+
+describe('CalendarEventPopover save path and SEQUENCE', function () {
+  let queued: any[];
+
+  beforeEach(function () {
+    queued = [];
+    spyOn(Actions, 'queueTask').andCallFake((task) => queued.push(task));
+    spyOn(SyncbackEventTask, 'forUpdating').andCallFake((opts) => opts);
+  });
+
+  it('revises the series once however many fields one save changed', async function () {
+    const event = makeEvent(FORTNIGHTLY_ICS);
+    const popover = await openEditor(event, 'Planning');
+    popover.updateField('title', 'Planning (renamed)');
+    popover.updateField('repeat', 'daily');
+    popover.updateStart(START + 3600);
+
+    popover._saveAllOccurrences(event);
+
+    expect(sequencesOf(queued[0].event.ics)).toEqual([1]);
+  });
+
+  it('revises a series that never carried a SEQUENCE', async function () {
+    const event = makeEvent(FORTNIGHTLY_ICS.replace('SEQUENCE:0\n', ''));
+    const popover = await openEditor(event, 'Planning');
+    popover.updateField('title', 'Planning (renamed)');
+
+    popover._saveAllOccurrences(event);
+
+    expect(sequencesOf(queued[0].event.ics)).toEqual([1]);
+  });
+
+  it('revises only the occurrence when one occurrence is edited', async function () {
+    const event = makeEvent(FORTNIGHTLY_ICS);
+    const popover = await openEditor(event, 'Planning');
+    popover.updateStart(START + 3600);
+
+    await popover._saveOccurrenceException(event);
+
+    expect(sequencesOf(queued[0].event.ics)).toEqual([0, 1]);
+  });
+});
+
+describe('CalendarEventPopover and who may edit', function () {
+  const popoverFor = (props: object) =>
+    new CalendarEventPopover({
+      event: makeOccurrence('Planning'),
+      onEdit: () => {},
+      onDelete: () => {},
+      ...props,
+    } as any) as any;
+
+  it('does not offer to edit a meeting somebody else organizes', function () {
+    const theirs = { ...makeOccurrence('Planning'), isMine: false };
+    expect(popoverFor({ event: theirs })._isEditable()).toBe(false);
+  });
+
+  it('offers to edit a meeting we organize on a writable calendar', function () {
+    expect(popoverFor({})._isEditable()).toBe(true);
+  });
+
+  it('never offers to edit on a read-only calendar', function () {
+    expect(popoverFor({ isCalendarReadOnly: true })._isEditable()).toBe(false);
+  });
+
+  it('always lets a new event be edited', function () {
+    const theirs = { ...makeOccurrence('Planning'), isMine: false };
+    expect(popoverFor({ event: theirs, isNewEvent: true })._isEditable()).toBe(true);
   });
 });

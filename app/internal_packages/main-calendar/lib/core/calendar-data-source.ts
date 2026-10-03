@@ -10,6 +10,7 @@ import {
   AndCompositeMatcher,
   OrCompositeMatcher,
   Contact,
+  Calendar,
 } from 'mailspring-exports';
 import IcalExpander from 'ical-expander';
 
@@ -135,6 +136,11 @@ interface OccurrenceBase {
    * - Events where the current user is an attendee but hasn't accepted (NEEDS-ACTION or TENTATIVE)
    */
   isPending: boolean;
+  /**
+   * True when this account organizes the event, or nobody does, or its ORGANIZER is a Google
+   * group-calendar id on a calendar the server says is ours. Governs who may reschedule it.
+   */
+  isMine: boolean;
   isException: boolean;
   /**
    * For exception occurrences only: the Unix timestamp (seconds) of the **original**
@@ -176,6 +182,14 @@ export type EventOccurrence = AllDayOccurrence | TimedOccurrence;
  */
 export type FocusedEventInfo = { id: string; start: number };
 
+/** The calendars the server (DAV:owner) says are this account's; a nameless default is not. */
+export function ownCalendarIds(calendars: Calendar[]): Set<string> {
+  return new Set(calendars.filter((c) => c.ownership === 'mine').map((c) => c.id));
+}
+
+/** The ORGANIZER Google writes on a secondary calendar's own events. */
+const GOOGLE_GROUP_CALENDAR = /@group\.calendar\.google\.com$/i;
+
 /** Strip mailto: prefix from email addresses (common in iCalendar data) */
 function normalizeEmail(email: string): string {
   return email.replace(/^mailto:/i, '');
@@ -203,8 +217,19 @@ export class CalendarDataSource {
     }
 
     const query = DatabaseStore.findAll<Event>(Event).where(matcher);
-    this.observable = Rx.Observable.fromQuery(query).flatMapLatest((results) =>
-      Rx.Observable.from([{ events: occurrencesForEvents(results, { startUnix, endUnix }) }])
+    // Google rewrites ORGANIZER on a secondary calendar to the calendar's own id, so which
+    // calendars are ours is part of knowing which meetings are.
+    const calendars = Rx.Observable.fromQuery(DatabaseStore.findAll<Calendar>(Calendar));
+    this.observable = Rx.Observable.combineLatest(
+      Rx.Observable.fromQuery(query),
+      calendars,
+      (results: Event[], cals: Calendar[]) => ({
+        events: occurrencesForEvents(results, {
+          startUnix,
+          endUnix,
+          ownCalendarIds: ownCalendarIds(cals),
+        }),
+      })
     );
     return this.observable;
   }
@@ -227,8 +252,9 @@ function occurrenceFromICS(args: {
   isRecurring: boolean;
   /** Defaults to whether the component carries a RECURRENCE-ID */
   isException?: boolean;
+  ownCalendarIds: Set<string>;
 }): EventOccurrence {
-  const { id, event, item, startTime, endTime } = args;
+  const { id, event, item, startTime, endTime, ownCalendarIds } = args;
   const startUnix = startTime.toJSDate().getTime() / 1000;
   const endUnix = endTime.toJSDate().getTime() / 1000;
 
@@ -245,6 +271,14 @@ function occurrenceFromICS(args: {
   const myAttendee = attendees.find((a) => a.email && new Contact({ email: a.email }).isMe());
   const myPartstat = myAttendee?.partstat?.toUpperCase();
   const isAwaitingMyResponse = myAttendee && myPartstat !== 'ACCEPTED' && myPartstat !== 'DECLINED';
+
+  const organizerEmail = item.organizer
+    ? normalizeEmail(CalendarUtils.emailFromParticipantURI(String(item.organizer)) || '')
+    : '';
+  const iAmOrganizer =
+    !!organizerEmail &&
+    (new Contact({ email: organizerEmail }).isMe() ||
+      (GOOGLE_GROUP_CALENDAR.test(organizerEmail) && ownCalendarIds.has(event.calendarId)));
 
   const isAllDay = !!startTime.isDate;
   const startDate = isAllDay
@@ -268,10 +302,11 @@ function occurrenceFromICS(args: {
     endDate,
     isCancelled: status === 'CANCELLED',
     isPending: status === 'TENTATIVE' || !!isAwaitingMyResponse,
+    isMine: !organizerEmail || iAmOrganizer,
     isException: args.isException ?? !!rid,
     recurrenceIdStart: rid ? (rid as any).toJSDate().getTime() / 1000 : undefined,
     isRecurring: args.isRecurring,
-    organizer: item.organizer ? { email: item.organizer } : null,
+    organizer: organizerEmail ? { email: organizerEmail } : null,
     attendees,
   };
 
@@ -282,7 +317,11 @@ function occurrenceFromICS(args: {
 
 export function occurrencesForEvents(
   results: Event[],
-  { startUnix, endUnix }: { startUnix: number; endUnix: number }
+  {
+    startUnix,
+    endUnix,
+    ownCalendarIds = new Set<string>(),
+  }: { startUnix: number; endUnix: number; ownCalendarIds?: Set<string> }
 ) {
   const occurrences: EventOccurrence[] = [];
 
@@ -342,6 +381,7 @@ export function occurrencesForEvents(
               item,
               startTime: e.startDate,
               endTime: e.endDate,
+              ownCalendarIds,
               isRecurring: masterIsRecurring,
             })
           );
@@ -374,6 +414,7 @@ export function occurrencesForEvents(
             endDate,
             isCancelled: false,
             isPending: false,
+            isMine: true,
             isException: false,
             isRecurring: false,
             organizer: null,
@@ -423,6 +464,7 @@ export function occurrencesForEvents(
             endTime: icsEvent.endDate,
             isRecurring: true, // exceptions only exist for a series
             isException: true,
+            ownCalendarIds,
           })
         );
       } catch (err) {
