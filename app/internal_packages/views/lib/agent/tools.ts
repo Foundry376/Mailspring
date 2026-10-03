@@ -1,3 +1,4 @@
+import { localized } from 'mailspring-exports';
 import { Diagnostic } from '../authoring/diagnostics';
 import { ViewRevision } from '../authoring/drafts';
 import { checkSignedRevision, SignedRevision } from './signing';
@@ -22,6 +23,8 @@ export interface ToolDeps {
     revision: ViewRevision
   ) => Promise<{ status: 'ok' | 'failed' | 'timeout'; diagnostics: Diagnostic[] }>;
   capturePreview: (viewId: string) => Promise<{ png: Buffer; width: number; height: number }>;
+  /** Resolves once the latest revision has finished previewing (or a cap passes). */
+  waitForLatestRevision: () => Promise<RevisionWait>;
   recordRevision: (entry: RevisionEntry) => void;
   ask: (
     request:
@@ -30,7 +33,7 @@ export interface ToolDeps {
       | {
           kind: 'screenshot';
           prompt: string;
-          screenshot: { dataUrl: string; width: number; height: number };
+          screenshot: { dataUrl: string; width: number; height: number; note?: string };
         }
   ) => Promise<ToolResult>;
 }
@@ -136,7 +139,22 @@ export function screenshotPrompt(input: { reason?: string } | null) {
   return (input && input.reason) || 'The agent would like to see the preview.';
 }
 
+export type RevisionWait = 'ok' | 'none' | 'failed' | 'still-previewing';
+
+/** The caption for a screenshot taken before the latest revision rendered successfully. */
+export function screenshotNote(wait: RevisionWait) {
+  if (wait === 'failed') {
+    return localized("The latest revision didn't render, so this shows the View as it is now.");
+  }
+  if (wait === 'still-previewing') {
+    return localized('The latest revision is still loading, so this shows the View as it is now.');
+  }
+  return undefined;
+}
+
 async function requestScreenshot(deps: ToolDeps, input: { reason?: string }) {
+  // Agents often ask in the same turn as a preview; capturing then shows the old revision.
+  const wait = await deps.waitForLatestRevision();
   let shot: { png: Buffer; width: number; height: number };
   try {
     shot = await deps.capturePreview(deps.viewId);
@@ -150,6 +168,7 @@ async function requestScreenshot(deps: ToolDeps, input: { reason?: string }) {
       dataUrl: `data:image/png;base64,${shot.png.toString('base64')}`,
       width: shot.width,
       height: shot.height,
+      note: screenshotNote(wait),
     },
   });
 }

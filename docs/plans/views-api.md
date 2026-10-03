@@ -15,7 +15,8 @@ Status: draft for prototyping, 2026-10-02.
 my-view/
   manifest.json   { name, placement: "page" | "thread-sidebar",
                     sidebar?: { mode: "card" | "panel", title? },   // thread-sidebar only (§1.1)
-                    permissions: [...], network: ["api.example.com"] }
+                    permissions: [...], network: ["api.example.com"],
+                    credentials?: [{ id, label, hosts, header?, format?, help?, helpUrl? }] }  // §3.10
   View.jsx        export default function View() { ... }
 ```
 
@@ -36,8 +37,9 @@ manifest are accepted and ignored for now.
   `text-ms-success`, `text-ms-warning`, `text-ms-link`, `text-ms-heading`. They are also CSS
   variables (`var(--ms-accent)`). `dark:` follows the Mailspring theme, not the OS.
 - **Network:** the global `fetch` works for hosts in `manifest.network` and fails for every
-  other host. Credentials the user saved for those hosts are attached by the host. Views never
-  see secrets.
+  other host. It never carries the user's API keys; requests that need one go through
+  `credentialFetch` (§3.10), which the host sends with the key attached. Views never see
+  secrets.
 - **What isn't available:** other imports and CDN URLs fail at load time. There is no Node and
   no `require`.
 
@@ -319,6 +321,78 @@ type ExtractResult = {
   upgrade banner over the View. Render partial data. Don't show an error.
 - **Limits:** at most 2,000 messages per job. Jobs run in a queue, and visible Views go first.
 
+### 3.3a Summaries and briefings (`ai.summarize`, `ai.generate`)
+
+Generation is two-phase. **Phase 1** summarizes each message on its own into a short record,
+cached per message and model, so a message is summarized once and reused by every View and
+every later briefing. **Phase 2** builds a briefing from those records plus signals the host
+knows exactly. Views pass message ids or a query. They never pass email text, and they can't
+change the prompts beyond a short `instructions` string. Requires `mail.bodies`.
+
+```ts
+// Phase 1 only: one record per message, streamed as they're produced.
+function useSummaries(q: { ids: string[] } | { query: Query }): SummariesState;
+function summarize(q, onProgress?): Promise<Record<string, MessageSummaryRecord>>;
+type MessageSummaryRecord = {
+  messageId: string; threadId: string;
+  gist: string | null;          // ≤15 words, facts from the email; null if the model is unavailable
+  asks: string | null;          // what the sender wants the reader to do, ≤10 words
+  needsAction: boolean;         // the model's guess; weak on its own, see priorities below
+};
+
+// Phase 1 + 2. At most 40 messages (maxMessages); pass people before lists.
+function useGenerate(opts: GenerateOpts | null): GenerateState;   // null = idle
+function generate(opts, onProgress?): Promise<GenerateState>;
+type GenerateOpts = ({ ids: string[] } | { query: Query }) & {
+  task: 'prioritize' | 'summarize' | 'freeform';
+  instructions?: string;        // ≤1000 chars; required for 'freeform'
+  schema?: FlatSchema;          // structured answer instead of prose; see below
+  maxMessages?: number;         // ≤40
+  maxTokens?: number;           // ≤600
+};
+type GenerateState = {
+  status: 'idle' | 'running' | 'done' | 'quota' | 'error';
+  phase: 'summaries' | 'briefing' | null;
+  processed: number; total: number;
+  priorities: Priority[];       // host-chosen, always present once phase 2 runs
+  groups: { source: string; count: number; threadIds: string[]; gists: string[] }[];
+  headline: string | null;      // template-built: "Needs you: … Also: 6 from LinkedIn, …"
+  text: string | null;          // model prose ('summarize' / 'freeform'); null if unavailable or unusable
+  value: object | null;         // when `schema` is given
+  modelAvailable: boolean;
+  error: ViewError | null;
+};
+type Priority = {
+  threadId: string; messageId: string; from: string; title: string;
+  kind: 'security' | 'reply' | 'error' | 'direct';
+  reason: string;               // e.g. "Waiting on your reply · Asks: … · <gist>"
+  urgency: 'high' | 'medium';
+};
+```
+
+- **Priorities are chosen by the host, not the model.** The bundled model can't reliably pick
+  what matters, so the host ranks messages using exact signals: security notices; people the
+  user has written to before whose message is the newest in the thread; error reports from
+  monitoring senders; direct mail. Mail with List-Unsubscribe never ranks. The model's
+  per-message gist and ask only explain each item.
+- **`task: 'prioritize'`** returns `priorities`, `groups` and `headline` with no extra model call.
+  It's the fastest choice and the one to show by default.
+- **`task: 'summarize'`** also asks the model to write prose over the summaries. Treat that prose
+  as optional: a 0.8B model sometimes mixes details between emails. Show `headline` first, and
+  offer the paragraph as an opt-in (the Daily Briefing starter does this). `text` is null when
+  the model's output copied the prompt or wasn't prose.
+- **`schema`:** flat, as for `ai.extract`. Any field named `threadId` (top level, or inside a
+  list of objects) can only take ids of the messages you passed. Items the model invents are
+  dropped before you see them.
+- **Speed (Apple M1 Pro):** phase 1 is about 0.65 s per new message with GPU and about 2 s on
+  CPU. 40 messages take roughly 25 s on GPU and 80 s on CPU the first time and are nearly
+  instant afterwards. Phase-2 prose adds 2–5 s. Phase 1 runs in the same queue as extraction.
+- **Metering:** one `smart-extraction` unit per message summarized for the first time. Cached
+  summaries, priorities, groups, headline and prose cost nothing extra. Results are cached for
+  the day per (messages, task, instructions, schema).
+- **Prompt safety:** email text is fenced and the model is told it's untrusted data. Even so,
+  render model text as text, never HTML.
+
 ### 3.4 Writes
 
 ```ts
@@ -468,6 +542,56 @@ Search matches threads, so in a message query it returns every message of a matc
 | `mail.modify` | `modify` |
 | `calendar.read` | `useEvents`/`getEvents` |
 | `network` | `fetch` to listed hosts |
+| `credentials` (manifest) | `credentialFetch`, `useCredentialStatus`, `ui.requestCredential` for the declared ids (§3.10) |
+
+### 3.10 Credentials
+
+For APIs that need a key the user holds (GitHub, Salesforce, enrichment services). Prefer data
+in the user's mail; declare a credential only when an API is genuinely required.
+
+```json
+"network": ["api.github.com"],
+"credentials": [{
+  "id": "github",                       // [a-z0-9_-], ≤ 32 chars
+  "label": "GitHub token",              // shown on the host's Connect sheet
+  "hosts": ["api.github.com"],          // each must also appear in `network`, written identically
+  "header": "Authorization",            // default; Cookie, Host, Origin, Proxy-*, Sec-* … refused
+  "format": "Bearer {secret}",          // default; exactly one {secret}
+  "help": "Create a fine-grained token with read access to pull requests.",
+  "helpUrl": "https://github.com/settings/personal-access-tokens/new"   // https only
+}]
+```
+
+```ts
+function useCredentialStatus(id: string): { connected: boolean; loading: boolean; error: ViewError | null;
+                                            connect(): Promise<boolean> }
+ui.requestCredential(id: string): Promise<{ connected: boolean }>   // opens the host's Connect sheet
+function credentialFetch(id: string, url: string, init?: { method?, headers?, body?: string }):
+  Promise<{ ok, status, statusText, url, redirected, redacted: boolean, blockedRedirect: string | null,
+            headers: { get(name), has(name), entries() }, text(), json(), arrayBuffer() }>
+```
+
+- **The View never holds the key.** The user enters it on a host-rendered sheet; it is stored
+  in the system keychain. `credentialFetch` asks the host to send the request from the main
+  process with the header attached, and returns the response.
+- **Where it can go:** https only, to one of the credential's `hosts`, default port, no
+  userinfo. Redirects are followed only within those hosts; a redirect elsewhere is returned
+  as-is (`status` 3xx, `blockedRedirect` set) and not followed. Anything else rejects with
+  `permission`.
+- **Echoes are redacted:** if a response body or header contains the key (raw, URL-encoded,
+  JSON-escaped, base64/base64url, including inside Basic auth), those bytes are replaced with
+  `*` and `redacted` is true. `Set-Cookie` is dropped.
+- **Not connected:** `credentialFetch` rejects with `not_connected` until the user connects the
+  key. Render a "Connect" button that calls `connect()` from `useCredentialStatus`.
+- **Binding:** a key is stored for the credential's exact `hosts`, `header` and `format`. A
+  manifest revision that changes any of them makes the stored key stop applying, and the user
+  connects again.
+- **Limits:** bodies must be strings (≤ 1 MB; `JSON.stringify` for JSON), responses ≤ 5 MB,
+  30 s timeout, 60 requests a minute per View (bursts of 20). Non-text responses come back
+  base64 and are decoded by `text()`/`arrayBuffer()`.
+- **The View's own `fetch`** to the same host never carries the key, and usually fails CORS.
+- **Errors** carry codes `permission`, `not_connected`, `invalid`, `limit`, `timeout`, or
+  `unavailable` (network failure).
 
 ## 4. Coverage walk
 
@@ -601,6 +725,10 @@ means not expressible.
 >   or `"panel"` (fills the sidebar behind the switcher). **Draw no card, border or background
 >   of your own**: the host draws the chrome.
 > - **Network:** `fetch` only reaches hosts listed in `manifest.network`.
+> - **API keys:** prefer what the user's email already says. When an API truly needs the user's
+>   key, declare a credential in the manifest, call it with `credentialFetch(id, url, init)`,
+>   and render a "Connect" state from `useCredentialStatus(id)` until it is connected (§3.10).
+>   Never ask the user to paste a key into your View.
 > - **Permissions:** declare only what you use in `manifest.permissions`: `mail.read`,
 >   `mail.bodies`, `metadata.own`, `mail.modify`, `calendar.read`.
 > - **States:** handle empty and loading states. Dates are ISO strings, so wrap them with

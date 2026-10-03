@@ -40,7 +40,7 @@ export interface AgentTransport {
     request: string;
     examples: Example[];
     current?: { manifest: object; files: { [name: string]: string } };
-  }): Promise<{ viewId: string; sessionId: string; resumed: boolean }>;
+  }): Promise<{ viewId: string; sessionId: string; resumed: boolean; replaced?: boolean }>;
   sendMessage(viewId: string, body: { text: string; examples?: Example[] }): Promise<void>;
   sendToolResult(
     viewId: string,

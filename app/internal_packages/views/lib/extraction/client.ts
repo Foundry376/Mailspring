@@ -30,9 +30,11 @@ export function runModel(req: {
   viewId: string;
   priority: number;
   schemaHash: string;
-  jsonSchema: object;
+  /** Null asks for free text, answered as `{ text }`. */
+  jsonSchema: object | null;
   items: { messageId: string; prompt: string }[];
   cacheOnly?: boolean;
+  maxTokens?: number;
 }): Promise<(ModelAnswer | null)[]> {
   return ipcRenderer.invoke('extraction:run', req);
 }

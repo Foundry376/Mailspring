@@ -1,4 +1,5 @@
 import React from 'react';
+import { credentialsFromManifest } from '../../../../src/browser/view-credential-policy';
 import classnames from 'classnames';
 import { DragDropTypes } from 'mailspring-exports';
 import { panelSource, onPanelSourceChanged } from './store';
@@ -753,6 +754,9 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
                 )}
             </div>
           )}
+          {pending.screenshot && pending.screenshot.note && (
+            <div className="ap-screenshot-note">{pending.screenshot.note}</div>
+          )}
           <div className="ap-request-hint">
             Sends the View as it looks when you click. It can show any mail the preview displays.
           </div>
@@ -865,6 +869,12 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
               {readsBodies ? ' — and can send your email content there.' : '.'}
             </li>
           )}
+          {credentialsFromManifest(manifest && manifest.json).map((c) => (
+            <li key={`credential-${c.id}`}>
+              Can ask for your <strong>{c.label}</strong> and use it for requests to{' '}
+              <strong>{c.hosts.join(', ')}</strong>. It never sees the key.
+            </li>
+          ))}
         </ul>
         <div className="ap-actions">
           <button

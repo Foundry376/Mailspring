@@ -1,0 +1,19 @@
+{
+  "id": "github-prs-credentialed",
+  "version": 1,
+  "name": "GitHub PRs (API)",
+  "placement": "page",
+  "permissions": [],
+  "network": ["api.github.com"],
+  "credentials": [
+    {
+      "id": "github",
+      "label": "GitHub token",
+      "hosts": ["api.github.com"],
+      "header": "Authorization",
+      "format": "Bearer {secret}",
+      "help": "Create a fine-grained personal access token with read-only access to pull requests on the repositories you want to see.",
+      "helpUrl": "https://github.com/settings/personal-access-tokens/new"
+    }
+  ]
+}

@@ -8,7 +8,14 @@ import { hostsFor } from '../authoring/hosts';
 import { installedViews } from '../view-registry';
 import { AgentClient, AgentTransport } from './client';
 import { chipFor, examplesForThreads } from './examples';
-import { runClientTool, screenshotPrompt, ToolDeps, ToolResult } from './tools';
+import {
+  runClientTool,
+  screenshotNote,
+  screenshotPrompt,
+  RevisionWait,
+  ToolDeps,
+  ToolResult,
+} from './tools';
 import {
   AgentAPIError,
   AgentEvent,
@@ -37,6 +44,8 @@ const SCREENSHOT_MAX_WIDTH = 1280;
 const SETTLE_INTERVAL_MS = 400;
 const SETTLE_STABLE_FRAMES = 2;
 const SETTLE_CAP_MS = 8000;
+// How long a screenshot request waits for the latest revision to finish previewing.
+const REVISION_WAIT_CAP_MS = 10000;
 
 type Shot = { png: Buffer; width: number; height: number };
 
@@ -230,6 +239,15 @@ interface SessionRuntime {
   asks: PendingAsk[];
   publicKey: string | null;
   refreshing: boolean;
+  /**
+   * Set when the backend has no usable session for the View: `none` for a View never built
+   * with the agent (a starter or hand-written View), `outdated` for one built with an agent
+   * version the backend no longer serves. The next message starts a fresh session seeded
+   * with the View's current code instead of being sent to the old one.
+   */
+  needsSession: 'none' | 'outdated' | null;
+  /** preview_revision calls still running, including signature checks before the preview. */
+  previewsRunning: number;
 }
 
 let localIds = 0;
@@ -280,6 +298,8 @@ class AgentSessionStoreImpl extends MailspringStore {
         asks: [],
         publicKey: null,
         refreshing: false,
+        needsSession: null,
+        previewsRunning: 0,
       };
       this.runtimes.set(viewId, rt);
     }
@@ -319,6 +339,10 @@ class AgentSessionStoreImpl extends MailspringStore {
 
   private fail(viewId: string, err: any) {
     const code = err instanceof AgentAPIError ? err.code : 'unknown';
+    if (code === 'no_session' || code === 'session_outdated') {
+      this.markNeedsSession(viewId, code === 'no_session' ? 'none' : 'outdated');
+      return;
+    }
     if (code === 'quota') {
       this.d.showUpgrade({ feature: 'view-agent-build', ...((err.details as QuotaDetails) || {}) });
     }
@@ -326,6 +350,31 @@ class AgentSessionStoreImpl extends MailspringStore {
       status: 'error',
       working: false,
       error: { code, message: err.message || String(err) },
+    }));
+  }
+
+  private markNeedsSession(viewId: string, reason: 'none' | 'outdated') {
+    const rt = this.runtime(viewId);
+    const first = rt.needsSession !== reason;
+    rt.needsSession = reason;
+    this.update(viewId, (s) => ({
+      status: 'idle',
+      working: false,
+      error: null,
+      transcript:
+        reason === 'outdated' && first
+          ? [
+              ...s.transcript,
+              {
+                id: localId('outdated'),
+                role: 'system',
+                text: localized(
+                  'This View was built with an older assistant. Your next message starts a fresh session with its current code.'
+                ),
+                ts: Date.now(),
+              },
+            ]
+          : s.transcript,
     }));
   }
 
@@ -562,6 +611,7 @@ class AgentSessionStoreImpl extends MailspringStore {
       setAcceptedRevision: this.d.setAcceptedRevision,
       previewAndWait: this.d.previewAndWait,
       capturePreview: this.d.capturePreview,
+      waitForLatestRevision: () => this.waitForLatestRevision(viewId),
       recordRevision: (entry) => this.recordRevision(viewId, entry, toolUseId),
       ask: (request) =>
         new Promise<ToolResult>((resolve) => {
@@ -571,6 +621,35 @@ class AgentSessionStoreImpl extends MailspringStore {
           this.syncPendingRequest(viewId);
         }),
     };
+  }
+
+  /** The most recently recorded revision's outcome; recency, not number, since a replaced
+   * session numbers its revisions from 1 again. */
+  private latestRevisionWait(viewId: string): RevisionWait {
+    if (this.runtime(viewId).previewsRunning > 0) return 'still-previewing';
+    const s = this.session(viewId);
+    const latest = s && [...s.revisions].sort((a, b) => b.ts - a.ts)[0];
+    if (!latest) return 'none';
+    if (latest.status === 'previewing') return 'still-previewing';
+    return latest.status === 'ok' ? 'ok' : 'failed';
+  }
+
+  private waitForLatestRevision(viewId: string): Promise<RevisionWait> {
+    const now = this.latestRevisionWait(viewId);
+    if (now !== 'still-previewing') return Promise.resolve(now);
+    return new Promise((resolve) => {
+      let unlisten: () => void = null;
+      const finish = (result: RevisionWait) => {
+        clearTimeout(timer);
+        if (unlisten) unlisten();
+        resolve(result);
+      };
+      const timer = setTimeout(() => finish(this.latestRevisionWait(viewId)), REVISION_WAIT_CAP_MS);
+      unlisten = this.listen(() => {
+        const state = this.latestRevisionWait(viewId);
+        if (state !== 'still-previewing') finish(state);
+      });
+    });
   }
 
   // Revisions are transcript entries so each sits where it happened in the chat; the first
@@ -597,6 +676,9 @@ class AgentSessionStoreImpl extends MailspringStore {
   }
 
   private async runTool(viewId: string, event: Extract<AgentEvent, { type: 'tool_request' }>) {
+    const rt = this.runtime(viewId);
+    const isPreview = event.name === 'preview_revision';
+    if (isPreview) rt.previewsRunning += 1;
     let result: ToolResult;
     try {
       result = await runClientTool(
@@ -607,6 +689,11 @@ class AgentSessionStoreImpl extends MailspringStore {
       );
     } catch (err) {
       result = { content: [{ type: 'text', text: `Client error: ${err.message}` }], isError: true };
+    } finally {
+      if (isPreview) {
+        rt.previewsRunning -= 1;
+        this.trigger();
+      }
     }
     try {
       await this.d.transport.sendToolResult(viewId, {
@@ -637,11 +724,14 @@ class AgentSessionStoreImpl extends MailspringStore {
     name,
     request,
     examples = [],
+    echo = true,
   }: {
     viewId: string;
     name: string;
     request: string;
     examples?: string[];
+    /** False when the caller already added the user's turn to the transcript. */
+    echo?: boolean;
   }) {
     this.ensure(viewId, name);
     this.setActive(viewId);
@@ -650,10 +740,9 @@ class AgentSessionStoreImpl extends MailspringStore {
       status: 'connecting',
       working: true,
       error: null,
-      transcript: [
-        ...s.transcript,
-        { id: localId('user'), role: 'user', text: request, ts: Date.now() },
-      ],
+      transcript: echo
+        ? [...s.transcript, { id: localId('user'), role: 'user', text: request, ts: Date.now() }]
+        : s.transcript,
     }));
     try {
       const built = examples.length ? await this.d.buildExamples(examples) : [];
@@ -667,13 +756,17 @@ class AgentSessionStoreImpl extends MailspringStore {
         return { transcript, attachedExamples: [] };
       });
       const current = this.d.currentBundle(viewId);
-      await this.d.transport.createSession({
+      const created = await this.d.transport.createSession({
         viewId,
         name,
         request,
         examples: all,
         ...(current ? { current } : {}),
       });
+      rt.needsSession = null;
+      // A new session numbers its revisions from 1 again. Replay protection still holds
+      // within the session; across sessions the signature already binds identity and View.
+      if (!created.resumed) this.d.setAcceptedRevision(viewId, 0);
       await this.openStream(viewId);
     } catch (err) {
       this.fail(viewId, err);
@@ -687,7 +780,12 @@ class AgentSessionStoreImpl extends MailspringStore {
   async resume(viewId: string, name: string) {
     this.ensure(viewId, name);
     this.setActive(viewId);
-    await this.openStream(viewId);
+    try {
+      await this.openStream(viewId);
+    } catch (err) {
+      // An outdated session is replaced on the user's next message; nothing to report now.
+      if (!(err instanceof AgentAPIError && err.code === 'session_outdated')) throw err;
+    }
   }
 
   setActive(viewId: string | null) {
@@ -700,6 +798,15 @@ class AgentSessionStoreImpl extends MailspringStore {
     const examples = [...rt.staged.values()];
     const trimmed = (text || '').trim();
     if (!trimmed && !examples.length) return;
+    if (rt.needsSession) {
+      const s = this.session(viewId);
+      await this.start({
+        viewId,
+        name: s ? s.name : viewId,
+        request: trimmed || localized('Continue improving this View'),
+      });
+      return;
+    }
     rt.staged.clear();
     this.update(viewId, (s) => ({
       working: true,
@@ -722,6 +829,14 @@ class AgentSessionStoreImpl extends MailspringStore {
       });
       await this.openStream(viewId);
     } catch (err) {
+      if (err instanceof AgentAPIError && err.code === 'session_outdated') {
+        // The user's turn is already in the transcript; start over with it.
+        rt.needsSession = 'outdated';
+        for (const example of examples) rt.staged.set(example.messageId, example);
+        const s = this.session(viewId);
+        await this.start({ viewId, name: s ? s.name : viewId, request: trimmed, echo: false });
+        return;
+      }
       this.fail(viewId, err);
     }
   }
@@ -800,7 +915,10 @@ class AgentSessionStoreImpl extends MailspringStore {
     const rt = this.runtime(viewId);
     const ask = rt.asks[0];
     if (!ask || ask.request.toolUseId !== toolUseId) return;
-    ask.request = { ...ask.request, screenshot: screenshotOf(shot) };
+    ask.request = {
+      ...ask.request,
+      screenshot: { ...screenshotOf(shot), note: screenshotNote(this.latestRevisionWait(viewId)) },
+    };
     this.syncPendingRequest(viewId);
   }
 

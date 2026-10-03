@@ -24,8 +24,10 @@ import {
 
 // Leaves the UI's cores alone; 8 threads measured no faster than 4 (§9.8).
 const CPU_THREADS = 4;
-const CONTEXT_SIZE = 4096;
+// Room for a packed briefing digest (≈3k tokens) plus its answer.
+const CONTEXT_SIZE = 8192;
 const MAX_OUTPUT_TOKENS = 200;
+const MAX_REQUESTED_OUTPUT_TOKENS = 600;
 // The model holds ~600 MB; release it when no View has asked for a while.
 const IDLE_SHUTDOWN_MS = 5 * 60 * 1000;
 
@@ -50,10 +52,12 @@ export interface ExtractionRequest {
   /** Lower runs first. Visible Views send 0, background Views 1. */
   priority: number;
   schemaHash: string;
-  jsonSchema: object;
+  /** Null asks for free text, returned as `{ text }`. */
+  jsonSchema: object | null;
   items: ExtractionItem[];
   /** Answer from the cache only; misses come back null instead of being queued. */
   cacheOnly?: boolean;
+  maxTokens?: number;
 }
 
 export interface ExtractionAnswer {
@@ -68,7 +72,8 @@ interface QueuedItem {
   priority: number;
   order: number;
   schemaHash: string;
-  jsonSchema: object;
+  jsonSchema: object | null;
+  maxTokens: number;
   item: ExtractionItem;
   resolve: (answer: ExtractionAnswer | null) => void;
 }
@@ -141,6 +146,7 @@ class ExtractionService {
             order: this.nextOrder++,
             schemaHash: req.schemaHash,
             jsonSchema: req.jsonSchema,
+            maxTokens: req.maxTokens || MAX_OUTPUT_TOKENS,
             item,
             resolve,
           });
@@ -185,7 +191,7 @@ class ExtractionService {
             prompt: next.item.prompt,
             jsonSchema: next.jsonSchema,
             schemaKey: next.schemaHash,
-            maxTokens: MAX_OUTPUT_TOKENS,
+            maxTokens: next.maxTokens,
           });
           answer = {
             messageId: next.item.messageId,
@@ -299,9 +305,13 @@ function validRequest(req: any): ExtractionRequest {
     viewId: req.viewId,
     priority: req.priority === 0 ? 0 : 1,
     schemaHash: req.schemaHash,
-    jsonSchema: req.jsonSchema,
+    jsonSchema: req.jsonSchema && typeof req.jsonSchema === 'object' ? req.jsonSchema : null,
     items: req.items,
     cacheOnly: !!req.cacheOnly,
+    maxTokens: Math.min(
+      Math.max(Number(req.maxTokens) || MAX_OUTPUT_TOKENS, 1),
+      MAX_REQUESTED_OUTPUT_TOKENS
+    ),
   };
 }
 

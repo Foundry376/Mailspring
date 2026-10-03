@@ -11,6 +11,7 @@ import {
 import { audited } from '../../mcp-server/lib/capabilities/audit';
 import { currentThemeTokens, onThemeChange } from './theme-tokens';
 import { ViewError } from './bridge/errors';
+import { CREDENTIAL_HANDLERS } from './bridge/credentials';
 import { ViewGrant, grantForView, requirePermission } from './bridge/grant';
 import {
   BridgeContext,
@@ -35,6 +36,7 @@ import {
   validateSchema,
 } from './bridge/extract';
 import { fillThreadSnippets } from './bridge/serializers';
+import { generationHandlers } from './bridge/generate';
 
 // Channel names shared with runtime/bridge.preload.js.
 export const CALL_CHANNEL = 'mailspring-view:call';
@@ -112,7 +114,18 @@ export class ViewBridge {
       grant: this.grant,
       emit: (event, payload) => this.emit(event, payload),
     };
-    this.handlers = { ...HANDLERS, ...this.statefulHandlers(), ...(options.handlers || {}) };
+    this.handlers = {
+      ...HANDLERS,
+      ...CREDENTIAL_HANDLERS,
+      ...this.statefulHandlers(),
+      ...generationHandlers({
+        grant: () => this.grant,
+        generation: () => this.generation,
+        visible: () => this.visible,
+        jobs: this.jobs,
+      }),
+      ...(options.handlers || {}),
+    };
     webview.addEventListener('ipc-message', this.onIPCMessage);
     this.unlistenTheme = onThemeChange(() => this.emit('theme', currentThemeTokens()));
   }
@@ -437,7 +450,9 @@ export class ViewBridge {
         method === 'unsubscribe' ||
         method === 'theme.get' ||
         method === 'ui.setHeight' ||
-        method === 'view.diagnostic'
+        method === 'view.diagnostic' ||
+        // Audited inside the handler, without the URL's query string.
+        method === 'credentials.fetch'
           ? await run()
           : await audited(`view:${this.ctx.viewId}`, method, params, run);
       reply({ id, result: sizeChecked(result === undefined ? null : result) });

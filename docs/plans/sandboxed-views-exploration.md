@@ -589,6 +589,64 @@ the per-task prompts of §9.7):
   on a re-run from the answer cache.
 - **Before grounding:** the same View reported 46 receipts and an inflated total.
 
+### 9.9 Generation (daily briefing), 2026-10-02
+
+**Question:** can the bundled model write a daily briefing ("summarize today's mail and
+identify priorities") on its own, or does that need a different design?
+
+**Eval set:** 36 real threads from the dev inbox, the newest message in each from the last
+24 hours, with bodies. They're a realistic mix: a Google security alert, Sentry error reports,
+GitHub PR activity on two repos, a mailing-list thread, LinkedIn notifications, newsletters,
+political fundraising, marketing and a Terms-of-Service notice. Timings are from an Apple M1
+Pro; "CPU" means zero GPU layers.
+
+| Approach | 0.8B (bundled) | 2B (1.4 GB, for comparison) |
+|---|---|---|
+| **Single pass**: 36 emails × 220 chars in one prompt (3.4k tokens), prose | 3.0 s Metal. Plausible but wrong: "50 people viewed your profile", invented names, newsletter content presented as the user's activity, priorities omitted | 6.4 s. Alarmist: the Google notice that the user granted Mailspring access became "unauthorized access to your Google Account" |
+| **Single pass**, JSON list of up to 5 priorities | 2.1 s. Empty list (`{"priorities":[]}`) | — |
+| **Phase 1**: per-message record (gist, asks, needs_action), grammar-constrained | p50 0.66 s / p95 0.89 s Metal, p50 2.0 s / p95 3.6 s CPU. Gists mostly faithful, some embellishment ("indicating a missing dependency"), and some wrong attribution (a LinkedIn digest became "Benjamin received a remote job opportunity") | p50 1.4 s Metal, 3.8 s CPU. Tighter and more faithful gists |
+| **Phase 2, model picks priorities** from the 36 records | 1.4 s. Empty list again | — |
+| **Phase 2, host picks priorities** from exact signals plus the phase-1 records | Instant. On the live inbox: Google security alert (urgent) and Dave's Codako meeting notes (a known correspondent waiting on a reply). No newsletters | same |
+| **Phase 2 prose** over the records | 2.2–5 s. With headings and `[T1]` ids in the prompt it copied the digest verbatim; with plain bullet sections it wrote prose, but merged neighbouring items ("Google alert … urges viewers to watch the episode ad-free", from a podcast email) | 3.6–8.6 s. Better prose, but still merged items, e.g. "a Google email warning you about … Trump and AI executives" |
+
+**Findings:**
+
+- **Phase 1 is the one thing the 0.8B model does reliably.** One email at a time, a short
+  grammar-constrained record is mostly faithful. It's the right unit to cache: computed once
+  per message and reused across days and Views, and cheap enough to run in the background as
+  mail arrives (≈0.7 s per message on GPU).
+- **Selection is beyond the model.** It returned an empty priority list every time, whether
+  single-pass or two-phase. The `kind` and `needs_action` fields are weak as well: most
+  messages came back "other", and political newsletters were labelled "travel". Signals the
+  host knows exactly do the job instead: List-Unsubscribe; automated senders; whether the
+  user's message is newest in the thread; whether the user has ever written to the sender;
+  security and monitoring patterns.
+- **Free prose synthesis is unreliable at both sizes.** Both models move details between
+  adjacent emails. 2B is better but not trustworthy. Prose is the least valuable part of a
+  briefing and the most dangerous when it's wrong.
+
+**Design (implemented):**
+
+- **`ai.summarize`** is phase 1, cached per (message, model, prompt version).
+- **`ai.generate`** runs phase 1, then phase 2 on the host: priorities chosen deterministically,
+  sender groups, and a template-built **headline** ("Needs you: a security notice from Google and
+  Dave is waiting on a reply. Also: 6 from LinkedIn, 5 from The New York Times…"). The model's
+  per-message gists explain each item.
+- **Model prose** (`task: 'summarize'`) is optional. It's validated (no prompt echo, whole
+  sentences only), and the Daily Briefing starter offers it as an opt-in "Write a paragraph
+  (experimental)".
+
+**Options to improve prose later:**
+
+1. **Background phase 1 for every new inbox message**, so opening a briefing is instant. This is
+   the biggest UX win and needs no new model.
+2. **An optional ~2B download for Pro** (1.4 GB, ~1.4 s per message on GPU). It gives better
+   gists, but prose still needs the "headline first, prose opt-in" framing.
+3. **Prose per priority item** instead of one paragraph: a one-sentence rewrite of each gist,
+   which can't merge items. Untested.
+4. **Cloud prose for users who opt in.** It contradicts the on-device promise, so it isn't
+   proposed as a default.
+
 ## 10. Implications from the idea catalog
 
 The catalog in Appendix A was used to check that the primitives are general enough:

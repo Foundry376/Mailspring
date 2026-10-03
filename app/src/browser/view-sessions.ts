@@ -15,6 +15,7 @@ import {
   isProxyableImageURL,
   servableResourceType,
 } from './view-sandbox-policy';
+import { registerViewCredentialIPCHandlers } from './view-credentials';
 
 /**
  * Main-process half of Sandboxed Views (docs/plans/sandboxed-views-exploration.md).
@@ -276,6 +277,12 @@ export function registerViewSessionIPCHandlers(ipcMain: IpcMain) {
     }
     return registerResources(viewId, Array.isArray(entries) ? entries.slice(0, 500) : []);
   });
+
+  registerViewCredentialIPCHandlers(
+    ipcMain,
+    readViewManifestJSON,
+    (sender) => !!viewIdForSession(sender.session)
+  );
 }
 
 // Remote images are fetched from a session with no cookies or cache shared with anything else,
@@ -337,6 +344,18 @@ function emailColorsScript() {
   }
   emailColorsSource = `(function () {\nvar exports = {};\nvar module = { exports: exports };\n${code}\nwindow.MailspringEmailColors = module.exports;\n})();\n`;
   return emailColorsSource;
+}
+
+/** The View's manifest as currently on disk (draft over installed), or null. */
+export function readViewManifestJSON(viewId: string): any {
+  const bundleDir = bundleDirForView(viewId, viewPaths());
+  const manifestFile = bundleDir && containedFile(bundleDir, 'manifest.json');
+  if (!manifestFile) return null;
+  try {
+    return JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
+  } catch {
+    return null;
+  }
 }
 
 const grantsCache = new Map<string, { mtimeMs: number; grants: string[] }>();

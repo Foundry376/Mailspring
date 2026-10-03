@@ -15,7 +15,7 @@ There is one Managed Agents session per (identity, viewId). The backend stores t
 
 | Route | Body | Response |
 |---|---|---|
-| `POST /api/views/agent/sessions` | `{ viewId, name, request, examples: Example[], current?: { manifest, files } }` | `{ viewId, sessionId, resumed: boolean }` |
+| `POST /api/views/agent/sessions` | `{ viewId, name, request, examples: Example[], current?: { manifest, files } }` | `{ viewId, sessionId, resumed: boolean, replaced?: true }` |
 | `GET /api/views/agent/sessions/:viewId/events` | (SSE) | stream of `AgentEvent`, see below |
 | `POST /api/views/agent/sessions/:viewId/messages` | `{ text, examples?: Example[] }` | `{ ok: true }` |
 | `POST /api/views/agent/sessions/:viewId/tool-results` | `{ toolUseId, content: ToolContent[], isError?: boolean }` | `{ ok: true }` |
@@ -27,7 +27,18 @@ There is one Managed Agents session per (identity, viewId). The backend stores t
   it: the backend sends `request` as a new user message instead of starting over.
   - New View builds count against the `view-agent-build` quota: 5 per identity per day.
   - Over quota returns HTTP 429 with code `quota`, plus `{ feature: 'view-agent-build',
-    resetsAt }`.
+    limit, period, resetsAt }`.
+- **Outdated sessions.** The backend records the agent version each session is pinned to.
+  A session on a version older than the backend's minimum compatible version can't produce
+  previews the relay accepts, so:
+  - `GET …/events` and `POST …/messages` return HTTP 409 with code `session_outdated`.
+  - `POST /sessions` for that View starts a fresh session seeded with `current`, reuses the
+    View's mapping (the old session is abandoned, never deleted), and returns
+    `{ resumed: false, replaced: true }`. A replacement doesn't count against the build quota.
+  - The client shows a system line, and the user's next message calls `POST /sessions` with
+    the View's current code. Opening the panel alone never starts a session.
+  - A fresh session numbers its revisions from 1, so the client resets that View's
+    last-accepted revision whenever `resumed` is false.
 - **Budgets.** Every session is created with `budget.max_list_cost` = 200 (cents).
   - `budget: 'raise'` raises the cap by another 200 above the consumed list cost.
   - `budget: 'stop'` leaves the session paused.

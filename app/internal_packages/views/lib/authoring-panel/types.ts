@@ -46,7 +46,14 @@ export interface PendingRequest {
   kind: RequestKind;
   prompt: string;
   choices?: string[];
-  screenshot?: { dataUrl: string; width: number; height: number; capturedAt?: number };
+  screenshot?: {
+    dataUrl: string;
+    width: number;
+    height: number;
+    capturedAt?: number;
+    /** Why the capture may not show the latest revision. */
+    note?: string;
+  };
 }
 
 export interface AgentSessionState {

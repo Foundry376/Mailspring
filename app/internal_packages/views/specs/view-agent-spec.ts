@@ -259,7 +259,7 @@ describe('Views agent: session store', function () {
     expect(details.limit).toBe(5);
   });
 
-  it('surfaces no_session from resume', async () => {
+  it('surfaces no_session from resume, then starts a session on the first message', async () => {
     transport.streamEvents.andReturn(
       Promise.reject(new AgentAPIError('No session', { statusCode: 404, code: 'no_session' }))
     );
@@ -270,7 +270,56 @@ describe('Views agent: session store', function () {
       error = err;
     }
     expect(error && error.code).toBe('no_session');
-    expect(AgentSessionStore.session(VIEW).error.code).toBe('no_session');
+    expect(AgentSessionStore.session(VIEW).error).toBe(null);
+
+    transport.streamEvents.andCallFake((viewId, onEvent, signal, onOpen) => {
+      if (onOpen) onOpen();
+      return new Promise(() => {});
+    });
+    await AgentSessionStore.sendMessage(VIEW, 'Make it blue');
+    expect(transport.sendMessage).not.toHaveBeenCalled();
+    expect(transport.createSession.mostRecentCall.args[0].request).toBe('Make it blue');
+  });
+
+  it('replaces an outdated session on the next message without reporting an error', async () => {
+    accepted[VIEW] = 4;
+    transport.streamEvents.andReturn(
+      Promise.reject(new AgentAPIError('Outdated', { statusCode: 409, code: 'session_outdated' }))
+    );
+    await AgentSessionStore.resume(VIEW, 'Flights');
+    let s = AgentSessionStore.session(VIEW);
+    expect(s.error).toBe(null);
+    expect(s.status).toBe('idle');
+    expect(s.transcript.map((e) => e.role)).toEqual(['system']);
+
+    transport.streamEvents.andCallFake((viewId, onEvent, signal, onOpen) => {
+      if (onOpen) onOpen();
+      return new Promise(() => {});
+    });
+    transport.createSession.andReturn(
+      Promise.resolve({ viewId: VIEW, sessionId: 's2', resumed: false, replaced: true })
+    );
+    await AgentSessionStore.sendMessage(VIEW, '');
+    expect(transport.createSession).not.toHaveBeenCalled();
+    await AgentSessionStore.sendMessage(VIEW, 'Show the airline logo');
+    expect(transport.sendMessage).not.toHaveBeenCalled();
+    expect(transport.createSession.mostRecentCall.args[0].request).toBe('Show the airline logo');
+    // The new session numbers revisions from 1.
+    expect(accepted[VIEW]).toBe(0);
+    s = AgentSessionStore.session(VIEW);
+    expect(s.transcript.filter((e) => e.role === 'user').length).toBe(1);
+  });
+
+  it('starts over with the same turn when a message hits an outdated session', async () => {
+    await start();
+    transport.sendMessage.andReturn(
+      Promise.reject(new AgentAPIError('Outdated', { statusCode: 409, code: 'session_outdated' }))
+    );
+    await AgentSessionStore.sendMessage(VIEW, 'Add a legend');
+    expect(transport.createSession.callCount).toBe(2);
+    expect(transport.createSession.mostRecentCall.args[0].request).toBe('Add a legend');
+    const users = AgentSessionStore.session(VIEW).transcript.filter((e) => e.role === 'user');
+    expect(users.map((e) => e.text)).toEqual(['Chart my receipts', 'Add a legend']);
   });
 
   it('applies messages once, and replaces optimistic user turns with their echoes', async () => {
@@ -383,6 +432,65 @@ describe('Views agent: session store', function () {
     expect(last.kind).toBe('response');
     expect(last.text).toBe('Sent a screenshot');
     expect(last.thumbnail).toContain(Buffer.from('fresh').toString('base64'));
+  });
+
+  it('holds a screenshot until the latest revision finishes previewing', async () => {
+    let finishPreview: (r: any) => void = null;
+    previewAndWait.andReturn(new Promise((resolve) => (finishPreview = resolve)));
+    await start();
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'h1',
+      type: 'tool_request',
+      toolUseId: 'th1',
+      name: 'preview_revision',
+      input: REVISION,
+      signature: keys.sign({ identityId: IDENTITY, viewId: VIEW, ...REVISION }),
+    });
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'h2',
+      type: 'tool_request',
+      toolUseId: 'th2',
+      name: 'request_screenshot',
+      input: {},
+    });
+    await flush();
+    await flush();
+    expect(AgentSessionStore.session(VIEW).pendingRequest).toBe(null);
+
+    finishPreview({ status: 'ok', diagnostics: [] });
+    await flush();
+    await flush();
+    await flush();
+    const pending = AgentSessionStore.session(VIEW).pendingRequest;
+    expect(pending.kind).toBe('screenshot');
+    expect(pending.screenshot.note).toBeUndefined();
+  });
+
+  it('captures anyway, with a note, when the latest revision failed', async () => {
+    previewAndWait.andReturn(Promise.resolve({ status: 'failed', diagnostics: [] }));
+    await start();
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'f1',
+      type: 'tool_request',
+      toolUseId: 'tf1',
+      name: 'preview_revision',
+      input: REVISION,
+      signature: keys.sign({ identityId: IDENTITY, viewId: VIEW, ...REVISION }),
+    });
+    await flush();
+    await flush();
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'f2',
+      type: 'tool_request',
+      toolUseId: 'tf2',
+      name: 'request_screenshot',
+      input: {},
+    });
+    await flush();
+    await flush();
+    const pending = AgentSessionStore.session(VIEW).pendingRequest;
+    expect(pending.kind).toBe('screenshot');
+    expect(pending.screenshot.note).toContain("didn't render");
   });
 
   it('falls back to the last thumbnail when the View is off screen at send time', async () => {

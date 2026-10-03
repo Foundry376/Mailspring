@@ -6,6 +6,7 @@ export type ViewErrorCode =
   | 'limit'
   | 'unavailable'
   | 'timeout'
+  | 'not_connected'
   | 'internal';
 
 /** Errors the bridge returns to Views. Serialized as `{ code, message, feature?, permission? }`. */

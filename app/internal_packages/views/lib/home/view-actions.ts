@@ -6,6 +6,7 @@ import { discardDraft } from '../authoring/drafts';
 import { ViewMailboxPerspective } from '../view-mailbox-perspective';
 import { ViewsHomePerspective } from './views-home-perspective';
 import { removeThumbnail } from './thumbnails';
+import { removeAllCredentials } from '../credentials/store';
 
 export function openViewsHome() {
   Actions.focusMailboxPerspective(
@@ -36,6 +37,7 @@ export function removeView(view: ViewManifest) {
   discardDraft(view.id);
   fs.rmSync(path.join(installDir(), view.id), { recursive: true, force: true });
   removeThumbnail(view.id);
+  removeAllCredentials(view.id).catch((err) => console.warn(`Views: ${err.message}`));
   notifyViewsChanged([view.id], true);
   return true;
 }

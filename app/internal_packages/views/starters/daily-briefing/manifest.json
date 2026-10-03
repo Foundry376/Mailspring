@@ -1,0 +1,11 @@
+{
+  "id": "daily-briefing",
+  "name": "Daily Briefing",
+  "description": "What arrived today, what needs you first, and who is waiting on a reply, summarized on this device.",
+  "version": "1.0.0",
+  "placement": "page",
+  "permissions": [
+    "mail.read",
+    "mail.bodies"
+  ]
+}

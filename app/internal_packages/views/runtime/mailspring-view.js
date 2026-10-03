@@ -289,6 +289,161 @@
     return state;
   }
 
+  // ── Generation (daily briefing) ────────────────────────────────────────────
+  // ai.summarize streams one short record per message (phase 1); ai.generate builds a briefing
+  // from those records (phase 2). Both reuse the extraction job channel above.
+
+  function startJob(method, params, onProgress) {
+    const jobId = uid('j');
+    jobListeners.set(jobId, onProgress);
+    const started = call(method, { jobId, ...params });
+    const cancel = () => {
+      jobListeners.delete(jobId);
+      call('ai.cancel', { jobId }).catch(() => {});
+    };
+    return { started, cancel };
+  }
+
+  function quotaError(extra) {
+    const err = new ViewError({
+      code: 'quota',
+      message: 'The smart-extraction quota is used up.',
+      feature: 'smart-extraction',
+    });
+    return Object.assign(err, extra);
+  }
+
+  function summarize(opts, onProgress) {
+    return new Promise((resolve, reject) => {
+      const results = {};
+      const { started, cancel } = startJob('ai.summarize', opts, (p) => {
+        for (const r of p.results || []) results[r.messageId] = r;
+        if (onProgress) onProgress({ ...p, results });
+        if (p.status === 'error') {
+          cancel();
+          reject(new ViewError(p.error || { code: 'internal', message: 'Summarizing failed' }));
+        } else if (p.status === 'quota') {
+          cancel();
+          reject(quotaError({ results }));
+        } else if (p.status === 'done') {
+          cancel();
+          resolve(results);
+        }
+      });
+      started.catch(reject);
+    });
+  }
+
+  const IDLE_SUMMARIES = { results: {}, processed: 0, total: 0, status: 'idle', error: null };
+
+  function useSummaries(opts) {
+    const enabled = !!(opts && (opts.ids ? opts.ids.length : opts.query != null));
+    const key = enabled ? JSON.stringify(opts) : null;
+    const [state, setState] = useState(IDLE_SUMMARIES);
+    useEffect(() => {
+      if (!key) {
+        setState(IDLE_SUMMARIES);
+        return undefined;
+      }
+      setState({ ...IDLE_SUMMARIES, status: 'running' });
+      const { started, cancel } = startJob('ai.summarize', opts, (p) =>
+        setState((s) => {
+          const results = { ...s.results };
+          for (const r of p.results || []) results[r.messageId] = r;
+          return {
+            results,
+            processed: p.processed,
+            total: p.total,
+            status: p.status,
+            modelAvailable: p.modelAvailable,
+            error: p.error ? new ViewError(p.error) : null,
+          };
+        })
+      );
+      started.then(
+        ({ total }) => setState((s) => ({ ...s, total })),
+        (error) => setState((s) => ({ ...s, status: 'error', error }))
+      );
+      return cancel;
+    }, [key]);
+    return state;
+  }
+
+  const IDLE_GENERATE = {
+    status: 'idle',
+    phase: null,
+    processed: 0,
+    total: 0,
+    text: null,
+    value: null,
+    priorities: [],
+    groups: [],
+    headline: null,
+    modelAvailable: true,
+    error: null,
+  };
+
+  function mergeGenerate(s, p) {
+    return {
+      ...s,
+      status: p.status,
+      phase: p.phase || s.phase,
+      processed: p.processed != null ? p.processed : s.processed,
+      total: p.total != null ? p.total : s.total,
+      modelAvailable: p.modelAvailable != null ? p.modelAvailable : s.modelAvailable,
+      usedMessages: p.usedMessages != null ? p.usedMessages : s.usedMessages,
+      priorities: p.priorities || s.priorities,
+      groups: p.groups || s.groups,
+      headline: p.headline || s.headline,
+      text: p.text !== undefined ? p.text : s.text,
+      value: p.value !== undefined ? p.value : s.value,
+      error: p.error ? new ViewError(p.error) : null,
+    };
+  }
+
+  function generate(opts, onProgress) {
+    return new Promise((resolve, reject) => {
+      let state = { ...IDLE_GENERATE, status: 'running' };
+      const { started, cancel } = startJob('ai.generate', opts, (p) => {
+        state = mergeGenerate(state, p);
+        if (onProgress) onProgress(state);
+        if (p.status === 'error') {
+          cancel();
+          reject(state.error);
+        } else if (p.status === 'quota') {
+          cancel();
+          reject(quotaError({ partial: state }));
+        } else if (p.status === 'done') {
+          cancel();
+          resolve(state);
+        }
+      });
+      started.catch(reject);
+    });
+  }
+
+  function useGenerate(opts) {
+    const enabled = !!(opts && opts.task && (opts.ids ? opts.ids.length : opts.query != null));
+    const key = enabled ? JSON.stringify(opts) : null;
+    const [state, setState] = useState(IDLE_GENERATE);
+    useEffect(() => {
+      if (!key) {
+        setState(IDLE_GENERATE);
+        return undefined;
+      }
+      setState({ ...IDLE_GENERATE, status: 'running' });
+      const { started, cancel } = startJob('ai.generate', opts, (p) =>
+        setState((s) => mergeGenerate(s, p))
+      );
+      started.then(
+        ({ total }) => setState((s) => ({ ...s, total })),
+        (error) => setState((s) => ({ ...s, status: 'error', error }))
+      );
+      return cancel;
+    }, [key]);
+    return state;
+  }
+
   // ── Identity ──────────────────────────────────────────────────────────────
 
   let identityPromise = null;
@@ -670,6 +825,11 @@
     // Extraction
     useExtract,
     extract,
+    // Generation (daily briefing)
+    useSummaries,
+    summarize,
+    useGenerate,
+    generate,
     // Writes and host actions
     setMetadata,
     modify,
@@ -682,4 +842,73 @@
     call,
     on,
   };
+
+  // ── Credentials ───────────────────────────────────────────────────────────
+  // API keys the user stored for this View (views-api.md §3.10). The View never sees a key:
+  // credentialFetch asks the host to send the request with it attached, and gets back the
+  // response with any echo of the key redacted.
+
+  function decodeBody(body, encoding) {
+    if (encoding !== 'base64') return body;
+    const bytes = Uint8Array.from(atob(body), (c) => c.charCodeAt(0));
+    return new TextDecoder().decode(bytes);
+  }
+
+  async function credentialFetch(credentialId, url, init = {}) {
+    if (init.body != null && typeof init.body !== 'string') {
+      throw new ViewError({
+        code: 'invalid',
+        message: 'credentialFetch bodies must be strings. Use JSON.stringify for JSON.',
+      });
+    }
+    const r = await call('credentials.fetch', {
+      credentialId,
+      url: String(url),
+      init: { method: init.method, headers: init.headers, body: init.body },
+    });
+    const lowerHeaders = r.headers || {};
+    return {
+      ok: r.status >= 200 && r.status < 300,
+      status: r.status,
+      statusText: r.statusText,
+      url: r.url,
+      redirected: r.redirected,
+      redacted: r.redacted,
+      blockedRedirect: r.blockedRedirect || null,
+      headers: {
+        get: (name) => lowerHeaders[String(name).toLowerCase()] || null,
+        has: (name) => String(name).toLowerCase() in lowerHeaders,
+        entries: () => Object.entries(lowerHeaders),
+      },
+      text: async () => decodeBody(r.body, r.bodyEncoding),
+      json: async () => JSON.parse(decodeBody(r.body, r.bodyEncoding)),
+      arrayBuffer: async () =>
+        r.bodyEncoding === 'base64'
+          ? Uint8Array.from(atob(r.body), (c) => c.charCodeAt(0)).buffer
+          : new TextEncoder().encode(r.body).buffer,
+    };
+  }
+
+  ui.requestCredential = (credentialId) => call('ui.requestCredential', { credentialId });
+
+  function useCredentialStatus(credentialId) {
+    const [state, setState] = useState({ connected: false, loading: true, error: null });
+    useEffect(() => {
+      let live = true;
+      call('credentials.status', { credentialId })
+        .then(({ connected }) => live && setState({ connected, loading: false, error: null }))
+        .catch((error) => live && setState({ connected: false, loading: false, error }));
+      return () => {
+        live = false;
+      };
+    }, [credentialId]);
+    const connect = async () => {
+      const { connected } = await ui.requestCredential(credentialId);
+      setState({ connected, loading: false, error: null });
+      return connected;
+    };
+    return { ...state, connect };
+  }
+
+  Object.assign(window.MailspringView, { credentialFetch, useCredentialStatus });
 })();

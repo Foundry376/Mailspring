@@ -1,4 +1,6 @@
 import fs from 'fs';
+import { declaredCredentials } from '../credentials/store';
+import { openManageCredentials } from '../credentials/credential-sheet';
 import React from 'react';
 import classnames from 'classnames';
 import { localized } from 'mailspring-exports';
@@ -257,6 +259,11 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
           {removable && (
             <button className="btn" onClick={() => this._onEditWithAI(view)}>
               {localized('Edit with AI')}
+            </button>
+          )}
+          {declaredCredentials(view.id).length > 0 && (
+            <button className="btn" onClick={() => openManageCredentials(view.id)}>
+              {localized('Credentials')}
             </button>
           )}
           {view.source === 'draft' ? (

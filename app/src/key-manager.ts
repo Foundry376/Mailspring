@@ -102,6 +102,18 @@ class KeyManager {
     }
   }
 
+  async deletePasswordsWithPrefix(prefix: string) {
+    try {
+      const keys = await this._getKeyHash();
+      const doomed = Object.keys(keys).filter((k) => k.startsWith(prefix));
+      if (!doomed.length) return;
+      doomed.forEach((k) => delete keys[k]);
+      await this._writeKeyHash(keys);
+    } catch (err) {
+      this._reportFatalError(err);
+    }
+  }
+
   async getPassword(keyName: string) {
     try {
       const keys = await this._getKeyHash();

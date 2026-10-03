@@ -4,7 +4,8 @@
  *
  * Holds the one bundled model and runs one prompt at a time. Everything else (queueing,
  * caching, prompt construction, normalization) lives in the processes that own the data, so
- * this file only turns `{ prompt, jsonSchema }` into JSON constrained to that schema. Running
+ * this file only turns `{ prompt, jsonSchema }` into JSON constrained to that schema, or into
+ * free text when there is no schema (the daily briefing's narrative). Running
  * it here keeps model memory and CPU out of the main process, and a crash in llama.cpp takes
  * down only this process.
  *
@@ -51,17 +52,21 @@ async function grammarFor(key, jsonSchema) {
 }
 
 async function run({ prompt, jsonSchema, schemaKey, maxTokens }) {
-  const grammar = await grammarFor(schemaKey, jsonSchema);
+  const grammar = jsonSchema ? await grammarFor(schemaKey, jsonSchema) : undefined;
   const started = Date.now();
   try {
     // A plain string keeps `<|im_start|>` markers as text. That measured better than real
     // special tokens on the eval set (§9.8), so the template stays in this form.
     const raw = await completion.generateCompletion(prompt, { grammar, maxTokens, temperature: 0 });
     let value = null;
-    try {
-      value = grammar.parse(raw);
-    } catch (err) {
-      value = null;
+    if (!grammar) {
+      value = { text: raw.trim() };
+    } else {
+      try {
+        value = grammar.parse(raw);
+      } catch (err) {
+        value = null;
+      }
     }
     return { raw, value, ms: Date.now() - started };
   } finally {
