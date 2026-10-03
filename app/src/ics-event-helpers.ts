@@ -1,5 +1,10 @@
 import crypto from 'crypto';
-import { parseICSString, createVTIMEZONEString, resolveIanaZone } from './calendar-utils';
+import {
+  parseICSString,
+  emailFromParticipantURI,
+  createVTIMEZONEString,
+  resolveIanaZone,
+} from './calendar-utils';
 
 export { createVTIMEZONEString };
 import { calendarDateFromUnix, shiftedDayStartUnix, calendarDaysBetween } from './calendar-date';
@@ -1133,6 +1138,57 @@ export function updateAttendees(
   vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
 
   return root.toString();
+}
+
+/**
+ * Strips the iTIP METHOD so a scheduling message can be stored as an event: RFC 4791
+ * section 4.1 forbids METHOD on a stored object, and servers reject it.
+ */
+export function stripITIPMethod(ics: string): string {
+  const { root } = parseICSString(ics);
+  root.removeAllProperties('method');
+  return root.toString();
+}
+
+/**
+ * Sets one attendee's PARTSTAT in every VEVENT, leaving every other parameter and attendee as
+ * they are (RFC 6638 section 3.2.5). Null when the address is not an attendee.
+ */
+export function updateAttendeeStatus(ics: string, email: string, partstat: string): string | null {
+  const ical = getICAL();
+  const { root } = parseICSString(ics);
+
+  const vevents =
+    root.name === 'vevent' ? [root] : (root.getAllSubcomponents('vevent') as ICALComponent[]);
+  if (!vevents.length) {
+    throw new Error('Invalid ICS: no VEVENT component found');
+  }
+
+  const target = email.toLowerCase();
+  let matched = false;
+
+  for (const vevent of vevents) {
+    let changedThisVevent = false;
+    for (const attendee of vevent.getAllProperties('attendee')) {
+      const isMatch = attendee
+        .getValues()
+        .some((v) => emailFromParticipantURI(String(v)) === target);
+      if (!isMatch) continue;
+
+      attendee.setParameter('partstat', partstat);
+      // The response has been given, so the organizer no longer needs to ask for one.
+      attendee.removeParameter('rsvp');
+      changedThisVevent = true;
+    }
+    if (changedThisVevent) {
+      // RFC 5546 section 3.2 breaks ties at equal SEQUENCE on DTSTAMP, so only a changed
+      // component gets a new one.
+      vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
+      matched = true;
+    }
+  }
+
+  return matched ? root.toString() : null;
 }
 
 /**
