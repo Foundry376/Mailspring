@@ -19,27 +19,34 @@ export interface ExampleChip {
   bytes?: number;
 }
 
+export type RequestKind = 'examples' | 'screenshot' | 'question';
+
+export interface RevisionEntry {
+  revision: number;
+  status: 'previewing' | 'ok' | 'failed' | 'timeout' | 'rejected' | 'unknown';
+  summary?: string;
+  ts?: number;
+}
+
 export interface TranscriptEntry {
   id: string;
   role: 'agent' | 'user' | 'system';
   text: string;
   attachments?: ExampleChip[];
   ts?: number;
+  kind?: 'message' | 'request' | 'response' | 'revision';
+  toolUseId?: string;
+  requestKind?: RequestKind;
+  revision?: RevisionEntry;
+  thumbnail?: string;
 }
 
 export interface PendingRequest {
   toolUseId: string;
-  kind: 'examples' | 'screenshot' | 'question';
+  kind: RequestKind;
   prompt: string;
   choices?: string[];
-  screenshot?: { dataUrl: string; width: number; height: number };
-}
-
-export interface RevisionEntry {
-  revision: number;
-  status: 'previewing' | 'ok' | 'failed' | 'timeout' | 'rejected';
-  summary?: string;
-  ts?: number;
+  screenshot?: { dataUrl: string; width: number; height: number; capturedAt?: number };
 }
 
 export interface AgentSessionState {
@@ -71,6 +78,8 @@ export interface SessionActionsLike {
   skipExamples(viewId: string): Promise<void>;
   answerQuestion(viewId: string, answer: string): Promise<void>;
   approveScreenshot(viewId: string): Promise<void>;
+  /** Recaptures the View for an open screenshot request. Optional for older stores. */
+  refreshScreenshot?(viewId: string): Promise<void>;
   declineScreenshot(viewId: string): Promise<void>;
   interrupt(viewId: string): Promise<void>;
   raiseBudget(viewId: string): Promise<void>;

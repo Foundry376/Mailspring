@@ -1,10 +1,19 @@
 import { DatabaseStore, Thread } from 'mailspring-exports';
-import { AgentSessionState, ExampleChip, SessionActionsLike, SessionStoreLike } from './types';
+import {
+  AgentSessionState,
+  ExampleChip,
+  RevisionEntry,
+  SessionActionsLike,
+  SessionStoreLike,
+  TranscriptEntry,
+} from './types';
 import { setPanelSourceOverride } from './store';
 
 // A scripted stand-in for `lib/agent`, for seeing every panel state in dev without a backend:
 // `$m.ViewsAuthoringPanelDemo('building' | 'examples' | 'working' | 'fixing' | 'screenshot' |
-// 'question' | 'answer' | 'ready' | 'budget' | 'error')`, and `$m.ViewsAuthoringPanelDemo(null)` to restore the real store.
+// 'question' | 'answer' | 'ready' | 'history' | 'budget' | 'error')`, and
+// `$m.ViewsAuthoringPanelDemo(null)` to restore the real store. Entries mirror what lib/agent
+// records: requests, responses and revisions are transcript entries in chronological order.
 
 export type DemoScenario =
   | 'building'
@@ -15,6 +24,7 @@ export type DemoScenario =
   | 'question'
   | 'answer'
   | 'ready'
+  | 'history'
   | 'budget'
   | 'error';
 
@@ -32,6 +42,49 @@ const PLACEHOLDER_SHOT =
         ''
       )}</g><rect x="24" y="280" width="592" height="18" rx="4" fill="#dde1e7"/><rect x="24" y="308" width="420" height="18" rx="4" fill="#dde1e7"/></svg>`
   );
+
+const request = (
+  toolUseId: string,
+  kind: TranscriptEntry['requestKind'],
+  text: string
+): TranscriptEntry => ({
+  id: `req-${toolUseId}`,
+  kind: 'request',
+  role: 'agent',
+  text,
+  toolUseId,
+  requestKind: kind,
+});
+
+const response = (toolUseId: string, entry: Partial<TranscriptEntry>): TranscriptEntry => ({
+  id: `resp-${toolUseId}`,
+  kind: 'response',
+  role: 'user',
+  text: '',
+  toolUseId,
+  ...entry,
+});
+
+// Records a revision the way lib/agent does: in `revisions` and as a transcript entry.
+function addRevision(s: AgentSessionState, revision: RevisionEntry) {
+  s.revisions = [...s.revisions.filter((r) => r.revision !== revision.revision), revision];
+  const entry: TranscriptEntry = {
+    id: `rev-${revision.revision}`,
+    kind: 'revision',
+    role: 'system',
+    text: revision.summary || '',
+    revision,
+  };
+  const idx = s.transcript.findIndex((t) => t.id === entry.id);
+  if (idx === -1) s.transcript.push(entry);
+  else s.transcript[idx] = entry;
+}
+
+// Opens a request the way lib/agent does: a transcript entry plus the pending request.
+function ask(s: AgentSessionState, pending: AgentSessionState['pendingRequest']) {
+  s.transcript.push(request(pending.toolUseId, pending.kind, pending.prompt));
+  s.pendingRequest = pending;
+}
 
 function baseSession(): AgentSessionState {
   return {
@@ -111,67 +164,97 @@ function scenario(name: DemoScenario): AgentSessionState {
       s.usage = { listCostCents: 9, maxListCostCents: 200 };
       break;
     case 'examples':
-      s.pendingRequest = {
+      ask(s, {
         toolUseId: 'tu1',
         kind: 'examples',
         prompt: 'Drag one **Uber** receipt and one **Lyft** receipt here.',
-      };
+      });
       break;
     case 'working':
       afterExamples();
       s.status = 'running';
       s.working = true;
-      s.revisions = [{ revision: 1, status: 'previewing', summary: 'Chart + recent trips table' }];
+      addRevision(s, { revision: 1, status: 'previewing', summary: 'Previewing…' });
       break;
     case 'fixing':
       afterExamples();
       s.status = 'running';
       s.working = true;
-      s.revisions = [{ revision: 1, status: 'failed', summary: 'TypeError at View.jsx:42' }];
+      addRevision(s, { revision: 1, status: 'failed', summary: 'TypeError at View.jsx:42' });
       break;
     case 'screenshot':
       afterExamples();
-      s.revisions = [{ revision: 2, status: 'ok', summary: 'Rendered 37 receipts' }];
-      s.pendingRequest = {
+      addRevision(s, { revision: 2, status: 'ok', summary: 'Rendered without errors' });
+      ask(s, {
         toolUseId: 'tu2',
         kind: 'screenshot',
         prompt: 'I took a screenshot of the preview to check the layout. Send it?',
-        screenshot: { dataUrl: PLACEHOLDER_SHOT, width: 640, height: 360 },
-      };
+        screenshot: { dataUrl: PLACEHOLDER_SHOT, width: 640, height: 360, capturedAt: Date.now() },
+      });
       break;
     case 'question':
       afterExamples();
-      s.revisions = [{ revision: 2, status: 'ok', summary: 'Rendered 37 receipts' }];
-      s.pendingRequest = {
+      addRevision(s, { revision: 2, status: 'ok', summary: 'Rendered without errors' });
+      ask(s, {
         toolUseId: 'tu3',
         kind: 'question',
         prompt: 'Should tips be included in the monthly totals?',
         choices: ['Include tips', 'Exclude tips'],
-      };
+      });
       break;
     case 'answer':
       afterExamples();
-      s.revisions = [{ revision: 2, status: 'ok', summary: 'Rendered 37 receipts' }];
-      s.pendingRequest = {
+      addRevision(s, { revision: 2, status: 'ok', summary: 'Rendered without errors' });
+      ask(s, {
         toolUseId: 'tu4',
         kind: 'question',
         prompt: 'Which card do you use for rides? I can filter receipts to it.',
-      };
+      });
       break;
     case 'ready':
       afterExamples();
+      addRevision(s, { revision: 3, status: 'ok', summary: 'Rendered without errors' });
       s.transcript.push({
         id: 'a3',
         role: 'agent',
         text: 'Revision 3 is ready: the chart now excludes tips and the table links to each trip.',
       });
-      s.revisions = [{ revision: 3, status: 'ok', summary: 'Rendered 37 receipts, no errors' }];
+      break;
+    case 'history':
+      // A finished conversation: answered requests stay in place, revisions where they happened.
+      s.transcript = [
+        {
+          id: 'u1',
+          role: 'user',
+          text: 'Show my Uber and Lyft receipts charted by month, with a table of recent trips.',
+        },
+        request('tu1', 'examples', 'Drag one **Uber** receipt and one **Lyft** receipt here.'),
+        response('tu1', { text: 'Shared 2 examples', attachments: sentChips }),
+      ];
+      addRevision(s, { revision: 1, status: 'ok', summary: 'Rendered without errors' });
+      s.transcript.push({ id: 'a2', role: 'agent', text: 'Here is a first version.' });
+      s.transcript.push({ id: 'u2', role: 'user', text: 'Stack the bars by service, please.' });
+      s.transcript.push(
+        request('tu2', 'screenshot', 'I took a screenshot of the preview to check the legend.')
+      );
+      s.transcript.push(
+        response('tu2', { text: 'Sent a screenshot', thumbnail: PLACEHOLDER_SHOT })
+      );
+      addRevision(s, { revision: 2, status: 'ok', summary: 'Rendered without errors' });
+      s.transcript.push(request('tu3', 'question', 'Should tips be included in the totals?'));
+      s.transcript.push(response('tu3', { text: 'Exclude tips' }));
+      addRevision(s, { revision: 3, status: 'ok', summary: 'Rendered without errors' });
+      s.transcript.push({
+        id: 'a3',
+        role: 'agent',
+        text: 'Done: bars are stacked by service and tips are excluded.',
+      });
       break;
     case 'budget':
       afterExamples();
       s.status = 'budget_reached';
       s.usage = { listCostCents: 203, maxListCostCents: 200 };
-      s.revisions = [{ revision: 4, status: 'ok', summary: 'Rendered 37 receipts' }];
+      addRevision(s, { revision: 4, status: 'ok', summary: 'Rendered without errors' });
       break;
     case 'error':
       afterExamples();
@@ -215,6 +298,15 @@ let seq = 100;
 function log(text: string) {
   demoStore.update((s) => {
     s.transcript = [...s.transcript, { id: `sys${seq++}`, role: 'system', text }];
+  });
+}
+
+// Answers the open request: the user's response follows the agent's ask in the transcript.
+function respond(fn: (s: AgentSessionState) => Partial<TranscriptEntry>) {
+  demoStore.update((s) => {
+    if (!s.pendingRequest) return;
+    s.transcript = [...s.transcript, response(s.pendingRequest.toolUseId, fn(s))];
+    s.pendingRequest = null;
   });
 }
 
@@ -262,31 +354,36 @@ const demoActions: SessionActionsLike = {
     });
   },
   async submitExamples() {
-    demoStore.update((s) => {
-      s.transcript = [
-        ...s.transcript,
-        { id: `u${seq++}`, role: 'user', text: 'Sent examples.', attachments: s.attachedExamples },
-      ];
-      s.attachedExamples = [];
-      s.pendingRequest = null;
-    });
+    respond((s) => ({
+      text: `Shared ${s.attachedExamples.length} example${s.attachedExamples.length === 1 ? '' : 's'}`,
+      attachments: s.attachedExamples,
+    }));
+    demoStore.update((s) => (s.attachedExamples = []));
   },
   async skipExamples() {
-    demoStore.update((s) => (s.pendingRequest = null));
+    respond(() => ({ text: 'Skipped' }));
   },
   async answerQuestion(viewId, answer) {
-    demoStore.update((s) => {
-      s.transcript = [...s.transcript, { id: `u${seq++}`, role: 'user', text: answer }];
-      s.pendingRequest = null;
-    });
+    respond(() => ({ text: answer }));
   },
   async approveScreenshot() {
-    demoStore.update((s) => (s.pendingRequest = null));
-    log('Screenshot sent.');
+    respond((s) => ({
+      text: 'Sent a screenshot',
+      thumbnail: s.pendingRequest.screenshot && s.pendingRequest.screenshot.dataUrl,
+    }));
   },
   async declineScreenshot() {
-    demoStore.update((s) => (s.pendingRequest = null));
-    log('Screenshot not sent.');
+    respond(() => ({ text: "Didn't send the screenshot" }));
+  },
+  async refreshScreenshot() {
+    demoStore.update((s) => {
+      if (s.pendingRequest && s.pendingRequest.screenshot) {
+        s.pendingRequest = {
+          ...s.pendingRequest,
+          screenshot: { ...s.pendingRequest.screenshot, capturedAt: Date.now() },
+        };
+      }
+    });
   },
   async interrupt() {
     demoStore.update((s) => {

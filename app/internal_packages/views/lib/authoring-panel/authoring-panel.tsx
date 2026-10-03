@@ -3,7 +3,13 @@ import classnames from 'classnames';
 import { DragDropTypes } from 'mailspring-exports';
 import { panelSource, onPanelSourceChanged } from './store';
 import { Markdown } from './markdown';
-import { AgentSessionState, ExampleChip, RevisionEntry, SessionActionsLike } from './types';
+import {
+  AgentSessionState,
+  ExampleChip,
+  RevisionEntry,
+  SessionActionsLike,
+  TranscriptEntry,
+} from './types';
 import { installedViews } from '../view-registry';
 
 const GEOMETRY_KEY = 'views-authoring-panel-geometry';
@@ -16,6 +22,19 @@ const COLLAPSED_WIDTH = 380;
 const EXIT_MS = 170;
 // A turn that started longer ago than this is a resumed session, not a turn worth timing.
 const MAX_TURN_AGE_MS = 30 * 60 * 1000;
+// While the agent asks for a screenshot, the thumbnail is recaptured this often so it shows
+// the View as it finishes loading. "Live" is shown while captures keep arriving.
+const SCREENSHOT_REFRESH_MS = 1000;
+const LIVE_WINDOW_MS = 3000;
+// The composer and answer fields start one line tall (matching the Send button) and grow with
+// their content up to this height.
+const TEXTAREA_MAX_HEIGHT = 96;
+
+function autoGrow(el: HTMLTextAreaElement | null) {
+  if (!el) return;
+  el.style.height = 'auto';
+  el.style.height = `${Math.min(el.scrollHeight + 2, TEXTAREA_MAX_HEIGHT)}px`;
+}
 
 type PanelAnim = 'enter' | 'exit' | 'expand' | 'collapse' | null;
 
@@ -230,6 +249,9 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
   _pointer: { mode: 'move' | 'resize'; x: number; y: number; start: Geometry } = null;
   _exitTimer: ReturnType<typeof setTimeout> = null;
   _ticker: ReturnType<typeof setInterval> = null;
+  _screenshotTimer: ReturnType<typeof setInterval> = null;
+  _composerEl: HTMLTextAreaElement = null;
+  _answerEl: HTMLTextAreaElement = null;
 
   state: State = {
     session: null,
@@ -259,11 +281,41 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     this._endPointer();
     clearTimeout(this._exitTimer);
     clearInterval(this._ticker);
+    clearInterval(this._screenshotTimer);
+  }
+
+  // Polls for a fresh capture only while a screenshot request is open and the panel is
+  // expanded; the store keeps the last image if the View goes off screen.
+  _syncScreenshotRefresh() {
+    const { session, geometry, leaving } = this.state;
+    const wants =
+      !!session &&
+      !leaving &&
+      !geometry.collapsed &&
+      !!session.pendingRequest &&
+      session.pendingRequest.kind === 'screenshot';
+    if (wants && !this._screenshotTimer) {
+      this._screenshotTimer = setInterval(() => {
+        const actions = this._actions();
+        const current = this.state.session;
+        // Ages the "Live" badge if captures stop arriving (the View went off screen).
+        this.setState({ now: Date.now() });
+        if (actions && actions.refreshScreenshot && current) {
+          actions.refreshScreenshot(current.viewId).catch(() => {});
+        }
+      }, SCREENSHOT_REFRESH_MS);
+    } else if (!wants && this._screenshotTimer) {
+      clearInterval(this._screenshotTimer);
+      this._screenshotTimer = null;
+    }
   }
 
   componentDidUpdate(prevProps, prevState: State) {
     const prev = prevState.session;
     const next = this.state.session;
+    this._syncScreenshotRefresh();
+    if (prevState.draft && !this.state.draft) autoGrow(this._composerEl);
+    if (prevState.answer && !this.state.answer) autoGrow(this._answerEl);
 
     // The elapsed timer ticks only while the agent is working.
     if (this.state.busySince && !this._ticker) {
@@ -293,6 +345,13 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
 
   _scrollToEnd = () => {
     if (this._transcriptEl) this._transcriptEl.scrollTop = this._transcriptEl.scrollHeight;
+  };
+
+  // The live thumbnail reloads every second; only follow it if the user hasn't scrolled up.
+  _onScreenshotLoad = () => {
+    const el = this._transcriptEl;
+    if (!el) return;
+    if (el.scrollHeight - el.scrollTop - el.clientHeight < 160) this._scrollToEnd();
   };
 
   // Re-subscribes when the store is swapped (the dev demo replaces the real store).
@@ -541,26 +600,77 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
             Describe the View you want, then drag a few example emails onto this panel.
           </div>
         )}
-        {session.transcript.map((entry) => (
-          <div key={entry.id} className={classnames('ap-entry', `role-${entry.role}`)}>
-            {entry.role === 'agent' ? (
-              <Markdown text={entry.text} />
-            ) : (
-              <div className="ap-entry-text">{entry.text}</div>
-            )}
-            {entry.attachments && entry.attachments.length > 0 && (
-              <div className="ap-sent-chips">
-                {entry.attachments.map((chip) => (
-                  <Chip key={chip.messageId} chip={chip} />
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
-        {this._renderRevision(session)}
-        {this._renderPending(session)}
+        {session.transcript.map((entry) => this._renderEntry(session, entry))}
+        {this._pendingWithoutEntry(session) && this._renderPending(session, true)}
         {this._renderBusy(session)}
         {this._renderBanners(session)}
+      </div>
+    );
+  }
+
+  _renderEntry(session: AgentSessionState, entry: TranscriptEntry) {
+    if (entry.kind === 'revision' && entry.revision) {
+      return this._renderRevisionCard(entry.id, entry.revision);
+    }
+    if (entry.kind === 'request') {
+      // An open request renders its controls in place; answered ones stay as the agent's ask.
+      const open = session.pendingRequest && session.pendingRequest.toolUseId === entry.toolUseId;
+      if (open) {
+        return (
+          <div key={entry.id} className="ap-entry role-agent">
+            {this._renderPending(session, true)}
+          </div>
+        );
+      }
+      return (
+        <div key={entry.id} className="ap-entry role-agent ap-asked">
+          <Markdown text={entry.text} />
+        </div>
+      );
+    }
+    return (
+      <div
+        key={entry.id}
+        className={classnames('ap-entry', `role-${entry.role}`, {
+          'ap-response': entry.kind === 'response',
+        })}
+      >
+        {entry.role === 'agent' ? (
+          <Markdown text={entry.text} />
+        ) : (
+          <div className="ap-entry-text">{entry.text}</div>
+        )}
+        {entry.thumbnail && (
+          <img className="ap-sent-screenshot" src={entry.thumbnail} alt="Screenshot you sent" />
+        )}
+        {entry.attachments && entry.attachments.length > 0 && (
+          <div className="ap-sent-chips">
+            {entry.attachments.map((chip) => (
+              <Chip key={chip.messageId} chip={chip} />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Stores that predate request entries (and the dev demo) only have `pendingRequest`.
+  _pendingWithoutEntry(session: AgentSessionState) {
+    const pending = session.pendingRequest;
+    if (!pending) return false;
+    return !session.transcript.some(
+      (t) => t.kind === 'request' && t.toolUseId === pending.toolUseId
+    );
+  }
+
+  _renderRevisionCard(key: string, rev: RevisionEntry) {
+    return (
+      <div key={key} className={classnames('ap-revision', `rev-${rev.status}`)}>
+        <div className="ap-revision-line">
+          <span className="ap-revision-label">Revision {rev.revision}</span>
+          {rev.status !== 'unknown' && <span className="ap-revision-status">{rev.status}</span>}
+          {rev.summary && <span className="ap-revision-summary">{rev.summary}</span>}
+        </div>
       </div>
     );
   }
@@ -606,7 +716,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     );
   }
 
-  _renderPending(session: AgentSessionState) {
+  _renderPending(session: AgentSessionState, withPrompt: boolean) {
     const pending = session.pendingRequest;
     if (!pending) return null;
     if (pending.kind === 'examples') {
@@ -614,7 +724,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
       // will be sent.
       return (
         <div className="ap-request">
-          <Markdown text={pending.prompt} />
+          {withPrompt && <Markdown text={pending.prompt} />}
           <div className="ap-request-hint">
             Drag emails from your mailbox onto this panel. Only the emails you drop here are shared.
           </div>
@@ -624,30 +734,40 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     if (pending.kind === 'screenshot') {
       return (
         <div className="ap-request">
-          <Markdown text={pending.prompt || 'I took a screenshot of the preview. Send it?'} />
+          {withPrompt && (
+            <Markdown text={pending.prompt || 'I took a screenshot of the preview. Send it?'} />
+          )}
           {pending.screenshot && (
-            <img
-              className="ap-screenshot"
-              src={pending.screenshot.dataUrl}
-              alt="Screenshot of the View preview"
-              onLoad={this._scrollToEnd}
-            />
+            <div className="ap-screenshot-wrap">
+              <img
+                className="ap-screenshot"
+                src={pending.screenshot.dataUrl}
+                alt="Screenshot of the View preview"
+                onLoad={this._onScreenshotLoad}
+              />
+              {pending.screenshot.capturedAt &&
+                this.state.now - pending.screenshot.capturedAt < LIVE_WINDOW_MS && (
+                  <span className="ap-live" title="Updates as the View changes">
+                    Live
+                  </span>
+                )}
+            </div>
           )}
           <div className="ap-request-hint">
-            The screenshot can show any mail the preview displays.
+            Sends the View as it looks when you click. It can show any mail the preview displays.
           </div>
-          <div className="ap-actions">
-            <button
-              className="ap-btn ap-btn-primary"
-              onClick={() => this._run((a, v) => a.approveScreenshot(v))}
-            >
-              Send screenshot
-            </button>
+          <div className="ap-actions ap-actions-end">
             <button
               className="ap-btn ap-btn-ghost"
               onClick={() => this._run((a, v) => a.declineScreenshot(v))}
             >
               Don't send
+            </button>
+            <button
+              className="ap-btn ap-btn-primary"
+              onClick={() => this._run((a, v) => a.approveScreenshot(v))}
+            >
+              Send screenshot
             </button>
           </div>
         </div>
@@ -656,7 +776,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     const hasChoices = pending.choices && pending.choices.length > 0;
     return (
       <div className="ap-request">
-        <Markdown text={pending.prompt} />
+        {withPrompt && <Markdown text={pending.prompt} />}
         {hasChoices ? (
           <div className="ap-actions">
             {pending.choices.map((choice) => (
@@ -672,10 +792,14 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
         ) : (
           <div className="ap-answer">
             <textarea
-              rows={2}
+              rows={1}
+              ref={(el) => (this._answerEl = el)}
               value={this.state.answer}
               placeholder="Type your answer…"
-              onChange={(e) => this.setState({ answer: e.target.value })}
+              onChange={(e) => {
+                autoGrow(e.target);
+                this.setState({ answer: e.target.value });
+              }}
               onKeyDown={this._onAnswerKeyDown}
             />
             <button
@@ -691,35 +815,31 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     );
   }
 
-  _renderRevision(session: AgentSessionState) {
+  // Install and Discard live in the footer, shown only once the agent is done and the latest
+  // revision rendered; the revision cards in the chat are history.
+  _renderReadyBar(session: AgentSessionState) {
     const rev = latestRevision(session);
-    if (!rev) return null;
-    const working = session.working || session.status === 'running';
-    const ready = rev.status === 'ok' && !working && !session.pendingRequest;
+    if (!rev || (rev.status !== 'ok' && rev.status !== 'unknown')) return null;
+    if (isBusy(session) || session.pendingRequest) return null;
+    if (session.status === 'terminated' || session.status === 'budget_reached') return null;
+    if (this.state.confirmingInstall) {
+      return <div className="ap-ready">{this._renderConsent(session)}</div>;
+    }
     return (
-      <div className={classnames('ap-revision', `rev-${rev.status}`)}>
-        <div className="ap-revision-line">
-          <span className="ap-revision-label">Revision {rev.revision}</span>
-          <span className="ap-revision-status">{rev.status}</span>
-          {rev.summary && <span className="ap-revision-summary">{rev.summary}</span>}
-        </div>
-        {ready && !this.state.confirmingInstall && (
-          <div className="ap-actions">
-            <button
-              className="ap-btn ap-btn-primary"
-              onClick={() => this.setState({ confirmingInstall: true })}
-            >
-              Install View
-            </button>
-            <button
-              className="ap-btn ap-btn-ghost"
-              onClick={() => this._run((a, v) => a.discard(v))}
-            >
-              Discard
-            </button>
-          </div>
-        )}
-        {ready && this.state.confirmingInstall && this._renderConsent(session)}
+      <div className="ap-ready">
+        <span className="ap-ready-label">
+          Revision {rev.revision} {rev.status === 'ok' ? 'ready' : ''}
+        </span>
+        <span className="ap-ready-spacer" />
+        <button
+          className="ap-btn ap-btn-primary"
+          onClick={() => this.setState({ confirmingInstall: true })}
+        >
+          Install View
+        </button>
+        <button className="ap-btn ap-btn-ghost" onClick={() => this._run((a, v) => a.discard(v))}>
+          Discard
+        </button>
       </div>
     );
   }
@@ -827,7 +947,13 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
           <div className="ap-drop-hint">Drop emails here</div>
         )}
         {wantsExamples && (
-          <div className="ap-actions">
+          <div className="ap-actions ap-actions-end">
+            <button
+              className="ap-btn ap-btn-ghost"
+              onClick={() => this._run((a, v) => a.skipExamples(v))}
+            >
+              Skip
+            </button>
             <button
               className="ap-btn ap-btn-primary"
               disabled={!chips.length}
@@ -836,12 +962,6 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
               {chips.length
                 ? `Send ${chips.length} example${chips.length === 1 ? '' : 's'}`
                 : 'Send examples'}
-            </button>
-            <button
-              className="ap-btn ap-btn-ghost"
-              onClick={() => this._run((a, v) => a.skipExamples(v))}
-            >
-              Skip
             </button>
           </div>
         )}
@@ -864,14 +984,19 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     const disabled = session.status === 'terminated' || session.status === 'budget_reached';
     return (
       <div className="ap-footer">
+        {this._renderReadyBar(session)}
         {this._renderStaged(session)}
         <div className="ap-composer">
           <textarea
-            rows={2}
+            rows={1}
+            ref={(el) => (this._composerEl = el)}
             value={this.state.draft}
             placeholder={placeholder}
             disabled={disabled}
-            onChange={(e) => this.setState({ draft: e.target.value })}
+            onChange={(e) => {
+              autoGrow(e.target);
+              this.setState({ draft: e.target.value });
+            }}
             onKeyDown={this._onComposerKeyDown}
           />
           <button

@@ -132,6 +132,10 @@ async function previewRevision(deps: ToolDeps, input: SignedRevision, signature?
   return text({ status: outcome.status, diagnostics: relayableDiagnostics(outcome.diagnostics) });
 }
 
+export function screenshotPrompt(input: { reason?: string } | null) {
+  return (input && input.reason) || 'The agent would like to see the preview.';
+}
+
 async function requestScreenshot(deps: ToolDeps, input: { reason?: string }) {
   let shot: { png: Buffer; width: number; height: number };
   try {
@@ -141,7 +145,7 @@ async function requestScreenshot(deps: ToolDeps, input: { reason?: string }) {
   }
   return deps.ask({
     kind: 'screenshot',
-    prompt: (input && input.reason) || 'The agent would like to see the preview.',
+    prompt: screenshotPrompt(input),
     screenshot: {
       dataUrl: `data:image/png;base64,${shot.png.toString('base64')}`,
       width: shot.width,

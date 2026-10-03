@@ -43,6 +43,7 @@ It normalizes them to:
 | `message` | `id, text` (markdown) | Agent chat bubble |
 | `thinking` | `id` | Optional "working…" indicator |
 | `tool_request` | `id, toolUseId, name, input, signature?, resolved` | If `resolved` is false, run the client tool (below) and POST `tool-results`. Replayed requests that already have a result arrive with `resolved: true` and must not be run again |
+| `tool_result` | `id, toolUseId, name, isError, summary` | How a client tool call was answered, with no content echoed: `{ examples: n } \| { skipped }` for examples, `{ answer }` for questions, `{ screenshot } \| { declined }` for screenshots, and `{ status: 'ok'\|'failed'\|'timeout'\|'rejected' }` for previews. Lets a replaying client show the user's reply under each request and each revision's outcome |
 | `user_message` | `id, text, exampleCount` | The user's own turns, for both the initial request and later messages. Lets a relaunched client rebuild the transcript; the client de-dupes against its optimistic copy |
 | `error` | `code, message` | Error row in the panel |
 | `usage` | `listCostCents, maxListCostCents` | Optional spend meter |

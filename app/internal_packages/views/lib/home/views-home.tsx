@@ -89,15 +89,8 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
       showError(err);
       return;
     }
-    this.setState({
-      creating: false,
-      name: '',
-      request: '',
-      notice: localized(
-        '“%@” is being built. Follow along, and add example emails, in the panel at the bottom of the window.',
-        name
-      ),
-    });
+    // The authoring panel that just opened is all the feedback this needs.
+    this.setState({ creating: false, name: '', request: '', notice: null });
   };
 
   _onEditWithAI = async (view: ViewManifest) => {

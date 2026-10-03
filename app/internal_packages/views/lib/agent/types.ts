@@ -40,6 +40,15 @@ export type AgentEvent =
       /** True on replayed requests the session already has a result for. */
       resolved?: boolean;
     }
+  | {
+      id: string;
+      type: 'tool_result';
+      toolUseId: string;
+      name?: string;
+      isError?: boolean;
+      /** What the user did, for rebuilding the transcript on replay. See ToolResultSummary. */
+      summary?: ToolResultSummary;
+    }
   | { id: string; type: 'error'; code: string; message: string }
   | { id: string; type: 'usage'; listCostCents: number; maxListCostCents: number };
 
@@ -62,26 +71,56 @@ export interface ExampleChip {
   bytes: number;
 }
 
+/**
+ * How a client tool call was answered, as replayed by the backend so a relaunched client can
+ * show the user's side of each request. Every field is optional; absent means unknown.
+ */
+export interface ToolResultSummary {
+  examples?: number;
+  skipped?: boolean;
+  answer?: string;
+  screenshot?: boolean;
+  declined?: boolean;
+  status?: 'ok' | 'failed' | 'timeout' | 'rejected';
+}
+
+export type RequestKind = 'examples' | 'screenshot' | 'question';
+
+/**
+ * One row of the panel's chat, in the order things happened. Plain messages have no `kind`;
+ * an agent request and the revision cards are entries too, so they stay where they occurred
+ * instead of floating at the bottom.
+ */
 export interface TranscriptEntry {
   id: string;
   role: 'agent' | 'user' | 'system';
-  /** Markdown for agent messages, plain text otherwise. */
+  /** Markdown for agent messages and requests, plain text otherwise. */
   text: string;
   attachments?: ExampleChip[];
   ts: number;
+  kind?: 'message' | 'request' | 'response' | 'revision';
+  /** Request and response entries: the tool call they belong to. */
+  toolUseId?: string;
+  requestKind?: RequestKind;
+  /** Revision entries. Updated in place as the preview progresses. */
+  revision?: RevisionEntry;
+  /** A sent screenshot, kept locally so the user can see what they shared. */
+  thumbnail?: string;
 }
 
 export interface PendingRequest {
   toolUseId: string;
-  kind: 'examples' | 'screenshot' | 'question';
+  kind: RequestKind;
   prompt: string;
   choices?: string[];
-  screenshot?: { dataUrl: string; width: number; height: number };
+  /** Screenshot requests: the latest capture, refreshed while the request is open. */
+  screenshot?: { dataUrl: string; width: number; height: number; capturedAt?: number };
 }
 
 export interface RevisionEntry {
   revision: number;
-  status: 'previewing' | 'ok' | 'failed' | 'timeout' | 'rejected';
+  /** 'unknown' marks a revision rebuilt from replay before its outcome is known. */
+  status: 'previewing' | 'ok' | 'failed' | 'timeout' | 'rejected' | 'unknown';
   summary: string;
   ts: number;
 }

@@ -4,7 +4,8 @@ import { canonicalJSON, checkSignedRevision } from '../lib/agent/signing';
 import { SSEParser, AgentTransport } from '../lib/agent/client';
 import { buildExample, chipFor } from '../lib/agent/examples';
 import { relayableDiagnostics } from '../lib/agent/tools';
-import { AgentSessionStore } from '../lib/agent/store';
+import moment from 'moment';
+import { AgentSessionStore, quotaMessage, responseText } from '../lib/agent/store';
 import { AgentAPIError, Example } from '../lib/agent/types';
 
 const IDENTITY = 'identity-1';
@@ -219,6 +220,8 @@ describe('Views agent: session store', function () {
       currentBundle: () => null,
       previewAndWait,
       capturePreview: async () => ({ png: Buffer.from('png'), width: 10, height: 20 }),
+      captureNow: async () => ({ png: Buffer.from('live'), width: 10, height: 20 }),
+      captureForSend: async () => ({ png: Buffer.from('fresh'), width: 10, height: 20 }),
       promoteDraft: jasmine.createSpy('promoteDraft'),
       discardDraft: jasmine.createSpy('discardDraft'),
       showUpgrade: jasmine.createSpy('showUpgrade'),
@@ -245,13 +248,15 @@ describe('Views agent: session store', function () {
         new AgentAPIError('Over quota', {
           statusCode: 429,
           code: 'quota',
-          details: { feature: 'view-agent-build' },
+          details: { feature: 'view-agent-build', limit: 5, period: 'day' },
         })
       )
     );
     await start();
     expect(AgentSessionStore.session(VIEW).error.code).toBe('quota');
-    expect((AgentSessionStore as any).d.showUpgrade).toHaveBeenCalledWith('view-agent-build');
+    const details = (AgentSessionStore as any).d.showUpgrade.mostRecentCall.args[0];
+    expect(details.feature).toBe('view-agent-build');
+    expect(details.limit).toBe(5);
   });
 
   it('surfaces no_session from resume', async () => {
@@ -358,14 +363,192 @@ describe('Views agent: session store', function () {
       `data:image/png;base64,${Buffer.from('png').toString('base64')}`
     );
     expect(transport.sendToolResult).not.toHaveBeenCalled();
-    AgentSessionStore.approveScreenshot(VIEW);
+
+    // The thumbnail tracks the View while the request is open...
+    await AgentSessionStore.refreshScreenshot(VIEW);
+    expect(AgentSessionStore.session(VIEW).pendingRequest.screenshot.dataUrl).toBe(
+      `data:image/png;base64,${Buffer.from('live').toString('base64')}`
+    );
+
+    // ...and what's sent is captured at the moment the user approves.
+    await AgentSessionStore.approveScreenshot(VIEW);
     await flush();
     const [, body] = transport.sendToolResult.mostRecentCall.args;
     expect(body.content[0]).toEqual({
       type: 'image',
       mediaType: 'image/png',
-      dataBase64: Buffer.from('png').toString('base64'),
+      dataBase64: Buffer.from('fresh').toString('base64'),
     });
+    const last = AgentSessionStore.session(VIEW).transcript.slice(-1)[0];
+    expect(last.kind).toBe('response');
+    expect(last.text).toBe('Sent a screenshot');
+    expect(last.thumbnail).toContain(Buffer.from('fresh').toString('base64'));
+  });
+
+  it('falls back to the last thumbnail when the View is off screen at send time', async () => {
+    AgentSessionStore.configure({
+      ...(AgentSessionStore as any).d,
+      captureForSend: async () => null,
+    });
+    await start();
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'e7b',
+      type: 'tool_request',
+      toolUseId: 'tu4b',
+      name: 'request_screenshot',
+      input: {},
+    });
+    await flush();
+    await flush();
+    await AgentSessionStore.approveScreenshot(VIEW);
+    await flush();
+    const [, body] = transport.sendToolResult.mostRecentCall.args;
+    expect(body.content[0].dataBase64).toBe(Buffer.from('png').toString('base64'));
+  });
+
+  it('keeps requests, responses and revisions in the order they happened', async () => {
+    await start();
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'r1',
+      type: 'tool_request',
+      toolUseId: 'tp1',
+      name: 'preview_revision',
+      input: REVISION,
+      signature: keys.sign({ identityId: IDENTITY, viewId: VIEW, ...REVISION }),
+    });
+    await flush();
+    await flush();
+    await AgentSessionStore.sendMessage(VIEW, 'Make the bars blue');
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'r2',
+      type: 'tool_request',
+      toolUseId: 'tq1',
+      name: 'ask_user',
+      input: { question: 'Which blue?' },
+    });
+    await flush();
+    AgentSessionStore.answerQuestion(VIEW, 'Navy');
+    const rev2 = { ...REVISION, revision: 2 };
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'r3',
+      type: 'tool_request',
+      toolUseId: 'tp2',
+      name: 'preview_revision',
+      input: rev2,
+      signature: keys.sign({ identityId: IDENTITY, viewId: VIEW, ...rev2 }),
+    });
+    await flush();
+    await flush();
+    const t = AgentSessionStore.session(VIEW).transcript;
+    expect(t.map((e) => e.kind || e.role)).toEqual([
+      'user',
+      'revision',
+      'user',
+      'request',
+      'response',
+      'revision',
+    ]);
+    expect(t[1].revision.status).toBe('ok');
+    expect(t[3].text).toBe('Which blue?');
+    expect(t[4].text).toBe('Navy');
+  });
+
+  it('keeps the agent request in history after examples are shared or skipped', async () => {
+    await start();
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'x1',
+      type: 'tool_request',
+      toolUseId: 'tx1',
+      name: 'request_examples',
+      input: { prompt: 'Drop two flight confirmations' },
+    });
+    await flush();
+    await AgentSessionStore.attachThreads(VIEW, ['t1']);
+    AgentSessionStore.submitExamples(VIEW);
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'x2',
+      type: 'tool_request',
+      toolUseId: 'tx2',
+      name: 'request_examples',
+      input: { prompt: 'Any hotel bookings?' },
+    });
+    await flush();
+    AgentSessionStore.skipExamples(VIEW);
+    const t = AgentSessionStore.session(VIEW).transcript.slice(1);
+    expect(t.map((e) => [e.kind, e.text])).toEqual([
+      ['request', 'Drop two flight confirmations'],
+      ['response', 'Shared 1 example'],
+      ['request', 'Any hotel bookings?'],
+      ['response', 'Skipped'],
+    ]);
+    expect(t[1].attachments.length).toBe(1);
+  });
+
+  it('rebuilds requests, responses and revisions from replayed events', async () => {
+    await AgentSessionStore.resume(VIEW, 'Flights');
+    AgentSessionStore.onEvent(VIEW, { id: 'h1', type: 'user_message', text: 'Track my flights' });
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'h2',
+      type: 'tool_request',
+      toolUseId: 'th1',
+      name: 'request_examples',
+      input: { prompt: 'Drop a confirmation' },
+      resolved: true,
+    });
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'h3',
+      type: 'tool_result',
+      toolUseId: 'th1',
+      summary: { examples: 2 },
+    });
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'h4',
+      type: 'tool_request',
+      toolUseId: 'th2',
+      name: 'preview_revision',
+      input: { revision: 1 },
+      resolved: true,
+    });
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'h5',
+      type: 'tool_result',
+      toolUseId: 'th2',
+      summary: { status: 'ok' },
+    });
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'h6',
+      type: 'tool_request',
+      toolUseId: 'th3',
+      name: 'request_screenshot',
+      input: { reason: 'Check the legend' },
+      resolved: true,
+    });
+    expect(previewAndWait).not.toHaveBeenCalled();
+    expect(transport.sendToolResult).not.toHaveBeenCalled();
+    const s = AgentSessionStore.session(VIEW);
+    expect(s.pendingRequest).toBe(null);
+    expect(s.transcript.map((e) => [e.kind || e.role, e.text])).toEqual([
+      ['user', 'Track my flights'],
+      ['request', 'Drop a confirmation'],
+      ['response', 'Shared 2 examples'],
+      ['revision', ''],
+      ['request', 'Check the legend'],
+    ]);
+    expect(s.transcript[3].revision.status).toBe('ok');
+  });
+
+  it('formats the build quota message without placeholders', () => {
+    const now = moment('2026-10-02T12:00:00');
+    const text = quotaMessage(
+      { limit: 5, period: 'day', resetsAt: moment(now).add(1, 'day').toISOString() },
+      now
+    );
+    expect(text).toContain('You can build 5 Views a day');
+    expect(text).toContain('tomorrow at');
+    expect(text).not.toContain('%');
+    expect(quotaMessage({}, now)).not.toContain('%');
+    expect(responseText({ examples: 1 })).toBe('Shared 1 example');
+    expect(responseText({ examples: 3 })).toBe('Shared 3 examples');
   });
 
   it('answers questions and declined screenshots as text', async () => {

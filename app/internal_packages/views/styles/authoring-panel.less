@@ -198,6 +198,11 @@
     margin-top: 10px;
   }
 
+  // Request footers put the primary action on the right, in line with the composer's Send.
+  .ap-actions-end {
+    justify-content: flex-end;
+  }
+
   .ap-transcript {
     flex: 1;
     min-height: 0;
@@ -310,13 +315,83 @@
     font-size: 12px;
   }
 
+  .ap-screenshot-wrap {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+    margin-top: 8px;
+  }
+
   .ap-screenshot {
     display: block;
     max-width: 100%;
     max-height: 140px;
-    margin-top: 8px;
     border-radius: 6px;
     border: 1px solid @ap-border;
+  }
+
+  .ap-live {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 7px 2px 6px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.62);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+
+    &::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: @ap-ok;
+      animation: ap-live-pulse 1.6s ease-in-out infinite;
+    }
+  }
+
+  // An answered request: the agent's ask, kept in the history above the user's response.
+  .ap-entry.ap-asked .ap-markdown {
+    padding-left: 10px;
+    border-left: 2px solid fade(@ap-accent, 45%);
+  }
+
+  .ap-sent-screenshot {
+    display: block;
+    max-width: 60%;
+    max-height: 90px;
+    margin-top: 6px;
+    border-radius: 6px;
+    border: 1px solid @ap-border;
+    opacity: 0.85;
+  }
+
+  // Footer bar for the latest working revision.
+  .ap-ready {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 12px 0 14px;
+
+    .ap-ready-label {
+      font-weight: 600;
+      color: @ap-ok;
+      font-size: 12px;
+    }
+    .ap-ready-spacer {
+      flex: 1;
+    }
+    .ap-consent {
+      flex: 1;
+      margin-top: 0;
+    }
   }
 
   .ap-revision-line {
@@ -395,8 +470,9 @@
     background: @ap-bg;
   }
 
+  // Same right inset as the composer, so the request's primary action lines up with Send.
   .ap-staged {
-    padding: 8px 14px 0;
+    padding: 8px 12px 0 14px;
   }
 
   .ap-staged-label {
@@ -473,6 +549,8 @@
 
     textarea {
       flex: 1;
+      box-sizing: border-box;
+      height: 36px;
       min-height: 36px;
       max-height: 96px;
       padding: 8px 10px;
@@ -483,7 +561,7 @@
       color: @ap-text;
       font-family: inherit;
       font-size: 13px;
-      line-height: 1.4;
+      line-height: 18px;
       outline: none;
 
       &:focus {
@@ -495,6 +573,7 @@
     }
 
     .ap-btn {
+      flex-shrink: 0;
       height: 36px;
     }
   }
@@ -688,7 +767,8 @@
       animation: ap-fade-out 120ms ease both;
     }
     .ap-busy-dots i,
-    .ap-busy-bar span {
+    .ap-busy-bar span,
+    .ap-live::before {
       animation: none;
     }
     .ap-busy-label {
@@ -790,6 +870,8 @@
 
     textarea {
       flex: 1;
+      box-sizing: border-box;
+      height: 36px;
       min-height: 36px;
       max-height: 96px;
       padding: 8px 10px;
@@ -800,7 +882,7 @@
       color: @ap-text;
       font-family: inherit;
       font-size: 13px;
-      line-height: 1.4;
+      line-height: 18px;
       outline: none;
 
       &:focus {
@@ -819,6 +901,16 @@
   // With the composer hidden during an examples request, the staged area is the whole footer.
   &.has-request .ap-staged {
     padding-bottom: 12px;
+  }
+}
+
+@keyframes ap-live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
   }
 }
 
