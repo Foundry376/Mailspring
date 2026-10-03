@@ -1,5 +1,12 @@
 import crypto from 'crypto';
-import { parseICSString, createVTIMEZONEString, resolveIanaZone } from './calendar-utils';
+import IcalExpander from 'ical-expander';
+import { Event } from './flux/models/event';
+import {
+  parseICSString,
+  emailFromParticipantURI,
+  createVTIMEZONEString,
+  resolveIanaZone,
+} from './calendar-utils';
 
 export { createVTIMEZONEString };
 import { calendarDateFromUnix, shiftedDayStartUnix, calendarDaysBetween } from './calendar-date';
@@ -1136,6 +1143,57 @@ export function updateAttendees(
 }
 
 /**
+ * Strips the iTIP METHOD so a scheduling message can be stored as an event: RFC 4791
+ * section 4.1 forbids METHOD on a stored object, and servers reject it.
+ */
+export function stripITIPMethod(ics: string): string {
+  const { root } = parseICSString(ics);
+  root.removeAllProperties('method');
+  return root.toString();
+}
+
+/**
+ * Sets one attendee's PARTSTAT in every VEVENT, leaving every other parameter and attendee as
+ * they are (RFC 6638 section 3.2.5). Null when the address is not an attendee.
+ */
+export function updateAttendeeStatus(ics: string, email: string, partstat: string): string | null {
+  const ical = getICAL();
+  const { root } = parseICSString(ics);
+
+  const vevents =
+    root.name === 'vevent' ? [root] : (root.getAllSubcomponents('vevent') as ICALComponent[]);
+  if (!vevents.length) {
+    throw new Error('Invalid ICS: no VEVENT component found');
+  }
+
+  const target = email.toLowerCase();
+  let matched = false;
+
+  for (const vevent of vevents) {
+    let changedThisVevent = false;
+    for (const attendee of vevent.getAllProperties('attendee')) {
+      const isMatch = attendee
+        .getValues()
+        .some((v) => emailFromParticipantURI(String(v)) === target);
+      if (!isMatch) continue;
+
+      attendee.setParameter('partstat', partstat);
+      // The response has been given, so the organizer no longer needs to ask for one.
+      attendee.removeParameter('rsvp');
+      changedThisVevent = true;
+    }
+    if (changedThisVevent) {
+      // RFC 5546 section 3.2 breaks ties at equal SEQUENCE on DTSTAMP, so only a changed
+      // component gets a new one.
+      vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
+      matched = true;
+    }
+  }
+
+  return matched ? root.toString() : null;
+}
+
+/**
  * Returns the IANA timezone identifier (TZID) from the event's DTSTART, or null
  * if the event uses UTC/floating time.
  */
@@ -1179,4 +1237,144 @@ export function updateEventProperty(
   vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
 
   return root.toString();
+}
+
+/** One occurrence of a stored event, as ical-expander reports it. */
+interface ExpandedOccurrence {
+  startDate: ICALTime;
+  endDate: ICALTime;
+  recurrenceId: ICALTime;
+  item?: { component: ICALComponent; summary: string };
+  component?: ICALComponent;
+  summary?: string;
+}
+
+function expandBetween(ics: string, seriesStart: number, start: number, end: number) {
+  const expanded = new IcalExpander({
+    ics,
+    maxIterations: expansionIterationBudget(ics, seriesStart, end),
+  }).between(new Date(start * 1000), new Date(end * 1000));
+  return [...expanded.events, ...expanded.occurrences] as ExpandedOccurrence[];
+}
+
+export interface Occurrence {
+  start: Date;
+  end: Date;
+  /** Set for an occurrence of a series: what RECURRENCE-ID names it. */
+  recurrenceId: ICALTime | null;
+  isAllDay: boolean;
+}
+
+/**
+ * The occurrence of an invitation that is next from `now`: the event itself unless it is a
+ * series, then the first occurrence still to end. Null once a series is over.
+ */
+export function upcomingOccurrence(ics: string, now: Date): Occurrence | null {
+  const { event } = parseICSString(ics);
+  const toOccurrence = (start: ICALTime, end: ICALTime, recurrenceId: ICALTime | null) => ({
+    start: start.toJSDate(),
+    end: end.toJSDate(),
+    recurrenceId,
+    isAllDay: !!start.isDate,
+  });
+  if (!event.isRecurring()) {
+    return toOccurrence(event.startDate, event.endDate, null);
+  }
+  const nowUnix = Math.round(now.getTime() / 1000);
+  const seriesStart = Math.round(event.startDate.toJSDate().getTime() / 1000);
+  // between() keeps what overlaps the year ahead; a moved occurrence can be listed out of order.
+  const next = expandBetween(ics, seriesStart, nowUnix, nowUnix + 366 * 86400).sort(
+    (a, b) => a.startDate.toJSDate().getTime() - b.startDate.toJSDate().getTime()
+  )[0];
+  if (!next) return null;
+  return toOccurrence(next.startDate, next.endDate, next.recurrenceId);
+}
+
+/** One busy occurrence that overlaps the window being checked. */
+export interface CalendarConflict {
+  eventId: string;
+  calendarId: string;
+  icsuid: string;
+  title: string;
+  /** Unix seconds. */
+  start: number;
+  end: number;
+}
+
+/** Cancelled, marked free (TRANSP:TRANSPARENT), or an invitation this account has declined. */
+function isFreeTime(component: ICALComponent, addresses: string[]): boolean {
+  const status = String(component.getFirstPropertyValue('status') || '').toUpperCase();
+  if (status === 'CANCELLED') return true;
+  const transp = String(component.getFirstPropertyValue('transp') || '').toUpperCase();
+  if (transp === 'TRANSPARENT') return true;
+
+  const lowered = addresses.map((a) => a.toLowerCase());
+  for (const attendee of component.getAllProperties('attendee')) {
+    const email = attendee
+      .getValues()
+      .map(String)
+      .map(emailFromParticipantURI)
+      .find((v) => !!v);
+    if (email && lowered.includes(email)) {
+      return String(attendee.getParameter('partstat') || '').toUpperCase() === 'DECLINED';
+    }
+  }
+  return false;
+}
+
+/**
+ * The timed occurrences on the given events that overlap [start, end), half-open so back-to-back
+ * meetings do not clash. Series are expanded over the window; all-day events are not busy time.
+ */
+export function findConflicts({
+  events,
+  start,
+  end,
+  addresses,
+  excludeIcsuid,
+}: {
+  /** Candidate events, already narrowed by the caller to the account and rough time range. */
+  events: Event[];
+  /** The window to test, in unix seconds. */
+  start: number;
+  end: number;
+  /** The addresses that count as "me", used to skip meetings this account has declined. */
+  addresses: string[];
+  /** UID of the event being checked, so it never conflicts with itself. */
+  excludeIcsuid?: string;
+}): CalendarConflict[] {
+  if (!(end > start)) return [];
+
+  const conflicts: CalendarConflict[] = [];
+  for (const event of events) {
+    if (excludeIcsuid && event.icsuid === excludeIcsuid) continue;
+    // The master's ICS carries its exceptions inline, so an exception row would repeat them.
+    if (event.isRecurrenceException()) continue;
+
+    let expanded: ExpandedOccurrence[];
+    try {
+      expanded = expandBetween(event.ics, event.recurrenceStart, start, end);
+    } catch (err) {
+      continue; // one unparseable entry costs one unmentioned conflict, not the whole check
+    }
+    for (const entry of expanded) {
+      const item = entry.item || entry;
+      if (entry.startDate.isDate || isFreeTime(item.component, addresses)) {
+        continue;
+      }
+      const occurrenceStart = Math.round(entry.startDate.toJSDate().getTime() / 1000);
+      const occurrenceEnd = Math.round(entry.endDate.toJSDate().getTime() / 1000);
+      if (occurrenceEnd <= start || occurrenceStart >= end) continue;
+
+      conflicts.push({
+        eventId: event.id,
+        calendarId: event.calendarId,
+        icsuid: event.icsuid,
+        title: item.summary || '',
+        start: occurrenceStart,
+        end: occurrenceEnd,
+      });
+    }
+  }
+  return conflicts.sort((a, b) => a.start - b.start || a.title.localeCompare(b.title));
 }
