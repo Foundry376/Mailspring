@@ -162,3 +162,44 @@ describe('EventRSVPTask', () => {
     expect(AppEnv.mailsyncBridge.sendSyncCalendarNow).toHaveBeenCalledWith('account-1');
   });
 });
+
+describe('EventRSVPTask.forProposingNewTime', function () {
+  const propose = () =>
+    EventRSVPTask.forProposingNewTime({
+      accountId: ACCOUNT_ID,
+      to: 'ada@example.com',
+      messageId: 'message-1',
+      ics: 'BEGIN:VCALENDAR\r\nMETHOD:COUNTER\r\nEND:VCALENDAR',
+      summary: 'Standup',
+      comment: 'Clashes with my review',
+    });
+
+  it('is a COUNTER addressed to the organizer', function () {
+    const task = propose();
+    expect(task.method).toBe('COUNTER');
+    expect((task as any).to).toBe('ada@example.com');
+    expect(task.subject).toContain('Standup');
+    expect(task.comment).toBe('Clashes with my review');
+  });
+
+  it('says what it is doing', function () {
+    expect(propose().label()).toBe('Proposing a new time');
+    expect(new EventRSVPTask({ accountId: ACCOUNT_ID, method: 'REPLY' } as any).label()).toBe(
+      'Sending RSVP'
+    );
+  });
+
+  it('does not record an answer on the invitation, since a proposal is not one', async function () {
+    spyOn(AppEnv.mailsyncBridge, 'sendSyncCalendarNow');
+    const queueTask = spyOn(Actions, 'queueTask');
+    const find = spyOn(DatabaseStore, 'find');
+    const task = propose();
+    (task as any).icsRSVPStatus = 'TENTATIVE'; // even if a status were set
+
+    await task.onSuccess();
+
+    expect(find).not.toHaveBeenCalled();
+    expect(queueTask).not.toHaveBeenCalled();
+    expect(AppEnv.mailsyncBridge.sendSyncCalendarNow).toHaveBeenCalledWith(ACCOUNT_ID);
+  });
+});
