@@ -3,6 +3,7 @@ import {
   ExtensionRegistry,
   FocusedPerspectiveStore,
   WorkspaceStore,
+  localized,
 } from 'mailspring-exports';
 import { ViewManifest, ViewRegistryEvents, ViewsChange, installedViews } from './view-registry';
 import { ViewMailboxPerspective } from './view-mailbox-perspective';
@@ -12,12 +13,32 @@ import { ViewBridgeEvents } from './bridge/view-events';
 import { reloadMountedView, hostsFor } from './authoring/hosts';
 import { watchViewFolders } from './authoring/watcher';
 import { ViewAuthoring } from './authoring';
+import { registerAuthoringPanel, unregisterAuthoringPanel } from './authoring-panel';
+import { ViewsHomePerspective } from './home/views-home-perspective';
+import { ViewToolbarActions } from './home/edit-with-ai-button';
+import { captureThumbnailsOnRender } from './home/thumbnails';
 
 let sidebarExtensions = [];
 let sidebarComponents = [];
 let registeredSignature = '';
 let unwatch: () => void = null;
 let commands: { dispose(): void } = null;
+let stopThumbnails: () => void = null;
+
+// The "Views" entry heading the Views in the account sidebar. Registered before any View, so
+// it stays above them as they are re-registered.
+const HomeSidebarExtension = {
+  name: 'Views',
+  sidebarItem(accountIds: string[]) {
+    return {
+      id: 'Views',
+      name: localized('Views'),
+      iconName: 'plugins.png',
+      perspective: new ViewsHomePerspective(accountIds),
+      perAccount: false,
+    };
+  },
+};
 
 // The last count each View reported with `ui.setBadge`. A page View only runs while it is
 // open, so the count is remembered across launches and shown until the View next changes it.
@@ -125,6 +146,12 @@ export function activate() {
   // from a View then pushes the Thread sheet over it, with the standard toolbar and Back.
   WorkspaceStore.defineSheet('Views', { root: true }, { list: ['RootSidebar', 'ViewContent'] });
   ComponentRegistry.register(ViewsRoot, { location: WorkspaceStore.Location.ViewContent });
+  registerAuthoringPanel();
+  ComponentRegistry.register(ViewToolbarActions, {
+    location: WorkspaceStore.Location.ViewContent.Toolbar,
+  });
+  ExtensionRegistry.AccountSidebar.register(HomeSidebarExtension);
+  stopThumbnails = captureThumbnailsOnRender();
 
   loadBadges();
   ViewBridgeEvents.on('badge', onBadge);
@@ -152,5 +179,10 @@ export function deactivate() {
   commands = null;
   unregisterViews();
   registeredSignature = '';
+  if (stopThumbnails) stopThumbnails();
+  stopThumbnails = null;
+  ExtensionRegistry.AccountSidebar.unregister(HomeSidebarExtension);
+  ComponentRegistry.unregister(ViewToolbarActions);
   ComponentRegistry.unregister(ViewsRoot);
+  unregisterAuthoringPanel();
 }

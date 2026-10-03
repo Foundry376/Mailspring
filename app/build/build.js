@@ -62,9 +62,10 @@ const sourceGlobs = [
   '!internal_packages/**/node_modules/**/*.jsx',
 ];
 
-// View.jsx files are compiled at runtime by the app (src/browser/view-sessions.ts), so they
-// must ship as source. sourceGlobs' negated patterns are not applied by runTranspilers.
-const runtimeCompiledSources = /internal_packages[/\\]views[/\\]examples[/\\]/;
+// View.jsx files are compiled at runtime by the app (src/browser/view-sessions.ts), so the
+// starters must ship as source. sourceGlobs' negated patterns are not applied by
+// runTranspilers. examples/ holds dev-only Views and is left out of the package entirely.
+const runtimeCompiledSources = /internal_packages[/\\]views[/\\](examples|starters)[/\\]/;
 
 function spawn(options) {
   return new Promise((resolve, reject) => {
@@ -261,7 +262,6 @@ function buildPackagerOptions() {
           // file on disk rather than a copy extracted from the asar on every change.
           '*.ico',
           '**/vendor/**',
-          'examples/**',
           '**/src/tasks/**',
           '**/src/quickpreview/**',
           '**/mcp-stdio-bridge.js',
@@ -284,6 +284,8 @@ function buildPackagerOptions() {
       /^\/docs_src.*/,
       /^\/script.*/,
       /^\/spec.*/,
+      // Views used for development and sandbox testing; production ships starters/ instead.
+      /^\/internal_packages[/]+views[/]+examples/,
       // general dirs we never want
       /[/]+gh-pages$/,
       /[/]+docs$/,

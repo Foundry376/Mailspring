@@ -1,0 +1,12 @@
+{
+  "id": "newsletters",
+  "name": "Newsletters",
+  "description": "Read your newsletters like a magazine, and find the ones you never open.",
+  "version": "1.0.0",
+  "placement": "page",
+  "permissions": [
+    "mail.read",
+    "mail.bodies",
+    "mail.modify"
+  ]
+}

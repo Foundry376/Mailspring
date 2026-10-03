@@ -1,0 +1,11 @@
+{
+  "id": "packages",
+  "name": "Packages",
+  "description": "Track shipments from carrier and store emails, arriving and delivered.",
+  "version": "1.0.0",
+  "placement": "page",
+  "permissions": [
+    "mail.read",
+    "mail.bodies"
+  ]
+}

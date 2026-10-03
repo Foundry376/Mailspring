@@ -1,7 +1,0 @@
-{
-  "id": "packages",
-  "name": "Packages",
-  "version": "1.0.0",
-  "placement": "page",
-  "permissions": ["mail.read", "mail.bodies"]
-}

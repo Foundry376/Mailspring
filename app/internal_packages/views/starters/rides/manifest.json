@@ -1,0 +1,11 @@
+{
+  "id": "rides",
+  "name": "Rides & Receipts",
+  "description": "Chart what you spend on rides, deliveries and other receipts each month.",
+  "version": "1.0.0",
+  "placement": "page",
+  "permissions": [
+    "mail.read",
+    "mail.bodies"
+  ]
+}

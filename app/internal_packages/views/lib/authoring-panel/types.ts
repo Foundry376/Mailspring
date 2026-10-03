@@ -1,0 +1,80 @@
+// The panel's view of the agent session. Mirrors the shapes exported by `lib/agent`, which owns
+// the transport; the panel only reads these and calls the actions below.
+
+export type AgentStatus =
+  | 'connecting'
+  | 'running'
+  | 'idle'
+  | 'budget_reached'
+  | 'terminated'
+  | 'error';
+
+export interface ExampleChip {
+  messageId: string;
+  threadId: string;
+  subject: string;
+  from: string;
+  date: string;
+  snippet?: string;
+  bytes?: number;
+}
+
+export interface TranscriptEntry {
+  id: string;
+  role: 'agent' | 'user' | 'system';
+  text: string;
+  attachments?: ExampleChip[];
+  ts?: number;
+}
+
+export interface PendingRequest {
+  toolUseId: string;
+  kind: 'examples' | 'screenshot' | 'question';
+  prompt: string;
+  choices?: string[];
+  screenshot?: { dataUrl: string; width: number; height: number };
+}
+
+export interface RevisionEntry {
+  revision: number;
+  status: 'previewing' | 'ok' | 'failed' | 'timeout' | 'rejected';
+  summary?: string;
+  ts?: number;
+}
+
+export interface AgentSessionState {
+  viewId: string;
+  name: string;
+  status: AgentStatus;
+  working: boolean;
+  transcript: TranscriptEntry[];
+  pendingRequest: PendingRequest | null;
+  attachedExamples: ExampleChip[];
+  revisions: RevisionEntry[];
+  usage: { listCostCents: number; maxListCostCents: number } | null;
+  error: { code: string; message: string } | null;
+}
+
+export interface SessionStoreLike {
+  session(viewId: string): AgentSessionState | null;
+  activeViewId(): string | null;
+  activeSession(): AgentSessionState | null;
+  listen(callback: () => void): () => void;
+}
+
+export interface SessionActionsLike {
+  setActive(viewId: string | null): Promise<void>;
+  sendMessage(viewId: string, text: string): Promise<void>;
+  attachThreads(viewId: string, threadIds: string[]): Promise<void>;
+  removeAttachment(viewId: string, messageId: string): Promise<void>;
+  submitExamples(viewId: string): Promise<void>;
+  skipExamples(viewId: string): Promise<void>;
+  answerQuestion(viewId: string, answer: string): Promise<void>;
+  approveScreenshot(viewId: string): Promise<void>;
+  declineScreenshot(viewId: string): Promise<void>;
+  interrupt(viewId: string): Promise<void>;
+  raiseBudget(viewId: string): Promise<void>;
+  stopBudget(viewId: string): Promise<void>;
+  install(viewId: string): Promise<void>;
+  discard(viewId: string): Promise<void>;
+}

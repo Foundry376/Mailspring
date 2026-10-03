@@ -1,0 +1,10 @@
+{
+  "id": "people",
+  "name": "People",
+  "description": "Who you write to most, where those conversations live, and who you have lost touch with.",
+  "version": "1.0.0",
+  "placement": "page",
+  "permissions": [
+    "mail.read"
+  ]
+}

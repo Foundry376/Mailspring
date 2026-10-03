@@ -1,0 +1,11 @@
+{
+  "id": "kanban",
+  "name": "Board",
+  "description": "Sort conversations into To do, Waiting and Done columns.",
+  "version": "1.0.0",
+  "placement": "page",
+  "permissions": [
+    "mail.read",
+    "metadata.own"
+  ]
+}

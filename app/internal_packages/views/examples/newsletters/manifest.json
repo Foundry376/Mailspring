@@ -1,7 +1,0 @@
-{
-  "id": "newsletters",
-  "name": "Newsletters",
-  "version": "1.0.0",
-  "placement": "page",
-  "permissions": ["mail.read", "mail.bodies", "mail.modify"]
-}
