@@ -13,6 +13,11 @@ import { ThumbnailEvents, thumbnailPath } from './thumbnails';
 import { removeView } from './view-actions';
 import { isBuilding, listenToSessions, newViewId, startAuthoring } from './agent-adapter';
 
+// The header's grid-paper backdrop. Alternatives are defined in views-home.less:
+// 'grid-major' (24px with stronger lines every 96px) and 'grid-accent' (the same in the
+// accent color).
+const BACKDROP_VARIANT = 'grid-fine';
+
 interface ViewsHomeState {
   views: ViewManifest[];
   starters: Starter[];
@@ -296,6 +301,7 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
 
     return (
       <div className="views-home">
+        <div className={`views-home-backdrop ${BACKDROP_VARIANT}`} aria-hidden="true" />
         <div className="views-home-content">
           <h1>{localized('Views')}</h1>
           <p className="views-home-intro">
