@@ -100,6 +100,12 @@ class AttachmentStore extends MailspringStore {
     return this._filePreviewPaths[fileId];
   }
 
+  // Public: Resolve a file's on-disk path, falling back to the lone item in the file's
+  // directory when the sync engine saved it under a different name.
+  resolvePathForFile(file: File): Promise<string> {
+    return this._prepareAndResolveFilePath(file);
+  }
+
   async _prepareAndResolveFilePath(file: File) {
     let filePath = this.pathForFile(file);
 

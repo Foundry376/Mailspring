@@ -1,0 +1,122 @@
+@import 'ui-variables';
+
+// Shared component styles: the popover opens in both the main and the calendar window, and a
+// package stylesheet only loads for its package's windowTypes.
+.propose-time-popover {
+  // Sized to the window: a tiled or portrait window has far less room than a maximised one.
+  width: 320px;
+  max-width: ~'calc(100vw - 32px)';
+  // Never a scroll container (see .propose-time-body); FixedPopover flips it when space runs out.
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  padding: 14px 16px 12px;
+  box-sizing: border-box;
+
+  .propose-time-header {
+    font-weight: @font-weight-semi-bold;
+    margin-bottom: 2px;
+  }
+
+  // The slot the organizer holds now, so the proposal reads as a change.
+  .propose-time-original {
+    color: @text-color-subtle;
+    font-size: 0.9em;
+    margin-bottom: 12px;
+  }
+
+  // Not a scroll container: the time picker's option list hangs below its field, taller than
+  // the popover, and any overflow but visible clips it (a scrolling axis forces the other to clip).
+  .propose-time-body {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .propose-time-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .propose-time-field {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+  }
+
+  .propose-time-label {
+    color: @text-color-subtle;
+    flex: 0 0 38px;
+    font-size: 0.9em;
+  }
+
+  .propose-time-times {
+    align-items: center;
+    display: flex;
+    gap: 6px;
+    // Above the note below it, so the open option list is not painted underneath.
+    position: relative;
+    z-index: 2;
+  }
+
+  // DatePicker colours its value @text-color-link app-wide; boxed here like the TimePicker beside it.
+  .date-picker .day-text {
+    border: 1px solid @border-color-divider;
+    border-radius: @border-radius-base;
+    color: @text-color;
+    cursor: pointer;
+    display: inline-block;
+    padding: 3px 8px;
+
+    &:hover,
+    &.focused {
+      border-color: @accent-primary;
+      color: @text-color;
+    }
+  }
+
+  .propose-time-separator {
+    color: @text-color-subtle;
+    font-size: 0.9em;
+  }
+
+  .propose-time-duration {
+    color: @text-color-subtle;
+    font-size: 0.85em;
+    margin-left: 2px;
+    white-space: nowrap;
+  }
+
+  .propose-time-comment {
+    // Small but never absent: on a short window the note is what gives, not the controls.
+    min-height: 44px;
+    background: @background-primary;
+    border: 1px solid @border-color-divider;
+    border-radius: @border-radius-base;
+    box-sizing: border-box;
+    color: @text-color;
+    font-family: inherit;
+    font-size: inherit;
+    margin-bottom: 12px;
+    padding: 6px 8px;
+    // Vertical only: a horizontal drag would leave the field wider than the popover.
+    resize: vertical;
+    width: 100%;
+
+    &::placeholder {
+      color: @text-color-very-subtle;
+    }
+    &:focus {
+      border-color: @accent-primary;
+      outline: none;
+    }
+  }
+
+  .propose-time-actions {
+    display: flex;
+    flex: 0 0 auto;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+}
