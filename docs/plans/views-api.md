@@ -724,6 +724,9 @@ means not expressible.
 >   open thread. Pick `"sidebar": { "mode": "card" }` (default; compact, height is automatic)
 >   or `"panel"` (fills the sidebar behind the switcher). **Draw no card, border or background
 >   of your own**: the host draws the chrome.
+> - **Leave the bottom-right corner clear.** The host floats an Edit button there: about 64px on
+>   page Views, and a hover pencil in the last ~28px of sidebar cards. Keep important controls and
+>   the last line of content out of it (bottom padding is enough).
 > - **Network:** `fetch` only reaches hosts listed in `manifest.network`.
 > - **API keys:** prefer what the user's email already says. When an API truly needs the user's
 >   key, declare a credential in the manifest, call it with `credentialFetch(id, url, init)`,
