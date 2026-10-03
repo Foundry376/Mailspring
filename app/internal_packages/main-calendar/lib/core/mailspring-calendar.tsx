@@ -530,11 +530,13 @@ export class MailspringCalendar extends React.Component<
       recurrenceEnd: masterEvent.recurrenceEnd,
     };
 
-    // Add EXDATE to exclude this occurrence
-    masterEvent.ics = ICSEventHelpers.addExclusionDate(
-      masterEvent.ics,
-      occurrenceStartUnix(occurrence),
-      occurrence.isAllDay
+    // Add EXDATE to exclude this occurrence.
+    masterEvent.ics = ICSEventHelpers.bumpEventSequence(
+      ICSEventHelpers.addExclusionDate(
+        masterEvent.ics,
+        occurrenceStartUnix(occurrence),
+        occurrence.isAllDay
+      )
     );
 
     // Queue syncback with undo support
@@ -570,7 +572,7 @@ export class MailspringCalendar extends React.Component<
       return;
     }
 
-    masterEvent.ics = updated;
+    masterEvent.ics = ICSEventHelpers.bumpEventSequence(updated);
     Actions.queueTask(
       SyncbackEventTask.forUpdating({
         event: masterEvent,
