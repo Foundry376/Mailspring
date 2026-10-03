@@ -80,7 +80,7 @@ function Card({ thread, onDragStart, dragging }) {
       }}
       onDragEnd={() => onDragStart(null)}
       onClick={() => ui.showThread(thread.id)}
-      title="Open in the reading pane"
+      title="Open conversation"
       className={`group relative cursor-pointer rounded-md border border-ms-border bg-ms-bg px-3 py-2 shadow-sm transition hover:border-ms-accent ${
         dragging ? 'opacity-40' : ''
       }`}
@@ -232,12 +232,8 @@ export default function KanbanView() {
   const [dragId, setDragId] = useState(null);
   const [overColumn, setOverColumn] = useState(null);
   const [adding, setAdding] = useViewState('addPanelOpen', true);
+  // Below this width the add panel floats over the board instead of taking a column of it.
   const narrow = useWidth() < 760;
-
-  // The reading pane takes the right half after ui.showThread; give the board the room.
-  useEffect(() => {
-    if (narrow) setAdding(false);
-  }, [narrow]);
 
   const byColumn = useMemo(() => {
     const out = Object.fromEntries(COLUMN_IDS.map((c) => [c, []]));
@@ -294,7 +290,7 @@ export default function KanbanView() {
                   e.preventDefault();
                   drop(id);
                 }}
-                className={`flex ${narrow ? 'min-w-[200px]' : 'min-w-[220px]'} flex-1 flex-col rounded-lg border bg-ms-panel ${
+                className={`flex w-[220px] min-w-[180px] flex-1 flex-col rounded-lg border bg-ms-panel ${
                   overColumn === id && dragId ? 'border-ms-accent' : 'border-ms-border'
                 }`}
               >

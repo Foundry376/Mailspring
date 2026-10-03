@@ -333,7 +333,7 @@ function modify(threads: ThreadSummary[] | string[], change: {
 }): Promise<void>;   // requires mail.modify; every change is undoable
 
 const ui: {
-  showThread(id: string): void;       // page: opens the reading pane; sidebar: focuses the thread
+  showThread(id: string): void;       // page: pushes the thread over the View (Back returns); sidebar: focuses the thread
   search(search: string): void;
   compose(d: { to?: string[]; cc?: string[]; subject?: string; body?: string; accountId?: string }): void;
   reply(messageId: string, opts?: { body?: string; all?: boolean }): void;
@@ -354,10 +354,14 @@ function attachmentUrl(id: string): Promise<string>;   // usable in <img src>, <
 `<MessageView>` renders the full HTML body as the reading pane does: host-sanitized, images
 proxied by the host, the user's remote-image setting applied, and dark-mode colors adjusted. It
 shows headers, attachment chips and a Reply button that calls `ui.reply`, and requires
-`mail.bodies`. In most cases, prefer `ui.showThread(id)`, which opens the real reading pane.
+`mail.bodies`. In most cases, prefer `ui.showThread(id)`, which opens the real thread view.
 
-On a page View, `ui.showThread` opens the reading pane beside the View, which narrows the View
-(to about 470px in a default window). Lay out with flex/grid and test narrow widths.
+On a page View, `ui.showThread` pushes the standard thread sheet over the View, the same way
+the app opens a thread in single-panel mode. The main toolbar shows the thread's actions, and
+its Back button returns to the View. The View stays loaded underneath with its state, scroll
+position and selection intact, so don't build your own back navigation. The View always gets
+the full content width, but users resize windows; lay out with flex/grid and test narrow
+widths.
 
 ### 3.6 Serialized shapes
 
@@ -585,9 +589,11 @@ means not expressible.
 >     appears as `thread.meta` in every hook. `useThreads({ tagged: true })` returns exactly the
 >     threads your View has tagged.
 >   - View settings: `useViewState(key, initial)`.
-> - **Opening mail:** `ui.showThread(thread.id)` opens the real reading pane. Don't render
->   message bodies yourself unless the design needs inline mail. In that case, use
->   `<MessageView messageId={id} />`, which renders the full message like the reading pane.
+> - **Opening mail:** `ui.showThread(thread.id)` opens the thread over your View, with the app's
+>   own toolbar and a Back button that returns to your View unchanged. Don't build your own
+>   reading pane or back navigation, and don't render message bodies yourself unless the design
+>   needs inline mail. In that case, use `<MessageView messageId={id} />`, which renders the full
+>   message like the app does.
 > - **Never set `innerHTML` or use `dangerouslySetInnerHTML` with email content.** Subjects and
 >   bodies are written by strangers. Render text with JSX.
 > - **Sidebar Views:** (`placement: "thread-sidebar"`) call `useSelectedThread()` to get the

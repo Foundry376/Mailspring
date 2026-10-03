@@ -159,13 +159,18 @@ function parseShipment(message, text) {
   return { tracking, carrier, status };
 }
 
+// The model fills fields for any email it's given, so only an email it classifies as a
+// shipment update counts, and a carrier it names must be one we know.
 function fromStructured(result) {
   const v = result?.value;
-  if (!v) return null;
+  if (!v || v.kind !== 'shipment update') return null;
   const status = v.status ? String(v.status).toLowerCase() : '';
+  const carrier = Object.keys(CARRIERS).find(
+    (name) => name.toLowerCase() === String(v.carrier || '').toLowerCase()
+  );
   return {
     tracking: v.trackingNumber || null,
-    carrier: v.carrier || null,
+    carrier: carrier || null,
     status:
       /deliver(ed)?$/.test(status) && !/out/.test(status)
         ? 'delivered'
@@ -295,13 +300,24 @@ export default function PackagesView() {
     return out;
   }, [incoming, content.data]);
 
-  // Retailer emails often carry schema.org ParcelDelivery markup when the text has no tracking number.
-  const missed = ids.filter((id) => parsed[id] && !parsed[id].tracking);
+  // Ask the model only about mail that already looks like shipping: a carrier or store sender,
+  // or a shipping status in the subject or body. Everything else is a keyword false positive.
+  const byId = useMemo(() => new Map(incoming.map((m) => [m.id, m])), [incoming]);
+  const missed = ids.filter((id) => {
+    const p = parsed[id];
+    return p && !p.tracking && (isShippingSender(byId.get(id)) || p.status);
+  });
   const extracted = useExtract(
     missed.length
       ? {
           ids: missed,
+          instructions:
+            'Decide whether this email is a notification about a physical package being shipped or delivered to the reader. Newsletters, marketing, receipts for digital goods, and articles that mention shipping are "other".',
           schema: {
+            kind: {
+              type: 'enum',
+              values: ['shipment update', 'order confirmation', 'marketing', 'other'],
+            },
             carrier: 'string',
             trackingNumber: 'string',
             status: {
@@ -322,8 +338,11 @@ export default function PackagesView() {
       const s = fromStructured(extracted.results?.[m.id]);
       const tracking = p.tracking || s?.tracking || null;
       const status = p.status || s?.status || null;
-      // Keyword hits from newsletters and neighborhood posts aren't packages; require real evidence.
-      if (!tracking && !s && !(isShippingSender(m) && status)) continue;
+      // Keyword hits from newsletters and neighborhood posts aren't packages. Require a tracking
+      // number found in the text (with a shipping sender or status), or the model's confirmation
+      // that this is a shipment update.
+      const regexEvidence = p.tracking && (isShippingSender(m) || p.status);
+      if (!regexEvidence && !s) continue;
       const key = tracking || m.threadId;
       const prev = groups.get(key);
       groups.set(key, {

@@ -32,7 +32,7 @@ export function openView(viewId: string) {
 /**
  * The authoring loop's host API (see docs/plans/views-authoring-loop.md): preview a revision
  * as a draft, watch its diagnostics, then promote or discard it. A preview replaces the
- * View's code in place: mounted copies reload, the host layout and reading pane stay put,
+ * View's code in place: mounted copies reload, the host layout and sheet stack stay put,
  * and the installed copy is untouched until promotion.
  */
 export const ViewAuthoring = {

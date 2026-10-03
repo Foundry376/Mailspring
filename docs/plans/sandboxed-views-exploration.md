@@ -285,12 +285,14 @@ A full-page View is an entry in the account sidebar, like Activity. An `AccountS
 extension lists installed page Views, each with a perspective and a sheet whose content
 location mounts `<ViewHost viewId>`. This follows `internal_packages/activity/lib/main.ts`.
 
-A page View can call `ui.showThread(id)` to open a **host-owned reading pane** next to the
-webview. That pane is the real `MessageList`, with headers, the standard `EmailFrame` body
-renderer, reply/forward, and every plugin that decorates messages. The kanban board and
-package tracker get a native reading experience without reimplementing any of it, and the
-View stays a list/board/chart that drives selection. The split respects the user's existing
-reading-pane layout preference.
+A page View can call `ui.showThread(id)` to open a thread. The host **pushes the standard
+Thread sheet** over the View, using the same sheet stack as Preferences and single-panel
+mailbox mode. It brings the real `MessageList`, the standard `EmailFrame` body renderer,
+reply/forward, every plugin that decorates messages, and the main toolbar's thread actions.
+The toolbar's Back button pops the sheet and returns to the View, which stays mounted
+underneath with its state. This is the same regardless of the user's reading-pane layout
+preference. The kanban board and package tracker get a native reading experience without
+reimplementing navigation, and the View stays a list/board/chart.
 
 ### 6.2 Thread-sidebar placement
 
@@ -818,7 +820,7 @@ The prototype is in the working copy (uncommitted): `app/internal_packages/views
 
 **Built and verified in the dev app:**
 - Page and thread-sidebar placements.
-- The host reading pane, opened with `ui.showThread`.
+- Opening a thread with `ui.showThread`, which pushes the host Thread sheet over the View.
 - `<MessageView>` with sanitized HTML and proxied images.
 - Theme push (light, dark and accent colour, all live).
 - Badges, and crash/hang/error covers.
@@ -959,6 +961,96 @@ errors and user feedback alone, and the workspace says so.
 counts, identity, namespaced metadata) should also be MCP tools where that comes for free.
 Power users with a desktop AI client get the same reach, and the hosted agent and MCP share
 one vocabulary.
+
+## 17. Authoring experience and agent substrate (draft, 2026-10-02)
+
+### 17.1 Surfaces
+
+- **Views home.** This is the root sheet for the Views concept. It shows the user's installed
+  Views as cards (with a thumbnail of the last render), Mailspring-published starter Views
+  (Board, Packages, Newsletters, …) that install verbatim and can then be remixed, and a
+  prominent **Create a View** entry. Starters can ship bundled first; a server-published
+  gallery comes later.
+- **Create flow.** Name the View, then type a free-form request, then the floating panel
+  opens and asks for examples.
+- **Floating authoring panel.** A dark panel in the bottom corner of the window, roughly the
+  bottom quarter, floating above every sheet. It persists while the user navigates the inbox.
+  It is the only surface where anything is shared with the agent:
+  - a chat transcript (agent messages and user feedback);
+  - **drop zone:** threads dragged from the thread list or message list onto the panel become
+    attached examples. Chips show exactly what will be sent, and each can be removed before it
+    goes;
+  - **agent-initiated requests:** "Drag a couple of delivered-package emails here", or "I took
+    a screenshot of the preview, send it?" with a thumbnail and Send / Don't send;
+  - revision status (building, previewing, errors being fixed automatically, ready) and
+    **Install** or **Discard**.
+- **"Edit with AI" on any installed View** opens the same panel attached to that View. It
+  starts from the View's current code and permissions.
+- **Opening threads.** `ui.showThread` pushes the standard Thread sheet over the View, and the
+  app's Back button returns to it (wave 5). There is no in-View reading pane.
+
+### 17.2 Substrate: Claude Managed Agents on Sonnet
+
+Managed Agents provides the agent loop plus a per-session cloud container, which is the same
+shape as the desktop subagents that wrote the dogfood Views. The model is
+`claude-sonnet-5-5`.
+
+- **Agent object** (persisted and versioned). It holds the system prompt, the authoring skill
+  (views-api.md, the authoring guide, example Views, and a headless test harness), and the
+  custom tools below. **It is defined in the closed-source backend repo** and synced with
+  `ant apply`, so the prompts and skills never live in the open-source client. The client
+  only knows an agent id.
+- **Environment.** `limited` networking with no allowed hosts. The agent needs no internet:
+  vendored libraries come with the skill, and examples arrive as files or tool results.
+- **Custom tools drive the loop.** The client executes them, so every boundary crossing is
+  mediated by the app:
+
+| Tool | Client behaviour |
+|---|---|
+| `preview_revision({ manifest, files })` | `previewAndWait` on a draft, which returns status plus diagnostics (no mail content) |
+| `request_examples({ prompt })` | Shows the prompt in the panel and returns the examples the user drops in, as cleaned message JSON |
+| `request_screenshot({ reason })` | Captures the preview and asks "Send screenshot?". Returns the image or "declined" |
+| `ask_user({ question })` | Shows the question in the panel and returns the user's answer |
+
+- **Inside the container,** the agent compiles and renders `View.jsx` against a mock bridge
+  seeded with the attached examples, so trivial errors are caught before a preview round trip.
+- **Examples** go up as session file resources (`/workspace/examples/*.json`) at kickoff, and
+  later ones as `request_examples` results.
+- **Cost controls:**
+  - every session gets a hard `budget.max_list_cost`; at the cap it pauses with
+    `budget_reached`, and the panel offers to upgrade or continue;
+  - the backend keeps per-user monthly build quotas (`view-agent-build`, §14.2);
+  - turn limits are enforced by the client/backend counting user turns.
+
+### 17.3 Wiring (decided 2026-10-02)
+
+The proxy is built now. The client never talks to Anthropic directly, even in development.
+
+- **Backend (closed source, branch `sandboxed-views` in `../backend`):**
+  - Agent and environment definitions plus the authoring skill, synced with `ant apply`.
+  - Hapi routes under Mailspring ID auth (`identity-token`):
+    - create or resume the session for a View;
+    - send a user message or a custom-tool result;
+    - relay the event stream to the client (SSE), with reconnect and consolidation per the
+      Managed Agents client patterns;
+    - interrupt.
+  - The Anthropic API key lives only in the backend `.env`.
+- **Sessions:** one Managed Agents session per View. The backend stores the mapping
+  (identity, viewId) → sessionId and resumes it for "Edit with AI".
+- **Examples:** sent as from/to/cc, subject and date, quote-stripped text, and sanitized HTML
+  (no remote images or tracking pixels). Attachments are excluded.
+- **Signing:** each `preview_revision` payload is signed by the backend before relay. The
+  signature covers `{ identityId, viewId, revision, manifest, files }` and uses an Ed25519 dev
+  keypair. The client verifies against a public key pinned in the app and rejects replays
+  (revision must increase per View).
+- **Limits:**
+  - each session gets `budget.max_list_cost` = $2.00, and at the cap the panel offers to raise
+    it or stop;
+  - the proxy allows 5 new View builds per identity per day (the `view-agent-build` feature
+    key), returning a typed quota error that the client maps to the upgrade modal.
+- **Local development:** the dev client runs with `env=development` against the local backend
+  (`localhost:5101`), with a local Mailspring ID. Identity, metadata and Pro features all hit
+  the local DB in this mode.
 
 ---
 

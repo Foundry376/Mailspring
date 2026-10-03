@@ -7,10 +7,6 @@
   min-width: 0;
   min-height: 0;
 
-  &.mode-splitVertical {
-    flex-direction: column;
-  }
-
   > .view-host {
     flex: 1;
     min-width: 0;
@@ -54,79 +50,6 @@
   .view-host-cover-actions {
     display: flex;
     gap: @padding-base-horizontal;
-  }
-}
-
-.view-reading-pane-region {
-  display: flex;
-  border-left: 1px solid @border-color-divider;
-
-  .mode-splitVertical & {
-    border-left: 0;
-    border-top: 1px solid @border-color-divider;
-  }
-}
-
-.view-reading-pane {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-  min-height: 0;
-  background: @background-secondary;
-
-  .view-reading-pane-toolbar {
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-    padding: 0 @padding-small-horizontal;
-    border-bottom: 1px solid @border-color-divider;
-  }
-
-  .view-reading-pane-body {
-    display: flex;
-    flex: 1;
-    min-height: 0;
-  }
-
-  .view-reading-pane-messages {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .view-reading-pane-sidebar {
-    width: 260px;
-    flex-shrink: 0;
-    overflow-y: auto;
-    border-left: 1px solid @border-color-divider;
-    background: @background-off-primary;
-  }
-}
-
-.view-reading-pane-rail {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  width: 24px;
-  padding-top: @padding-large-vertical;
-  border-left: 1px solid @border-color-divider;
-  background: @background-secondary;
-  cursor: pointer;
-
-  &.mode-splitVertical {
-    width: auto;
-    height: 24px;
-    padding-top: 0;
-    align-items: center;
-    border-left: 0;
-    border-top: 1px solid @border-color-divider;
-  }
-
-  img {
-    background-color: @text-color-subtle;
-  }
-  &:hover img {
-    background-color: @text-color;
   }
 }
 

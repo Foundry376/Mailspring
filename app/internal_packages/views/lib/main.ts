@@ -121,15 +121,9 @@ function reloadFocusedViews() {
 }
 
 export function activate() {
-  // Every mode has the same columns: ViewsRoot lays out the reading pane itself so it can
-  // appear only once a View opens a thread. Declaring all three modes keeps the user's
-  // preference in effect, which is what makes `list` mode push the Thread sheet.
-  const columns = ['RootSidebar', 'ViewContent'];
-  WorkspaceStore.defineSheet(
-    'Views',
-    { root: true },
-    { list: columns, split: columns, splitVertical: columns }
-  );
+  // `list` is the only mode, whatever the user's reading-pane preference: focusing a thread
+  // from a View then pushes the Thread sheet over it, with the standard toolbar and Back.
+  WorkspaceStore.defineSheet('Views', { root: true }, { list: ['RootSidebar', 'ViewContent'] });
   ComponentRegistry.register(ViewsRoot, { location: WorkspaceStore.Location.ViewContent });
 
   loadBadges();

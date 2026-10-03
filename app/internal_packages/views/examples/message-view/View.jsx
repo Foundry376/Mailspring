@@ -18,7 +18,7 @@ export default function MessageViewDemo() {
             className="text-ms-link"
             onClick={() => ui.showThread(messages.find((m) => m.id === current).threadId)}
           >
-            Open in reading pane
+            Open conversation
           </button>
         )}
       </p>
