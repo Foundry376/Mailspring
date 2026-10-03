@@ -3,15 +3,17 @@ import { AgentSessionState, ExampleChip, SessionActionsLike, SessionStoreLike } 
 import { setPanelSourceOverride } from './store';
 
 // A scripted stand-in for `lib/agent`, for seeing every panel state in dev without a backend:
-// `$m.ViewsAuthoringPanelDemo('examples' | 'working' | 'fixing' | 'screenshot' | 'question' |
-// 'ready' | 'budget' | 'error')`, and `$m.ViewsAuthoringPanelDemo(null)` to restore the real store.
+// `$m.ViewsAuthoringPanelDemo('building' | 'examples' | 'working' | 'fixing' | 'screenshot' |
+// 'question' | 'answer' | 'ready' | 'budget' | 'error')`, and `$m.ViewsAuthoringPanelDemo(null)` to restore the real store.
 
 export type DemoScenario =
+  | 'building'
   | 'examples'
   | 'working'
   | 'fixing'
   | 'screenshot'
   | 'question'
+  | 'answer'
   | 'ready'
   | 'budget'
   | 'error';
@@ -83,6 +85,7 @@ function scenario(name: DemoScenario): AgentSessionState {
       role: 'user',
       text: 'Here are two receipts.',
       attachments: sentChips,
+      ts: Date.now() - 42000,
     });
     s.transcript.push({
       id: 'a2',
@@ -92,6 +95,21 @@ function scenario(name: DemoScenario): AgentSessionState {
   };
 
   switch (name) {
+    case 'building':
+      // The first build, 75 seconds in: the request plus examples, no revision yet.
+      s.transcript = [
+        {
+          id: 'u1',
+          role: 'user',
+          text: 'Show my Uber and Lyft receipts charted by month, with a table of recent trips.',
+          attachments: sentChips,
+          ts: Date.now() - 75000,
+        },
+      ];
+      s.status = 'running';
+      s.working = true;
+      s.usage = { listCostCents: 9, maxListCostCents: 200 };
+      break;
     case 'examples':
       s.pendingRequest = {
         toolUseId: 'tu1',
@@ -129,6 +147,15 @@ function scenario(name: DemoScenario): AgentSessionState {
         kind: 'question',
         prompt: 'Should tips be included in the monthly totals?',
         choices: ['Include tips', 'Exclude tips'],
+      };
+      break;
+    case 'answer':
+      afterExamples();
+      s.revisions = [{ revision: 2, status: 'ok', summary: 'Rendered 37 receipts' }];
+      s.pendingRequest = {
+        toolUseId: 'tu4',
+        kind: 'question',
+        prompt: 'Which card do you use for rides? I can filter receipts to it.',
       };
       break;
     case 'ready':
@@ -200,9 +227,11 @@ const demoActions: SessionActionsLike = {
     demoStore.update((s) => {
       s.transcript = [
         ...s.transcript,
-        { id: `u${seq++}`, role: 'user', text, attachments: s.attachedExamples },
+        { id: `u${seq++}`, role: 'user', text, attachments: s.attachedExamples, ts: Date.now() },
       ];
       s.attachedExamples = [];
+      s.status = 'running';
+      s.working = true;
     });
   },
   async attachThreads(viewId, threadIds) {

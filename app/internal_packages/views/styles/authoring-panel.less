@@ -561,3 +561,296 @@
     background: transparent;
   }
 }
+
+// Appearance: the panel pops out of the window corner it's anchored to (--ap-origin and the
+// --ap-dx/--ap-dy nudge are set inline from its position) with a slight overshoot, and drops
+// back into it faster on close. Only transform and opacity animate, so layout never reflows.
+@ap-spring: cubic-bezier(0.34, 1.45, 0.64, 1);
+
+.views-authoring-panel {
+  transform-origin: var(--ap-origin, right bottom);
+
+  &.anim-enter {
+    animation: ap-pop-in 320ms @ap-spring both;
+  }
+  &.anim-exit {
+    animation: ap-pop-out 170ms cubic-bezier(0.4, 0, 1, 1) both;
+  }
+  &.anim-expand-0 {
+    animation: ap-expand-a 260ms @ap-spring both;
+  }
+  &.anim-expand-1 {
+    animation: ap-expand-b 260ms @ap-spring both;
+  }
+  &.anim-collapse-0 {
+    animation: ap-settle-a 200ms @ap-spring both;
+  }
+  &.anim-collapse-1 {
+    animation: ap-settle-b 200ms @ap-spring both;
+  }
+  &.leaving {
+    pointer-events: none;
+  }
+}
+
+@keyframes ap-pop-in {
+  from {
+    opacity: 0;
+    transform: translate(var(--ap-dx, 14px), var(--ap-dy, 14px)) scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ap-pop-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--ap-dx, 14px), var(--ap-dy, 14px)) scale(0.9);
+  }
+}
+
+// Two identical copies of each: alternating the animation-name restarts it on every toggle.
+@keyframes ap-expand-a {
+  from {
+    opacity: 0.4;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ap-expand-b {
+  from {
+    opacity: 0.4;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ap-settle-a {
+  from {
+    opacity: 0.5;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ap-settle-b {
+  from {
+    opacity: 0.5;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ap-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ap-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .views-authoring-panel {
+    &.anim-enter,
+    &.anim-expand-0,
+    &.anim-expand-1,
+    &.anim-collapse-0,
+    &.anim-collapse-1 {
+      animation: ap-fade-in 150ms ease both;
+    }
+    &.anim-exit {
+      animation: ap-fade-out 120ms ease both;
+    }
+    .ap-busy-dots i,
+    .ap-busy-bar span {
+      animation: none;
+    }
+    .ap-busy-label {
+      animation: ap-fade-in 300ms ease both;
+    }
+  }
+}
+
+.views-authoring-panel {
+  // Working card shown in the transcript while the agent builds.
+  .ap-busy {
+    margin: 4px 0 10px;
+    padding: 12px 12px 10px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, fade(@ap-accent, 12%), fade(@ap-accent, 4%));
+    border: 1px solid fade(@ap-accent, 28%);
+  }
+
+  .ap-busy-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ap-busy-dots {
+    display: inline-flex;
+    gap: 4px;
+    flex-shrink: 0;
+
+    i {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: @ap-accent;
+      animation: ap-busy-dot 1.2s ease-in-out infinite;
+
+      &:nth-child(2) {
+        animation-delay: 0.15s;
+      }
+      &:nth-child(3) {
+        animation-delay: 0.3s;
+      }
+    }
+  }
+
+  .ap-busy-label {
+    flex: 1;
+    min-width: 0;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    animation: ap-line-in 450ms ease-out both;
+  }
+
+  .ap-busy-time {
+    color: @ap-muted;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ap-busy-stop {
+    height: 24px;
+    padding: 0 10px;
+  }
+
+  .ap-busy-bar {
+    position: relative;
+    height: 3px;
+    margin-top: 10px;
+    border-radius: 2px;
+    background: fade(@ap-accent, 14%);
+    overflow: hidden;
+
+    span {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 35%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, transparent, @ap-accent, transparent);
+      animation: ap-busy-sweep 1.6s ease-in-out infinite;
+    }
+  }
+
+  .ap-busy-hint {
+    margin-top: 8px;
+    color: @ap-muted;
+    font-size: 12px;
+  }
+
+  // Free-text answer for a question with no suggested choices.
+  .ap-answer {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    margin-top: 10px;
+
+    textarea {
+      flex: 1;
+      min-height: 36px;
+      max-height: 96px;
+      padding: 8px 10px;
+      resize: none;
+      border: 1px solid @ap-border;
+      border-radius: 8px;
+      background: @ap-bg-sunken;
+      color: @ap-text;
+      font-family: inherit;
+      font-size: 13px;
+      line-height: 1.4;
+      outline: none;
+
+      &:focus {
+        border-color: fade(@ap-accent, 60%);
+      }
+      &::placeholder {
+        color: @ap-faint;
+      }
+    }
+
+    .ap-btn {
+      height: 36px;
+    }
+  }
+
+  // With the composer hidden during an examples request, the staged area is the whole footer.
+  &.has-request .ap-staged {
+    padding-bottom: 12px;
+  }
+}
+
+@keyframes ap-busy-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.75);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes ap-busy-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(290%);
+  }
+}
+
+@keyframes ap-line-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

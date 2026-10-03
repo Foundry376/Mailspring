@@ -12,6 +12,12 @@ const MIN_WIDTH = 360;
 const MIN_HEIGHT = 220;
 const COLLAPSED_HEIGHT = 40;
 const COLLAPSED_WIDTH = 380;
+// Matches the ap-pop-out animation in authoring-panel.less.
+const EXIT_MS = 170;
+// A turn that started longer ago than this is a resumed session, not a turn worth timing.
+const MAX_TURN_AGE_MS = 30 * 60 * 1000;
+
+type PanelAnim = 'enter' | 'exit' | 'expand' | 'collapse' | null;
 
 interface Geometry {
   right: number;
@@ -78,11 +84,84 @@ function latestRevision(session: AgentSessionState): RevisionEntry | null {
   return session.revisions.length ? session.revisions[session.revisions.length - 1] : null;
 }
 
+function isBusy(session: AgentSessionState | null) {
+  if (!session || session.pendingRequest) return false;
+  return session.status === 'connecting' || session.status === 'running' || session.working;
+}
+
+// When the agent's current turn began: the user's latest message, so a panel reopened mid-turn
+// still shows the real elapsed time.
+function turnStartedAt(session: AgentSessionState) {
+  for (let i = session.transcript.length - 1; i >= 0; i--) {
+    const entry = session.transcript[i];
+    if (entry.role === 'user') {
+      return entry.ts && Date.now() - entry.ts < MAX_TURN_AGE_MS ? entry.ts : Date.now();
+    }
+  }
+  return Date.now();
+}
+
+// Long agent turns cycle through these so a multi-minute build doesn't look stalled. They're
+// flavor, not progress: concrete phases (previewing, fixing) always take precedence.
+const BUSY_LINES = [
+  'Thinking about layout…',
+  'Testing your view…',
+  'Checking how the data parses…',
+  'Polishing the details…',
+  'Choosing colors that match your theme…',
+  'Wiring up the chart…',
+  'Writing the queries…',
+];
+const EXAMPLES_LINE = 'Reading the examples you shared…';
+const BUSY_LINE_MS = 7000;
+
+function shuffledLineOrder(session: AgentSessionState) {
+  const lastUser = [...session.transcript].reverse().find((e) => e.role === 'user');
+  const lines = [...BUSY_LINES];
+  if (lastUser && lastUser.attachments && lastUser.attachments.length) lines.push(EXAMPLES_LINE);
+  for (let i = lines.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [lines[i], lines[j]] = [lines[j], lines[i]];
+  }
+  return lines;
+}
+
+// The turn opens on a plain description of what's happening, then rotates through `lines`.
+// Distinct lines in a fixed cycle never repeat back to back, including across the wrap.
+function busyLabel(session: AgentSessionState, elapsedMs: number, lines: string[]) {
+  if (session.status === 'connecting') return 'Connecting…';
+  const rev = latestRevision(session);
+  if (rev && rev.status === 'previewing') return `Previewing revision ${rev.revision}…`;
+  if (rev && rev.status !== 'ok') return 'Fixing errors…';
+  const anchor = rev ? 'Updating the view…' : 'Building your view…';
+  const slot = Math.floor(elapsedMs / BUSY_LINE_MS);
+  if (slot === 0 || !lines.length) return anchor;
+  return lines[(slot - 1) % lines.length];
+}
+
+function formatElapsed(ms: number) {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, '0')}`;
+}
+
+// The window corner the panel sits nearest, so it pops out of (and back into) that corner.
+function anchorCorner(g: Geometry) {
+  const height = g.collapsed ? COLLAPSED_HEIGHT : g.height;
+  const centerX = window.innerWidth - g.right - g.width / 2;
+  const centerY = window.innerHeight - g.bottom - height / 2;
+  const left = centerX < window.innerWidth / 2;
+  const top = centerY < window.innerHeight / 2;
+  return {
+    '--ap-origin': `${left ? 'left' : 'right'} ${top ? 'top' : 'bottom'}`,
+    '--ap-dx': left ? '-14px' : '14px',
+    '--ap-dy': top ? '-14px' : '14px',
+  };
+}
+
+// Header status when the agent isn't busy; busy phases come from busyLabel.
 function statusLine(session: AgentSessionState): { text: string; tone: string } {
   const rev = latestRevision(session);
   switch (session.status) {
-    case 'connecting':
-      return { text: 'Connecting…', tone: 'working' };
     case 'budget_reached':
       return { text: 'Spend limit reached', tone: 'warning' };
     case 'terminated':
@@ -93,15 +172,6 @@ function statusLine(session: AgentSessionState): { text: string; tone: string } 
       break;
   }
   if (session.pendingRequest) return { text: 'Waiting for you', tone: 'attention' };
-  if (session.working || session.status === 'running') {
-    if (rev && rev.status === 'previewing') {
-      return { text: `Previewing revision ${rev.revision}…`, tone: 'working' };
-    }
-    if (rev && (rev.status === 'failed' || rev.status === 'timeout')) {
-      return { text: 'Fixing errors automatically…', tone: 'working' };
-    }
-    return { text: rev ? `Building revision ${rev.revision + 1}…` : 'Thinking…', tone: 'working' };
-  }
   if (rev && rev.status === 'ok') return { text: `Ready — revision ${rev.revision}`, tone: 'ok' };
   if (rev && rev.status === 'rejected') return { text: 'Revision rejected', tone: 'error' };
   return { text: 'Idle', tone: 'muted' };
@@ -128,11 +198,21 @@ function Chip({ chip, onRemove }: { chip: ExampleChip; onRemove?: () => void }) 
 }
 
 interface State {
+  // The session being rendered. It outlives the store's active session by EXIT_MS so the
+  // close animation can play.
   session: AgentSessionState | null;
+  leaving: boolean;
+  anim: PanelAnim;
+  // Alternates so re-triggering the same animation restarts it (a changed animation-name does).
+  animFlip: number;
   geometry: Geometry;
   draft: string;
+  answer: string;
   dragDepth: number;
   confirmingInstall: boolean;
+  busySince: number | null;
+  busyLines: string[];
+  now: number;
 }
 
 /**
@@ -148,13 +228,22 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
   _unlistenSource: () => void = null;
   _transcriptEl: HTMLDivElement = null;
   _pointer: { mode: 'move' | 'resize'; x: number; y: number; start: Geometry } = null;
+  _exitTimer: ReturnType<typeof setTimeout> = null;
+  _ticker: ReturnType<typeof setInterval> = null;
 
   state: State = {
     session: null,
+    leaving: false,
+    anim: null,
+    animFlip: 0,
     geometry: clampGeometry(loadGeometry()),
     draft: '',
+    answer: '',
     dragDepth: 0,
     confirmingInstall: false,
+    busySince: null,
+    busyLines: [],
+    now: Date.now(),
   };
 
   componentDidMount() {
@@ -168,18 +257,32 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     if (this._unlistenSource) this._unlistenSource();
     window.removeEventListener('resize', this._onWindowResize);
     this._endPointer();
+    clearTimeout(this._exitTimer);
+    clearInterval(this._ticker);
   }
 
   componentDidUpdate(prevProps, prevState: State) {
     const prev = prevState.session;
     const next = this.state.session;
+
+    // The elapsed timer ticks only while the agent is working.
+    if (this.state.busySince && !this._ticker) {
+      this._ticker = setInterval(() => this.setState({ now: Date.now() }), 1000);
+    } else if (!this.state.busySince && this._ticker) {
+      clearInterval(this._ticker);
+      this._ticker = null;
+    }
+
     const grew =
       next &&
       (!prev ||
         prev.viewId !== next.viewId ||
         prev.transcript.length !== next.transcript.length ||
         prev.attachedExamples.length !== next.attachedExamples.length ||
-        !!prev.pendingRequest !== !!next.pendingRequest);
+        (prev.pendingRequest && prev.pendingRequest.toolUseId) !==
+          (next.pendingRequest && next.pendingRequest.toolUseId) ||
+        isBusy(prev) !== isBusy(next) ||
+        prevState.geometry.collapsed !== this.state.geometry.collapsed);
     if (
       (grew || (this.state.confirmingInstall && !prevState.confirmingInstall)) &&
       this._transcriptEl
@@ -208,11 +311,34 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
   _onStoreChange = () => {
     const source = panelSource();
     const session = source ? source.store.activeSession() : null;
-    this.setState((s) => ({
-      session,
-      confirmingInstall:
-        s.session && session && s.session.viewId === session.viewId ? s.confirmingInstall : false,
-    }));
+
+    if (!session) {
+      // Keep rendering the last session while the close animation plays.
+      if (!this.state.session || this.state.leaving) return;
+      this.setState({ leaving: true, anim: 'exit', busySince: null });
+      clearTimeout(this._exitTimer);
+      this._exitTimer = setTimeout(() => {
+        this.setState({ session: null, leaving: false, anim: null, confirmingInstall: false });
+      }, EXIT_MS);
+      return;
+    }
+
+    clearTimeout(this._exitTimer);
+    this.setState((s) => {
+      const sameView = s.session && !s.leaving && s.session.viewId === session.viewId;
+      const wasBusy = sameView && isBusy(s.session);
+      const busy = isBusy(session);
+      return {
+        session,
+        leaving: false,
+        anim: sameView ? s.anim : 'enter',
+        confirmingInstall: sameView ? s.confirmingInstall : false,
+        answer: sameView && session.pendingRequest ? s.answer : '',
+        busySince: !busy ? null : wasBusy && s.busySince ? s.busySince : turnStartedAt(session),
+        busyLines: busy && wasBusy ? s.busyLines : busy ? shuffledLineOrder(session) : [],
+        now: Date.now(),
+      };
+    });
   };
 
   _actions(): SessionActionsLike | null {
@@ -330,22 +456,33 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
 
   _onSend = () => {
     const { session, draft } = this.state;
-    if (!session) return;
+    if (!session || session.pendingRequest) return;
     const text = draft.trim();
-    const pending = session.pendingRequest;
-    if (pending && pending.kind === 'question') {
-      if (!text) return;
-      this.setState({ draft: '' });
-      this._run((a, viewId) => a.answerQuestion(viewId, text));
-      return;
-    }
     if (!text && !session.attachedExamples.length) return;
     this.setState({ draft: '' });
     this._run((a, viewId) => a.sendMessage(viewId, text));
   };
 
+  _onAnswer = () => {
+    const text = this.state.answer.trim();
+    if (!text) return;
+    this.setState({ answer: '' });
+    this._run((a, viewId) => a.answerQuestion(viewId, text));
+  };
+
+  _onAnswerKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      this._onAnswer();
+    }
+  };
+
   _toggleCollapsed = () => {
     const g = this.state.geometry;
+    this.setState((s) => ({
+      anim: g.collapsed ? 'expand' : 'collapse',
+      animFlip: s.animFlip + 1,
+    }));
     this._setGeometry({ ...g, collapsed: !g.collapsed });
   };
 
@@ -355,7 +492,10 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
   };
 
   _renderHeader(session: AgentSessionState) {
-    const status = statusLine(session);
+    // While busy, the header names the phase; the rotating flavor lines stay on the busy card.
+    const status = isBusy(session)
+      ? { text: busyLabel(session, 0, []), tone: 'working' }
+      : statusLine(session);
     const working = session.working || session.status === 'running';
     return (
       <div className="ap-header" onMouseDown={this._onHeaderMouseDown}>
@@ -370,7 +510,8 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
             {(session.usage.maxListCostCents / 100).toFixed(2)}
           </span>
         )}
-        {working && (
+        {/* Expanded, Stop lives on the busy card in the transcript. */}
+        {working && this.state.geometry.collapsed && (
           <button
             className="ap-btn ap-btn-ghost"
             onClick={() => this._run((a, v) => a.interrupt(v))}
@@ -418,7 +559,49 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
         ))}
         {this._renderRevision(session)}
         {this._renderPending(session)}
+        {this._renderBusy(session)}
         {this._renderBanners(session)}
+      </div>
+    );
+  }
+
+  // The agent's first build can take minutes, so working state gets a live card in the chat
+  // rather than only the header dot.
+  _renderBusy(session: AgentSessionState) {
+    if (!isBusy(session)) return null;
+    const elapsed = this.state.busySince ? this.state.now - this.state.busySince : 0;
+    const firstBuild = session.revisions.length === 0 && session.status !== 'connecting';
+    const label = busyLabel(session, elapsed, this.state.busyLines);
+    return (
+      <div className="ap-busy" role="status" aria-live="polite">
+        <div className="ap-busy-line">
+          <span className="ap-busy-dots" aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </span>
+          {/* Keyed by text so each new line crossfades in. */}
+          <span className="ap-busy-label" key={label}>
+            {label}
+          </span>
+          {this.state.busySince && <span className="ap-busy-time">{formatElapsed(elapsed)}</span>}
+          {session.status !== 'connecting' && (
+            <button
+              className="ap-btn ap-btn-ghost ap-busy-stop"
+              onClick={() => this._run((a, v) => a.interrupt(v))}
+            >
+              Stop
+            </button>
+          )}
+        </div>
+        <div className="ap-busy-bar" aria-hidden="true">
+          <span />
+        </div>
+        {firstBuild && (
+          <div className="ap-busy-hint">
+            The first version usually takes a few minutes. You can keep using Mailspring.
+          </div>
+        )}
       </div>
     );
   }
@@ -470,10 +653,11 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
         </div>
       );
     }
+    const hasChoices = pending.choices && pending.choices.length > 0;
     return (
       <div className="ap-request">
         <Markdown text={pending.prompt} />
-        {pending.choices && pending.choices.length > 0 && (
+        {hasChoices ? (
           <div className="ap-actions">
             {pending.choices.map((choice) => (
               <button
@@ -485,8 +669,24 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
               </button>
             ))}
           </div>
+        ) : (
+          <div className="ap-answer">
+            <textarea
+              rows={2}
+              value={this.state.answer}
+              placeholder="Type your answer…"
+              onChange={(e) => this.setState({ answer: e.target.value })}
+              onKeyDown={this._onAnswerKeyDown}
+            />
+            <button
+              className="ap-btn ap-btn-primary"
+              disabled={!this.state.answer.trim()}
+              onClick={this._onAnswer}
+            >
+              Answer
+            </button>
+          </div>
         )}
-        <div className="ap-request-hint">Or type an answer below.</div>
       </div>
     );
   }
@@ -649,14 +849,18 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     );
   }
 
+  // While the agent is asking for something, the request's own controls are the only actions,
+  // so the free-text composer steps aside and the transcript gets the room.
   _renderComposer(session: AgentSessionState) {
     const pending = session.pendingRequest;
-    const placeholder =
-      pending && pending.kind === 'question'
-        ? 'Type your answer…'
-        : session.transcript.length
-          ? 'Tell the agent what to change…'
-          : 'Describe the View you want…';
+    if (pending) {
+      return pending.kind === 'examples' ? (
+        <div className="ap-footer">{this._renderStaged(session)}</div>
+      ) : null;
+    }
+    const placeholder = session.transcript.length
+      ? 'Tell the agent what to change…'
+      : 'Describe the View you want…';
     const disabled = session.status === 'terminated' || session.status === 'budget_reached';
     return (
       <div className="ap-footer">
@@ -683,20 +887,27 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
   }
 
   render() {
-    const { session, geometry, dragDepth } = this.state;
+    const { session, geometry, dragDepth, anim, animFlip, leaving } = this.state;
     if (!session) return null;
 
-    const style: React.CSSProperties = {
+    const style = {
       right: geometry.right,
       bottom: geometry.bottom,
       width: geometry.collapsed ? Math.min(COLLAPSED_WIDTH, geometry.width) : geometry.width,
       height: geometry.collapsed ? COLLAPSED_HEIGHT : geometry.height,
-    };
+      ...anchorCorner(geometry),
+    } as React.CSSProperties;
+
+    const animClass =
+      anim === 'expand' || anim === 'collapse'
+        ? `anim-${anim}-${animFlip % 2}`
+        : anim && `anim-${anim}`;
 
     return (
       <div
-        className={classnames('views-authoring-panel', {
+        className={classnames('views-authoring-panel', animClass, {
           collapsed: geometry.collapsed,
+          leaving,
           'drop-target': dragDepth > 0,
           'has-request': !!session.pendingRequest,
         })}
