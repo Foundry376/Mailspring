@@ -52,6 +52,9 @@ export default class ThemeManager {
   private _systemAccentDisposable: Disposable | null = null;
   private _systemDarkMode = false;
 
+  private _themeStylesWatcher: fs.FSWatcher | null = null;
+  private _themeStylesReloadTimer: ReturnType<typeof setTimeout> | null = null;
+
   constructor({ packageManager, resourcePath, configDirPath, safeMode }) {
     this.packageManager = packageManager;
     this.resourcePath = resourcePath;
@@ -237,6 +240,40 @@ export default class ThemeManager {
 
     this.themeValueCache = {};
     this.activeThemePackage = next;
+    this.watchActiveThemeStyles();
+  }
+
+  // Watch the active theme's stylesheets and recompile LESS when they change
+  // on disk, so edits made outside the app - a theme developer iterating on a
+  // theme, or an external tool regenerating one (e.g. syncing the OS color
+  // palette) - appear in running windows without a restart. Packaged themes
+  // live inside the app archive, which cannot change at runtime, so only
+  // themes on the real filesystem are watched.
+  private watchActiveThemeStyles() {
+    if (this._themeStylesWatcher) {
+      this._themeStylesWatcher.close();
+      this._themeStylesWatcher = null;
+    }
+    const active = this.getActiveTheme();
+    if (!active) return;
+
+    const stylesPath = active.getStylesheetsPath();
+    if (stylesPath.includes('.asar') || !fs.existsSync(stylesPath)) return;
+
+    try {
+      this._themeStylesWatcher = fs.watch(stylesPath, (_eventType, filename) => {
+        if (filename && !/\.(less|css)$/.test(filename)) return;
+        // Debounce: regenerating a theme rewrites several files in quick
+        // succession, and one recompile covers all of them.
+        if (this._themeStylesReloadTimer) clearTimeout(this._themeStylesReloadTimer);
+        this._themeStylesReloadTimer = setTimeout(() => {
+          this._themeStylesReloadTimer = null;
+          this.updateThemePackageAndRecomputeLESS();
+        }, 100);
+      });
+    } catch (err) {
+      console.warn(`Unable to watch theme stylesheets at ${stylesPath}: ${err.message}`);
+    }
   }
 
   getImportPaths() {
