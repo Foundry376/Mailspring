@@ -532,7 +532,10 @@ class AgentSessionStoreImpl extends MailspringStore {
         {
           id: localId('examples'),
           role: 'user',
-          text: localized('Shared %@ examples', examples.length),
+          text:
+            examples.length === 1
+              ? localized('Shared 1 example')
+              : localized('Shared %@ examples', examples.length),
           attachments: examples.map(chipFor),
           ts: Date.now(),
         },
@@ -653,27 +656,28 @@ class AgentSessionStoreImpl extends MailspringStore {
 
 export const AgentSessionStore = new AgentSessionStoreImpl();
 
-/** The actions the authoring panel and entry points call. */
+/** The actions the authoring panel and entry points call. All return promises, including
+ * the ones the store implements synchronously, so callers can chain `.catch`. */
 export const AgentActions = {
-  start: (opts: { viewId: string; name: string; request: string; examples?: string[] }) =>
+  start: async (opts: { viewId: string; name: string; request: string; examples?: string[] }) =>
     AgentSessionStore.start(opts),
-  resume: (viewId: string, name: string) => AgentSessionStore.resume(viewId, name),
-  setActive: (viewId: string | null) => AgentSessionStore.setActive(viewId),
-  sendMessage: (viewId: string, text: string) => AgentSessionStore.sendMessage(viewId, text),
-  attachThreads: (viewId: string, threadIds: string[]) =>
+  resume: async (viewId: string, name: string) => AgentSessionStore.resume(viewId, name),
+  setActive: async (viewId: string | null) => AgentSessionStore.setActive(viewId),
+  sendMessage: async (viewId: string, text: string) => AgentSessionStore.sendMessage(viewId, text),
+  attachThreads: async (viewId: string, threadIds: string[]) =>
     AgentSessionStore.attachThreads(viewId, threadIds),
-  removeAttachment: (viewId: string, messageId: string) =>
+  removeAttachment: async (viewId: string, messageId: string) =>
     AgentSessionStore.removeAttachment(viewId, messageId),
-  submitExamples: (viewId: string) => AgentSessionStore.submitExamples(viewId),
-  skipExamples: (viewId: string) => AgentSessionStore.skipExamples(viewId),
-  answerQuestion: (viewId: string, answer: string) =>
+  submitExamples: async (viewId: string) => AgentSessionStore.submitExamples(viewId),
+  skipExamples: async (viewId: string) => AgentSessionStore.skipExamples(viewId),
+  answerQuestion: async (viewId: string, answer: string) =>
     AgentSessionStore.answerQuestion(viewId, answer),
-  approveScreenshot: (viewId: string) => AgentSessionStore.approveScreenshot(viewId),
-  declineScreenshot: (viewId: string) => AgentSessionStore.declineScreenshot(viewId),
-  interrupt: (viewId: string) => AgentSessionStore.interrupt(viewId),
-  raiseBudget: (viewId: string) => AgentSessionStore.raiseBudget(viewId),
-  stopBudget: (viewId: string) => AgentSessionStore.stopBudget(viewId),
-  install: (viewId: string) => AgentSessionStore.install(viewId),
-  discard: (viewId: string) => AgentSessionStore.discard(viewId),
-  close: (viewId: string) => AgentSessionStore.close(viewId),
+  approveScreenshot: async (viewId: string) => AgentSessionStore.approveScreenshot(viewId),
+  declineScreenshot: async (viewId: string) => AgentSessionStore.declineScreenshot(viewId),
+  interrupt: async (viewId: string) => AgentSessionStore.interrupt(viewId),
+  raiseBudget: async (viewId: string) => AgentSessionStore.raiseBudget(viewId),
+  stopBudget: async (viewId: string) => AgentSessionStore.stopBudget(viewId),
+  install: async (viewId: string) => AgentSessionStore.install(viewId),
+  discard: async (viewId: string) => AgentSessionStore.discard(viewId),
+  close: async (viewId: string) => AgentSessionStore.close(viewId),
 };

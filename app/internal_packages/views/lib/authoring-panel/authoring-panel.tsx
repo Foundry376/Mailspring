@@ -224,7 +224,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     const actions = this._actions();
     const session = this.state.session;
     if (!actions || !session) return;
-    fn(actions, session.viewId).catch((err) => {
+    Promise.resolve(fn(actions, session.viewId)).catch((err) => {
       console.warn(`Views authoring panel: ${err.message}`);
     });
   }
