@@ -219,9 +219,12 @@ interface SessionRuntime {
    * Set when the backend has no usable session for the View: `none` for a View never built
    * with the agent (a starter or hand-written View), `outdated` for one built with an agent
    * version the backend no longer serves. The next message starts a fresh session seeded
-   * with the View's current code instead of being sent to the old one.
+   * with the View's current code instead of being sent to the old one. `fresh` is the user
+   * choosing to replace a session that reached its turn limit.
    */
-  needsSession: 'none' | 'outdated' | null;
+  needsSession: 'none' | 'outdated' | 'fresh' | null;
+  /** The message a generic `rate_limited` refused, for Retry to send again. */
+  unsent: string | null;
   /** preview_revision calls still running, including signature checks before the preview. */
   previewsRunning: number;
 }
@@ -307,6 +310,7 @@ class AgentSessionStoreImpl extends MailspringStore {
         publicKey: null,
         refreshing: false,
         needsSession: null,
+        unsent: null,
         previewsRunning: 0,
       };
       this.runtimes.set(viewId, rt);
@@ -346,8 +350,79 @@ class AgentSessionStoreImpl extends MailspringStore {
     this.trigger();
   }
 
+  /**
+   * Handles the backend refusing a message the user just sent: the generic rate limit, the
+   * message length cap and the chat's turn limit. The optimistic transcript entry is taken
+   * back and its examples restaged, so nothing the user wrote is lost. Returns false for any
+   * other error, which the caller passes to fail().
+   */
+  private refused(
+    viewId: string,
+    err: any,
+    sent: { entryId: string | null; text: string; examples: Example[] }
+  ) {
+    const code = err instanceof AgentAPIError ? err.code : null;
+    if (code !== 'rate_limited' && code !== 'message_too_long' && code !== 'session_turn_limit') {
+      return false;
+    }
+    const rt = this.runtime(viewId);
+    for (const example of sent.examples) rt.staged.set(example.messageId, example);
+    const details = (err.details as { limit?: number }) || {};
+    this.update(viewId, (s) => {
+      const transcript = sent.entryId
+        ? s.transcript.filter((entry) => entry.id !== sent.entryId)
+        : s.transcript;
+      const next: Partial<AgentSessionState> = {
+        status: s.status === 'connecting' || s.status === 'error' ? 'idle' : s.status,
+        working: false,
+        error: null,
+        transcript,
+        attachedExamples: [...rt.staged.values()].map(chipFor),
+      };
+      if (code === 'rate_limited') {
+        rt.unsent = sent.text;
+        next.notice = {
+          code,
+          action: 'retry',
+          message: err.message || localized('Too many requests. Please try again later.'),
+        };
+      } else {
+        next.returnedDraft = { text: sent.text, seq: (s.returnedDraft?.seq || 0) + 1 };
+        if (code === 'message_too_long') {
+          if (typeof details.limit === 'number') next.messageLimit = details.limit;
+        } else {
+          next.notice = {
+            code,
+            action: 'start_fresh',
+            message:
+              err.message ||
+              localized(
+                "This View's chat has reached its message limit. Start a fresh chat to keep improving it."
+              ),
+          };
+        }
+      }
+      return next;
+    });
+    return true;
+  }
+
   private fail(viewId: string, err: any) {
     const code = err instanceof AgentAPIError ? err.code : 'unknown';
+    if (code === 'rate_limited') {
+      // Deliberately generic: the backend gives no reason, and neither does the panel.
+      this.update(viewId, (s) => ({
+        status: s.status === 'connecting' || s.status === 'error' ? 'idle' : s.status,
+        working: false,
+        error: null,
+        notice: {
+          code,
+          action: 'retry',
+          message: err.message || localized('Too many requests. Please try again later.'),
+        },
+      }));
+      return;
+    }
     if (code === 'no_session' || code === 'session_outdated') {
       this.markNeedsSession(viewId, code === 'no_session' ? 'none' : 'outdated');
       return;
@@ -765,19 +840,22 @@ class AgentSessionStoreImpl extends MailspringStore {
     this.ensure(viewId, name);
     this.setActive(viewId);
     const rt = this.runtime(viewId);
+    const entryId = echo ? localId('user') : null;
     this.update(viewId, (s) => ({
       status: 'connecting',
       working: true,
       error: null,
       limit: null,
+      notice: null,
       intro: null,
-      transcript: echo
-        ? [...s.transcript, { id: localId('user'), role: 'user', text: request, ts: Date.now() }]
+      transcript: entryId
+        ? [...s.transcript, { id: entryId, role: 'user', text: request, ts: Date.now() }]
         : s.transcript,
     }));
+    let all: Example[] = [];
     try {
       const built = examples.length ? await this.d.buildExamples(examples) : [];
-      const all = [...rt.staged.values(), ...built];
+      all = [...rt.staged.values(), ...built];
       rt.staged.clear();
       this.update(viewId, (s) => {
         const transcript = [...s.transcript];
@@ -793,15 +871,57 @@ class AgentSessionStoreImpl extends MailspringStore {
         request,
         examples: all,
         ...(current ? { current } : {}),
+        ...(rt.needsSession === 'fresh' ? { fresh: true } : {}),
       });
       rt.needsSession = null;
+      rt.unsent = null;
       // A new session numbers its revisions from 1 again. Replay protection still holds
       // within the session; across sessions the signature already binds identity and View.
       if (!created.resumed) this.d.setAcceptedRevision(viewId, 0);
       await this.openStream(viewId);
     } catch (err) {
-      this.fail(viewId, err);
+      if (!this.refused(viewId, err, { entryId, text: request, examples: all })) {
+        this.fail(viewId, err);
+      }
     }
+  }
+
+  /** Sends the message a `rate_limited` refused, or reattaches if nothing was being sent. */
+  async retry(viewId: string) {
+    const rt = this.runtime(viewId);
+    const text = rt.unsent;
+    rt.unsent = null;
+    this.update(viewId, () => ({ notice: null }));
+    if (text || rt.staged.size) {
+      await this.sendMessage(viewId, text || '');
+      return;
+    }
+    try {
+      await this.openStream(viewId);
+    } catch {
+      // fail() already recorded the outcome.
+    }
+  }
+
+  /**
+   * After `session_turn_limit`, the user's next message starts a new session for the same
+   * View, seeded with its current code. The old chat stays in the transcript above.
+   */
+  startFresh(viewId: string) {
+    const rt = this.runtime(viewId);
+    rt.needsSession = 'fresh';
+    this.update(viewId, (s) => ({
+      notice: null,
+      transcript: [
+        ...s.transcript,
+        {
+          id: localId('fresh'),
+          role: 'system',
+          text: localized("Your next message starts a fresh chat with this View's current code."),
+          ts: Date.now(),
+        },
+      ],
+    }));
   }
 
   /**
@@ -871,14 +991,17 @@ class AgentSessionStoreImpl extends MailspringStore {
       return;
     }
     rt.staged.clear();
+    rt.unsent = null;
+    const entryId = localId('user');
     this.update(viewId, (s) => ({
       working: true,
       limit: null,
+      notice: null,
       attachedExamples: [],
       transcript: [
         ...s.transcript,
         {
-          id: localId('user'),
+          id: entryId,
           role: 'user',
           text: trimmed,
           ...(examples.length ? { attachments: examples.map(chipFor) } : {}),
@@ -901,7 +1024,7 @@ class AgentSessionStoreImpl extends MailspringStore {
         await this.start({ viewId, name: s ? s.name : viewId, request: trimmed, echo: false });
         return;
       }
-      this.fail(viewId, err);
+      if (!this.refused(viewId, err, { entryId, text: trimmed, examples })) this.fail(viewId, err);
     }
   }
 
@@ -1126,6 +1249,8 @@ export const AgentActions = {
     AgentSessionStore.preview(viewId, name, intro),
   chat: async (viewId: string) => AgentSessionStore.chat(viewId),
   sendMessage: async (viewId: string, text: string) => AgentSessionStore.sendMessage(viewId, text),
+  retry: async (viewId: string) => AgentSessionStore.retry(viewId),
+  startFresh: async (viewId: string) => AgentSessionStore.startFresh(viewId),
   attachThreads: async (viewId: string, threadIds: string[]) =>
     AgentSessionStore.attachThreads(viewId, threadIds),
   removeAttachment: async (viewId: string, messageId: string) =>

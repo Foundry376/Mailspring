@@ -15,7 +15,7 @@ There is one Managed Agents session per (identity, viewId). The backend stores t
 
 | Route | Body | Response |
 |---|---|---|
-| `POST /api/views/agent/sessions` | `{ viewId, name, request, examples: Example[], current?: { manifest, files } }` | `{ viewId, sessionId, resumed: boolean, replaced?: true }` |
+| `POST /api/views/agent/sessions` | `{ viewId, name, request, examples: Example[], current?: { manifest, files }, fresh?: true }` | `{ viewId, sessionId, resumed: boolean, replaced?: true }` |
 | `GET /api/views/agent/sessions/:viewId/events` | (SSE) | stream of `AgentEvent`, see below |
 | `POST /api/views/agent/sessions/:viewId/messages` | `{ text, examples?: Example[] }` | `{ ok: true }` |
 | `POST /api/views/agent/sessions/:viewId/tool-results` | `{ toolUseId, content: ToolContent[], isError?: boolean }` | `{ ok: true }` |
@@ -38,6 +38,10 @@ There is one Managed Agents session per (identity, viewId). The backend stores t
     the View's current code. Opening the panel alone never starts a session.
   - A fresh session numbers its revisions from 1, so the client resets that View's
     last-accepted revision whenever `resumed` is false.
+- **Fresh chats.** After `session_turn_limit`, the client sends `fresh: true` with the
+  user's next message. The backend should then replace the View's session exactly like an
+  outdated one (seeded with `current`, `{ resumed: false, replaced: true }`, not counted as a
+  build).
 - **Budgets.** Every session is created with `budget.max_list_cost` = 200 (cents), or the
   account's remaining spend allowance if that's smaller.
   - `budget: 'raise'` raises the cap by another 200 above the consumed list cost, again capped
@@ -51,7 +55,7 @@ Each account has a build allowance and a spend allowance (Managed Agents list co
 | Plan | Builds | Spend | Period |
 |---|---|---|---|
 | Pro | 10 | $8.00 | UTC month (`monthly`) |
-| Free | 2 | $5.00 | all-time (`unlimited`) |
+| Free | 1 | $2.50 | all-time (`unlimited`) |
 
 `GET /api/views/agent/usage` returns:
 
@@ -72,12 +76,24 @@ Both limits answer HTTP 429 with the details beside `code` and `message`:
 | `quota` | `POST /sessions` (new builds only) | `{ feature: 'view-agent-build', plan, limit, used, period: 'monthly' \| 'unlimited', resetsAt }` |
 | `spend_quota` | `POST /sessions`, `POST …/messages`, `POST …/budget` (`raise`) | `{ feature: 'view-agent-spend', plan, limitCents, usedCents, period, resetsAt }` |
 
-Client behaviour:
+Other refusals the client handles:
+
+| `code` | HTTP | Returned by | Details | Client |
+|---|---|---|---|---|
+| `rate_limited` | 429 | `POST /sessions`, `GET …/events`, `POST …/messages`, `POST …/budget` (`raise`) | none, deliberately: the backend uses it for checks whose reason isn't disclosed | Calm inline notice with the server message and Retry, which re-sends the refused message. No upgrade prompt, no hint of a reason |
+| `message_too_long` | 400 | `POST /sessions`, `POST …/messages` | `{ limit }` | The message goes back into the composer, with "Messages can be up to 4,000 characters — this one is 5,210." The composer also counts from 90% of the limit and blocks Send above it, so this is rarely reached |
+| `session_turn_limit` | 409 | `POST …/messages` | `{ limit }` | Inline notice with the server message and Start fresh; the refused message goes back into the composer, and the next send creates a fresh session (`fresh: true`) |
+
+In each case the refused message is removed from the transcript and its examples are restaged,
+so nothing the user wrote is lost.
+
+Client behaviour for limits:
 - A limit is shown inline in the panel as a notice, not an error. Free accounts are also
   offered Pro; Pro accounts see only the notice and the reset date.
-- The panel header shows the account's spend ("$3.11 of $5.00 used", "$1.20 of $8.00 this
-  month"), with the current chat's own cost as its tooltip. The Views home shows the builds
-  ("2 of 2 free Views used", "3 of 10 Views this month · $1.20 of $8.00").
+- From 75% of the spend allowance, the panel header shows the account's spend ("$1.88 of
+  $2.50 used", "$6.00 of $8.00 this month"), with the current chat's own cost as its tooltip.
+  The Views home shows the builds ("Your first View is free", "3 of 10 Views this month",
+  adding "· $6.00 of $8.00" from 75%).
 - `usage` is fetched when the panel opens, whenever a session goes idle, after a limit
   response, and when the Views home mounts.
 - At a session's budget pause, "Continue" is labelled with what the raise can actually add

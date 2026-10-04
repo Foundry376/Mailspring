@@ -4,6 +4,7 @@ import {
   homeUsageLine,
   limitNotice,
   meterText,
+  messageLengthHint,
   parseUsage,
   raiseStepCents,
 } from '../lib/agent/quota';
@@ -122,6 +123,20 @@ describe('View agent quota', () => {
       const single = (used: number) => ({ ...free(used, 0), builds: { used, limit: 1 } });
       expect(homeUsageLine(single(0))).toBe('Your first View is free');
       expect(homeUsageLine(single(1))).toBe("You've used your free View");
+    });
+  });
+
+  describe('messageLengthHint', () => {
+    it('stays quiet for short messages, counts near the limit and explains once over', () => {
+      expect(messageLengthHint(120)).toBe(null);
+      expect(messageLengthHint(3599)).toBe(null);
+      expect(messageLengthHint(3812)).toEqual({ over: false, text: '3,812 / 4,000' });
+      expect(messageLengthHint(4000)).toEqual({ over: false, text: '4,000 / 4,000' });
+      expect(messageLengthHint(5210)).toEqual({
+        over: true,
+        text: 'Messages can be up to 4,000 characters — this one is 5,210.',
+      });
+      expect(messageLengthHint(2100, 2000).over).toBe(true);
     });
   });
 });

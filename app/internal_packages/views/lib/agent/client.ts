@@ -40,6 +40,8 @@ export interface AgentTransport {
     request: string;
     examples: Example[];
     current?: { manifest: object; files: { [name: string]: string } };
+    /** Replace the View's current session instead of resuming it (after `session_turn_limit`). */
+    fresh?: boolean;
   }): Promise<{ viewId: string; sessionId: string; resumed: boolean; replaced?: boolean }>;
   sendMessage(viewId: string, body: { text: string; examples?: Example[] }): Promise<void>;
   sendToolResult(

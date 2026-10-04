@@ -154,6 +154,25 @@ export interface AgentSessionState {
    * changes. Opening either never creates an agent session; the first message does.
    */
   intro?: 'try' | 'edit' | null;
+  /**
+   * A refusal the user can recover from, shown as a calm notice rather than an error: the
+   * backend's generic `rate_limited` (deliberately without a reason) offers Retry, and
+   * `session_turn_limit` offers a fresh chat for the same View.
+   */
+  notice?: SessionNotice | null;
+  /**
+   * A message the backend refused, handed back to the composer so the user doesn't lose it.
+   * `seq` changes on every hand-back so the panel can tell a new one from one it already took.
+   */
+  returnedDraft?: { text: string; seq: number } | null;
+  /** The backend's message length cap, once a `message_too_long` has reported it. */
+  messageLimit?: number | null;
+}
+
+export interface SessionNotice {
+  code: 'rate_limited' | 'session_turn_limit';
+  message: string;
+  action: 'retry' | 'start_fresh';
 }
 
 export class AgentAPIError extends Error {

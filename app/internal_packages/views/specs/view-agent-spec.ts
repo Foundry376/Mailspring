@@ -294,6 +294,100 @@ describe('Views agent: session store', function () {
     expect((AgentSessionStore as any).d.showUpgrade).not.toHaveBeenCalled();
   });
 
+  const refuse = (code: string, message: string, statusCode: number, details: any = null) =>
+    Promise.reject(new AgentAPIError(message, { statusCode, code, details }));
+
+  it('shows a generic rate limit as a calm notice and retries the refused message', async () => {
+    await start();
+    transport.sendMessage.andReturn(
+      refuse('rate_limited', 'Too many requests. Please try again later.', 429)
+    );
+    await AgentSessionStore.sendMessage(VIEW, 'Add a weekly view');
+    let s = AgentSessionStore.session(VIEW);
+    expect(s.error).toBe(null);
+    expect(s.notice).toEqual({
+      code: 'rate_limited',
+      action: 'retry',
+      message: 'Too many requests. Please try again later.',
+    });
+    expect(s.transcript.some((e) => e.text === 'Add a weekly view')).toBe(false);
+    expect((AgentSessionStore as any).d.showUpgrade).not.toHaveBeenCalled();
+
+    transport.sendMessage.andReturn(Promise.resolve());
+    await AgentSessionStore.retry(VIEW);
+    s = AgentSessionStore.session(VIEW);
+    expect(transport.sendMessage.mostRecentCall.args[1].text).toBe('Add a weekly view');
+    expect(s.notice).toBe(null);
+    expect(s.transcript[s.transcript.length - 1].text).toBe('Add a weekly view');
+  });
+
+  it('keeps a session start that was rate limited ready to retry', async () => {
+    transport.createSession.andReturn(
+      refuse('rate_limited', 'Too many requests. Please try again later.', 429)
+    );
+    await start();
+    let s = AgentSessionStore.session(VIEW);
+    expect(s.status).toBe('idle');
+    expect(s.notice.action).toBe('retry');
+    expect(s.transcript.length).toBe(0);
+    expect(s.attachedExamples.length).toBe(0);
+
+    transport.createSession.andReturn(
+      Promise.resolve({ viewId: VIEW, sessionId: 's', resumed: false })
+    );
+    (AgentSessionStore as any).runtime(VIEW).needsSession = 'none';
+    await AgentSessionStore.retry(VIEW);
+    s = AgentSessionStore.session(VIEW);
+    expect(transport.createSession.mostRecentCall.args[0].request).toBe('Chart my receipts');
+    expect(s.notice).toBe(null);
+  });
+
+  it('hands a too-long message back to the composer instead of losing it', async () => {
+    await start();
+    const long = 'x'.repeat(5210);
+    transport.sendMessage.andReturn(
+      refuse('message_too_long', 'Messages can be up to 4,000 characters.', 400, { limit: 4000 })
+    );
+    await AgentSessionStore.sendMessage(VIEW, long);
+    const s = AgentSessionStore.session(VIEW);
+    expect(s.error).toBe(null);
+    expect(s.notice || null).toBe(null);
+    expect(s.returnedDraft.text).toBe(long);
+    expect(s.messageLimit).toBe(4000);
+    expect(s.transcript.some((e) => e.text === long)).toBe(false);
+  });
+
+  it('offers a fresh chat at the turn limit and starts one on the next message', async () => {
+    await start();
+    transport.sendMessage.andReturn(
+      refuse(
+        'session_turn_limit',
+        "This View's chat has reached its 40-message limit. Start a fresh chat to keep improving it.",
+        409,
+        { limit: 40 }
+      )
+    );
+    await AgentSessionStore.sendMessage(VIEW, 'One more tweak');
+    let s = AgentSessionStore.session(VIEW);
+    expect(s.notice.action).toBe('start_fresh');
+    expect(s.returnedDraft.text).toBe('One more tweak');
+
+    await AgentSessionStore.startFresh(VIEW);
+    s = AgentSessionStore.session(VIEW);
+    expect(s.notice).toBe(null);
+    expect(s.transcript[s.transcript.length - 1].role).toBe('system');
+
+    transport.createSession.reset();
+    transport.createSession.andReturn(
+      Promise.resolve({ viewId: VIEW, sessionId: 's2', resumed: false, replaced: true })
+    );
+    await AgentSessionStore.sendMessage(VIEW, 'One more tweak');
+    const body = transport.createSession.mostRecentCall.args[0];
+    expect(body.fresh).toBe(true);
+    expect(body.request).toBe('One more tweak');
+    expect((AgentSessionStore as any).runtime(VIEW).needsSession).toBe(null);
+  });
+
   it('clears a limit notice when a later message goes through', async () => {
     await start();
     transport.sendMessage.andReturn(

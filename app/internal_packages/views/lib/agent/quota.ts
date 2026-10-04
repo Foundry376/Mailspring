@@ -197,3 +197,36 @@ export function exhaustedNotice(usage: AccountUsage | null, kind: 'build' | 'spe
     used: usage.builds.used,
   });
 }
+
+// ── Message length ───────────────────────────────────────────────────────────
+
+/** The backend's cap on one user message (VIEWS_AGENT_MAX_MESSAGE_CHARS); a 400
+ * `message_too_long` carrying `{ limit }` overrides it. */
+export const MAX_MESSAGE_CHARS = 4000;
+
+/** The composer's count appears only from this share of the limit, so short messages stay quiet. */
+const COUNT_FROM_RATIO = 0.9;
+
+const formatCount = (n: number) => n.toLocaleString('en-US');
+
+/**
+ * What the composer shows under the text box for a message of `length` characters: nothing
+ * until it nears the limit, then a count, then a hint once it's over (and sending is blocked).
+ */
+export function messageLengthHint(
+  length: number,
+  limit = MAX_MESSAGE_CHARS
+): { text: string; over: boolean } | null {
+  if (length > limit) {
+    return {
+      over: true,
+      text: localized(
+        'Messages can be up to %1$@ characters — this one is %2$@.',
+        formatCount(limit),
+        formatCount(length)
+      ),
+    };
+  }
+  if (length < limit * COUNT_FROM_RATIO) return null;
+  return { over: false, text: `${formatCount(length)} / ${formatCount(limit)}` };
+}

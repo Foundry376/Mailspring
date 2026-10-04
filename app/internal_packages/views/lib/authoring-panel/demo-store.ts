@@ -14,7 +14,7 @@ import { AccountUsage, limitNotice } from '../agent/quota';
 // `$m.ViewsAuthoringPanelDemo('building' | 'examples' | 'working' | 'fixing' | 'screenshot' |
 // 'question' | 'answer' | 'ready' | 'history' | 'budget' | 'error' | 'budget-partial' |
 // 'budget-exhausted' | 'limit-free-build' | 'limit-free-spend' | 'limit-pro-build' |
-// 'limit-pro-spend')`, and
+// 'limit-pro-spend' | 'rate-limited' | 'turn-limit' | 'too-long')`, and
 // `$m.ViewsAuthoringPanelDemo(null)` to restore the real store. Entries mirror what lib/agent
 // records: requests, responses and revisions are transcript entries in chronological order.
 
@@ -35,7 +35,10 @@ export type DemoScenario =
   | 'limit-free-build'
   | 'limit-free-spend'
   | 'limit-pro-build'
-  | 'limit-pro-spend';
+  | 'limit-pro-spend'
+  | 'rate-limited'
+  | 'turn-limit'
+  | 'too-long';
 
 const VIEW_ID = 'demo-receipts';
 
@@ -351,6 +354,35 @@ function scenario(name: DemoScenario): AgentSessionState {
         resetsAt: NEXT_MONTH,
       });
       break;
+    case 'rate-limited':
+      afterExamples();
+      s.notice = {
+        code: 'rate_limited',
+        action: 'retry',
+        message: 'Too many requests. Please try again later.',
+      };
+      break;
+    case 'turn-limit':
+      afterExamples();
+      s.notice = {
+        code: 'session_turn_limit',
+        action: 'start_fresh',
+        message:
+          "This View's chat has reached its 40-message limit. Start a fresh chat to keep improving it.",
+      };
+      s.returnedDraft = {
+        text: 'Also show the merchant logo next to each receipt.',
+        seq: Date.now(),
+      };
+      break;
+    case 'too-long':
+      afterExamples();
+      s.messageLimit = 4000;
+      s.returnedDraft = {
+        text: `Here are the details for the chart: ${'receipts and totals by month, '.repeat(175)}`,
+        seq: Date.now(),
+      };
+      break;
     case 'error':
       afterExamples();
       s.status = 'error';
@@ -414,6 +446,17 @@ const demoActions: SessionActionsLike = {
   async setActive(viewId) {
     demoStore.active = viewId;
     demoStore.update(() => {});
+  },
+  async retry() {
+    demoStore.update((s) => {
+      s.notice = null;
+    });
+  },
+  async startFresh() {
+    demoStore.update((s) => {
+      s.notice = null;
+    });
+    log("Your next message starts a fresh chat with this View's current code.");
   },
   async sendMessage(viewId, text) {
     demoStore.update((s) => {

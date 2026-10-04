@@ -9,6 +9,8 @@ import {
   continueLabel,
   exhaustedNotice,
   formatCents,
+  MAX_MESSAGE_CHARS,
+  messageLengthHint,
   meterText,
   raiseStepCents,
 } from '../agent/quota';
@@ -306,6 +308,8 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
   _screenshotTimer: ReturnType<typeof setInterval> = null;
   _composerEl: HTMLTextAreaElement = null;
   _answerEl: HTMLTextAreaElement = null;
+  /** The last refused message the composer took back, so each hand-back is applied once. */
+  _returnedDraftSeq = 0;
 
   state: State = {
     session: null,
@@ -372,6 +376,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     this._syncScreenshotRefresh();
     if (prevState.draft && !this.state.draft) autoGrow(this._composerEl);
     if (prevState.answer && !this.state.answer) autoGrow(this._answerEl);
+    this._takeReturnedDraft();
 
     // The elapsed timer ticks only while the agent is working.
     if (this.state.busySince && !this._ticker) {
@@ -577,11 +582,25 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     }
   };
 
+  /** Puts a message the backend refused back in the composer, unless the user already typed. */
+  _takeReturnedDraft() {
+    const returned = this.state.session && this.state.session.returnedDraft;
+    if (!returned || returned.seq === this._returnedDraftSeq) return;
+    this._returnedDraftSeq = returned.seq;
+    if (this.state.draft.trim()) return;
+    this.setState({ draft: returned.text }, () => autoGrow(this._composerEl));
+  }
+
+  _messageLimit(session: AgentSessionState) {
+    return session.messageLimit || MAX_MESSAGE_CHARS;
+  }
+
   _onSend = () => {
     const { session, draft } = this.state;
     if (!session || session.pendingRequest) return;
     const text = draft.trim();
     if (!text && !session.attachedExamples.length) return;
+    if (text.length > this._messageLimit(session)) return;
     this.setState({ draft: '' });
     this._run((a, viewId) => a.sendMessage(viewId, text));
   };
@@ -1034,6 +1053,33 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
   }
 
   _renderBanners(session: AgentSessionState) {
+    if (session.notice) {
+      const { notice } = session;
+      return (
+        <div className="ap-banner tone-limit">
+          <div>{notice.message}</div>
+          <div className="ap-actions ap-actions-end">
+            {notice.action === 'retry' ? (
+              <button
+                className="ap-btn ap-btn-primary"
+                onClick={() => this._run((a, v) => (a.retry ? a.retry(v) : Promise.resolve()))}
+              >
+                Retry
+              </button>
+            ) : (
+              <button
+                className="ap-btn ap-btn-primary"
+                onClick={() =>
+                  this._run((a, v) => (a.startFresh ? a.startFresh(v) : Promise.resolve()))
+                }
+              >
+                Start fresh
+              </button>
+            )}
+          </div>
+        </div>
+      );
+    }
     if (session.limit) {
       return (
         <div className="ap-banner tone-limit">
@@ -1162,6 +1208,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
         ? 'Tell the agent what to change…'
         : 'Describe the View you want…';
     const disabled = session.status === 'terminated' || session.status === 'budget_reached';
+    const hint = messageLengthHint(this.state.draft.trim().length, this._messageLimit(session));
     return (
       <div className="ap-footer">
         {this._renderReadyBar(session)}
@@ -1181,12 +1228,19 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
           />
           <button
             className="ap-btn ap-btn-primary"
-            disabled={disabled || (!this.state.draft.trim() && !session.attachedExamples.length)}
+            disabled={
+              disabled ||
+              (hint && hint.over) ||
+              (!this.state.draft.trim() && !session.attachedExamples.length)
+            }
             onClick={this._onSend}
           >
             Send
           </button>
         </div>
+        {hint && (
+          <div className={classnames('ap-composer-hint', { over: hint.over })}>{hint.text}</div>
+        )}
       </div>
     );
   }

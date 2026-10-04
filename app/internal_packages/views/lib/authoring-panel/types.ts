@@ -72,6 +72,16 @@ export interface AgentSessionState {
   /** The account's allowance stopped a build, message or budget raise. */
   limit?: LimitNotice | null;
   intro?: 'try' | 'edit' | null;
+  /** A recoverable refusal shown as a calm notice: Retry, or a fresh chat for the View. */
+  notice?: {
+    code: 'rate_limited' | 'session_turn_limit';
+    message: string;
+    action: 'retry' | 'start_fresh';
+  } | null;
+  /** A refused message handed back to the composer; `seq` changes on each hand-back. */
+  returnedDraft?: { text: string; seq: number } | null;
+  /** The backend's message length cap, once reported. */
+  messageLimit?: number | null;
 }
 
 export interface SessionStoreLike {
@@ -86,6 +96,10 @@ export interface SessionStoreLike {
 export interface SessionActionsLike {
   setActive(viewId: string | null): Promise<void>;
   sendMessage(viewId: string, text: string): Promise<void>;
+  /** Re-sends the message a `rate_limited` refused. Optional for older stores. */
+  retry?(viewId: string): Promise<void>;
+  /** Makes the next message start a fresh chat for the View. Optional for older stores. */
+  startFresh?(viewId: string): Promise<void>;
   attachThreads(viewId: string, threadIds: string[]): Promise<void>;
   removeAttachment(viewId: string, messageId: string): Promise<void>;
   submitExamples(viewId: string): Promise<void>;
