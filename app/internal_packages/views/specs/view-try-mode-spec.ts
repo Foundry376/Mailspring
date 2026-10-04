@@ -52,6 +52,7 @@ describe('Views try mode', function () {
       sendToolResult: jasmine.createSpy('sendToolResult').andReturn(Promise.resolve()),
       interrupt: jasmine.createSpy('interrupt').andReturn(Promise.resolve()),
       budget: jasmine.createSpy('budget').andReturn(Promise.resolve({ maxListCostCents: 400 })),
+      usage: jasmine.createSpy('usage').andCallFake(() => Promise.reject(new Error('offline'))),
       publicKey: jasmine.createSpy('publicKey').andReturn(Promise.resolve('')),
       streamEvents: jasmine.createSpy('streamEvents').andCallFake(noSession),
     };

@@ -11,7 +11,14 @@ import { openView } from '../authoring';
 import { Starter, installStarter, listStarters } from './starters';
 import { ThumbnailEvents, thumbnailPath } from './thumbnails';
 import { removeView } from './view-actions';
-import { isBuilding, listenToSessions, newViewId, startAuthoring } from './agent-adapter';
+import {
+  isBuilding,
+  listenToSessions,
+  newViewId,
+  refreshUsage,
+  startAuthoring,
+  usageLine,
+} from './agent-adapter';
 
 // The header's grid-paper backdrop. Alternatives are defined in views-home.less:
 // 'grid-major' (24px with stronger lines every 96px) and 'grid-accent' (the same in the
@@ -66,6 +73,7 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
       () => ThumbnailEvents.removeListener('changed', reload),
       listenToSessions(() => this.forceUpdate()),
     ];
+    refreshUsage();
   }
 
   componentWillUnmount() {
@@ -115,6 +123,11 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
     } catch (err) {
       showError(err);
     }
+  }
+
+  _renderUsage() {
+    const line = usageLine();
+    return line ? <div className="views-home-usage">{line}</div> : null;
   }
 
   _renderCreate() {
@@ -311,6 +324,7 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
           </p>
 
           {this._renderCreate()}
+          {this._renderUsage()}
           {notice && <div className="views-home-notice">{notice}</div>}
 
           <h2>{localized('Your Views')}</h2>

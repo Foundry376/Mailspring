@@ -1,3 +1,4 @@
+import { LimitNotice } from './quota';
 /**
  * Wire and UI types for building a View with the hosted authoring agent. The wire half mirrors
  * docs/plans/views-agent-protocol.md; the rest is the state the floating authoring panel renders.
@@ -145,6 +146,8 @@ export interface AgentSessionState {
   revisions: RevisionEntry[];
   usage: { listCostCents: number; maxListCostCents: number } | null;
   error: { code: string; message: string } | null;
+  /** Set when the account's allowance stopped a build, message or budget raise. */
+  limit?: LimitNotice | null;
   /**
    * How the panel greets a View the user hasn't talked to the agent about yet: `try` for a
    * starter being previewed (offers Install or Chat), `edit` for an existing View opened for

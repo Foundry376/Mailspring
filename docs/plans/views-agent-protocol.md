@@ -21,13 +21,12 @@ There is one Managed Agents session per (identity, viewId). The backend stores t
 | `POST /api/views/agent/sessions/:viewId/tool-results` | `{ toolUseId, content: ToolContent[], isError?: boolean }` | `{ ok: true }` |
 | `POST /api/views/agent/sessions/:viewId/interrupt` | `{}` | `{ ok: true }` |
 | `POST /api/views/agent/sessions/:viewId/budget` | `{ action: 'raise' \| 'stop' }` | `{ ok: true, maxListCostCents }` |
+| `GET /api/views/agent/usage` | | `AccountUsage`, see Limits |
 | `GET /api/views/agent/public-key` | | `{ alg: 'ed25519', publicKey: <base64 SPKI DER> }` (dev convenience; production pins the key in the app) |
 
 - **Creating a session.** `POST /sessions` for a viewId that already has a session resumes
   it: the backend sends `request` as a new user message instead of starting over.
-  - New View builds count against the `view-agent-build` quota: 5 per identity per day.
-  - Over quota returns HTTP 429 with code `quota`, plus `{ feature: 'view-agent-build',
-    limit, period, resetsAt }`.
+  - New View builds count against the account's build allowance (see Limits).
 - **Outdated sessions.** The backend records the agent version each session is pinned to.
   A session on a version older than the backend's minimum compatible version can't produce
   previews the relay accepts, so:
@@ -39,9 +38,51 @@ There is one Managed Agents session per (identity, viewId). The backend stores t
     the View's current code. Opening the panel alone never starts a session.
   - A fresh session numbers its revisions from 1, so the client resets that View's
     last-accepted revision whenever `resumed` is false.
-- **Budgets.** Every session is created with `budget.max_list_cost` = 200 (cents).
-  - `budget: 'raise'` raises the cap by another 200 above the consumed list cost.
+- **Budgets.** Every session is created with `budget.max_list_cost` = 200 (cents), or the
+  account's remaining spend allowance if that's smaller.
+  - `budget: 'raise'` raises the cap by another 200 above the consumed list cost, again capped
+    to the remaining allowance.
   - `budget: 'stop'` leaves the session paused.
+
+## Limits
+
+Each account has a build allowance and a spend allowance (Managed Agents list cost):
+
+| Plan | Builds | Spend | Period |
+|---|---|---|---|
+| Pro | 10 | $8.00 | UTC month (`monthly`) |
+| Free | 2 | $5.00 | all-time (`unlimited`) |
+
+`GET /api/views/agent/usage` returns:
+
+```ts
+type AccountUsage = {
+  plan: 'pro' | 'free';
+  period: string;                 // 'YYYY-MM', or 'unlimited' for the free plan
+  builds: { used: number; limit: number };
+  spend: { usedCents: number; limitCents: number };
+  resetsAt: string | null;        // ISO; null for all-time allowances
+};
+```
+
+Both limits answer HTTP 429 with the details beside `code` and `message`:
+
+| `code` | Returned by | Details |
+|---|---|---|
+| `quota` | `POST /sessions` (new builds only) | `{ feature: 'view-agent-build', plan, limit, used, period: 'monthly' \| 'unlimited', resetsAt }` |
+| `spend_quota` | `POST /sessions`, `POST …/messages`, `POST …/budget` (`raise`) | `{ feature: 'view-agent-spend', plan, limitCents, usedCents, period, resetsAt }` |
+
+Client behaviour:
+- A limit is shown inline in the panel as a notice, not an error. Free accounts are also
+  offered Pro; Pro accounts see only the notice and the reset date.
+- The panel header shows the account's spend ("$3.11 of $5.00 used", "$1.20 of $8.00 this
+  month"), with the current chat's own cost as its tooltip. The Views home shows the builds
+  ("2 of 2 free Views used", "3 of 10 Views this month · $1.20 of $8.00").
+- `usage` is fetched when the panel opens, whenever a session goes idle, after a limit
+  response, and when the Views home mounts.
+- At a session's budget pause, "Continue" is labelled with what the raise can actually add
+  (the usual $2, or what's left of the allowance). With nothing left, the client shows the
+  spend notice instead of asking the backend.
 
 ## Event stream (`AgentEvent`)
 

@@ -459,6 +459,11 @@
   }
 
   .ap-banner {
+    // A plan limit is information, not a failure: accent-tinted like requests.
+    &.tone-limit {
+      border-color: fade(@ap-accent, 40%);
+      background: fade(@ap-accent, 9%);
+    }
     &.tone-warning {
       border-color: fade(@ap-warning, 45%);
       background: fade(@ap-warning, 9%);

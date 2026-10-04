@@ -8,10 +8,13 @@ import {
   TranscriptEntry,
 } from './types';
 import { setPanelSourceOverride } from './store';
+import { AccountUsage, limitNotice } from '../agent/quota';
 
 // A scripted stand-in for `lib/agent`, for seeing every panel state in dev without a backend:
 // `$m.ViewsAuthoringPanelDemo('building' | 'examples' | 'working' | 'fixing' | 'screenshot' |
-// 'question' | 'answer' | 'ready' | 'history' | 'budget' | 'error')`, and
+// 'question' | 'answer' | 'ready' | 'history' | 'budget' | 'error' | 'budget-partial' |
+// 'budget-exhausted' | 'limit-free-build' | 'limit-free-spend' | 'limit-pro-build' |
+// 'limit-pro-spend')`, and
 // `$m.ViewsAuthoringPanelDemo(null)` to restore the real store. Entries mirror what lib/agent
 // records: requests, responses and revisions are transcript entries in chronological order.
 
@@ -26,9 +29,50 @@ export type DemoScenario =
   | 'ready'
   | 'history'
   | 'budget'
-  | 'error';
+  | 'error'
+  | 'budget-partial'
+  | 'budget-exhausted'
+  | 'limit-free-build'
+  | 'limit-free-spend'
+  | 'limit-pro-build'
+  | 'limit-pro-spend';
 
 const VIEW_ID = 'demo-receipts';
+
+const NEXT_MONTH = '2026-11-01T00:00:00.000Z';
+const freeUsage = (used: number, usedCents: number): AccountUsage => ({
+  plan: 'free',
+  period: 'unlimited',
+  builds: { used, limit: 2 },
+  spend: { usedCents, limitCents: 500 },
+  resetsAt: null,
+});
+const proUsage = (used: number, usedCents: number): AccountUsage => ({
+  plan: 'pro',
+  period: '2026-10',
+  builds: { used, limit: 10 },
+  spend: { usedCents, limitCents: 800 },
+  resetsAt: NEXT_MONTH,
+});
+
+/** The account allowance each scenario shows in the header meter. */
+function usageFor(name: DemoScenario): AccountUsage {
+  switch (name) {
+    case 'budget-partial':
+      return freeUsage(1, 420);
+    case 'budget-exhausted':
+    case 'limit-free-spend':
+      return freeUsage(1, 503);
+    case 'limit-free-build':
+      return freeUsage(2, 311);
+    case 'limit-pro-build':
+      return proUsage(10, 412);
+    case 'limit-pro-spend':
+      return proUsage(6, 806);
+    default:
+      return freeUsage(1, 38);
+  }
+}
 
 // A small striped placeholder standing in for a captured preview.
 const PLACEHOLDER_SHOT =
@@ -256,6 +300,57 @@ function scenario(name: DemoScenario): AgentSessionState {
       s.usage = { listCostCents: 203, maxListCostCents: 200 };
       addRevision(s, { revision: 4, status: 'ok', summary: 'Rendered without errors' });
       break;
+    case 'budget-partial':
+    case 'budget-exhausted':
+      afterExamples();
+      s.status = 'budget_reached';
+      s.usage = { listCostCents: 203, maxListCostCents: 200 };
+      addRevision(s, { revision: 2, status: 'ok', summary: 'Rendered without errors' });
+      break;
+    case 'limit-free-build':
+      s.transcript = s.transcript.slice(0, 1);
+      s.limit = limitNotice('quota', {
+        feature: 'view-agent-build',
+        plan: 'free',
+        limit: 2,
+        used: 2,
+        period: 'unlimited',
+        resetsAt: null,
+      });
+      break;
+    case 'limit-free-spend':
+      afterExamples();
+      s.limit = limitNotice('spend_quota', {
+        feature: 'view-agent-spend',
+        plan: 'free',
+        limitCents: 500,
+        usedCents: 503,
+        period: 'unlimited',
+        resetsAt: null,
+      });
+      break;
+    case 'limit-pro-build':
+      s.transcript = s.transcript.slice(0, 1);
+      s.limit = limitNotice('quota', {
+        feature: 'view-agent-build',
+        plan: 'pro',
+        limit: 10,
+        used: 10,
+        period: 'monthly',
+        resetsAt: NEXT_MONTH,
+      });
+      break;
+    case 'limit-pro-spend':
+      afterExamples();
+      s.limit = limitNotice('spend_quota', {
+        feature: 'view-agent-spend',
+        plan: 'pro',
+        limitCents: 800,
+        usedCents: 806,
+        period: 'monthly',
+        resetsAt: NEXT_MONTH,
+      });
+      break;
     case 'error':
       afterExamples();
       s.status = 'error';
@@ -268,6 +363,11 @@ function scenario(name: DemoScenario): AgentSessionState {
 class DemoStore implements SessionStoreLike {
   current: AgentSessionState | null = null;
   active: string | null = null;
+  usage: AccountUsage | null = null;
+
+  accountUsage() {
+    return this.usage;
+  }
   listeners = new Set<() => void>();
 
   session(viewId: string) {
@@ -401,6 +501,12 @@ const demoActions: SessionActionsLike = {
   async stopBudget() {
     log('Stopped at the spend limit.');
   },
+  async refreshUsage() {
+    demoStore.update(() => {});
+  },
+  async showUpgrade() {
+    log('(The upgrade dialog would open here.)');
+  },
   async install() {
     log('Installed.');
   },
@@ -417,6 +523,7 @@ export function ViewsAuthoringPanelDemo(name: DemoScenario | null = 'examples') 
     return 'Restored the real agent store.';
   }
   demoStore.current = scenario(name);
+  demoStore.usage = usageFor(name);
   demoStore.active = VIEW_ID;
   setPanelSourceOverride({ store: demoStore, actions: demoActions });
   demoStore.update(() => {});

@@ -1,3 +1,5 @@
+import { AccountUsage, LimitNotice } from '../agent/quota';
+
 // The panel's view of the agent session. Mirrors the shapes exported by `lib/agent`, which owns
 // the transport; the panel only reads these and calls the actions below.
 
@@ -67,6 +69,8 @@ export interface AgentSessionState {
   revisions: RevisionEntry[];
   usage: { listCostCents: number; maxListCostCents: number } | null;
   error: { code: string; message: string } | null;
+  /** The account's allowance stopped a build, message or budget raise. */
+  limit?: LimitNotice | null;
   intro?: 'try' | 'edit' | null;
 }
 
@@ -74,6 +78,8 @@ export interface SessionStoreLike {
   session(viewId: string): AgentSessionState | null;
   activeViewId(): string | null;
   activeSession(): AgentSessionState | null;
+  /** The account's View-building allowance, when known. Optional for older stores. */
+  accountUsage?(): AccountUsage | null;
   listen(callback: () => void): () => void;
 }
 
@@ -91,6 +97,10 @@ export interface SessionActionsLike {
   declineScreenshot(viewId: string): Promise<void>;
   interrupt(viewId: string): Promise<void>;
   raiseBudget(viewId: string): Promise<void>;
+  /** Re-fetches the account's allowance. Optional for older stores. */
+  refreshUsage?(): Promise<void>;
+  /** Reopens the upgrade prompt for the View's limit notice. Optional for older stores. */
+  showUpgrade?(viewId: string): Promise<void>;
   stopBudget(viewId: string): Promise<void>;
   install(viewId: string): Promise<void>;
   discard(viewId: string): Promise<void>;

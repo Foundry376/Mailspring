@@ -1,13 +1,21 @@
 import fs from 'fs';
 import path from 'path';
 import MailspringStore from 'mailspring-store';
-import moment from 'moment';
-import { DateUtils, FeatureUsageStore, IdentityStore, localized } from 'mailspring-exports';
+import { FeatureUsageStore, IdentityStore, localized } from 'mailspring-exports';
 import { ViewAuthoring, openView } from '../authoring';
 import { hostsFor } from '../authoring/hosts';
 import { installedViews } from '../view-registry';
 import { AgentClient, AgentTransport } from './client';
 import { chipFor, examplesForThreads } from './examples';
+import {
+  AccountUsage,
+  LimitNotice,
+  QuotaDetails,
+  exhaustedNotice,
+  limitNotice,
+  parseUsage,
+  raiseStepCents,
+} from './quota';
 import {
   runClientTool,
   screenshotNote,
@@ -86,40 +94,6 @@ async function captureSettled(viewId: string): Promise<Shot> {
 
 const UPGRADE_ICON = 'mailspring://composer-grammar-check/assets/ic-modal-image@2x.png';
 
-/** The 429 `quota` details from the backend (docs/plans/views-agent-protocol.md). */
-export interface QuotaDetails {
-  feature?: string;
-  limit?: number;
-  period?: string;
-  resetsAt?: string;
-}
-
-/**
- * The upgrade modal's text for a build quota, fully formatted. FeatureUsageStore only fills
- * in its %1$@/%2$@ placeholders for features in the identity's featureUsage, and the build
- * quota is enforced by the backend instead, so nothing here may contain a placeholder.
- */
-export function quotaMessage(details: QuotaDetails = {}, now = moment()) {
-  const { limit, period, resetsAt } = details;
-  const lines = [
-    typeof limit === 'number' && period
-      ? localized('You can build %1$@ Views a %2$@ with the AI assistant.', limit, period)
-      : localized("You've used your free View builds for now."),
-    localized('Upgrade to Pro to build more.'),
-  ];
-  const resets = resetsAt ? moment(resetsAt) : null;
-  if (resets && resets.isValid() && resets.isAfter(now)) {
-    const time = resets.format(DateUtils.getTimeFormat(null));
-    let when: string;
-    if (resets.isSame(now, 'day')) when = localized('today at %@', time);
-    else if (resets.isSame(now.clone().add(1, 'day'), 'day'))
-      when = localized('tomorrow at %@', time);
-    else when = DateUtils.mediumTimeString(resets.toDate());
-    lines.push(localized('Your next free build is available %@.', when));
-  }
-  return lines.join(' ');
-}
-
 export interface AgentStoreDeps {
   transport: AgentTransport;
   identityId: () => string;
@@ -137,7 +111,8 @@ export interface AgentStoreDeps {
   captureForSend: (viewId: string) => Promise<Shot | null>;
   promoteDraft: (viewId: string) => void;
   discardDraft: (viewId: string) => void;
-  showUpgrade: (details: QuotaDetails) => void;
+  /** Offers Pro after a free-plan limit (Pro users only get the inline notice). */
+  showUpgrade: (notice: LimitNotice) => void;
 }
 
 function readBundle(viewId: string) {
@@ -181,10 +156,11 @@ function defaultDeps(): AgentStoreDeps {
     },
     promoteDraft: (viewId) => ViewAuthoring.promoteDraft(viewId),
     discardDraft: (viewId) => ViewAuthoring.discardDraft(viewId),
-    showUpgrade: (details) => {
-      FeatureUsageStore.displayUpgradeModal(details.feature || 'view-agent-build', {
+    showUpgrade: (notice) => {
+      const feature = notice.kind === 'build' ? 'view-agent-build' : 'view-agent-spend';
+      FeatureUsageStore.displayUpgradeModal(notice.details.feature || feature, {
         headerText: '',
-        rechargeText: quotaMessage(details),
+        rechargeText: notice.message,
         iconUrl: UPGRADE_ICON,
       }).catch(() => {});
     },
@@ -258,6 +234,8 @@ class AgentSessionStoreImpl extends MailspringStore {
   private runtimes = new Map<string, SessionRuntime>();
   private active: string | null = null;
   private deps: AgentStoreDeps = null;
+  private usage: AccountUsage | null = null;
+  private usageRequest: Promise<AccountUsage | null> | null = null;
 
   /** Replaces the store's collaborators; used by specs. Clears all sessions. */
   configure(deps: Partial<AgentStoreDeps>) {
@@ -265,6 +243,8 @@ class AgentSessionStoreImpl extends MailspringStore {
     this.sessions.clear();
     this.runtimes.clear();
     this.active = null;
+    this.usage = null;
+    this.usageRequest = null;
     this.deps = { ...defaultDeps(), ...deps };
   }
 
@@ -283,6 +263,34 @@ class AgentSessionStoreImpl extends MailspringStore {
 
   activeSession() {
     return this.active ? this.session(this.active) : null;
+  }
+
+  /** The account's allowance from the last `/usage` fetch, or null before one succeeds. */
+  accountUsage() {
+    return this.usage;
+  }
+
+  /**
+   * Fetches the account's allowance. Concurrent calls share one request, and failures (offline,
+   * signed out) keep the last known value: the meter is informational and the backend enforces.
+   */
+  refreshUsage(): Promise<AccountUsage | null> {
+    if (this.usageRequest) return this.usageRequest;
+    this.usageRequest = (async () => {
+      try {
+        const next = parseUsage(await this.d.transport.usage());
+        if (next) {
+          this.usage = next;
+          this.trigger();
+        }
+      } catch {
+        // Keep the last known allowance.
+      } finally {
+        this.usageRequest = null;
+      }
+      return this.usage;
+    })();
+    return this.usageRequest;
   }
 
   // ── State plumbing ─────────────────────────────────────────────────────────
@@ -319,6 +327,7 @@ class AgentSessionStoreImpl extends MailspringStore {
         attachedExamples: [],
         revisions: [],
         usage: null,
+        limit: null,
         error: null,
       };
       this.sessions.set(viewId, s);
@@ -343,14 +352,31 @@ class AgentSessionStoreImpl extends MailspringStore {
       this.markNeedsSession(viewId, code === 'no_session' ? 'none' : 'outdated');
       return;
     }
-    if (code === 'quota') {
-      this.d.showUpgrade({ feature: 'view-agent-build', ...((err.details as QuotaDetails) || {}) });
+    const notice = limitNotice(code, (err.details as QuotaDetails) || {});
+    if (notice) {
+      this.showLimit(viewId, notice);
+      this.refreshUsage();
+      return;
     }
     this.update(viewId, () => ({
       status: 'error',
       working: false,
       error: { code, message: err.message || String(err) },
     }));
+  }
+
+  /**
+   * A limit isn't an error: the session (if any) is fine, the account is out of allowance. The
+   * panel shows the notice inline; free users are also offered Pro.
+   */
+  private showLimit(viewId: string, notice: LimitNotice) {
+    this.update(viewId, (s) => ({
+      status: s.status === 'connecting' ? 'idle' : s.status,
+      working: false,
+      error: null,
+      limit: notice,
+    }));
+    if (notice.canUpgrade) this.d.showUpgrade(notice);
   }
 
   private markNeedsSession(viewId: string, reason: 'none' | 'outdated') {
@@ -435,6 +461,7 @@ class AgentSessionStoreImpl extends MailspringStore {
           status: event.status,
           working: event.status === 'running',
         }));
+        if (event.status !== 'running') this.refreshUsage();
         return;
       case 'thinking':
         this.update(viewId, () => ({ working: true }));
@@ -742,6 +769,7 @@ class AgentSessionStoreImpl extends MailspringStore {
       status: 'connecting',
       working: true,
       error: null,
+      limit: null,
       intro: null,
       transcript: echo
         ? [...s.transcript, { id: localId('user'), role: 'user', text: request, ts: Date.now() }]
@@ -794,6 +822,7 @@ class AgentSessionStoreImpl extends MailspringStore {
   setActive(viewId: string | null) {
     this.active = viewId;
     this.trigger();
+    if (viewId) this.refreshUsage();
   }
 
   /**
@@ -844,6 +873,7 @@ class AgentSessionStoreImpl extends MailspringStore {
     rt.staged.clear();
     this.update(viewId, (s) => ({
       working: true,
+      limit: null,
       attachedExamples: [],
       transcript: [
         ...s.transcript,
@@ -1003,14 +1033,30 @@ class AgentSessionStoreImpl extends MailspringStore {
   }
 
   async raiseBudget(viewId: string) {
+    // Nothing left to raise into: say so rather than ask the backend to refuse.
+    if (this.usage && raiseStepCents(this.usage) === 0) {
+      const notice = exhaustedNotice(this.usage, 'spend');
+      if (notice) {
+        this.showLimit(viewId, notice);
+        return;
+      }
+    }
     try {
       const { maxListCostCents } = await this.d.transport.budget(viewId, 'raise');
       this.update(viewId, (s) => ({
+        limit: null,
         usage: s.usage ? { ...s.usage, maxListCostCents } : null,
       }));
     } catch (err) {
       this.fail(viewId, err);
     }
+    this.refreshUsage();
+  }
+
+  /** Reopens the upgrade prompt for the View's current limit notice (free plan only). */
+  showUpgrade(viewId: string) {
+    const s = this.session(viewId);
+    if (s && s.limit && s.limit.canUpgrade) this.d.showUpgrade(s.limit);
   }
 
   async stopBudget(viewId: string) {
@@ -1068,6 +1114,10 @@ export const AgentSessionStore = new AgentSessionStoreImpl();
 /** The actions the authoring panel and entry points call. All return promises, including
  * the ones the store implements synchronously, so callers can chain `.catch`. */
 export const AgentActions = {
+  refreshUsage: async () => {
+    await AgentSessionStore.refreshUsage();
+  },
+  showUpgrade: async (viewId: string) => AgentSessionStore.showUpgrade(viewId),
   start: async (opts: { viewId: string; name: string; request: string; examples?: string[] }) =>
     AgentSessionStore.start(opts),
   resume: async (viewId: string, name: string) => AgentSessionStore.resume(viewId, name),

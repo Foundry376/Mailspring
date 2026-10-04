@@ -48,6 +48,8 @@ export interface AgentTransport {
   ): Promise<void>;
   interrupt(viewId: string): Promise<void>;
   budget(viewId: string, action: 'raise' | 'stop'): Promise<{ maxListCostCents: number }>;
+  /** The account's View-building allowance and what it has used, unvalidated. */
+  usage(): Promise<any>;
   publicKey(): Promise<string>;
   /**
    * Streams the session's events until `signal` aborts. Reconnects with Last-Event-ID after a
@@ -138,6 +140,10 @@ export class AgentClient implements AgentTransport {
 
   budget(viewId: string, action: 'raise' | 'stop') {
     return this.request('POST', this.sessionPath(viewId, '/budget'), { action });
+  }
+
+  usage() {
+    return this.request('GET', '/api/views/agent/usage');
   }
 
   async publicKey() {

@@ -4,8 +4,7 @@ import { canonicalJSON, checkSignedRevision } from '../lib/agent/signing';
 import { SSEParser, AgentTransport } from '../lib/agent/client';
 import { buildExample, chipFor } from '../lib/agent/examples';
 import { relayableDiagnostics } from '../lib/agent/tools';
-import moment from 'moment';
-import { AgentSessionStore, quotaMessage, responseText } from '../lib/agent/store';
+import { AgentSessionStore, responseText } from '../lib/agent/store';
 import { AgentAPIError, Example } from '../lib/agent/types';
 
 const IDENTITY = 'identity-1';
@@ -201,6 +200,7 @@ describe('Views agent: session store', function () {
       sendToolResult: jasmine.createSpy('sendToolResult').andReturn(Promise.resolve()),
       interrupt: jasmine.createSpy('interrupt').andReturn(Promise.resolve()),
       budget: jasmine.createSpy('budget').andReturn(Promise.resolve({ maxListCostCents: 400 })),
+      usage: jasmine.createSpy('usage').andCallFake(() => Promise.reject(new Error('offline'))),
       publicKey: jasmine.createSpy('publicKey').andReturn(Promise.resolve(keys.publicKey)),
       streamEvents: jasmine
         .createSpy('streamEvents')
@@ -242,21 +242,108 @@ describe('Views agent: session store', function () {
     expect(s.transcript[0].text).toBe('Chart my receipts');
   });
 
-  it('turns a quota rejection into the upgrade prompt and an error', async () => {
+  it('turns a free build quota into an inline notice and the upgrade prompt', async () => {
     transport.createSession.andReturn(
       Promise.reject(
         new AgentAPIError('Over quota', {
           statusCode: 429,
           code: 'quota',
-          details: { feature: 'view-agent-build', limit: 5, period: 'day' },
+          details: {
+            feature: 'view-agent-build',
+            plan: 'free',
+            limit: 2,
+            used: 2,
+            period: 'unlimited',
+            resetsAt: null,
+          },
         })
       )
     );
     await start();
-    expect(AgentSessionStore.session(VIEW).error.code).toBe('quota');
-    const details = (AgentSessionStore as any).d.showUpgrade.mostRecentCall.args[0];
-    expect(details.feature).toBe('view-agent-build');
-    expect(details.limit).toBe(5);
+    const s = AgentSessionStore.session(VIEW);
+    expect(s.error).toBe(null);
+    expect(s.limit.kind).toBe('build');
+    expect(s.limit.message).toContain("You've used your 2 free Views.");
+    const notice = (AgentSessionStore as any).d.showUpgrade.mostRecentCall.args[0];
+    expect(notice.details.feature).toBe('view-agent-build');
+    expect(notice.canUpgrade).toBe(true);
+  });
+
+  it('shows a Pro spend limit inline without offering an upgrade', async () => {
+    transport.createSession.andReturn(
+      Promise.reject(
+        new AgentAPIError('Over', {
+          statusCode: 429,
+          code: 'spend_quota',
+          details: {
+            feature: 'view-agent-spend',
+            plan: 'pro',
+            limitCents: 800,
+            usedCents: 812,
+            period: 'monthly',
+            resetsAt: '2026-11-01T00:00:00.000Z',
+          },
+        })
+      )
+    );
+    await start();
+    const s = AgentSessionStore.session(VIEW);
+    expect(s.limit.message).toBe(
+      "You've used this month's $8.00 of AI building. It resets on November 1."
+    );
+    expect((AgentSessionStore as any).d.showUpgrade).not.toHaveBeenCalled();
+  });
+
+  it('clears a limit notice when a later message goes through', async () => {
+    await start();
+    transport.sendMessage.andReturn(
+      Promise.reject(
+        new AgentAPIError('Over', {
+          statusCode: 429,
+          code: 'spend_quota',
+          details: { plan: 'free', limitCents: 500, usedCents: 500, period: 'unlimited' },
+        })
+      )
+    );
+    await AgentSessionStore.sendMessage(VIEW, 'More');
+    expect(AgentSessionStore.session(VIEW).limit.kind).toBe('spend');
+    transport.sendMessage.andReturn(Promise.resolve());
+    await AgentSessionStore.sendMessage(VIEW, 'Again');
+    expect(AgentSessionStore.session(VIEW).limit).toBe(null);
+  });
+
+  it('refuses a budget raise locally when the allowance is used up', async () => {
+    await start();
+    transport.usage.andReturn(
+      Promise.resolve({
+        plan: 'free',
+        period: 'unlimited',
+        builds: { used: 1, limit: 2 },
+        spend: { usedCents: 500, limitCents: 500 },
+        resetsAt: null,
+      })
+    );
+    await AgentSessionStore.refreshUsage();
+    await AgentSessionStore.raiseBudget(VIEW);
+    expect(transport.budget).not.toHaveBeenCalled();
+    expect(AgentSessionStore.session(VIEW).limit.kind).toBe('spend');
+  });
+
+  it('caches the account usage and keeps it when a refresh fails', async () => {
+    transport.usage.andReturn(
+      Promise.resolve({
+        plan: 'pro',
+        period: '2026-10',
+        builds: { used: 3, limit: 10 },
+        spend: { usedCents: 120, limitCents: 800 },
+        resetsAt: '2026-11-01T00:00:00.000Z',
+      })
+    );
+    await AgentSessionStore.refreshUsage();
+    expect(AgentSessionStore.accountUsage().spend.usedCents).toBe(120);
+    transport.usage.andCallFake(() => Promise.reject(new Error('offline')));
+    await AgentSessionStore.refreshUsage();
+    expect(AgentSessionStore.accountUsage().builds.used).toBe(3);
   });
 
   it('surfaces no_session from resume, then starts a session on the first message', async () => {
@@ -645,16 +732,7 @@ describe('Views agent: session store', function () {
     expect(s.transcript[3].revision.status).toBe('ok');
   });
 
-  it('formats the build quota message without placeholders', () => {
-    const now = moment('2026-10-02T12:00:00');
-    const text = quotaMessage(
-      { limit: 5, period: 'day', resetsAt: moment(now).add(1, 'day').toISOString() },
-      now
-    );
-    expect(text).toContain('You can build 5 Views a day');
-    expect(text).toContain('tomorrow at');
-    expect(text).not.toContain('%');
-    expect(quotaMessage({}, now)).not.toContain('%');
+  it('words single and plural example responses', () => {
     expect(responseText({ examples: 1 })).toBe('Shared 1 example');
     expect(responseText({ examples: 3 })).toBe('Shared 3 examples');
   });

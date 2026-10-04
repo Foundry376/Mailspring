@@ -1,4 +1,4 @@
-import { AgentActions, AgentSessionStore, newViewId } from '../agent';
+import { AgentActions, AgentSessionStore, homeUsageLine, newViewId } from '../agent';
 
 export { newViewId };
 
@@ -14,4 +14,14 @@ export function isBuilding(viewId: string) {
 
 export function listenToSessions(callback: () => void): () => void {
   return AgentSessionStore.listen(callback);
+}
+
+/** The Views home's allowance line, e.g. "3 of 10 Views this month · $1.20 of $8.00". */
+export function usageLine(): string | null {
+  const usage = AgentSessionStore.accountUsage();
+  return usage ? homeUsageLine(usage) : null;
+}
+
+export function refreshUsage() {
+  AgentActions.refreshUsage();
 }

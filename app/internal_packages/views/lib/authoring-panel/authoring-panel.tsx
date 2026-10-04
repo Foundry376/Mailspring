@@ -5,6 +5,14 @@ import { DragDropTypes } from 'mailspring-exports';
 import { panelSource, onPanelSourceChanged } from './store';
 import { Markdown } from './markdown';
 import {
+  AccountUsage,
+  continueLabel,
+  exhaustedNotice,
+  formatCents,
+  meterText,
+  raiseStepCents,
+} from '../agent/quota';
+import {
   AgentSessionState,
   ExampleChip,
   RevisionEntry,
@@ -226,7 +234,7 @@ function statusLine(session: AgentSessionState): { text: string; tone: string } 
   const rev = latestRevision(session);
   switch (session.status) {
     case 'budget_reached':
-      return { text: 'Spend limit reached', tone: 'warning' };
+      return { text: 'Paused', tone: 'warning' };
     case 'terminated':
       return { text: 'Session ended', tone: 'muted' };
     case 'error':
@@ -277,6 +285,7 @@ interface State {
   busyLines: string[];
   now: number;
   morph: Morph | null;
+  accountUsage: AccountUsage | null;
 }
 
 /**
@@ -312,6 +321,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     busyLines: [],
     now: Date.now(),
     morph: null,
+    accountUsage: null,
   };
 
   componentDidMount() {
@@ -416,6 +426,8 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
   _onStoreChange = () => {
     const source = panelSource();
     const session = source ? source.store.activeSession() : null;
+    const accountUsage = source && source.store.accountUsage ? source.store.accountUsage() : null;
+    if (accountUsage !== this.state.accountUsage) this.setState({ accountUsage });
 
     if (!session) {
       // Keep rendering the last session while the close animation plays.
@@ -620,12 +632,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
           <span className="ap-name">{session.name || 'New View'}</span>
           <span className={classnames('ap-status', `tone-${status.tone}`)}>{status.text}</span>
         </div>
-        {session.usage && !this.state.geometry.collapsed && (
-          <span className="ap-usage" title="Agent spend for this View">
-            ${(session.usage.listCostCents / 100).toFixed(2)} / $
-            {(session.usage.maxListCostCents / 100).toFixed(2)}
-          </span>
-        )}
+        {!this.state.geometry.collapsed && this._renderMeter(session)}
         {/* Expanded, Stop lives on the busy card in the transcript. */}
         {working && this.state.geometry.collapsed && (
           <button
@@ -999,31 +1006,87 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     );
   }
 
-  _renderBanners(session: AgentSessionState) {
-    if (session.status === 'budget_reached') {
-      const u = session.usage;
+  /**
+   * The account's View-building allowance (all Views, this month or all-time); this session's
+   * own spend is the tooltip. Falls back to the session's figure before `/usage` loads.
+   */
+  _renderMeter(session: AgentSessionState) {
+    const account = this.state.accountUsage;
+    const own = session.usage ? formatCents(session.usage.listCostCents) : null;
+    if (account) {
       return (
-        <div className="ap-banner tone-warning">
+        <span
+          className="ap-usage"
+          title={own ? `This View's chat so far: ${own}` : 'AI building used by your account'}
+        >
+          {meterText(account)}
+        </span>
+      );
+    }
+    if (!own) return null;
+    return (
+      <span className="ap-usage" title="This View's chat so far">
+        {own}
+      </span>
+    );
+  }
+
+  _renderBanners(session: AgentSessionState) {
+    if (session.limit) {
+      return (
+        <div className="ap-banner tone-limit">
+          <div>{session.limit.message}</div>
+          {session.limit.canUpgrade && (
+            <div className="ap-actions ap-actions-end">
+              <button
+                className="ap-btn ap-btn-primary"
+                onClick={() =>
+                  this._run((a, v) => (a.showUpgrade ? a.showUpgrade(v) : Promise.resolve()))
+                }
+              >
+                Upgrade to Pro
+              </button>
+            </div>
+          )}
+        </div>
+      );
+    }
+    if (session.status === 'budget_reached') {
+      // The next step is the usual $2, or whatever is left of the account's allowance. With
+      // nothing left, the plan's own limit message replaces Continue.
+      const step = raiseStepCents(this.state.accountUsage);
+      const exhausted = step === 0 ? exhaustedNotice(this.state.accountUsage, 'spend') : null;
+      return (
+        <div className={classnames('ap-banner', exhausted ? 'tone-limit' : 'tone-warning')}>
           <div>
-            This View reached its spend limit
-            {u
-              ? ` ($${(u.listCostCents / 100).toFixed(2)} of $${(u.maxListCostCents / 100).toFixed(2)})`
-              : ''}
-            .
+            {exhausted
+              ? exhausted.message
+              : 'This chat reached its spending step. Continue to keep building.'}
           </div>
-          <div className="ap-actions">
-            <button
-              className="ap-btn ap-btn-primary"
-              onClick={() => this._run((a, v) => a.raiseBudget(v))}
-            >
-              Continue (+$2)
-            </button>
+          <div className="ap-actions ap-actions-end">
             <button
               className="ap-btn ap-btn-ghost"
               onClick={() => this._run((a, v) => a.stopBudget(v))}
             >
               Stop here
             </button>
+            {step > 0 && (
+              <button
+                className="ap-btn ap-btn-primary"
+                onClick={() => this._run((a, v) => a.raiseBudget(v))}
+              >
+                {continueLabel(step)}
+              </button>
+            )}
+            {exhausted && exhausted.canUpgrade && (
+              // With nothing left, raiseBudget records the limit and opens the upgrade prompt.
+              <button
+                className="ap-btn ap-btn-primary"
+                onClick={() => this._run((a, v) => a.raiseBudget(v))}
+              >
+                Upgrade to Pro
+              </button>
+            )}
           </div>
         </div>
       );
