@@ -11,7 +11,7 @@ import {
 } from 'mailspring-exports';
 import MailspringProviderSettings from './mailspring-provider-settings.json';
 import MailcoreProviderSettings from './mailcore-provider-settings.json';
-import dns from 'dns';
+import dns, { SrvRecord } from 'dns';
 import {
   GMAIL_CLIENT_ID,
   GMAIL_CLIENT_SECRET,
@@ -80,6 +80,57 @@ function mxRecordsForDomain(domain) {
   });
 }
 
+interface SRVService {
+  label: string;
+  security: 'SSL / TLS' | 'STARTTLS';
+}
+
+interface SRVServer {
+  host: string;
+  port: number;
+  security: SRVService['security'];
+}
+
+// RFC 6186 service labels, implicit TLS first as RFC 8314 §3 prefers. Every label requires
+// TLS, so a record can never downgrade the account to cleartext (RFC 8314 §5.1).
+const SRV_SERVICES: { imap: SRVService[]; smtp: SRVService[] } = {
+  imap: [
+    { label: '_imaps._tcp', security: 'SSL / TLS' },
+    { label: '_imap._tcp', security: 'STARTTLS' },
+  ],
+  smtp: [
+    { label: '_submissions._tcp', security: 'SSL / TLS' },
+    { label: '_submission._tcp', security: 'STARTTLS' },
+  ],
+};
+
+async function srvServerFor(domain: string, services: SRVService[]): Promise<SRVServer | null> {
+  const results = await Promise.all(
+    services.map(
+      (service) =>
+        new Promise<{ service: SRVService; records: SrvRecord[] }>((resolve) => {
+          dns.resolveSrv(`${service.label}.${domain}`, (err, records) =>
+            resolve({ service, records: err ? [] : records })
+          );
+        })
+    )
+  );
+  for (const { service, records } of results) {
+    // A target of "." means the service is decidedly not offered (RFC 2782).
+    const usable = records.filter((r) => r.name && r.name !== '.' && r.port > 0);
+    if (usable.length === 0) continue;
+    // The lowest priority wins (RFC 2782). Weight spreads load across equal-priority
+    // targets; a one-time setup takes the heaviest instead of a random one.
+    usable.sort((a, b) => a.priority - b.priority || b.weight - a.weight);
+    return {
+      host: usable[0].name.toLowerCase().replace(/\.$/, ''),
+      port: usable[0].port,
+      security: service.security,
+    };
+  }
+  return null;
+}
+
 // Matches the account type presets ("yahoo") and common domains against data derived
 // from Thunderbird's ISPDB.
 function mailspringTemplateFor(domain: string, provider: string) {
@@ -103,7 +154,18 @@ function applyContainerFolderDefault(populated: Account) {
   return populated;
 }
 
+export interface ExpandedAccount {
+  account: Account;
+  // Servers from unsigned DNS SRV records outside the email's domain, which RFC 6186 §6 and
+  // RFC 8314 §5.1 say the user confirms before connecting.
+  confirmServers: boolean;
+}
+
 export async function expandAccountWithCommonSettings(account: Account) {
+  return (await expandAccountForSetup(account)).account;
+}
+
+export async function expandAccountForSetup(account: Account): Promise<ExpandedAccount> {
   const domain = account.emailAddress.split('@').pop().toLowerCase();
   const mxRecords = await mxRecordsForDomain(domain);
   const populated = account.clone();
@@ -154,7 +216,7 @@ export async function expandAccountWithCommonSettings(account: Account) {
       container_folder: '',
     };
     populated.settings = Object.assign(defaults, populated.settings);
-    return populated;
+    return { account: populated, confirmServers: false };
   }
 
   // Resolved before autoconfig is attempted: autoconfig describes IMAP/SMTP connectivity
@@ -164,17 +226,33 @@ export async function expandAccountWithCommonSettings(account: Account) {
   // An OAuth token is only accepted by its provider's servers. The servers in the domain's
   // autoconfig file can be different ones, such as a mail server the domain used before.
   if (!account.usesOAuth() && (await TryThunderbirdAutoconfig(populated, account, mstemplate))) {
-    return applyContainerFolderDefault(populated);
+    return { account: applyContainerFolderDefault(populated), confirmServers: false };
   }
 
+  let confirmServers = false;
   if (mstemplate) {
     console.log(`Using Mailspring Template: ${JSON.stringify(mstemplate, null, 2)}`);
   } else {
-    console.log(`Using Fallback Template`);
+    const [imap, smtp] = await Promise.all([
+      srvServerFor(domain, SRV_SERVICES.imap),
+      srvServerFor(domain, SRV_SERVICES.smtp),
+    ]);
+    confirmServers = [imap, smtp].some(
+      (server) => server && server.host !== domain && !server.host.endsWith(`.${domain}`)
+    );
+    if (imap || smtp) {
+      console.log(`Using SRV Records: ${JSON.stringify({ imap, smtp }, null, 2)}`);
+    } else {
+      console.log(`Using Fallback Template`);
+    }
     mstemplate = {
-      imap_host: `imap.${domain}`,
+      imap_host: imap ? imap.host : `imap.${domain}`,
+      imap_port: imap?.port,
+      imap_security: imap?.security,
       imap_user_format: 'email',
-      smtp_host: `smtp.${domain}`,
+      smtp_host: smtp ? smtp.host : `smtp.${domain}`,
+      smtp_port: smtp?.port,
+      smtp_security: smtp?.security,
       smtp_user_format: 'email',
       container_folder: '',
     };
@@ -219,7 +297,7 @@ export async function expandAccountWithCommonSettings(account: Account) {
   };
   populated.settings = Object.assign(defaults, populated.settings);
 
-  return applyContainerFolderDefault(populated);
+  return { account: applyContainerFolderDefault(populated), confirmServers };
 }
 
 export async function buildGmailAccountFromAuthResponse(code: string) {

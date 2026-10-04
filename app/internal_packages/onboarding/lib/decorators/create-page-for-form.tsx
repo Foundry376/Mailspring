@@ -13,7 +13,7 @@ let didWarnAboutGmailIMAP = false;
 
 const CreatePageForForm = (FormComponent: React.ComponentType<any> & Record<string, any>) => {
   return class Composed extends React.Component<
-    { account: Account },
+    { account: Account; confirmServers?: boolean },
     {
       account: Account;
       submitting?: boolean;
@@ -315,7 +315,10 @@ const CreatePageForForm = (FormComponent: React.ComponentType<any> & Record<stri
           <FormErrorMessage
             log={errorLog}
             message={errorMessage}
-            empty={FormComponent.subtitleLabel(providerConfig)}
+            empty={FormComponent.subtitleLabel(providerConfig, {
+              account,
+              confirmServers: this.props.confirmServers,
+            })}
           />
           {this._renderCredentialsNote()}
           <FormComponent

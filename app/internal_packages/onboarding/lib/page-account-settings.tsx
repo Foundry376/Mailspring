@@ -3,7 +3,7 @@ import { localized, Account, RegExpUtils } from 'mailspring-exports';
 
 import * as OnboardingActions from './onboarding-actions';
 import CreatePageForForm from './decorators/create-page-for-form';
-import { expandAccountWithCommonSettings } from './onboarding-helpers';
+import { expandAccountForSetup } from './onboarding-helpers';
 import FormField from './form-field';
 
 interface AccountBasicSettingsFormProps {
@@ -76,15 +76,16 @@ class AccountBasicSettingsForm extends React.Component<AccountBasicSettingsFormP
       provider,
       settings: { imap_password },
     } = this.props.account;
-    let account = new Account({ name, emailAddress, provider, settings: { imap_password } });
-    account = await expandAccountWithCommonSettings(account);
-    OnboardingActions.setAccount(account);
+    const { account, confirmServers } = await expandAccountForSetup(
+      new Account({ name, emailAddress, provider, settings: { imap_password } })
+    );
+    OnboardingActions.setAccount(account, { confirmServers });
 
-    if (account.settings.imap_host && account.settings.smtp_host) {
+    if (account.settings.imap_host && account.settings.smtp_host && !confirmServers) {
       // expanding the account settings succeeded - try to authenticate
       this.props.onConnect(account);
     } else {
-      // we need the user to provide IMAP/SMTP credentials manually
+      // we need the user to provide IMAP/SMTP credentials manually, or confirm DNS-found servers
       OnboardingActions.moveToPage('account-settings-imap');
     }
   }
