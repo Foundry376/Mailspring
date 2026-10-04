@@ -111,11 +111,17 @@ describe('View agent quota', () => {
     });
 
     it('formats the panel meter and the home line by plan', () => {
-      expect(meterText(free(1, 311))).toBe('$3.11 of $5.00 used');
-      expect(meterText(pro(3, 120))).toBe('$1.20 of $8.00 this month');
+      expect(meterText(free(1, 311))).toBe(null);
+      expect(meterText(free(1, 375))).toBe('$3.75 of $5.00 used');
+      expect(meterText(pro(3, 120))).toBe(null);
+      expect(meterText(pro(3, 700))).toBe('$7.00 of $8.00 this month');
       expect(homeUsageLine(free(2, 311))).toBe('2 of 2 free Views used');
       expect(homeUsageLine(free(5, 311))).toBe('2 of 2 free Views used');
-      expect(homeUsageLine(pro(3, 120))).toBe('3 of 10 Views this month · $1.20 of $8.00');
+      expect(homeUsageLine(pro(3, 120))).toBe('3 of 10 Views this month');
+      expect(homeUsageLine(pro(3, 700))).toBe('3 of 10 Views this month · $7.00 of $8.00');
+      const single = (used: number) => ({ ...free(used, 0), builds: { used, limit: 1 } });
+      expect(homeUsageLine(single(0))).toBe('Your first View is free');
+      expect(homeUsageLine(single(1))).toBe("You've used your free View");
     });
   });
 });

@@ -1013,17 +1013,19 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
   _renderMeter(session: AgentSessionState) {
     const account = this.state.accountUsage;
     const own = session.usage ? formatCents(session.usage.listCostCents) : null;
-    if (account) {
+    const meter = account ? meterText(account) : null;
+    if (meter) {
       return (
         <span
           className="ap-usage"
           title={own ? `This View's chat so far: ${own}` : 'AI building used by your account'}
         >
-          {meterText(account)}
+          {meter}
         </span>
       );
     }
-    if (!own) return null;
+    // Below the warning threshold the header stays quiet; the session's own cost is not shown.
+    if (account || !own) return null;
     return (
       <span className="ap-usage" title="This View's chat so far">
         {own}

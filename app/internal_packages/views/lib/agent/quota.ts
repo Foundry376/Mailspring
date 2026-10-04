@@ -129,8 +129,21 @@ export function continueLabel(cents: number) {
   return localized('Continue +%@', amount);
 }
 
-/** The panel header's account-wide spend, e.g. "$3.11 of $5.00 used". */
+/** Dollar figures are a warning, not a running tally: below this share of the limit they're
+ * hidden so people don't feel they're rationing what they paid for. */
+export const SPEND_WARNING_RATIO = 0.75;
+
+function nearSpendLimit(usage: AccountUsage) {
+  return (
+    usage.spend.limitCents > 0 &&
+    usage.spend.usedCents >= usage.spend.limitCents * SPEND_WARNING_RATIO
+  );
+}
+
+/** The panel header's account-wide spend, e.g. "$2.11 of $2.50 used", once it's near the limit;
+ * null before that. */
 export function meterText(usage: AccountUsage) {
+  if (!nearSpendLimit(usage)) return null;
   const used = formatCents(usage.spend.usedCents);
   const limit = formatCents(usage.spend.limitCents);
   return usage.plan === 'pro'
@@ -142,13 +155,19 @@ export function meterText(usage: AccountUsage) {
 export function homeUsageLine(usage: AccountUsage) {
   const { used, limit } = usage.builds;
   if (usage.plan === 'pro') {
+    const views = localized('%1$@ of %2$@ Views this month', used, limit);
+    if (!nearSpendLimit(usage)) return views;
     return localized(
-      '%1$@ of %2$@ Views this month · %3$@ of %4$@',
-      used,
-      limit,
+      '%1$@ · %2$@ of %3$@',
+      views,
       formatCents(usage.spend.usedCents),
       formatCents(usage.spend.limitCents)
     );
+  }
+  if (limit === 1) {
+    return used >= 1
+      ? localized("You've used your free View")
+      : localized('Your first View is free');
   }
   return localized('%1$@ of %2$@ free Views used', Math.min(used, limit), limit);
 }
