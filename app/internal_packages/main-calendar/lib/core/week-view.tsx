@@ -22,7 +22,7 @@ import {
   tickGenerator,
 } from './week-view-helpers';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
-import { getEventsWithDragPreview } from './calendar-drag-utils';
+import { getEventsWithDragPreview, withCreateDragPreview } from './calendar-drag-utils';
 
 const BUFFER_DAYS = 7; // in each direction
 const DAYS_IN_VIEW = 7;
@@ -226,7 +226,10 @@ export class WeekView extends React.Component<
 
   render() {
     const days = this._daysInView();
-    const events = getEventsWithDragPreview(this.state.events, this.props.dragState);
+    const events = withCreateDragPreview(
+      getEventsWithDragPreview(this.state.events, this.props.dragState),
+      this.props.createDrag
+    );
     const eventsByDay = eventsGroupedByDay(events, days);
     const dayEnds = exclusiveDayEnds(days);
     const todayColumnIdx = days.findIndex((d) => this._isToday(d));

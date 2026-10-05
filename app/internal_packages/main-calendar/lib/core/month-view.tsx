@@ -9,7 +9,7 @@ import { HeaderControls } from './header-controls';
 import { EventOccurrence, eventCoversDate } from './calendar-data-source';
 import { Disposable } from 'rx-core';
 import { MonthViewDayCell } from './month-view-day-cell';
-import { getEventsWithDragPreview } from './calendar-drag-utils';
+import { getEventsWithDragPreview, withCreateDragPreview } from './calendar-drag-utils';
 
 const DAYS_IN_WEEK = 7;
 const MAX_VISIBLE_EVENTS = 5;
@@ -97,7 +97,10 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
 
   _getEventsForDay(day: Moment): EventOccurrence[] {
     const date = CalendarDateUtils.calendarDateFromUnix(day.unix());
-    const events = getEventsWithDragPreview(this.state.events, this.props.dragState);
+    const events = withCreateDragPreview(
+      getEventsWithDragPreview(this.state.events, this.props.dragState),
+      this.props.createDrag
+    );
 
     return events.filter((event) => eventCoversDate(event, date));
   }

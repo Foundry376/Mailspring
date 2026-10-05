@@ -491,3 +491,69 @@ export function formatDragPreviewTime(start: number, end: number, isAllDay: bool
   const endTime = moment.unix(end).format('h:mm A');
   return `${startTime} - ${endTime}`;
 }
+
+/** A press on empty grid space and where the pointer has gone since. */
+export interface CreateDragState {
+  /** The instant under the pointer when it went down, in unix seconds. */
+  anchorTime: number;
+  /** The instant under the pointer now, in unix seconds. */
+  currentTime: number;
+  isAllDay: boolean;
+  /** False until the pointer has travelled a snap interval; a press that has not is a click. */
+  isDragging: boolean;
+  /** The calendar the event would be created on, so the preview paints in its colour. */
+  calendarId: string;
+  accountId: string;
+}
+
+/** New events snap to the quarter hour, which is what the grid lines imply. */
+export const CREATE_DRAG_SNAP_SECONDS = 15 * 60;
+
+/**
+ * The range a create-drag describes, ordered and snapped. The anchor is whichever end the
+ * pointer started at, and a drag that barely moved still describes one snap interval, not an
+ * instant.
+ */
+export function createDragRange(state: CreateDragState): { start: number; end: number } {
+  const snap = (t: number) => Math.round(t / CREATE_DRAG_SNAP_SECONDS) * CREATE_DRAG_SNAP_SECONDS;
+  const from = snap(Math.min(state.anchorTime, state.currentTime));
+  const to = snap(Math.max(state.anchorTime, state.currentTime));
+  return { start: from, end: Math.max(to, from + CREATE_DRAG_SNAP_SECONDS) };
+}
+
+/** The range being drawn, as an occurrence, so it renders through the normal pipeline. */
+export function createNewEventPreview(state: CreateDragState): EventOccurrence {
+  const range = createDragRange(state);
+  // An all-day range's end is the last day the pointer covered; coveredDates wants the
+  // exclusive end, the next day's start.
+  const end = state.isAllDay
+    ? CalendarDateUtils.nextDayStartUnix(CalendarDateUtils.calendarDateFromUnix(range.end))
+    : range.end;
+  const shared = {
+    id: '__new_event_drag_preview',
+    accountId: state.accountId,
+    calendarId: state.calendarId,
+    title: '',
+    description: '',
+    location: '',
+    organizer: null,
+    attendees: [],
+    isDragPreview: true,
+    ...coveredDates(range.start, end, state.isAllDay),
+  } as any;
+
+  return state.isAllDay
+    ? { ...shared, isAllDay: true }
+    : { ...shared, isAllDay: false, start: range.start, end: range.end };
+}
+
+/** A view's events plus the range being drawn, once the pointer has travelled. */
+export function withCreateDragPreview(
+  events: EventOccurrence[],
+  createDrag: CreateDragState | null
+): EventOccurrence[] {
+  if (!createDrag?.isDragging) {
+    return events;
+  }
+  return [...events, createNewEventPreview(createDrag)];
+}
