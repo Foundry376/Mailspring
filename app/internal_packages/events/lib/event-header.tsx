@@ -7,6 +7,9 @@ import {
   Rx,
   Actions,
   AttachmentStore,
+  Account,
+  AccountStore,
+  Calendar,
   File,
   localized,
   DateUtils,
@@ -15,10 +18,18 @@ import {
   Message,
   Event,
   EventRSVPTask,
+  SyncbackEventTask,
   DatabaseStore,
   RegExpUtils,
 } from 'mailspring-exports';
 import ICAL from 'ical.js';
+import {
+  resolveRSVPTarget,
+  resolveAddTo,
+  planRSVPWrite,
+  RSVPTargetResolution,
+} from './rsvp-target';
+
 import { findOneIana } from 'windows-iana';
 
 const moment = require('moment-timezone');
@@ -85,12 +96,26 @@ interface EventHeaderProps {
 }
 
 interface EventHeaderState {
-  icsOriginalData?: string;
-  icsMethod?: 'reply' | 'request' | 'cancel';
-  icsEvent?: ICAL.Event;
-  isOnCalendar?: boolean;
+  /**
+   * The invitation as mailed; the REPLY is built from it (RFC 5546 section 3.2.3). Google
+   * rewrites ORGANIZER on a shared calendar's copy to an `@group.calendar.google.com` id.
+   */
+  inviteIcs?: string;
+  inviteEvent?: ICAL.Event;
   /** Set when the emailed invitation is about one occurrence of a series, in unix seconds. */
   inviteRecurrenceIdStart?: number;
+  icsMethod?: 'reply' | 'request' | 'cancel';
+  /** The synced copy's VEVENT for this invitation when there is one, else the invitation. */
+  icsEvent?: ICAL.Event;
+  /** The synced calendar object `icsEvent` came from. */
+  syncedIcs?: string;
+  isOnCalendar?: boolean;
+  /** Which calendar copy of this event, if any, our response will be written to. */
+  rsvp?: RSVPTargetResolution;
+  /** Where the invitation would be added if we accept and it isn't on a calendar yet. */
+  addTo?: Calendar;
+  /** The calendars that could receive it, so the choice can be changed before answering. */
+  addToChoices?: Calendar[];
   inflight?: ICSParticipantStatus;
 }
 
@@ -110,8 +135,14 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
   state: EventHeaderState = {
     icsEvent: undefined,
     icsMethod: undefined,
-    icsOriginalData: undefined,
+    inviteIcs: undefined,
+    inviteEvent: undefined,
+    inviteRecurrenceIdStart: undefined,
+    syncedIcs: undefined,
     isOnCalendar: false,
+    rsvp: undefined,
+    addTo: undefined,
+    addToChoices: undefined,
     inflight: undefined,
   };
 
@@ -126,68 +157,128 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
   }
 
   componentDidMount() {
-    const { file, message } = this.props;
     this._mounted = true;
-
-    fs.readFile(AttachmentStore.pathForFile(file), async (err, data) => {
-      if (err || !this._mounted) return;
-
-      let parsed: ReturnType<typeof CalendarUtils.parseICSString>;
-      try {
-        parsed = CalendarUtils.parseICSString(data.toString());
-      } catch (e) {
-        console.warn(
-          `EventHeader: Could not parse ICS data from attachment ${file.filename}: ${e.message}`
-        );
-        return;
-      }
-      const { event, root } = parsed;
-
-      const method = root.getFirstPropertyValue('method');
-      const methodLower = (typeof method === 'string' ? method : 'request').toLowerCase();
-      // Normalize to known methods: request, reply, cancel. Default unknown methods to request.
-      const normalizedMethod =
-        methodLower === 'reply' || methodLower === 'cancel' ? methodLower : 'request';
-      const inviteRecurrenceIdStart = event.recurrenceId
-        ? event.recurrenceId.toJSDate().getTime() / 1000
-        : undefined;
-      this.setState({
-        icsEvent: event,
-        icsMethod: normalizedMethod as 'reply' | 'request' | 'cancel',
-        icsOriginalData: data.toString(),
-        inviteRecurrenceIdStart,
-      });
-
-      this._subscription = Rx.Observable.fromQuery(
-        DatabaseStore.findBy<Event>(Event, {
-          icsuid: event.uid,
-          accountId: message.accountId,
-        })
-      ).subscribe((calEvent) => {
-        if (!this._mounted) return;
-        this.setState({ isOnCalendar: !!calEvent });
-        if (!calEvent) return;
-        try {
-          const synced = eventForInvitation(calEvent.ics, inviteRecurrenceIdStart);
-          if (!synced) return;
-          // The reply is built from icsOriginalData. For one occurrence that stays the emailed
-          // copy, which describes it alone; the calendar object would answer for the series.
-          this.setState(
-            inviteRecurrenceIdStart === undefined
-              ? { icsEvent: synced, icsOriginalData: calEvent.ics }
-              : { icsEvent: synced }
-          );
-        } catch (e) {
-          console.warn(`EventHeader: Could not parse ICS data from calendar event: ${e.message}`);
-        }
-      });
-    });
+    this._loadICSAttachment();
   }
 
   componentDidUpdate(prevProps: EventHeaderProps, prevState: EventHeaderState) {
     if (prevState.inflight) {
       this.setState({ inflight: undefined });
     }
+    // The attachment lands on disk when mailsync downloads the body, which can be after mount.
+    if (!this.state.inviteIcs && prevProps.message !== this.props.message) {
+      this._loadICSAttachment();
+    }
+  }
+
+  async _loadICSAttachment() {
+    const { file, message } = this.props;
+
+    let data: string;
+    try {
+      // Mailsync sometimes saves an attachment under a sanitized name only the store can find.
+      const filePath = await AttachmentStore.resolvePathForFile(file);
+      data = await fs.promises.readFile(filePath, 'utf8');
+    } catch (e) {
+      return; // not downloaded yet - componentDidUpdate retries
+    }
+    if (!this._mounted) return;
+
+    let parsed: ReturnType<typeof CalendarUtils.parseICSString>;
+    try {
+      parsed = CalendarUtils.parseICSString(data);
+    } catch (e) {
+      console.warn(
+        `EventHeader: Could not parse ICS data from attachment ${file.filename}: ${e.message}`
+      );
+      return;
+    }
+    const { event, root } = parsed;
+
+    const method = root.getFirstPropertyValue('method');
+    const methodLower = (typeof method === 'string' ? method : 'request').toLowerCase();
+    // Anything but REPLY and CANCEL renders as an invitation, the one method with actions.
+    const normalizedMethod = ['reply', 'cancel'].includes(methodLower) ? methodLower : 'request';
+    this.setState({
+      icsEvent: event,
+      icsMethod: normalizedMethod as EventHeaderState['icsMethod'],
+      inviteIcs: data,
+      inviteEvent: event,
+      inviteRecurrenceIdStart: event.recurrenceId
+        ? event.recurrenceId.toJSDate().getTime() / 1000
+        : undefined,
+    });
+
+    if (this._subscription) {
+      this._subscription.dispose();
+    }
+    this._subscription = Rx.Observable.combineLatest(
+      // Every calendar copy of this UID: it can sit on ours, a room's and a colleague's at once.
+      Rx.Observable.fromQuery(
+        DatabaseStore.findAll<Event>(Event).where({
+          icsuid: event.uid,
+          accountId: message.accountId,
+        })
+      ),
+      Rx.Observable.fromQuery(
+        DatabaseStore.findAll<Calendar>(Calendar).where({ accountId: message.accountId })
+      ),
+      (calEvents: Event[], calendars: Calendar[]) => ({ calEvents, calendars })
+    ).subscribe(({ calEvents, calendars }) => {
+      if (this._mounted) this._onCalendarCopies(calEvents, calendars);
+    });
+  }
+
+  _onCalendarCopies(calEvents: Event[], calendars: Calendar[]) {
+    const addresses = this._accountAddresses();
+    const rsvp = resolveRSVPTarget({ events: calEvents, calendars, addresses });
+    const addTo = resolveAddTo({
+      rsvp,
+      calendars,
+      addresses,
+      organizerUri: this.state.inviteEvent.organizer,
+      current: this.state.addTo,
+    });
+    const next: Partial<EventHeaderState> = {
+      rsvp,
+      addTo: addTo ? addTo.addTo : undefined,
+      addToChoices: addTo ? addTo.choices : undefined,
+      isOnCalendar: calEvents.length > 0,
+    };
+
+    const display = rsvp.target ? rsvp.target.event : calEvents[0];
+    if (display) {
+      try {
+        // An occurrence the copy has no VEVENT for keeps what the email said.
+        const synced = eventForInvitation(display.ics, this.state.inviteRecurrenceIdStart);
+        if (synced) next.icsEvent = synced;
+        next.syncedIcs = display.ics;
+      } catch (e) {
+        console.warn(`EventHeader: Could not parse ICS data from calendar event: ${e.message}`);
+      }
+    }
+    this.setState(next as EventHeaderState);
+  }
+
+  /**
+   * What the REPLY is built from: the calendar copy when there is one, except for an
+   * invitation to one occurrence, which the emailed copy describes alone.
+   */
+  _replyIcs(): string {
+    const { inviteIcs, inviteRecurrenceIdStart, syncedIcs } = this.state;
+    return inviteRecurrenceIdStart === undefined && syncedIcs ? syncedIcs : inviteIcs;
+  }
+
+  /** This account's own address plus any aliases, used to recognise our own calendar. */
+  _accountAddresses(): string[] {
+    const account: Account = AccountStore.accountForId(this.props.message.accountId);
+    if (!account) return [];
+    return [
+      account.emailAddress,
+      ...AccountStore.aliases()
+        .filter((a) => a.accountId === account.id)
+        .map((a) => a.email),
+    ];
   }
 
   render() {
@@ -200,7 +291,6 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     // that can be handled by moments-timezone.
     let startTimezone = findOneIana(icsEvent.startDate.zone.tzid) || icsEvent.startDate.zone.tzid;
     let endTimezone = findOneIana(icsEvent.endDate.zone.tzid) || icsEvent.endDate.zone.tzid;
-    console.log(startTimezone, endTimezone, icsEvent, icsEvent.startDate.toString());
     // Workaround to convert calendar invites sent out from Google calendar with "Z" timezone
     // to IANA timezone that can be handled by moments-timezone.
     if (startTimezone === 'Z') {
@@ -313,7 +403,17 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
   _renderRSVP() {
     const { icsEvent, inflight } = this.state;
     const me = CalendarUtils.selfParticipant(icsEvent, this.props.message.accountId);
-    if (!me) return false;
+    if (!me) {
+      // Invitations addressed to a group or a distribution list name the group as the
+      // attendee, not us, and iTIP gives us no standing to reply on the group's behalf.
+      return (
+        <div className="event-actions event-no-rsvp">
+          {localized(
+            "This invitation was sent to an address that isn't listed as a guest, so there's no RSVP to give."
+          )}
+        </div>
+      );
+    }
 
     let status = me.status;
 
@@ -333,53 +433,112 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
 
     return (
       <div className="event-actions">
-        {actions.map(([actionStatus, actionLabel]) => (
-          <div
-            key={actionStatus}
-            className={`btn btn-large btn-rsvp ${status === actionStatus ? actionStatus : ''}`}
-            onClick={() => this._onRSVP(actionStatus)}
-          >
-            {actionStatus === status || actionStatus !== inflight ? (
-              actionLabel
-            ) : (
-              <RetinaImg
-                width={18}
-                name="sending-spinner.gif"
-                mode={RetinaImg.Mode.ContentPreserve}
-              />
-            )}
-          </div>
-        ))}
+        <div className="event-rsvp-buttons">
+          {actions.map(([actionStatus, actionLabel]) => (
+            <div
+              key={actionStatus}
+              className={`btn btn-large btn-rsvp ${status === actionStatus ? actionStatus : ''}`}
+              onClick={() => this._onRSVP(actionStatus)}
+            >
+              {actionStatus === status || actionStatus !== inflight ? (
+                actionLabel
+              ) : (
+                <RetinaImg
+                  width={18}
+                  name="sending-spinner.gif"
+                  mode={RetinaImg.Mode.ContentPreserve}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+        {this._renderRSVPDestination()}
       </div>
     );
   }
 
+  // The REPLY is emailed whichever copy is ours; this says whether an answer is also recorded.
+  _renderRSVPDestination() {
+    const { rsvp, addTo } = this.state;
+    if (!rsvp) return false;
+
+    if (rsvp.target) {
+      return (
+        <div className="event-rsvp-destination">
+          {localized('Your response will be saved to %@', rsvp.target.calendar.name)}
+        </div>
+      );
+    }
+
+    if (rsvp.problem === 'not-on-a-calendar' && addTo) {
+      const choices = this.state.addToChoices || [];
+      return (
+        <div className="event-rsvp-destination">
+          <span>{localized('Accepting will add this event to')}</span>
+          {choices.length > 1 ? (
+            <select
+              className="event-rsvp-calendar-picker"
+              value={addTo.id}
+              aria-label={localized('Calendar to add this event to')}
+              onChange={(e) =>
+                this.setState({ addTo: choices.find((c) => c.id === e.target.value) })
+              }
+            >
+              {choices.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <span>{addTo.name}</span>
+          )}
+        </div>
+      );
+    }
+
+    const explanation = {
+      'not-on-a-calendar': localized(
+        "This event isn't on any of your calendars, so your response will only be emailed to the organizer."
+      ),
+      'read-only': localized(
+        'This event is only on a read-only calendar, so your response will only be emailed to the organizer.'
+      ),
+      'not-ours': localized(
+        'This event is only on a calendar shared with you by someone else, so your response will only be emailed to the organizer.'
+      ),
+      ambiguous: localized(
+        "This event is on more than one of your calendars, so we can't tell which copy is yours. Your response will only be emailed to the organizer."
+      ),
+    }[rsvp.problem];
+
+    return <div className="event-rsvp-destination event-rsvp-email-only">{explanation}</div>;
+  }
+
   _onRSVP = (status: ICSParticipantStatus) => {
-    const { icsEvent, icsOriginalData, inflight } = this.state;
+    const { inviteEvent, inflight } = this.state;
     if (inflight) return; // prevent double clicks
 
-    const organizerEmail = CalendarUtils.emailFromParticipantURI(icsEvent.organizer);
+    // Addressed by the mailed invitation: Google rewrites ORGANIZER on a shared calendar's copy.
+    const organizerEmail = CalendarUtils.emailFromParticipantURI(inviteEvent.organizer);
     if (!organizerEmail) {
       AppEnv.showErrorDialog(
         localized(
           "Sorry, this event does not have an organizer or the organizer's address is not a valid email address: %@",
-          icsEvent.organizer || '(none)'
+          inviteEvent.organizer || '(none)'
         )
       );
       return;
     }
 
-    // The attendee list in `icsOriginalData` (the emailed .ics attachment) can differ
-    // from the one used to decide whether to show these buttons if a synced calendar
-    // Event later replaced `icsEvent`. EventRSVPTask.forReplying throws if it can't
-    // find us as an attendee in the data it's actually replying with; catch that here
-    // instead of letting it crash the click handler.
+    // EventRSVPTask.forReplying throws if it can't find us as an attendee in the data it's
+    // replying with; catch that here instead of letting it crash the click handler.
     let task: EventRSVPTask;
     try {
       task = EventRSVPTask.forReplying({
         accountId: this.props.message.accountId,
         messageId: this.props.message.id,
-        icsOriginalData,
+        icsOriginalData: this._replyIcs(),
         icsRSVPStatus: status,
         to: organizerEmail,
       });
@@ -395,7 +554,35 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
 
     this.setState({ inflight: status });
     Actions.queueTask(task);
+    this._writeRSVPToCalendar(status);
   };
+
+  // Not undoable: the REPLY already sent cannot be retracted (iTIP has no way to).
+  _writeRSVPToCalendar(status: ICSParticipantStatus) {
+    const { rsvp, addTo, inviteIcs, inviteEvent } = this.state;
+    const { accountId } = this.props.message;
+    // _onRSVP has already built the REPLY from this attendee, so it exists.
+    const me = CalendarUtils.selfParticipant(inviteEvent, accountId);
+    const write = planRSVPWrite({
+      rsvp,
+      addTo,
+      status,
+      myEmail: me.email,
+      inviteIcs,
+      inviteEvent,
+      accountId,
+    });
+    if (!write) return;
+    Actions.queueTask(
+      write.kind === 'update'
+        ? SyncbackEventTask.forUpdating({ event: write.event })
+        : SyncbackEventTask.forCreating({
+            event: write.event,
+            calendarId: write.calendar.id,
+            accountId,
+          })
+    );
+  }
 }
 
 export default EventHeader;

@@ -1,17 +1,24 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import ReactTestUtils from 'react-dom/test-utils';
 import fs from 'fs';
 import moment from 'moment';
 import os from 'os';
 import path from 'path';
 import {
-  Actions,
+  Account,
   AccountStore,
-  Rx,
+  Actions,
   AttachmentStore,
+  Calendar,
   Event,
+  EventRSVPTask,
   File,
   Message,
+  Rx,
+  SyncbackEventTask,
+  Task,
+  Utils,
 } from 'mailspring-exports';
 import { EventHeader, renderLocation } from '../lib/event-header';
 
@@ -208,15 +215,25 @@ describe('EventHeader for an invitation to one occurrence of a series', function
 
   let icsPath: string;
 
-  function render(emailed: string[], calendarIcs: string) {
+  // With `onOwnCalendar`, the copy sits on a writable calendar of ours, so an answer is written.
+  function render(emailed: string[], calendarIcs: string, { onOwnCalendar = false } = {}) {
     icsPath = path.join(os.tmpdir(), `event-header-spec-${process.pid}.ics`);
     fs.writeFileSync(
       icsPath,
       vcalendar(emailed).replace('VERSION:2.0', 'VERSION:2.0\r\nMETHOD:REQUEST')
     );
     spyOn(AttachmentStore, 'pathForFile').andReturn(icsPath);
-    spyOn(Rx.Observable, 'fromQuery').andReturn(
-      Rx.Observable.just(new Event({ id: 'e1', accountId: 'a1', ics: calendarIcs } as any))
+    const mine = new Calendar({ id: 'cal-mine', accountId: 'a1', name: 'me@example.com' } as any);
+    const synced = new Event({
+      id: 'e1',
+      accountId: 'a1',
+      calendarId: onOwnCalendar ? mine.id : undefined,
+      ics: calendarIcs,
+    } as any);
+    spyOn(Rx.Observable, 'fromQuery').andCallFake((query: { _klass: unknown }) =>
+      Rx.Observable.just(
+        query._klass === Event ? [synced] : query._klass === Calendar && onOwnCalendar ? [mine] : []
+      )
     );
     const header = ReactTestUtils.renderIntoDocument(
       <EventHeader
@@ -263,11 +280,28 @@ describe('EventHeader for an invitation to one occurrence of a series', function
   }
 
   beforeEach(function () {
+    const account = new Account({ id: 'a1', emailAddress: 'me@example.com' });
     spyOn(AccountStore, 'accountForEmail').andCallFake((email: string) =>
-      email === 'me@example.com' ? ({ id: 'a1' } as any) : null
+      email === 'me@example.com' ? account : null
     );
+    spyOn(AccountStore, 'accountForId').andReturn(account);
+    spyOn(AccountStore, 'aliases').andReturn([]);
     queueTask = spyOn(Actions, 'queueTask');
   });
+
+  // Clicks Accept and returns the ICS written to our calendar copy.
+  function acceptAndGetWrite(text: ReturnType<typeof render>): string {
+    const accept = ReactTestUtils.scryRenderedDOMComponentsWithClass(text.header, 'btn-rsvp').find(
+      (button) => button.textContent === 'Accept'
+    );
+    ReactTestUtils.Simulate.click(accept);
+    const write = queueTask.calls
+      .map((call) => call.args[0])
+      .find((task) => task instanceof SyncbackEventTask) as SyncbackEventTask;
+    return write.event.ics;
+  }
+  const myLines = (ics: string) =>
+    ics.split(/\r?\n/).filter((l) => l.startsWith('ATTENDEE') && l.includes('me@example.com'));
 
   it('answers for that occurrence alone, not for the series', function () {
     const text = render(EMAILED, vcalendar(SERIES, OTHER_WEEK, SYNCED));
@@ -276,6 +310,29 @@ describe('EventHeader for an invitation to one occurrence of a series', function
       expect(reply.split('BEGIN:VEVENT').length - 1).toBe(1);
       expect(reply).toContain('RECURRENCE-ID:20260915T140000Z');
       expect(reply).not.toContain('RRULE');
+    });
+  });
+
+  it('records the answer on that occurrence of our copy, not on the series', function () {
+    const text = render(EMAILED, vcalendar(SERIES, OTHER_WEEK, SYNCED), { onOwnCalendar: true });
+    runs(() => {
+      const [master, otherWeek, synced] = acceptAndGetWrite(text).split('BEGIN:VEVENT').slice(1);
+      expect(myLines(master)[0]).toContain('PARTSTAT=NEEDS-ACTION');
+      expect(myLines(otherWeek)[0]).toContain('PARTSTAT=NEEDS-ACTION');
+      expect(synced).toContain('SUMMARY:Huddle (as synced)');
+      expect(myLines(synced)[0]).toContain('PARTSTAT=ACCEPTED');
+    });
+  });
+
+  it('adds the emailed occurrence to our copy when it has no entry for it, answered', function () {
+    const text = render(EMAILED, vcalendar(SERIES, OTHER_WEEK), { onOwnCalendar: true });
+    runs(() => {
+      const vevents = acceptAndGetWrite(text).split('BEGIN:VEVENT').slice(1);
+      expect(vevents.length).toBe(3);
+      expect(myLines(vevents[0])[0]).toContain('PARTSTAT=NEEDS-ACTION');
+      expect(vevents[2]).toContain('RECURRENCE-ID:20260915T140000Z');
+      expect(vevents[2]).toContain('DTSTART:20260915T150000Z');
+      expect(myLines(vevents[2])[0]).toContain('PARTSTAT=ACCEPTED');
     });
   });
 
@@ -288,6 +345,211 @@ describe('EventHeader for an invitation to one occurrence of a series', function
       expect(text('event-day')).toBe(dayOf('2025-09-23T14:00:00Z'));
       expect(text('event-title')).toBe('Huddle (as synced)');
       expect(declineAndGetReply(text)).toContain('SUMMARY:Huddle (as synced)');
+    });
+  });
+});
+
+describe('EventHeader answering an invitation', function () {
+  const GROUP_ORGANIZER = 'mailto:c_abc123@group.calendar.google.com';
+  const INVITE = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Test//Test//EN',
+    'METHOD:REQUEST',
+    'BEGIN:VEVENT',
+    'UID:meeting-uid@example.com',
+    'DTSTART:20260301T140000Z',
+    'DTEND:20260301T150000Z',
+    'SUMMARY:Kickoff',
+    'DTSTAMP:20260101T000000Z',
+    'ORGANIZER;CN=Ada:mailto:ada@example.com',
+    'ATTENDEE;CN=Ada;ROLE=CHAIR;PARTSTAT=ACCEPTED:mailto:ada@example.com',
+    'ATTENDEE;CN=Brian;ROLE=REQ-PARTICIPANT;RSVP=TRUE;PARTSTAT=NEEDS-ACTION:mailto:brian@example.com',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n');
+  // Google's copy on a shared calendar: ORGANIZER rewritten to the calendar's own id.
+  const SYNCED = INVITE.replace('METHOD:REQUEST\r\n', '').replace(
+    'mailto:ada@example.com\r\nATTENDEE',
+    `${GROUP_ORGANIZER}\r\nATTENDEE`
+  );
+
+  const account = new Account({ id: 'a1', emailAddress: 'brian@example.com' });
+  const cal = (over: object) => new Calendar({ accountId: 'a1', ...over } as any);
+  const mine = cal({ id: 'cal-mine', name: 'brian@example.com' });
+  const shared = cal({ id: 'cal-shared', name: 'US On Call' });
+  const theirs = cal({ id: 'cal-theirs', name: 'Team', ownership: 'other' });
+  const holidays = cal({ id: 'cal-holidays', name: 'Holidays', readOnly: true });
+  const synced = new Event({
+    id: 'e-mine',
+    accountId: 'a1',
+    calendarId: mine.id,
+    icsuid: 'meeting-uid@example.com',
+    ics: SYNCED.replace('SUMMARY:Kickoff', 'SUMMARY:Kickoff (moved)'),
+  } as any);
+  const onRoom = synced.clone();
+  onRoom.id = 'e-room';
+  onRoom.calendarId = 'cal-room';
+  onRoom.ics = SYNCED.replace('SUMMARY:Kickoff', 'SUMMARY:Kickoff (room copy)');
+
+  let icsPath: string;
+  let header: EventHeader;
+  let queued: Task[];
+
+  beforeEach(function () {
+    icsPath = path.join(os.tmpdir(), `event-header-rsvp-spec-${process.pid}.ics`);
+    fs.writeFileSync(icsPath, INVITE);
+    spyOn(AttachmentStore, 'pathForFile').andReturn(icsPath);
+    spyOn(AccountStore, 'accountForId').andReturn(account);
+    spyOn(AccountStore, 'aliases').andReturn([]);
+    spyOn(AccountStore, 'accountForEmail').andCallFake((email: string) =>
+      Utils.emailIsEquivalent(email, account.emailAddress) ? account : null
+    );
+    queued = [];
+    spyOn(Actions, 'queueTask').andCallFake((task: Task) => queued.push(task));
+    // A real error dialog would block the runner.
+    spyOn(AppEnv, 'showErrorDialog');
+  });
+
+  afterEach(function () {
+    fs.unlinkSync(icsPath);
+  });
+
+  function mount({ events, calendars }: { events: Event[]; calendars: Calendar[] }) {
+    spyOn(Rx.Observable, 'fromQuery').andCallFake((query: { _klass: unknown }) =>
+      Rx.Observable.just(query._klass === Event ? events : calendars)
+    );
+    header = ReactTestUtils.renderIntoDocument(
+      <EventHeader
+        message={new Message({ id: 'm1', accountId: 'a1' })}
+        file={new File({ id: 'f1', filename: 'invite.ics' })}
+      />
+    ) as unknown as EventHeader;
+    waitsFor(() => !!header.state.rsvp);
+  }
+
+  function click(label: string) {
+    const button = ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'btn-rsvp').find(
+      (n) => n.textContent === label
+    );
+    ReactTestUtils.Simulate.click(button);
+  }
+
+  const destination = () =>
+    ReactTestUtils.findRenderedDOMComponentWithClass(header, 'event-rsvp-destination');
+  const unfold = (ics: string) => ics.replace(/\r?\n[ \t]/g, '');
+  const title = () =>
+    ReactTestUtils.findRenderedDOMComponentWithClass(header, 'event-title').textContent;
+
+  it('addresses the reply to the organizer the mailed invitation names, from the synced copy', function () {
+    mount({ events: [synced], calendars: [mine] });
+    runs(() => {
+      expect(title()).toBe('Kickoff (moved)');
+      click('Accept');
+      const reply = queued[0] as EventRSVPTask;
+      expect(reply instanceof EventRSVPTask).toBe(true);
+      expect(reply.toJSON().to).toBe('ada@example.com');
+      expect(reply.ics).toContain('SUMMARY:Kickoff (moved)');
+    });
+  });
+
+  it('also records the answer on our own copy, and says so beforehand', function () {
+    mount({
+      events: [onRoom, synced],
+      calendars: [cal({ id: 'cal-room', name: 'Boardroom' }), mine],
+    });
+    runs(() => {
+      expect(title()).toBe('Kickoff (moved)');
+      expect(destination().textContent).toBe('Your response will be saved to brian@example.com');
+      click('Maybe');
+      const write = queued[1] as SyncbackEventTask;
+      expect(write instanceof SyncbackEventTask).toBe(true);
+      expect(write.event.id).toBe('e-mine');
+      expect(unfold(write.event.ics)).toMatch(
+        /ATTENDEE[^\r\n]*PARTSTAT=TENTATIVE[^\r\n]*brian@example.com/
+      );
+    });
+  });
+
+  it('offers only calendars that could be ours when the invitation has not synced', function () {
+    mount({ events: [], calendars: [theirs, holidays, shared, mine] });
+    runs(() => {
+      const picker = destination().querySelector('select') as HTMLSelectElement;
+      expect(picker.value).toBe(mine.id);
+      expect(Array.from(picker.options).map((o) => o.textContent)).toEqual([
+        'US On Call',
+        'brian@example.com',
+      ]);
+      click('Accept');
+      const write = queued[1] as SyncbackEventTask;
+      expect(write.calendarId).toBe(mine.id);
+      expect(write.event.ics).not.toContain('METHOD');
+    });
+  });
+
+  it('only emails a decline when the invitation is on no calendar', function () {
+    mount({ events: [], calendars: [mine] });
+    runs(() => {
+      expect(Array.from(destination().querySelectorAll('span')).map((n) => n.textContent)).toEqual([
+        'Accepting will add this event to',
+        'brian@example.com',
+      ]);
+      expect(destination().querySelector('select')).toBe(null);
+      expect(
+        ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'event-view-in-calendar').length
+      ).toBe(0);
+      click('Decline');
+      expect(queued.length).toBe(1);
+      expect(queued[0] instanceof EventRSVPTask).toBe(true);
+    });
+  });
+
+  it('still emails the reply when every copy is read-only, and says nothing is recorded', function () {
+    const onHolidays = synced.clone();
+    onHolidays.calendarId = holidays.id;
+    mount({ events: [onHolidays], calendars: [holidays] });
+    runs(() => {
+      expect(title()).toBe('Kickoff (moved)');
+      expect(destination().textContent).toContain('only be emailed to the organizer');
+      click('Accept');
+      expect(queued.length).toBe(1);
+    });
+  });
+
+  it('offers no RSVP on an invitation that lists a group rather than us', function () {
+    fs.writeFileSync(
+      icsPath,
+      INVITE.replace('mailto:brian@example.com', 'mailto:team@example.com')
+    );
+    mount({ events: [], calendars: [mine] });
+    runs(() => {
+      expect(ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'btn-rsvp').length).toBe(0);
+      expect(
+        ReactTestUtils.findRenderedDOMComponentWithClass(header, 'event-no-rsvp').textContent
+      ).toContain("isn't listed as a guest");
+    });
+  });
+
+  it('loads the invitation once mailsync has downloaded it', function () {
+    fs.unlinkSync(icsPath);
+    spyOn(Rx.Observable, 'fromQuery').andReturn(Rx.Observable.just([]));
+    const container = document.createElement('div');
+    const render = (message: Message) =>
+      ReactDOM.render(
+        <EventHeader message={message} file={new File({ id: 'f1', filename: 'invite.ics' })} />,
+        container
+      ) as unknown as EventHeader;
+    header = render(new Message({ id: 'm1', accountId: 'a1' }));
+    waits(50);
+    runs(() => {
+      expect(header.state.inviteIcs).toBe(undefined);
+      fs.writeFileSync(icsPath, INVITE);
+      header = render(new Message({ id: 'm1', accountId: 'a1' }));
+    });
+    waitsFor(() => !!header.state.inviteIcs);
+    runs(() => {
+      expect(title()).toBe('Kickoff');
+      ReactDOM.unmountComponentAtNode(container);
     });
   });
 });
