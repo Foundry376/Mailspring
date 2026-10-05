@@ -74,18 +74,18 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
 
   componentDidMount() {
     this._revealOnFocusGained(false);
-    this._takeFocusOnSelect(false);
+    this._takeFocusIfSelected();
   }
 
   componentDidUpdate(prevProps: CalendarEventProps) {
     this._revealOnFocusGained(prevProps.focused);
-    this._takeFocusOnSelect(prevProps.selected);
+    this._takeFocusIfSelected();
   }
 
   // A moved event is drawn anew under its new id, and its old element took the keyboard focus
   // with it; taking it back keeps the arrow keys moving it. Only from <body>, never from a field.
-  _takeFocusOnSelect(wasSelected: boolean) {
-    if (!this.props.selected || wasSelected || document.activeElement !== document.body) {
+  _takeFocusIfSelected() {
+    if (!this.props.selected || document.activeElement !== document.body) {
       return;
     }
     (ReactDOM.findDOMNode(this) as HTMLElement | null)?.focus({ preventScroll: true });

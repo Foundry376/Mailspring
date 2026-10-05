@@ -46,17 +46,17 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
 
   componentDidMount() {
     this._revealOnFocusGained(false);
-    this._takeFocusOnSelect(false);
+    this._takeFocusIfSelected();
   }
 
   componentDidUpdate(prevProps: MonthViewEventProps) {
     this._revealOnFocusGained(prevProps.focused);
-    this._takeFocusOnSelect(prevProps.selected);
+    this._takeFocusIfSelected();
   }
 
-  // See CalendarEvent._takeFocusOnSelect.
-  _takeFocusOnSelect(wasSelected: boolean) {
-    if (!this.props.selected || wasSelected || document.activeElement !== document.body) {
+  // See CalendarEvent._takeFocusIfSelected.
+  _takeFocusIfSelected() {
+    if (!this.props.selected || document.activeElement !== document.body) {
       return;
     }
     (ReactDOM.findDOMNode(this) as HTMLElement | null)?.focus({ preventScroll: true });
