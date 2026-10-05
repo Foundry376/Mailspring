@@ -333,6 +333,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
             ics: rsvp.target.event.ics,
             senderEmail: this.props.message.from[0] ? this.props.message.from[0].email : null,
             addresses,
+            namesOccurrence: !!this.state.inviteEvent.recurrenceId,
           })
         : undefined;
     const next: Partial<EventHeaderState> = {
@@ -504,12 +505,16 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
         ? localized("This event isn't on a calendar you can edit, so it can't be moved here.")
         : counterProblem === 'not-our-meeting'
           ? localized("You don't organize this event, so only its organizer can move it.")
-          : counterProblem === 'not-from-a-guest'
+          : counterProblem === 'series-without-occurrence'
             ? localized(
-                '%@ is not a guest on this event, so it cannot be moved from here.',
-                proposer
+                "This proposal doesn't say which occurrence of the series it is about, so the series stays as it is."
               )
-            : null;
+            : counterProblem === 'not-from-a-guest'
+              ? localized(
+                  '%@ is not a guest on this event, so it cannot be moved from here.',
+                  proposer
+                )
+              : null;
 
     return (
       <div className="event-actions event-counter">
