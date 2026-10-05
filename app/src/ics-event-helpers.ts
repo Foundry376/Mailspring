@@ -444,16 +444,6 @@ export function createICSString(options: CreateEventOptions): string {
     event.location = options.location;
   }
 
-  // Set organizer
-  if (options.organizer) {
-    const organizer = new ical.Property('organizer');
-    organizer.setValue(`mailto:${options.organizer.email}`);
-    if (options.organizer.name) {
-      organizer.setParameter('cn', options.organizer.name);
-    }
-    vevent.addProperty(organizer);
-  }
-
   // Set attendees
   if (options.attendees) {
     for (const attendee of options.attendees) {
@@ -467,6 +457,9 @@ export function createICSString(options: CreateEventOptions): string {
       prop.setParameter('rsvp', 'TRUE');
       vevent.addProperty(prop);
     }
+  }
+  if (options.organizer) {
+    nameOrganizer(vevent, options.organizer);
   }
 
   // Set recurrence rule
@@ -737,6 +730,7 @@ export function applyEditsToException(
     location?: string;
     description?: string;
     attendees?: AttendeeInput[];
+    organizer?: Organizer;
   }
 ): string {
   const ical = getICAL();
@@ -769,6 +763,9 @@ export function applyEditsToException(
   }
   if (edits.attendees !== undefined) {
     reconcileAttendees(exceptionVevent, edits.attendees);
+  }
+  if (edits.organizer) {
+    nameOrganizer(vcalendar, edits.organizer);
   }
 
   exceptionVevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
@@ -1079,6 +1076,7 @@ export function updateRecurrenceRule(ics: string, rruleString: string | null): s
 }
 
 type AttendeeInput = { email: string; name?: string | null };
+type Organizer = { email: string; name?: string };
 
 /**
  * Guests already on the VEVENT are left exactly as they are, so parameters the editor never
@@ -1111,8 +1109,45 @@ function reconcileAttendees(vevent: ICALComponent, attendees: AttendeeInput[]): 
   }
 }
 
-/** Sets the first VEVENT's guest list to `attendees`; see reconcileAttendees. */
-export function updateAttendees(ics: string, attendees: AttendeeInput[]): string {
+/**
+ * With guests, a VEVENT must name its ORGANIZER (RFC 5545 section 3.8.4.3) and a CalDAV server sends
+ * invitations only for an organizer it hosts (RFC 6638 section 3.2.1); one already named is kept.
+ * The organizer is also an accepted attendee, as Google writes 3962 of 3967 meetings in a live DB.
+ */
+function nameOrganizer(root: ICALComponent, organizer: Organizer): void {
+  const vevents = root.name === 'vevent' ? [root] : root.getAllSubcomponents('vevent');
+  const withGuests = vevents.filter((v) => v.getAllProperties('attendee').length > 0);
+  if (!withGuests.length || vevents.some((v) => v.getFirstProperty('organizer'))) {
+    return;
+  }
+  for (const vevent of vevents) {
+    const prop = vevent.addPropertyWithValue('organizer' as any, `mailto:${organizer.email}`);
+    if (organizer.name) {
+      prop.setParameter('cn', organizer.name);
+    }
+  }
+  const email = organizer.email.toLowerCase();
+  for (const vevent of withGuests) {
+    let mine = vevent
+      .getAllProperties('attendee')
+      .find((p) => emailFromParticipantURI(String(p.getFirstValue())) === email);
+    if (!mine) {
+      mine = vevent.addPropertyWithValue('attendee' as any, `mailto:${organizer.email}`);
+      if (organizer.name) {
+        mine.setParameter('cn', organizer.name);
+      }
+    }
+    mine.setParameter('partstat', 'ACCEPTED');
+    mine.removeParameter('rsvp');
+  }
+}
+
+/** Sets the first VEVENT's guest list to `attendees`; see reconcileAttendees and nameOrganizer. */
+export function updateAttendees(
+  ics: string,
+  attendees: AttendeeInput[],
+  organizer?: Organizer
+): string {
   const ical = getICAL();
   const { root } = parseICSString(ics);
 
@@ -1122,6 +1157,9 @@ export function updateAttendees(ics: string, attendees: AttendeeInput[]): string
   }
 
   reconcileAttendees(vevent, attendees);
+  if (organizer) {
+    nameOrganizer(root, organizer);
+  }
 
   // Update DTSTAMP
   vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
