@@ -14,6 +14,7 @@ import {
   Event,
   EventRSVPTask,
   File,
+  ICSEventHelpers,
   Message,
   Rx,
   SyncbackEventTask,
@@ -395,6 +396,7 @@ describe('EventHeader answering an invitation', function () {
   let icsPath: string;
   let header: EventHeader;
   let queued: Task[];
+  let nearbyBounds: { start: number; end: number };
 
   beforeEach(function () {
     icsPath = path.join(os.tmpdir(), `event-header-rsvp-spec-${process.pid}.ics`);
@@ -415,9 +417,26 @@ describe('EventHeader answering an invitation', function () {
     fs.unlinkSync(icsPath);
   });
 
-  function mount({ events, calendars }: { events: Event[]; calendars: Calendar[] }) {
-    spyOn(Rx.Observable, 'fromQuery').andCallFake((query: { _klass: unknown }) =>
-      Rx.Observable.just(query._klass === Event ? events : calendars)
+  function mount({
+    events,
+    calendars,
+    nearby = [],
+  }: {
+    events: Event[];
+    calendars: Calendar[];
+    nearby?: Event[];
+  }) {
+    spyOn(Rx.Observable, 'fromQuery').andCallFake(
+      (query: { _klass: unknown; _matchers: { attr: { modelKey: string }; val: number }[] }) => {
+        const keys = query._matchers.map((m) => m.attr && m.attr.modelKey);
+        if (query._klass !== Event) return Rx.Observable.just(calendars);
+        if (keys.includes('icsuid')) return Rx.Observable.just(events);
+        nearbyBounds = {
+          start: query._matchers.find((m) => m.attr.modelKey === 'recurrenceEnd').val,
+          end: query._matchers.find((m) => m.attr.modelKey === 'recurrenceStart').val,
+        };
+        return Rx.Observable.just(nearby);
+      }
     );
     header = ReactTestUtils.renderIntoDocument(
       <EventHeader
@@ -550,6 +569,231 @@ describe('EventHeader answering an invitation', function () {
     runs(() => {
       expect(title()).toBe('Kickoff');
       ReactDOM.unmountComponentAtNode(container);
+    });
+  });
+
+  describe('conflicts', function () {
+    const busyAt = (
+      id: string,
+      calendarId: string,
+      start: string,
+      end: string,
+      uid = `${id}@test`
+    ) =>
+      new Event({
+        id,
+        accountId: 'a1',
+        calendarId,
+        icsuid: uid,
+        ics: [
+          'BEGIN:VCALENDAR',
+          'VERSION:2.0',
+          'PRODID:-//Test//Test//EN',
+          'BEGIN:VEVENT',
+          `UID:${uid}`,
+          `DTSTART:${start}`,
+          `DTEND:${end}`,
+          `SUMMARY:${id}`,
+          'DTSTAMP:20260101T000000Z',
+          'END:VEVENT',
+          'END:VCALENDAR',
+        ].join('\r\n'),
+      } as any);
+    const conflictLines = () =>
+      ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'event-conflict').map(
+        (n) => n.textContent
+      );
+
+    beforeEach(function () {
+      const original = AppEnv.config.get;
+      spyOn(AppEnv.config, 'get').andCallFake((key: string) =>
+        key === 'mailspring.disabledCalendars' ? ['cal-off'] : original.call(AppEnv.config, key)
+      );
+    });
+
+    it('lists what the invitation overlaps on the calendars that are our busy time', function () {
+      const off = cal({ id: 'cal-off', name: 'Side project' });
+      mount({
+        events: [],
+        calendars: [mine, holidays, theirs, off],
+        nearby: [
+          busyAt('Standup', mine.id, '20260301T143000Z', '20260301T150000Z'),
+          busyAt('Bank holiday', holidays.id, '20260301T140000Z', '20260301T150000Z'),
+          busyAt('Their meeting', theirs.id, '20260301T140000Z', '20260301T150000Z'),
+          busyAt('Side thing', off.id, '20260301T140000Z', '20260301T150000Z'),
+          busyAt('Lunch', mine.id, '20260301T150000Z', '20260301T160000Z'),
+          busyAt(
+            'Itself',
+            mine.id,
+            '20260301T140000Z',
+            '20260301T150000Z',
+            'meeting-uid@example.com'
+          ),
+        ],
+      });
+      runs(() => {
+        expect(
+          ReactTestUtils.findRenderedDOMComponentWithClass(header, 'event-conflicts-title')
+            .textContent
+        ).toBe('Conflicts with an event on your calendar');
+        expect(conflictLines()).toEqual(['Standup (8:30 am - 9:00 am)']);
+      });
+    });
+
+    it('checks the next occurrence of a recurring invitation, not the one it began with', function () {
+      const series = INVITE.replace(
+        'DTSTART:20260301T140000Z\r\nDTEND:20260301T150000Z',
+        'DTSTART:20260301T140000Z\r\nDTEND:20260301T150000Z\r\nRRULE:FREQ=WEEKLY'
+      );
+      fs.writeFileSync(icsPath, series);
+      const next = ICSEventHelpers.upcomingOccurrence(series, new Date());
+      const stamp = (d: Date) => d.toISOString().replace(/[-:]|\.\d{3}/g, '');
+      mount({
+        events: [],
+        calendars: [mine],
+        nearby: [
+          busyAt('First week', mine.id, '20260301T140000Z', '20260301T150000Z'),
+          busyAt('This week', mine.id, stamp(next.start), stamp(next.end)),
+        ],
+      });
+      runs(() => {
+        expect(header.state.conflictWindow).toEqual({
+          start: next.start.getTime() / 1000,
+          end: next.end.getTime() / 1000,
+        });
+        expect(conflictLines().map((l) => l.split(' (')[0])).toEqual(['This week']);
+        // The header shows the series' first date, so each line names the day it checked.
+        expect(conflictLines()[0]).toContain(`(${moment(next.start).format('dddd, MMMM Do')}, `);
+      });
+    });
+
+    it('gives only times when the clash is on the day shown', function () {
+      mount({
+        events: [],
+        calendars: [mine],
+        nearby: [busyAt('Standup', mine.id, '20260301T143000Z', '20260301T150000Z')],
+      });
+      runs(() => {
+        expect(conflictLines()).toEqual(['Standup (8:30 am - 9:00 am)']);
+      });
+    });
+
+    it('shows no conflicts on a reply, where we picked the slot ourselves', function () {
+      fs.writeFileSync(icsPath, INVITE.replace('METHOD:REQUEST', 'METHOD:REPLY'));
+      mount({
+        events: [],
+        calendars: [mine],
+        nearby: [busyAt('Standup', mine.id, '20260301T143000Z', '20260301T150000Z')],
+      });
+      runs(() => {
+        expect(header.state.conflicts.length).toBe(1);
+        expect(
+          ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'event-conflicts').length
+        ).toBe(0);
+      });
+    });
+
+    it('does not bother with conflicts on a cancellation', function () {
+      fs.writeFileSync(icsPath, INVITE.replace('METHOD:REQUEST', 'METHOD:CANCEL'));
+      mount({
+        events: [],
+        calendars: [mine],
+        nearby: [busyAt('Standup', mine.id, '20260301T143000Z', '20260301T150000Z')],
+      });
+      runs(() => {
+        expect(header.state.conflicts.length).toBe(1);
+        expect(
+          ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'event-conflicts').length
+        ).toBe(0);
+      });
+    });
+
+    it('follows the calendar copy when it has moved the next occurrence of a series', function () {
+      const series = INVITE.replace(
+        'DTSTART:20260301T140000Z\r\nDTEND:20260301T150000Z',
+        'DTSTART:20260301T140000Z\r\nDTEND:20260301T150000Z\r\nRRULE:FREQ=WEEKLY'
+      );
+      fs.writeFileSync(icsPath, series);
+      const next = ICSEventHelpers.upcomingOccurrence(series, new Date());
+      const stamp = (d: Date) => d.toISOString().replace(/[-:]|\.\d{3}/g, '');
+      const later = (d: Date) => new Date(d.getTime() + 2 * 3600 * 1000);
+      const copy = synced.clone();
+      copy.ics = series
+        .replace('METHOD:REQUEST\r\n', '')
+        .replace(
+          'END:VCALENDAR',
+          [
+            'BEGIN:VEVENT',
+            'UID:meeting-uid@example.com',
+            `RECURRENCE-ID:${stamp(next.start)}`,
+            `DTSTART:${stamp(later(next.start))}`,
+            `DTEND:${stamp(later(next.end))}`,
+            'SUMMARY:Kickoff (this week later)',
+            'DTSTAMP:20260101T000000Z',
+            'END:VEVENT',
+            'END:VCALENDAR',
+          ].join('\r\n')
+        );
+      mount({ events: [copy], calendars: [mine], nearby: [] });
+      runs(() => {
+        expect(header.state.conflictWindow).toEqual({
+          start: later(next.start).getTime() / 1000,
+          end: later(next.end).getTime() / 1000,
+        });
+      });
+    });
+
+    it('checks the occurrence an email is about where the calendar copy now has it', function () {
+      // The email names the 8 March occurrence of a weekly series; our copy has moved it to 16:00.
+      const emailed = INVITE.replace(
+        'DTSTART:20260301T140000Z\r\nDTEND:20260301T150000Z',
+        'RECURRENCE-ID:20260308T140000Z\r\nDTSTART:20260308T140000Z\r\nDTEND:20260308T150000Z'
+      );
+      fs.writeFileSync(icsPath, emailed);
+      const series = synced.clone();
+      series.ics = SYNCED.replace(
+        'DTEND:20260301T150000Z',
+        'DTEND:20260301T150000Z\r\nRRULE:FREQ=WEEKLY'
+      ).replace(
+        'END:VCALENDAR',
+        [
+          'BEGIN:VEVENT',
+          'UID:meeting-uid@example.com',
+          'RECURRENCE-ID:20260308T140000Z',
+          'DTSTART:20260308T160000Z',
+          'DTEND:20260308T170000Z',
+          'SUMMARY:Kickoff (moved later)',
+          'DTSTAMP:20260101T000000Z',
+          'END:VEVENT',
+          'END:VCALENDAR',
+        ].join('\r\n')
+      );
+      mount({
+        events: [series],
+        calendars: [mine],
+        nearby: [
+          busyAt('At the emailed time', mine.id, '20260308T140000Z', '20260308T150000Z'),
+          busyAt('At the moved time', mine.id, '20260308T163000Z', '20260308T170000Z'),
+        ],
+      });
+      runs(() => {
+        expect(title()).toBe('Kickoff (moved later)');
+        expect(header.state.conflictWindow).toEqual({
+          start: Date.UTC(2026, 2, 8, 16) / 1000,
+          end: Date.UTC(2026, 2, 8, 17) / 1000,
+        });
+        expect(nearbyBounds).toEqual(header.state.conflictWindow);
+        expect(conflictLines().map((l) => l.split(' (')[0])).toEqual(['At the moved time']);
+      });
+    });
+
+    it('says nothing when the slot is free', function () {
+      mount({ events: [], calendars: [mine], nearby: [] });
+      runs(() => {
+        expect(
+          ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'event-conflicts').length
+        ).toBe(0);
+      });
     });
   });
 });
