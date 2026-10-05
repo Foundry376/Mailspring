@@ -11,6 +11,7 @@ import {
   Actions,
   AttachmentStore,
   Calendar,
+  Contact,
   Event,
   EventRSVPTask,
   File,
@@ -421,10 +422,12 @@ describe('EventHeader answering an invitation', function () {
     events,
     calendars,
     nearby = [],
+    from,
   }: {
     events: Event[];
     calendars: Calendar[];
     nearby?: Event[];
+    from?: string;
   }) {
     spyOn(Rx.Observable, 'fromQuery').andCallFake(
       (query: { _klass: unknown; _matchers: { attr: { modelKey: string }; val: number }[] }) => {
@@ -440,7 +443,13 @@ describe('EventHeader answering an invitation', function () {
     );
     header = ReactTestUtils.renderIntoDocument(
       <EventHeader
-        message={new Message({ id: 'm1', accountId: 'a1' })}
+        message={
+          new Message({
+            id: 'm1',
+            accountId: 'a1',
+            from: from ? [new Contact({ email: from, name: 'Bo' })] : [],
+          })
+        }
         file={new File({ id: 'f1', filename: 'invite.ics' })}
       />
     ) as unknown as EventHeader;
@@ -793,6 +802,197 @@ describe('EventHeader answering an invitation', function () {
         expect(
           ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'event-conflicts').length
         ).toBe(0);
+      });
+    });
+  });
+
+  describe('a counter-proposal from a guest', function () {
+    // Our copy of a meeting we organize, with Bo as a guest.
+    const OURS = INVITE.replace('METHOD:REQUEST\r\n', '')
+      .replace(
+        'ORGANIZER;CN=Ada:mailto:ada@example.com',
+        'ORGANIZER;CN=Brian:mailto:brian@example.com'
+      )
+      .replace(
+        'ATTENDEE;CN=Ada;ROLE=CHAIR;PARTSTAT=ACCEPTED:mailto:ada@example.com',
+        'ATTENDEE;CN=Brian;ROLE=CHAIR;PARTSTAT=ACCEPTED:mailto:brian@example.com'
+      )
+      .replace(
+        'ATTENDEE;CN=Brian;ROLE=REQ-PARTICIPANT;RSVP=TRUE;PARTSTAT=NEEDS-ACTION:mailto:brian@example.com',
+        'ATTENDEE;CN=Bo;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION:mailto:bo@example.com'
+      );
+    const COUNTER = OURS.replace('BEGIN:VEVENT', 'METHOD:COUNTER\r\nBEGIN:VEVENT')
+      .replace('DTSTART:20260301T140000Z', 'DTSTART:20260301T160000Z')
+      .replace('DTEND:20260301T150000Z', 'DTEND:20260301T170000Z');
+    const ours = new Event({
+      id: 'e-ours',
+      accountId: 'a1',
+      calendarId: mine.id,
+      icsuid: 'meeting-uid@example.com',
+      recurrenceStart: Date.UTC(2026, 2, 1, 14) / 1000,
+      recurrenceEnd: Date.UTC(2026, 2, 1, 15) / 1000,
+      ics: OURS,
+    } as any);
+    const moveButton = () =>
+      ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'btn-large').find(
+        (n) => n.textContent === 'Move event to this time'
+      );
+    const lines = (ics: string) => unfold(ics).split(/\r?\n/);
+
+    beforeEach(function () {
+      fs.writeFileSync(icsPath, COUNTER);
+    });
+
+    it('shows the proposed time and moves the event to it, as one revision', function () {
+      mount({ events: [ours], calendars: [mine], from: 'bo@example.com' });
+      runs(() => {
+        expect(header.state.icsEvent.startDate.toJSDate().toISOString()).toBe(
+          '2026-03-01T16:00:00.000Z'
+        );
+        expect(destination().textContent).toBe('Your response will be saved to brian@example.com');
+        ReactTestUtils.Simulate.click(moveButton());
+        const write = queued[0] as SyncbackEventTask;
+        expect(write instanceof SyncbackEventTask).toBe(true);
+        expect(write.event.id).toBe('e-ours');
+        expect(lines(write.event.ics)).toContain('DTSTART:20260301T160000Z');
+        expect(lines(write.event.ics)).toContain('DTEND:20260301T170000Z');
+        expect(lines(write.event.ics)).toContain('SEQUENCE:1');
+        expect(write.event.recurrenceStart).toBe(Date.UTC(2026, 2, 1, 16) / 1000);
+        expect(write.event.recurrenceEnd).toBe(Date.UTC(2026, 2, 1, 17) / 1000);
+      });
+    });
+
+    it('moves only the occurrence a counter names', function () {
+      const series = ours.clone();
+      series.ics = OURS.replace(
+        'DTEND:20260301T150000Z',
+        'DTEND:20260301T150000Z\r\nRRULE:FREQ=WEEKLY'
+      );
+      fs.writeFileSync(
+        icsPath,
+        COUNTER.replace(
+          'DTSTART:20260301T160000Z',
+          'RECURRENCE-ID:20260308T140000Z\r\nDTSTART:20260308T160000Z'
+        ).replace('DTEND:20260301T170000Z', 'DTEND:20260308T170000Z')
+      );
+      mount({ events: [series], calendars: [mine], from: 'bo@example.com' });
+      runs(() => {
+        ReactTestUtils.Simulate.click(moveButton());
+        const write = queued[0] as SyncbackEventTask;
+        const written = lines(write.event.ics);
+        expect(written).toContain('DTSTART:20260301T140000Z');
+        expect(written).toContain('RRULE:FREQ=WEEKLY');
+        expect(written).toContain('RECURRENCE-ID:20260308T140000Z');
+        expect(written).toContain('DTSTART:20260308T160000Z');
+        expect(write.event.recurrenceStart).toBe(series.recurrenceStart);
+        // One revision of the occurrence, none of the series.
+        const [master, exception] = unfold(write.event.ics).split('BEGIN:VEVENT').slice(1);
+        expect(master).not.toContain('SEQUENCE:');
+        expect(exception).toContain('SEQUENCE:1');
+      });
+    });
+
+    it('withholds the move when a counter for a series names no occurrence', function () {
+      const series = ours.clone();
+      series.ics = OURS.replace(
+        'DTEND:20260301T150000Z',
+        'DTEND:20260301T150000Z\r\nRRULE:FREQ=WEEKLY'
+      );
+      mount({ events: [series], calendars: [mine], from: 'bo@example.com' });
+      runs(() => {
+        expect(moveButton()).toBe(undefined);
+        expect(destination().textContent).toContain('which occurrence');
+      });
+    });
+
+    const ALL_DAY_OURS = OURS.replace(
+      'DTSTART:20260301T140000Z',
+      'DTSTART;VALUE=DATE:20260301'
+    ).replace('DTEND:20260301T150000Z', 'DTEND;VALUE=DATE:20260302');
+    const allDayCounter = (vevent: string) =>
+      ALL_DAY_OURS.replace('BEGIN:VEVENT', 'METHOD:COUNTER\r\nBEGIN:VEVENT').replace(
+        'DTSTART;VALUE=DATE:20260301\r\nDTEND;VALUE=DATE:20260302',
+        vevent
+      );
+
+    it('keeps an all-day meeting on dates when moving it', function () {
+      const allDay = ours.clone();
+      allDay.ics = ALL_DAY_OURS;
+      fs.writeFileSync(
+        icsPath,
+        allDayCounter('DTSTART;VALUE=DATE:20260303\r\nDTEND;VALUE=DATE:20260304')
+      );
+      mount({ events: [allDay], calendars: [mine], from: 'bo@example.com' });
+      runs(() => {
+        ReactTestUtils.Simulate.click(moveButton());
+        const written = lines((queued[0] as SyncbackEventTask).event.ics);
+        expect(written).toContain('DTSTART;VALUE=DATE:20260303');
+        expect(written).toContain('DTEND;VALUE=DATE:20260304');
+      });
+    });
+
+    it('keeps an all-day series on dates when moving one occurrence', function () {
+      const allDaySeries = ours.clone();
+      allDaySeries.ics = ALL_DAY_OURS.replace(
+        'DTEND;VALUE=DATE:20260302',
+        'DTEND;VALUE=DATE:20260302\r\nRRULE:FREQ=WEEKLY'
+      );
+      fs.writeFileSync(
+        icsPath,
+        allDayCounter(
+          'RECURRENCE-ID;VALUE=DATE:20260308\r\nDTSTART;VALUE=DATE:20260309\r\nDTEND;VALUE=DATE:20260310'
+        )
+      );
+      mount({ events: [allDaySeries], calendars: [mine], from: 'bo@example.com' });
+      runs(() => {
+        ReactTestUtils.Simulate.click(moveButton());
+        const written = lines((queued[0] as SyncbackEventTask).event.ics);
+        expect(written).toContain('RRULE:FREQ=WEEKLY');
+        expect(written).toContain('RECURRENCE-ID;VALUE=DATE:20260308');
+        expect(written).toContain('DTSTART;VALUE=DATE:20260309');
+        expect(written).toContain('DTEND;VALUE=DATE:20260310');
+      });
+    });
+
+    it('refuses when our copy says somebody else organizes the meeting', function () {
+      const theirs = ours.clone();
+      theirs.ics = OURS.replace(
+        'ORGANIZER;CN=Brian:mailto:brian@example.com',
+        'ORGANIZER;CN=Ada:mailto:ada@example.com'
+      );
+      mount({ events: [theirs], calendars: [mine], from: 'bo@example.com' });
+      runs(() => {
+        expect(moveButton()).toBe(undefined);
+        expect(destination().textContent).toContain('only its organizer can move it');
+      });
+    });
+
+    it('refuses a proposal from someone who is not a guest', function () {
+      mount({ events: [ours], calendars: [mine], from: 'stranger@example.net' });
+      runs(() => {
+        expect(moveButton()).toBe(undefined);
+        expect(destination().textContent).toContain('is not a guest');
+      });
+    });
+
+    it('refuses when the meeting is on no calendar we can edit', function () {
+      mount({ events: [], calendars: [mine], from: 'bo@example.com' });
+      runs(() => {
+        expect(moveButton()).toBe(undefined);
+        expect(destination().textContent).toContain("isn't on a calendar you can edit");
+      });
+    });
+
+    it('reports a proposal it cannot apply instead of crashing', function () {
+      fs.writeFileSync(
+        icsPath,
+        COUNTER.replace('DTEND:20260301T170000Z', 'DTEND:20260301T150000Z')
+      );
+      mount({ events: [ours], calendars: [mine], from: 'bo@example.com' });
+      runs(() => {
+        ReactTestUtils.Simulate.click(moveButton());
+        expect(AppEnv.showErrorDialog).toHaveBeenCalled();
+        expect(queued.length).toBe(0);
       });
     });
   });
