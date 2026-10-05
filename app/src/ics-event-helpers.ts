@@ -1381,8 +1381,36 @@ function dateOnly(ical: ICAL, date: Date): ICALTime {
 }
 
 /**
- * Sets one attendee's PARTSTAT in every VEVENT, leaving every other parameter and attendee as
- * they are (RFC 6638 section 3.2.5). Null when the address is not an attendee.
+ * Sets one attendee's PARTSTAT on a VEVENT, leaving every other parameter and attendee as they
+ * are (RFC 6638 section 3.2.5). False when the address is not an attendee of it.
+ */
+function setAttendeePartstat(
+  vevent: ICALComponent,
+  email: string,
+  partstat: string,
+  ical: ICAL
+): boolean {
+  let changed = false;
+  for (const attendee of vevent.getAllProperties('attendee')) {
+    const isMatch = attendee.getValues().some((v) => emailFromParticipantURI(String(v)) === email);
+    if (!isMatch) continue;
+
+    attendee.setParameter('partstat', partstat);
+    // The response has been given, so the organizer no longer needs to ask for one.
+    attendee.removeParameter('rsvp');
+    changed = true;
+  }
+  if (changed) {
+    // RFC 5546 section 3.2 breaks ties at equal SEQUENCE on DTSTAMP, so only a changed
+    // component gets a new one.
+    vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
+  }
+  return changed;
+}
+
+/**
+ * Sets one attendee's PARTSTAT in every VEVENT: the answer to an invitation for a whole series
+ * or a single event. Null when the address is not an attendee.
  */
 export function updateAttendeeStatus(ics: string, email: string, partstat: string): string | null {
   const ical = getICAL();
@@ -1396,29 +1424,52 @@ export function updateAttendeeStatus(ics: string, email: string, partstat: strin
 
   const target = email.toLowerCase();
   let matched = false;
-
   for (const vevent of vevents) {
-    let changedThisVevent = false;
-    for (const attendee of vevent.getAllProperties('attendee')) {
-      const isMatch = attendee
-        .getValues()
-        .some((v) => emailFromParticipantURI(String(v)) === target);
-      if (!isMatch) continue;
+    if (setAttendeePartstat(vevent, target, partstat, ical)) matched = true;
+  }
+  return matched ? root.toString() : null;
+}
 
-      attendee.setParameter('partstat', partstat);
-      // The response has been given, so the organizer no longer needs to ask for one.
-      attendee.removeParameter('rsvp');
-      changedThisVevent = true;
-    }
-    if (changedThisVevent) {
-      // RFC 5546 section 3.2 breaks ties at equal SEQUENCE on DTSTAMP, so only a changed
-      // component gets a new one.
-      vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
-      matched = true;
-    }
+/**
+ * Answers an invitation to one occurrence of a series on our stored copy: PARTSTAT changes on
+ * the VEVENT that RECURRENCE-ID names and nowhere else, and when the copy has no VEVENT for that
+ * occurrence the emailed one is stored as its exception. A Google organizer acts on this write
+ * rather than on the emailed REPLY, so writing the master would answer for every occurrence.
+ * Null when the address is not an attendee of the occurrence.
+ */
+export function updateOccurrenceAttendeeStatus(
+  calendarIcs: string,
+  occurrenceIcs: string,
+  email: string,
+  partstat: string
+): string | null {
+  const ical = getICAL();
+  const { root } = parseICSString(calendarIcs);
+  const invited = parseICSString(occurrenceIcs).event.component;
+  const recurrenceId = invited.getFirstPropertyValue('recurrence-id') as ICALTime | null;
+  if (!recurrenceId) {
+    throw new Error('The invitation names no occurrence: it has no RECURRENCE-ID');
+  }
+  if (root.name !== 'vcalendar') {
+    throw new Error('Invalid ICS: a stored event must be a VCALENDAR');
   }
 
-  return matched ? root.toString() : null;
+  const target = email.toLowerCase();
+  const namedInstant = recurrenceId.toJSDate().getTime();
+  const existing = (root.getAllSubcomponents('vevent') as ICALComponent[]).find((vevent) => {
+    const rid = vevent.getFirstPropertyValue('recurrence-id') as ICALTime | null;
+    return !!rid && rid.toJSDate().getTime() === namedInstant;
+  });
+  if (existing) {
+    return setAttendeePartstat(existing, target, partstat, ical) ? root.toString() : null;
+  }
+
+  const exception = new ical.Component(invited.toJSON());
+  if (!setAttendeePartstat(exception, target, partstat, ical)) return null;
+  root.addSubcomponent(exception);
+  // The emailed occurrence may sit in a zone the copy has no VTIMEZONE for yet.
+  syncVTimezones(root, ical, recurrenceId.toJSDate());
+  return root.toString();
 }
 
 /**
