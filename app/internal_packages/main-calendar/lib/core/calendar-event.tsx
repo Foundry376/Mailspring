@@ -236,8 +236,10 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       return;
     }
 
-    // Prevent text selection during drag
+    // Prevent text selection during drag. That also stops the browser focusing the event, so take
+    // focus here; preventScroll keeps a half-hidden event under the pointer for the drag.
     e.preventDefault();
+    e.currentTarget.focus({ preventScroll: true });
 
     // No time is passed: the container's hit-test supplies it as this mousedown bubbles.
     if (this.props.onDragStart) {
