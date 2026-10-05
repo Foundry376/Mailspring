@@ -134,6 +134,25 @@ describe('the selection after an event is moved', function () {
     expect(calendar.state.selectedEvents).toEqual([other]);
   });
 
+  it('lets an event dragged while unselected be moved by keyboard once it is selected', async function () {
+    const calendar = calendarWith([]);
+    calendar.state.view = CalendarView.WEEK;
+    await calendar._persistDragChange({
+      event: occurrenceAt(START),
+      mode: 'move',
+      previewStart: START + 3600,
+      previewEnd: START + 5400,
+      previewIsAllDay: false,
+    });
+    modify.reset();
+
+    calendar.state.selectedEvents = [occurrenceAt(START + 3600)];
+    calendar._onMoveSelectedEvent('down', false);
+    await settle();
+
+    expect(modify).toHaveBeenCalled();
+  });
+
   it('keeps the id of a series exception stored as its own row', async function () {
     row = eventAt(START);
     row.recurrenceId = '20260922T130000Z';
