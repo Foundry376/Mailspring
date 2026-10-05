@@ -885,6 +885,72 @@ describe('EventHeader answering an invitation', function () {
         expect(written).toContain('RECURRENCE-ID:20260308T140000Z');
         expect(written).toContain('DTSTART:20260308T160000Z');
         expect(write.event.recurrenceStart).toBe(series.recurrenceStart);
+        // One revision of the occurrence, none of the series.
+        const [master, exception] = unfold(write.event.ics).split('BEGIN:VEVENT').slice(1);
+        expect(master).not.toContain('SEQUENCE:');
+        expect(exception).toContain('SEQUENCE:1');
+      });
+    });
+
+    it('withholds the move when a counter for a series names no occurrence', function () {
+      const series = ours.clone();
+      series.ics = OURS.replace(
+        'DTEND:20260301T150000Z',
+        'DTEND:20260301T150000Z\r\nRRULE:FREQ=WEEKLY'
+      );
+      mount({ events: [series], calendars: [mine], from: 'bo@example.com' });
+      runs(() => {
+        expect(moveButton()).toBe(undefined);
+        expect(destination().textContent).toContain('which occurrence');
+      });
+    });
+
+    const ALL_DAY_OURS = OURS.replace(
+      'DTSTART:20260301T140000Z',
+      'DTSTART;VALUE=DATE:20260301'
+    ).replace('DTEND:20260301T150000Z', 'DTEND;VALUE=DATE:20260302');
+    const allDayCounter = (vevent: string) =>
+      ALL_DAY_OURS.replace('BEGIN:VEVENT', 'METHOD:COUNTER\r\nBEGIN:VEVENT').replace(
+        'DTSTART;VALUE=DATE:20260301\r\nDTEND;VALUE=DATE:20260302',
+        vevent
+      );
+
+    it('keeps an all-day meeting on dates when moving it', function () {
+      const allDay = ours.clone();
+      allDay.ics = ALL_DAY_OURS;
+      fs.writeFileSync(
+        icsPath,
+        allDayCounter('DTSTART;VALUE=DATE:20260303\r\nDTEND;VALUE=DATE:20260304')
+      );
+      mount({ events: [allDay], calendars: [mine], from: 'bo@example.com' });
+      runs(() => {
+        ReactTestUtils.Simulate.click(moveButton());
+        const written = lines((queued[0] as SyncbackEventTask).event.ics);
+        expect(written).toContain('DTSTART;VALUE=DATE:20260303');
+        expect(written).toContain('DTEND;VALUE=DATE:20260304');
+      });
+    });
+
+    it('keeps an all-day series on dates when moving one occurrence', function () {
+      const allDaySeries = ours.clone();
+      allDaySeries.ics = ALL_DAY_OURS.replace(
+        'DTEND;VALUE=DATE:20260302',
+        'DTEND;VALUE=DATE:20260302\r\nRRULE:FREQ=WEEKLY'
+      );
+      fs.writeFileSync(
+        icsPath,
+        allDayCounter(
+          'RECURRENCE-ID;VALUE=DATE:20260308\r\nDTSTART;VALUE=DATE:20260309\r\nDTEND;VALUE=DATE:20260310'
+        )
+      );
+      mount({ events: [allDaySeries], calendars: [mine], from: 'bo@example.com' });
+      runs(() => {
+        ReactTestUtils.Simulate.click(moveButton());
+        const written = lines((queued[0] as SyncbackEventTask).event.ics);
+        expect(written).toContain('RRULE:FREQ=WEEKLY');
+        expect(written).toContain('RECURRENCE-ID;VALUE=DATE:20260308');
+        expect(written).toContain('DTSTART;VALUE=DATE:20260309');
+        expect(written).toContain('DTEND;VALUE=DATE:20260310');
       });
     });
 

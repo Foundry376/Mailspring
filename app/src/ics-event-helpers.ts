@@ -1403,6 +1403,45 @@ function nameOccurrence(
   if (zoned) property.setParameter('tzid', tzid);
 }
 
+/**
+ * A VCALENDAR holding just the VEVENT for one occurrence of a stored series: its exception
+ * where the series has one, else the occurrence cut from the master - RRULE, RDATE and EXDATE
+ * dropped, RECURRENCE-ID written in the form of the master's DTSTART, DTSTART and DTEND at
+ * that occurrence's slot. What a REPLY for one occurrence is built from (RFC 5546 section
+ * 3.2.3) and what updateOccurrenceAttendeeStatus stores when the series lacks the VEVENT.
+ */
+export function occurrenceIcs(masterIcs: string, recurrenceId: ICALTime): string {
+  const ical = getICAL();
+  const { root, event: master } = parseICSString(masterIcs);
+  const namedInstant = recurrenceId.toJSDate().getTime();
+  const vevents =
+    root.name === 'vevent' ? [root] : (root.getAllSubcomponents('vevent') as ICALComponent[]);
+  let vevent = vevents.find((candidate) => {
+    const rid = candidate.getFirstPropertyValue('recurrence-id') as ICALTime | null;
+    return !!rid && rid.toJSDate().getTime() === namedInstant;
+  });
+  if (!vevent) {
+    vevent = new ical.Component(master.component.toJSON()) as ICALComponent;
+    for (const name of ['rrule', 'rdate', 'exdate']) {
+      vevent.removeAllProperties(name);
+    }
+    nameOccurrence(vevent, master.component.getFirstProperty('dtstart'), recurrenceId, ical);
+    const occurrence = new ical.Event(vevent);
+    const start = vevent.getFirstPropertyValue('recurrence-id') as ICALTime;
+    const end = start.clone();
+    end.addDuration(master.duration);
+    occurrence.startDate = start;
+    occurrence.endDate = end;
+  }
+
+  const calendar = new ical.Component(['vcalendar', [], []]) as ICALComponent;
+  calendar.updatePropertyWithValue('prodid', '-//Mailspring//Calendar//EN');
+  calendar.updatePropertyWithValue('version', '2.0');
+  calendar.addSubcomponent(new ical.Component(vevent.toJSON()));
+  syncVTimezones(calendar, ical, recurrenceId.toJSDate());
+  return calendar.toString();
+}
+
 /** The calendar day `date` falls on where the user is, as a DATE value. */
 function dateOnly(ical: ICAL, date: Date): ICALTime {
   const pad = (n: number) => String(n).padStart(2, '0');

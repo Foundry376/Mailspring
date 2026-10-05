@@ -9,7 +9,7 @@ import {
   ICSEventHelpers,
   AndCompositeMatcher,
   OrCompositeMatcher,
-  Contact,
+  AccountStore,
   Calendar,
 } from 'mailspring-exports';
 import IcalExpander from 'ical-expander';
@@ -267,8 +267,15 @@ function occurrenceFromICS(args: {
     partstat: (a.getFirstParameter('partstat') || 'NEEDS-ACTION') as ParticipationStatus,
   }));
 
+  // "Me" is the account this event belongs to, not any connected account: an invitation from
+  // another of our accounts is still somebody else's meeting here.
+  const isThisAccount = (email: string) => {
+    const account = AccountStore.accountForEmail(email);
+    return !!account && account.id === event.accountId;
+  };
+
   // Pending styling also covers an event I'm invited to but haven't answered
-  const myAttendee = attendees.find((a) => a.email && new Contact({ email: a.email }).isMe());
+  const myAttendee = attendees.find((a) => a.email && isThisAccount(a.email));
   const myPartstat = myAttendee?.partstat?.toUpperCase();
   const isAwaitingMyResponse = myAttendee && myPartstat !== 'ACCEPTED' && myPartstat !== 'DECLINED';
 
@@ -277,7 +284,7 @@ function occurrenceFromICS(args: {
     : '';
   const iAmOrganizer =
     !!organizerEmail &&
-    (new Contact({ email: organizerEmail }).isMe() ||
+    (isThisAccount(organizerEmail) ||
       (GOOGLE_GROUP_CALENDAR.test(organizerEmail) && ownCalendarIds.has(event.calendarId)));
 
   const isAllDay = !!startTime.isDate;

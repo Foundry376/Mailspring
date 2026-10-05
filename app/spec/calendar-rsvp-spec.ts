@@ -91,6 +91,7 @@ describe('answering and countering from the calendar', function () {
   let queued: any[];
   let event: Event;
   let calendar: Calendar;
+  let dialog: jasmine.Spy;
 
   beforeEach(function () {
     queued = [];
@@ -116,6 +117,8 @@ describe('answering and countering from the calendar', function () {
     );
     spyOn(AccountStore, 'accountForId').andReturn({ id: 'acct-1', emailAddress: ME });
     spyOn(AppEnv, 'showErrorDialog');
+    // The recurring-event question; 0 = this occurrence, 1 = all occurrences, 2 = cancel.
+    dialog = spyOn(require('@electron/remote').dialog, 'showMessageBoxSync').andReturn(1);
   });
 
   describe('proposeNewTimeForCalendarEvent', function () {
@@ -177,6 +180,14 @@ describe('answering and countering from the calendar', function () {
   });
 
   describe('respondToCalendarEvent', function () {
+    const myLines = (ics: string) =>
+      lines(ics).filter((l) => l.startsWith('ATTENDEE') && l.includes(ME));
+    const veventsOf = (ics: string) =>
+      ics
+        .replace(/\r\n[ \t]/g, '')
+        .split('BEGIN:VEVENT')
+        .slice(1);
+
     it('writes our answer onto our copy and emails the organizer', async function () {
       await respondToCalendarEvent(occurrence(), 'ACCEPTED');
       const [write, reply] = queued as [SyncbackEventTask, EventRSVPTask];
@@ -185,6 +196,61 @@ describe('answering and countering from the calendar', function () {
       expect(reply instanceof EventRSVPTask).toBe(true);
       expect(reply.toJSON().to).toBe('ada@example.com');
       expect(reply.icsRSVPStatus).toBe('ACCEPTED');
+    });
+
+    it('asks whether the answer is for this occurrence or the whole series', async function () {
+      await respondToCalendarEvent(occurrence(), 'ACCEPTED');
+      expect(dialog.callCount).toBe(1);
+      const options = dialog.mostRecentCall.args[0];
+      expect(options.buttons).toEqual(['This occurrence only', 'All occurrences', 'Cancel']);
+      expect(options.message).toContain('Design Review');
+      expect(options.detail).toContain('answer only this occurrence');
+    });
+
+    it('answers only the clicked occurrence when asked to, on our copy and in the reply', async function () {
+      dialog.andReturn(0);
+      await respondToCalendarEvent(occurrence(), 'ACCEPTED');
+      const [write, reply] = queued as [SyncbackEventTask, EventRSVPTask];
+      const [master, exception] = veventsOf(write.event.ics);
+      expect(myLines(master)[0]).toContain('PARTSTAT=NEEDS-ACTION');
+      expect(exception).toContain('RECURRENCE-ID:20260310T140000Z');
+      expect(exception).toContain('DTSTART:20260310T140000Z');
+      expect(exception).toContain('DTEND:20260310T150000Z');
+      expect(exception).not.toContain('RRULE');
+      expect(myLines(exception)[0]).toContain('PARTSTAT=ACCEPTED');
+      // The REPLY is about that occurrence alone (RFC 5546 section 3.2.3).
+      const replied = veventsOf(reply.ics);
+      expect(replied.length).toBe(1);
+      expect(replied[0]).toContain('RECURRENCE-ID:20260310T140000Z');
+      expect(replied[0]).not.toContain('RRULE');
+    });
+
+    it('answers the whole series when asked to', async function () {
+      dialog.andReturn(1);
+      await respondToCalendarEvent(occurrence(), 'DECLINED');
+      const [write, reply] = queued as [SyncbackEventTask, EventRSVPTask];
+      expect(veventsOf(write.event.ics).length).toBe(1);
+      expect(myLines(write.event.ics)[0]).toContain('PARTSTAT=DECLINED');
+      expect(reply.ics).toContain('RRULE:FREQ=WEEKLY');
+    });
+
+    it('does nothing when the question is dismissed', async function () {
+      dialog.andReturn(2);
+      await respondToCalendarEvent(occurrence(), 'ACCEPTED');
+      expect(queued.length).toBe(0);
+    });
+
+    it('does not ask about an event that does not repeat', async function () {
+      event = new Event({
+        id: 'event-1',
+        accountId: 'acct-1',
+        calendarId: 'cal-1',
+        icsuid: 'series@test',
+        ics: SERIES_ICS.replace('RRULE:FREQ=WEEKLY\r\n', ''),
+      } as any);
+      await respondToCalendarEvent(occurrence({ isRecurring: false }), 'ACCEPTED');
+      expect(dialog.callCount).toBe(0);
+      expect(queued.length).toBe(2);
     });
 
     it("only emails when the copy is on a calendar the server says is someone else's", async function () {
