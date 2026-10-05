@@ -2547,6 +2547,222 @@ describe('ICSEventHelpers.updateRecurringEventTimes with a new zone', function (
   });
 });
 
+const RECURRING_INVITE_ICS = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Test//Test//EN
+METHOD:REQUEST
+BEGIN:VEVENT
+UID:series-invite@test
+RECURRENCE-ID:20260309T140000Z
+DTSTART:20260310T090000Z
+DTEND:20260310T100000Z
+SUMMARY:Weekly Sync (moved)
+DTSTAMP:20260101T000000Z
+SEQUENCE:2
+ORGANIZER;CN=Ada:mailto:ada@example.com
+ATTENDEE;CN=Ada;ROLE=CHAIR;PARTSTAT=ACCEPTED:mailto:ada@example.com
+ATTENDEE;CN=Me;ROLE=REQ-PARTICIPANT;PARTSTAT=NEEDS-ACTION:mailto:me@example.com
+END:VEVENT
+BEGIN:VEVENT
+UID:series-invite@test
+DTSTART:20260302T140000Z
+DTEND:20260302T150000Z
+RRULE:FREQ=WEEKLY;COUNT=6
+EXDATE:20260316T140000Z
+SUMMARY:Weekly Sync
+DTSTAMP:20260101T000000Z
+SEQUENCE:2
+ORGANIZER;CN=Ada:mailto:ada@example.com
+ATTENDEE;CN=Ada;ROLE=CHAIR;PARTSTAT=ACCEPTED:mailto:ada@example.com
+ATTENDEE;CN=Me;ROLE=REQ-PARTICIPANT;RSVP=TRUE;PARTSTAT=NEEDS-ACTION:mailto:me@example.com
+ATTENDEE;CN=Bo;PARTSTAT=TENTATIVE:mailto:bo@example.com
+END:VEVENT
+END:VCALENDAR`;
+
+describe('ICSEventHelpers.createCounterProposal', function () {
+  const unfold = (ics: string) => ics.replace(/\r\n[ \t]/g, '').split(/\r?\n/);
+  const line = (ics: string, prefix: string) => unfold(ics).find((l) => l.startsWith(prefix));
+  const occurrence = (iso: string) => ICAL.Time.fromDateTimeString(iso);
+
+  const propose = (ics = INVITE_ICS, extra = {}) =>
+    ICSEventHelpers.createCounterProposal(ics, {
+      email: 'me@example.com',
+      start: new Date('2026-03-02T16:00:00Z'),
+      end: new Date('2026-03-02T17:00:00Z'),
+      ...extra,
+    });
+
+  it('declares METHOD:COUNTER', function () {
+    expect(line(propose(), 'METHOD:')).toBe('METHOD:COUNTER');
+  });
+
+  it('keeps the UID and ORGANIZER so the organizer can match it to the invitation', function () {
+    expect(line(propose(), 'UID:')).toBe('UID:invite-uid@test');
+    expect(line(propose(), 'ORGANIZER')).toContain('mailto:ada@example.com');
+  });
+
+  it('carries the proposed times', function () {
+    const ics = propose();
+    expect(line(ics, 'DTSTART')).toBe('DTSTART:20260302T160000Z');
+    expect(line(ics, 'DTEND')).toBe('DTEND:20260302T170000Z');
+  });
+
+  it('lists only the proposer, tentative, with the parameters the organizer gave them', function () {
+    const attendees = unfold(propose()).filter((l) => l.startsWith('ATTENDEE'));
+    expect(attendees.length).toBe(1);
+    expect(attendees[0]).toContain('mailto:me@example.com');
+    expect(attendees[0]).toContain('CN=Me');
+    expect(attendees[0]).toContain('ROLE=REQ-PARTICIPANT');
+    expect(attendees[0]).toContain('CUTYPE=INDIVIDUAL');
+    expect(attendees[0]).toContain('PARTSTAT=TENTATIVE');
+    expect(attendees[0]).not.toContain('RSVP=TRUE');
+  });
+
+  it('matches the proposer however their address is cased', function () {
+    expect(propose(INVITE_ICS, { email: 'ME@Example.COM' })).not.toBe(null);
+  });
+
+  it('refreshes DTSTAMP so a later proposal supersedes an earlier one', function () {
+    expect(line(propose(), 'DTSTAMP:')).not.toBe('DTSTAMP:20260101T000000Z');
+  });
+
+  it('includes a comment when one is given, and none otherwise', function () {
+    expect(line(propose(INVITE_ICS, { comment: 'Clashes with my standup' }), 'COMMENT')).toContain(
+      'Clashes with my standup'
+    );
+    expect(line(propose(), 'COMMENT')).toBe(undefined);
+  });
+
+  it('returns null when the proposer is not an attendee', function () {
+    expect(propose(INVITE_ICS, { email: 'nobody@example.com' })).toBe(null);
+  });
+
+  it('keeps an all-day invitation on dates', function () {
+    const allDay = INVITE_ICS.replace(
+      'DTSTART:20260301T140000Z',
+      'DTSTART;VALUE=DATE:20241012'
+    ).replace('DTEND:20260301T150000Z', 'DTEND;VALUE=DATE:20241013');
+    const ics = propose(allDay, {
+      start: new Date(2026, 9, 13, 0, 0, 0),
+      end: new Date(2026, 9, 14, 0, 0, 0),
+    });
+    expect(line(ics, 'DTSTART')).toBe('DTSTART;VALUE=DATE:20261013');
+    expect(line(ics, 'DTEND')).toBe('DTEND;VALUE=DATE:20261014');
+  });
+
+  describe('for a recurring invitation', function () {
+    it('counters one occurrence, named by RECURRENCE-ID, rather than moving the series', function () {
+      const ics = propose(RECURRING_INVITE_ICS, {
+        recurrenceId: occurrence('2026-03-23T14:00:00Z'),
+      });
+      expect(line(ics, 'RECURRENCE-ID')).toBe('RECURRENCE-ID:20260323T140000Z');
+      expect(line(ics, 'RRULE')).toBe(undefined);
+      expect(line(ics, 'EXDATE')).toBe(undefined);
+      expect(line(ics, 'DTSTART')).toBe('DTSTART:20260302T160000Z');
+      expect(line(ics, 'SUMMARY')).toBe('SUMMARY:Weekly Sync');
+    });
+
+    it('keeps the series UID and sequence', function () {
+      const ics = propose(RECURRING_INVITE_ICS, {
+        recurrenceId: occurrence('2026-03-23T14:00:00Z'),
+      });
+      expect(line(ics, 'UID:')).toBe('UID:series-invite@test');
+      expect(line(ics, 'SEQUENCE:')).toBe('SEQUENCE:2');
+    });
+
+    it('builds on the modified occurrence when the one countered has been moved', function () {
+      const ics = propose(RECURRING_INVITE_ICS, {
+        recurrenceId: occurrence('2026-03-09T14:00:00Z'),
+      });
+      expect(line(ics, 'RECURRENCE-ID')).toBe('RECURRENCE-ID:20260309T140000Z');
+      expect(line(ics, 'SUMMARY')).toBe('SUMMARY:Weekly Sync (moved)');
+    });
+
+    it('refuses to counter a series without naming the occurrence', function () {
+      expect(() => propose(RECURRING_INVITE_ICS)).toThrow();
+    });
+
+    it('drops RDATE along with the rule: a counter is for one occurrence', function () {
+      const withRdate = RECURRING_INVITE_ICS.replace(
+        'EXDATE:20260316T140000Z',
+        'EXDATE:20260316T140000Z\nRDATE:20260401T140000Z'
+      );
+      const ics = propose(withRdate, { recurrenceId: occurrence('2026-03-23T14:00:00Z') });
+      expect(line(ics, 'RDATE')).toBe(undefined);
+      expect(line(ics, 'RRULE')).toBe(undefined);
+    });
+
+    // As Google writes a series: DTSTART and every RECURRENCE-ID carry the calendar's TZID.
+    const ZONED_INVITE_ICS = RECURRING_INVITE_ICS.replace(
+      'RECURRENCE-ID:20260309T140000Z',
+      'RECURRENCE-ID;TZID=America/Los_Angeles:20260309T060000'
+    ).replace('DTSTART:20260302T140000Z', 'DTSTART;TZID=America/Los_Angeles:20260302T060000');
+
+    it('keeps the RECURRENCE-ID a moved occurrence came with, zone and all', function () {
+      const ics = propose(ZONED_INVITE_ICS, { recurrenceId: occurrence('2026-03-09T13:00:00Z') });
+      expect(line(ics, 'SUMMARY')).toBe('SUMMARY:Weekly Sync (moved)');
+      // RFC 5545 section 3.2.19: a TZID parameter may not sit on a UTC value.
+      expect(line(ics, 'RECURRENCE-ID')).toBe(
+        'RECURRENCE-ID;TZID=America/Los_Angeles:20260309T060000'
+      );
+    });
+
+    it('names an occurrence of a zoned series the way its DTSTART is written', function () {
+      const ics = propose(ZONED_INVITE_ICS, { recurrenceId: occurrence('2026-03-23T13:00:00Z') });
+      // 13:00Z on 23 March is 06:00 in Los Angeles, daylight time having begun on the 8th.
+      expect(line(ics, 'RECURRENCE-ID')).toBe(
+        'RECURRENCE-ID;TZID=America/Los_Angeles:20260323T060000'
+      );
+    });
+
+    it('names an occurrence of an all-day series by its date', function () {
+      const allDaySeries = RECURRING_INVITE_ICS.replace(
+        'DTSTART:20260302T140000Z\nDTEND:20260302T150000Z',
+        'DTSTART;VALUE=DATE:20260302\nDTEND;VALUE=DATE:20260303'
+      );
+      const ics = propose(allDaySeries, {
+        recurrenceId: ICAL.Time.fromDateString('2026-03-23'),
+        start: new Date(2026, 2, 24, 0, 0, 0),
+        end: new Date(2026, 2, 25, 0, 0, 0),
+      });
+      expect(line(ics, 'RECURRENCE-ID')).toBe('RECURRENCE-ID;VALUE=DATE:20260323');
+      // The grid hands over the occurrence's instant; an all-day series is still named by date.
+      const fromInstant = propose(allDaySeries, {
+        recurrenceId: occurrence('2026-03-23T06:00:00Z'),
+        start: new Date(2026, 2, 24, 0, 0, 0),
+        end: new Date(2026, 2, 25, 0, 0, 0),
+      });
+      expect(line(fromInstant, 'RECURRENCE-ID')).toBe('RECURRENCE-ID;VALUE=DATE:20260323');
+    });
+
+    it('falls back to UTC when the series names a zone nobody can identify', function () {
+      const unknownZone = RECURRING_INVITE_ICS.replace(
+        'DTSTART:20260302T140000Z',
+        'DTSTART;TZID=Nowhere/Land:20260302T140000'
+      );
+      const ics = propose(unknownZone, { recurrenceId: occurrence('2026-03-23T13:00:00Z') });
+      expect(line(ics, 'RECURRENCE-ID')).toBe('RECURRENCE-ID:20260323T130000Z');
+    });
+
+    it('keeps the RECURRENCE-ID of an invitation to a single occurrence', function () {
+      const single = RECURRING_INVITE_ICS.replace(
+        /BEGIN:VEVENT\r?\nUID:series-invite@test\r?\nDTSTART:20260302[\s\S]*?END:VEVENT\r?\n/,
+        ''
+      );
+      expect(single).not.toContain('RRULE');
+      const ics = propose(single);
+      expect(line(ics, 'RECURRENCE-ID')).toBe('RECURRENCE-ID:20260309T140000Z');
+      expect(line(ics, 'DTSTART')).toBe('DTSTART:20260302T160000Z');
+    });
+  });
+
+  it('leaves the invitation it was built from untouched', function () {
+    const before = INVITE_ICS;
+    propose();
+    expect(INVITE_ICS).toBe(before);
+  });
+});
+
 // ---------------------------------------------------------------------------
 
 const MEETING_WITH_ROOM_ICS = `BEGIN:VCALENDAR
