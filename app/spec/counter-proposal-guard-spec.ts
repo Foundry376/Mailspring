@@ -80,6 +80,45 @@ describe('counterProposalProblem', function () {
     ).toBe('not-our-meeting');
   });
 
+  // A COUNTER that names no occurrence would re-base the whole series on the proposed date.
+  const ourSeries = ourMeeting.replace(
+    'DTEND:20260622T160000Z',
+    'DTEND:20260622T160000Z\r\nRRULE:FREQ=WEEKLY'
+  );
+
+  it('refuses a proposal for a series that does not say which occurrence it is about', function () {
+    expect(
+      counterProposalProblem({
+        ics: ourSeries,
+        senderEmail: GUEST,
+        addresses: [ME],
+        namesOccurrence: false,
+      })
+    ).toBe('series-without-occurrence');
+  });
+
+  it('allows a proposal for one occurrence of a series', function () {
+    expect(
+      counterProposalProblem({
+        ics: ourSeries,
+        senderEmail: GUEST,
+        addresses: [ME],
+        namesOccurrence: true,
+      })
+    ).toBe(null);
+  });
+
+  it('needs no occurrence named for a meeting that does not repeat', function () {
+    expect(
+      counterProposalProblem({
+        ics: ourMeeting,
+        senderEmail: GUEST,
+        addresses: [ME],
+        namesOccurrence: false,
+      })
+    ).toBe(null);
+  });
+
   it('refuses a copy it cannot parse rather than treating it as ours', function () {
     expect(
       counterProposalProblem({
