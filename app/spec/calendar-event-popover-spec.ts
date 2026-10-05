@@ -115,6 +115,18 @@ function rruleOf(ics: string): string | undefined {
   return (/^RRULE:(.*)$/m.exec(ics) || [])[1];
 }
 
+/** SEQUENCE of each VEVENT in file order; null where a VEVENT has none. */
+function sequencesOf(ics: string): (number | null)[] {
+  return ics
+    .replace(/\r\n[ \t]/g, '')
+    .split('BEGIN:VEVENT')
+    .slice(1)
+    .map((v) => {
+      const m = /^SEQUENCE:(\d+)$/m.exec(v);
+      return m ? parseInt(m[1], 10) : null;
+    });
+}
+
 describe('CalendarEventPopover save path and the recurrence rule', function () {
   let queued: any[];
 
@@ -175,6 +187,48 @@ describe('CalendarEventPopover save path and the recurrence rule', function () {
 
     expect(queued.length).toBe(1);
     expect(rruleOf(queued[0].event.ics)).toBe('FREQ=DAILY');
+  });
+});
+
+describe('CalendarEventPopover save path and SEQUENCE', function () {
+  let queued: any[];
+
+  beforeEach(function () {
+    queued = [];
+    spyOn(Actions, 'queueTask').andCallFake((task) => queued.push(task));
+    spyOn(SyncbackEventTask, 'forUpdating').andCallFake((opts) => opts);
+  });
+
+  it('revises the series once however many fields one save changed', async function () {
+    const event = makeEvent(FORTNIGHTLY_ICS);
+    const popover = await openEditor(event, 'Planning');
+    popover.updateField('title', 'Planning (renamed)');
+    popover.updateField('repeat', 'daily');
+    popover.updateStart(START + 3600);
+
+    popover._saveAllOccurrences(event);
+
+    expect(sequencesOf(queued[0].event.ics)).toEqual([1]);
+  });
+
+  it('revises a series that never carried a SEQUENCE', async function () {
+    const event = makeEvent(FORTNIGHTLY_ICS.replace('SEQUENCE:0\n', ''));
+    const popover = await openEditor(event, 'Planning');
+    popover.updateField('title', 'Planning (renamed)');
+
+    popover._saveAllOccurrences(event);
+
+    expect(sequencesOf(queued[0].event.ics)).toEqual([1]);
+  });
+
+  it('revises only the occurrence when one occurrence is edited', async function () {
+    const event = makeEvent(FORTNIGHTLY_ICS);
+    const popover = await openEditor(event, 'Planning');
+    popover.updateStart(START + 3600);
+
+    await popover._saveOccurrenceException(event);
+
+    expect(sequencesOf(queued[0].event.ics)).toEqual([0, 1]);
   });
 });
 
