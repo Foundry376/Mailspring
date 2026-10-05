@@ -2354,113 +2354,205 @@ describe('ICSEventHelpers.generateUID', function () {
   });
 });
 
-const INVITE_ICS = `BEGIN:VCALENDAR
-VERSION:2.0
-PRODID:-//Test//Test//EN
-METHOD:REQUEST
-BEGIN:VEVENT
-UID:invite-uid@test
-DTSTART:20260301T140000Z
-DTEND:20260301T150000Z
-SUMMARY:Project Kickoff
-DTSTAMP:20260101T000000Z
-ORGANIZER;CN=Ada:mailto:ada@example.com
-ATTENDEE;CN=Ada;ROLE=CHAIR;PARTSTAT=ACCEPTED:mailto:ada@example.com
-ATTENDEE;CN=Me;ROLE=REQ-PARTICIPANT;CUTYPE=INDIVIDUAL;RSVP=TRUE;PARTSTAT=NEEDS-ACTION:mailto:me@example.com
-ATTENDEE;CN=Bo;ROLE=REQ-PARTICIPANT;PARTSTAT=TENTATIVE:mailto:bo@example.com
-SEQUENCE:0
-END:VEVENT
-END:VCALENDAR`;
+describe('ICSEventHelpers VTIMEZONE bookkeeping', function () {
+  const RECURRING_BERLIN_WITH_EXCEPTION = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Test//Test//EN',
+    'BEGIN:VTIMEZONE',
+    'TZID:Europe/Berlin',
+    'BEGIN:STANDARD',
+    'DTSTART:19700101T000000',
+    'TZOFFSETFROM:+0100',
+    'TZOFFSETTO:+0100',
+    'TZNAME:CET',
+    'END:STANDARD',
+    'END:VTIMEZONE',
+    'BEGIN:VEVENT',
+    'UID:berlin@test',
+    'DTSTAMP:20240101T000000Z',
+    'DTSTART;TZID=Europe/Berlin:20240115T100000',
+    'DTEND;TZID=Europe/Berlin:20240115T110000',
+    'RRULE:FREQ=DAILY',
+    'SUMMARY:Standup',
+    'END:VEVENT',
+    'BEGIN:VEVENT',
+    'UID:berlin@test',
+    'RECURRENCE-ID:20240116T090000Z',
+    'DTSTAMP:20240101T000000Z',
+    'DTSTART;TZID=Europe/Berlin:20240116T140000',
+    'DTEND;TZID=Europe/Berlin:20240116T150000',
+    'SUMMARY:Standup (moved)',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n');
 
-describe('ICSEventHelpers.updateAttendeeStatus', function () {
-  const attendeeLine = (ics: string, email: string) =>
-    ics
-      .replace(/\r\n[ \t]/g, '')
-      .split(/\r?\n/)
-      .find((l) => l.startsWith('ATTENDEE') && l.toLowerCase().includes(email));
+  const tzids = (ics: string) =>
+    (ics.match(/^TZID:(.*)$/gm) || []).map((l) => l.replace('TZID:', '').trim()).sort();
+  const referenced = (ics: string) =>
+    [...new Set((ics.match(/TZID=([^:;]*)/g) || []).map((m) => m.replace('TZID=', '')))].sort();
 
-  it('sets PARTSTAT on the matching attendee only', function () {
-    const result = ICSEventHelpers.updateAttendeeStatus(INVITE_ICS, 'me@example.com', 'ACCEPTED');
-    expect(result).not.toBe(null);
-    expect(attendeeLine(result, 'me@example.com')).toContain('PARTSTAT=ACCEPTED');
-    expect(attendeeLine(result, 'ada@example.com')).toContain('PARTSTAT=ACCEPTED');
-    expect(attendeeLine(result, 'bo@example.com')).toContain('PARTSTAT=TENTATIVE');
+  it('keeps a VTIMEZONE for every zone the calendar still references', function () {
+    // Retiming the master into another zone leaves the inline exception in Berlin; a TZID
+    // with no VTIMEZONE is rejected by a strict parser and read as floating by a lenient one.
+    const out = ICSEventHelpers.updateEventTimes(RECURRING_BERLIN_WITH_EXCEPTION, {
+      start: Math.round(new Date('2024-01-15T16:00:00Z').getTime() / 1000),
+      end: Math.round(new Date('2024-01-15T17:00:00Z').getTime() / 1000),
+      timezone: 'America/Chicago',
+    });
+    expect(referenced(out)).toEqual(['America/Chicago', 'Europe/Berlin']);
+    expect(tzids(out)).toEqual(['America/Chicago', 'Europe/Berlin']);
   });
 
-  it('preserves the other parameters on the attendee it updates', function () {
-    const result = ICSEventHelpers.updateAttendeeStatus(INVITE_ICS, 'me@example.com', 'DECLINED');
-    const line = attendeeLine(result, 'me@example.com');
-    expect(line).toContain('CN=Me');
-    expect(line).toContain('ROLE=REQ-PARTICIPANT');
-    expect(line).toContain('CUTYPE=INDIVIDUAL');
-  });
-
-  it('drops RSVP=TRUE once a response has been given', function () {
-    const result = ICSEventHelpers.updateAttendeeStatus(INVITE_ICS, 'me@example.com', 'ACCEPTED');
-    expect(attendeeLine(result, 'me@example.com')).not.toContain('RSVP=TRUE');
-  });
-
-  it('matches the address case-insensitively', function () {
-    const result = ICSEventHelpers.updateAttendeeStatus(INVITE_ICS, 'ME@Example.COM', 'TENTATIVE');
-    expect(result).not.toBe(null);
-    expect(attendeeLine(result, 'me@example.com')).toContain('PARTSTAT=TENTATIVE');
-  });
-
-  it('returns null when the address is not an attendee', function () {
-    expect(ICSEventHelpers.updateAttendeeStatus(INVITE_ICS, 'nobody@example.com', 'ACCEPTED')).toBe(
-      null
+  it('drops a VTIMEZONE once nothing refers to it any more', function () {
+    // The master was the only thing in Berlin, so moving it should take the zone with it.
+    const noException = RECURRING_BERLIN_WITH_EXCEPTION.replace(
+      /BEGIN:VEVENT\r\nUID:berlin@test\r\nRECURRENCE-ID[\s\S]*?END:VEVENT\r\n/,
+      ''
     );
+    const out = ICSEventHelpers.updateEventTimes(noException, {
+      start: Math.round(new Date('2024-01-15T16:00:00Z').getTime() / 1000),
+      end: Math.round(new Date('2024-01-15T17:00:00Z').getTime() / 1000),
+      timezone: 'America/Chicago',
+    });
+    expect(tzids(out)).toEqual(['America/Chicago']);
   });
 
-  it('answers every VEVENT of a series, master and inline exceptions alike', function () {
-    const seriesIcs = INVITE_ICS.replace(
-      'END:VCALENDAR',
-      `BEGIN:VEVENT
-UID:invite-uid@test
-RECURRENCE-ID:20260308T140000Z
-DTSTART:20260308T150000Z
-DTEND:20260308T160000Z
-SUMMARY:Project Kickoff
-DTSTAMP:20260101T000000Z
-ATTENDEE;CN=Me;PARTSTAT=NEEDS-ACTION:mailto:me@example.com
-SEQUENCE:0
-END:VEVENT
-END:VCALENDAR`
-    );
-    const result = ICSEventHelpers.updateAttendeeStatus(seriesIcs, 'me@example.com', 'ACCEPTED');
-    const mine = result
-      .replace(/\r\n[ \t]/g, '')
-      .split(/\r?\n/)
-      .filter((l) => l.startsWith('ATTENDEE') && l.toLowerCase().includes('me@example.com'));
-    expect(mine.length).toBe(2);
-    expect(mine.every((l) => l.includes('PARTSTAT=ACCEPTED'))).toBe(true);
-  });
-
-  it('refreshes DTSTAMP so the server sees a newer revision', function () {
-    const result = ICSEventHelpers.updateAttendeeStatus(INVITE_ICS, 'me@example.com', 'ACCEPTED');
-    expect(result).not.toContain('DTSTAMP:20260101T000000Z');
+  it('gives a newly created zoned event a matching VTIMEZONE', function () {
+    const ics = ICSEventHelpers.createICSString({
+      summary: 'Kickoff',
+      start: new Date('2026-03-01T14:00:00Z'),
+      end: new Date('2026-03-01T15:00:00Z'),
+      timezone: 'America/Chicago',
+    });
+    expect(tzids(ics)).toEqual(['America/Chicago']);
+    expect(referenced(ics)).toEqual(['America/Chicago']);
   });
 });
 
-describe('ICSEventHelpers.stripITIPMethod', function () {
-  const unfold = (ics: string) => ics.replace(/\r\n[ \t]/g, '').split(/\r?\n/);
+describe('ICSEventHelpers.updateRecurringEventTimes with a new zone', function () {
+  // Google's shape: a Berlin series with a zoned EXDATE, an RDATE, a UTC UNTIL and an inline
+  // exception. Chicago is on DST from 10 March 2024, Berlin from 31 March, so the anchors in
+  // between tell the wall-clock move apart from the same instant.
+  const BERLIN_SERIES = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Test//Test//EN',
+    'BEGIN:VTIMEZONE',
+    'TZID:Europe/Berlin',
+    'BEGIN:DAYLIGHT',
+    'TZOFFSETFROM:+0100',
+    'TZOFFSETTO:+0200',
+    'TZNAME:CEST',
+    'DTSTART:19700329T020000',
+    'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU',
+    'END:DAYLIGHT',
+    'BEGIN:STANDARD',
+    'TZOFFSETFROM:+0200',
+    'TZOFFSETTO:+0100',
+    'TZNAME:CET',
+    'DTSTART:19701025T030000',
+    'RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU',
+    'END:STANDARD',
+    'END:VTIMEZONE',
+    'BEGIN:VEVENT',
+    'UID:berlin-series@test',
+    'DTSTAMP:20240101T000000Z',
+    'DTSTART;TZID=Europe/Berlin:20240115T100000',
+    'DTEND;TZID=Europe/Berlin:20240115T110000',
+    'RRULE:FREQ=DAILY;UNTIL=20240320T090000Z',
+    'EXDATE;TZID=Europe/Berlin:20240315T100000',
+    'RDATE;TZID=Europe/Berlin:20240316T140000',
+    'SUMMARY:Standup',
+    'END:VEVENT',
+    'BEGIN:VEVENT',
+    'UID:berlin-series@test',
+    'RECURRENCE-ID;TZID=Europe/Berlin:20240318T100000',
+    'DTSTAMP:20240101T000000Z',
+    'DTSTART;TZID=Europe/Berlin:20240318T140000',
+    'DTEND;TZID=Europe/Berlin:20240318T150000',
+    'SUMMARY:Standup (moved)',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n');
+  const START = Math.round(new Date('2024-01-15T09:00:00Z').getTime() / 1000);
 
-  it('removes METHOD so the object can be stored as a calendar entry', function () {
-    const result = ICSEventHelpers.stripITIPMethod(INVITE_ICS);
-    expect(unfold(result).find((l) => l.startsWith('METHOD'))).toBe(undefined);
+  const tzids = (ics: string) =>
+    (ics.match(/^TZID:(.*)$/gm) || []).map((l) => l.replace('TZID:', '').trim()).sort();
+  const rezoned = () =>
+    ICSEventHelpers.updateRecurringEventTimes(
+      BERLIN_SERIES,
+      START,
+      START,
+      START + 3600,
+      false,
+      'America/Chicago'
+    );
+
+  it('writes the master in the new zone and keeps the VTIMEZONE of the exception left in the old one', function () {
+    const out = rezoned();
+    expect(out).toContain('DTSTART;TZID=America/Chicago:20240115T030000');
+    expect(out).toContain('DTEND;TZID=America/Chicago:20240115T040000');
+    expect(out).toContain('DTSTART;TZID=Europe/Berlin:20240318T140000');
+    expect(tzids(out)).toEqual(['America/Chicago', 'Europe/Berlin']);
   });
 
-  it('leaves the event itself intact', function () {
-    const result = ICSEventHelpers.stripITIPMethod(INVITE_ICS);
-    const lines = unfold(result);
-    expect(lines.find((l) => l.startsWith('UID:'))).toBe('UID:invite-uid@test');
-    expect(lines.filter((l) => l.startsWith('ATTENDEE')).length).toBe(3);
-    expect(lines.find((l) => l.startsWith('ORGANIZER'))).toContain('ada@example.com');
+  it('moves EXDATE, RDATE, UNTIL and RECURRENCE-ID onto the rezoned rule by wall clock, not instant', function () {
+    const out = rezoned();
+    expect(out).toContain('EXDATE;TZID=America/Chicago:20240315T030000');
+    expect(out).toContain('RDATE;TZID=America/Chicago:20240316T070000');
+    expect(out).toContain('UNTIL=20240320T080000Z');
+    expect(out).toContain('RECURRENCE-ID;TZID=America/Chicago:20240318T030000');
+    expect(out).not.toContain('TZID=Europe/Berlin:20240315');
   });
 
-  it('is a no-op on an object that has no METHOD', function () {
-    const once = ICSEventHelpers.stripITIPMethod(INVITE_ICS);
-    expect(ICSEventHelpers.stripITIPMethod(once)).toBe(once);
+  it('still excludes, adds and replaces the same occurrences once expanded', function () {
+    const IcalExpander = require('ical-expander');
+    const expanded = new IcalExpander({ ics: rezoned(), maxIterations: 1000 }).between(
+      new Date('2024-03-14T00:00:00Z'),
+      new Date('2024-03-22T00:00:00Z')
+    );
+    const starts = [...expanded.events, ...expanded.occurrences]
+      .map((e) => e.startDate.toJSDate().toISOString())
+      .sort();
+    expect(starts).toEqual([
+      '2024-03-14T08:00:00.000Z',
+      '2024-03-16T08:00:00.000Z',
+      '2024-03-16T12:00:00.000Z',
+      '2024-03-17T08:00:00.000Z',
+      '2024-03-18T13:00:00.000Z',
+      '2024-03-19T08:00:00.000Z',
+      '2024-03-20T08:00:00.000Z',
+    ]);
+  });
+
+  it('rezones a series defined by RDATEs alone', function () {
+    const rdateOnly = BERLIN_SERIES.replace('RRULE:FREQ=DAILY;UNTIL=20240320T090000Z\r\n', '');
+    const out = ICSEventHelpers.updateRecurringEventTimes(
+      rdateOnly,
+      START,
+      START,
+      START + 3600,
+      false,
+      'America/Chicago'
+    );
+    expect(out).toContain('RDATE;TZID=America/Chicago:20240316T070000');
+  });
+
+  it('keeps a UTC RECURRENCE-ID in UTC, at the instant of the rezoned instance', function () {
+    const utcRid = BERLIN_SERIES.replace(
+      'RECURRENCE-ID;TZID=Europe/Berlin:20240318T100000',
+      'RECURRENCE-ID:20240318T090000Z'
+    );
+    const out = ICSEventHelpers.updateRecurringEventTimes(
+      utcRid,
+      START,
+      START,
+      START + 3600,
+      false,
+      'America/Chicago'
+    );
+    expect(out).toContain('RECURRENCE-ID:20240318T080000Z');
   });
 });
 
@@ -2578,5 +2670,229 @@ describe('ICSEventHelpers.applyEditsToException and the guest list', function ()
     expect(exception).toContain(
       'PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT;RSVP=TRUE:mailto:cy@example.com'
     );
+  });
+});
+
+const SOLO_EVENT_ICS = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Test//Test//EN
+BEGIN:VEVENT
+UID:solo-uid@test
+DTSTART:20260301T140000Z
+DTEND:20260301T150000Z
+SUMMARY:Focus Time
+DTSTAMP:20260101T000000Z
+END:VEVENT
+END:VCALENDAR`;
+
+describe('ICSEventHelpers.updateAttendees naming an organizer', function () {
+  const me = { email: 'me@example.com', name: 'Me' };
+  const organizerLines = (ics: string) => unfoldLines(ics).filter((l) => l.startsWith('ORGANIZER'));
+
+  it('names the organizer, attending, when the first guest is added to an event without one', function () {
+    const result = ICSEventHelpers.updateAttendees(
+      SOLO_EVENT_ICS,
+      [{ email: 'bo@example.com' }],
+      me
+    );
+    expect(organizerLines(result)).toEqual(['ORGANIZER;CN=Me:mailto:me@example.com']);
+    expect(attendeeLine(result, 'me@example.com')).toBe(
+      'ATTENDEE;CN=Me;PARTSTAT=ACCEPTED:mailto:me@example.com'
+    );
+  });
+
+  it('promotes the organizer listed as a guest instead of adding a second line', function () {
+    const result = ICSEventHelpers.updateAttendees(
+      SOLO_EVENT_ICS,
+      [{ email: 'bo@example.com' }, { email: 'ME@example.com', name: 'Me' }],
+      me
+    );
+    const mine = unfoldLines(result).filter(
+      (l) => l.startsWith('ATTENDEE') && l.toLowerCase().includes('me@example.com')
+    );
+    expect(mine.length).toBe(1);
+    expect(mine[0]).toContain('PARTSTAT=ACCEPTED');
+    expect(mine[0]).not.toContain('RSVP=');
+  });
+
+  it('writes no CN for an account without a name', function () {
+    const result = ICSEventHelpers.updateAttendees(SOLO_EVENT_ICS, [{ email: 'bo@example.com' }], {
+      email: 'me@example.com',
+    });
+    expect(organizerLines(result)).toEqual(['ORGANIZER:mailto:me@example.com']);
+    expect(attendeeLine(result, 'me@example.com')).not.toContain('CN=');
+  });
+
+  it("does not take over an event that already names someone else's organizer", function () {
+    const result = ICSEventHelpers.updateAttendees(MEETING_WITH_ROOM_ICS, sameGuests, me);
+    expect(organizerLines(result)).toEqual(['ORGANIZER;CN=Ada:mailto:ada@example.com']);
+    expect(attendeeLine(result, 'me@example.com')).toBe(undefined);
+  });
+
+  it('leaves an event with no guests without an organizer', function () {
+    const result = ICSEventHelpers.updateAttendees(SOLO_EVENT_ICS, [], me);
+    expect(organizerLines(result)).toEqual([]);
+  });
+
+  it('names nobody when the caller has no organizer to offer', function () {
+    const result = ICSEventHelpers.updateAttendees(SOLO_EVENT_ICS, [{ email: 'bo@example.com' }]);
+    expect(organizerLines(result)).toEqual([]);
+  });
+});
+
+describe('ICSEventHelpers.applyEditsToException naming an organizer', function () {
+  it('names the organizer on every VEVENT of the series, attending only where there are guests', function () {
+    const weekly = SOLO_EVENT_ICS.replace('DTSTAMP', 'RRULE:FREQ=WEEKLY\nDTSTAMP');
+    const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
+      weekly,
+      Date.UTC(2026, 2, 8, 14) / 1000,
+      Date.UTC(2026, 2, 8, 14) / 1000,
+      Date.UTC(2026, 2, 8, 15) / 1000,
+      false
+    );
+    const result = ICSEventHelpers.applyEditsToException(masterIcs, recurrenceId, {
+      attendees: [{ email: 'bo@example.com', name: 'Bo' }],
+      organizer: { email: 'me@example.com', name: 'Me' },
+    });
+    const [master, exception] = unfoldLines(result).join('\n').split('BEGIN:VEVENT').slice(1);
+    expect(master).toContain('ORGANIZER;CN=Me:mailto:me@example.com');
+    expect(master).not.toContain('ATTENDEE');
+    expect(exception).toContain('ORGANIZER;CN=Me:mailto:me@example.com');
+    expect(exception).toContain('ATTENDEE;CN=Me;PARTSTAT=ACCEPTED:mailto:me@example.com');
+  });
+});
+
+describe('ICSEventHelpers.createICSString and the organizer', function () {
+  const at = (iso: string) => new Date(iso);
+
+  it('lists the organizer as attending alongside the guests', function () {
+    const ics = ICSEventHelpers.createICSString({
+      summary: 'Kickoff',
+      start: at('2026-03-01T14:00:00Z'),
+      end: at('2026-03-01T15:00:00Z'),
+      organizer: { email: 'me@example.com', name: 'Me' },
+      attendees: [{ email: 'bo@example.com', name: 'Bo' }],
+    });
+    expect(unfoldLines(ics)).toContain('ATTENDEE;CN=Me;PARTSTAT=ACCEPTED:mailto:me@example.com');
+  });
+
+  it('names no organizer on an event without guests', function () {
+    const ics = ICSEventHelpers.createICSString({
+      summary: 'Focus time',
+      start: at('2026-03-01T14:00:00Z'),
+      end: at('2026-03-01T15:00:00Z'),
+      organizer: { email: 'me@example.com', name: 'Me' },
+    });
+    expect(ics).not.toContain('ORGANIZER');
+  });
+});
+
+const INVITE_ICS = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Test//Test//EN
+METHOD:REQUEST
+BEGIN:VEVENT
+UID:invite-uid@test
+DTSTART:20260301T140000Z
+DTEND:20260301T150000Z
+SUMMARY:Project Kickoff
+DTSTAMP:20260101T000000Z
+ORGANIZER;CN=Ada:mailto:ada@example.com
+ATTENDEE;CN=Ada;ROLE=CHAIR;PARTSTAT=ACCEPTED:mailto:ada@example.com
+ATTENDEE;CN=Me;ROLE=REQ-PARTICIPANT;CUTYPE=INDIVIDUAL;RSVP=TRUE;PARTSTAT=NEEDS-ACTION:mailto:me@example.com
+ATTENDEE;CN=Bo;ROLE=REQ-PARTICIPANT;PARTSTAT=TENTATIVE:mailto:bo@example.com
+SEQUENCE:0
+END:VEVENT
+END:VCALENDAR`;
+
+describe('ICSEventHelpers.updateAttendeeStatus', function () {
+  const attendeeLine = (ics: string, email: string) =>
+    ics
+      .replace(/\r\n[ \t]/g, '')
+      .split(/\r?\n/)
+      .find((l) => l.startsWith('ATTENDEE') && l.toLowerCase().includes(email));
+
+  it('sets PARTSTAT on the matching attendee only', function () {
+    const result = ICSEventHelpers.updateAttendeeStatus(INVITE_ICS, 'me@example.com', 'ACCEPTED');
+    expect(result).not.toBe(null);
+    expect(attendeeLine(result, 'me@example.com')).toContain('PARTSTAT=ACCEPTED');
+    expect(attendeeLine(result, 'ada@example.com')).toContain('PARTSTAT=ACCEPTED');
+    expect(attendeeLine(result, 'bo@example.com')).toContain('PARTSTAT=TENTATIVE');
+  });
+
+  it('preserves the other parameters on the attendee it updates', function () {
+    const result = ICSEventHelpers.updateAttendeeStatus(INVITE_ICS, 'me@example.com', 'DECLINED');
+    const line = attendeeLine(result, 'me@example.com');
+    expect(line).toContain('CN=Me');
+    expect(line).toContain('ROLE=REQ-PARTICIPANT');
+    expect(line).toContain('CUTYPE=INDIVIDUAL');
+  });
+
+  it('drops RSVP=TRUE once a response has been given', function () {
+    const result = ICSEventHelpers.updateAttendeeStatus(INVITE_ICS, 'me@example.com', 'ACCEPTED');
+    expect(attendeeLine(result, 'me@example.com')).not.toContain('RSVP=TRUE');
+  });
+
+  it('matches the address case-insensitively', function () {
+    const result = ICSEventHelpers.updateAttendeeStatus(INVITE_ICS, 'ME@Example.COM', 'TENTATIVE');
+    expect(result).not.toBe(null);
+    expect(attendeeLine(result, 'me@example.com')).toContain('PARTSTAT=TENTATIVE');
+  });
+
+  it('returns null when the address is not an attendee', function () {
+    expect(ICSEventHelpers.updateAttendeeStatus(INVITE_ICS, 'nobody@example.com', 'ACCEPTED')).toBe(
+      null
+    );
+  });
+
+  it('answers every VEVENT of a series, master and inline exceptions alike', function () {
+    const seriesIcs = INVITE_ICS.replace(
+      'END:VCALENDAR',
+      `BEGIN:VEVENT
+UID:invite-uid@test
+RECURRENCE-ID:20260308T140000Z
+DTSTART:20260308T150000Z
+DTEND:20260308T160000Z
+SUMMARY:Project Kickoff
+DTSTAMP:20260101T000000Z
+ATTENDEE;CN=Me;PARTSTAT=NEEDS-ACTION:mailto:me@example.com
+SEQUENCE:0
+END:VEVENT
+END:VCALENDAR`
+    );
+    const result = ICSEventHelpers.updateAttendeeStatus(seriesIcs, 'me@example.com', 'ACCEPTED');
+    const mine = result
+      .replace(/\r\n[ \t]/g, '')
+      .split(/\r?\n/)
+      .filter((l) => l.startsWith('ATTENDEE') && l.toLowerCase().includes('me@example.com'));
+    expect(mine.length).toBe(2);
+    expect(mine.every((l) => l.includes('PARTSTAT=ACCEPTED'))).toBe(true);
+  });
+
+  it('refreshes DTSTAMP so the server sees a newer revision', function () {
+    const result = ICSEventHelpers.updateAttendeeStatus(INVITE_ICS, 'me@example.com', 'ACCEPTED');
+    expect(result).not.toContain('DTSTAMP:20260101T000000Z');
+  });
+});
+
+describe('ICSEventHelpers.stripITIPMethod', function () {
+  const unfold = (ics: string) => ics.replace(/\r\n[ \t]/g, '').split(/\r?\n/);
+
+  it('removes METHOD so the object can be stored as a calendar entry', function () {
+    const result = ICSEventHelpers.stripITIPMethod(INVITE_ICS);
+    expect(unfold(result).find((l) => l.startsWith('METHOD'))).toBe(undefined);
+  });
+
+  it('leaves the event itself intact', function () {
+    const result = ICSEventHelpers.stripITIPMethod(INVITE_ICS);
+    const lines = unfold(result);
+    expect(lines.find((l) => l.startsWith('UID:'))).toBe('UID:invite-uid@test');
+    expect(lines.filter((l) => l.startsWith('ATTENDEE')).length).toBe(3);
+    expect(lines.find((l) => l.startsWith('ORGANIZER'))).toContain('ada@example.com');
+  });
+
+  it('is a no-op on an object that has no METHOD', function () {
+    const once = ICSEventHelpers.stripITIPMethod(INVITE_ICS);
+    expect(ICSEventHelpers.stripITIPMethod(once)).toBe(once);
   });
 });
