@@ -9,6 +9,8 @@ const occurrence = {
   title: 'Planning',
   isAllDay: false,
   isMine: true,
+  organizer: null,
+  attendees: [],
   start: 1_782_000_000,
   end: 1_782_003_600,
 } as TimedOccurrence;
@@ -35,17 +37,20 @@ describe("the context menu's open item", function () {
     return calendar;
   }
 
+  // The menu built for the occurrence; it decides the open item's label from readOnly and isMine.
   function menuFor(calendar: any, occ: TimedOccurrence) {
     const display = spyOn(CalendarEventContextMenu.prototype, 'displayMenu');
     calendar._onEventContextMenu(occ);
-    return (display.mostRecentCall.object as any).opts;
+    return display.mostRecentCall.object as CalendarEventContextMenu;
   }
+  const openItem = (menu: CalendarEventContextMenu) =>
+    menu.template()[0] as { label: string; click: () => void };
 
   it('is Edit Event, and opens the editor, for a meeting we organize', function () {
     const calendar = calendarWith([]);
     const menu = menuFor(calendar, occurrence);
-    expect(menu.editable).toBe(true);
-    menu.onOpen();
+    expect(openItem(menu).label).toBe('Edit Event...');
+    openItem(menu).click();
     expect(calendar._openEventPopover).toHaveBeenCalledWith(occurrence, true);
   });
 
@@ -53,16 +58,16 @@ describe("the context menu's open item", function () {
     const calendar = calendarWith([]);
     const theirs = { ...occurrence, isMine: false } as TimedOccurrence;
     const menu = menuFor(calendar, theirs);
-    expect(menu.editable).toBe(false);
-    menu.onOpen();
+    expect(openItem(menu).label).toBe('View Event');
+    openItem(menu).click();
     expect(calendar._openEventPopover).toHaveBeenCalledWith(theirs, false);
   });
 
   it('keeps the card on a read-only calendar, even for our own event', function () {
     const calendar = calendarWith(['c']);
     const menu = menuFor(calendar, occurrence);
-    expect(menu.editable).toBe(false);
-    menu.onOpen();
+    expect(openItem(menu).label).toBe('View Event');
+    openItem(menu).click();
     expect(calendar._openEventPopover).toHaveBeenCalledWith(occurrence, false);
   });
 });
