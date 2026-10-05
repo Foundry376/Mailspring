@@ -212,7 +212,8 @@ describe('the selection after an event is moved', function () {
   });
 
   it('keeps the regular occurrence selected when a moved one shares its id', async function () {
-    row = seriesWithException(START - 86400, 'RRULE:FREQ=DAILY', START + 86400, START);
+    // Monday moved onto Tuesday: the expander emits Monday's slot first.
+    row = seriesWithException(START - 86400, 'RRULE:FREQ=DAILY', START - 86400, START);
     const tuesday = occurrenceAt(START, { isRecurring: true });
     const calendar = calendarWith([tuesday]);
 
@@ -223,25 +224,26 @@ describe('the selection after an event is moved', function () {
     expect(selected.recurrenceIdStart).toBeUndefined();
   });
 
-  it('settles one occurrence moved days from its slot', async function () {
-    const nextWeek = START + 7 * 86400;
+  it('settles one occurrence moved earlier than the next regular one', async function () {
+    const inThreeWeeks = START + 21 * 86400;
     const friday = START + 10 * 86400;
     row = eventAt(START, 'RRULE:FREQ=WEEKLY');
-    const calendar = calendarWith([occurrenceAt(nextWeek, { isRecurring: true })]);
+    const calendar = calendarWith([occurrenceAt(inThreeWeeks, { isRecurring: true })]);
     await calendar._persistDragChange({
-      event: occurrenceAt(nextWeek, { isRecurring: true }),
+      event: occurrenceAt(inThreeWeeks, { isRecurring: true }),
       mode: 'move',
       previewStart: friday,
       previewEnd: friday + 1800,
       previewIsAllDay: false,
     });
-    row = seriesWithException(START, 'RRULE:FREQ=WEEKLY', nextWeek, friday);
+    // Week two's regular occurrence lies past Friday, and the expander stops there.
+    row = seriesWithException(START, 'RRULE:FREQ=WEEKLY', inThreeWeeks, friday);
 
     await calendar._refreshSelectedEvents();
 
     const [selected] = calendar.state.selectedEvents;
     expect(selected.id).toBe(`standup-e${friday}`);
-    expect(selected.recurrenceIdStart).toBe(nextWeek);
+    expect(selected.recurrenceIdStart).toBe(inThreeWeeks);
   });
 
   it('drops the selection when the move lands somewhere other than predicted', async function () {

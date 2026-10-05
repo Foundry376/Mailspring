@@ -231,7 +231,8 @@ export class MailspringCalendar extends React.Component<
     const slotOf = (o: EventOccurrence) => o.recurrenceIdStart ?? occurrenceStartUnix(o);
     const slot = slotOf(occurrence);
     const start = pending ? pending.start : occurrenceStartUnix(occurrence);
-    // An exception is only expanded when its RECURRENCE-ID slot is in range, however far it moved.
+    // The expander stops at the first regular occurrence past the range, so an exception moved
+    // in from a later slot is reached only when the range runs to that slot.
     const sameId = occurrencesForEvents([event], {
       startUnix: Math.min(slot, start) - 86400,
       endUnix: Math.max(slot, start) + 86400,
