@@ -2354,6 +2354,208 @@ describe('ICSEventHelpers.generateUID', function () {
   });
 });
 
+describe('ICSEventHelpers VTIMEZONE bookkeeping', function () {
+  const RECURRING_BERLIN_WITH_EXCEPTION = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Test//Test//EN',
+    'BEGIN:VTIMEZONE',
+    'TZID:Europe/Berlin',
+    'BEGIN:STANDARD',
+    'DTSTART:19700101T000000',
+    'TZOFFSETFROM:+0100',
+    'TZOFFSETTO:+0100',
+    'TZNAME:CET',
+    'END:STANDARD',
+    'END:VTIMEZONE',
+    'BEGIN:VEVENT',
+    'UID:berlin@test',
+    'DTSTAMP:20240101T000000Z',
+    'DTSTART;TZID=Europe/Berlin:20240115T100000',
+    'DTEND;TZID=Europe/Berlin:20240115T110000',
+    'RRULE:FREQ=DAILY',
+    'SUMMARY:Standup',
+    'END:VEVENT',
+    'BEGIN:VEVENT',
+    'UID:berlin@test',
+    'RECURRENCE-ID:20240116T090000Z',
+    'DTSTAMP:20240101T000000Z',
+    'DTSTART;TZID=Europe/Berlin:20240116T140000',
+    'DTEND;TZID=Europe/Berlin:20240116T150000',
+    'SUMMARY:Standup (moved)',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n');
+
+  const tzids = (ics: string) =>
+    (ics.match(/^TZID:(.*)$/gm) || []).map((l) => l.replace('TZID:', '').trim()).sort();
+  const referenced = (ics: string) =>
+    [...new Set((ics.match(/TZID=([^:;]*)/g) || []).map((m) => m.replace('TZID=', '')))].sort();
+
+  it('keeps a VTIMEZONE for every zone the calendar still references', function () {
+    // Retiming the master into another zone leaves the inline exception in Berlin; a TZID
+    // with no VTIMEZONE is rejected by a strict parser and read as floating by a lenient one.
+    const out = ICSEventHelpers.updateEventTimes(RECURRING_BERLIN_WITH_EXCEPTION, {
+      start: Math.round(new Date('2024-01-15T16:00:00Z').getTime() / 1000),
+      end: Math.round(new Date('2024-01-15T17:00:00Z').getTime() / 1000),
+      timezone: 'America/Chicago',
+    });
+    expect(referenced(out)).toEqual(['America/Chicago', 'Europe/Berlin']);
+    expect(tzids(out)).toEqual(['America/Chicago', 'Europe/Berlin']);
+  });
+
+  it('drops a VTIMEZONE once nothing refers to it any more', function () {
+    // The master was the only thing in Berlin, so moving it should take the zone with it.
+    const noException = RECURRING_BERLIN_WITH_EXCEPTION.replace(
+      /BEGIN:VEVENT\r\nUID:berlin@test\r\nRECURRENCE-ID[\s\S]*?END:VEVENT\r\n/,
+      ''
+    );
+    const out = ICSEventHelpers.updateEventTimes(noException, {
+      start: Math.round(new Date('2024-01-15T16:00:00Z').getTime() / 1000),
+      end: Math.round(new Date('2024-01-15T17:00:00Z').getTime() / 1000),
+      timezone: 'America/Chicago',
+    });
+    expect(tzids(out)).toEqual(['America/Chicago']);
+  });
+
+  it('gives a newly created zoned event a matching VTIMEZONE', function () {
+    const ics = ICSEventHelpers.createICSString({
+      summary: 'Kickoff',
+      start: new Date('2026-03-01T14:00:00Z'),
+      end: new Date('2026-03-01T15:00:00Z'),
+      timezone: 'America/Chicago',
+    });
+    expect(tzids(ics)).toEqual(['America/Chicago']);
+    expect(referenced(ics)).toEqual(['America/Chicago']);
+  });
+});
+
+describe('ICSEventHelpers.updateRecurringEventTimes with a new zone', function () {
+  // Google's shape: a Berlin series with a zoned EXDATE, an RDATE, a UTC UNTIL and an inline
+  // exception. Chicago is on DST from 10 March 2024, Berlin from 31 March, so the anchors in
+  // between tell the wall-clock move apart from the same instant.
+  const BERLIN_SERIES = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Test//Test//EN',
+    'BEGIN:VTIMEZONE',
+    'TZID:Europe/Berlin',
+    'BEGIN:DAYLIGHT',
+    'TZOFFSETFROM:+0100',
+    'TZOFFSETTO:+0200',
+    'TZNAME:CEST',
+    'DTSTART:19700329T020000',
+    'RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=-1SU',
+    'END:DAYLIGHT',
+    'BEGIN:STANDARD',
+    'TZOFFSETFROM:+0200',
+    'TZOFFSETTO:+0100',
+    'TZNAME:CET',
+    'DTSTART:19701025T030000',
+    'RRULE:FREQ=YEARLY;BYMONTH=10;BYDAY=-1SU',
+    'END:STANDARD',
+    'END:VTIMEZONE',
+    'BEGIN:VEVENT',
+    'UID:berlin-series@test',
+    'DTSTAMP:20240101T000000Z',
+    'DTSTART;TZID=Europe/Berlin:20240115T100000',
+    'DTEND;TZID=Europe/Berlin:20240115T110000',
+    'RRULE:FREQ=DAILY;UNTIL=20240320T090000Z',
+    'EXDATE;TZID=Europe/Berlin:20240315T100000',
+    'RDATE;TZID=Europe/Berlin:20240316T140000',
+    'SUMMARY:Standup',
+    'END:VEVENT',
+    'BEGIN:VEVENT',
+    'UID:berlin-series@test',
+    'RECURRENCE-ID;TZID=Europe/Berlin:20240318T100000',
+    'DTSTAMP:20240101T000000Z',
+    'DTSTART;TZID=Europe/Berlin:20240318T140000',
+    'DTEND;TZID=Europe/Berlin:20240318T150000',
+    'SUMMARY:Standup (moved)',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n');
+  const START = Math.round(new Date('2024-01-15T09:00:00Z').getTime() / 1000);
+
+  const tzids = (ics: string) =>
+    (ics.match(/^TZID:(.*)$/gm) || []).map((l) => l.replace('TZID:', '').trim()).sort();
+  const rezoned = () =>
+    ICSEventHelpers.updateRecurringEventTimes(
+      BERLIN_SERIES,
+      START,
+      START,
+      START + 3600,
+      false,
+      'America/Chicago'
+    );
+
+  it('writes the master in the new zone and keeps the VTIMEZONE of the exception left in the old one', function () {
+    const out = rezoned();
+    expect(out).toContain('DTSTART;TZID=America/Chicago:20240115T030000');
+    expect(out).toContain('DTEND;TZID=America/Chicago:20240115T040000');
+    expect(out).toContain('DTSTART;TZID=Europe/Berlin:20240318T140000');
+    expect(tzids(out)).toEqual(['America/Chicago', 'Europe/Berlin']);
+  });
+
+  it('moves EXDATE, RDATE, UNTIL and RECURRENCE-ID onto the rezoned rule by wall clock, not instant', function () {
+    const out = rezoned();
+    expect(out).toContain('EXDATE;TZID=America/Chicago:20240315T030000');
+    expect(out).toContain('RDATE;TZID=America/Chicago:20240316T070000');
+    expect(out).toContain('UNTIL=20240320T080000Z');
+    expect(out).toContain('RECURRENCE-ID;TZID=America/Chicago:20240318T030000');
+    expect(out).not.toContain('TZID=Europe/Berlin:20240315');
+  });
+
+  it('still excludes, adds and replaces the same occurrences once expanded', function () {
+    const IcalExpander = require('ical-expander');
+    const expanded = new IcalExpander({ ics: rezoned(), maxIterations: 1000 }).between(
+      new Date('2024-03-14T00:00:00Z'),
+      new Date('2024-03-22T00:00:00Z')
+    );
+    const starts = [...expanded.events, ...expanded.occurrences]
+      .map((e) => e.startDate.toJSDate().toISOString())
+      .sort();
+    expect(starts).toEqual([
+      '2024-03-14T08:00:00.000Z',
+      '2024-03-16T08:00:00.000Z',
+      '2024-03-16T12:00:00.000Z',
+      '2024-03-17T08:00:00.000Z',
+      '2024-03-18T13:00:00.000Z',
+      '2024-03-19T08:00:00.000Z',
+      '2024-03-20T08:00:00.000Z',
+    ]);
+  });
+
+  it('rezones a series defined by RDATEs alone', function () {
+    const rdateOnly = BERLIN_SERIES.replace('RRULE:FREQ=DAILY;UNTIL=20240320T090000Z\r\n', '');
+    const out = ICSEventHelpers.updateRecurringEventTimes(
+      rdateOnly,
+      START,
+      START,
+      START + 3600,
+      false,
+      'America/Chicago'
+    );
+    expect(out).toContain('RDATE;TZID=America/Chicago:20240316T070000');
+  });
+
+  it('keeps a UTC RECURRENCE-ID in UTC, at the instant of the rezoned instance', function () {
+    const utcRid = BERLIN_SERIES.replace(
+      'RECURRENCE-ID;TZID=Europe/Berlin:20240318T100000',
+      'RECURRENCE-ID:20240318T090000Z'
+    );
+    const out = ICSEventHelpers.updateRecurringEventTimes(
+      utcRid,
+      START,
+      START,
+      START + 3600,
+      false,
+      'America/Chicago'
+    );
+    expect(out).toContain('RECURRENCE-ID:20240318T080000Z');
+  });
+});
+
 // ---------------------------------------------------------------------------
 
 const MEETING_WITH_ROOM_ICS = `BEGIN:VCALENDAR

@@ -13,6 +13,7 @@ type ICAL = typeof import('ical.js').default;
 type ICALComponent = InstanceType<ICAL['Component']>;
 type ICALTime = InstanceType<ICAL['Time']>;
 type ICALTimezone = InstanceType<ICAL['Timezone']>;
+type ICALRecur = InstanceType<ICAL['Recur']>;
 
 let ICAL: ICAL = null;
 
@@ -285,6 +286,136 @@ function addExdateProperty(
 }
 
 /**
+ * Brings a VCALENDAR's VTIMEZONEs in line with the TZIDs its properties reference (RFC 5545
+ * section 3.2.19: a TZID means nothing without one). A zone still referenced keeps the server's
+ * own component, a zone nothing references is dropped, and a referenced zone with none gets one,
+ * unless resolveIanaZone cannot identify it (an Outlook display name, a private X- identifier).
+ */
+function syncVTimezones(vcalendar: ICALComponent, ical: ICAL, referenceDate: Date): void {
+  const referenced = new Set<string>();
+  for (const component of vcalendar.getAllSubcomponents()) {
+    if (component.name === 'vtimezone') continue;
+    for (const prop of component.getAllProperties()) {
+      const tzid = prop.getParameter('tzid');
+      if (tzid) referenced.add(String(tzid));
+    }
+  }
+
+  const present = new Set<string>();
+  for (const vtz of vcalendar.getAllSubcomponents('vtimezone')) {
+    const tzid = String(vtz.getFirstPropertyValue('tzid') || '');
+    if (!tzid || !referenced.has(tzid)) {
+      vcalendar.removeSubcomponent(vtz);
+      continue;
+    }
+    present.add(tzid);
+  }
+
+  for (const tzid of referenced) {
+    if (present.has(tzid)) continue;
+    const vtimezone = createVTIMEZONEString(tzid, referenceDate);
+    if (!vtimezone) continue;
+    vcalendar.addSubcomponent(
+      new ical.Component(
+        ical.parse(`BEGIN:VCALENDAR\r\nVERSION:2.0\r\n${vtimezone}\r\nEND:VCALENDAR`)
+      ).getFirstSubcomponent('vtimezone')
+    );
+  }
+}
+
+/**
+ * Moves each date-time that pins an occurrence (EXDATE, RDATE, RRULE UNTIL, every inline
+ * exception's RECURRENCE-ID) by the wall-clock difference between the old zone and the new one,
+ * so it still names an instance of the rezoned rule: the same instant would miss every instance
+ * in the weeks where only one of the two zones is on DST (RFC 5545 section 3.8.5.1 matches by
+ * value). Exception DTSTART/DTEND stay where the user put them.
+ */
+function realignOccurrenceAnchors(
+  vcalendar: ICALComponent,
+  masterVevent: ICALComponent,
+  previousStart: ICALTime,
+  tzid: string,
+  ianaZone: string,
+  ical: ICAL
+): void {
+  const momentTz = require('moment-timezone');
+  const previousZone = previousStart.zone;
+  const previousInstant = previousStart.toJSDate();
+  const previousOffsetMs =
+    Date.UTC(
+      previousStart.year,
+      previousStart.month - 1,
+      previousStart.day,
+      previousStart.hour,
+      previousStart.minute,
+      previousStart.second
+    ) - previousInstant.getTime();
+  const wallDeltaMs = momentTz(previousInstant).tz(ianaZone).utcOffset() * 60000 - previousOffsetMs;
+
+  const realigned = (value: ICALTime, zoned: boolean): ICALTime => {
+    const inOldZone =
+      value.zone.tzid === previousZone.tzid ? value : value.convertToZone(previousZone);
+    const wall = new Date(
+      Date.UTC(
+        inOldZone.year,
+        inOldZone.month - 1,
+        inOldZone.day,
+        inOldZone.hour,
+        inOldZone.minute,
+        inOldZone.second
+      ) + wallDeltaMs
+    );
+    const components = {
+      year: wall.getUTCFullYear(),
+      month: wall.getUTCMonth() + 1,
+      day: wall.getUTCDate(),
+      hour: wall.getUTCHours(),
+      minute: wall.getUTCMinutes(),
+      second: wall.getUTCSeconds(),
+      isDate: false,
+    };
+    if (zoned) {
+      return new ical.Time(components, ical.Timezone.localTimezone);
+    }
+    // moment counts months from zero; ical.js from one.
+    const instant = momentTz.tz(
+      {
+        year: components.year,
+        month: components.month - 1,
+        date: components.day,
+        hour: components.hour,
+        minute: components.minute,
+        second: components.second,
+      },
+      ianaZone
+    );
+    return ical.Time.fromJSDate(instant.toDate(), true);
+  };
+
+  for (const name of ['exdate', 'rdate']) {
+    for (const prop of masterVevent.getAllProperties(name)) {
+      const zoned = !!prop.getParameter('tzid');
+      prop.setValues((prop.getValues() as ICALTime[]).map((v) => realigned(v, zoned)));
+      if (zoned) prop.setParameter('tzid', tzid);
+    }
+  }
+
+  const rrule = masterVevent.getFirstPropertyValue('rrule') as ICALRecur | null;
+  if (rrule && rrule.until) {
+    rrule.until = realigned(rrule.until, false);
+    masterVevent.updatePropertyWithValue('rrule', rrule);
+  }
+
+  for (const vevent of vcalendar.getAllSubcomponents('vevent')) {
+    const rid = vevent.getFirstProperty('recurrence-id');
+    if (!rid) continue;
+    const zoned = !!rid.getParameter('tzid');
+    rid.setValue(realigned(rid.getFirstValue() as ICALTime, zoned));
+    if (zoned) rid.setParameter('tzid', tzid);
+  }
+}
+
+/**
  * Removes an existing exception VEVENT from a VCALENDAR that matches the given
  * target time (in UTC milliseconds). Uses `toJSDate().getTime()` for comparison
  * after registering timezones, so TZID-formatted and UTC-formatted RECURRENCE-IDs
@@ -384,21 +515,11 @@ export function createICSString(options: CreateEventOptions): string {
     // create a floating ICAL.Time, then manually stamp the TZID onto the property.
     // This produces: DTSTART;TZID=America/Chicago:20240115T140000
     //
-    // RFC 5545 requires a VTIMEZONE whenever TZID is used; without it, some servers (Yahoo
-    // among them) ignore the TZID and read the wall clock as UTC. See createVTIMEZONEString.
+    // syncVTimezones adds the matching VTIMEZONE once the TZIDs are stamped below; without one,
+    // servers with no zone database of their own (Yahoo among them) read the wall clock as UTC.
     const momentTz = require('moment-timezone');
     const startM = momentTz(options.start).tz(createZone);
     const endM = momentTz(options.end).tz(createZone);
-
-    const vtimezoneComp = new ical.Component(
-      ical.parse(
-        `BEGIN:VCALENDAR\r\nVERSION:2.0\r\n${createVTIMEZONEString(
-          options.timezone,
-          options.start
-        )}\r\nEND:VCALENDAR`
-      )
-    ).getFirstSubcomponent('vtimezone');
-    calendar.addSubcomponent(vtimezoneComp);
 
     event.startDate = new ical.Time(
       {
@@ -471,6 +592,7 @@ export function createICSString(options: CreateEventOptions): string {
   vevent.addPropertyWithValue('dtstamp', nowUTC(ical));
 
   calendar.addSubcomponent(vevent);
+  syncVTimezones(calendar, ical, options.start);
   return calendar.toString();
 }
 
@@ -508,6 +630,7 @@ export function updateEventTimes(ics: string, options: UpdateTimesOptions): stri
     const momentTz = require('moment-timezone');
     const startM = momentTz(startDate).tz(updateZone);
     const endM = momentTz(endDate).tz(updateZone);
+    const previousStart = event.startDate;
 
     event.startDate = new ical.Time(
       {
@@ -538,23 +661,7 @@ export function updateEventTimes(ics: string, options: UpdateTimesOptions): stri
     vevent.getFirstProperty('dtstart')?.setParameter('tzid', options.timezone);
     vevent.getFirstProperty('dtend')?.setParameter('tzid', options.timezone);
 
-    // Ensure a VTIMEZONE component exists in the parent VCALENDAR
-    const vcalendar = root.name === 'vcalendar' ? root : null;
-    if (vcalendar) {
-      // Remove existing VTIMEZONE components and add the current one
-      for (const vtz of vcalendar.getAllSubcomponents('vtimezone')) {
-        vcalendar.removeSubcomponent(vtz);
-      }
-      const vtimezoneComp = new ical.Component(
-        ical.parse(
-          `BEGIN:VCALENDAR\r\nVERSION:2.0\r\n${createVTIMEZONEString(
-            options.timezone,
-            startDate
-          )}\r\nEND:VCALENDAR`
-        )
-      ).getFirstSubcomponent('vtimezone');
-      vcalendar.addSubcomponent(vtimezoneComp);
-    }
+    realignOccurrenceAnchors(root, vevent, previousStart, options.timezone, updateZone, ical);
   } else {
     // Preserve the original timezone for timed events, or use floating for all-day
     const originalStartZone = event.startDate?.zone;
@@ -574,6 +681,9 @@ export function updateEventTimes(ics: string, options: UpdateTimesOptions): stri
     vevent.updatePropertyWithValue('sequence', (parseInt(String(sequence), 10) || 0) + 1);
   }
 
+  if (root.name === 'vcalendar') {
+    syncVTimezones(root, ical, startDate);
+  }
   return root.toString();
 }
 
@@ -852,6 +962,7 @@ export function shiftInlineExceptions(ics: string, deltaMs: number): string {
  * @param newStart - New start time for the dragged occurrence (unix seconds)
  * @param newEnd - New end time for the dragged occurrence (unix seconds)
  * @param isAllDay - Whether this is an all-day event
+ * @param timezone - IANA zone to rewrite the series into; omitted, the series keeps its zone
  * @returns The modified ICS string with shifted series times
  */
 export function updateRecurringEventTimes(
@@ -859,7 +970,8 @@ export function updateRecurringEventTimes(
   originalOccurrenceStart: number,
   newStart: number,
   newEnd: number,
-  isAllDay: boolean
+  isAllDay: boolean,
+  timezone?: string
 ): string {
   const { event } = parseICSString(ics);
 
@@ -895,6 +1007,7 @@ export function updateRecurringEventTimes(
     start: newMasterStart / 1000,
     end: (newMasterStart + durationMs) / 1000,
     isAllDay,
+    timezone,
   });
 }
 
