@@ -228,14 +228,16 @@ export class MailspringCalendar extends React.Component<
     if (pending && event.ics === pending.staleIcs) return occurrence;
     this._pendingMoves.delete(occurrence.id);
 
+    const slotOf = (o: EventOccurrence) => o.recurrenceIdStart ?? occurrenceStartUnix(o);
+    const slot = slotOf(occurrence);
     const start = pending ? pending.start : occurrenceStartUnix(occurrence);
+    // An exception is only expanded when its RECURRENCE-ID slot is in range, however far it moved.
     const sameId = occurrencesForEvents([event], {
-      startUnix: start - 86400,
-      endUnix: start + 86400,
+      startUnix: Math.min(slot, start) - 86400,
+      endUnix: Math.max(slot, start) + 86400,
     }).filter((o) => o.id === occurrence.id);
-    // An occurrence moved onto another's start shares its id; its RECURRENCE-ID tells them apart.
-    const slot = occurrence.recurrenceIdStart ?? occurrenceStartUnix(occurrence);
-    const current = sameId.find((o) => o.recurrenceIdStart === slot) || sameId[0];
+    // An occurrence moved onto another's start shares its id; their slots tell them apart.
+    const current = sameId.find((o) => slotOf(o) === slot) || sameId[0];
     return current || (pending ? null : occurrence);
   }
 

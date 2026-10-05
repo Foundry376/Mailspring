@@ -11,9 +11,10 @@ import { CalendarView } from '../internal_packages/main-calendar/lib/core/calend
 const START = Date.UTC(2026, 8, 22, 13, 0, 0) / 1000;
 const QUARTER = 900;
 
+const stamp = (unix: number) =>
+  new Date(unix * 1000).toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+
 const icsAt = (start: number, rrule?: string) => {
-  const stamp = (unix: number) =>
-    new Date(unix * 1000).toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
   return [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -40,6 +41,26 @@ const eventAt = (start: number, rrule?: string) =>
     recurrenceStart: start,
     recurrenceEnd: start + 1800,
   } as any);
+
+// A series from `first` whose `slot` occurrence was moved to `movedTo`, stored inline as an exception.
+const seriesWithException = (first: number, rrule: string, slot: number, movedTo: number) => {
+  const series = eventAt(first, rrule);
+  series.ics = series.ics.replace(
+    'END:VCALENDAR',
+    [
+      'BEGIN:VEVENT',
+      'UID:standup@test',
+      `RECURRENCE-ID:${stamp(slot)}`,
+      `DTSTART:${stamp(movedTo)}`,
+      `DTEND:${stamp(movedTo + 1800)}`,
+      'SUMMARY:Standup',
+      'DTSTAMP:20260901T000000Z',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n')
+  );
+  return series;
+};
 
 const occurrenceAt = (start: number, over: Partial<TimedOccurrence> = {}): TimedOccurrence =>
   ({
@@ -181,29 +202,46 @@ describe('the selection after an event is moved', function () {
       false
     );
     // "This occurrence": Wednesday's slot now holds an exception on Tuesday, at Tuesday's own time.
-    const stamp = (unix: number) =>
-      new Date(unix * 1000).toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
-    row = eventAt(START - 86400, 'RRULE:FREQ=DAILY');
-    row.ics = row.ics.replace(
-      'END:VCALENDAR',
-      [
-        'BEGIN:VEVENT',
-        'UID:standup@test',
-        `RECURRENCE-ID:${stamp(wednesday)}`,
-        `DTSTART:${stamp(START)}`,
-        `DTEND:${stamp(START + 1800)}`,
-        'SUMMARY:Standup',
-        'DTSTAMP:20260901T000000Z',
-        'END:VEVENT',
-        'END:VCALENDAR',
-      ].join('\r\n')
-    );
+    row = seriesWithException(START - 86400, 'RRULE:FREQ=DAILY', wednesday, START);
 
     await calendar._refreshSelectedEvents();
 
     const [selected] = calendar.state.selectedEvents;
     expect(selected.isException).toBe(true);
     expect(selected.recurrenceIdStart).toBe(wednesday);
+  });
+
+  it('keeps the regular occurrence selected when a moved one shares its id', async function () {
+    row = seriesWithException(START - 86400, 'RRULE:FREQ=DAILY', START + 86400, START);
+    const tuesday = occurrenceAt(START, { isRecurring: true });
+    const calendar = calendarWith([tuesday]);
+
+    await calendar._refreshSelectedEvents();
+
+    const [selected] = calendar.state.selectedEvents;
+    expect(selected.isException).toBe(false);
+    expect(selected.recurrenceIdStart).toBeUndefined();
+  });
+
+  it('settles one occurrence moved days from its slot', async function () {
+    const nextWeek = START + 7 * 86400;
+    const friday = START + 10 * 86400;
+    row = eventAt(START, 'RRULE:FREQ=WEEKLY');
+    const calendar = calendarWith([occurrenceAt(nextWeek, { isRecurring: true })]);
+    await calendar._persistDragChange({
+      event: occurrenceAt(nextWeek, { isRecurring: true }),
+      mode: 'move',
+      previewStart: friday,
+      previewEnd: friday + 1800,
+      previewIsAllDay: false,
+    });
+    row = seriesWithException(START, 'RRULE:FREQ=WEEKLY', nextWeek, friday);
+
+    await calendar._refreshSelectedEvents();
+
+    const [selected] = calendar.state.selectedEvents;
+    expect(selected.id).toBe(`standup-e${friday}`);
+    expect(selected.recurrenceIdStart).toBe(nextWeek);
   });
 
   it('drops the selection when the move lands somewhere other than predicted', async function () {
