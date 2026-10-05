@@ -2701,76 +2701,6 @@ describe('ICSEventHelpers.createCounterProposal', function () {
   });
 });
 
-describe('SEQUENCE, so guests see an update as an update', function () {
-  const unfold = (ics: string) => ics.replace(/\r\n[ \t]/g, '').split(/\r?\n/);
-  const seq = (ics: string) => {
-    const line = unfold(ics).find((l) => l.startsWith('SEQUENCE:'));
-    return line ? parseInt(line.split(':')[1], 10) : null;
-  };
-
-  it('advances a revision by exactly one', function () {
-    expect(seq(ICSEventHelpers.bumpEventSequence(SIMPLE_ICS))).toBe(1);
-  });
-
-  it('advances from an existing value rather than resetting', function () {
-    const withSeq = SIMPLE_ICS.replace('SEQUENCE:0', 'SEQUENCE:4');
-    expect(seq(ICSEventHelpers.bumpEventSequence(withSeq))).toBe(5);
-  });
-
-  it('advances an event that never had one, since absent means zero', function () {
-    // RFC 5545 section 3.7.4.
-    const noSeq = SIMPLE_ICS.replace('SEQUENCE:0\r\n', '').replace('SEQUENCE:0\n', '');
-    expect(seq(ICSEventHelpers.bumpEventSequence(noSeq))).toBe(1);
-  });
-
-  it('advances once for a save that touched times, guests and recurrence together', function () {
-    // The popover runs all three on one save, which is still one revision.
-    let ics = ICSEventHelpers.updateEventTimes(SIMPLE_ICS, {
-      start: Math.round(new Date('2026-03-01T16:00:00Z').getTime() / 1000),
-      end: Math.round(new Date('2026-03-01T17:00:00Z').getTime() / 1000),
-      isAllDay: false,
-    });
-    ics = ICSEventHelpers.updateAttendees(ics, [{ email: 'new@example.com' }]);
-    ics = ICSEventHelpers.updateRecurrenceRule(ics, 'FREQ=WEEKLY');
-    expect(seq(ics)).toBe(0);
-    expect(seq(ICSEventHelpers.bumpEventSequence(ics))).toBe(1);
-  });
-
-  it('revises a lone occurrence that arrived without its series', function () {
-    // 8 of the 87 invitations mailed to the dev account are a single VEVENT with a RECURRENCE-ID.
-    const lone = SIMPLE_ICS.replace('DTSTART:', 'RECURRENCE-ID:20260301T140000Z\r\nDTSTART:');
-    expect(seq(ICSEventHelpers.bumpEventSequence(lone))).toBe(1);
-  });
-
-  it('revises a bare VEVENT with no VCALENDAR around it', function () {
-    const bare = SIMPLE_ICS.slice(
-      SIMPLE_ICS.indexOf('BEGIN:VEVENT'),
-      SIMPLE_ICS.indexOf('END:VCALENDAR')
-    ).trim();
-    expect(bare.startsWith('BEGIN:VEVENT')).toBe(true);
-    expect(seq(ICSEventHelpers.bumpEventSequence(bare))).toBe(1);
-  });
-
-  it('refuses to revise an occurrence the file does not contain', function () {
-    expect(() => ICSEventHelpers.bumpEventSequence(SIMPLE_ICS, '20991231T060000Z')).toThrow();
-  });
-
-  it('advances the named occurrence rather than the series', function () {
-    const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
-      DAILY_STANDUP_ICS,
-      T_OCC2_START,
-      T_OCC2_START + 3600,
-      T_OCC2_START + 7200,
-      false
-    );
-    const bumped = ICSEventHelpers.bumpEventSequence(masterIcs, recurrenceId);
-    const sequences = unfold(bumped)
-      .filter((l) => l.startsWith('SEQUENCE:'))
-      .map((l) => parseInt(l.split(':')[1], 10));
-    expect(sequences).toEqual([0, 1]);
-  });
-});
-
 // ---------------------------------------------------------------------------
 
 const MEETING_WITH_ROOM_ICS = `BEGIN:VCALENDAR
@@ -2999,6 +2929,76 @@ describe('ICSEventHelpers.createICSString and the organizer', function () {
       organizer: { email: 'me@example.com', name: 'Me' },
     });
     expect(ics).not.toContain('ORGANIZER');
+  });
+});
+
+describe('SEQUENCE, so guests see an update as an update', function () {
+  const unfold = (ics: string) => ics.replace(/\r\n[ \t]/g, '').split(/\r?\n/);
+  const seq = (ics: string) => {
+    const line = unfold(ics).find((l) => l.startsWith('SEQUENCE:'));
+    return line ? parseInt(line.split(':')[1], 10) : null;
+  };
+
+  it('advances a revision by exactly one', function () {
+    expect(seq(ICSEventHelpers.bumpEventSequence(SIMPLE_ICS))).toBe(1);
+  });
+
+  it('advances from an existing value rather than resetting', function () {
+    const withSeq = SIMPLE_ICS.replace('SEQUENCE:0', 'SEQUENCE:4');
+    expect(seq(ICSEventHelpers.bumpEventSequence(withSeq))).toBe(5);
+  });
+
+  it('advances an event that never had one, since absent means zero', function () {
+    // RFC 5545 section 3.7.4.
+    const noSeq = SIMPLE_ICS.replace('SEQUENCE:0\r\n', '').replace('SEQUENCE:0\n', '');
+    expect(seq(ICSEventHelpers.bumpEventSequence(noSeq))).toBe(1);
+  });
+
+  it('advances once for a save that touched times, guests and recurrence together', function () {
+    // The popover runs all three on one save, which is still one revision.
+    let ics = ICSEventHelpers.updateEventTimes(SIMPLE_ICS, {
+      start: Math.round(new Date('2026-03-01T16:00:00Z').getTime() / 1000),
+      end: Math.round(new Date('2026-03-01T17:00:00Z').getTime() / 1000),
+      isAllDay: false,
+    });
+    ics = ICSEventHelpers.updateAttendees(ics, [{ email: 'new@example.com' }]);
+    ics = ICSEventHelpers.updateRecurrenceRule(ics, 'FREQ=WEEKLY');
+    expect(seq(ics)).toBe(0);
+    expect(seq(ICSEventHelpers.bumpEventSequence(ics))).toBe(1);
+  });
+
+  it('revises a lone occurrence that arrived without its series', function () {
+    // 8 of the 87 invitations mailed to the dev account are a single VEVENT with a RECURRENCE-ID.
+    const lone = SIMPLE_ICS.replace('DTSTART:', 'RECURRENCE-ID:20260301T140000Z\r\nDTSTART:');
+    expect(seq(ICSEventHelpers.bumpEventSequence(lone))).toBe(1);
+  });
+
+  it('revises a bare VEVENT with no VCALENDAR around it', function () {
+    const bare = SIMPLE_ICS.slice(
+      SIMPLE_ICS.indexOf('BEGIN:VEVENT'),
+      SIMPLE_ICS.indexOf('END:VCALENDAR')
+    ).trim();
+    expect(bare.startsWith('BEGIN:VEVENT')).toBe(true);
+    expect(seq(ICSEventHelpers.bumpEventSequence(bare))).toBe(1);
+  });
+
+  it('refuses to revise an occurrence the file does not contain', function () {
+    expect(() => ICSEventHelpers.bumpEventSequence(SIMPLE_ICS, '20991231T060000Z')).toThrow();
+  });
+
+  it('advances the named occurrence rather than the series', function () {
+    const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
+      DAILY_STANDUP_ICS,
+      T_OCC2_START,
+      T_OCC2_START + 3600,
+      T_OCC2_START + 7200,
+      false
+    );
+    const bumped = ICSEventHelpers.bumpEventSequence(masterIcs, recurrenceId);
+    const sequences = unfold(bumped)
+      .filter((l) => l.startsWith('SEQUENCE:'))
+      .map((l) => parseInt(l.split(':')[1], 10));
+    expect(sequences).toEqual([0, 1]);
   });
 });
 
