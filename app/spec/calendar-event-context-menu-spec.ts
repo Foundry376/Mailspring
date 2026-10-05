@@ -42,7 +42,6 @@ function menuFor(occ: any, readOnly = false) {
     occurrence: occ,
     readOnly,
     // Mirrors how MailspringCalendar derives it: a writable calendar and a meeting of ours.
-    editable: !readOnly && occ.isMine,
     onOpen: () => {},
     onDelete: () => {},
     onProposeNewTime: () => {},
@@ -139,6 +138,12 @@ describe('CalendarEventContextMenu', function () {
   it('does not offer a counter-proposal on a meeting we organize', function () {
     // The organizer changes the time; they do not ask themselves for it.
     expect(labels(menuFor(myOwnEvent()))).not.toContain('Propose New Time...');
+  });
+
+  it('offers only viewing on a meeting somebody else organizes, even on a writable calendar', function () {
+    expect(
+      labels(menuFor(occurrence({ organizer: { email: 'ada@example.com' }, isMine: false })))[0]
+    ).toBe('View Event');
   });
 
   it('offers editing on a meeting we organize', function () {

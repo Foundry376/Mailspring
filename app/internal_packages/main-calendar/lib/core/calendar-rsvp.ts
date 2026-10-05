@@ -17,6 +17,7 @@ import { ProposeTimePopover } from 'mailspring-component-kit';
 import { EventOccurrence, occurrenceStartUnix, occurrenceEndUnix } from './calendar-data-source';
 import { parseEventIdFromOccurrence } from './calendar-drag-utils';
 import { formatCalendarDate } from '../../../../src/calendar-date';
+import { showRecurringEventDialog } from './recurring-event-dialog';
 
 /** Whether this occurrence is an invitation we can answer, rather than one we sent. */
 export function canRespondToEvent(occurrence: EventOccurrence): boolean {
@@ -54,7 +55,10 @@ export function myParticipationStatus(occurrence: EventOccurrence): string | nul
 
 /**
  * Answers an invitation from the calendar: our PARTSTAT on our copy (RFC 6638 section 3.2.5)
- * and an emailed REPLY to the organizer, which goes even when the copy cannot be written.
+ * and an emailed REPLY to the organizer, which goes even when the copy cannot be written. On a
+ * series it first asks, as Google Calendar and Delete do, whether the answer is for this
+ * occurrence or for all of them; one occurrence is answered on its own VEVENT and in a REPLY
+ * that names it (RFC 5546 section 3.2.3).
  */
 export async function respondToCalendarEvent(
   occurrence: EventOccurrence,
@@ -83,13 +87,26 @@ export async function respondToCalendarEvent(
     return;
   }
 
+  let thisOccurrenceOnly = false;
+  if (parsed.event.isRecurring() && !event.isRecurrenceException()) {
+    const choice = await showRecurringEventDialog('answer', occurrence.title);
+    if (choice === 'cancel') return;
+    thisOccurrenceOnly = choice === 'this-occurrence';
+  }
+  // What the answer is about: the one occurrence's VEVENT, or the whole stored object.
+  const answered = thisOccurrenceOnly
+    ? ICSEventHelpers.occurrenceIcs(event.ics, occurrenceRecurrenceId(occurrence))
+    : event.ics;
+
   // A calendar the server named as somebody else's holds their event, not ours; the invitation
   // header refuses the same copy through resolveRSVPTarget.
   const calendar = await DatabaseStore.find<Calendar>(Calendar, event.calendarId);
   const writable =
     calendar && !calendar.readOnly && !CalendarUtils.isSomeoneElsesCalendar(calendar);
   if (writable) {
-    const ics = ICSEventHelpers.updateAttendeeStatus(event.ics, me.email, status);
+    const ics = thisOccurrenceOnly
+      ? ICSEventHelpers.updateOccurrenceAttendeeStatus(event.ics, answered, me.email, status)
+      : ICSEventHelpers.updateAttendeeStatus(event.ics, me.email, status);
     if (ics) {
       const updated = event.clone();
       updated.ics = ics;
@@ -105,7 +122,7 @@ export async function respondToCalendarEvent(
     Actions.queueTask(
       EventRSVPTask.forReplying({
         accountId: event.accountId,
-        icsOriginalData: event.ics,
+        icsOriginalData: answered,
         icsRSVPStatus: status,
         to: organizerEmail,
       })
