@@ -148,7 +148,8 @@ export type RSVPWrite =
 
 /**
  * The calendar write that records an answer, beside the emailed REPLY: our PARTSTAT on our own
- * copy (RFC 6638 section 3.2.5), or the invitation itself when we are attending and have no copy.
+ * copy (RFC 6638 section 3.2.5), on the one occurrence an invitation names where it names one,
+ * or the invitation itself when we are attending and have no copy.
  */
 export function planRSVPWrite({
   rsvp,
@@ -171,7 +172,12 @@ export function planRSVPWrite({
 
   if (rsvp.target) {
     const { event: calEvent } = rsvp.target;
-    const ics = ICSEventHelpers.updateAttendeeStatus(calEvent.ics, myEmail, status);
+    // An invitation to one occurrence is answered on that occurrence alone. A Google organizer
+    // takes the answer from this write and ignores the emailed REPLY (measured on #2924), so
+    // writing every VEVENT would accept or decline the whole series.
+    const ics = inviteEvent.component.getFirstPropertyValue('recurrence-id')
+      ? ICSEventHelpers.updateOccurrenceAttendeeStatus(calEvent.ics, inviteIcs, myEmail, status)
+      : ICSEventHelpers.updateAttendeeStatus(calEvent.ics, myEmail, status);
     if (!ics) return null;
     const event = calEvent.clone();
     event.ics = ics;
