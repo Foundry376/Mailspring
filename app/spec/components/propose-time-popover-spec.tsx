@@ -90,5 +90,13 @@ describe('ProposeTimePopover', function () {
       mount({ start: MIDNIGHT, end: MIDNIGHT + 3 * 86400, isAllDay: true });
       expect(original()).toBe('Currently Tue, Mar 10 – Thu, Mar 12');
     });
+
+    it('offers the first and last day in the pickers, not the exclusive end', function () {
+      mount({ start: MIDNIGHT, end: MIDNIGHT + 3 * 86400, isAllDay: true });
+      const days = ReactTestUtils.scryRenderedComponentsWithType(popover, DatePicker).map((p) =>
+        moment(p.props.value).format('YYYY-MM-DD')
+      );
+      expect(days).toEqual(['2026-03-10', '2026-03-12']);
+    });
   });
 });
