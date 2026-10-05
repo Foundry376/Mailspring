@@ -46,10 +46,20 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
 
   componentDidMount() {
     this._revealOnFocusGained(false);
+    this._takeFocusOnSelect(false);
   }
 
   componentDidUpdate(prevProps: MonthViewEventProps) {
     this._revealOnFocusGained(prevProps.focused);
+    this._takeFocusOnSelect(prevProps.selected);
+  }
+
+  // See CalendarEvent._takeFocusOnSelect.
+  _takeFocusOnSelect(wasSelected: boolean) {
+    if (!this.props.selected || wasSelected || document.activeElement !== document.body) {
+      return;
+    }
+    (ReactDOM.findDOMNode(this) as HTMLElement | null)?.focus({ preventScroll: true });
   }
 
   // Announce focus only as it arrives: onFocused opens the card and the reveal scrolls to it, so
