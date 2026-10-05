@@ -2682,6 +2682,68 @@ describe('ICSEventHelpers.createCounterProposal', function () {
       expect(() => propose(RECURRING_INVITE_ICS)).toThrow();
     });
 
+    it('drops RDATE along with the rule: a counter is for one occurrence', function () {
+      const withRdate = RECURRING_INVITE_ICS.replace(
+        'EXDATE:20260316T140000Z',
+        'EXDATE:20260316T140000Z\nRDATE:20260401T140000Z'
+      );
+      const ics = propose(withRdate, { recurrenceId: occurrence('2026-03-23T14:00:00Z') });
+      expect(line(ics, 'RDATE')).toBe(undefined);
+      expect(line(ics, 'RRULE')).toBe(undefined);
+    });
+
+    // As Google writes a series: DTSTART and every RECURRENCE-ID carry the calendar's TZID.
+    const ZONED_INVITE_ICS = RECURRING_INVITE_ICS.replace(
+      'RECURRENCE-ID:20260309T140000Z',
+      'RECURRENCE-ID;TZID=America/Los_Angeles:20260309T060000'
+    ).replace('DTSTART:20260302T140000Z', 'DTSTART;TZID=America/Los_Angeles:20260302T060000');
+
+    it('keeps the RECURRENCE-ID a moved occurrence came with, zone and all', function () {
+      const ics = propose(ZONED_INVITE_ICS, { recurrenceId: occurrence('2026-03-09T13:00:00Z') });
+      expect(line(ics, 'SUMMARY')).toBe('SUMMARY:Weekly Sync (moved)');
+      // RFC 5545 section 3.2.19: a TZID parameter may not sit on a UTC value.
+      expect(line(ics, 'RECURRENCE-ID')).toBe(
+        'RECURRENCE-ID;TZID=America/Los_Angeles:20260309T060000'
+      );
+    });
+
+    it('names an occurrence of a zoned series the way its DTSTART is written', function () {
+      const ics = propose(ZONED_INVITE_ICS, { recurrenceId: occurrence('2026-03-23T13:00:00Z') });
+      // 13:00Z on 23 March is 06:00 in Los Angeles, daylight time having begun on the 8th.
+      expect(line(ics, 'RECURRENCE-ID')).toBe(
+        'RECURRENCE-ID;TZID=America/Los_Angeles:20260323T060000'
+      );
+    });
+
+    it('names an occurrence of an all-day series by its date', function () {
+      const allDaySeries = RECURRING_INVITE_ICS.replace(
+        'DTSTART:20260302T140000Z\nDTEND:20260302T150000Z',
+        'DTSTART;VALUE=DATE:20260302\nDTEND;VALUE=DATE:20260303'
+      );
+      const ics = propose(allDaySeries, {
+        recurrenceId: ICAL.Time.fromDateString('2026-03-23'),
+        start: new Date(2026, 2, 24, 0, 0, 0),
+        end: new Date(2026, 2, 25, 0, 0, 0),
+      });
+      expect(line(ics, 'RECURRENCE-ID')).toBe('RECURRENCE-ID;VALUE=DATE:20260323');
+      // The grid hands over the occurrence's instant; an all-day series is still named by date.
+      const fromInstant = propose(allDaySeries, {
+        recurrenceId: occurrence('2026-03-23T06:00:00Z'),
+        start: new Date(2026, 2, 24, 0, 0, 0),
+        end: new Date(2026, 2, 25, 0, 0, 0),
+      });
+      expect(line(fromInstant, 'RECURRENCE-ID')).toBe('RECURRENCE-ID;VALUE=DATE:20260323');
+    });
+
+    it('falls back to UTC when the series names a zone nobody can identify', function () {
+      const unknownZone = RECURRING_INVITE_ICS.replace(
+        'DTSTART:20260302T140000Z',
+        'DTSTART;TZID=Nowhere/Land:20260302T140000'
+      );
+      const ics = propose(unknownZone, { recurrenceId: occurrence('2026-03-23T13:00:00Z') });
+      expect(line(ics, 'RECURRENCE-ID')).toBe('RECURRENCE-ID:20260323T130000Z');
+    });
+
     it('keeps the RECURRENCE-ID of an invitation to a single occurrence', function () {
       const single = RECURRING_INVITE_ICS.replace(
         /BEGIN:VEVENT\r?\nUID:series-invite@test\r?\nDTSTART:20260302[\s\S]*?END:VEVENT\r?\n/,
