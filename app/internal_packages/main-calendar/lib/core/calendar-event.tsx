@@ -74,10 +74,21 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
 
   componentDidMount() {
     this._revealOnFocusGained(false);
+    this._takeFocusIfSelected();
   }
 
   componentDidUpdate(prevProps: CalendarEventProps) {
     this._revealOnFocusGained(prevProps.focused);
+    this._takeFocusIfSelected();
+  }
+
+  // A moved event is re-drawn under a new id, so the focus its old element had falls to <body>;
+  // taking it back keeps the arrow keys moving it.
+  _takeFocusIfSelected() {
+    if (!this.props.selected || document.activeElement !== document.body) {
+      return;
+    }
+    (ReactDOM.findDOMNode(this) as HTMLElement | null)?.focus({ preventScroll: true });
   }
 
   // Announce focus only as it arrives: onFocused opens the card and the reveal scrolls to it, so
