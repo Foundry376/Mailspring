@@ -2,29 +2,51 @@ import { shell } from 'electron';
 import React from 'react';
 import { localized, localizedReactFragment, Account } from 'mailspring-exports';
 import { CopyButton, RetinaImg } from 'mailspring-component-kit';
+import crypto from 'crypto';
 import http from 'http';
 import url from 'url';
 
 import FormErrorMessage from './form-error-message';
-import { LOCAL_SERVER_PORT } from './onboarding-constants';
+import { LOCAL_SERVER_PORT, OAUTH_STATE } from './onboarding-constants';
 import AccountProviders from './account-providers';
 
 /**
- * Extract the OAuth authorization code from a redirect URL's query string.
+ * Read a parameter from a redirect URL's query string, ignoring the path so the
+ * same listener serves Google (root) and Microsoft (`/desktop`) redirects.
  * Uses decodeURIComponent instead of querystring.parse to preserve `+` as
  * a literal character (RFC 3986) rather than decoding it as a space
  * (application/x-www-form-urlencoded).
  */
-export function extractOAuthCodeFromUrl(requestUrl: string): string | null {
-  const parsedUrl = url.parse(requestUrl);
-  const rawQuery = parsedUrl.query || '';
-  const codeMatch = rawQuery.match(/(?:^|&)code=([^&]*)/);
-  if (!codeMatch) return null;
+function extractQueryParam(requestUrl: string, param: string): string | null {
+  const rawQuery = url.parse(requestUrl).query || '';
+  const match = rawQuery.match(new RegExp(`(?:^|&)${param}=([^&]*)`));
+  if (!match) return null;
   try {
-    return decodeURIComponent(codeMatch[1]);
+    return decodeURIComponent(match[1]);
   } catch {
     return null;
   }
+}
+
+export function extractOAuthCodeFromUrl(requestUrl: string): string | null {
+  return extractQueryParam(requestUrl, 'code');
+}
+
+export function extractOAuthStateFromUrl(requestUrl: string): string | null {
+  return extractQueryParam(requestUrl, 'state');
+}
+
+/**
+ * The `state` value is carried alongside PKCE as defense in depth (RFC 6749 §10.12).
+ * A callback whose state is absent or does not match the value this page sent to the
+ * authorization server aborts the sign-in rather than exchanging the code.
+ */
+export function oauthStateIsValid(received: string | null, expected = OAUTH_STATE): boolean {
+  if (!received) return false;
+  const receivedBuffer = Buffer.from(received, 'utf8');
+  const expectedBuffer = Buffer.from(expected, 'utf8');
+  if (receivedBuffer.length !== expectedBuffer.length) return false;
+  return crypto.timingSafeEqual(receivedBuffer, expectedBuffer);
 }
 
 interface OAuthSignInPageProps {
@@ -77,13 +99,19 @@ export default class OAuthSignInPage extends React.Component<
     this._server = http.createServer((request, response) => {
       if (!this._mounted) return;
       const code = extractOAuthCodeFromUrl(request.url);
-      if (code) {
-        this._onReceivedCode(code);
-        response.writeHead(302, { Location: 'https://id.getmailspring.com/oauth/finished' });
-        response.end();
-      } else {
+      if (!code) {
         response.end('Unknown Request');
+        return;
       }
+      if (!oauthStateIsValid(extractOAuthStateFromUrl(request.url))) {
+        this._onStateMismatch();
+        response.writeHead(400);
+        response.end('Invalid State');
+        return;
+      }
+      this._onReceivedCode(code);
+      response.writeHead(302, { Location: 'https://id.getmailspring.com/oauth/finished' });
+      response.end();
     });
     this._server.once('error', (err) => {
       AppEnv.showErrorDialog({
@@ -120,6 +148,19 @@ export default class OAuthSignInPage extends React.Component<
     if (!isNetworkError && !err.isUserError) {
       AppEnv.reportError(err);
     }
+  }
+
+  _onStateMismatch() {
+    AppEnv.focus();
+    // A callback left over from an earlier sign-in attempt in the same browser also
+    // lands here, so this is shown to the user rather than reported to Sentry.
+    const err: any = new Error(
+      localized(
+        'The sign-in response did not match this sign-in attempt. Please go back and try again.'
+      )
+    );
+    err.isUserError = true;
+    this._onError(err);
   }
 
   async _onReceivedCode(code) {

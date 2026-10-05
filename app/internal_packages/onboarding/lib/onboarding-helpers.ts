@@ -21,6 +21,7 @@ import {
   CODE_VERIFIER,
   GMAIL_SCOPES,
   CODE_CHALLENGE,
+  OAUTH_STATE,
 } from './onboarding-constants';
 import { parseStringPromise } from 'xml2js';
 
@@ -387,6 +388,7 @@ export function buildGmailAuthURL() {
     access_type: 'offline',
     code_challenge: CODE_CHALLENGE,
     code_challenge_method: 'S256',
+    state: OAUTH_STATE,
     prompt: 'select_account consent',
   })}`;
 }
@@ -400,6 +402,7 @@ export function buildO365AuthURL() {
     response_mode: 'query',
     code_challenge: CODE_CHALLENGE,
     code_challenge_method: 'S256',
+    state: OAUTH_STATE,
     prompt: 'select_account',
   })}`;
 }
