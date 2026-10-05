@@ -403,6 +403,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
           e.stopPropagation();
           onDoubleClick(event);
         }}
+        onContextMenu={(e) => e.stopPropagation()}
         onMouseMove={this._onMouseMove}
         onMouseLeave={this._onMouseLeave}
         onMouseDown={this._onMouseDown}

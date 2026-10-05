@@ -219,6 +219,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
         style={style}
         onClick={this._onClick}
         onDoubleClick={this._onDoubleClick}
+        onContextMenu={(e) => e.stopPropagation()}
         onMouseMove={this._onMouseMove}
         onMouseLeave={this._onMouseLeave}
         onMouseDown={this._onMouseDown}
