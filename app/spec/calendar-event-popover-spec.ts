@@ -37,6 +37,31 @@ SEQUENCE:0
 END:VEVENT
 END:VCALENDAR`;
 
+// A Berlin series as Google writes it, for the zone picker.
+const BERLIN_ICS = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Test//Test//EN
+BEGIN:VTIMEZONE
+TZID:Europe/Berlin
+BEGIN:STANDARD
+DTSTART:19700101T000000
+TZOFFSETFROM:+0100
+TZOFFSETTO:+0100
+TZNAME:CET
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:berlin@test
+DTSTART;TZID=Europe/Berlin:20260303T150000
+DTEND;TZID=Europe/Berlin:20260303T160000
+RRULE:FREQ=WEEKLY
+EXDATE;TZID=Europe/Berlin:20260310T150000
+SUMMARY:Standup
+DTSTAMP:20260101T000000Z
+SEQUENCE:0
+END:VEVENT
+END:VCALENDAR`;
+
 const START = Date.UTC(2026, 2, 3, 14, 0, 0) / 1000;
 const END = Date.UTC(2026, 2, 3, 15, 0, 0) / 1000;
 
@@ -137,6 +162,21 @@ describe('CalendarEventPopover save path and the recurrence rule', function () {
 
     expect(queued.length).toBe(1);
     expect(queued[0].event.ics).toContain('RDATE:20260310T140000Z,20260324T140000Z');
+  });
+
+  it('rezones a series when the zone picker changed, and brings its EXDATEs along', async function () {
+    const event = makeEvent(BERLIN_ICS);
+    const popover = await openEditor(event, 'Standup');
+    expect(popover.state.timezone).toBe('Europe/Berlin');
+    popover.updateField('timezone', 'America/Chicago');
+
+    popover._saveAllOccurrences(event);
+
+    const ics = queued[0].event.ics;
+    expect(ics).toContain('DTSTART;TZID=America/Chicago:20260303T080000');
+    expect(ics).toContain('EXDATE;TZID=America/Chicago:20260310T080000');
+    expect(ics).toContain('TZID:America/Chicago');
+    expect(ics).not.toContain('TZID:Europe/Berlin');
   });
 
   it('still writes the rule the user picked when the Repeat control changed', async function () {

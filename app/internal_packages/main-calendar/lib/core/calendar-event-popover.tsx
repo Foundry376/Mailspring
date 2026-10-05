@@ -112,6 +112,8 @@ interface CalendarEventPopoverState {
   repeat: RepeatOption;
   /** The repeat value the event arrived with, so a save can tell whether the user changed it. */
   originalRepeat: RepeatOption;
+  /** The zone the event arrived with; a series is rezoned only when the user picked another. */
+  originalTimezone: string;
   alert: AlertTiming;
   showAs: ShowAsOption;
   calendarColor: string;
@@ -149,6 +151,7 @@ export class CalendarEventPopover extends React.Component<
       allDay: isAllDay || false,
       repeat: 'none',
       originalRepeat: 'none',
+      originalTimezone: DateUtils.timeZone,
       alert: '10min',
       showAs: 'busy',
       calendarColor: '#419bf9',
@@ -206,7 +209,13 @@ export class CalendarEventPopover extends React.Component<
     } catch (e) {
       // Fall back to defaults if we can't read the event
     }
-    this.setState({ editing: true, repeat, timezone, originalRepeat: repeat });
+    this.setState({
+      editing: true,
+      repeat,
+      timezone,
+      originalRepeat: repeat,
+      originalTimezone: timezone,
+    });
   };
 
   getStartMoment = () => moment(this.state.start * 1000);
@@ -313,12 +322,15 @@ export class CalendarEventPopover extends React.Component<
       // to the new master start (unlike absolute updateEventTimes which would drop
       // occurrences scheduled before the selected occurrence's date).
       const originalOccurrenceStart = occurrenceStartUnix(this.props.event);
+      // Passing the picker's zone unchanged would rewrite every EXDATE and RECURRENCE-ID of a
+      // UTC series into the machine's zone, so only a zone the user picked is passed.
       ics = ICSEventHelpers.updateRecurringEventTimes(
         ics,
         originalOccurrenceStart,
         this.state.start,
         this.state.end,
-        this.state.allDay
+        this.state.allDay,
+        this.state.timezone !== this.state.originalTimezone ? this.state.timezone : undefined
       );
       // Shift inline exception RECURRENCE-IDs so they still map to the correct slots
       const deltaMs = (this.state.start - originalOccurrenceStart) * 1000;
