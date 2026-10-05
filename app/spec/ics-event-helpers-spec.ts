@@ -3111,3 +3111,121 @@ describe('ICSEventHelpers.stripITIPMethod', function () {
     expect(ICSEventHelpers.stripITIPMethod(once)).toBe(once);
   });
 });
+
+describe('ICSEventHelpers.updateOccurrenceAttendeeStatus', function () {
+  const GUESTS = [
+    'ORGANIZER:mailto:ada@example.com',
+    'ATTENDEE;PARTSTAT=ACCEPTED:mailto:ada@example.com',
+    'ATTENDEE;RSVP=TRUE;PARTSTAT=NEEDS-ACTION:mailto:me@example.com',
+  ];
+  const vevent = (...lines: string[]) => [
+    'BEGIN:VEVENT',
+    'UID:huddle@test',
+    ...lines,
+    'DTSTAMP:20260101T000000Z',
+    'END:VEVENT',
+  ];
+  const vcalendar = (...vevents: string[][]) =>
+    [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Test//Test//EN',
+      ...vevents.flat(),
+      'END:VCALENDAR',
+    ].join('\r\n');
+  const SERIES = vevent(
+    'DTSTART:20250923T140000Z',
+    'DTEND:20250923T141500Z',
+    'RRULE:FREQ=WEEKLY',
+    'SUMMARY:Huddle',
+    ...GUESTS
+  );
+  const OTHER_WEEK = vevent(
+    'RECURRENCE-ID:20260908T140000Z',
+    'DTSTART:20260909T140000Z',
+    'DTEND:20260909T141500Z',
+    'SUMMARY:Huddle (another week)',
+    ...GUESTS
+  );
+  const SYNCED_WEEK = vevent(
+    'RECURRENCE-ID:20260915T140000Z',
+    'DTSTART:20260915T160000Z',
+    'DTEND:20260915T161500Z',
+    'SUMMARY:Huddle (as synced)',
+    ...GUESTS
+  );
+  const EMAILED = vcalendar(
+    ['METHOD:REQUEST'],
+    vevent(
+      'RECURRENCE-ID:20260915T140000Z',
+      'DTSTART:20260915T150000Z',
+      'DTEND:20260915T151500Z',
+      'SUMMARY:Huddle',
+      ...GUESTS
+    )
+  );
+  const unfold = (ics: string) => ics.replace(/\r\n[ \t]/g, '');
+  const veventsOf = (ics: string) => unfold(ics).split('BEGIN:VEVENT').slice(1);
+  const myLine = (block: string) =>
+    block.split(/\r?\n/).find((l) => l.startsWith('ATTENDEE') && l.includes('me@example.com'));
+  const answer = (copy: string, invite = EMAILED, email = 'me@example.com') =>
+    ICSEventHelpers.updateOccurrenceAttendeeStatus(copy, invite, email, 'ACCEPTED');
+
+  it('changes the occurrence the invitation names and no other VEVENT', function () {
+    const result = answer(vcalendar(SERIES, OTHER_WEEK, SYNCED_WEEK));
+    const [master, otherWeek, synced] = veventsOf(result);
+    expect(myLine(master)).toBe('ATTENDEE;RSVP=TRUE;PARTSTAT=NEEDS-ACTION:mailto:me@example.com');
+    expect(myLine(otherWeek)).toBe(
+      'ATTENDEE;RSVP=TRUE;PARTSTAT=NEEDS-ACTION:mailto:me@example.com'
+    );
+    expect(myLine(synced)).toBe('ATTENDEE;PARTSTAT=ACCEPTED:mailto:me@example.com');
+    expect(synced).toContain('SUMMARY:Huddle (as synced)');
+  });
+
+  it('stamps only the VEVENT it changed', function () {
+    const [master, , synced] = veventsOf(answer(vcalendar(SERIES, OTHER_WEEK, SYNCED_WEEK)));
+    expect(master).toContain('DTSTAMP:20260101T000000Z');
+    expect(synced).not.toContain('DTSTAMP:20260101T000000Z');
+  });
+
+  it('stores the emailed occurrence as an exception when the copy has none for it', function () {
+    const result = answer(vcalendar(SERIES, OTHER_WEEK));
+    const vevents = veventsOf(result);
+    expect(vevents.length).toBe(3);
+    const added = vevents[2];
+    expect(added).toContain('RECURRENCE-ID:20260915T140000Z');
+    expect(added).toContain('DTSTART:20260915T150000Z');
+    expect(added).toContain('SUMMARY:Huddle');
+    expect(myLine(added)).toBe('ATTENDEE;PARTSTAT=ACCEPTED:mailto:me@example.com');
+    expect(myLine(vevents[0])).toContain('PARTSTAT=NEEDS-ACTION');
+    expect(myLine(vevents[1])).toContain('PARTSTAT=NEEDS-ACTION');
+    expect(result).not.toContain('METHOD');
+  });
+
+  it('brings the VTIMEZONE of an occurrence emailed in a zone the copy lacks', function () {
+    const berlin = EMAILED.replace(
+      'DTSTART:20260915T150000Z\r\nDTEND:20260915T151500Z',
+      'DTSTART;TZID=Europe/Berlin:20260915T170000\r\nDTEND;TZID=Europe/Berlin:20260915T171500'
+    );
+    const result = answer(vcalendar(SERIES), berlin);
+    expect(result).toContain('DTSTART;TZID=Europe/Berlin:20260915T170000');
+    expect(result).toContain('BEGIN:VTIMEZONE');
+    expect(result).toContain('TZID:Europe/Berlin');
+  });
+
+  it('answers nobody when the occurrence does not list us', function () {
+    expect(answer(vcalendar(SERIES, SYNCED_WEEK), EMAILED, 'stranger@example.com')).toBe(null);
+    expect(answer(vcalendar(SERIES), EMAILED, 'stranger@example.com')).toBe(null);
+  });
+
+  it('refuses an invitation that names no occurrence', function () {
+    const whole = EMAILED.replace('RECURRENCE-ID:20260915T140000Z\r\n', '');
+    expect(() => answer(vcalendar(SERIES), whole)).toThrow(
+      'The invitation names no occurrence: it has no RECURRENCE-ID'
+    );
+  });
+
+  it('refuses a copy that is a bare VEVENT, which has nowhere to hold an exception', function () {
+    expect(() => answer(SERIES.join('\r\n'))).toThrow();
+  });
+});

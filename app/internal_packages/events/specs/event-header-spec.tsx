@@ -217,16 +217,25 @@ describe('EventHeader for an invitation to one occurrence of a series', function
 
   let icsPath: string;
 
-  function render(emailed: string[], calendarIcs: string) {
+  // With `onOwnCalendar`, the copy sits on a writable calendar of ours, so an answer is written.
+  function render(emailed: string[], calendarIcs: string, { onOwnCalendar = false } = {}) {
     icsPath = path.join(os.tmpdir(), `event-header-spec-${process.pid}.ics`);
     fs.writeFileSync(
       icsPath,
       vcalendar(emailed).replace('VERSION:2.0', 'VERSION:2.0\r\nMETHOD:REQUEST')
     );
     spyOn(AttachmentStore, 'pathForFile').andReturn(icsPath);
-    const synced = new Event({ id: 'e1', accountId: 'a1', ics: calendarIcs } as any);
+    const mine = new Calendar({ id: 'cal-mine', accountId: 'a1', name: 'me@example.com' } as any);
+    const synced = new Event({
+      id: 'e1',
+      accountId: 'a1',
+      calendarId: onOwnCalendar ? mine.id : undefined,
+      ics: calendarIcs,
+    } as any);
     spyOn(Rx.Observable, 'fromQuery').andCallFake((query: { _klass: unknown }) =>
-      Rx.Observable.just(query._klass === Event ? [synced] : [])
+      Rx.Observable.just(
+        query._klass === Event ? [synced] : query._klass === Calendar && onOwnCalendar ? [mine] : []
+      )
     );
     const header = ReactTestUtils.renderIntoDocument(
       <EventHeader
@@ -273,11 +282,28 @@ describe('EventHeader for an invitation to one occurrence of a series', function
   }
 
   beforeEach(function () {
+    const account = new Account({ id: 'a1', emailAddress: 'me@example.com' });
     spyOn(AccountStore, 'accountForEmail').andCallFake((email: string) =>
-      email === 'me@example.com' ? ({ id: 'a1' } as any) : null
+      email === 'me@example.com' ? account : null
     );
+    spyOn(AccountStore, 'accountForId').andReturn(account);
+    spyOn(AccountStore, 'aliases').andReturn([]);
     queueTask = spyOn(Actions, 'queueTask');
   });
+
+  // Clicks Accept and returns the ICS written to our calendar copy.
+  function acceptAndGetWrite(text: ReturnType<typeof render>): string {
+    const accept = ReactTestUtils.scryRenderedDOMComponentsWithClass(text.header, 'btn-rsvp').find(
+      (button) => button.textContent === 'Accept'
+    );
+    ReactTestUtils.Simulate.click(accept);
+    const write = queueTask.calls
+      .map((call) => call.args[0])
+      .find((task) => task instanceof SyncbackEventTask) as SyncbackEventTask;
+    return write.event.ics;
+  }
+  const myLines = (ics: string) =>
+    ics.split(/\r?\n/).filter((l) => l.startsWith('ATTENDEE') && l.includes('me@example.com'));
 
   it('answers for that occurrence alone, not for the series', function () {
     const text = render(EMAILED, vcalendar(SERIES, OTHER_WEEK, SYNCED));
@@ -286,6 +312,29 @@ describe('EventHeader for an invitation to one occurrence of a series', function
       expect(reply.split('BEGIN:VEVENT').length - 1).toBe(1);
       expect(reply).toContain('RECURRENCE-ID:20260915T140000Z');
       expect(reply).not.toContain('RRULE');
+    });
+  });
+
+  it('records the answer on that occurrence of our copy, not on the series', function () {
+    const text = render(EMAILED, vcalendar(SERIES, OTHER_WEEK, SYNCED), { onOwnCalendar: true });
+    runs(() => {
+      const [master, otherWeek, synced] = acceptAndGetWrite(text).split('BEGIN:VEVENT').slice(1);
+      expect(myLines(master)[0]).toContain('PARTSTAT=NEEDS-ACTION');
+      expect(myLines(otherWeek)[0]).toContain('PARTSTAT=NEEDS-ACTION');
+      expect(synced).toContain('SUMMARY:Huddle (as synced)');
+      expect(myLines(synced)[0]).toContain('PARTSTAT=ACCEPTED');
+    });
+  });
+
+  it('adds the emailed occurrence to our copy when it has no entry for it, answered', function () {
+    const text = render(EMAILED, vcalendar(SERIES, OTHER_WEEK), { onOwnCalendar: true });
+    runs(() => {
+      const vevents = acceptAndGetWrite(text).split('BEGIN:VEVENT').slice(1);
+      expect(vevents.length).toBe(3);
+      expect(myLines(vevents[0])[0]).toContain('PARTSTAT=NEEDS-ACTION');
+      expect(vevents[2]).toContain('RECURRENCE-ID:20260915T140000Z');
+      expect(vevents[2]).toContain('DTSTART:20260915T150000Z');
+      expect(myLines(vevents[2])[0]).toContain('PARTSTAT=ACCEPTED');
     });
   });
 
@@ -622,6 +671,34 @@ describe('EventHeader answering an invitation', function () {
           end: next.end.getTime() / 1000,
         });
         expect(conflictLines().map((l) => l.split(' (')[0])).toEqual(['This week']);
+        // The header shows the series' first date, so each line names the day it checked.
+        expect(conflictLines()[0]).toContain(`(${moment(next.start).format('dddd, MMMM Do')}, `);
+      });
+    });
+
+    it('gives only times when the clash is on the day shown', function () {
+      mount({
+        events: [],
+        calendars: [mine],
+        nearby: [busyAt('Standup', mine.id, '20260301T143000Z', '20260301T150000Z')],
+      });
+      runs(() => {
+        expect(conflictLines()).toEqual(['Standup (8:30 am - 9:00 am)']);
+      });
+    });
+
+    it('shows no conflicts on a reply, where we picked the slot ourselves', function () {
+      fs.writeFileSync(icsPath, INVITE.replace('METHOD:REQUEST', 'METHOD:REPLY'));
+      mount({
+        events: [],
+        calendars: [mine],
+        nearby: [busyAt('Standup', mine.id, '20260301T143000Z', '20260301T150000Z')],
+      });
+      runs(() => {
+        expect(header.state.conflicts.length).toBe(1);
+        expect(
+          ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'event-conflicts').length
+        ).toBe(0);
       });
     });
 
