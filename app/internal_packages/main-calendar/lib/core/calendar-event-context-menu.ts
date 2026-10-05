@@ -24,11 +24,6 @@ interface CalendarEventContextMenuOptions {
   occurrence: EventOccurrence;
   /** Whether the event's calendar refuses writes, which hides everything that changes it. */
   readOnly: boolean;
-  /**
-   * A writable calendar and a meeting we organize (RFC 5546 section 2.1.4); an attendee gets
-   * "View Event". Deleting our own copy of someone else's meeting stays governed by readOnly.
-   */
-  editable: boolean;
   onOpen: () => void;
   onDelete: () => void;
   /** Offer a different time to the organizer. See proposeNewTimeForCalendarEvent. */
@@ -77,7 +72,10 @@ export class CalendarEventContextMenu {
   }
 
   template(): TemplateItem[] {
-    const { readOnly, editable, onOpen, onDelete } = this.opts;
+    const { occurrence, readOnly, onOpen, onDelete } = this.opts;
+    // A writable calendar and a meeting we organize (RFC 5546 section 2.1.4); an attendee gets
+    // "View Event". Deleting our own copy of someone else's meeting stays governed by readOnly.
+    const editable = !readOnly && occurrence.isMine;
 
     const items: (TemplateItem | null)[] = [
       {

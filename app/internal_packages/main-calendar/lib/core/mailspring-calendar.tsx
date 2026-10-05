@@ -349,7 +349,6 @@ export class MailspringCalendar extends React.Component<
     new CalendarEventContextMenu({
       occurrence,
       readOnly,
-      editable,
       onOpen: () => this._openEventPopover(occurrence, editable),
       onDelete: () => this._deleteEvent(occurrence),
       onProposeNewTime: () => openProposeNewTimePopover(occurrence),
