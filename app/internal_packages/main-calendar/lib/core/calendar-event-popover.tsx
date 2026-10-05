@@ -31,6 +31,7 @@ import {
 import { EventPropertyRow } from './event-property-row';
 import {
   createCalendarEvent,
+  organizerForAccount,
   inclusiveAllDayEnd,
   shiftEndWithStart,
   clampEnd,
@@ -110,6 +111,8 @@ interface CalendarEventPopoverState {
   repeat: RepeatOption;
   /** The repeat value the event arrived with, so a save can tell whether the user changed it. */
   originalRepeat: RepeatOption;
+  /** The zone the event arrived with; a series is rezoned only when the user picked another. */
+  originalTimezone: string;
   alert: AlertTiming;
   showAs: ShowAsOption;
   calendarColor: string;
@@ -147,6 +150,7 @@ export class CalendarEventPopover extends React.Component<
       allDay: isAllDay || false,
       repeat: 'none',
       originalRepeat: 'none',
+      originalTimezone: DateUtils.timeZone,
       alert: '10min',
       showAs: 'busy',
       calendarColor: '#419bf9',
@@ -204,7 +208,13 @@ export class CalendarEventPopover extends React.Component<
     } catch (e) {
       // Fall back to defaults if we can't read the event
     }
-    this.setState({ editing: true, repeat, timezone, originalRepeat: repeat });
+    this.setState({
+      editing: true,
+      repeat,
+      timezone,
+      originalRepeat: repeat,
+      originalTimezone: timezone,
+    });
   };
 
   getStartMoment = () => moment(this.state.start * 1000);
@@ -223,7 +233,11 @@ export class CalendarEventPopover extends React.Component<
     );
     ics = ICSEventHelpers.updateEventProperty(ics, 'location', this.state.location || '');
     ics = ICSEventHelpers.updateEventProperty(ics, 'description', this.state.description || '');
-    ics = ICSEventHelpers.updateAttendees(ics, this.state.attendees || []);
+    ics = ICSEventHelpers.updateAttendees(
+      ics,
+      this.state.attendees || [],
+      organizerForAccount(this.props.event.accountId)
+    );
     return ics;
   }
 
@@ -307,12 +321,15 @@ export class CalendarEventPopover extends React.Component<
       // to the new master start (unlike absolute updateEventTimes which would drop
       // occurrences scheduled before the selected occurrence's date).
       const originalOccurrenceStart = occurrenceStartUnix(this.props.event);
+      // Passing the picker's zone unchanged would rewrite every EXDATE and RECURRENCE-ID of a
+      // UTC series into the machine's zone, so only a zone the user picked is passed.
       ics = ICSEventHelpers.updateRecurringEventTimes(
         ics,
         originalOccurrenceStart,
         this.state.start,
         this.state.end,
-        this.state.allDay
+        this.state.allDay,
+        this.state.timezone !== this.state.originalTimezone ? this.state.timezone : undefined
       );
       // Shift inline exception RECURRENCE-IDs so they still map to the correct slots
       const deltaMs = (this.state.start - originalOccurrenceStart) * 1000;
@@ -388,6 +405,7 @@ export class CalendarEventPopover extends React.Component<
       location: this.state.location || '',
       description: this.state.description || '',
       attendees: this.state.attendees || [],
+      organizer: organizerForAccount(this.props.event.accountId),
     });
 
     // Update master event (now contains the inline exception VEVENT)
