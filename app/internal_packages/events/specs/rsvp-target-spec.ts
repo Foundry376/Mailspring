@@ -441,6 +441,99 @@ describe('planRSVPWrite', function () {
   it('writes nothing before the calendar copies have loaded', function () {
     expect(plan({ rsvp: undefined })).toBe(null);
   });
+
+  describe('for an invitation to one occurrence of a series', function () {
+    // The emailed VEVENT names the 15 Sep occurrence; our copy holds the series and that week.
+    const occurrence = (summary: string, dtstart: string) => [
+      'BEGIN:VEVENT',
+      'UID:meeting-uid@example.com',
+      'RECURRENCE-ID:20260915T140000Z',
+      `DTSTART:${dtstart}`,
+      'DTEND:20260915T161500Z',
+      `SUMMARY:${summary}`,
+      'DTSTAMP:20260101T000000Z',
+      'ORGANIZER;CN=Ada:mailto:ada@example.com',
+      'ATTENDEE;CN=Ada;ROLE=CHAIR;PARTSTAT=ACCEPTED:mailto:ada@example.com',
+      'ATTENDEE;CN=Brian;ROLE=REQ-PARTICIPANT;RSVP=TRUE;PARTSTAT=NEEDS-ACTION:mailto:brian@example.com',
+      'END:VEVENT',
+    ];
+    const SERIES_MASTER = [
+      'BEGIN:VEVENT',
+      'UID:meeting-uid@example.com',
+      'DTSTART:20250923T140000Z',
+      'DTEND:20250923T141500Z',
+      'RRULE:FREQ=WEEKLY',
+      'SUMMARY:Huddle',
+      'DTSTAMP:20260101T000000Z',
+      'ORGANIZER;CN=Ada:mailto:ada@example.com',
+      'ATTENDEE;CN=Ada;ROLE=CHAIR;PARTSTAT=ACCEPTED:mailto:ada@example.com',
+      'ATTENDEE;CN=Brian;ROLE=REQ-PARTICIPANT;RSVP=TRUE;PARTSTAT=NEEDS-ACTION:mailto:brian@example.com',
+      'END:VEVENT',
+    ];
+    const vcalendar = (...vevents: string[][]) =>
+      [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Test//Test//EN',
+        ...vevents.flat(),
+        'END:VCALENDAR',
+      ].join('\r\n');
+    const OCCURRENCE_INVITE = vcalendar(
+      ['METHOD:REQUEST'],
+      occurrence('Huddle', '20260915T150000Z')
+    );
+    const occurrenceEvent = CalendarUtils.parseICSString(OCCURRENCE_INVITE).event;
+    const copyWith = (...vevents: string[][]) =>
+      new Event({
+        id: 'e-mine',
+        accountId: ACCOUNT_ID,
+        calendarId: MINE.id,
+        icsuid: UID,
+        ics: vcalendar(SERIES_MASTER, ...vevents),
+      } as any);
+    // Unfolded first: ical.js folds a long ATTENDEE line at 75 columns (RFC 5545 section 3.1).
+    const myLines = (ics: string) =>
+      ics
+        .replace(/\r\n[ \t]/g, '')
+        .split(/\r?\n/)
+        .filter((l) => l.startsWith('ATTENDEE') && l.includes('brian@'));
+    const planOccurrence = (copy: Event) =>
+      plan({
+        rsvp: resolveRSVPTarget({ events: [copy], calendars: [MINE], addresses: ADDRESSES }),
+        inviteIcs: OCCURRENCE_INVITE,
+        inviteEvent: occurrenceEvent,
+      });
+
+    it("answers on that occurrence's VEVENT of our copy, and leaves the series as it was", function () {
+      const write = planOccurrence(copyWith(occurrence('Huddle (as synced)', '20260915T160000Z')));
+      expect(write.kind).toBe('update');
+      const [master, synced] = write.event.ics
+        .replace(/\r\n[ \t]/g, '')
+        .split('BEGIN:VEVENT')
+        .slice(1);
+      expect(myLines(master)).toEqual([
+        'ATTENDEE;CN=Brian;ROLE=REQ-PARTICIPANT;RSVP=TRUE;PARTSTAT=NEEDS-ACTION:mailto:brian@example.com',
+      ]);
+      expect(synced).toContain('DTSTART:20260915T160000Z');
+      expect(myLines(synced)[0]).toContain('PARTSTAT=ACCEPTED');
+      expect(myLines(synced)[0]).not.toContain('RSVP=TRUE');
+    });
+
+    it('stores the emailed occurrence as an exception when our copy has none for it', function () {
+      const write = planOccurrence(copyWith());
+      expect(write.kind).toBe('update');
+      const vevents = write.event.ics
+        .replace(/\r\n[ \t]/g, '')
+        .split('BEGIN:VEVENT')
+        .slice(1);
+      expect(vevents.length).toBe(2);
+      expect(myLines(vevents[0])[0]).toContain('PARTSTAT=NEEDS-ACTION');
+      expect(vevents[1]).toContain('RECURRENCE-ID:20260915T140000Z');
+      expect(vevents[1]).toContain('DTSTART:20260915T150000Z');
+      expect(myLines(vevents[1])[0]).toContain('PARTSTAT=ACCEPTED');
+      expect(write.event.ics).not.toContain('METHOD');
+    });
+  });
 });
 
 describe('conflictCalendarIds', function () {
