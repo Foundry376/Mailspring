@@ -32,6 +32,7 @@ import { canRespondToEvent, openProposeNewTimePopover } from './calendar-rsvp';
 import { EventPropertyRow } from './event-property-row';
 import {
   createCalendarEvent,
+  organizerForAccount,
   inclusiveAllDayEnd,
   shiftEndWithStart,
   clampEnd,
@@ -238,7 +239,11 @@ export class CalendarEventPopover extends React.Component<
     );
     ics = ICSEventHelpers.updateEventProperty(ics, 'location', this.state.location || '');
     ics = ICSEventHelpers.updateEventProperty(ics, 'description', this.state.description || '');
-    ics = ICSEventHelpers.updateAttendees(ics, this.state.attendees || []);
+    ics = ICSEventHelpers.updateAttendees(
+      ics,
+      this.state.attendees || [],
+      organizerForAccount(this.props.event.accountId)
+    );
     return ics;
   }
 
@@ -404,6 +409,7 @@ export class CalendarEventPopover extends React.Component<
       location: this.state.location || '',
       description: this.state.description || '',
       attendees: this.state.attendees || [],
+      organizer: organizerForAccount(this.props.event.accountId),
     });
 
     masterEvent.ics = ICSEventHelpers.bumpEventSequence(updatedMasterIcs, recurrenceId);
