@@ -154,9 +154,9 @@ export class MailspringCalendar extends React.Component<
   _dataSource = new CalendarDataSource();
   /**
    * Selected occurrences this window moved whose new occurrence hasn't synced back yet, keyed by
-   * the id they will have, with the start they will have.
+   * the id they will have: the start they will have, and the ICS their row held before the move.
    */
-  _pendingMoves = new Map<string, number>();
+  _pendingMoves = new Map<string, { start: number; staleIcs: string }>();
 
   constructor(props: MailspringCalendarProps) {
     super(props);
@@ -199,7 +199,13 @@ export class MailspringCalendar extends React.Component<
   }
 
   _onDatabaseChange = (change: { objectClass: string }) => {
-    if (change.objectClass === Event.name && this.state.selectedEvents.length > 0) {
+    if (change.objectClass !== Event.name) return;
+    // A pending move only guards the selection; once deselected, the view draws the moved
+    // occurrence from its row, so a later selection of it starts fresh.
+    for (const id of [...this._pendingMoves.keys()]) {
+      if (!this.state.selectedEvents.some((o) => o.id === id)) this._pendingMoves.delete(id);
+    }
+    if (this.state.selectedEvents.length > 0) {
       this._refreshSelectedEvents();
     }
   };
@@ -217,7 +223,10 @@ export class MailspringCalendar extends React.Component<
           parseEventIdFromOccurrence(occurrence.id)
         );
         if (!event) return occurrence;
-        const start = this._pendingMoves.get(occurrence.id) ?? occurrenceStartUnix(occurrence);
+        const pending = this._pendingMoves.get(occurrence.id);
+        // The id alone can't tell: a daily series moved a day already has an occurrence there.
+        if (pending && event.ics === pending.staleIcs) return occurrence;
+        const start = pending ? pending.start : occurrenceStartUnix(occurrence);
         const fresh = occurrencesForEvents([event], {
           startUnix: start - 86400,
           endUnix: start + 86400,
@@ -238,12 +247,12 @@ export class MailspringCalendar extends React.Component<
    * Keeps a selected occurrence selected after this window moves it. Its id embeds its start, so
    * the moved occurrence is drawn under a new id; a series exception row keeps its own.
    */
-  _followMove(occurrence: EventOccurrence, event: Event, newStart: number) {
+  _followMove(occurrence: EventOccurrence, event: Event, newStart: number, staleIcs: string) {
     if (!this.state.selectedEvents.some((o) => o.id === occurrence.id)) return;
     const id = event.isRecurrenceException()
       ? occurrence.id
       : `${event.id}-e${Math.round(newStart)}`;
-    this._pendingMoves.set(id, newStart);
+    this._pendingMoves.set(id, { start: newStart, staleIcs });
     this.setState({
       selectedEvents: this.state.selectedEvents.map((o) =>
         o.id === occurrence.id ? { ...o, id } : o
@@ -295,7 +304,7 @@ export class MailspringCalendar extends React.Component<
     // selected event off-screen.
     const selected = this.state.selectedEvents[0];
     const focusedMoment = selected
-      ? moment.unix(this._pendingMoves.get(selected.id) ?? occurrenceStartUnix(selected))
+      ? moment.unix(this._pendingMoves.get(selected.id)?.start ?? occurrenceStartUnix(selected))
       : this.state.focusedMoment;
     // Clear any active drag state when changing views
     this.setState({ view, dragState: null, focusedMoment });
@@ -880,13 +889,15 @@ export class MailspringCalendar extends React.Component<
         description: isResize ? localized('Resize event') : localized('Move event'),
       };
 
+      // The change is written onto `event` before it is queued.
+      const staleIcs = event.ics;
       const result = await modifyEventWithRecurringSupport(
         options,
         isResize ? 'resize' : 'move',
         occurrence.title
       );
       if (result.success) {
-        this._followMove(occurrence, event, newStart);
+        this._followMove(occurrence, event, newStart, staleIcs);
       }
     } catch (error) {
       console.error('Failed to apply keyboard event change:', error);
@@ -946,13 +957,14 @@ export class MailspringCalendar extends React.Component<
           dragState.mode === 'move' ? localized('Move event') : localized('Resize event'),
       };
 
+      const staleIcs = event.ics;
       const result = await modifyEventWithRecurringSupport(
         options,
         dragState.mode === 'move' ? 'move' : 'resize',
         dragState.event.title
       );
       if (result.success) {
-        this._followMove(dragState.event, event, newStart);
+        this._followMove(dragState.event, event, newStart, staleIcs);
       }
     } catch (error) {
       console.error('Failed to persist drag change:', error);

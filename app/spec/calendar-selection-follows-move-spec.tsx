@@ -11,7 +11,7 @@ import { CalendarView } from '../internal_packages/main-calendar/lib/core/calend
 const START = Date.UTC(2026, 8, 22, 13, 0, 0) / 1000;
 const QUARTER = 900;
 
-const icsAt = (start: number) => {
+const icsAt = (start: number, rrule?: string) => {
   const stamp = (unix: number) =>
     new Date(unix * 1000).toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
   return [
@@ -22,6 +22,7 @@ const icsAt = (start: number) => {
     'UID:standup@test',
     `DTSTART:${stamp(start)}`,
     `DTEND:${stamp(start + 1800)}`,
+    ...(rrule ? [rrule] : []),
     'SUMMARY:Standup',
     'DTSTAMP:20260901T000000Z',
     'END:VEVENT',
@@ -29,13 +30,13 @@ const icsAt = (start: number) => {
   ].join('\r\n');
 };
 
-const eventAt = (start: number) =>
+const eventAt = (start: number, rrule?: string) =>
   new Event({
     id: 'standup',
     accountId: 'a',
     calendarId: 'c',
     icsuid: 'standup@test',
-    ics: icsAt(start),
+    ics: icsAt(start, rrule),
     recurrenceStart: start,
     recurrenceEnd: start + 1800,
   } as any);
@@ -214,6 +215,37 @@ describe('the selection after an event is moved', function () {
     calendar._onMoveSelectedEvent('down', false);
     await settle();
     expect(modify.mostRecentCall.args[0].newStart).toBe(START + 2 * QUARTER);
+  });
+
+  it('forgets the move once the event is deselected, so the moved event moves when selected again', async function () {
+    const calendar = calendarWith([occurrenceAt(START)]);
+    calendar.state.view = CalendarView.WEEK;
+    await calendar._applyKeyboardEventChange(occurrenceAt(START), QUARTER, false);
+    calendar.state.selectedEvents = [];
+    row = eventAt(START + QUARTER);
+    calendar._onDatabaseChange({ objectClass: 'Event' });
+    modify.reset();
+
+    calendar.state.selectedEvents = [occurrenceAt(START + QUARTER)];
+    calendar._onMoveSelectedEvent('down', false);
+    await settle();
+
+    expect(modify).toHaveBeenCalled();
+  });
+
+  it('keeps waiting while the row is unchanged, though a daily series already has an occurrence at the new start', async function () {
+    row = eventAt(START, 'RRULE:FREQ=DAILY');
+    const daily = occurrenceAt(START, { isRecurring: true });
+    const calendar = calendarWith([daily]);
+    calendar.state.view = CalendarView.WEEK;
+    await calendar._applyKeyboardEventChange(daily, 86400, false);
+
+    await calendar._refreshSelectedEvents();
+    modify.reset();
+    calendar._onMoveSelectedEvent('right', false);
+    await settle();
+
+    expect(modify).not.toHaveBeenCalled();
   });
 
   it('keeps the selection a click made while the rows were being read', async function () {
