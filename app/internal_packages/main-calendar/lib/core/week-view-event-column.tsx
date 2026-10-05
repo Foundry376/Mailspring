@@ -31,6 +31,8 @@ interface WeekViewEventColumnProps {
   ) => void;
   /** Set of calendar IDs that are read-only */
   readOnlyCalendarIds: Set<string>;
+  /** See MailspringCalendarViewProps.paintVersion; a new value is what gets past the guard below. */
+  paintVersion: string;
 }
 
 export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProps> {

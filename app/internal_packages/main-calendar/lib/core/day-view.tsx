@@ -300,6 +300,7 @@ export class DayView extends React.Component<
                   onEventClick={this.props.onEventClick}
                   onEventDoubleClick={this.props.onEventDoubleClick}
                   onEventFocused={this.props.onEventFocused}
+                  paintVersion={this.props.paintVersion}
                   dragState={this.props.dragState}
                   onEventDragStart={this.props.onEventDragStart}
                   readOnlyCalendarIds={this.props.readOnlyCalendarIds}
@@ -327,6 +328,7 @@ export class DayView extends React.Component<
                       onEventClick={this.props.onEventClick}
                       onEventDoubleClick={this.props.onEventDoubleClick}
                       onEventFocused={this.props.onEventFocused}
+                      paintVersion={this.props.paintVersion}
                       dragState={this.props.dragState}
                       onEventDragStart={this.props.onEventDragStart}
                       readOnlyCalendarIds={this.props.readOnlyCalendarIds}

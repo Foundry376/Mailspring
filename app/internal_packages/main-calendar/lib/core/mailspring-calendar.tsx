@@ -97,6 +97,12 @@ export interface MailspringCalendarViewProps extends EventRendererProps {
   onCalendarMouseMove: (args: CalendarEventArgs) => void;
   onCalendarClick: (args: CalendarEventArgs) => void;
   onCalendarDoubleClick: (args: CalendarEventArgs) => void;
+  /**
+   * Changes whenever a calendar's colour or the theme does, so components that skip equal
+   * props repaint; keying the view on it instead would remount the grid, re-centre its scroll
+   * and re-run its subscription.
+   */
+  paintVersion: string;
 
   // Drag-related props
   dragState: DragState | null;
@@ -961,7 +967,7 @@ export class MailspringCalendar extends React.Component<
     const CurrentView = VIEWS[this.state.view];
     return (
       <CurrentView
-        key={`view-colors-${getColorCacheVersion()}-theme-${this.state.themeVersion}`}
+        paintVersion={`${getColorCacheVersion()}-${this.state.themeVersion}`}
         dataSource={this._dataSource}
         focusedMoment={this.state.focusedMoment}
         focusedEvent={this.state.focusedEvent}
