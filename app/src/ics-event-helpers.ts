@@ -1160,15 +1160,29 @@ export function updateAttendees(
   const ical = getICAL();
   const { root } = parseICSString(ics);
 
-  const vevent = root.name === 'vevent' ? root : root.getFirstSubcomponent('vevent');
-  if (!vevent) {
-    throw new Error('Invalid ICS: no VEVENT component found');
+  for (const [email, prop] of existing) {
+    if (!wanted.has(email)) {
+      vevent.removeProperty(prop);
+    }
   }
 
   reconcileAttendees(vevent, attendees);
   if (organizer) {
     nameOrganizer(root, organizer);
   }
+}
+
+/** Sets the first VEVENT's guest list to `attendees`; see reconcileAttendees. */
+export function updateAttendees(ics: string, attendees: AttendeeInput[]): string {
+  const ical = getICAL();
+  const { root } = parseICSString(ics);
+
+  const vevent = root.name === 'vevent' ? root : root.getFirstSubcomponent('vevent');
+  if (!vevent) {
+    throw new Error('Invalid ICS: no VEVENT component found');
+  }
+
+  reconcileAttendees(vevent, attendees);
 
   // Update DTSTAMP
   vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
