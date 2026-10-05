@@ -418,7 +418,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
                 <a onClick={this._onViewInCalendar}>{localized('View in Calendar')}</a>
               </div>
             )}
-            {icsMethod !== 'cancel' && this._renderConflicts()}
+            {icsMethod === 'request' && this._renderConflicts()}
             {icsMethod === 'cancel'
               ? this._renderCancellation()
               : icsMethod === 'request'
@@ -437,16 +437,23 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       recurrenceIdStart: this.state.inviteRecurrenceIdStart,
     });
   };
-  // What Google Calendar shows as "Conflicts with...", so the answer needs no trip to the calendar.
+  // What Google Calendar shows as "Conflicts with...", so the answer needs no trip to the
+  // calendar. Shown only on a REQUEST: a REPLY is about a slot we picked ourselves.
   _renderConflicts() {
-    const { conflicts } = this.state;
+    const { conflicts, icsEvent } = this.state;
     if (!conflicts || !conflicts.length) return false;
 
     const timeFormat = DateUtils.getTimeFormat({ timeZone: false });
+    // The header dates a series by its first occurrence while the slot checked is the next one,
+    // so a clash on another day than the one shown says which day.
+    const shownDay = moment(icsEvent.startDate.toJSDate()).tz(DateUtils.timeZone);
     const label = (conflict: CalendarConflict) => {
-      const start = moment.unix(conflict.start).tz(DateUtils.timeZone).format(timeFormat);
-      const end = moment.unix(conflict.end).tz(DateUtils.timeZone).format(timeFormat);
-      return `${conflict.title || localized('(No title)')} (${start} - ${end})`;
+      const start = moment.unix(conflict.start).tz(DateUtils.timeZone);
+      const end = moment.unix(conflict.end).tz(DateUtils.timeZone);
+      const day = start.isSame(shownDay, 'day') ? '' : `${start.format('dddd, MMMM Do')}, `;
+      return `${conflict.title || localized('(No title)')} (${day}${start.format(
+        timeFormat
+      )} - ${end.format(timeFormat)})`;
     };
 
     return (
