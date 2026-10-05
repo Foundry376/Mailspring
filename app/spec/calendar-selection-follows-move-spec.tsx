@@ -121,8 +121,8 @@ describe('the selection after an event is moved', function () {
   });
 
   it('leaves the selection alone when the dragged event was not selected', async function () {
-    const other = occurrenceAt(START, { id: 'other-e1' });
-    const calendar = calendarWith([other]);
+    const selection = [occurrenceAt(START, { id: 'other-e1' })];
+    const calendar = calendarWith(selection);
 
     await calendar._persistDragChange({
       event: occurrenceAt(START),
@@ -132,7 +132,89 @@ describe('the selection after an event is moved', function () {
       previewIsAllDay: false,
     });
 
-    expect(calendar.state.selectedEvents).toEqual([other]);
+    expect(calendar.state.selectedEvents).toBe(selection);
+    expect(calendar._pendingMoves.size).toBe(0);
+  });
+
+  it('stays where it was when a drag is cancelled', async function () {
+    modify.andReturn(Promise.resolve({ success: false, cancelled: true }));
+    const calendar = calendarWith([occurrenceAt(START)]);
+
+    await calendar._persistDragChange({
+      event: occurrenceAt(START),
+      mode: 'move',
+      previewStart: START + 3600,
+      previewEnd: START + 5400,
+      previewIsAllDay: false,
+    });
+
+    expect(calendar.state.selectedEvents.map((o) => o.id)).toEqual([`standup-e${START}`]);
+  });
+
+  it('settles a drag of several days once it syncs', async function () {
+    const calendar = calendarWith([occurrenceAt(START)]);
+    const moved = START + 3 * 86400;
+    await calendar._persistDragChange({
+      event: occurrenceAt(START),
+      mode: 'move',
+      previewStart: moved,
+      previewEnd: moved + 1800,
+      previewIsAllDay: false,
+    });
+    row = eventAt(moved);
+
+    await calendar._refreshSelectedEvents();
+
+    expect(calendar.state.selectedEvents.map((o) => [o.id, o.start])).toEqual([
+      [`standup-e${moved}`, moved],
+    ]);
+    expect(calendar._pendingMoves.size).toBe(0);
+  });
+
+  it('settles on the moved occurrence, not one of the series already at its new start', async function () {
+    const wednesday = START + 86400;
+    row = eventAt(START - 86400, 'RRULE:FREQ=DAILY');
+    const calendar = calendarWith([occurrenceAt(wednesday, { isRecurring: true })]);
+    await calendar._applyKeyboardEventChange(
+      occurrenceAt(wednesday, { isRecurring: true }),
+      -86400,
+      false
+    );
+    // "This occurrence": Wednesday's slot now holds an exception on Tuesday, at Tuesday's own time.
+    const stamp = (unix: number) =>
+      new Date(unix * 1000).toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+    row = eventAt(START - 86400, 'RRULE:FREQ=DAILY');
+    row.ics = row.ics.replace(
+      'END:VCALENDAR',
+      [
+        'BEGIN:VEVENT',
+        'UID:standup@test',
+        `RECURRENCE-ID:${stamp(wednesday)}`,
+        `DTSTART:${stamp(START)}`,
+        `DTEND:${stamp(START + 1800)}`,
+        'SUMMARY:Standup',
+        'DTSTAMP:20260901T000000Z',
+        'END:VEVENT',
+        'END:VCALENDAR',
+      ].join('\r\n')
+    );
+
+    await calendar._refreshSelectedEvents();
+
+    const [selected] = calendar.state.selectedEvents;
+    expect(selected.isException).toBe(true);
+    expect(selected.recurrenceIdStart).toBe(wednesday);
+  });
+
+  it('drops the selection when the move lands somewhere other than predicted', async function () {
+    const calendar = calendarWith([occurrenceAt(START)]);
+    await calendar._applyKeyboardEventChange(occurrenceAt(START), QUARTER, false);
+    row = eventAt(START + 2 * QUARTER);
+
+    await calendar._refreshSelectedEvents();
+
+    expect(calendar.state.selectedEvents).toEqual([]);
+    expect(calendar._pendingMoves.size).toBe(0);
   });
 
   it('lets an event dragged while unselected be moved by keyboard once it is selected', async function () {
@@ -260,79 +342,76 @@ describe('the selection after an event is moved', function () {
   });
 });
 
-describe('a calendar event that becomes selected', function () {
-  let host: HTMLElement;
-  const scopeStart = Date.UTC(2026, 8, 22, 0, 0, 0) / 1000;
-  const render = (selected: boolean) =>
-    ReactDOM.render(
-      React.createElement(CalendarEvent as any, {
-        event: occurrenceAt(START),
-        focused: false,
-        selected,
-        order: 1,
-        concurrentEvents: 1,
-        fixedSize: -1,
-        direction: 'vertical',
-        scopeStart,
-        scopeEnd: scopeStart + 86400,
-        onClick: () => {},
-        onDoubleClick: () => {},
-        onFocused: () => {},
-      }),
-      host
-    );
+const FOCUS_CASES = [
+  {
+    name: 'CalendarEvent',
+    component: CalendarEvent,
+    props: {
+      order: 1,
+      concurrentEvents: 1,
+      fixedSize: -1,
+      direction: 'vertical',
+      scopeStart: Date.UTC(2026, 8, 22, 0, 0, 0) / 1000,
+      scopeEnd: Date.UTC(2026, 8, 23, 0, 0, 0) / 1000,
+    },
+  },
+  { name: 'MonthViewEvent', component: MonthViewEvent, props: {} },
+];
 
-  beforeEach(function () {
-    (document.activeElement as HTMLElement | null)?.blur();
-    host = document.createElement('div');
-    document.body.appendChild(host);
-  });
+FOCUS_CASES.forEach(({ name, component, props }) => {
+  describe(`a ${name} that becomes selected`, function () {
+    let host: HTMLElement;
+    const render = (selected: boolean) =>
+      ReactDOM.render(
+        React.createElement(component as any, {
+          ...props,
+          event: occurrenceAt(START),
+          focused: false,
+          selected,
+          onClick: () => {},
+          onDoubleClick: () => {},
+          onFocused: () => {},
+        }),
+        host
+      );
 
-  afterEach(function () {
-    ReactDOM.unmountComponentAtNode(host);
-    host.remove();
-  });
+    beforeEach(function () {
+      (document.activeElement as HTMLElement | null)?.blur();
+      host = document.createElement('div');
+      document.body.appendChild(host);
+    });
 
-  it('takes the focus when drawn selected, as a moved event is', function () {
-    render(true);
-    expect(document.activeElement).toBe(host.firstElementChild);
-  });
+    afterEach(function () {
+      ReactDOM.unmountComponentAtNode(host);
+      host.remove();
+    });
 
-  it('takes the focus when it becomes selected', function () {
-    render(false);
-    render(true);
-    expect(document.activeElement).toBe(host.firstElementChild);
-  });
-
-  it('leaves the focus alone when it is not selected', function () {
-    render(false);
-    expect(document.activeElement).toBe(document.body);
-  });
-
-  it('does not take the focus from a field', function () {
-    const field = document.createElement('input');
-    document.body.appendChild(field);
-    field.focus();
-    try {
+    it('takes the focus when drawn selected, as a moved event is', function () {
       render(true);
-      expect(document.activeElement).toBe(field);
-    } finally {
-      field.remove();
-    }
-  });
+      expect(document.activeElement).toBe(host.firstElementChild);
+    });
 
-  it('takes the focus in month view too', function () {
-    ReactDOM.render(
-      React.createElement(MonthViewEvent as any, {
-        event: occurrenceAt(START),
-        focused: false,
-        selected: true,
-        onClick: () => {},
-        onDoubleClick: () => {},
-        onFocused: () => {},
-      }),
-      host
-    );
-    expect(document.activeElement).toBe(host.firstElementChild);
+    it('takes the focus when it becomes selected', function () {
+      render(false);
+      render(true);
+      expect(document.activeElement).toBe(host.firstElementChild);
+    });
+
+    it('leaves the focus alone when it is not selected', function () {
+      render(false);
+      expect(document.activeElement).toBe(document.body);
+    });
+
+    it('does not take the focus from a field', function () {
+      const field = document.createElement('input');
+      document.body.appendChild(field);
+      field.focus();
+      try {
+        render(true);
+        expect(document.activeElement).toBe(field);
+      } finally {
+        field.remove();
+      }
+    });
   });
 });

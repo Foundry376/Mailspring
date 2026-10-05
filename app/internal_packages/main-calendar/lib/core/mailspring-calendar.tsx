@@ -14,6 +14,7 @@ import {
   Event,
   SyncbackEventTask,
   ICSEventHelpers,
+  DatabaseChangeRecord,
 } from 'mailspring-exports';
 import {
   ScrollRegion,
@@ -33,6 +34,8 @@ import {
   FocusedEventInfo,
   coveredDates,
   focusedEventInfoForEvents,
+  isEventSelected,
+  occurrenceId,
   occurrencesForEvents,
   occurrenceStartUnix,
   occurrenceEndUnix,
@@ -152,10 +155,7 @@ export class MailspringCalendar extends React.Component<
   _unlisten?: () => void;
   _unlistenDatabase?: () => void;
   _dataSource = new CalendarDataSource();
-  /**
-   * Selected occurrences this window moved whose new occurrence hasn't synced back yet, keyed by
-   * the id they will have: the start they will have, and the ICS their row held before the move.
-   */
+  /** Selected occurrences moved here but not yet synced back, by the id they will be drawn under. */
   _pendingMoves = new Map<string, { start: number; staleIcs: string }>();
 
   constructor(props: MailspringCalendarProps) {
@@ -198,10 +198,9 @@ export class MailspringCalendar extends React.Component<
     ipcRenderer.removeListener('focus-calendar-event', this._onFocusEventMessage);
   }
 
-  _onDatabaseChange = (change: { objectClass: string }) => {
-    if (change.objectClass !== Event.name) return;
-    // A pending move only guards the selection; once deselected, the view draws the moved
-    // occurrence from its row, so a later selection of it starts fresh.
+  _onDatabaseChange = ({ objectClass }: DatabaseChangeRecord<Event>) => {
+    if (objectClass !== Event.name) return;
+    // Deselected, a moved occurrence is drawn from its row, so it needs no guard.
     for (const id of [...this._pendingMoves.keys()]) {
       if (!this.state.selectedEvents.some((o) => o.id === id)) this._pendingMoves.delete(id);
     }
@@ -210,48 +209,40 @@ export class MailspringCalendar extends React.Component<
     }
   };
 
-  /**
-   * Replaces each selected occurrence with the one drawn from its event's current row. Selection
-   * holds occurrence objects, and their times and exception flags go stale once the event changes.
-   */
+  /** Selection holds occurrence objects, whose times and exception flags go stale on a change. */
   async _refreshSelectedEvents() {
     const selected = this.state.selectedEvents;
-    const refreshed = await Promise.all(
-      selected.map(async (occurrence) => {
-        const event = await DatabaseStore.find<Event>(
-          Event,
-          parseEventIdFromOccurrence(occurrence.id)
-        );
-        if (!event) return occurrence;
-        const pending = this._pendingMoves.get(occurrence.id);
-        // The id alone can't tell: a daily series moved a day already has an occurrence there.
-        if (pending && event.ics === pending.staleIcs) return occurrence;
-        const start = pending ? pending.start : occurrenceStartUnix(occurrence);
-        const fresh = occurrencesForEvents([event], {
-          startUnix: start - 86400,
-          endUnix: start + 86400,
-        }).find((o) => o.id === occurrence.id);
-        if (!fresh) return occurrence;
-        this._pendingMoves.delete(occurrence.id);
-        return fresh;
-      })
-    );
-    // A click while the rows were read replaced the selection; this one no longer applies.
+    const refreshed = await Promise.all(selected.map((o) => this._currentOccurrence(o)));
     if (this.state.selectedEvents !== selected) return;
-    if (refreshed.some((o, i) => o !== selected[i])) {
-      this.setState({ selectedEvents: refreshed });
+    const next = refreshed.filter(Boolean);
+    if (next.length !== selected.length || next.some((o, i) => o !== selected[i])) {
+      this.setState({ selectedEvents: next });
     }
   }
 
-  /**
-   * Keeps a selected occurrence selected after this window moves it. Its id embeds its start, so
-   * the moved occurrence is drawn under a new id; a series exception row keeps its own.
-   */
+  /** The occurrence as its row draws it now; null once a move landed somewhere unpredicted. */
+  async _currentOccurrence(occurrence: EventOccurrence): Promise<EventOccurrence | null> {
+    const event = await DatabaseStore.find<Event>(Event, parseEventIdFromOccurrence(occurrence.id));
+    if (!event) return occurrence;
+    const pending = this._pendingMoves.get(occurrence.id);
+    if (pending && event.ics === pending.staleIcs) return occurrence;
+    this._pendingMoves.delete(occurrence.id);
+
+    const start = pending ? pending.start : occurrenceStartUnix(occurrence);
+    const sameId = occurrencesForEvents([event], {
+      startUnix: start - 86400,
+      endUnix: start + 86400,
+    }).filter((o) => o.id === occurrence.id);
+    // An occurrence moved onto another's start shares its id; its RECURRENCE-ID tells them apart.
+    const slot = occurrence.recurrenceIdStart ?? occurrenceStartUnix(occurrence);
+    const current = sameId.find((o) => o.recurrenceIdStart === slot) || sameId[0];
+    return current || (pending ? null : occurrence);
+  }
+
+  /** An occurrence's id embeds its start; a series exception stored as its own row keeps its id. */
   _followMove(occurrence: EventOccurrence, event: Event, newStart: number, staleIcs: string) {
-    if (!this.state.selectedEvents.some((o) => o.id === occurrence.id)) return;
-    const id = event.isRecurrenceException()
-      ? occurrence.id
-      : `${event.id}-e${Math.round(newStart)}`;
+    if (!isEventSelected(this.state.selectedEvents, occurrence)) return;
+    const id = event.isRecurrenceException() ? occurrence.id : occurrenceId(event.id, newStart);
     this._pendingMoves.set(id, { start: newStart, staleIcs });
     this.setState({
       selectedEvents: this.state.selectedEvents.map((o) =>
@@ -495,7 +486,6 @@ export class MailspringCalendar extends React.Component<
     }
 
     const selected = this.state.selectedEvents;
-    // A just-moved occurrence still carries its old times until the move syncs back.
     if (selected.some((o) => this._pendingMoves.has(o.id))) {
       return;
     }
@@ -773,7 +763,7 @@ export class MailspringCalendar extends React.Component<
     }
 
     const occurrence = this.state.selectedEvents[0];
-    // Until the last move syncs back, the selection still carries the old times and flags.
+    // The selection keeps the old times and flags until the move syncs back.
     if (this._pendingMoves.has(occurrence.id)) {
       return;
     }
