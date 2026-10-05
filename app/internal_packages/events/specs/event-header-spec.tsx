@@ -613,6 +613,34 @@ describe('EventHeader answering an invitation', function () {
           end: next.end.getTime() / 1000,
         });
         expect(conflictLines().map((l) => l.split(' (')[0])).toEqual(['This week']);
+        // The header shows the series' first date, so each line names the day it checked.
+        expect(conflictLines()[0]).toContain(`(${moment(next.start).format('dddd, MMMM Do')}, `);
+      });
+    });
+
+    it('gives only times when the clash is on the day shown', function () {
+      mount({
+        events: [],
+        calendars: [mine],
+        nearby: [busyAt('Standup', mine.id, '20260301T143000Z', '20260301T150000Z')],
+      });
+      runs(() => {
+        expect(conflictLines()).toEqual(['Standup (8:30 am - 9:00 am)']);
+      });
+    });
+
+    it('shows no conflicts on a reply, where we picked the slot ourselves', function () {
+      fs.writeFileSync(icsPath, INVITE.replace('METHOD:REQUEST', 'METHOD:REPLY'));
+      mount({
+        events: [],
+        calendars: [mine],
+        nearby: [busyAt('Standup', mine.id, '20260301T143000Z', '20260301T150000Z')],
+      });
+      runs(() => {
+        expect(header.state.conflicts.length).toBe(1);
+        expect(
+          ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'event-conflicts').length
+        ).toBe(0);
       });
     });
 
