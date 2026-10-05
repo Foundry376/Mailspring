@@ -14,6 +14,7 @@ import { calendarDateFromUnix, shiftedDayStartUnix, calendarDaysBetween } from '
 type ICAL = typeof import('ical.js').default;
 type ICALComponent = InstanceType<ICAL['Component']>;
 type ICALTime = InstanceType<ICAL['Time']>;
+type ICALProperty = InstanceType<ICAL['Property']>;
 type ICALTimezone = InstanceType<ICAL['Timezone']>;
 type ICALRecur = InstanceType<ICAL['Recur']>;
 
@@ -1341,8 +1342,10 @@ export function createCounterProposal(
   for (const name of ['rrule', 'rdate', 'exdate', 'attendee']) {
     proposed.removeAllProperties(name);
   }
-  if (options.recurrenceId) {
-    proposed.updatePropertyWithValue('recurrence-id', options.recurrenceId);
+  // A moved occurrence already carries the RECURRENCE-ID the organizer gave it, zone and all;
+  // only an occurrence cut from the master needs naming.
+  if (options.recurrenceId && !exception) {
+    nameOccurrence(proposed, source.getFirstProperty('dtstart'), options.recurrenceId, ical);
   }
 
   const attendee = ical.Property.fromString(mine.toICALString());
@@ -1370,6 +1373,34 @@ export function createCounterProposal(
   counter.updatePropertyWithValue('method', 'COUNTER');
   counter.addSubcomponent(proposed);
   return counter.toString();
+}
+
+/**
+ * Writes RECURRENCE-ID for the occurrence at `instant`, in the form the series writes DTSTART
+ * (RFC 5545 section 3.8.4.4): a DATE for an all-day series, local time with the same TZID for a
+ * zoned one, UTC otherwise. Writing the instant's UTC value onto a property that keeps a TZID
+ * parameter is what section 3.2.19 forbids, and Google reads such a value in the zone named.
+ */
+function nameOccurrence(
+  vevent: ICALComponent,
+  dtstart: ICALProperty,
+  instant: ICALTime,
+  ical: ICAL
+): void {
+  const start = dtstart.getFirstValue() as ICALTime;
+  const tzid = dtstart.getParameter('tzid') as string | undefined;
+  const zoned = !start.isDate && !!tzid && ical.TimezoneService.has(tzid);
+  let value: ICALTime;
+  if (start.isDate) {
+    value = instant.isDate ? instant : dateOnly(ical, instant.toJSDate());
+  } else if (zoned) {
+    value = instant.convertToZone(ical.TimezoneService.get(tzid));
+  } else {
+    value = instant.convertToZone(ical.Timezone.utcTimezone);
+  }
+  vevent.removeAllProperties('recurrence-id');
+  const property = vevent.addPropertyWithValue('recurrence-id', value);
+  if (zoned) property.setParameter('tzid', tzid);
 }
 
 /** The calendar day `date` falls on where the user is, as a DATE value. */
