@@ -597,6 +597,40 @@ export function createICSString(options: CreateEventOptions): string {
 }
 
 /**
+ * Advances SEQUENCE once for a revision the organizer made. Guests' clients ignore an update
+ * whose SEQUENCE has not moved past the copy they hold (RFC 5546 section 2.1.4), and an absent
+ * SEQUENCE means zero (RFC 5545 section 3.7.4). The edit helpers leave this to the caller
+ * that assembles the save, because one save runs several of them and is still one revision.
+ *
+ * @param recurrenceId Revise the matching inline exception rather than the master, since the
+ *   other occurrences are unchanged.
+ */
+export function bumpEventSequence(ics: string, recurrenceId?: string): string {
+  const { root } = parseICSString(ics);
+  const vevents =
+    root.name === 'vevent' ? [root] : (root.getAllSubcomponents('vevent') as ICALComponent[]);
+  // Without a recurrenceId the master is revised; a lone occurrence is its own master.
+  const target = recurrenceId
+    ? vevents.find((v) => matchesRecurrenceId(v, recurrenceId))
+    : vevents.find((v) => !v.getFirstPropertyValue('recurrence-id')) || vevents[0];
+  if (!target) {
+    throw new Error(
+      `No VEVENT to revise${recurrenceId ? ` for RECURRENCE-ID ${recurrenceId}` : ''}`
+    );
+  }
+
+  const current = target.getFirstPropertyValue('sequence');
+  target.updatePropertyWithValue('sequence', (parseInt(String(current), 10) || 0) + 1);
+  return root.toString();
+}
+
+/** Whether this VEVENT is the inline exception `recurrenceId` names, in either date form. */
+function matchesRecurrenceId(vevent: ICALComponent, recurrenceId: string): boolean {
+  const rid = vevent.getFirstPropertyValue('recurrence-id');
+  return String(rid).replace(/[^0-9TZ]/g, '') === recurrenceId.replace(/[^0-9TZ]/g, '');
+}
+
+/**
  * Updates the start/end times in an event's ICS data.
  * Preserves all other event properties and properly handles timezone conversion.
  *
@@ -674,12 +708,6 @@ export function updateEventTimes(ics: string, options: UpdateTimesOptions): stri
 
   // Update DTSTAMP to indicate modification
   vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
-
-  // Increment SEQUENCE if present (for proper sync)
-  const sequence = vevent.getFirstPropertyValue('sequence');
-  if (sequence !== null) {
-    vevent.updatePropertyWithValue('sequence', (parseInt(String(sequence), 10) || 0) + 1);
-  }
 
   if (root.name === 'vcalendar') {
     syncVTimezones(root, ical, startDate);
@@ -776,12 +804,10 @@ export function createRecurrenceException(
     ? createAllDayEndTime(newStartDate, newEndDate, ical)
     : createICALTime(newEndDate, false, ical, originalStartZone);
 
-  // Update DTSTAMP and increment SEQUENCE on the exception
+  // Update DTSTAMP; SEQUENCE is the caller's to advance once per revision.
   const now = nowUTC(ical);
   masterVevent.updatePropertyWithValue('dtstamp', now);
   exceptionVevent.updatePropertyWithValue('dtstamp', now);
-  const sequence = exceptionVevent.getFirstPropertyValue('sequence');
-  exceptionVevent.updatePropertyWithValue('sequence', (parseInt(String(sequence), 10) || 0) + 1);
 
   // Embed the exception VEVENT inline in the master VCALENDAR
   if (vcalendar) {
@@ -825,26 +851,10 @@ export function applyEditsToException(
     throw new Error('Invalid ICS: expected VCALENDAR root');
   }
 
-  // Find the exception VEVENT by RECURRENCE-ID
-  let exceptionVevent: ICALComponent | null = null;
-  for (const vevent of vcalendar.getAllSubcomponents('vevent')) {
-    const rid = vevent.getFirstPropertyValue('recurrence-id');
-    if (rid) {
-      const ridStr =
-        typeof rid === 'string'
-          ? rid
-          : typeof (rid as any).toString === 'function'
-            ? (rid as any).toString()
-            : String(rid);
-      if (
-        ridStr === recurrenceId ||
-        ridStr.replace(/[^0-9TZ]/g, '') === recurrenceId.replace(/[^0-9TZ]/g, '')
-      ) {
-        exceptionVevent = vevent;
-        break;
-      }
-    }
-  }
+  const exceptionVevent =
+    (vcalendar.getAllSubcomponents('vevent') as ICALComponent[]).find((v) =>
+      matchesRecurrenceId(v, recurrenceId)
+    ) || null;
 
   if (!exceptionVevent) {
     throw new Error(`No exception VEVENT found with RECURRENCE-ID matching ${recurrenceId}`);
@@ -1082,12 +1092,6 @@ export function addExclusionDate(ics: string, occurrenceStart: number, isAllDay:
   // Update DTSTAMP to indicate modification
   vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
 
-  // Increment SEQUENCE if present (for proper sync)
-  const sequence = vevent.getFirstPropertyValue('sequence');
-  if (sequence !== null) {
-    vevent.updatePropertyWithValue('sequence', (parseInt(String(sequence), 10) || 0) + 1);
-  }
-
   return root.toString();
 }
 
@@ -1146,13 +1150,6 @@ export function removeInlineException(ics: string, recurrenceId: string): string
   addExdateProperty(master, slot.clone(), ical, slot.zone);
   master.updatePropertyWithValue('dtstamp', nowUTC(ical));
 
-  // Cancelling an occurrence is a change the guests need to see, so advance SEQUENCE the way
-  // addExclusionDate does for a plain occurrence.
-  const sequence = master.getFirstPropertyValue('sequence');
-  if (sequence !== null) {
-    master.updatePropertyWithValue('sequence', (parseInt(String(sequence), 10) || 0) + 1);
-  }
-
   return root.toString();
 }
 
@@ -1183,12 +1180,6 @@ export function updateRecurrenceRule(ics: string, rruleString: string | null): s
     // which are meaningless without an RRULE (RFC 5545)
     vevent.removeAllProperties('exdate');
     vevent.removeAllProperties('rdate');
-  }
-
-  // Increment SEQUENCE if present (for proper sync per RFC 5545)
-  const sequence = vevent.getFirstPropertyValue('sequence');
-  if (sequence !== null) {
-    vevent.updatePropertyWithValue('sequence', (parseInt(String(sequence), 10) || 0) + 1);
   }
 
   // Update DTSTAMP to indicate modification
