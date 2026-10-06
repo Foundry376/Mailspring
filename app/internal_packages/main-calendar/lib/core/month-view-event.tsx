@@ -23,6 +23,7 @@ interface MonthViewEventProps {
   isCalendarReadOnly?: boolean;
   onClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
   onDoubleClick: (event: EventOccurrence) => void;
+  onContextMenu?: (event: EventOccurrence) => void;
   onFocused: (event: EventOccurrence) => void;
   onDragStart?: (event: EventOccurrence, mouseEvent: React.MouseEvent, hitZone: HitZone) => void;
 }
@@ -46,10 +47,20 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
 
   componentDidMount() {
     this._revealOnFocusGained(false);
+    this._takeFocusIfSelected();
   }
 
   componentDidUpdate(prevProps: MonthViewEventProps) {
     this._revealOnFocusGained(prevProps.focused);
+    this._takeFocusIfSelected();
+  }
+
+  // See CalendarEvent._takeFocusIfSelected.
+  _takeFocusIfSelected() {
+    if (!this.props.selected || document.activeElement !== document.body) {
+      return;
+    }
+    (ReactDOM.findDOMNode(this) as HTMLElement | null)?.focus({ preventScroll: true });
   }
 
   // Announce focus only as it arrives: onFocused opens the card and the reveal scrolls to it, so
@@ -71,6 +82,14 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
   _onClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
     this.props.onClick(e, this.props.event);
+  };
+
+  _onContextMenu = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (this.props.onContextMenu) {
+      this.props.onContextMenu(this.props.event);
+    }
   };
 
   _onDoubleClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -219,7 +238,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
         style={style}
         onClick={this._onClick}
         onDoubleClick={this._onDoubleClick}
-        onContextMenu={(e) => e.stopPropagation()}
+        onContextMenu={this._onContextMenu}
         onMouseMove={this._onMouseMove}
         onMouseLeave={this._onMouseLeave}
         onMouseDown={this._onMouseDown}

@@ -2,7 +2,7 @@ import { localized } from 'mailspring-exports';
 
 export type RecurringEventChoice = 'this-occurrence' | 'all-occurrences' | 'cancel';
 
-export type RecurringEventOperation = 'move' | 'resize' | 'delete' | 'edit';
+export type RecurringEventOperation = 'move' | 'resize' | 'delete' | 'edit' | 'answer';
 
 /**
  * Shows a dialog asking whether to modify this occurrence or all occurrences
@@ -24,6 +24,7 @@ export function showRecurringEventDialog(
       resize: localized('Resize'),
       delete: localized('Delete'),
       edit: localized('Edit'),
+      answer: localized('Answer'),
     };
 
     const operationVerb: Record<RecurringEventOperation, string> = {
@@ -31,6 +32,7 @@ export function showRecurringEventDialog(
       resize: localized('resize'),
       delete: localized('delete'),
       edit: localized('edit'),
+      answer: localized('answer'),
     };
 
     const response = remote.dialog.showMessageBoxSync({
