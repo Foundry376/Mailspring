@@ -71,6 +71,11 @@ export function occurrenceStartUnix(e: EventOccurrence): number {
   return isTimed(e) ? e.start : CalendarDateUtils.dayStartUnix(e.startDate);
 }
 
+/** The id an occurrence expanded from `eventId`'s ICS is drawn under; a move gives it a new one. */
+export function occurrenceId(eventId: string, start: number): string {
+  return `${eventId}-e${Math.round(start)}`;
+}
+
 /**
  * An occurrence's end as an exclusive instant — its real end if timed, the midnight after its
  * last covered day if all-day. For drag hit-testing and time formatting; never stored, and not
@@ -403,7 +408,7 @@ export function occurrencesForEvents(
               // Key on the occurrence start, not the expansion index: idx depends on the query
               // range, so the same occurrence got a different id per view — breaking selection
               // (and React keys) when switching views. The start is stable across ranges.
-              id: `${master.id}-e${Math.round(start)}`,
+              id: occurrenceId(master.id, start),
               event: master,
               item,
               startTime: e.startDate,
