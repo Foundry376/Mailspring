@@ -733,6 +733,13 @@ export class MailspringCalendar extends React.Component<
    */
   _pendingDrag: { event: EventOccurrence; hitZone: HitZone } | null = null;
 
+  /**
+   * A grab that has its position but has not travelled past the drag threshold. Held here
+   * rather than in state, like _pendingCreateDrag: a setState on every press re-renders the
+   * grid for a click. _onCalendarMouseMove moves it into state once it is a drag.
+   */
+  _pendingDragState: DragState | null = null;
+
   _onEventDragStart = (event: EventOccurrence, _mouseEvent: React.MouseEvent, hitZone: HitZone) => {
     this._pendingDrag = { event, hitZone };
   };
@@ -759,7 +766,8 @@ export class MailspringCalendar extends React.Component<
       return;
     }
 
-    if (!this.state.dragState) {
+    const active = this.state.dragState || this._pendingDragState;
+    if (!active) {
       return;
     }
 
@@ -771,7 +779,7 @@ export class MailspringCalendar extends React.Component<
     const config = this._getDragConfig();
 
     const newDragState = updateDragState(
-      this.state.dragState,
+      active,
       args.time,
       args.x,
       args.y,
@@ -779,8 +787,10 @@ export class MailspringCalendar extends React.Component<
       config
     );
 
-    // Only update state if something changed
-    if (newDragState !== this.state.dragState) {
+    // Below the threshold updateDragState hands back the same object, so a grab that has not
+    // travelled stays out of state.
+    if (newDragState !== active) {
+      this._pendingDragState = null;
       this.setState({ dragState: newDragState });
     }
   };
@@ -789,6 +799,8 @@ export class MailspringCalendar extends React.Component<
    * Handle mouse up to complete drag
    */
   _onCalendarMouseUp = (args: CalendarEventArgs) => {
+    // A grab that never travelled was a click on the event, which the event handles itself.
+    this._pendingDragState = null;
     if (this._pendingCreateDrag) {
       // Never travelled: a click on the grid, and the click event that follows is its own.
       this._pendingCreateDrag = null;
@@ -855,7 +867,7 @@ export class MailspringCalendar extends React.Component<
       this._beginCreateDrag(args);
       return;
     }
-    const dragState = createDragState(
+    this._pendingDragState = createDragState(
       pending.event,
       pending.hitZone,
       args.time,
@@ -863,7 +875,6 @@ export class MailspringCalendar extends React.Component<
       args.y,
       this._getDragConfig()
     );
-    this.setState({ dragState });
   };
 
   _beginCreateDrag(args: CalendarEventArgs) {
