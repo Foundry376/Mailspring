@@ -1,7 +1,8 @@
 @import 'ui-variables';
 
-// Shared component styles: the popover opens in both the main and the calendar window, and a
-// package stylesheet only loads for its package's windowTypes.
+// Shared component styles: the popover also opens from invitations in thread popout windows,
+// where the calendar package doesn't load, and a package stylesheet only loads for its
+// package's windowTypes.
 .propose-time-popover {
   // Sized to the window: a tiled or portrait window has far less room than a maximised one.
   width: 320px;
