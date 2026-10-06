@@ -30,6 +30,8 @@ import {
   resolveAddTo,
   planRSVPWrite,
   conflictCalendarIds,
+  counterProposalProblem,
+  CounterProposalProblem,
   RSVPTargetResolution,
 } from './rsvp-target';
 
@@ -114,7 +116,7 @@ interface EventHeaderState {
   inviteEvent?: ICAL.Event;
   /** Set when the emailed invitation is about one occurrence of a series, in unix seconds. */
   inviteRecurrenceIdStart?: number;
-  icsMethod?: 'reply' | 'request' | 'cancel';
+  icsMethod?: 'reply' | 'request' | 'cancel' | 'counter';
   /** The synced copy's VEVENT for this invitation when there is one, else the invitation. */
   icsEvent?: ICAL.Event;
   /** The synced calendar object `icsEvent` came from. */
@@ -122,6 +124,8 @@ interface EventHeaderState {
   isOnCalendar?: boolean;
   /** Which calendar copy of this event, if any, our response will be written to. */
   rsvp?: RSVPTargetResolution;
+  /** Why an arriving counter-proposal may not be applied, when it may not be. */
+  counterProblem?: CounterProposalProblem;
   /** The slot checked for conflicts: the next occurrence of a series, else the event itself. */
   conflictWindow?: { start: number; end: number };
   /** Everything already on our calendars that overlaps that slot. */
@@ -155,6 +159,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     syncedIcs: undefined,
     isOnCalendar: false,
     rsvp: undefined,
+    counterProblem: undefined,
     conflictWindow: undefined,
     conflicts: undefined,
     addTo: undefined,
@@ -213,8 +218,10 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
 
     const method = root.getFirstPropertyValue('method');
     const methodLower = (typeof method === 'string' ? method : 'request').toLowerCase();
-    // Anything but REPLY and CANCEL renders as an invitation, the one method with actions.
-    const normalizedMethod = ['reply', 'cancel'].includes(methodLower) ? methodLower : 'request';
+    // Anything but REPLY, CANCEL and COUNTER renders as an invitation, the method with actions.
+    const normalizedMethod = ['reply', 'cancel', 'counter'].includes(methodLower)
+      ? methodLower
+      : 'request';
     this.setState({
       icsEvent: event,
       icsMethod: normalizedMethod as EventHeaderState['icsMethod'],
@@ -264,7 +271,8 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     const rsvp = resolveRSVPTarget({ events: calEvents, calendars, addresses });
     const display = rsvp.target ? rsvp.target.event : calEvents[0];
     let synced: ICAL.Event | null = null;
-    if (display) {
+    // A COUNTER's proposed time exists only in the attachment; our copy holds the original.
+    if (display && this.state.icsMethod !== 'counter') {
       try {
         // An occurrence the copy has no VEVENT for keeps what the email said.
         synced = eventForInvitation(display.ics, this.state.inviteRecurrenceIdStart);
@@ -283,7 +291,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     const unix = (d: Date) => Math.round(d.getTime() / 1000);
     const shown = synced || this.state.inviteEvent;
     const upcoming =
-      this.state.inviteRecurrenceIdStart === undefined
+      this.state.inviteRecurrenceIdStart === undefined && this.state.icsMethod !== 'counter'
         ? ICSEventHelpers.upcomingOccurrence(
             display ? display.ics : this.state.inviteIcs,
             new Date()
@@ -318,8 +326,19 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       organizerUri: this.state.inviteEvent.organizer,
       current: this.state.addTo,
     });
+    // Whether a COUNTER may be acted on is decided by our own copy, never the attachment.
+    const counterProblem =
+      this.state.icsMethod === 'counter' && rsvp.target
+        ? counterProposalProblem({
+            ics: rsvp.target.event.ics,
+            senderEmail: this.props.message.from[0] ? this.props.message.from[0].email : null,
+            addresses,
+            namesOccurrence: !!this.state.inviteEvent.recurrenceId,
+          })
+        : undefined;
     const next: Partial<EventHeaderState> = {
       rsvp,
+      counterProblem,
       conflicts,
       conflictWindow,
       addTo: addTo ? addTo.addTo : undefined,
@@ -421,9 +440,11 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
             {icsMethod === 'request' && this._renderConflicts()}
             {icsMethod === 'cancel'
               ? this._renderCancellation()
-              : icsMethod === 'request'
-                ? this._renderRSVP()
-                : this._renderSenderResponse()}
+              : icsMethod === 'counter'
+                ? this._renderCounterProposal()
+                : icsMethod === 'request'
+                  ? this._renderRSVP()
+                  : this._renderSenderResponse()}
           </div>
         </div>
       </div>
@@ -471,6 +492,104 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       </div>
     );
   }
+
+  // A guest proposing another slot for a meeting we organize (RFC 5546 section 3.2.7): the
+  // action is the organizer's, and accepting moves the event. The header shows the proposed time.
+  _renderCounterProposal() {
+    const { rsvp, counterProblem } = this.state;
+    const from = this.props.message.from[0];
+    const proposer = from ? from.displayName() : localized('An attendee');
+
+    const refusal =
+      !rsvp || !rsvp.target
+        ? localized("This event isn't on a calendar you can edit, so it can't be moved here.")
+        : counterProblem === 'not-our-meeting'
+          ? localized("You don't organize this event, so only its organizer can move it.")
+          : counterProblem === 'series-without-occurrence'
+            ? localized(
+                "This proposal doesn't say which occurrence of the series it is about, so the series stays as it is."
+              )
+            : counterProblem === 'not-from-a-guest'
+              ? localized(
+                  '%@ is not a guest on this event, so it cannot be moved from here.',
+                  proposer
+                )
+              : null;
+
+    return (
+      <div className="event-actions event-counter">
+        <div className="event-counter-notice">
+          {localized('%@ proposed this new time.', proposer)}
+        </div>
+        {refusal ? (
+          <div className="event-rsvp-destination event-rsvp-email-only">{refusal}</div>
+        ) : (
+          <>
+            <div className="event-rsvp-buttons">
+              <div className="btn btn-large" onClick={this._onAcceptProposedTime}>
+                {localized('Move event to this time')}
+              </div>
+            </div>
+            <div className="event-rsvp-destination">
+              {localized('Your response will be saved to %@', rsvp.target.calendar.name)}
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // The server re-sends the invitation to the guests when the organizer moves the event, so
+  // there is no REQUEST for us to send.
+  _onAcceptProposedTime = () => {
+    const { event: calEvent } = this.state.rsvp.target;
+    const proposed = this.state.inviteEvent;
+    const unix = (t: ICAL.Time) => Math.round(t.toJSDate().getTime() / 1000);
+    const start = unix(proposed.startDate);
+    const end = unix(proposed.endDate);
+    const isAllDay = !!proposed.startDate.isDate;
+
+    let ics: string;
+    try {
+      if (proposed.recurrenceId) {
+        // The counter names one occurrence, so only that one moves.
+        const exception = ICSEventHelpers.createRecurrenceException(
+          calEvent.ics,
+          unix(proposed.recurrenceId),
+          start,
+          end,
+          isAllDay
+        );
+        ics = ICSEventHelpers.bumpEventSequence(exception.masterIcs, exception.recurrenceId);
+      } else {
+        ics = ICSEventHelpers.bumpEventSequence(
+          ICSEventHelpers.updateEventTimes(calEvent.ics, { start, end, isAllDay })
+        );
+      }
+    } catch (e) {
+      console.warn(`EventHeader: Could not apply the proposed time: ${e.message}`);
+      AppEnv.showErrorDialog(localized("Sorry, we couldn't move this event to the proposed time."));
+      return;
+    }
+
+    const event = calEvent.clone();
+    event.ics = ics;
+    if (!proposed.recurrenceId) {
+      event.recurrenceStart = start;
+      event.recurrenceEnd = end;
+    }
+    Actions.queueTask(
+      SyncbackEventTask.forUpdating({
+        event,
+        undoData: {
+          ics: calEvent.ics,
+          recurrenceStart: calEvent.recurrenceStart,
+          recurrenceEnd: calEvent.recurrenceEnd,
+        },
+        description: localized('Move event'),
+      })
+    );
+  };
 
   _renderSenderResponse() {
     const { icsEvent } = this.state;
