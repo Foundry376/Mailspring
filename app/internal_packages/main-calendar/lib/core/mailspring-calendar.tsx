@@ -14,6 +14,7 @@ import {
   Event,
   SyncbackEventTask,
   ICSEventHelpers,
+  DatabaseChangeRecord,
 } from 'mailspring-exports';
 import {
   ScrollRegion,
@@ -34,6 +35,9 @@ import {
   coveredDates,
   focusedEventInfoForEvents,
   isEventSelected,
+  occurrenceId,
+  occurrencesForEvents,
+  ownCalendarAddresses,
   occurrenceStartUnix,
   occurrenceEndUnix,
 } from './calendar-data-source';
@@ -154,7 +158,10 @@ export class MailspringCalendar extends React.Component<
   _disposable?: Disposable;
   _themeDisposable?: { dispose(): void };
   _unlisten?: () => void;
+  _unlistenDatabase?: () => void;
   _dataSource = new CalendarDataSource();
+  /** Selected occurrences moved here but not yet synced back, by the id they will be drawn under. */
+  _pendingMoves = new Map<string, { start: number; staleIcs: string }>();
 
   constructor(props: MailspringCalendarProps) {
     super(props);
@@ -176,6 +183,7 @@ export class MailspringCalendar extends React.Component<
   componentDidMount() {
     this._disposable = this._subscribeToCalendars();
     this._unlisten = Actions.focusCalendarEvent.listen(this._focusEvent);
+    this._unlistenDatabase = DatabaseStore.listen(this._onDatabaseChange);
     ipcRenderer.on('focus-calendar-event', this._onFocusEventMessage);
     ipcRenderer.send('command', 'application:calendar-mounted');
     this._themeDisposable = AppEnv.themes.onDidChangeActiveThemes(() => {
@@ -191,7 +199,67 @@ export class MailspringCalendar extends React.Component<
     if (this._unlisten) {
       this._unlisten();
     }
+    this._unlistenDatabase?.();
     ipcRenderer.removeListener('focus-calendar-event', this._onFocusEventMessage);
+  }
+
+  _onDatabaseChange = ({ objectClass }: DatabaseChangeRecord<Event>) => {
+    if (objectClass !== Event.name) return;
+    // Deselected, a moved occurrence is drawn from its row, so it needs no guard.
+    for (const id of [...this._pendingMoves.keys()]) {
+      if (!this.state.selectedEvents.some((o) => o.id === id)) this._pendingMoves.delete(id);
+    }
+    if (this.state.selectedEvents.length > 0) {
+      this._refreshSelectedEvents();
+    }
+  };
+
+  /** Selection holds occurrence objects, whose times and exception flags go stale on a change. */
+  async _refreshSelectedEvents() {
+    const selected = this.state.selectedEvents;
+    const refreshed = await Promise.all(selected.map((o) => this._currentOccurrence(o)));
+    if (this.state.selectedEvents !== selected) return;
+    const next = refreshed.filter(Boolean);
+    if (next.length !== selected.length || next.some((o, i) => o !== selected[i])) {
+      this.setState({ selectedEvents: next });
+    }
+  }
+
+  /** The occurrence as its row draws it now; null once a move landed somewhere unpredicted. */
+  async _currentOccurrence(occurrence: EventOccurrence): Promise<EventOccurrence | null> {
+    const event = await DatabaseStore.find<Event>(Event, parseEventIdFromOccurrence(occurrence.id));
+    if (!event) return occurrence;
+    const pending = this._pendingMoves.get(occurrence.id);
+    if (pending && event.ics === pending.staleIcs) return occurrence;
+    this._pendingMoves.delete(occurrence.id);
+
+    const slotOf = (o: EventOccurrence) => o.recurrenceIdStart ?? occurrenceStartUnix(o);
+    const slot = slotOf(occurrence);
+    const start = pending ? pending.start : occurrenceStartUnix(occurrence);
+    // The expander stops at the first regular occurrence past the range, so an exception moved
+    // in from a later slot is reached only when the range runs to that slot.
+    // Re-expanded without the calendars, a meeting a secondary calendar of ours organizes would
+    // come back as somebody else's and the next arrow key would refuse to move it.
+    const sameId = occurrencesForEvents([event], {
+      startUnix: Math.min(slot, start) - 86400,
+      endUnix: Math.max(slot, start) + 86400,
+      ownCalendarAddresses: ownCalendarAddresses(this.state.calendars),
+    }).filter((o) => o.id === occurrence.id);
+    // An occurrence moved onto another's start shares its id; their slots tell them apart.
+    const current = sameId.find((o) => slotOf(o) === slot) || sameId[0];
+    return current || (pending ? null : occurrence);
+  }
+
+  /** An occurrence's id embeds its start; a series exception stored as its own row keeps its id. */
+  _followMove(occurrence: EventOccurrence, event: Event, newStart: number, staleIcs: string) {
+    if (!isEventSelected(this.state.selectedEvents, occurrence)) return;
+    const id = event.isRecurrenceException() ? occurrence.id : occurrenceId(event.id, newStart);
+    this._pendingMoves.set(id, { start: newStart, staleIcs });
+    this.setState({
+      selectedEvents: this.state.selectedEvents.map((o) =>
+        o.id === occurrence.id ? { ...o, id } : o
+      ),
+    });
   }
 
   _subscribeToCalendars() {
@@ -238,7 +306,7 @@ export class MailspringCalendar extends React.Component<
     // selected event off-screen.
     const selected = this.state.selectedEvents[0];
     const focusedMoment = selected
-      ? moment.unix(occurrenceStartUnix(selected))
+      ? moment.unix(this._pendingMoves.get(selected.id)?.start ?? occurrenceStartUnix(selected))
       : this.state.focusedMoment;
     // Clear any active drag state when changing views
     this.setState({ view, dragState: null, focusedMoment });
@@ -449,8 +517,12 @@ export class MailspringCalendar extends React.Component<
       return;
     }
 
-    // Partition before prompting so the dialog can disclose a partial delete
     const selected = this.state.selectedEvents;
+    if (selected.some((o) => this._pendingMoves.has(o.id))) {
+      return;
+    }
+
+    // Partition before prompting so the dialog can disclose a partial delete
     const deletable = selected.filter((o) => !this._isCalendarReadOnly(o.calendarId));
     if (deletable.length === 0) {
       showReadOnlyCalendarError();
@@ -733,6 +805,10 @@ export class MailspringCalendar extends React.Component<
     }
 
     const occurrence = this.state.selectedEvents[0];
+    // The selection keeps the old times and flags until the move syncs back.
+    if (this._pendingMoves.has(occurrence.id)) {
+      return;
+    }
 
     if (!canMoveEvent(occurrence, this._isCalendarReadOnly(occurrence.calendarId))) {
       if (canAttemptMove(occurrence, this._isCalendarReadOnly(occurrence.calendarId))) {
@@ -848,11 +924,16 @@ export class MailspringCalendar extends React.Component<
         description: isResize ? localized('Resize event') : localized('Move event'),
       };
 
-      await modifyEventWithRecurringSupport(
+      // The change is written onto `event` before it is queued.
+      const staleIcs = event.ics;
+      const result = await modifyEventWithRecurringSupport(
         options,
         isResize ? 'resize' : 'move',
         occurrence.title
       );
+      if (result.success) {
+        this._followMove(occurrence, event, newStart, staleIcs);
+      }
     } catch (error) {
       console.error('Failed to apply keyboard event change:', error);
       AppEnv.showErrorDialog({
@@ -911,11 +992,15 @@ export class MailspringCalendar extends React.Component<
           dragState.mode === 'move' ? localized('Move event') : localized('Resize event'),
       };
 
-      await modifyEventWithRecurringSupport(
+      const staleIcs = event.ics;
+      const result = await modifyEventWithRecurringSupport(
         options,
         dragState.mode === 'move' ? 'move' : 'resize',
         dragState.event.title
       );
+      if (result.success) {
+        this._followMove(dragState.event, event, newStart, staleIcs);
+      }
     } catch (error) {
       console.error('Failed to persist drag change:', error);
       AppEnv.showErrorDialog({
