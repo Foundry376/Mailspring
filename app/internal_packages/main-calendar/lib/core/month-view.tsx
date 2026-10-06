@@ -164,6 +164,7 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
               selectedEvents={this.props.selectedEvents}
               onEventClick={this.props.onEventClick}
               onEventDoubleClick={this.props.onEventDoubleClick}
+              onEventContextMenu={this.props.onEventContextMenu}
               onEventFocused={this.props.onEventFocused}
               onDayClick={this._onDayClick}
               dragState={this.props.dragState}
