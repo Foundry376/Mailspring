@@ -349,6 +349,7 @@ export class WeekView extends React.Component<
                     height={totalHeight}
                     intervalHeight={this.state.intervalHeight}
                     numColumns={BUFFER_DAYS * 2 + DAYS_IN_VIEW}
+                    paintVersion={this.props.paintVersion}
                   />
                 </div>
               </ScrollRegion>

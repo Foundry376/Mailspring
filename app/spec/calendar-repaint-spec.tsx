@@ -9,6 +9,7 @@ import { WeekView } from '../internal_packages/main-calendar/lib/core/week-view'
 import { DayView } from '../internal_packages/main-calendar/lib/core/day-view';
 import { WeekViewEventColumn } from '../internal_packages/main-calendar/lib/core/week-view-event-column';
 import { WeekViewAllDayEvents } from '../internal_packages/main-calendar/lib/core/week-view-all-day-events';
+import { EventGridBackground } from '../internal_packages/main-calendar/lib/core/event-grid-background';
 import { setCalendarColors } from '../internal_packages/main-calendar/lib/core/calendar-helpers';
 
 const calendar = (color: string) =>
@@ -80,6 +81,37 @@ describe('the guarded columns', function () {
   }
 });
 
+describe('the hour grid', function () {
+  const props = { height: 200, numColumns: 7, intervalHeight: 20, paintVersion: '1-0' };
+  let host: HTMLDivElement;
+  let strokes: string[];
+
+  beforeEach(() => {
+    host = document.createElement('div');
+    host.style.setProperty('--grid-line-major', 'rgb(1, 1, 1)');
+    document.body.appendChild(host);
+    strokes = [];
+    spyOn(CanvasRenderingContext2D.prototype, 'stroke').andCallFake(function () {
+      strokes.push(this.strokeStyle);
+    });
+  });
+  afterEach(() => {
+    ReactDOM.unmountComponentAtNode(host);
+    host.remove();
+  });
+
+  it("strokes the theme's current line colour on a new paint version, and only then", function () {
+    ReactDOM.render(<EventGridBackground {...props} />, host);
+    expect(strokes).toContain('#010101');
+    host.style.setProperty('--grid-line-major', 'rgb(2, 2, 2)');
+    strokes = [];
+    ReactDOM.render(<EventGridBackground {...props} />, host);
+    expect(strokes).toEqual([]);
+    ReactDOM.render(<EventGridBackground {...props} paintVersion="1-1" />, host);
+    expect(strokes).toContain('#020202');
+  });
+});
+
 describe('the week and day views', function () {
   const dataSource = { buildObservable: () => Rx.Observable.just({ events: [] }) };
   const viewProps: any = {
@@ -116,13 +148,15 @@ describe('the week and day views', function () {
   });
 
   for (const View of [WeekView, DayView]) {
-    it(`${View.displayName || View.name} hands the paint version to every guarded child`, function () {
+    it(`${View.displayName || View.name} hands the paint version to every guarded child and the hour grid`, function () {
       const view = ReactDOM.render(React.createElement(View, viewProps), host) as any;
       const columns = ReactTestUtils.scryRenderedComponentsWithType(view, WeekViewEventColumn);
       const allDay = ReactTestUtils.scryRenderedComponentsWithType(view, WeekViewAllDayEvents);
+      const grid = ReactTestUtils.scryRenderedComponentsWithType(view, EventGridBackground);
       expect(columns.length).toBeGreaterThan(0);
       expect(allDay.length).toBeGreaterThan(0);
-      for (const child of [...columns, ...allDay]) {
+      expect(grid.length).toBe(1);
+      for (const child of [...columns, ...allDay, ...grid]) {
         expect((child.props as any).paintVersion).toBe('7-1');
       }
     });
