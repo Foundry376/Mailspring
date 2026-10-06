@@ -9,8 +9,9 @@ import {
   ICSEventHelpers,
   AndCompositeMatcher,
   OrCompositeMatcher,
-  Contact,
   AccountStore,
+  Calendar,
+  Utils,
 } from 'mailspring-exports';
 import IcalExpander from 'ical-expander';
 
@@ -142,8 +143,9 @@ interface OccurrenceBase {
    */
   isPending: boolean;
   /**
-   * True when this account is the event's ORGANIZER, or when the event has no organizer at
-   * all and is therefore nobody's meeting but ours. Governs who may reschedule it.
+   * True when this account organizes the event, or nobody does, or its ORGANIZER is the address
+   * of the calendar it sits on and the server says that calendar is ours (Google writes a
+   * secondary calendar's own id as ORGANIZER). Governs who may reschedule it.
    */
   isMine: boolean;
   isException: boolean;
@@ -187,6 +189,31 @@ export type EventOccurrence = AllDayOccurrence | TimedOccurrence;
  */
 export type FocusedEventInfo = { id: string; start: number };
 
+/**
+ * The address in a calendar's collection path, which on Google is the calendar's own id
+ * (`/caldav/v2/c_1a2b%40group.calendar.google.com/events/`); '' when the path carries none.
+ */
+export function calendarAddress(calendar: Calendar): string {
+  const segments = (calendar.path || '').split('/').map((segment) => {
+    try {
+      return decodeURIComponent(segment);
+    } catch (e) {
+      return segment;
+    }
+  });
+  return segments.filter((segment) => segment.includes('@')).pop() || '';
+}
+
+/**
+ * Calendar id to its own address, for the calendars the server (DAV:owner) says are this
+ * account's; a nameless default is not. A meeting such a calendar organizes is ours.
+ */
+export function ownCalendarAddresses(calendars: Calendar[]): Map<string, string> {
+  return new Map(
+    calendars.filter((c) => c.ownership === 'mine').map((c) => [c.id, calendarAddress(c)])
+  );
+}
+
 /** Strip mailto: prefix from email addresses (common in iCalendar data) */
 function normalizeEmail(email: string): string {
   return email.replace(/^mailto:/i, '');
@@ -214,8 +241,19 @@ export class CalendarDataSource {
     }
 
     const query = DatabaseStore.findAll<Event>(Event).where(matcher);
-    this.observable = Rx.Observable.fromQuery(query).flatMapLatest((results) =>
-      Rx.Observable.from([{ events: occurrencesForEvents(results, { startUnix, endUnix }) }])
+    // Google rewrites ORGANIZER on a secondary calendar to the calendar's own id, so a meeting
+    // organized by the calendar it sits on is ours when the calendar is.
+    const calendars = Rx.Observable.fromQuery(DatabaseStore.findAll<Calendar>(Calendar));
+    this.observable = Rx.Observable.combineLatest(
+      Rx.Observable.fromQuery(query),
+      calendars,
+      (results: Event[], cals: Calendar[]) => ({
+        events: occurrencesForEvents(results, {
+          startUnix,
+          endUnix,
+          ownCalendarAddresses: ownCalendarAddresses(cals),
+        }),
+      })
     );
     return this.observable;
   }
@@ -238,8 +276,9 @@ function occurrenceFromICS(args: {
   isRecurring: boolean;
   /** Defaults to whether the component carries a RECURRENCE-ID */
   isException?: boolean;
+  ownCalendarAddresses: Map<string, string>;
 }): EventOccurrence {
-  const { id, event, item, startTime, endTime } = args;
+  const { id, event, item, startTime, endTime, ownCalendarAddresses } = args;
   const startUnix = startTime.toJSDate().getTime() / 1000;
   const endUnix = endTime.toJSDate().getTime() / 1000;
 
@@ -267,7 +306,11 @@ function occurrenceFromICS(args: {
   const organizerEmail = item.organizer
     ? normalizeEmail(CalendarUtils.emailFromParticipantURI(String(item.organizer)) || '')
     : '';
-  const iAmOrganizer = !!organizerEmail && isThisAccount(organizerEmail);
+  const calendarOwnAddress = ownCalendarAddresses.get(event.calendarId);
+  const iAmOrganizer =
+    !!organizerEmail &&
+    (isThisAccount(organizerEmail) ||
+      (!!calendarOwnAddress && Utils.emailIsEquivalent(organizerEmail, calendarOwnAddress)));
 
   const isAllDay = !!startTime.isDate;
   const startDate = isAllDay
@@ -306,7 +349,11 @@ function occurrenceFromICS(args: {
 
 export function occurrencesForEvents(
   results: Event[],
-  { startUnix, endUnix }: { startUnix: number; endUnix: number }
+  {
+    startUnix,
+    endUnix,
+    ownCalendarAddresses = new Map<string, string>(),
+  }: { startUnix: number; endUnix: number; ownCalendarAddresses?: Map<string, string> }
 ) {
   const occurrences: EventOccurrence[] = [];
 
@@ -366,6 +413,7 @@ export function occurrencesForEvents(
               item,
               startTime: e.startDate,
               endTime: e.endDate,
+              ownCalendarAddresses,
               isRecurring: masterIsRecurring,
             })
           );
@@ -448,6 +496,7 @@ export function occurrencesForEvents(
             endTime: icsEvent.endDate,
             isRecurring: true, // exceptions only exist for a series
             isException: true,
+            ownCalendarAddresses,
           })
         );
       } catch (err) {

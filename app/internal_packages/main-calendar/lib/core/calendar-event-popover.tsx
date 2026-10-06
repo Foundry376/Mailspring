@@ -28,6 +28,7 @@ import {
   occurrenceStartUnix,
   occurrenceEndUnix,
 } from './calendar-data-source';
+import { canRespondToEvent, openProposeNewTimePopover } from './calendar-rsvp';
 import { EventPropertyRow } from './event-property-row';
 import {
   createCalendarEvent,
@@ -651,16 +652,28 @@ export class CalendarEventPopover extends React.Component<
     );
   };
 
+  // A writable calendar and a meeting we organize: only the organizer revises one (RFC 5546
+  // section 2.1.4), the same test canMoveEvent applies to dragging.
+  _isEditable(): boolean {
+    return !this.props.isCalendarReadOnly && (this.props.isNewEvent || this.props.event.isMine);
+  }
+
   render() {
-    if (!this.props.isCalendarReadOnly && (this.state.editing || this.props.isNewEvent)) {
+    if (this._isEditable() && (this.state.editing || this.props.isNewEvent)) {
       return this.renderEditable();
     }
-    return <CalendarEventPopoverUnenditable {...this.props} onEdit={this.onEdit} />;
+    return (
+      <CalendarEventPopoverUnenditable
+        {...this.props}
+        editable={this._isEditable()}
+        onEdit={this.onEdit}
+      />
+    );
   }
 }
 
 class CalendarEventPopoverUnenditable extends React.Component<
-  CalendarEventPopoverProps & { onEdit: () => void }
+  CalendarEventPopoverProps & { editable: boolean; onEdit: () => void }
 > {
   descriptionRef = React.createRef<HTMLDivElement>();
 
@@ -709,8 +722,30 @@ class CalendarEventPopoverUnenditable extends React.Component<
     });
   }
 
+  // The card is what a double-click on a meeting we cannot edit produces, so it carries the
+  // one action that replaces editing.
+  _renderProposeNewTime() {
+    const { event } = this.props;
+    if (!canRespondToEvent(event)) {
+      return null;
+    }
+    return (
+      <div className="section propose-time-action">
+        <div
+          className="btn btn-link"
+          onClick={() => {
+            Actions.closePopover();
+            openProposeNewTimePopover(event);
+          }}
+        >
+          {localized('Propose a new time') + '...'}
+        </div>
+      </div>
+    );
+  }
+
   render() {
-    const { event, onEdit, isCalendarReadOnly } = this.props;
+    const { event, onEdit, editable } = this.props;
     const { title, description, location, attendees } = event;
 
     const notes = extractNotesFromDescription(description);
@@ -719,7 +754,7 @@ class CalendarEventPopoverUnenditable extends React.Component<
       <div className="calendar-event-popover" tabIndex={0}>
         <div className="title-wrapper">
           <div className="title">{title}</div>
-          {!isCalendarReadOnly && (
+          {editable && (
             <RetinaImg
               className="edit-icon"
               name="edit-icon.png"
@@ -741,6 +776,7 @@ class CalendarEventPopoverUnenditable extends React.Component<
             </div>
           )}
           <div className="section">{this.renderTime()}</div>
+          {this._renderProposeNewTime()}
           <ScrollRegion className="section invitees">
             <div className="label">{localized(`Invitees`)}: </div>
             <div className="invitees-list">
