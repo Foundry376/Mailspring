@@ -300,6 +300,7 @@ export class WeekView extends React.Component<
                   selectedEvents={this.props.selectedEvents}
                   onEventClick={this.props.onEventClick}
                   onEventDoubleClick={this.props.onEventDoubleClick}
+                  onEventContextMenu={this.props.onEventContextMenu}
                   onEventFocused={this.props.onEventFocused}
                   paintVersion={this.props.paintVersion}
                   dragState={this.props.dragState}
@@ -328,6 +329,7 @@ export class WeekView extends React.Component<
                       selectedEvents={this.props.selectedEvents}
                       onEventClick={this.props.onEventClick}
                       onEventDoubleClick={this.props.onEventDoubleClick}
+                      onEventContextMenu={this.props.onEventContextMenu}
                       onEventFocused={this.props.onEventFocused}
                       paintVersion={this.props.paintVersion}
                       dragState={this.props.dragState}

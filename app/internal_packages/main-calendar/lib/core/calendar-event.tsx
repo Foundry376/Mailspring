@@ -42,6 +42,7 @@ interface CalendarEventProps {
 
   onClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
   onDoubleClick: (event: EventOccurrence) => void;
+  onContextMenu?: (event: EventOccurrence) => void;
   onFocused: (event: EventOccurrence) => void;
 
   /** Called when a drag operation starts on this event */
@@ -65,6 +66,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     isCalendarReadOnly: false,
     onClick: () => {},
     onDoubleClick: () => {},
+    onContextMenu: () => {},
     onFocused: () => {},
   };
 
@@ -74,10 +76,21 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
 
   componentDidMount() {
     this._revealOnFocusGained(false);
+    this._takeFocusIfSelected();
   }
 
   componentDidUpdate(prevProps: CalendarEventProps) {
     this._revealOnFocusGained(prevProps.focused);
+    this._takeFocusIfSelected();
+  }
+
+  // A moved event is re-drawn under a new id, so the focus its old element had falls to <body>;
+  // taking it back keeps the arrow keys moving it.
+  _takeFocusIfSelected() {
+    if (!this.props.selected || document.activeElement !== document.body) {
+      return;
+    }
+    (ReactDOM.findDOMNode(this) as HTMLElement | null)?.focus({ preventScroll: true });
   }
 
   // Announce focus only as it arrives: onFocused opens the card and the reveal scrolls to it, so
@@ -357,7 +370,8 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
   }
 
   render() {
-    const { direction, event, onClick, onDoubleClick, selected, isDragging } = this.props;
+    const { direction, event, onClick, onDoubleClick, onContextMenu, selected, isDragging } =
+      this.props;
 
     const classNames = [
       'calendar-event',
@@ -402,6 +416,11 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
         onDoubleClick={(e) => {
           e.stopPropagation();
           onDoubleClick(event);
+        }}
+        onContextMenu={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          onContextMenu(event);
         }}
         onMouseMove={this._onMouseMove}
         onMouseLeave={this._onMouseLeave}

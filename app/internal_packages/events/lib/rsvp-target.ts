@@ -201,3 +201,57 @@ export function planRSVPWrite({
   });
   return { kind: 'create', event, calendar: addTo };
 }
+
+/** Why a counter-proposal that arrived by email may not be applied to our copy. */
+export type CounterProposalProblem =
+  /** Our copy of the meeting is not one this account organizes. */
+  | 'not-our-meeting'
+  /** The message did not come from somebody on the guest list. */
+  | 'not-from-a-guest'
+  /** Our copy is a series and the proposal names no occurrence, so it would move them all. */
+  | 'series-without-occurrence';
+
+/**
+ * Whether an emailed COUNTER may move our copy of the meeting: only the organizer revises one
+ * (RFC 5546 section 2.1.4) and only a guest counters (section 3.2.7). Both are read off our
+ * synced copy, never the attachment, whose UID, ORGANIZER and guests its sender wrote. A
+ * counter for a series that names no occurrence is withheld too: applying it would re-base
+ * every occurrence on the proposed date, and Thunderbird's invitation bar draws the same line.
+ */
+export function counterProposalProblem({
+  ics,
+  senderEmail,
+  addresses,
+  namesOccurrence = false,
+}: {
+  ics: string;
+  senderEmail: string | null;
+  addresses: string[];
+  /** Whether the COUNTER carries a RECURRENCE-ID. */
+  namesOccurrence?: boolean;
+}): CounterProposalProblem | null {
+  let event: ICAL.Event;
+  try {
+    event = CalendarUtils.parseICSString(ics).event;
+  } catch (e) {
+    return 'not-our-meeting';
+  }
+
+  const organizer = event.organizer ? CalendarUtils.emailFromParticipantURI(event.organizer) : null;
+  if (!organizer || !addresses.some((a) => Utils.emailIsEquivalent(a, organizer))) {
+    return 'not-our-meeting';
+  }
+
+  const guests = CalendarUtils.cleanParticipants(event)
+    .map((p) => p.email)
+    .filter((email): email is string => !!email);
+  if (!guests.some((guest) => Utils.emailIsEquivalent(guest, senderEmail))) {
+    return 'not-from-a-guest';
+  }
+
+  if (event.isRecurring() && !namesOccurrence) {
+    return 'series-without-occurrence';
+  }
+
+  return null;
+}
