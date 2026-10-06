@@ -21,6 +21,7 @@ interface MonthViewDayCellProps {
   selectedEvents: EventOccurrence[];
   onEventClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
   onEventDoubleClick: (event: EventOccurrence) => void;
+  onEventContextMenu: (event: EventOccurrence) => void;
   onEventFocused: (event: EventOccurrence) => void;
   onDayClick: (day: Moment) => void;
   dragState: DragState | null;
@@ -67,6 +68,7 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
       focusedEvent,
       onEventClick,
       onEventDoubleClick,
+      onEventContextMenu,
       onEventFocused,
       dragState,
       onEventDragStart,
@@ -111,6 +113,7 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
               showStartTime={event.startDate === date}
               onClick={onEventClick}
               onDoubleClick={onEventDoubleClick}
+              onContextMenu={onEventContextMenu}
               onFocused={onEventFocused}
               isDragging={dragState?.event.id === event.id}
               onDragStart={onEventDragStart}
