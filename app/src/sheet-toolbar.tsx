@@ -310,6 +310,12 @@ export default class Toolbar extends React.Component<ToolbarProps, ToolbarState>
       return;
     }
 
+    // The main window's nav rail sits beside the sheets, so columns start that far in. Measured
+    // from <main> rather than the sheet, which slides in from the side when pushed.
+    const elRect = el.getBoundingClientRect();
+    const mainRect = sheet.closest('main').getBoundingClientRect();
+    const inset = mainRect.left - elRect.left;
+
     // Position item containers so they have the position and width
     // as their respective columns in the top sheet
     for (const columnToolbarEl of Array.from(columnToolbarEls) as HTMLElement[]) {
@@ -319,9 +325,17 @@ export default class Toolbar extends React.Component<ToolbarProps, ToolbarState>
         continue;
       }
 
+      let left = inset + columnEl.offsetLeft;
+      let width = columnEl.offsetWidth;
+      // The first column holds the window controls, so it also covers the strip above the rail
+      // to keep them in the corner. In RTL the controls are in the last column instead.
+      if (column === '0' && !isRTL) {
+        width += left;
+        left = 0;
+      }
       columnToolbarEl.style.display = 'inherit';
-      columnToolbarEl.style.left = `${columnEl.offsetLeft}px`;
-      columnToolbarEl.style.width = `${columnEl.offsetWidth}px`;
+      columnToolbarEl.style.left = `${left}px`;
+      columnToolbarEl.style.width = `${width}px`;
     }
 
     // Record our overall height for sheets

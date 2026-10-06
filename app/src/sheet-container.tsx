@@ -6,6 +6,7 @@ import Sheet from './sheet';
 import Toolbar from './sheet-toolbar';
 import { Flexbox } from './components/flexbox';
 import { InjectedComponentSet } from './components/injected-component-set';
+import { NavRail } from './components/nav-rail';
 import { SheetDeclaration } from './flux/stores/workspace-store';
 import { Disposable } from 'rx-core';
 
@@ -169,35 +170,40 @@ export default class SheetContainer extends React.Component<
       >
         {this._toolbarContainerElement()}
 
-        <div style={{ order: 1, zIndex: 2 }}>
-          <InjectedComponentSet
-            matching={{ locations: [topSheet.Header, WorkspaceStore.Sheet.Global.Header] }}
-            direction="column"
-            id={topSheet.id}
-          />
-        </div>
+        <Flexbox direction="row" style={{ order: 1, flex: 1, minHeight: 0 }}>
+          {AppEnv.isMainWindow() && <NavRail />}
+          <Flexbox direction="column" style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ order: 1, zIndex: 2 }}>
+              <InjectedComponentSet
+                matching={{ locations: [topSheet.Header, WorkspaceStore.Sheet.Global.Header] }}
+                direction="column"
+                id={topSheet.id}
+              />
+            </div>
 
-        <main
-          style={{ order: 2, flex: 1, position: 'relative', zIndex: 1 }}
-          aria-label={localized('Email workspace')}
-        >
-          <div {...inertWhenStacked(totalSheets > 1)}>{sheetComponents[0]}</div>
-          <TransitionGroup component={null}>
-            {sheetComponents.slice(1).map((comp) => (
-              <CSSTransition key={comp.key} classNames="sheet-stack" timeout={125}>
-                {comp}
-              </CSSTransition>
-            ))}
-          </TransitionGroup>
-        </main>
+            <main
+              style={{ order: 2, flex: 1, position: 'relative', zIndex: 1 }}
+              aria-label={localized('Email workspace')}
+            >
+              <div {...inertWhenStacked(totalSheets > 1)}>{sheetComponents[0]}</div>
+              <TransitionGroup component={null}>
+                {sheetComponents.slice(1).map((comp) => (
+                  <CSSTransition key={comp.key} classNames="sheet-stack" timeout={125}>
+                    {comp}
+                  </CSSTransition>
+                ))}
+              </TransitionGroup>
+            </main>
 
-        <footer style={{ order: 3, zIndex: 4 }}>
-          <InjectedComponentSet
-            matching={{ locations: [topSheet.Footer, WorkspaceStore.Sheet.Global.Footer] }}
-            direction="column"
-            id={topSheet.id}
-          />
-        </footer>
+            <footer style={{ order: 3, zIndex: 4 }}>
+              <InjectedComponentSet
+                matching={{ locations: [topSheet.Footer, WorkspaceStore.Sheet.Global.Footer] }}
+                direction="column"
+                id={topSheet.id}
+              />
+            </footer>
+          </Flexbox>
+        </Flexbox>
       </Flexbox>
     );
   }

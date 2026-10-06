@@ -72,6 +72,7 @@ lazyLoad('FeatureUsedUpModal', 'feature-used-up-modal');
 lazyLoad('OpenIdentityPageButton', 'open-identity-page-button');
 lazyLoad('Flexbox', 'flexbox');
 lazyLoad('RetinaImg', 'retina-img');
+lazyLoad('NavRailItem', 'nav-rail');
 lazyLoad('SwipeContainer', 'swipe-container');
 lazyLoad('FluxContainer', 'flux-container');
 lazyLoad('FocusContainer', 'focus-container');

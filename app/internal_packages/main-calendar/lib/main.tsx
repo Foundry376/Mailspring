@@ -1,3 +1,4 @@
+import React from 'react';
 import { ipcRenderer } from 'electron';
 import {
   Actions,
@@ -7,6 +8,7 @@ import {
   Event,
   localized,
 } from 'mailspring-exports';
+import { NavRailItem } from 'mailspring-component-kit';
 import { QuickEventButton } from './quick-event-button';
 import { MailspringCalendar } from './core/mailspring-calendar';
 import { EventSearchBar } from './core/event-search-bar';
@@ -114,6 +116,16 @@ async function onShowCalendar(
   }
 }
 
+const CalendarNavRailItem = () => (
+  <NavRailItem
+    label={localized('Calendar')}
+    iconName="ic-calendar-month.png"
+    command="application:show-calendar"
+    isActive={() => WorkspaceStore.rootSheet() === WorkspaceStore.Sheet.Calendar}
+  />
+);
+CalendarNavRailItem.displayName = 'CalendarNavRailItem';
+
 let _unlistenWorkspace: (() => void) | null = null;
 
 export function activate() {
@@ -128,6 +140,7 @@ export function activate() {
   ComponentRegistry.register(EventSearchBar, {
     location: WorkspaceStore.Location.CalendarContent.Toolbar,
   });
+  ComponentRegistry.register(CalendarNavRailItem, { role: 'NavRail:Item' });
 
   _unlistenWorkspace = WorkspaceStore.listen(updateMenus);
   ipcRenderer.on('show-calendar', onShowCalendar);
@@ -137,6 +150,7 @@ export function deactivate() {
   ComponentRegistry.unregister(MailspringCalendar);
   ComponentRegistry.unregister(QuickEventButton);
   ComponentRegistry.unregister(EventSearchBar);
+  ComponentRegistry.unregister(CalendarNavRailItem);
 
   _unlistenWorkspace?.();
   ipcRenderer.removeListener('show-calendar', onShowCalendar);
