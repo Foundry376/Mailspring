@@ -37,6 +37,7 @@ import {
   isEventSelected,
   occurrenceId,
   occurrencesForEvents,
+  ownCalendarAddresses,
   occurrenceStartUnix,
   occurrenceEndUnix,
 } from './calendar-data-source';
@@ -237,9 +238,12 @@ export class MailspringCalendar extends React.Component<
     const start = pending ? pending.start : occurrenceStartUnix(occurrence);
     // The expander stops at the first regular occurrence past the range, so an exception moved
     // in from a later slot is reached only when the range runs to that slot.
+    // Re-expanded without the calendars, a meeting a secondary calendar of ours organizes would
+    // come back as somebody else's and the next arrow key would refuse to move it.
     const sameId = occurrencesForEvents([event], {
       startUnix: Math.min(slot, start) - 86400,
       endUnix: Math.max(slot, start) + 86400,
+      ownCalendarAddresses: ownCalendarAddresses(this.state.calendars),
     }).filter((o) => o.id === occurrence.id);
     // An occurrence moved onto another's start shares its id; their slots tell them apart.
     const current = sameId.find((o) => slotOf(o) === slot) || sameId[0];
