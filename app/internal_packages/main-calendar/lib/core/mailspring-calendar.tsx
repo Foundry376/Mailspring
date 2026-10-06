@@ -106,6 +106,7 @@ export interface MailspringCalendarViewProps extends EventRendererProps {
   onCalendarMouseMove: (args: CalendarEventArgs) => void;
   onCalendarClick: (args: CalendarEventArgs) => void;
   onCalendarDoubleClick: (args: CalendarEventArgs) => void;
+  onCalendarContextMenu: (args: CalendarEventArgs) => void;
 
   // Drag-related props
   dragState: DragState | null;
@@ -420,11 +421,31 @@ export class MailspringCalendar extends React.Component<
     }).displayMenu();
   };
 
-  /**
-   * Handle double-click on the calendar background to create a new event.
-   * The CalendarEventArgs contains the time at the click position.
-   */
   _onCalendarDoubleClick = (args: CalendarEventArgs) => {
+    this._createEventAt(args);
+  };
+
+  /**
+   * Right-clicking empty grid offers to create an event there: the double-click that also
+   * does is not discoverable, and a right-click is where users look for "New".
+   */
+  _onCalendarContextMenu = (args: CalendarEventArgs) => {
+    if (args.time === null) {
+      return;
+    }
+    this._showGridMenu([{ label: localized('New Event'), click: () => this._createEventAt(args) }]);
+  };
+
+  _showGridMenu(template: Electron.MenuItemConstructorOptions[]) {
+    require('@electron/remote').Menu.buildFromTemplate(template).popup({});
+  }
+
+  /**
+   * Opens the editor for a new event at the slot under the pointer: the time at the click
+   * position, snapped to the half hour on the hour grid, a whole day on the all-day row and
+   * in a month cell.
+   */
+  _createEventAt(args: CalendarEventArgs) {
     if (args.time === null) {
       return;
     }
@@ -500,7 +521,7 @@ export class MailspringCalendar extends React.Component<
         closeOnAppBlur: false,
       }
     );
-  };
+  }
 
   // Fires once the focused event has scrolled itself into view. Clearing the flag here keeps
   // a later unrelated re-render from re-running that scroll (and reopening the popover).
@@ -1095,6 +1116,7 @@ export class MailspringCalendar extends React.Component<
         onCalendarMouseMove={this._onCalendarMouseMove}
         onCalendarClick={this._onCalendarClick}
         onCalendarDoubleClick={this._onCalendarDoubleClick}
+        onCalendarContextMenu={this._onCalendarContextMenu}
         onEventClick={this._onEventClick}
         onEventDoubleClick={this._onEventDoubleClick}
         onEventContextMenu={this._onEventContextMenu}
