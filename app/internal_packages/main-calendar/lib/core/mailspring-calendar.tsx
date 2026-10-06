@@ -1,6 +1,5 @@
 import moment, { Moment } from 'moment';
 import React from 'react';
-import { ipcRenderer } from 'electron';
 import {
   Rx,
   DatabaseStore,
@@ -33,7 +32,6 @@ import {
   EventOccurrence,
   FocusedEventInfo,
   coveredDates,
-  focusedEventInfoForEvents,
   isEventSelected,
   occurrenceId,
   occurrencesForEvents,
@@ -76,6 +74,10 @@ import { modifyEventWithRecurringSupport, EventTimeChangeOptions } from './recur
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 const CALENDAR_VIEW = 'mailspring.calendarView';
 const CALENDAR_LIST_VISIBLE = 'mailspring.calendarListVisible';
+
+// The calendar unmounts whenever the main window switches to mail, so the date being viewed
+// lives here to survive the trip until the app restarts.
+let _lastFocusedMoment: Moment | null = null;
 
 const VIEWS = {
   [CalendarView.DAY]: DayView,
@@ -169,7 +171,7 @@ export class MailspringCalendar extends React.Component<
       focusedEvent: null,
       selectedEvents: [],
       view: AppEnv.config.get(CALENDAR_VIEW) || CalendarView.WEEK,
-      focusedMoment: moment(),
+      focusedMoment: _lastFocusedMoment || moment(),
       disabledCalendars: AppEnv.config.get(DISABLED_CALENDARS) || [],
       dragState: null,
       calendarListVisible: AppEnv.config.get(CALENDAR_LIST_VISIBLE) !== false,
@@ -182,8 +184,7 @@ export class MailspringCalendar extends React.Component<
     this._disposable = this._subscribeToCalendars();
     this._unlisten = Actions.focusCalendarEvent.listen(this._focusEvent);
     this._unlistenDatabase = DatabaseStore.listen(this._onDatabaseChange);
-    ipcRenderer.on('focus-calendar-event', this._onFocusEventMessage);
-    ipcRenderer.send('command', 'application:calendar-mounted');
+    AppEnv.mailsyncBridge.sendSyncCalendarNow();
     this._themeDisposable = AppEnv.themes.onDidChangeActiveThemes(() => {
       invalidateThemeTextColorCache();
       this.setState((s) => ({ themeVersion: s.themeVersion + 1 }));
@@ -198,7 +199,7 @@ export class MailspringCalendar extends React.Component<
       this._unlisten();
     }
     this._unlistenDatabase?.();
-    ipcRenderer.removeListener('focus-calendar-event', this._onFocusEventMessage);
+    _lastFocusedMoment = this.state.focusedMoment;
   }
 
   _onDatabaseChange = ({ objectClass }: DatabaseChangeRecord<Event>) => {
@@ -314,22 +315,6 @@ export class MailspringCalendar extends React.Component<
 
   _focusEvent = (event: FocusedEventInfo) => {
     this.setState({ focusedMoment: moment(event.start * 1000), focusedEvent: event });
-  };
-
-  // Another window asked to show an event here. See application:show-calendar.
-  _onFocusEventMessage = async (
-    _event: Electron.IpcRendererEvent,
-    {
-      icsuid,
-      accountId,
-      recurrenceIdStart,
-    }: { icsuid: string; accountId: string; recurrenceIdStart?: number }
-  ) => {
-    const events = await DatabaseStore.findAll<Event>(Event).where({ icsuid, accountId });
-    const info = focusedEventInfoForEvents(events, Date.now() / 1000, recurrenceIdStart);
-    if (info) {
-      this._focusEvent(info);
-    }
   };
 
   _openEventPopover(eventModel: EventOccurrence) {
@@ -1049,7 +1034,7 @@ export class MailspringCalendar extends React.Component<
   };
 
   _onRefreshCalendars = () => {
-    ipcRenderer.send('command', 'application:sync-calendar');
+    AppEnv.mailsyncBridge.sendSyncCalendarNow();
   };
 
   _shouldShowEmptyState() {
