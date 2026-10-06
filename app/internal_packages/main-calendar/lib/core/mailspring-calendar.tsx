@@ -40,6 +40,8 @@ import {
   occurrenceStartUnix,
   occurrenceEndUnix,
 } from './calendar-data-source';
+import { CalendarEventContextMenu } from './calendar-event-context-menu';
+import { openProposeNewTimePopover } from './calendar-rsvp';
 import { CalendarView, DEFAULT_TIMED_EVENT_DURATION_SECONDS } from './calendar-constants';
 import { CalendarEmptyState } from './calendar-empty-state';
 import {
@@ -90,6 +92,7 @@ export interface EventRendererProps {
   selectedEvents: EventOccurrence[];
   onEventClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
   onEventDoubleClick: (event: EventOccurrence) => void;
+  onEventContextMenu: (event: EventOccurrence) => void;
   onEventFocused: (event: EventOccurrence) => void;
 }
 
@@ -414,6 +417,23 @@ export class MailspringCalendar extends React.Component<
     this._openEventPopover(occurrence);
   };
 
+  _onEventContextMenu = (occurrence: EventOccurrence) => {
+    // Right-clicking an event that isn't selected selects it first, so the menu acts on what
+    // is highlighted - and so pressing Delete afterwards means the same thing.
+    if (!isEventSelected(this.state.selectedEvents, occurrence)) {
+      this.setState({ selectedEvents: [occurrence], focusedEvent: null });
+    }
+
+    const readOnly = this._isCalendarReadOnly(occurrence.calendarId);
+    new CalendarEventContextMenu({
+      occurrence,
+      readOnly,
+      onOpen: () => this._openEventPopover(occurrence),
+      onDelete: () => this._deleteEvent(occurrence),
+      onProposeNewTime: () => openProposeNewTimePopover(occurrence),
+    }).displayMenu();
+  };
+
   _onCalendarDoubleClick = (args: CalendarEventArgs) => {
     this._createEventAt(args);
   };
@@ -507,6 +527,7 @@ export class MailspringCalendar extends React.Component<
       isRecurring: false,
       isCancelled: false,
       isPending: false,
+      isMine: true,
       isException: false,
       organizer: null,
       attendees: [],
@@ -1203,6 +1224,7 @@ export class MailspringCalendar extends React.Component<
         onCalendarContextMenu={this._onCalendarContextMenu}
         onEventClick={this._onEventClick}
         onEventDoubleClick={this._onEventDoubleClick}
+        onEventContextMenu={this._onEventContextMenu}
         onEventFocused={this._onEventFocused}
         dragState={this.state.dragState}
         createDrag={this.state.createDrag}
