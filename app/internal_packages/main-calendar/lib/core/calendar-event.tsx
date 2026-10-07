@@ -10,7 +10,7 @@ import {
 } from './calendar-data-source';
 import { calcEventColors, extractMeetingDomain, formatEventTimeRange } from './calendar-helpers';
 import { HitZone, ViewDirection } from './calendar-drag-types';
-import { detectHitZone, canMoveEvent, formatDragPreviewTime } from './calendar-drag-utils';
+import { detectHitZone, canAttemptMove, formatDragPreviewTime } from './calendar-drag-utils';
 import { DAY_DUR, columnSpan } from './week-view-helpers';
 
 const EVENT_GAP = 2;
@@ -193,12 +193,8 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
    * Check if this event can be dragged
    */
   _canDrag(): boolean {
-    // Drag preview events are not interactive
-    if (this.props.event.isDragPreview) {
-      return false;
-    }
     return (
-      canMoveEvent(this.props.event, this.props.isCalendarReadOnly) && !!this.props.onDragStart
+      canAttemptMove(this.props.event, this.props.isCalendarReadOnly) && !!this.props.onDragStart
     );
   }
 

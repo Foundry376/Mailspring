@@ -3,6 +3,22 @@
 @import 'ui-mixins';
 
 .fixed-popover .calendar-event-popover {
+  // The one action a read-only card offers. Drawn as a link rather than a .btn box so it
+  // sits with the card's text instead of floating in a section of its own.
+  .section.propose-time-action .btn-link {
+    background: none;
+    border: none;
+    box-shadow: none;
+    color: @accent-primary;
+    height: auto;
+    padding: 0;
+
+    &:hover {
+      background: none;
+      text-decoration: underline;
+    }
+  }
+
   color: fadeout(@text-color, 20%);
   background-color: @background-primary;
   display: flex;

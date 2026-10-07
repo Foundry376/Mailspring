@@ -250,6 +250,7 @@ export class DayView extends React.Component<
           onCalendarMouseMove={this.props.onCalendarMouseMove}
           onCalendarClick={this.props.onCalendarClick}
           onCalendarDoubleClick={this.props.onCalendarDoubleClick}
+          onCalendarContextMenu={this.props.onCalendarContextMenu}
         >
           <div className="top-banner">
             {/* Role follows pattern: Calendar:{ViewName}:Banner (cf. WeekView's Calendar:Week:Banner) */}

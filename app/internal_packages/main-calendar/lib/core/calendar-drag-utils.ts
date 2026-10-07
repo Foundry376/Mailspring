@@ -450,24 +450,17 @@ export function updateDragState(
   };
 }
 
+/** Whether a drag may begin on this event: not a preview's, not on a read-only calendar, not cancelled. */
+export function canAttemptMove(event: EventOccurrence, isCalendarReadOnly = false): boolean {
+  return !event.isDragPreview && !isCalendarReadOnly && !event.isCancelled;
+}
+
 /**
- * Check if an event's time can be changed by drag, resize, or keyboard
- * @param event The event occurrence
- * @param isCalendarReadOnly Whether the calendar containing this event is read-only
- * @returns True if the event can be moved
+ * Whether the event may actually be moved: only the organizer reschedules a meeting (RFC 5546
+ * section 2.1.4); a guest's drag is answered with the offer to counter instead.
  */
 export function canMoveEvent(event: EventOccurrence, isCalendarReadOnly = false): boolean {
-  // Don't allow moving events in read-only calendars
-  if (isCalendarReadOnly) {
-    return false;
-  }
-
-  // Don't allow moving cancelled events
-  if (event.isCancelled) {
-    return false;
-  }
-
-  return true;
+  return canAttemptMove(event, isCalendarReadOnly) && event.isMine;
 }
 
 /**

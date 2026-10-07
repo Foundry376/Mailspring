@@ -76,6 +76,7 @@ const occurrenceAt = (start: number, over: Partial<TimedOccurrence> = {}): Timed
     isPending: false,
     isException: false,
     isRecurring: false,
+    isMine: true,
     organizer: null,
     attendees: [],
     start,
