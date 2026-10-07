@@ -958,6 +958,12 @@ body.platform-win32 {
   }
 }
 
+// Same specificity as `.mailspring-calendar .calendar-source-list`, so a theme's own colour still
+// wins.
+:where(.nav-rail-content) .mailspring-calendar .calendar-source-list {
+  background-color: @source-list-inset-bg;
+}
+
 // Below this width Today, the date and the view switcher cannot share a row, so each takes one.
 // Top level because LESS does not nest parent selectors into @container the way it does @media.
 @container (max-width: 640px) {

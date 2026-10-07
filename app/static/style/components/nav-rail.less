@@ -15,6 +15,10 @@
     margin: 0 0 8px; // btn-icon's own margins would push it off-centre
     border-radius: 4px;
 
+    // Set here rather than inherited from .btn-icon, which themes recolour for their toolbars.
+    img.content-mask {
+      background-color: @text-color-subtle;
+    }
     &:hover {
       background: fade(@text-color, 6%);
     }
@@ -40,11 +44,4 @@
   border: 1px solid fade(@text-color, 7%);
   border-radius: 6px;
   overflow: hidden;
-
-  // Each section's own sidebar moves toward the content colour so it reads as part of the card
-  // rather than the frame around it. The calendar selector outranks its plugin's own rule.
-  .account-sidebar,
-  .mailspring-calendar .calendar-source-list {
-    background-color: mix(@source-list-bg, @background-primary, 50%);
-  }
 }

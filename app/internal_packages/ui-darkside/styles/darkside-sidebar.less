@@ -16,6 +16,31 @@
   box-shadow: none;
 }
 
+// The nav rail joins the dark sidebar column and its toolbar. The rest of the frame matches the
+// transparent toolbar.
+.sheet-container .sheet-toolbar ~ .nav-rail-frame {
+  background: @background-primary;
+}
+// Darkside is two flat panels, so the sheets sit flush rather than in the inset card.
+.nav-rail-content {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+}
+.nav-rail {
+  background-color: @sidebar;
+
+  .nav-rail-item img.content-mask {
+    background-color: @sidebar-text;
+  }
+  .nav-rail-item:hover {
+    background: fade(@white, 10%);
+  }
+  .nav-rail-item.active img.content-mask {
+    background-color: @accent;
+  }
+}
+
 // Refactored this to make sure all items
 // in sidebar always align left with each other
 .account-sidebar {
