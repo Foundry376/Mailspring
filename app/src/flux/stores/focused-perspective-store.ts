@@ -132,7 +132,9 @@ class FocusedPerspectiveStore extends MailspringStore {
     if (!this._initialized) {
       this._initializeFromSavedState();
     } else if (!this._isValidPerspective(this._current)) {
-      this._setPerspective(this._defaultPerspective(this._current.accountIds));
+      this._setPerspective(this._defaultPerspective(this._current.accountIds), undefined, {
+        keepSection: true,
+      });
     }
   };
 
@@ -153,13 +155,13 @@ class FocusedPerspectiveStore extends MailspringStore {
    */
   _onFocusDefault = (
     accountsOrIds,
-    { sidebarAccountIds }: { sidebarAccountIds?: string[] } = {}
+    { sidebarAccountIds, keepSection }: { sidebarAccountIds?: string[]; keepSection?: boolean } = {}
   ) => {
     if (!accountsOrIds) {
       return;
     }
     const perspective = this._defaultPerspective(accountsOrIds);
-    this._setPerspective(perspective, sidebarAccountIds || perspective.accountIds);
+    this._setPerspective(perspective, sidebarAccountIds || perspective.accountIds, { keepSection });
   };
 
   _onEnsureCategoryIsFocused = (categoryName: string, accountIds: string[] = []) => {
@@ -181,7 +183,16 @@ class FocusedPerspectiveStore extends MailspringStore {
     return perspective;
   }
 
-  _setPerspective(perspective, sidebarAccountIds?: string[]) {
+  /**
+   * `keepSection` is for changes the user didn't ask for, such as an account being added or
+   * removed in Preferences: they update the mailbox without leaving another section for it.
+   */
+  _setPerspective(
+    perspective,
+    sidebarAccountIds?: string[],
+    { keepSection = false }: { keepSection?: boolean } = {}
+  ) {
+    const wasShowingMail = this.isShowingMail();
     let shouldTrigger = false;
 
     if (!perspective.isEqual(this._current)) {
@@ -205,8 +216,8 @@ class FocusedPerspectiveStore extends MailspringStore {
 
     const desired = perspective.sheet();
 
-    // Always switch to the correct sheet and pop to root when perspective set
-    if (desired && WorkspaceStore.rootSheet() !== desired) {
+    // Switch to the perspective's sheet and pop to root when perspective set
+    if (desired && WorkspaceStore.rootSheet() !== desired && (wasShowingMail || !keepSection)) {
       Actions.selectRootSheet(desired);
     }
 
