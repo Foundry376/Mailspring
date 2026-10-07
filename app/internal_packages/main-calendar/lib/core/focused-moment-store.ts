@@ -2,11 +2,7 @@ import MailspringStore from 'mailspring-store';
 import moment, { Moment } from 'moment';
 import { FocusedEventInfo } from './calendar-data-source';
 
-/**
- * The date the calendar is showing, shared by the sidebar's mini month and the grid, which sit in
- * separate sheet columns. Being a module singleton, it also keeps the date while the main window
- * shows Mail, until the app restarts.
- */
+/** A module singleton, so the viewed date survives the grid unmounting while Mail shows. */
 class FocusedMomentStore extends MailspringStore {
   _focusedMoment: Moment = moment();
   _focusedEvent: FocusedEventInfo | null = null;

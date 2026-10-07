@@ -16,14 +16,12 @@ interface CalendarSidebarState {
   focusedMoment: Moment;
 }
 
-/** The Calendar sheet's first column: the calendar list and the mini month. */
 export class CalendarSidebar extends React.Component<
   Record<string, unknown>,
   CalendarSidebarState
 > {
   static displayName = 'CalendarSidebar';
 
-  // Matches the account sidebar, whose column width this one shares.
   static containerStyles = {
     minWidth: DOMUtils.getWorkspaceCssNumberProperty('account-sidebar-min-width', 165),
     maxWidth: DOMUtils.getWorkspaceCssNumberProperty('account-sidebar-max-width', 250),

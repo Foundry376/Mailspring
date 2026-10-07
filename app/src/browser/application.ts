@@ -445,8 +445,7 @@ export default class Application extends EventEmitter {
       }
     });
 
-    // Mail and Calendar are sections of the main window. These differ from show-main-window,
-    // which the tray and Preferences use to bring the window forward without changing section.
+    // Unlike show-main-window (tray, Preferences), these also switch the main window's section.
     this.on('application:show-mail', () => {
       this.ensureWindowsForTokenState();
       this.windowManager.get(WindowManager.MAIN_WINDOW)?.sendMessage('show-mail');

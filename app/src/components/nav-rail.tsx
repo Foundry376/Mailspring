@@ -49,7 +49,7 @@ export class NavRailItem extends React.Component<NavRailItemProps, { active: boo
   }
 }
 
-/** Switches the main window between sections. Plugins add one with the `NavRail:Item` role. */
+/** Plugins add a section with the `NavRail:Item` role. */
 export class NavRail extends React.Component {
   static displayName = 'NavRail';
 

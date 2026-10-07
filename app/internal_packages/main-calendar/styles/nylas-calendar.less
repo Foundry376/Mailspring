@@ -41,7 +41,6 @@ body.platform-win32 {
   }
 }
 
-// The Calendar sheet's sidebar column.
 .calendar-source-list {
   display: flex;
   flex-direction: column;
@@ -96,9 +95,8 @@ body.platform-win32 {
   }
 }
 
-// The sidebar's mini month takes the sidebar's colours, so it follows any theme that colours the
-// sidebar, dark ones included. :where() keeps each rule at the core rule's specificity, so this
-// wins over core by load order and a theme's own .mini-month-view rules still win over it.
+// Takes the sidebar's colours so it follows any theme's sidebar. :where() holds each rule at core
+// specificity: this wins over core by load order, and a theme's .mini-month-view rules still win.
 :where(.calendar-source-list) {
   .mini-month-view {
     background: transparent;
