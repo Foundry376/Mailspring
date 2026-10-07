@@ -143,7 +143,7 @@ export function activate() {
     location: WorkspaceStore.Location.CalendarContent,
   });
   ComponentRegistry.register(QuickEventButton, {
-    location: WorkspaceStore.Location.CalendarContent.Toolbar,
+    location: WorkspaceStore.Location.CalendarSidebar.Toolbar,
   });
   ComponentRegistry.register(EventSearchBar, {
     location: WorkspaceStore.Location.CalendarContent.Toolbar,
