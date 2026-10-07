@@ -259,6 +259,28 @@ describe('CalendarEventPopover and who may edit', function () {
     const theirs = { ...makeOccurrence('Planning'), isMine: false };
     expect(popoverFor({ event: theirs, isNewEvent: true })._isEditable()).toBe(true);
   });
+
+  it('opens straight into the editor when asked, reading the rule off the event first', async function () {
+    spyOn(DatabaseStore, 'find').andReturn(Promise.resolve(makeEvent(FORTNIGHTLY_ICS)));
+    const popover = popoverFor({ startEditing: true });
+    popover.setState = (update: object) => Object.assign(popover.state, update);
+    expect(popover.state.editing).toBe(true);
+    expect(popover.state.repeat).toBe('none');
+
+    popover.componentDidMount();
+    // The load is one awaited find; the runner mocks timers, so settle it on microtasks alone.
+    for (let i = 0; i < 4; i++) await Promise.resolve();
+
+    expect(popover.state.repeat).toBe('weekly');
+    expect(popover.state.originalRepeat).toBe('weekly');
+  });
+
+  it('does not read a rule for a new event, which has none yet', async function () {
+    const find = spyOn(DatabaseStore, 'find');
+    const popover = popoverFor({ startEditing: true, isNewEvent: true });
+    popover.componentDidMount();
+    expect(find).not.toHaveBeenCalled();
+  });
 });
 
 describe('CalendarEventPopover save path and the organizer', function () {

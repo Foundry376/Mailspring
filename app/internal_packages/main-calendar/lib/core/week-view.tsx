@@ -306,6 +306,7 @@ export class WeekView extends React.Component<
                   onEventDoubleClick={this.props.onEventDoubleClick}
                   onEventContextMenu={this.props.onEventContextMenu}
                   onEventFocused={this.props.onEventFocused}
+                  paintVersion={this.props.paintVersion}
                   dragState={this.props.dragState}
                   onEventDragStart={this.props.onEventDragStart}
                   readOnlyCalendarIds={this.props.readOnlyCalendarIds}
@@ -334,6 +335,7 @@ export class WeekView extends React.Component<
                       onEventDoubleClick={this.props.onEventDoubleClick}
                       onEventContextMenu={this.props.onEventContextMenu}
                       onEventFocused={this.props.onEventFocused}
+                      paintVersion={this.props.paintVersion}
                       dragState={this.props.dragState}
                       onEventDragStart={this.props.onEventDragStart}
                       readOnlyCalendarIds={this.props.readOnlyCalendarIds}
@@ -351,6 +353,7 @@ export class WeekView extends React.Component<
                     height={totalHeight}
                     intervalHeight={this.state.intervalHeight}
                     numColumns={BUFFER_DAYS * 2 + DAYS_IN_VIEW}
+                    paintVersion={this.props.paintVersion}
                   />
                 </div>
               </ScrollRegion>

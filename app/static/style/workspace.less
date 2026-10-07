@@ -120,6 +120,11 @@ body.is-blurred {
   color: @text-color-heading;
 }
 
+// The nav rail shares the toolbar's surface; each platform block below sets both together.
+.nav-rail-frame {
+  background: @toolbar-background-color;
+}
+
 .sheet-toolbar {
   position: relative;
   -webkit-app-region: drag;
@@ -363,6 +368,9 @@ body.is-blurred {
     background-image: none;
     background: @panel-background-color;
   }
+  .nav-rail-frame {
+    background: @panel-background-color;
+  }
   .sheet-toolbar {
     border-bottom: 1px solid fade(@text-color, 10%);
   }
@@ -571,6 +579,9 @@ body.platform-linux {
     background-image: none;
     background: @background-primary;
   }
+  .nav-rail-frame {
+    background: @background-primary;
+  }
   .sheet-toolbar {
     border-bottom: 1px solid fade(@text-color, 12%);
 
@@ -662,6 +673,9 @@ body.platform-win32 {
     cursor: ew-resize;
   }
 
+  .nav-rail-frame {
+    background: @background-primary;
+  }
   .sheet-toolbar-container {
     background-image: none;
     background: @background-primary;
