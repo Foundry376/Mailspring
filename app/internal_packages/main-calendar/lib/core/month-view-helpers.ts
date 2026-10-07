@@ -22,22 +22,14 @@ export interface WeekBarsLayout {
   hiddenCountByDay: number[];
 }
 
-function spansDays(e: EventOccurrence) {
-  return e.endDate > e.startDate;
-}
-
-// Google's order: multi-day bars first (all-day and timed together), then one-day all-day, then
-// one-day timed. Placing every bar before any chip keeps a bar's lane free in all its columns.
-function rank(e: EventOccurrence) {
-  if (spansDays(e)) return 0;
-  return e.isAllDay ? 1 : 2;
-}
-
+// Google's order, within any one day: multi-day bars, then one-day all-day, then one-day timed by
+// start. Start date then longest first gives it: a lane is contested only by events sharing a
+// column, and of those the bars always start earlier or run longer.
 function compareForLayout(a: EventOccurrence, b: EventOccurrence) {
   return (
-    rank(a) - rank(b) ||
     a.startDate - b.startDate ||
     b.endDate - a.endDate ||
+    Number(b.isAllDay) - Number(a.isAllDay) ||
     occurrenceStartUnix(a) - occurrenceStartUnix(b)
   );
 }

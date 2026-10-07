@@ -41,12 +41,7 @@ function makeOccurrence(
 
 /** All-day from `firstISO` through `lastISO`, inclusive. */
 function allDay(id: string, firstISO: string, lastISO = firstISO) {
-  return makeOccurrence(
-    id,
-    moment(firstISO).unix(),
-    moment(lastISO).add(1, 'day').unix(),
-    true
-  );
+  return makeOccurrence(id, moment(firstISO).unix(), moment(lastISO).add(1, 'day').unix(), true);
 }
 
 function timed(id: string, startISO: string, endISO: string) {
@@ -139,6 +134,16 @@ describe('layoutWeekBars', function () {
     expect(['trip', 'holiday', 'early', 'late'].map((id) => barFor(layout, id).slot)).toEqual([
       0, 1, 2, 3,
     ]);
+  });
+
+  it('puts a one-day all-day event above a timed one starting at midnight', function () {
+    const layout = layoutWeekBars(
+      [timed('midnight', '2026-10-06T00:00', '2026-10-06T01:00'), allDay('holiday', '2026-10-06')],
+      WEEK,
+      5
+    );
+    expect(barFor(layout, 'holiday').slot).toBe(0);
+    expect(barFor(layout, 'midnight').slot).toBe(1);
   });
 
   it('orders multi-day bars by start, then longest first, all-day and timed together', function () {
