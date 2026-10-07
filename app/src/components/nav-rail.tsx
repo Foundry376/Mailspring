@@ -71,7 +71,10 @@ const MailNavRailItem = () => (
     label={localized('Mail')}
     iconName="inbox.png"
     command="application:show-mail"
-    isActive={() => FocusedPerspectiveStore.isShowingMail()}
+    isActive={() =>
+      FocusedPerspectiveStore.isShowingMail() &&
+      WorkspaceStore.topSheet() !== WorkspaceStore.Sheet.Preferences
+    }
   />
 );
 MailNavRailItem.displayName = 'MailNavRailItem';

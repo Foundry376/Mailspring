@@ -133,6 +133,13 @@
   }
 }
 
+// A pushed sheet's toolbar (an open thread in list mode, Preferences) floats over the root
+// sheet's, so it needs its own row to hide the mailbox toolbar and to centre its back button in.
+.sheet-toolbar > .sheet-toolbar-container > [role='toolbar'] {
+  height: 40px;
+  background-color: @less-background;
+}
+
 //====================================================
 //  Nav Rail & Calendar
 //====================================================
