@@ -5,20 +5,35 @@ import {
   PreferencesUIStore,
   WorkspaceStore,
   ComponentRegistry,
+  IdentityStore,
+  AccountStore,
 } from 'mailspring-exports';
-import { NavRailItem } from 'mailspring-component-kit';
+import { NavRailItem, ListensToFluxStore } from 'mailspring-component-kit';
 
 import PreferencesRoot from './preferences-root';
 
-const PreferencesNavRailItem = () => (
+// The Mailspring ID is absent while signed out.
+function userInitial() {
+  const account = AccountStore.accounts()[0];
+  const name = IdentityStore.identity()?.firstName || account?.name || account?.emailAddress || '';
+  return name.trim().charAt(0).toUpperCase();
+}
+
+const PreferencesNavRailItemInner = ({ initial }: { initial: string }) => (
   <NavRailItem
     label={localized('Preferences')}
-    iconName="icon-preferences-general.png"
     command="application:open-preferences"
     isActive={() => WorkspaceStore.rootSheet() === WorkspaceStore.Sheet.Preferences}
-  />
+  >
+    {initial}
+  </NavRailItem>
 );
-PreferencesNavRailItem.displayName = 'PreferencesNavRailItem';
+PreferencesNavRailItemInner.displayName = 'PreferencesNavRailItem';
+
+const PreferencesNavRailItem = ListensToFluxStore(PreferencesNavRailItemInner, {
+  stores: [IdentityStore, AccountStore],
+  getStateFromStores: () => ({ initial: userInitial() }),
+});
 
 export function activate() {
   PreferencesUIStore.registerPreferencesTab(

@@ -11,7 +11,9 @@ import { InjectedComponentSet } from './injected-component-set';
 
 interface NavRailItemProps {
   label: string;
-  iconName: string;
+  /** Drawn as a mask in the rail's colours. Children, such as a text initial, replace it. */
+  iconName?: string;
+  children?: React.ReactNode;
   /** An application: command, so the rail, the Window menu and the shortcut take one path. */
   command: string;
   isActive: () => boolean;
@@ -33,7 +35,7 @@ export class NavRailItem extends React.Component<NavRailItemProps, { active: boo
   }
 
   render() {
-    const { label, iconName, command } = this.props;
+    const { label, iconName, command, children } = this.props;
     const { active } = this.state;
     return (
       <button
@@ -43,7 +45,7 @@ export class NavRailItem extends React.Component<NavRailItemProps, { active: boo
         aria-current={active ? 'page' : undefined}
         onClick={() => ipcRenderer.send('command', command)}
       >
-        <RetinaImg name={iconName} mode={RetinaImg.Mode.ContentIsMask} />
+        {children ?? <RetinaImg name={iconName} mode={RetinaImg.Mode.ContentIsMask} />}
       </button>
     );
   }
