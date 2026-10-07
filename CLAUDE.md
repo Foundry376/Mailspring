@@ -222,7 +222,7 @@ smaller functions over commentary; a comment that restates the code should be de
 
 ## Development Notes
 
-- Hot reload is available via `CTRL+R` (Windows/Linux) or `CMD+R` (macOS)
+- Reload the window with Developer > Reload: `Cmd+Option+L` (macOS), `Ctrl+Alt+L` (Linux), `Ctrl+Shift+R` (Windows). It reruns renderer code and recompiles edited files (the compile cache is keyed on file contents); main-process code in `app/src/browser` needs a full restart. `Cmd/Ctrl+R` is Reply
 - Dev tools accessible via Menu > Developer > Toggle Developer Tools
 - In dev tools console, `$m` provides access to `mailspring-exports` for debugging
 - Dev mode data is stored separately (e.g., `~/.config/Mailspring-dev/` on Linux)

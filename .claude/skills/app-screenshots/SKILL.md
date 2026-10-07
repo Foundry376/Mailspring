@@ -25,8 +25,9 @@ curl -s localhost:9333/json | grep -c webSocketDebuggerUrl   # >0 means ready
 
 - Always kill orphaned `mailsync` processes too; they outlive the Electron process and
   hold the SQLite DB open (a later seed script will silently fail to commit).
-- Code changes need a **full relaunch** — `location.reload()` serves the compile cache
-  for TS/TSX. Edited LESS can be hot-loaded with `AppEnv.themes.reloadCoreStyles()`.
+- `location.reload()` does nothing in the renderer. Pick up renderer changes with
+  `AppEnv.commands.dispatch('window:reload')`; main-process changes (`app/src/browser`)
+  need a full relaunch. Edited LESS can be hot-loaded with `AppEnv.themes.reloadCoreStyles()`.
 - For doc-sized captures, shrink the window first:
   `AppEnv.getCurrentWindow().setSize(1280, 800)`.
 
