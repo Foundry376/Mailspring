@@ -7,9 +7,21 @@
 // Make sidebar and corresponding toolbar match
 .column-RootSidebar,
 .account-sidebar,
-.toolbar-RootSidebar {
+.toolbar-RootSidebar,
+.column-CalendarSidebar,
+.calendar-source-list,
+.toolbar-CalendarSidebar {
   height: 100%;
   background-color: @sidebar;
+}
+
+.calendar-source-list {
+  border-right: none;
+  color: @sidebar-text;
+
+  .account-label {
+    color: fade(@sidebar-text, 50%);
+  }
 }
 
 .notifications {
