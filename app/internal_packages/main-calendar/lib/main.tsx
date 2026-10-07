@@ -11,6 +11,7 @@ import {
 import { NavRailItem } from 'mailspring-component-kit';
 import { QuickEventButton } from './quick-event-button';
 import { MailspringCalendar } from './core/mailspring-calendar';
+import { CalendarSidebar } from './core/calendar-sidebar';
 import { EventSearchBar } from './core/event-search-bar';
 import { focusedEventInfoForEvents } from './core/calendar-data-source';
 
@@ -129,8 +130,15 @@ CalendarNavRailItem.displayName = 'CalendarNavRailItem';
 let _unlistenWorkspace: (() => void) | null = null;
 
 export function activate() {
-  WorkspaceStore.defineSheet('Calendar', { root: true }, { list: ['CalendarContent'] });
+  WorkspaceStore.defineSheet(
+    'Calendar',
+    { root: true },
+    { list: ['CalendarSidebar', 'CalendarContent'] }
+  );
 
+  ComponentRegistry.register(CalendarSidebar, {
+    location: WorkspaceStore.Location.CalendarSidebar,
+  });
   ComponentRegistry.register(MailspringCalendar, {
     location: WorkspaceStore.Location.CalendarContent,
   });
@@ -147,6 +155,7 @@ export function activate() {
 }
 
 export function deactivate() {
+  ComponentRegistry.unregister(CalendarSidebar);
   ComponentRegistry.unregister(MailspringCalendar);
   ComponentRegistry.unregister(QuickEventButton);
   ComponentRegistry.unregister(EventSearchBar);

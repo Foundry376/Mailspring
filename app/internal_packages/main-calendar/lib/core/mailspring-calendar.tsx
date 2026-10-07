@@ -15,18 +15,13 @@ import {
   ICSEventHelpers,
   DatabaseChangeRecord,
 } from 'mailspring-exports';
-import {
-  ScrollRegion,
-  ResizableRegion,
-  KeyCommandsRegion,
-  MiniMonthView,
-} from 'mailspring-component-kit';
+import { KeyCommandsRegion } from 'mailspring-component-kit';
 import { CalendarMenuCommands } from '../calendar-menu-commands';
 import { DayView } from './day-view';
 import { WeekView } from './week-view';
 import { MonthView } from './month-view';
 import { AgendaView } from './agenda-view';
-import { CalendarSourceList } from './calendar-source-list';
+import FocusedMomentStore from './focused-moment-store';
 import {
   CalendarDataSource,
   EventOccurrence,
@@ -73,11 +68,6 @@ import { modifyEventWithRecurringSupport, EventTimeChangeOptions } from './recur
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 const CALENDAR_VIEW = 'mailspring.calendarView';
-const CALENDAR_LIST_VISIBLE = 'mailspring.calendarListVisible';
-
-// The calendar unmounts whenever the main window switches to mail, so the date being viewed
-// lives here to survive the trip until the app restarts.
-let _lastFocusedMoment: Moment | null = null;
 
 const VIEWS = {
   [CalendarView.DAY]: DayView,
@@ -137,7 +127,6 @@ interface MailspringCalendarState {
   focusedMoment: Moment;
   disabledCalendars: string[];
   dragState: DragState | null;
-  calendarListVisible: boolean;
   readOnlyCalendarIds: Set<string>;
   themeVersion: number;
 }
@@ -159,6 +148,7 @@ export class MailspringCalendar extends React.Component<
   _themeDisposable?: { dispose(): void };
   _unlisten?: () => void;
   _unlistenDatabase?: () => void;
+  _unlistenFocusedMoment?: () => void;
   _dataSource = new CalendarDataSource();
   /** Selected occurrences moved here but not yet synced back, by the id they will be drawn under. */
   _pendingMoves = new Map<string, { start: number; staleIcs: string }>();
@@ -171,10 +161,9 @@ export class MailspringCalendar extends React.Component<
       focusedEvent: null,
       selectedEvents: [],
       view: AppEnv.config.get(CALENDAR_VIEW) || CalendarView.WEEK,
-      focusedMoment: _lastFocusedMoment || moment(),
+      focusedMoment: FocusedMomentStore.focusedMoment(),
       disabledCalendars: AppEnv.config.get(DISABLED_CALENDARS) || [],
       dragState: null,
-      calendarListVisible: AppEnv.config.get(CALENDAR_LIST_VISIBLE) !== false,
       readOnlyCalendarIds: new Set<string>(),
       themeVersion: 0,
     };
@@ -183,6 +172,12 @@ export class MailspringCalendar extends React.Component<
   componentDidMount() {
     this._disposable = this._subscribeToCalendars();
     this._unlisten = Actions.focusCalendarEvent.listen(this._focusEvent);
+    this._unlistenFocusedMoment = FocusedMomentStore.listen(() =>
+      this.setState({
+        focusedMoment: FocusedMomentStore.focusedMoment(),
+        focusedEvent: FocusedMomentStore.focusedEvent(),
+      })
+    );
     this._unlistenDatabase = DatabaseStore.listen(this._onDatabaseChange);
     AppEnv.mailsyncBridge.sendSyncCalendarNow();
     this._themeDisposable = AppEnv.themes.onDidChangeActiveThemes(() => {
@@ -199,7 +194,7 @@ export class MailspringCalendar extends React.Component<
       this._unlisten();
     }
     this._unlistenDatabase?.();
-    _lastFocusedMoment = this.state.focusedMoment;
+    this._unlistenFocusedMoment?.();
   }
 
   _onDatabaseChange = ({ objectClass }: DatabaseChangeRecord<Event>) => {
@@ -305,16 +300,17 @@ export class MailspringCalendar extends React.Component<
       ? moment.unix(this._pendingMoves.get(selected.id)?.start ?? occurrenceStartUnix(selected))
       : this.state.focusedMoment;
     // Clear any active drag state when changing views
-    this.setState({ view, dragState: null, focusedMoment });
+    this.setState({ view, dragState: null });
+    FocusedMomentStore.setFocusedMoment(focusedMoment, this.state.focusedEvent);
     AppEnv.config.set(CALENDAR_VIEW, view);
   };
 
   onChangeFocusedMoment = (focusedMoment: Moment) => {
-    this.setState({ focusedMoment, focusedEvent: null });
+    FocusedMomentStore.setFocusedMoment(focusedMoment);
   };
 
   _focusEvent = (event: FocusedEventInfo) => {
-    this.setState({ focusedMoment: moment(event.start * 1000), focusedEvent: event });
+    FocusedMomentStore.setFocusedMoment(moment(event.start * 1000), event);
   };
 
   _openEventPopover(eventModel: EventOccurrence) {
@@ -1024,15 +1020,6 @@ export class MailspringCalendar extends React.Component<
     this.onChangeFocusedMoment(newMoment);
   };
 
-  /**
-   * Toggle calendar list sidebar visibility.
-   */
-  _onToggleCalendarList = () => {
-    const visible = !this.state.calendarListVisible;
-    this.setState({ calendarListVisible: visible });
-    AppEnv.config.set(CALENDAR_LIST_VISIBLE, visible);
-  };
-
   _onRefreshCalendars = () => {
     AppEnv.mailsyncBridge.sendSyncCalendarNow();
   };
@@ -1099,30 +1086,6 @@ export class MailspringCalendar extends React.Component<
             'calendar:resize-event-right': () => this._onMoveSelectedEvent('right', true),
           }}
         >
-          {this.state.calendarListVisible && (
-            <ResizableRegion
-              className="calendar-source-list"
-              initialWidth={200}
-              minWidth={200}
-              maxWidth={300}
-              handle={ResizableRegion.Handle.Right}
-              style={{ flexDirection: 'column' }}
-            >
-              <ScrollRegion style={{ flex: 1 }}>
-                <CalendarSourceList
-                  accounts={this.state.accounts}
-                  calendars={this.state.calendars}
-                  disabledCalendars={this.state.disabledCalendars}
-                />
-              </ScrollRegion>
-              <div style={{ width: '100%' }}>
-                <MiniMonthView
-                  value={this.state.focusedMoment}
-                  onChange={this.onChangeFocusedMoment}
-                />
-              </div>
-            </ResizableRegion>
-          )}
           {this._renderMainContent()}
         </KeyCommandsRegion>
       </CalendarMenuCommands>

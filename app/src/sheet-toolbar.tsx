@@ -246,6 +246,8 @@ const COLUMN_ARIA_LABELS: Record<string, string> = {
   ThreadList: localized('Thread list toolbar'),
   MessageList: localized('Message toolbar'),
   MessageListSidebar: localized('Contact panel toolbar'),
+  CalendarSidebar: localized('Sidebar toolbar'),
+  CalendarContent: localized('Calendar toolbar'),
 };
 
 let lastReportedToolbarHeight = 0;
