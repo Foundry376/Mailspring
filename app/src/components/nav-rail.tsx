@@ -49,7 +49,7 @@ export class NavRailItem extends React.Component<NavRailItemProps, { active: boo
   }
 }
 
-/** Plugins add a section with the `NavRail:Item` role. */
+/** Plugins add a section with the `NavRail:Item` role, or `NavRail:FooterItem` to pin it to the bottom. */
 export class NavRail extends React.Component {
   static displayName = 'NavRail';
 
@@ -59,6 +59,14 @@ export class NavRail extends React.Component {
         <InjectedComponentSet
           matching={{ role: 'NavRail:Item' }}
           direction="column"
+          height="auto"
+          style={{ flex: 1 }}
+          containersRequired={false}
+        />
+        <InjectedComponentSet
+          matching={{ role: 'NavRail:FooterItem' }}
+          direction="column"
+          height="auto"
           containersRequired={false}
         />
       </nav>

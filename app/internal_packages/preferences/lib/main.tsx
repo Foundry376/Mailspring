@@ -1,12 +1,24 @@
 /* eslint global-require: 0 */
+import React from 'react';
 import {
   localized,
   PreferencesUIStore,
   WorkspaceStore,
   ComponentRegistry,
 } from 'mailspring-exports';
+import { NavRailItem } from 'mailspring-component-kit';
 
 import PreferencesRoot from './preferences-root';
+
+const PreferencesNavRailItem = () => (
+  <NavRailItem
+    label={localized('Preferences')}
+    iconName="icon-preferences-general.png"
+    command="application:open-preferences"
+    isActive={() => WorkspaceStore.rootSheet() === WorkspaceStore.Sheet.Preferences}
+  />
+);
+PreferencesNavRailItem.displayName = 'PreferencesNavRailItem';
 
 export function activate() {
   PreferencesUIStore.registerPreferencesTab(
@@ -71,9 +83,12 @@ export function activate() {
   ComponentRegistry.register(PreferencesRoot, {
     location: WorkspaceStore.Location.Preferences,
   });
+  ComponentRegistry.register(PreferencesNavRailItem, { role: 'NavRail:FooterItem' });
 }
 
-export function deactivate() {}
+export function deactivate() {
+  ComponentRegistry.unregister(PreferencesNavRailItem);
+}
 
 export function serialize() {
   return this.state;
