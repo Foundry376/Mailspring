@@ -37,11 +37,12 @@ import {
   isEventSelected,
   occurrenceId,
   occurrencesForEvents,
+  ownCalendarAddresses,
   occurrenceStartUnix,
   occurrenceEndUnix,
 } from './calendar-data-source';
 import { CalendarEventContextMenu } from './calendar-event-context-menu';
-import { openProposeNewTimePopover } from './calendar-rsvp';
+import { openProposeNewTimePopover, offerCounterInsteadOfMove } from './calendar-rsvp';
 import { CalendarView, DEFAULT_TIMED_EVENT_DURATION_SECONDS } from './calendar-constants';
 import { CalendarEmptyState } from './calendar-empty-state';
 import {
@@ -68,6 +69,7 @@ import {
   updateDragState,
   parseEventIdFromOccurrence,
   snapAllDayTimes,
+  canAttemptMove,
   canMoveEvent,
 } from './calendar-drag-utils';
 import { showRecurringEventDialog } from './recurring-event-dialog';
@@ -104,6 +106,7 @@ export interface MailspringCalendarViewProps extends EventRendererProps {
   onCalendarMouseMove: (args: CalendarEventArgs) => void;
   onCalendarClick: (args: CalendarEventArgs) => void;
   onCalendarDoubleClick: (args: CalendarEventArgs) => void;
+  onCalendarContextMenu: (args: CalendarEventArgs) => void;
   /**
    * Changes whenever a calendar's colour or the theme does, so components that skip equal
    * props repaint; keying the view on it instead would remount the grid, re-centre its scroll
@@ -242,9 +245,12 @@ export class MailspringCalendar extends React.Component<
     const start = pending ? pending.start : occurrenceStartUnix(occurrence);
     // The expander stops at the first regular occurrence past the range, so an exception moved
     // in from a later slot is reached only when the range runs to that slot.
+    // Re-expanded without the calendars, a meeting a secondary calendar of ours organizes would
+    // come back as somebody else's and the next arrow key would refuse to move it.
     const sameId = occurrencesForEvents([event], {
       startUnix: Math.min(slot, start) - 86400,
       endUnix: Math.max(slot, start) + 86400,
+      ownCalendarAddresses: ownCalendarAddresses(this.state.calendars),
     }).filter((o) => o.id === occurrence.id);
     // An occurrence moved onto another's start shares its id; their slots tell them apart.
     const current = sameId.find((o) => slotOf(o) === slot) || sameId[0];
@@ -421,11 +427,31 @@ export class MailspringCalendar extends React.Component<
     }).displayMenu();
   };
 
-  /**
-   * Handle double-click on the calendar background to create a new event.
-   * The CalendarEventArgs contains the time at the click position.
-   */
   _onCalendarDoubleClick = (args: CalendarEventArgs) => {
+    this._createEventAt(args);
+  };
+
+  /**
+   * Right-clicking empty grid offers to create an event there: the double-click that also
+   * does is not discoverable, and a right-click is where users look for "New".
+   */
+  _onCalendarContextMenu = (args: CalendarEventArgs) => {
+    if (args.time === null) {
+      return;
+    }
+    this._showGridMenu([{ label: localized('New Event'), click: () => this._createEventAt(args) }]);
+  };
+
+  _showGridMenu(template: Electron.MenuItemConstructorOptions[]) {
+    require('@electron/remote').Menu.buildFromTemplate(template).popup({});
+  }
+
+  /**
+   * Opens the editor for a new event at the slot under the pointer: the time at the click
+   * position, snapped to the half hour on the hour grid, a whole day on the all-day row and
+   * in a month cell.
+   */
+  _createEventAt(args: CalendarEventArgs) {
     if (args.time === null) {
       return;
     }
@@ -501,7 +527,7 @@ export class MailspringCalendar extends React.Component<
         closeOnAppBlur: false,
       }
     );
-  };
+  }
 
   // Fires once the focused event has scrolled itself into view. Clearing the flag here keeps
   // a later unrelated re-render from re-running that scroll (and reopening the popover).
@@ -727,6 +753,16 @@ export class MailspringCalendar extends React.Component<
       config
     );
 
+    // A guest's drag starts so the attempt can be seen; once it is one, offer the counter instead.
+    if (
+      newDragState.isDragging &&
+      !canMoveEvent(newDragState.event, this._isCalendarReadOnly(newDragState.event.calendarId))
+    ) {
+      this.setState({ dragState: null });
+      offerCounterInsteadOfMove(newDragState.event);
+      return;
+    }
+
     // Only update state if something changed
     if (newDragState !== this.state.dragState) {
       this.setState({ dragState: newDragState });
@@ -799,6 +835,9 @@ export class MailspringCalendar extends React.Component<
     }
 
     if (!canMoveEvent(occurrence, this._isCalendarReadOnly(occurrence.calendarId))) {
+      if (canAttemptMove(occurrence, this._isCalendarReadOnly(occurrence.calendarId))) {
+        offerCounterInsteadOfMove(occurrence);
+      }
       return;
     }
 
@@ -1083,6 +1122,7 @@ export class MailspringCalendar extends React.Component<
         onCalendarMouseMove={this._onCalendarMouseMove}
         onCalendarClick={this._onCalendarClick}
         onCalendarDoubleClick={this._onCalendarDoubleClick}
+        onCalendarContextMenu={this._onCalendarContextMenu}
         onEventClick={this._onEventClick}
         onEventDoubleClick={this._onEventDoubleClick}
         onEventContextMenu={this._onEventContextMenu}
