@@ -60,7 +60,7 @@ export function activate() {
 
   WorkspaceStore.defineSheet(
     'Preferences',
-    {},
+    { root: true },
     {
       list: ['Preferences'],
       split: ['Preferences'],

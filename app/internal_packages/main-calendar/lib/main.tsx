@@ -106,8 +106,6 @@ async function onShowCalendar(
 ) {
   if (WorkspaceStore.rootSheet() !== WorkspaceStore.Sheet.Calendar) {
     Actions.selectRootSheet(WorkspaceStore.Sheet.Calendar);
-  } else if (WorkspaceStore.topSheet() === WorkspaceStore.Sheet.Preferences) {
-    Actions.popSheet();
   }
   if (!focus) return;
   const { icsuid, accountId, recurrenceIdStart } = focus;

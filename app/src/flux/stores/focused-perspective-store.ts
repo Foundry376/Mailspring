@@ -35,8 +35,6 @@ class FocusedPerspectiveStore extends MailspringStore {
   showMail() {
     if (!this.isShowingMail()) {
       Actions.selectRootSheet(this._current.sheet());
-    } else if (WorkspaceStore.topSheet() === WorkspaceStore.Sheet.Preferences) {
-      Actions.popSheet();
     }
   }
 
@@ -212,8 +210,7 @@ class FocusedPerspectiveStore extends MailspringStore {
       Actions.selectRootSheet(desired);
     }
 
-    const top = WorkspaceStore.topSheet();
-    if (![WorkspaceStore.Sheet.Preferences, WorkspaceStore.Sheet.Threads].includes(top)) {
+    if (WorkspaceStore.topSheet() !== WorkspaceStore.Sheet.Threads) {
       Actions.popToRootSheet();
     }
   }
