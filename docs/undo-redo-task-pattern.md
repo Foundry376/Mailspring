@@ -10,34 +10,13 @@ Mailspring uses a task-based architecture where operations are represented as `T
 
 ### Automatic Registration
 
-When a task is queued via `Actions.queueTask()`, the `UndoRedoStore._onQueue()` listener checks if the task has `canBeUndone = true`. If so, it automatically registers the task for undo:
-
-```typescript
-// In UndoRedoStore
-_onQueue = (taskOrTasks: Task | Task[]) => {
-  const tasks = taskOrTasks instanceof Array ? taskOrTasks : [taskOrTasks];
-
-  if (tasks.every(t => t.canBeUndone)) {
-    const block = {
-      tasks: tasks,
-      description: tasks.map(t => t.description()).join(', '),
-      undo: () => {
-        Actions.queueTasks(tasks.map(t => t.createUndoTask()));
-      },
-      redo: () => {
-        Actions.queueTasks(tasks.map(t => t.createIdenticalTask()));
-      },
-    };
-    this._onQueueBlock(block);
-  }
-};
-```
+When tasks are queued via `Actions.queueTask()` or `Actions.queueTasks()`, `UndoRedoStore._onQueue()` registers one undo block for them if every task has `canBeUndone` set. Undo queues each task's `createUndoTasks()`, which defaults to `[createUndoTask()]`; redo queues `createIdenticalTask()`. Tasks marked `engineWritesUndoData` are reversed from the version the engine streams back (Pattern 3). `Actions.queueUndoOnlyTask()` registers a task for undo without sending it to the engine (Undo Send).
 
 ### Task Requirements
 
 For a task to be undoable, it must:
 
-1. Have `canBeUndone` return `true`
+1. Set `canBeUndone` to `true`. It is a field on `Task`, so assign it in the constructor; a subclass getter is a type error (TS2611).
 2. Implement `createUndoTask()` that returns a task to reverse the operation
 3. Implement `description()` for the undo toast message
 
@@ -63,62 +42,14 @@ export class ChangeStarredTask extends ChangeMailTask {
 
 ### Pattern 2: State Snapshot (SyncbackMetadataTask, SyncbackEventTask)
 
-For operations where the "inverse" isn't a simple toggle, store the original state:
+For operations where the inverse isn't a simple toggle, snapshot the state on the task. See `SyncbackEventTask` (`app/src/flux/tasks/syncback-event-task.ts`):
 
-```typescript
-interface EventSnapshot {
-  ics: string;
-  recurrenceStart: number;
-  recurrenceEnd: number;
-}
+- `forUpdating({ event, undoData, description })` takes `undoData`, the state from *before* the edit, and snapshots the state being written as `newData`.
+- The constructor sets `this.canBeUndone = !!this.undoData`, so a task built without `undoData` (creation, for example) is not undoable.
+- `createUndoTask()` restores `undoData` and swaps the two snapshots, so undoing the undo reapplies the edit.
+- `createIdenticalTask()` (redo) rebuilds the event from `newData` rather than reading `this.event`, which may have been mutated since the task was queued.
 
-export class SyncbackEventTask extends Task {
-  event: Event;
-  undoData?: EventSnapshot;  // Original state before modification
-  taskDescription?: string;
-
-  static forUpdating({ event, undoData, description }) {
-    return new SyncbackEventTask({
-      event,
-      calendarId: event.calendarId,
-      accountId: event.accountId,
-      undoData,
-      taskDescription: description,
-    });
-  }
-
-  get canBeUndone(): boolean {
-    return !!this.undoData;  // Only undoable if we have original state
-  }
-
-  description(): string | null {
-    return this.taskDescription || null;
-  }
-
-  createUndoTask(): SyncbackEventTask {
-    // Restore the original state
-    const restoredEvent = this.event.clone();
-    restoredEvent.ics = this.undoData.ics;
-    restoredEvent.recurrenceStart = this.undoData.recurrenceStart;
-    restoredEvent.recurrenceEnd = this.undoData.recurrenceEnd;
-
-    // The undo task stores current state so redo works
-    const undoTaskUndoData: EventSnapshot = {
-      ics: this.event.ics,
-      recurrenceStart: this.event.recurrenceStart,
-      recurrenceEnd: this.event.recurrenceEnd,
-    };
-
-    return new SyncbackEventTask({
-      event: restoredEvent,
-      calendarId: this.calendarId,
-      accountId: this.accountId,
-      undoData: undoTaskUndoData,
-      taskDescription: localized('Undo %@', this.taskDescription),
-    });
-  }
-}
-```
+`SyncbackMetadataTask` follows the same shape with `undoValue`.
 
 ### Pattern 3: Engine-Written Snapshot (ChangeFolderTask)
 
@@ -207,11 +138,12 @@ function modifyEvent(event: Event, newData: EventData) {
 }
 ```
 
-### Step 3: Implement canBeUndone and createUndoTask
+### Step 3: Set canBeUndone and implement createUndoTask
 
 ```typescript
-get canBeUndone(): boolean {
-  return !!this.undoData;
+constructor(data: AttributeValues<typeof YourTask.attributes> = {}) {
+  super(data);
+  this.canBeUndone = !!this.undoData;
 }
 
 createUndoTask(): YourTask {
@@ -225,31 +157,6 @@ createUndoTask(): YourTask {
 ```
 
 ## Anti-Patterns to Avoid
-
-### Don't Use Custom UndoBlock
-
-❌ **Wrong**: Manually registering undo callbacks
-
-```typescript
-// DON'T DO THIS
-const undoBlock = {
-  description: 'My action',
-  undo: async () => { /* custom undo logic */ },
-  redo: async () => { /* custom redo logic */ },
-};
-UndoRedoStore.queueUndoBlock(undoBlock);
-```
-
-✅ **Correct**: Use task-based undo
-
-```typescript
-// DO THIS
-Actions.queueTask(MyTask.forUpdating({
-  model,
-  undoData: captureCurrentState(model),
-  description: 'My action',
-}));
-```
 
 ### Don't Forget to Capture State First
 
