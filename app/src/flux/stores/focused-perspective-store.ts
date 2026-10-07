@@ -25,7 +25,11 @@ class FocusedPerspectiveStore extends MailspringStore {
     if (AppEnv.isMainWindow()) {
       ipcRenderer.on('show-mail', () => {
         const sheet = this._current.sheet();
-        if (WorkspaceStore.rootSheet() !== sheet) Actions.selectRootSheet(sheet);
+        if (WorkspaceStore.rootSheet() !== sheet) {
+          Actions.selectRootSheet(sheet);
+        } else if (WorkspaceStore.topSheet() === WorkspaceStore.Sheet.Preferences) {
+          Actions.popSheet();
+        }
       });
     }
   }

@@ -73,9 +73,8 @@ const calendarMenu: MenuItem = {
   ],
 };
 
-// Mail's Thread and View menus act on a thread list that isn't mounted while the calendar is
-// showing, so they are swapped for the Calendar menu and put back, at their old positions,
-// on the way out.
+// Thread and View act on a thread list that's unmounted while the calendar shows, so they're
+// swapped for the Calendar menu and restored at their old positions on the way out.
 let _hiddenMenus: { index: number; item: MenuItem }[] | null = null;
 
 function updateMenus() {
@@ -107,6 +106,8 @@ async function onShowCalendar(
 ) {
   if (WorkspaceStore.rootSheet() !== WorkspaceStore.Sheet.Calendar) {
     Actions.selectRootSheet(WorkspaceStore.Sheet.Calendar);
+  } else if (WorkspaceStore.topSheet() === WorkspaceStore.Sheet.Preferences) {
+    Actions.popSheet();
   }
   if (!focus) return;
   const { icsuid, accountId, recurrenceIdStart } = focus;
