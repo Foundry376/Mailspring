@@ -134,6 +134,67 @@
 }
 
 //====================================================
+//  Nav Rail & Calendar
+//====================================================
+
+// The toolbar floats over the columns here, so the rail and the calendar's columns take the same
+// top inset as the mail columns, and the sheets sit flush on white rather than in the inset card.
+.sheet-container .sheet-toolbar ~ .nav-rail-frame {
+  background: @less-background;
+}
+.nav-rail-content {
+  margin: 0;
+  border: none;
+  border-radius: 0;
+}
+.nav-rail {
+  padding-top: 3em;
+
+  .nav-rail-item img.content-mask {
+    background-color: @sidebar-text;
+  }
+  .nav-rail-item:hover {
+    background: @less-highlight;
+  }
+  .nav-rail-item.active {
+    background: transparent;
+    box-shadow: none;
+  }
+  .nav-rail-item.active img.content-mask {
+    background-color: @less-text;
+  }
+}
+
+.column-CalendarSidebar,
+.column-CalendarContent {
+  padding-top: 3em;
+  background: @less-background;
+}
+// The calendar list matches the account sidebar's headings, rows and inset. The inset sits on the
+// list rather than the column so the mini month keeps its full width.
+.calendar-source-list {
+  border-right: none;
+  background-color: @less-background;
+  color: @sidebar-text;
+
+  .calendar-source-list-wrap {
+    // The account sidebar column's 2em plus its headings' own 10px.
+    padding-left: calc(2em + 10px);
+  }
+  .account-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: @sidebar-text;
+    margin-bottom: 12px;
+  }
+  .toggle-wrap {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+}
+
+//====================================================
 //  Sidebar & Account Switcher
 //====================================================
 

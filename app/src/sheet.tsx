@@ -14,7 +14,13 @@ const COLUMN_META: Record<string, { role: string; label: () => string }> = {
   ThreadList: { role: 'region', label: () => localized('Thread list') },
   MessageList: { role: 'region', label: () => localized('Messages') },
   MessageListSidebar: { role: 'complementary', label: () => localized('Contact panel') },
+  CalendarSidebar: { role: 'complementary', label: () => localized('Calendar sidebar') },
+  CalendarContent: { role: 'region', label: () => localized('Calendar') },
 };
+
+// Mail and Calendar share one sidebar width, so switching sections leaves the toolbar in place.
+const COLUMN_WIDTH_KEYS: Record<string, string> = { CalendarSidebar: 'RootSidebar' };
+const columnWidthKey = (id: string) => COLUMN_WIDTH_KEYS[id] || id;
 
 interface SheetLocation {
   id: string;
@@ -143,7 +149,7 @@ export default class Sheet extends React.Component<SheetProps, SheetState> {
   }
 
   _onColumnResize = (column: SheetColumn, width: number) => {
-    AppEnv.storeColumnWidth({ id: column.location.id, width: width });
+    AppEnv.storeColumnWidth({ id: columnWidthKey(column.location.id), width: width });
     this.props.onColumnSizeChanged(this);
   };
 
@@ -190,7 +196,7 @@ export default class Sheet extends React.Component<SheetProps, SheetState> {
           return m;
         }, 0);
 
-        const width = AppEnv.getColumnWidth(location.id);
+        const width = AppEnv.getColumnWidth(columnWidthKey(location.id));
         const col = { maxWidth, minWidth, location, width };
         state.columns.push(col);
 

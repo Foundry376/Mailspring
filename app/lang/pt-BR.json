@@ -88,7 +88,6 @@
   "By default, mail rules are only applied to new mail as it arrives. Applying rules to your entire inbox may take a long time and degrade performance.": "Por padrão, as regras de email são aplicadas apenas a novos emails. A aplicação de regras a toda a sua caixa de entrada pode demorar muito e prejudicar o desempenho.",
   "Caching mail": "Armazenando email",
   "Caching recent mail": "Armazenando email recente",
-  "Calendar Preview": "Visualização do Calendário",
   "Can't find the selected thread in your mailbox": "Não é possível encontrar a conversa selecionada em sua caixa de correio",
   "Cancel": "Cancelar",
   "Cancel Send Later": "Cancelar Enviar Mais Tarde",

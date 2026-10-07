@@ -1,4 +1,7 @@
 {
+  "application:show-mail": ["mod+shift+1", "mod+0"],
+  "application:show-calendar": "mod+shift+2",
+
   "window:toggle-full-screen": "f11",
   "window:reload": "ctrl+shift+r",
   "window:toggle-dev-tools": "ctrl+shift+i",

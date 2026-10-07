@@ -12,6 +12,7 @@ export const OpenIdentityPageButton: typeof import('../components/open-identity-
 export * from '../components/flexbox';
 
 export * from '../components/retina-img';
+export { NavRailItem } from '../components/nav-rail';
 export const SwipeContainer: typeof import('../components/swipe-container').default;
 export const FluxContainer: typeof import('../components/flux-container').default;
 export const FocusContainer: typeof import('../components/focus-container').default;

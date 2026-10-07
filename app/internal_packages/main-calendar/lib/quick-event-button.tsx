@@ -23,7 +23,6 @@ export class QuickEventButton extends React.Component<Record<string, unknown>> {
     return (
       <BindGlobalCommands commands={{ 'core:add-item': this._openPopover }}>
         <button
-          style={{ order: -50 }}
           tabIndex={-1}
           className="btn btn-toolbar item-compose"
           title={localized('Create new event')}
