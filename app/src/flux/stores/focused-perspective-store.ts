@@ -20,17 +20,23 @@ class FocusedPerspectiveStore extends MailspringStore {
     this.listenTo(Actions.ensureCategoryIsFocused, this._onEnsureCategoryIsFocused);
     this._listenToCommands();
 
-    // Sent by the main process for application:show-mail, to leave another section of the
-    // main window (such as the calendar) for the mailbox that was last showing.
+    // Sent by the main process for application:show-mail.
     if (AppEnv.isMainWindow()) {
-      ipcRenderer.on('show-mail', () => {
-        const sheet = this._current.sheet();
-        if (WorkspaceStore.rootSheet() !== sheet) {
-          Actions.selectRootSheet(sheet);
-        } else if (WorkspaceStore.topSheet() === WorkspaceStore.Sheet.Preferences) {
-          Actions.popSheet();
-        }
-      });
+      ipcRenderer.on('show-mail', () => this.showMail());
+    }
+  }
+
+  /** Whether the main window shows mail rather than another section, such as the calendar. */
+  isShowingMail() {
+    return WorkspaceStore.rootSheet() === this._current.sheet();
+  }
+
+  /** Leaves another section of the main window for the mailbox that was last showing. */
+  showMail() {
+    if (!this.isShowingMail()) {
+      Actions.selectRootSheet(this._current.sheet());
+    } else if (WorkspaceStore.topSheet() === WorkspaceStore.Sheet.Preferences) {
+      Actions.popSheet();
     }
   }
 

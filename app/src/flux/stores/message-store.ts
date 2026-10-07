@@ -396,6 +396,7 @@ class _MessageStore extends MailspringStore {
 
   _onFocusThreadMainWindow(thread: Thread) {
     if (AppEnv.isMainWindow()) {
+      FocusedPerspectiveStore.showMail();
       Actions.setFocus({ collection: 'thread', item: thread });
       return AppEnv.focus();
     }
