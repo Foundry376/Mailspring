@@ -9,6 +9,7 @@ import {
 import { Calendar } from '../src/flux/models/calendar';
 import {
   occurrenceRecurrenceId,
+  offerCounterInsteadOfMove,
   openProposeNewTimePopover,
   proposeNewTimeForCalendarEvent,
   respondToCalendarEvent,
@@ -274,5 +275,25 @@ describe('answering and countering from the calendar', function () {
       await respondToCalendarEvent(occurrence(), 'TENTATIVE');
       expect(queued.length).toBe(1);
     });
+  });
+});
+
+describe('offerCounterInsteadOfMove', function () {
+  const remote = require('@electron/remote');
+
+  it('offers the counter-proposal and opens it when taken up', function () {
+    const dialog = spyOn(remote.dialog, 'showMessageBoxSync').andReturn(0);
+    const openPopover = spyOn(Actions, 'openPopover');
+    offerCounterInsteadOfMove(occurrence());
+    expect(dialog.mostRecentCall.args[0].buttons[0]).toBe('Propose a new time');
+    expect(dialog.mostRecentCall.args[0].message).toContain('Design Review');
+    expect(openPopover.mostRecentCall.args[0].props.start).toBe(START);
+  });
+
+  it('does nothing more when cancelled', function () {
+    spyOn(remote.dialog, 'showMessageBoxSync').andReturn(1);
+    const openPopover = spyOn(Actions, 'openPopover');
+    offerCounterInsteadOfMove(occurrence());
+    expect(openPopover).not.toHaveBeenCalled();
   });
 });

@@ -12,6 +12,10 @@ describe('calendar ownership', () => {
     expect(Calendar.attributes.ownership.jsonKey).toBe('owner');
   });
 
+  it("reads the collection path from the engine's `path` key", () => {
+    expect(Calendar.attributes.path.jsonKey).toBe('path');
+  });
+
   describe('isOwnCalendar', () => {
     it("takes the server's word when it names us", () => {
       expect(isOwnCalendar(calendar({ name: 'Team', ownership: 'mine' }), addresses)).toBe(true);
