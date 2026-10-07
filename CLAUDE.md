@@ -11,9 +11,6 @@ npm install
 # Run the app in development mode (uses --dev flag, data stored in Mailspring-dev folder)
 npm start
 
-# Run with specific language locale
-npm start -- --lang=de
-
 # Run linting (prettier + eslint)
 npm run lint
 
@@ -221,6 +218,7 @@ smaller functions over commentary; a comment that restates the code should be de
 - Dev tools accessible via Menu > Developer > Toggle Developer Tools
 - In dev tools console, `$m` provides access to `mailspring-exports` for debugging
 - Dev mode data is stored separately (e.g., `~/.config/Mailspring-dev/` on Linux)
+- The interface language is set in Preferences > General (`core.intl.language`) and read at launch, so relaunch to apply it. Arabic, Persian, Hebrew and Kurdish run right-to-left: the workspace gets `dir="rtl"` and every stylesheet goes through `rtlcss`
 
 ## Claude Hooks
 
