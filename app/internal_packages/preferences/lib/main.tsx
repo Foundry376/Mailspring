@@ -25,7 +25,7 @@ const PreferencesNavRailItemInner = ({ initial }: { initial: string }) => (
     command="application:open-preferences"
     isActive={() => WorkspaceStore.rootSheet() === WorkspaceStore.Sheet.Preferences}
   >
-    {initial}
+    <span className="nav-rail-initial">{initial}</span>
   </NavRailItem>
 );
 PreferencesNavRailItemInner.displayName = 'PreferencesNavRailItem';

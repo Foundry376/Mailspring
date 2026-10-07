@@ -33,6 +33,21 @@
       background-color: @source-list-active-color;
     }
   }
+
+  .nav-rail-initial {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: fade(@text-color, 12%);
+    color: @text-color-subtle;
+    font-size: 12px;
+  }
+  .nav-rail-item.active .nav-rail-initial {
+    color: @source-list-active-color;
+  }
 }
 
 // The sheets sit on the toolbar's surface as an inset card whose border replaces the toolbar's
