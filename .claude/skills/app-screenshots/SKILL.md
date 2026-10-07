@@ -12,8 +12,12 @@ root unless noted. Scripts live in `.claude/skills/app-screenshots/scripts/`.
 
 ## 1. Launch
 
+Only one instance can run at a time, so check first. If one is running that you didn't
+start, it is probably the user's: ask before closing it.
+
 ```bash
-pkill -f "electron ./app"; pkill -f "app/mailsync --mode sync"; sleep 2
+pgrep -fl "[Ee]lectron ./app"   # anything listed will be closed by the next line
+pkill -f "[Ee]lectron ./app"; pkill -f "app/mailsync --mode sync"; sleep 2
 (./node_modules/.bin/electron ./app --enable-logging --dev --remote-debugging-port=9333 > /tmp/app.log 2>&1 &)
 sleep 18   # window + plugins + first sync
 curl -s localhost:9333/json | grep -c webSocketDebuggerUrl   # >0 means ready
