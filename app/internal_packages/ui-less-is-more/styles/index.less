@@ -170,9 +170,28 @@
   padding-top: 3em;
   background: @less-background;
 }
+// The calendar list matches the account sidebar's headings, rows and inset. The inset sits on the
+// list rather than the column so the mini month keeps its full width.
 .calendar-source-list {
   border-right: none;
   background-color: @less-background;
+  color: @sidebar-text;
+
+  .calendar-source-list-wrap {
+    // The account sidebar column's 2em plus its headings' own 10px.
+    padding-left: calc(2em + 10px);
+  }
+  .account-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: @sidebar-text;
+    margin-bottom: 12px;
+  }
+  .toggle-wrap {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
 }
 
 //====================================================
