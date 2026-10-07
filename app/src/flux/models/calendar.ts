@@ -34,6 +34,10 @@ export class Calendar extends Model {
       modelKey: 'ownership',
       jsonKey: 'owner',
     }),
+    path: Attributes.String({
+      modelKey: 'path',
+      jsonKey: 'path',
+    }),
     color: Attributes.String({
       modelKey: 'color',
       jsonKey: 'color',
@@ -49,6 +53,8 @@ export class Calendar extends Model {
   public readOnly: boolean;
   /** The server's DAV:owner verdict (RFC 3744 section 5.1); '' when it gave none. */
   public ownership: 'mine' | 'other' | '';
+  /** The collection's href on the server; Google puts the calendar's own address in it. */
+  public path: string;
   public color: string;
   public order: number;
 

@@ -37,11 +37,12 @@ import {
   isEventSelected,
   occurrenceId,
   occurrencesForEvents,
+  ownCalendarAddresses,
   occurrenceStartUnix,
   occurrenceEndUnix,
 } from './calendar-data-source';
 import { CalendarEventContextMenu } from './calendar-event-context-menu';
-import { openProposeNewTimePopover } from './calendar-rsvp';
+import { openProposeNewTimePopover, offerCounterInsteadOfMove } from './calendar-rsvp';
 import { CalendarView, DEFAULT_TIMED_EVENT_DURATION_SECONDS } from './calendar-constants';
 import { CalendarEmptyState } from './calendar-empty-state';
 import {
@@ -68,6 +69,7 @@ import {
   updateDragState,
   parseEventIdFromOccurrence,
   snapAllDayTimes,
+  canAttemptMove,
   canMoveEvent,
   CreateDragState,
   createDragRange,
@@ -251,9 +253,12 @@ export class MailspringCalendar extends React.Component<
     const start = pending ? pending.start : occurrenceStartUnix(occurrence);
     // The expander stops at the first regular occurrence past the range, so an exception moved
     // in from a later slot is reached only when the range runs to that slot.
+    // Re-expanded without the calendars, a meeting a secondary calendar of ours organizes would
+    // come back as somebody else's and the next arrow key would refuse to move it.
     const sameId = occurrencesForEvents([event], {
       startUnix: Math.min(slot, start) - 86400,
       endUnix: Math.max(slot, start) + 86400,
+      ownCalendarAddresses: ownCalendarAddresses(this.state.calendars),
     }).filter((o) => o.id === occurrence.id);
     // An occurrence moved onto another's start shares its id; their slots tell them apart.
     const current = sameId.find((o) => slotOf(o) === slot) || sameId[0];
@@ -808,6 +813,17 @@ export class MailspringCalendar extends React.Component<
       config
     );
 
+    // A guest's drag starts so the attempt can be seen; once it is one, offer the counter instead.
+    if (
+      newDragState.isDragging &&
+      !canMoveEvent(newDragState.event, this._isCalendarReadOnly(newDragState.event.calendarId))
+    ) {
+      this._pendingDragState = null;
+      this.setState({ dragState: null });
+      offerCounterInsteadOfMove(newDragState.event);
+      return;
+    }
+
     // Below the threshold updateDragState hands back the same object, so a grab that has not
     // travelled stays out of state.
     if (newDragState !== active) {
@@ -937,6 +953,9 @@ export class MailspringCalendar extends React.Component<
     }
 
     if (!canMoveEvent(occurrence, this._isCalendarReadOnly(occurrence.calendarId))) {
+      if (canAttemptMove(occurrence, this._isCalendarReadOnly(occurrence.calendarId))) {
+        offerCounterInsteadOfMove(occurrence);
+      }
       return;
     }
 
