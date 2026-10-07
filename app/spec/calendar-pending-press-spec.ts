@@ -2,6 +2,7 @@ import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/
 import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 import { DEFAULT_DRAG_CONFIG } from '../internal_packages/main-calendar/lib/core/calendar-drag-types';
 import * as CalendarDateUtils from '../src/calendar-date';
+import * as CalendarRsvp from '../internal_packages/main-calendar/lib/core/calendar-rsvp';
 
 const START = Date.UTC(2026, 8, 22, 13, 0, 0) / 1000;
 
@@ -81,6 +82,23 @@ describe('pressing an event', function () {
   it('does not come back as a drag on a later move once released', function () {
     cal._onCalendarMouseUp(at(10, 10));
     cal._onCalendarMouseMove(at(10, 200));
+    expect(cal.state.dragState).toBe(null);
+  });
+});
+
+describe("pressing a meeting we don't organize", function () {
+  it('offers the counter once it travels, and a later move does not offer it again', function () {
+    const offer = spyOn(CalendarRsvp, 'offerCounterInsteadOfMove');
+    const guestMeeting = { ...occurrence, isMine: false, organizer: { email: 'ada@example.com' } };
+    const cal: any = new MailspringCalendar({} as any);
+    cal.setState = (next: any) => Object.assign(cal.state, next);
+    cal.state = { ...cal.state, calendarsLoaded: true, readOnlyCalendarIds: new Set() };
+    cal._onEventDragStart(guestMeeting, {} as any, { mode: 'move' } as any);
+    cal._onCalendarMouseDown(at(10, 10));
+
+    cal._onCalendarMouseMove(at(10, 10 + DEFAULT_DRAG_CONFIG.dragThreshold + 1));
+    cal._onCalendarMouseMove(at(10, 200));
+    expect(offer.calls.length).toBe(1);
     expect(cal.state.dragState).toBe(null);
   });
 });
