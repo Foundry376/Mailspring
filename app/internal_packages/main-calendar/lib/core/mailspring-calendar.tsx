@@ -319,7 +319,8 @@ export class MailspringCalendar extends React.Component<
     FocusedMomentStore.setFocusedMoment(moment(event.start * 1000), event);
   };
 
-  _openEventPopover(eventModel: EventOccurrence) {
+  /** `startEditing`: a double-click means "let me change this", as it does on empty grid. */
+  _openEventPopover(eventModel: EventOccurrence, startEditing = false) {
     const eventEl = document.getElementById(eventModel.id);
     if (!eventEl) {
       return;
@@ -335,6 +336,7 @@ export class MailspringCalendar extends React.Component<
     Actions.openPopover(
       <CalendarEventPopover
         event={eventModel}
+        startEditing={startEditing}
         isCalendarReadOnly={this._isCalendarReadOnly(eventModel.calendarId)}
       />,
       {
@@ -382,7 +384,7 @@ export class MailspringCalendar extends React.Component<
   };
 
   _onEventDoubleClick = (occurrence: EventOccurrence) => {
-    this._openEventPopover(occurrence);
+    this._openEventPopover(occurrence, true);
   };
 
   _onEventContextMenu = (occurrence: EventOccurrence) => {
@@ -393,10 +395,11 @@ export class MailspringCalendar extends React.Component<
     }
 
     const readOnly = this._isCalendarReadOnly(occurrence.calendarId);
+    const editable = !readOnly && occurrence.isMine;
     new CalendarEventContextMenu({
       occurrence,
       readOnly,
-      onOpen: () => this._openEventPopover(occurrence),
+      onOpen: () => this._openEventPopover(occurrence, editable),
       onDelete: () => this._deleteEvent(occurrence),
       onProposeNewTime: () => openProposeNewTimePopover(occurrence),
     }).displayMenu();
