@@ -148,6 +148,7 @@ export default class SheetContainer extends React.Component<
   render() {
     const totalSheets = this.state.stack.length;
     const topSheet = this.state.stack[totalSheets - 1];
+    const hasNavRail = AppEnv.isMainWindow();
 
     if (!topSheet) {
       return <div />;
@@ -170,9 +171,19 @@ export default class SheetContainer extends React.Component<
       >
         {this._toolbarContainerElement()}
 
-        <Flexbox direction="row" style={{ order: 1, flex: 1, minHeight: 0 }}>
-          {AppEnv.isMainWindow() && <NavRail />}
-          <Flexbox direction="column" style={{ flex: 1, minWidth: 0 }}>
+        <Flexbox
+          direction="row"
+          className={hasNavRail ? 'nav-rail-frame' : undefined}
+          style={{ order: 1, flex: 1, minHeight: 0 }}
+        >
+          {hasNavRail && <NavRail />}
+          <Flexbox
+            direction="column"
+            className={hasNavRail ? 'nav-rail-content' : undefined}
+            // The inset card's margin and border would overflow a 100% height.
+            height={hasNavRail ? 'auto' : undefined}
+            style={{ flex: 1, minWidth: 0 }}
+          >
             <div style={{ order: 1, zIndex: 2 }}>
               <InjectedComponentSet
                 matching={{ locations: [topSheet.Header, WorkspaceStore.Sheet.Global.Header] }}

@@ -37,7 +37,7 @@ export class NavRailItem extends React.Component<NavRailItemProps, { active: boo
     const { active } = this.state;
     return (
       <button
-        className={`btn btn-icon nav-rail-item${active ? ' active' : ''}`}
+        className={`btn-icon nav-rail-item${active ? ' active' : ''}`}
         title={label}
         aria-label={label}
         aria-current={active ? 'page' : undefined}
