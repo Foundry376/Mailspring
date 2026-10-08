@@ -14,38 +14,76 @@ const stopPropagation = (e: CustomEvent) => {
   e.stopPropagation();
 };
 
+// Commands that act on the mail list, which stays mounted behind Preferences: a Gmail-style
+// "s" would star the thread selected there.
+export const MAIL_COMMANDS = [
+  'core:reply',
+  'core:reply-all',
+  'core:forward',
+  'core:archive-item',
+  'core:delete-item',
+  'core:remove-from-view',
+  'core:gmail-remove-from-view',
+  'core:remove-and-previous',
+  'core:remove-and-next',
+  'core:star-item',
+  'core:snooze-item',
+  'core:change-labels',
+  'core:change-folders',
+  'core:mark-as-read',
+  'core:mark-as-unread',
+  'core:report-as-spam',
+  'core:mark-important',
+  'core:mark-unimportant',
+  'core:print-thread',
+  'thread-list:mark-all-as-read',
+  'core:select-item',
+  'core:select-up',
+  'core:select-down',
+  'multiselect-list:select-all',
+  'multiselect-list:deselect-all',
+  'thread-list:select-read',
+  'thread-list:select-unread',
+  'thread-list:select-starred',
+  'thread-list:select-unstarred',
+  'core:focus-item',
+  'core:next-item',
+  'core:previous-item',
+  'core:find-in-thread',
+  'core:messages-page-up',
+  'core:messages-page-down',
+  'core:list-page-up',
+  'core:list-page-down',
+];
+
 class PreferencesRoot extends React.Component<{ tab: any; tabs: any[]; selection: any }> {
   static displayName = 'PreferencesRoot';
 
-  // This prevents some basic commands from propagating to the threads list and
-  // producing unexpected results
+  // Reached after any list inside Preferences has handled the command for itself.
+  _localHandlers = Object.fromEntries(MAIL_COMMANDS.map((command) => [command, stopPropagation]));
 
-  // TODO This is a partial/temporary solution and should go away when we do the
-  // Keymap/Commands/Menu refactor
-  _localHandlers = {
-    'core:next-item': stopPropagation,
-    'core:previous-item': stopPropagation,
-    'core:select-up': stopPropagation,
-    'core:select-down': stopPropagation,
-    'core:select-item': stopPropagation,
-    'core:messages-page-up': stopPropagation,
-    'core:messages-page-down': stopPropagation,
-    'core:list-page-up': stopPropagation,
-    'core:list-page-down': stopPropagation,
-    'core:remove-from-view': stopPropagation,
-    'core:gmail-remove-from-view': stopPropagation,
-    'core:remove-and-previous': stopPropagation,
-    'core:remove-and-next': stopPropagation,
-    'core:archive-item': stopPropagation,
-    'core:delete-item': stopPropagation,
-    'core:print-thread': stopPropagation,
+  // A command fired from outside Preferences, from the body when nothing here has focus,
+  // never passes through it, so it is stopped on the way down instead.
+  _stopCommandFromOutside = (e: CustomEvent) => {
+    if (!(ReactDOM.findDOMNode(this) as HTMLElement).contains(e.target as Node)) {
+      e.stopPropagation();
+    }
   };
 
   _contentComponent: ConfigPropContainer;
 
   componentDidMount() {
+    for (const command of MAIL_COMMANDS) {
+      window.addEventListener(command, this._stopCommandFromOutside, true);
+    }
     (ReactDOM.findDOMNode(this) as HTMLElement).focus();
     this._focusContent();
+  }
+
+  componentWillUnmount() {
+    for (const command of MAIL_COMMANDS) {
+      window.removeEventListener(command, this._stopCommandFromOutside, true);
+    }
   }
 
   componentDidUpdate(oldProps: { tab: any; tabs: any[]; selection: any }) {
