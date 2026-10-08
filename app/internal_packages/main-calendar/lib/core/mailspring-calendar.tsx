@@ -326,6 +326,7 @@ export class MailspringCalendar extends React.Component<
       ? moment.unix(this._pendingMoves.get(selected.id)?.start ?? occurrenceStartUnix(selected))
       : this.state.focusedMoment;
     // Clear any active drag state when changing views
+    this._pendingDragState = null;
     this.setState({ view, dragState: null });
     FocusedMomentStore.setFocusedMoment(focusedMoment, this.state.focusedEvent);
     AppEnv.config.set(CALENDAR_VIEW, view);

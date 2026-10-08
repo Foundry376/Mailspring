@@ -3,6 +3,7 @@ import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/cal
 import { DEFAULT_DRAG_CONFIG } from '../internal_packages/main-calendar/lib/core/calendar-drag-types';
 import * as CalendarDateUtils from '../src/calendar-date';
 import * as CalendarRsvp from '../internal_packages/main-calendar/lib/core/calendar-rsvp';
+import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
 
 const START = Date.UTC(2026, 8, 22, 13, 0, 0) / 1000;
 
@@ -81,6 +82,13 @@ describe('pressing an event', function () {
 
   it('does not come back as a drag on a later move once released', function () {
     cal._onCalendarMouseUp(at(10, 10));
+    cal._onCalendarMouseMove(at(10, 200));
+    expect(cal.state.dragState).toBe(null);
+  });
+
+  it('is dropped by a view change made while the button is held', function () {
+    spyOn(AppEnv.config, 'set');
+    cal.onChangeView(CalendarView.DAY);
     cal._onCalendarMouseMove(at(10, 200));
     expect(cal.state.dragState).toBe(null);
   });
