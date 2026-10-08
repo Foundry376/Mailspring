@@ -33,7 +33,7 @@ export class MonthViewWeek extends React.Component<MonthViewWeekProps> {
     const { start, end } = dayBoundsUnix(days[bar.firstColumn], days[bar.lastColumn]);
     const style = {
       gridColumn: `${bar.firstColumn + 1} / span ${bar.lastColumn - bar.firstColumn + 1}`,
-      gridRow: bar.slot + 1,
+      gridRow: bar.lane + 1,
     };
     return (
       <div

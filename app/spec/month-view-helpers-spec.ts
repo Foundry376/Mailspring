@@ -60,7 +60,7 @@ function barFor(layout: ReturnType<typeof layoutWeekBars>, id: string) {
   return (
     bar && {
       columns: [bar.firstColumn, bar.lastColumn],
-      slot: bar.slot,
+      lane: bar.lane,
       continuesBefore: bar.continuesBefore,
       continuesAfter: bar.continuesAfter,
     }
@@ -73,7 +73,7 @@ describe('layoutWeekBars', function () {
     expect(layout.bars.length).toBe(1);
     expect(barFor(layout, 'trip')).toEqual({
       columns: [2, 4],
-      slot: 0,
+      lane: 0,
       continuesBefore: false,
       continuesAfter: false,
     });
@@ -83,13 +83,13 @@ describe('layoutWeekBars', function () {
     const event = allDay('trip', '2026-10-09', '2026-10-13');
     expect(barFor(layoutWeekBars([event], WEEK, 5), 'trip')).toEqual({
       columns: [5, 6],
-      slot: 0,
+      lane: 0,
       continuesBefore: false,
       continuesAfter: true,
     });
     expect(barFor(layoutWeekBars([event], NEXT_WEEK, 5), 'trip')).toEqual({
       columns: [0, 2],
-      slot: 0,
+      lane: 0,
       continuesBefore: true,
       continuesAfter: false,
     });
@@ -103,7 +103,7 @@ describe('layoutWeekBars', function () {
     );
     expect(barFor(layout, 'week')).toEqual({
       columns: [0, 6],
-      slot: 0,
+      lane: 0,
       continuesBefore: false,
       continuesAfter: false,
     });
@@ -133,9 +133,9 @@ describe('layoutWeekBars', function () {
       WEEK,
       5
     );
-    expect(barFor(layout, 'trip').slot).toBe(0);
-    expect(barFor(layout, 'standup').slot).toBe(1);
-    expect(barFor(layout, 'review').slot).toBe(0);
+    expect(barFor(layout, 'trip').lane).toBe(0);
+    expect(barFor(layout, 'standup').lane).toBe(1);
+    expect(barFor(layout, 'review').lane).toBe(0);
   });
 
   it('puts multi-day bars first, then one-day all-day, then one-day timed by start', function () {
@@ -149,7 +149,7 @@ describe('layoutWeekBars', function () {
       WEEK,
       5
     );
-    expect(['trip', 'holiday', 'early', 'late'].map((id) => barFor(layout, id).slot)).toEqual([
+    expect(['trip', 'holiday', 'early', 'late'].map((id) => barFor(layout, id).lane)).toEqual([
       0, 1, 2, 3,
     ]);
   });
@@ -160,8 +160,8 @@ describe('layoutWeekBars', function () {
       WEEK,
       5
     );
-    expect(barFor(layout, 'holiday').slot).toBe(0);
-    expect(barFor(layout, 'midnight').slot).toBe(1);
+    expect(barFor(layout, 'holiday').lane).toBe(0);
+    expect(barFor(layout, 'midnight').lane).toBe(1);
   });
 
   it('orders multi-day bars by start, then longest first, all-day and timed together', function () {
@@ -175,11 +175,11 @@ describe('layoutWeekBars', function () {
       WEEK,
       5
     );
-    expect(barFor(layout, 'overnight').slot).toBe(0);
-    expect(barFor(layout, 'long').slot).toBe(1);
-    expect(barFor(layout, 'short').slot).toBe(2);
+    expect(barFor(layout, 'overnight').lane).toBe(0);
+    expect(barFor(layout, 'long').lane).toBe(1);
+    expect(barFor(layout, 'short').lane).toBe(2);
     // Free from Tuesday on in lane 0, which 'overnight' left on Monday.
-    expect(barFor(layout, 'later').slot).toBe(0);
+    expect(barFor(layout, 'later').lane).toBe(0);
   });
 
   it('shows every event when a day fills its lanes exactly', function () {

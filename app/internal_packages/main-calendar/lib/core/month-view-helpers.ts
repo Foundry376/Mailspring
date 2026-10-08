@@ -7,7 +7,7 @@ export interface MonthViewBar {
   /** Indexes into the row's days, inclusive at both ends. */
   firstColumn: number;
   lastColumn: number;
-  slot: number;
+  lane: number;
   continuesBefore: boolean;
   continuesAfter: boolean;
 }
@@ -35,22 +35,22 @@ function compareForLayout(a: EventOccurrence, b: EventOccurrence) {
 }
 
 /**
- * Where a day has more than `maxSlots` events its last lane holds "+N more", so a bar in that lane
+ * Where a day has more than `maxLanes` events its last lane holds "+N more", so a bar in that lane
  * is hidden if any day it covers overflows, and counted in each of those days.
  */
 export function layoutWeekBars(
   events: EventOccurrence[],
   weekDays: CalendarDate[],
-  maxSlots: number
+  maxLanes: number
 ): WeekBarsLayout {
   const weekStart = weekDays[0];
   const lastColumn = weekDays.length - 1;
   const weekEnd = weekDays[lastColumn];
 
   const occupied: boolean[][] = [];
-  const isFree = (slot: number, from: number, to: number) => {
+  const isFree = (lane: number, from: number, to: number) => {
     for (let c = from; c <= to; c++) {
-      if (occupied[slot]?.[c]) return false;
+      if (occupied[lane]?.[c]) return false;
     }
     return true;
   };
@@ -64,26 +64,26 @@ export function layoutWeekBars(
         CalendarDateUtils.calendarDaysBetween(weekStart, event.endDate),
         lastColumn
       );
-      let slot = 0;
-      while (!isFree(slot, first, last)) slot++;
-      occupied[slot] = occupied[slot] || [];
-      for (let c = first; c <= last; c++) occupied[slot][c] = true;
+      let lane = 0;
+      while (!isFree(lane, first, last)) lane++;
+      occupied[lane] = occupied[lane] || [];
+      for (let c = first; c <= last; c++) occupied[lane][c] = true;
       return {
         event,
         firstColumn: first,
         lastColumn: last,
-        slot,
+        lane,
         continuesBefore: event.startDate < weekStart,
         continuesAfter: event.endDate > weekEnd,
       };
     });
 
   const overflows = weekDays.map((_, c) =>
-    placed.some((b) => b.slot >= maxSlots && b.firstColumn <= c && c <= b.lastColumn)
+    placed.some((b) => b.lane >= maxLanes && b.firstColumn <= c && c <= b.lastColumn)
   );
   const isHidden = (b: MonthViewBar) =>
-    b.slot >= maxSlots ||
-    (b.slot === maxSlots - 1 && overflows.slice(b.firstColumn, b.lastColumn + 1).some(Boolean));
+    b.lane >= maxLanes ||
+    (b.lane === maxLanes - 1 && overflows.slice(b.firstColumn, b.lastColumn + 1).some(Boolean));
 
   const hiddenCountByDay = weekDays.map(() => 0);
   const bars: MonthViewBar[] = [];
