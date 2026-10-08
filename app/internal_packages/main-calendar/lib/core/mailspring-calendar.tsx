@@ -797,8 +797,8 @@ export class MailspringCalendar extends React.Component<
     const newDragState = updateDragState(
       active,
       args.time,
-      args.x,
-      args.y,
+      args.mouseEvent.clientX,
+      args.mouseEvent.clientY,
       args.containerType,
       config
     );
@@ -893,12 +893,14 @@ export class MailspringCalendar extends React.Component<
       this._beginCreateDrag(args);
       return;
     }
+    // The threshold is measured in window coordinates: args.x/y restart at each container, and a
+    // month bar and the cell under it are different containers.
     this._pendingDragState = createDragState(
       pending.event,
       pending.hitZone,
       args.time,
-      args.x,
-      args.y,
+      args.mouseEvent.clientX,
+      args.mouseEvent.clientY,
       this._getDragConfig()
     );
   };
