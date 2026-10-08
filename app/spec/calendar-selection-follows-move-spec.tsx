@@ -7,6 +7,7 @@ import { MonthViewEvent } from '../internal_packages/main-calendar/lib/core/mont
 import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 import * as RecurringEventActions from '../internal_packages/main-calendar/lib/core/recurring-event-actions';
 import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
+import FocusedMomentStore from '../internal_packages/main-calendar/lib/core/focused-moment-store';
 
 const START = Date.UTC(2026, 8, 22, 13, 0, 0) / 1000;
 const QUARTER = 900;
@@ -320,7 +321,7 @@ describe('the selection after an event is moved', function () {
 
     calendar.onChangeView(CalendarView.DAY);
 
-    expect(calendar.state.focusedMoment.unix()).toBe(START + 86400);
+    expect(FocusedMomentStore.focusedMoment().unix()).toBe(START + 86400);
   });
 
   it('takes the moved occurrence from the row once it syncs, and moves on from there', async function () {

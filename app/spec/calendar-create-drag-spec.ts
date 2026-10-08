@@ -13,6 +13,7 @@ import { Calendar } from '../src/flux/models/calendar';
 import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
 import { WeekView } from '../internal_packages/main-calendar/lib/core/week-view';
 import { DayView } from '../internal_packages/main-calendar/lib/core/day-view';
+import { DEFAULT_TIMED_EVENT_DURATION_SECONDS } from '../internal_packages/main-calendar/lib/core/calendar-constants';
 import { MonthView } from '../internal_packages/main-calendar/lib/core/month-view';
 
 const BASE = 1787860800; // 2026-08-27 16:00:00 UTC, a quarter-hour boundary
@@ -44,6 +45,11 @@ describe('createDragRange', function () {
     const { start, end } = createDragRange(messy);
     expect(start % CREATE_DRAG_SNAP_SECONDS).toBe(0);
     expect(end % CREATE_DRAG_SNAP_SECONDS).toBe(0);
+  });
+
+  it('snaps to the nearest quarter hour, not the one before', function () {
+    const late = drag({ anchorTime: BASE + 600, currentTime: BASE + 3600 });
+    expect(createDragRange(late).start).toBe(BASE + CREATE_DRAG_SNAP_SECONDS);
   });
 
   it('never produces a zero-length event', function () {
@@ -198,6 +204,24 @@ describe('drawing a new event on empty grid space', function () {
     expect(closePopover).toHaveBeenCalled();
   });
 
+  it('lets the next click deselect when a drag was released outside the calendar', function () {
+    cal.state.selectedEvents = [{ id: 'e1' }];
+    cal._onCalendarMouseDown(at(BASE));
+    cal._onCalendarMouseMove(at(BASE + 3600));
+    cal._onCalendarMouseUp(at(BASE + 3600));
+    cal._onCalendarMouseDown(at(BASE));
+    cal._onCalendarMouseUp(at(BASE));
+    cal._onCalendarClick(at(BASE));
+    expect(cal.state.selectedEvents).toEqual([]);
+  });
+
+  it('draws nothing when the pointer moves after a press that never travelled', function () {
+    cal._onCalendarMouseDown(at(BASE));
+    cal._onCalendarMouseUp(at(BASE));
+    cal._onCalendarMouseMove(at(BASE + 3600));
+    expect(cal.state.createDrag).toBe(null);
+  });
+
   it('makes an all-day event from a drag along the all-day row, ending the day after the last one', function () {
     const day = Math.floor(BASE / 86400) * 86400;
     cal._onCalendarMouseDown(at(day, { containerType: 'all-day-area' }));
@@ -252,6 +276,89 @@ describe('drawing a new event on empty grid space', function () {
     cal._onCalendarMouseDown(at(BASE));
     expect(cal._pendingCreateDrag).toBe(null);
     expect(cal._pendingDragState).not.toBe(null);
+  });
+
+  it('follows the pointer once drawing, including back toward where it began', function () {
+    cal._onCalendarMouseDown(at(BASE));
+    cal._onCalendarMouseMove(at(BASE + 3600));
+    cal._onCalendarMouseMove(at(BASE + 7200));
+    expect(cal.state.createDrag.currentTime).toBe(BASE + 7200);
+    cal._onCalendarMouseMove(at(BASE + 60));
+    expect(cal.state.createDrag.currentTime).toBe(BASE + 60);
+  });
+
+  it('keeps the drawn range while the pointer crosses a place with no time under it', function () {
+    cal._onCalendarMouseDown(at(BASE));
+    cal._onCalendarMouseMove(at(BASE + 3600));
+    cal._onCalendarMouseMove(at(null));
+    expect(cal.state.createDrag.currentTime).toBe(BASE + 3600);
+  });
+
+  it('makes an all-day event from a drag across month cells', function () {
+    const day = Math.floor(BASE / 86400) * 86400;
+    cal._onCalendarMouseDown(at(day, { containerType: 'month-cell' }));
+    cal._onCalendarMouseMove(at(day + 86400, { containerType: 'month-cell' }));
+    cal._onCalendarMouseUp(at(day + 86400, { containerType: 'month-cell' }));
+    expect(cal._openNewEventPopover.mostRecentCall.args[0].isAllDay).toBe(true);
+  });
+
+  it('hands the view the range being drawn', function () {
+    cal._onCalendarMouseDown(at(BASE));
+    cal._onCalendarMouseMove(at(BASE + 3600));
+    expect(cal._renderMainContent().props.createDrag).toBe(cal.state.createDrag);
+  });
+});
+
+describe('opening the editor for a new event', function () {
+  const { Actions } = require('mailspring-exports');
+  let cal: any;
+
+  beforeEach(function () {
+    cal = new MailspringCalendar({} as any);
+    cal.state = {
+      ...cal.state,
+      calendarsLoaded: true,
+      calendars: [new Calendar({ id: 'cal-1', accountId: 'acct-1', name: 'Mine' } as any)],
+      disabledCalendars: [],
+    };
+    spyOn(Actions, 'openPopover');
+  });
+
+  const range = {
+    startUnix: BASE,
+    endUnix: BASE + 3600,
+    isAllDay: false,
+    clientX: 100,
+    clientY: 200,
+  };
+
+  it('creates at the slot under the pointer for a double-click or right-click', function () {
+    spyOn(cal, '_openNewEventPopover');
+    const mouseEvent = { button: 0, clientX: 100, clientY: 200 };
+    cal._createEventAt({ time: BASE + 100, containerType: 'day-column', mouseEvent } as any);
+    expect(cal._openNewEventPopover).toHaveBeenCalledWith({
+      startUnix: BASE,
+      endUnix: BASE + DEFAULT_TIMED_EVENT_DURATION_SECONDS,
+      isAllDay: false,
+      clientX: 100,
+      clientY: 200,
+    });
+  });
+
+  it('anchors the editor at the pointer', function () {
+    cal._openNewEventPopover(range);
+    const { originRect } = Actions.openPopover.mostRecentCall.args[1];
+    expect(originRect.left).toBe(99);
+    expect(originRect.top).toBe(199);
+  });
+
+  it('opens nothing when no calendar can be written to', function () {
+    const helpers = require('../internal_packages/main-calendar/lib/core/calendar-helpers');
+    spyOn(helpers, 'showNoEditableCalendarsError');
+    cal.state.calendars = [new Calendar({ id: 'ro', accountId: 'acct-1', readOnly: true } as any)];
+    cal._openNewEventPopover(range);
+    expect(helpers.showNoEditableCalendarsError).toHaveBeenCalled();
+    expect(Actions.openPopover).not.toHaveBeenCalled();
   });
 });
 

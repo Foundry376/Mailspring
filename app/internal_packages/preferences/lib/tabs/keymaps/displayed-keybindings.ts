@@ -79,6 +79,8 @@ export default [
   {
     title: localized('Jumping'),
     items: [
+      ['application:show-mail', localized('Go to %@', localized('Mail'))],
+      ['application:show-calendar', localized('Go to %@', localized('Calendar'))],
       ['navigation:go-to-inbox', localized('Go to %@', localized('Inbox'))],
       ['navigation:go-to-unread', localized('Go to %@', localized('Unread'))],
       ['navigation:go-to-starred', localized('Go to %@', localized('Starred'))],

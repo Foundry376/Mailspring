@@ -73,7 +73,8 @@ class ThreadListStore extends MailspringStore {
       const focused = FocusedContentStore.focused('thread');
       const keyboard = FocusedContentStore.keyboardCursor('thread') as Thread | null;
       const viewModeAutofocuses =
-        WorkspaceStore.layoutMode() === 'split' || WorkspaceStore.topSheet().root === true;
+        FocusedPerspectiveStore.isShowingMail() &&
+        (WorkspaceStore.layoutMode() === 'split' || WorkspaceStore.topSheet().root === true);
 
       const nextQ = next.query();
       const matchers = nextQ && nextQ.matchers();

@@ -89,6 +89,8 @@ interface CalendarEventPopoverProps {
   event: EventOccurrence;
   /** When true, the popover opens in edit mode to create a new event */
   isNewEvent?: boolean;
+  /** Open straight into the editor rather than the read-only card. */
+  startEditing?: boolean;
   /** Available calendars (required when isNewEvent is true) */
   calendars?: Calendar[];
   /** Available accounts (required when isNewEvent is true) */
@@ -145,7 +147,7 @@ export class CalendarEventPopover extends React.Component<
       end,
       location,
       title,
-      editing: !!this.props.isNewEvent,
+      editing: !!this.props.isNewEvent || !!this.props.startEditing,
       attendees,
       // Initialize new fields with defaults
       allDay: isAllDay || false,
@@ -191,8 +193,9 @@ export class CalendarEventPopover extends React.Component<
     }
   }
 
-  onEdit = async () => {
-    // Load actual recurrence and timezone from the event's ICS data
+  // The Repeat control defaults to 'none' until this has read the event; the save writes the
+  // rule only when the control was changed, so a save before then leaves the rule alone.
+  async _loadEditDefaults(): Promise<void> {
     let repeat: RepeatOption = 'none';
     let timezone = this.state.timezone;
     try {
@@ -209,14 +212,19 @@ export class CalendarEventPopover extends React.Component<
     } catch (e) {
       // Fall back to defaults if we can't read the event
     }
-    this.setState({
-      editing: true,
-      repeat,
-      timezone,
-      originalRepeat: repeat,
-      originalTimezone: timezone,
-    });
+    this.setState({ repeat, timezone, originalRepeat: repeat, originalTimezone: timezone });
+  }
+
+  onEdit = async () => {
+    await this._loadEditDefaults();
+    this.setState({ editing: true });
   };
+
+  componentDidMount() {
+    if (this.props.startEditing && !this.props.isNewEvent) {
+      this._loadEditDefaults();
+    }
+  }
 
   getStartMoment = () => moment(this.state.start * 1000);
   getEndMoment = () => moment(this.state.end * 1000);

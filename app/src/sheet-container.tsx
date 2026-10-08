@@ -6,6 +6,7 @@ import Sheet from './sheet';
 import Toolbar from './sheet-toolbar';
 import { Flexbox } from './components/flexbox';
 import { InjectedComponentSet } from './components/injected-component-set';
+import { NavRail } from './components/nav-rail';
 import { SheetDeclaration } from './flux/stores/workspace-store';
 import { Disposable } from 'rx-core';
 
@@ -147,6 +148,7 @@ export default class SheetContainer extends React.Component<
   render() {
     const totalSheets = this.state.stack.length;
     const topSheet = this.state.stack[totalSheets - 1];
+    const hasNavRail = AppEnv.isMainWindow();
 
     if (!topSheet) {
       return <div />;
@@ -169,35 +171,50 @@ export default class SheetContainer extends React.Component<
       >
         {this._toolbarContainerElement()}
 
-        <div style={{ order: 1, zIndex: 2 }}>
-          <InjectedComponentSet
-            matching={{ locations: [topSheet.Header, WorkspaceStore.Sheet.Global.Header] }}
-            direction="column"
-            id={topSheet.id}
-          />
-        </div>
-
-        <main
-          style={{ order: 2, flex: 1, position: 'relative', zIndex: 1 }}
-          aria-label={localized('Email workspace')}
+        <Flexbox
+          direction="row"
+          className={hasNavRail ? 'nav-rail-frame' : undefined}
+          style={{ order: 1, flex: 1, minHeight: 0 }}
         >
-          <div {...inertWhenStacked(totalSheets > 1)}>{sheetComponents[0]}</div>
-          <TransitionGroup component={null}>
-            {sheetComponents.slice(1).map((comp) => (
-              <CSSTransition key={comp.key} classNames="sheet-stack" timeout={125}>
-                {comp}
-              </CSSTransition>
-            ))}
-          </TransitionGroup>
-        </main>
-
-        <footer style={{ order: 3, zIndex: 4 }}>
-          <InjectedComponentSet
-            matching={{ locations: [topSheet.Footer, WorkspaceStore.Sheet.Global.Footer] }}
+          {hasNavRail && <NavRail />}
+          <Flexbox
             direction="column"
-            id={topSheet.id}
-          />
-        </footer>
+            className={hasNavRail ? 'nav-rail-content' : undefined}
+            // The inset card's margin and border would overflow a 100% height.
+            height={hasNavRail ? 'auto' : undefined}
+            style={{ flex: 1, minWidth: 0 }}
+          >
+            <div style={{ order: 1, zIndex: 2 }}>
+              <InjectedComponentSet
+                matching={{ locations: [topSheet.Header, WorkspaceStore.Sheet.Global.Header] }}
+                direction="column"
+                id={topSheet.id}
+              />
+            </div>
+
+            <main
+              style={{ order: 2, flex: 1, position: 'relative', zIndex: 1 }}
+              aria-label={localized('Email workspace')}
+            >
+              <div {...inertWhenStacked(totalSheets > 1)}>{sheetComponents[0]}</div>
+              <TransitionGroup component={null}>
+                {sheetComponents.slice(1).map((comp) => (
+                  <CSSTransition key={comp.key} classNames="sheet-stack" timeout={125}>
+                    {comp}
+                  </CSSTransition>
+                ))}
+              </TransitionGroup>
+            </main>
+
+            <footer style={{ order: 3, zIndex: 4 }}>
+              <InjectedComponentSet
+                matching={{ locations: [topSheet.Footer, WorkspaceStore.Sheet.Global.Footer] }}
+                direction="column"
+                id={topSheet.id}
+              />
+            </footer>
+          </Flexbox>
+        </Flexbox>
       </Flexbox>
     );
   }
