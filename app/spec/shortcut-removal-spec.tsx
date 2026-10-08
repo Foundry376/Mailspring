@@ -96,6 +96,16 @@ describe('Removing shortcuts on the Shortcuts page', function () {
       });
     }
 
+    it('marks a changed command next to its name, and labels the add button', function () {
+      renderRow(['e']);
+      expect(host.querySelector('.changed-dot')).toBe(null);
+      expect(host.querySelector('.add-shortcut').textContent).toBe('+ Add');
+      renderRow(['k'], true);
+      expect(host.querySelector('.changed-dot').getAttribute('title')).toBe(
+        'Changed from the default'
+      );
+    });
+
     it('shows None for a command with no keys', function () {
       renderRow([]);
       expect(host.querySelector('.values').textContent).toBe('None');
@@ -134,6 +144,10 @@ describe('Removing shortcuts on the Shortcuts page', function () {
         return { dispose: () => {} };
       });
       ReactDOM.render(<PreferencesKeymaps config={config} />, host);
+    });
+
+    it('lists a row for every command, in one set of sections', function () {
+      expect(host.querySelectorAll('.shortcut-sections .shortcut').length).toBe(allCommands.length);
     });
 
     it("clears one section's commands with that section's Clear, keeping the rest", function () {

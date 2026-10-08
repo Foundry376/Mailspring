@@ -236,11 +236,7 @@ export default class PreferencesKeymaps extends React.Component<
                 : localized('%@ shortcuts you added also run other commands.', conflictCount)}
             </div>
           )}
-          <div className="two-columns-flexbox">
-            <div style={{ flex: 1 }}>{displayedKeybindings.slice(0, 3).map(renderSection)}</div>
-            <div style={{ width: 30 }} />
-            <div style={{ flex: 1 }}>{displayedKeybindings.slice(3).map(renderSection)}</div>
-          </div>
+          <div className="shortcut-sections">{displayedKeybindings.map(renderSection)}</div>
         </section>
         <section>
           <h2>{localized('Customization')}</h2>
