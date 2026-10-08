@@ -344,7 +344,7 @@ describe('updateDragState move with day snapping', function () {
     const state = createDragState(
       event,
       { mode: 'move', cursor: 'move' },
-      mouseTime,
+      start, // grabbed on its first day
       0,
       0,
       MONTH_VIEW_DRAG_CONFIG
@@ -374,6 +374,85 @@ describe('updateDragState move with day snapping', function () {
     });
   });
 
+  // Grabbed on `grabbed` and dropped on the day containing `dropped`, as a bar in month view or on
+  // the week view's all-day row is: the hit-test hands over the day under the cursor both times.
+  function dragMoveFrom(
+    event: EventOccurrence,
+    grabbed: number,
+    dropped: number,
+    containerType: 'month-cell' | 'all-day-area' = 'month-cell'
+  ) {
+    const state = createDragState(
+      event,
+      { mode: 'move', cursor: 'grab' },
+      grabbed,
+      0,
+      0,
+      MONTH_VIEW_DRAG_CONFIG
+    );
+    const dragged = updateDragState(
+      state,
+      dropped,
+      100,
+      100,
+      containerType,
+      MONTH_VIEW_DRAG_CONFIG
+    );
+    return { start: dragged.previewStart, end: dragged.previewEnd };
+  }
+
+  it('moves a multi-day bar by the days the cursor moved, wherever it was grabbed', function () {
+    // Aug 14-16, grabbed on the 16th and dropped on the 17th: one day later, not starting on the 17th.
+    const event = makeOccurrence({
+      isAllDay: true,
+      start: localDay(2026, 8, 14),
+      end: localDay(2026, 8, 17),
+    });
+    expect(dragMoveFrom(event, localDay(2026, 8, 16), localDay(2026, 8, 17))).toEqual({
+      start: localDay(2026, 8, 15),
+      end: localDay(2026, 8, 18),
+    });
+  });
+
+  it('keeps the grabbed day on the week view all-day row too', function () {
+    const event = makeOccurrence({
+      isAllDay: true,
+      start: localDay(2026, 8, 14),
+      end: localDay(2026, 8, 17),
+    });
+    expect(
+      dragMoveFrom(event, localDay(2026, 8, 15), localDay(2026, 8, 13), 'all-day-area')
+    ).toEqual({
+      start: localDay(2026, 8, 12),
+      end: localDay(2026, 8, 15),
+    });
+  });
+
+  it('moves a timed event crossing midnight by days from its second day, keeping its clock', function () {
+    // 10pm Aug 14 to 1am Aug 15, grabbed on the 15th and dropped on the 18th: three days later.
+    const event = makeOccurrence({
+      isAllDay: false,
+      start: localDay(2026, 8, 14) + 22 * HOUR,
+      end: localDay(2026, 8, 15) + 1 * HOUR,
+    });
+    expect(dragMoveFrom(event, localDay(2026, 8, 15), localDay(2026, 8, 18))).toEqual({
+      start: localDay(2026, 8, 17) + 22 * HOUR,
+      end: localDay(2026, 8, 18) + 1 * HOUR,
+    });
+  });
+
+  it('leaves a bar where it was when it is dropped on the day it was grabbed', function () {
+    const event = makeOccurrence({
+      isAllDay: true,
+      start: localDay(2026, 8, 14),
+      end: localDay(2026, 8, 17),
+    });
+    expect(dragMoveFrom(event, localDay(2026, 8, 16), localDay(2026, 8, 16))).toEqual({
+      start: localDay(2026, 8, 14),
+      end: localDay(2026, 8, 17),
+    });
+  });
+
   // A midnight-gap block lived here, pinned with moment.tz.setDefault. The move path now
   // computes through calendar-date, which setDefault cannot reach — and the runner's pinned
   // zone transitions at 2am, so it has no missing midnight either. That case is uncovered.
@@ -389,7 +468,7 @@ describe('updateDragState move with day snapping', function () {
     const state = createDragState(
       event,
       { mode: 'move', cursor: 'move' },
-      mouseTime,
+      start, // grabbed on its first day
       0,
       0,
       MONTH_VIEW_DRAG_CONFIG
@@ -439,7 +518,7 @@ describe('updateDragState move with day snapping', function () {
     const state = createDragState(
       event,
       { mode: 'move', cursor: 'move' },
-      localDay(2026, 8, 20),
+      start,
       0,
       0,
       MONTH_VIEW_DRAG_CONFIG
@@ -501,7 +580,7 @@ describe('updateDragState move converting all-day to timed', function () {
     const state = createDragState(
       event,
       { mode: 'move', cursor: 'move' },
-      mouseTime,
+      start, // grabbed on the all-day row, on its first day
       0,
       0,
       DEFAULT_DRAG_CONFIG
