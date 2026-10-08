@@ -206,12 +206,15 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
       }
 
       case 'month-cell': {
-        // Month view: the container IS the day, just use its start time
+        // A day cell, or a bar across several of them: the day is the one under the cursor.
+        // Bars sit on a grid that follows the text direction, so measure from its start edge.
         x = event.clientX - rect.left;
         y = event.clientY - rect.top;
         width = rect.width;
         height = rect.height;
-        time = startTime;
+        const fromLeft = x / width;
+        const isRTL = getComputedStyle(timeContainer).direction === 'rtl';
+        time = allDayColumnStartUnix(startTime, endTime, isRTL ? 1 - fromLeft : fromLeft);
         break;
       }
 
