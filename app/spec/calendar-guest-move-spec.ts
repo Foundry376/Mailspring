@@ -27,6 +27,10 @@ const guestMeeting: TimedOccurrence = {
 
 // Dragging and the arrow keys share one rule: a guest cannot move a meeting, and is told so
 // with the counter-proposal on offer. The component is driven unmounted, setState redirected.
+// The grid's hit-test result, as CalendarEventContainer passes it, with the pointer at (x, y).
+const moveTo = (time: number, x: number, y: number) =>
+  ({ time, x, y, containerType: 'day', mouseEvent: { clientX: x, clientY: y } }) as any;
+
 describe('moving a meeting we do not organize', function () {
   let calendar: any;
   let offer: jasmine.Spy;
@@ -48,10 +52,10 @@ describe('moving a meeting we do not organize', function () {
       100,
       DEFAULT_DRAG_CONFIG
     );
-    calendar._onCalendarMouseMove({ time: START + 900, x: 101, y: 101, containerType: 'day' });
+    calendar._onCalendarMouseMove(moveTo(START + 900, 101, 101));
     expect(offer).not.toHaveBeenCalled();
 
-    calendar._onCalendarMouseMove({ time: START + 1800, x: 160, y: 160, containerType: 'day' });
+    calendar._onCalendarMouseMove(moveTo(START + 1800, 160, 160));
     expect(offer).toHaveBeenCalledWith(guestMeeting);
     expect(calendar.state.dragState).toBe(null);
   });
@@ -66,7 +70,7 @@ describe('moving a meeting we do not organize', function () {
       100,
       DEFAULT_DRAG_CONFIG
     );
-    calendar._onCalendarMouseMove({ time: START + 1800, x: 160, y: 160, containerType: 'day' });
+    calendar._onCalendarMouseMove(moveTo(START + 1800, 160, 160));
     expect(offer).not.toHaveBeenCalled();
     expect(calendar.state.dragState.isDragging).toBe(true);
   });

@@ -6,9 +6,10 @@ import { MailspringCalendarViewProps } from './mailspring-calendar';
 import { CalendarEventContainer } from './calendar-event-container';
 import { CalendarView } from './calendar-constants';
 import { HeaderControls } from './header-controls';
-import { EventOccurrence, eventCoversDate } from './calendar-data-source';
+import { EventOccurrence } from './calendar-data-source';
 import { Disposable } from 'rx-core';
-import { MonthViewDayCell } from './month-view-day-cell';
+import { MonthViewWeek } from './month-view-week';
+import { WeekBarsLayout, firstVisibleBarIds, layoutWeekBars } from './month-view-helpers';
 import { getEventsWithDragPreview, withCreateDragPreview } from './calendar-drag-utils';
 
 const DAYS_IN_WEEK = 7;
@@ -95,25 +96,6 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
     return weeks;
   }
 
-  _getEventsForDay(day: Moment): EventOccurrence[] {
-    const date = CalendarDateUtils.calendarDateFromUnix(day.unix());
-    const events = withCreateDragPreview(
-      getEventsWithDragPreview(this.state.events, this.props.dragState),
-      this.props.createDrag
-    );
-
-    return events.filter((event) => eventCoversDate(event, date));
-  }
-
-  _isToday(day: Moment): boolean {
-    const now = moment();
-    return day.isSame(now, 'day');
-  }
-
-  _isCurrentMonth(day: Moment): boolean {
-    return day.month() === this.props.focusedMoment.month();
-  }
-
   _onClickToday = () => {
     this.props.onChangeFocusedMoment(moment());
   };
@@ -147,38 +129,43 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
     );
   }
 
-  _renderWeek(week: Moment[], weekIdx: number) {
+  _renderWeek(week: Moment[], weekIdx: number, layout: WeekBarsLayout, firstBarIds: Set<string>) {
     return (
-      <div className="month-view-week" key={weekIdx}>
-        {week.map((day, dayIdx) => {
-          const events = this._getEventsForDay(day);
-          return (
-            <MonthViewDayCell
-              key={dayIdx}
-              day={day}
-              events={events}
-              isToday={this._isToday(day)}
-              isCurrentMonth={this._isCurrentMonth(day)}
-              maxVisibleEvents={MAX_VISIBLE_EVENTS}
-              focusedEvent={this.props.focusedEvent}
-              selectedEvents={this.props.selectedEvents}
-              onEventClick={this.props.onEventClick}
-              onEventDoubleClick={this.props.onEventDoubleClick}
-              onEventContextMenu={this.props.onEventContextMenu}
-              onEventFocused={this.props.onEventFocused}
-              onDayClick={this._onDayClick}
-              dragState={this.props.dragState}
-              onEventDragStart={this.props.onEventDragStart}
-              readOnlyCalendarIds={this.props.readOnlyCalendarIds}
-            />
-          );
-        })}
-      </div>
+      <MonthViewWeek
+        key={weekIdx}
+        days={week}
+        layout={layout}
+        firstBarIds={firstBarIds}
+        currentMonth={this.props.focusedMoment.month()}
+        maxVisibleEvents={MAX_VISIBLE_EVENTS}
+        focusedEvent={this.props.focusedEvent}
+        selectedEvents={this.props.selectedEvents}
+        onEventClick={this.props.onEventClick}
+        onEventDoubleClick={this.props.onEventDoubleClick}
+        onEventContextMenu={this.props.onEventContextMenu}
+        onEventFocused={this.props.onEventFocused}
+        onDayClick={this._onDayClick}
+        dragState={this.props.dragState}
+        onEventDragStart={this.props.onEventDragStart}
+        readOnlyCalendarIds={this.props.readOnlyCalendarIds}
+      />
     );
   }
 
   render() {
     const weeks = this._getWeeksInMonth();
+    const events = withCreateDragPreview(
+      getEventsWithDragPreview(this.state.events, this.props.dragState),
+      this.props.createDrag
+    );
+    const layouts = weeks.map((week) =>
+      layoutWeekBars(
+        events,
+        week.map((d) => CalendarDateUtils.calendarDateFromUnix(d.unix())),
+        MAX_VISIBLE_EVENTS
+      )
+    );
+    const firstBarIds = firstVisibleBarIds(layouts);
     const headerText = this.props.focusedMoment.format('MMMM YYYY');
 
     return (
@@ -210,7 +197,9 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
           <div className="month-view-grid-container">
             {this._renderWeekdayHeaders()}
             <div className="month-view-grid">
-              {weeks.map((week, idx) => this._renderWeek(week, idx))}
+              {weeks.map((week, idx) =>
+                this._renderWeek(week, idx, layouts[idx], firstBarIds[idx])
+              )}
             </div>
           </div>
         </CalendarEventContainer>
