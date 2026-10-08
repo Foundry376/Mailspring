@@ -69,6 +69,7 @@ describe('Removing shortcuts on the Shortcuts page', function () {
         added={[]}
         conflicts={{}}
         onRemoveFrom={() => {}}
+        singleKeysOff={false}
       />,
       host
     );
@@ -106,6 +107,25 @@ describe('Removing shortcuts on the Shortcuts page', function () {
       );
     });
 
+    it('shows single keys as off while those are turned off, and leaves the rest', function () {
+      ReactDOM.render(
+        <CommandItem
+          command="core:reply"
+          label="Reply"
+          bindings={['r', 'mod+r']}
+          customized={false}
+          added={[]}
+          conflicts={{}}
+          onRemoveFrom={() => {}}
+          singleKeysOff
+        />,
+        host
+      );
+      const chips = [...host.querySelectorAll('.shortcut-chip')] as HTMLElement[];
+      expect(chips.map((c) => c.classList.contains('off'))).toEqual([true, false]);
+      expect(chips[0].title).toBe('Off: single-key shortcuts are turned off');
+    });
+
     it('shows None for a command with no keys', function () {
       renderRow([]);
       expect(host.querySelector('.values').textContent).toBe('None');
@@ -134,16 +154,46 @@ describe('Removing shortcuts on the Shortcuts page', function () {
 
   describe('the whole page', function () {
     let reloadKeymaps: () => void;
-    const config = { get: () => 'Gmail', set: () => {} };
+    let singleKeys: boolean;
+    const config = {
+      get: (key: string) => (key === 'core.keymapTemplate' ? 'Gmail' : singleKeys),
+      set: (key: string, value: any) => {},
+    };
     const sectionCommands = (i: number) => displayedKeybindings[i].items.map(([c]) => c);
     const allCommands = displayedKeybindings.flatMap((s) => s.items.map(([c]) => c));
 
     beforeEach(function () {
+      singleKeys = true;
       spyOn(AppEnv.keymaps, 'onDidReloadKeymap').andCallFake((callback) => {
         reloadKeymaps = callback;
         return { dispose: () => {} };
       });
       ReactDOM.render(<PreferencesKeymaps config={config} />, host);
+    });
+
+    it('shows the switch off, and single keys as off, while they are turned off', function () {
+      singleKeys = false;
+      spyOn(AppEnv.keymaps, 'getBindingsForCommand').andCallFake((c) =>
+        c === 'core:archive-item' ? ['e', 'mod+e'] : []
+      );
+      ReactDOM.unmountComponentAtNode(host);
+      ReactDOM.render(<PreferencesKeymaps config={config} />, host);
+      expect((host.querySelector('.single-key-switch input') as HTMLInputElement).checked).toBe(
+        false
+      );
+      const archive = [...host.querySelectorAll('.shortcut')].find(
+        (r) => r.querySelector('.shortcut-name').textContent === 'Archive'
+      );
+      const chips = [...archive.querySelectorAll('.shortcut-chip')];
+      expect(chips.map((c) => c.classList.contains('off'))).toEqual([true, false]);
+    });
+
+    it('turns single-key shortcuts off and on from its switch', function () {
+      const set = spyOn(config, 'set');
+      const box = host.querySelector('.single-key-switch input') as HTMLInputElement;
+      expect(box.checked).toBe(true);
+      ReactTestUtils.Simulate.change(box, { target: { checked: false } } as any);
+      expect(set).toHaveBeenCalledWith('core.keymapSingleKeys', false);
     });
 
     it('lists a row for every command, in one set of sections', function () {

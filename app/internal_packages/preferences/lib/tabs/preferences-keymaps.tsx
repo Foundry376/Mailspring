@@ -259,6 +259,7 @@ export default class PreferencesKeymaps extends React.Component<
                 ])
               )}
               onRemoveFrom={this._onRemoveFrom}
+              singleKeysOff={!this.props.config.get('core.keymapSingleKeys')}
             />
           );
         })}
@@ -318,6 +319,19 @@ export default class PreferencesKeymaps extends React.Component<
                 : localized('%@ shortcuts you added also run other commands.', conflictCount)}
             </div>
           )}
+          <label className="single-key-switch">
+            <input
+              type="checkbox"
+              checked={!!this.props.config.get('core.keymapSingleKeys')}
+              onChange={(e) => this.props.config.set('core.keymapSingleKeys', e.target.checked)}
+            />
+            {localized('Single-key shortcuts, like E to archive')}
+          </label>
+          <div className="single-key-switch-note">
+            {localized(
+              'Turn these off to keep keys pressed without Ctrl, Alt or Cmd from running commands, for example while dictating.'
+            )}
+          </div>
           {this._renderSearch()}
           <div className="shortcut-sections">{displayedKeybindings.map(renderSection)}</div>
           {displayedKeybindings.every((section) => this._visibleItems(section).length === 0) && (

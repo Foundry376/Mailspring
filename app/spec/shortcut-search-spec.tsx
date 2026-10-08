@@ -58,7 +58,15 @@ describe('Searching the Shortcuts page', function () {
     spyOn(AppEnv.keymaps, 'resumeAllKeymaps');
     host = document.createElement('div');
     document.body.appendChild(host);
-    ReactDOM.render(<PreferencesKeymaps config={{ get: () => 'Gmail', set: () => {} }} />, host);
+    ReactDOM.render(
+      <PreferencesKeymaps
+        config={{
+          get: (key: string) => (key === 'core.keymapTemplate' ? 'Gmail' : true),
+          set: () => {},
+        }}
+      />,
+      host
+    );
   });
 
   afterEach(function () {
