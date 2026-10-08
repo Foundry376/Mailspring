@@ -260,12 +260,17 @@ describe('firstVisibleBarIds', function () {
   it("gives an event's first visible bar the focus, even when overflow hides an earlier one", function () {
     // Three bars from Friday fill Saturday, so the trip's first-row bar lands past the cap.
     const busy = ['a', 'b', 'c'].map((id) => allDay(id, '2026-10-09', '2026-10-10'));
-    const events = [...busy, allDay('trip', '2026-10-10', '2026-10-12')];
+    const events = [
+      allDay('span', '2026-10-08', '2026-10-12'),
+      ...busy,
+      allDay('trip', '2026-10-10', '2026-10-12'),
+    ];
     const layouts = [layoutWeekBars(events, WEEK, 3), layoutWeekBars(events, NEXT_WEEK, 3)];
     expect(layouts[0].bars.some((b) => b.event.id === 'trip')).toBe(false);
     const [first, second] = firstVisibleBarIds(layouts);
     expect(first.has('trip')).toBe(false);
     expect(second.has('trip')).toBe(true);
-    expect(first.has('a')).toBe(true);
+    expect(first.has('span')).toBe(true);
+    expect(second.has('span')).toBe(false);
   });
 });
