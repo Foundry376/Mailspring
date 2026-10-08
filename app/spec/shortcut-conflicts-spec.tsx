@@ -186,6 +186,53 @@ describe('Shortcut conflicts on the Shortcuts page', function () {
       );
     });
 
+    const shown = () =>
+      [...host.querySelectorAll('.shortcut')].map(
+        (r) => r.querySelector('.shortcut-name').textContent
+      );
+    const showOnly = (value: string) =>
+      ReactTestUtils.Simulate.change(host.querySelector('.shortcut-show'), {
+        target: { value },
+      } as any);
+
+    it('counts changed and conflicting commands in the Show menu', function () {
+      render({ 'core:archive-item': ['e', 's'] });
+      const options = [...host.querySelectorAll('.shortcut-show option')].map((o) => o.textContent);
+      expect(options).toEqual(['Show all', 'Changed (1)', 'Conflicts (2)']);
+    });
+
+    it('shows only the changed commands, or only those in a conflict', function () {
+      render({ 'core:archive-item': ['e', 's'] });
+      showOnly('changed');
+      expect(shown()).toEqual(['Archive']);
+      showOnly('conflicts');
+      expect(shown()).toEqual(['Archive', 'Star']);
+      expect(host.querySelectorAll('.clear-section').length).toBe(0);
+      showOnly('all');
+      expect(shown().length).toBeGreaterThan(2);
+      expect(host.querySelectorAll('.clear-section').length).toBeGreaterThan(0);
+    });
+
+    it('narrows the Show menu further by search', function () {
+      render({ 'core:archive-item': ['e', 's'] });
+      showOnly('conflicts');
+      ReactTestUtils.Simulate.change(host.querySelector('.shortcut-search-input'), {
+        target: { value: 'star' },
+      } as any);
+      expect(shown()).toEqual(['Star']);
+    });
+
+    it('lists the conflicts, and only them, from the count at the top', function () {
+      render({ 'core:archive-item': ['e', 's'] });
+      ReactTestUtils.Simulate.change(host.querySelector('.shortcut-search-input'), {
+        target: { value: 'reply' },
+      } as any);
+      ReactTestUtils.Simulate.click(host.querySelector('.shortcut-conflict-count'));
+      expect(shown()).toEqual(['Archive', 'Star']);
+      expect((host.querySelector('.shortcut-show') as HTMLSelectElement).value).toBe('conflicts');
+      expect((host.querySelector('.shortcut-search-input') as HTMLInputElement).value).toBe('');
+    });
+
     it('says nothing about the defaults sharing a key, even on a changed command', function () {
       all['core:mark-as-unread'] = ['ctrl+u', 'shift+u'];
       render({ 'core:mark-as-unread': ['ctrl+u', 'shift+u'] });

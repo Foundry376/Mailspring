@@ -38,6 +38,7 @@ export default class PreferencesKeymaps extends React.Component<
     /** The key whose commands are listed, after Find by key. */
     keyQuery: string | null;
     findingKey: boolean;
+    show: 'all' | 'changed' | 'conflicts';
   }
 > {
   static displayName = 'PreferencesKeymaps';
@@ -53,6 +54,7 @@ export default class PreferencesKeymaps extends React.Component<
       query: '',
       keyQuery: null,
       findingKey: false,
+      show: 'all',
     };
     this._loadTemplates();
   }
@@ -159,21 +161,38 @@ export default class PreferencesKeymaps extends React.Component<
     }
   };
 
-  _isSearching() {
-    return !!(this.state.query.trim() || this.state.keyQuery);
+  /** Whether the list shows only some commands, from a search or the Show menu. */
+  _isNarrowed() {
+    return !!(this.state.query.trim() || this.state.keyQuery || this.state.show !== 'all');
   }
 
-  _visibleItems(section: { items: string[][] }) {
+  _isShown(command: string, conflicts: Conflicts) {
+    const { show, userKeymap } = this.state;
+    if (show === 'changed') {
+      return command in userKeymap;
+    }
+    if (show === 'conflicts') {
+      return command in conflicts;
+    }
+    return true;
+  }
+
+  _visibleItems(section: { items: string[][] }, conflicts: Conflicts) {
     const { query, keyQuery, bindings } = this.state;
-    return section.items.filter(([command, label]) =>
-      keyQuery
-        ? runsOnKey(bindings[command], keyQuery, process.platform)
-        : matchesQuery(label, bindings[command], query, process.platform)
+    return section.items.filter(
+      ([command, label]) =>
+        this._isShown(command, conflicts) &&
+        (keyQuery
+          ? runsOnKey(bindings[command], keyQuery, process.platform)
+          : matchesQuery(label, bindings[command], query, process.platform))
     );
   }
 
-  _renderSearch() {
-    const { query, keyQuery, findingKey } = this.state;
+  _renderSearch(conflicts: Conflicts) {
+    const { query, keyQuery, findingKey, show, userKeymap } = this.state;
+    const listed = displayedKeybindings.flatMap((section) => section.items.map(([c]) => c));
+    const changedCount = listed.filter((c) => c in userKeymap).length;
+    const conflictCount = listed.filter((c) => c in conflicts).length;
     let field: React.ReactNode;
     if (findingKey) {
       field = (
@@ -210,6 +229,17 @@ export default class PreferencesKeymaps extends React.Component<
     return (
       <Flexbox className="shortcut-search">
         {field}
+        <select
+          className="shortcut-show"
+          value={show}
+          onChange={(e) =>
+            this.setState({ show: e.target.value as 'all' | 'changed' | 'conflicts' })
+          }
+        >
+          <option value="all">{localized('Show all')}</option>
+          <option value="changed">{localized('Changed (%@)', changedCount)}</option>
+          <option value="conflicts">{localized('Conflicts (%@)', conflictCount)}</option>
+        </select>
         <button
           className="btn find-by-key"
           disabled={findingKey}
@@ -226,7 +256,7 @@ export default class PreferencesKeymaps extends React.Component<
     conflicts: Conflicts,
     added: { [command: string]: string[] }
   ) => {
-    const items = this._visibleItems(section);
+    const items = this._visibleItems(section, conflicts);
     if (items.length === 0) {
       return null;
     }
@@ -234,7 +264,7 @@ export default class PreferencesKeymaps extends React.Component<
       <section key={`section-${section.title}`}>
         <Flexbox className="shortcut-section-title">
           <div style={{ flex: 1 }}>{section.title}</div>
-          {!this._isSearching() && (
+          {!this._isNarrowed() && (
             <a
               className="clear-section"
               onClick={() => this._onClear(section.items.map(([command]) => command))}
@@ -313,11 +343,14 @@ export default class PreferencesKeymaps extends React.Component<
             )}
           </p>
           {conflictCount > 0 && (
-            <div className="shortcut-conflict-count">
+            <a
+              className="shortcut-conflict-count"
+              onClick={() => this.setState({ show: 'conflicts', query: '', keyQuery: null })}
+            >
               {conflictCount === 1
                 ? localized('1 shortcut you added also runs another command.')
                 : localized('%@ shortcuts you added also run other commands.', conflictCount)}
-            </div>
+            </a>
           )}
           <label className="single-key-switch">
             <input
@@ -332,9 +365,11 @@ export default class PreferencesKeymaps extends React.Component<
               'Turn these off to keep keys pressed without Ctrl, Alt or Cmd from running commands, for example while dictating.'
             )}
           </div>
-          {this._renderSearch()}
+          {this._renderSearch(conflicts)}
           <div className="shortcut-sections">{displayedKeybindings.map(renderSection)}</div>
-          {displayedKeybindings.every((section) => this._visibleItems(section).length === 0) && (
+          {displayedKeybindings.every(
+            (section) => this._visibleItems(section, conflicts).length === 0
+          ) && (
             <div className="shortcut-no-matches">
               {this.state.keyQuery
                 ? localized('Nothing runs on %@.', formatKeystrokes(this.state.keyQuery))
