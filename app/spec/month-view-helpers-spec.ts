@@ -1,5 +1,8 @@
 // Import directly from the source file; the plugin isn't registered in mailspring-exports.
-import { layoutWeekBars } from '../internal_packages/main-calendar/lib/core/month-view-helpers';
+import {
+  firstVisibleBarIds,
+  layoutWeekBars,
+} from '../internal_packages/main-calendar/lib/core/month-view-helpers';
 import {
   EventOccurrence,
   coveredDates,
@@ -90,6 +93,21 @@ describe('layoutWeekBars', function () {
       continuesBefore: true,
       continuesAfter: false,
     });
+  });
+
+  it('treats an event filling the row exactly as neither continued nor cut', function () {
+    const layout = layoutWeekBars(
+      [allDay('week', '2026-10-04', '2026-10-10'), allDay('sunday', '2026-10-04')],
+      WEEK,
+      5
+    );
+    expect(barFor(layout, 'week')).toEqual({
+      columns: [0, 6],
+      slot: 0,
+      continuesBefore: false,
+      continuesAfter: false,
+    });
+    expect(barFor(layout, 'sunday').columns).toEqual([0, 0]);
   });
 
   it('spans a timed event that crosses midnight, but not one that ends at it', function () {
@@ -235,5 +253,19 @@ describe('layoutWeekBars', function () {
     );
     expect(barFor(layout, 'trip').columns).toEqual([0, 2]);
     expect(barFor(layout, 'meeting').columns).toEqual([6, 6]);
+  });
+});
+
+describe('firstVisibleBarIds', function () {
+  it("gives an event's first visible bar the focus, even when overflow hides an earlier one", function () {
+    // Three bars from Friday fill Saturday, so the trip's first-row bar lands past the cap.
+    const busy = ['a', 'b', 'c'].map((id) => allDay(id, '2026-10-09', '2026-10-10'));
+    const events = [...busy, allDay('trip', '2026-10-10', '2026-10-12')];
+    const layouts = [layoutWeekBars(events, WEEK, 3), layoutWeekBars(events, NEXT_WEEK, 3)];
+    expect(layouts[0].bars.some((b) => b.event.id === 'trip')).toBe(false);
+    const [first, second] = firstVisibleBarIds(layouts);
+    expect(first.has('trip')).toBe(false);
+    expect(second.has('trip')).toBe(true);
+    expect(first.has('a')).toBe(true);
   });
 });

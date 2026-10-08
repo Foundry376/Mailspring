@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import classnames from 'classnames';
-import { localized } from 'mailspring-exports';
+import { localized, isRTL } from 'mailspring-exports';
 import {
   EventOccurrence,
   isTimed,
@@ -12,18 +12,17 @@ import { calcEventColors, formatShortTime } from './calendar-helpers';
 import { HitZone } from './calendar-drag-types';
 import { detectHitZone, canAttemptMove, formatDragPreviewTime } from './calendar-drag-utils';
 
+function spansDays(event: EventOccurrence) {
+  return event.endDate > event.startDate;
+}
+
 interface MonthViewEventProps {
   event: EventOccurrence;
   selected: boolean;
   focused: boolean;
-  /** Whether the event began in an earlier week row, so this bar's start edge is a cut. */
   continuesBefore?: boolean;
-  /** Whether the event goes on into a later week row. */
   continuesAfter?: boolean;
-  /**
-   * Whether this is the event's first bar on screen. Only it is a Tab stop and announces focus,
-   * so an event drawn across two rows is visited and opened once.
-   */
+  /** Only the first bar is a Tab stop and announces focus, so an event across two rows opens once. */
   isFirstBar?: boolean;
   isDragging?: boolean;
   edgeZoneSize?: number;
@@ -137,10 +136,14 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
       this.props.edgeZoneSize,
       'horizontal'
     );
-    // A cut edge at the end of a week row is not one of the event's ends, so it only moves it.
+    // detectHitZone reads physical edges, and in RTL a row starts on the right.
+    const { continuesBefore, continuesAfter } = this.props;
+    const [leftIsCut, rightIsCut] = isRTL
+      ? [continuesAfter, continuesBefore]
+      : [continuesBefore, continuesAfter];
     if (
-      (hitZone.mode === 'resize-start' && this.props.continuesBefore) ||
-      (hitZone.mode === 'resize-end' && this.props.continuesAfter)
+      (hitZone.mode === 'resize-start' && leftIsCut) ||
+      (hitZone.mode === 'resize-end' && rightIsCut)
     ) {
       hitZone = { mode: 'move', cursor: 'grab' };
     }
@@ -206,7 +209,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
     if (event.isPending) {
       return 'rgba(128, 128, 128, 0.15)';
     }
-    return event.isAllDay || event.endDate > event.startDate ? tint : 'transparent';
+    return event.isAllDay || spansDays(event) ? tint : 'transparent';
   }
 
   render() {
@@ -270,7 +273,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
           )}
           {event.title}
         </span>
-        {!continuesAfter && isTimed(event) && event.endDate > event.startDate && (
+        {!continuesAfter && isTimed(event) && spansDays(event) && (
           <span className="month-view-event-end-time">
             {localized('ends %@', formatShortTime(event.end))}
           </span>

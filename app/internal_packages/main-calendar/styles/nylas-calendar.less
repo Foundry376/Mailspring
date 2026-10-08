@@ -575,6 +575,7 @@ body.platform-win32 {
     }
 
     @month-view-day-header-height: 32px;
+    @month-view-event-height: 20px;
 
     .month-view-day-header {
       height: @month-view-day-header-height;
@@ -599,8 +600,7 @@ body.platform-win32 {
       }
     }
 
-    // Bars lie over the row's day cells on a grid of the same seven columns. The layer passes
-    // the pointer through to the cells, so empty space still hit-tests as its day.
+    // The layer passes the pointer through to the cells, so empty space still hit-tests as its day.
     .month-view-week-bars {
       position: absolute;
       top: @month-view-day-header-height;
@@ -609,7 +609,7 @@ body.platform-win32 {
       bottom: 4px;
       display: grid;
       grid-template-columns: repeat(7, minmax(0, 1fr));
-      grid-auto-rows: 20px;
+      grid-auto-rows: @month-view-event-height;
       row-gap: 2px;
       overflow: hidden;
       pointer-events: none;
@@ -617,36 +617,22 @@ body.platform-win32 {
 
     .month-view-bar {
       min-width: 0;
-      margin: 0 4px;
-      pointer-events: auto;
-
-      // A cut at the row's edge runs into the cell edge, squared off; the event's own ends stay
-      // inset and rounded.
-      &.continues-before {
-        margin-left: 0;
-      }
-      &.continues-after {
-        margin-right: 0;
-      }
-      &.drag-preview {
-        pointer-events: none;
-      }
     }
 
     .month-view-event {
-      @event-height: 20px;
-
       .event-chip();
-      height: @event-height;
-      min-height: @event-height;
-      max-height: @event-height;
+      height: @month-view-event-height;
+      min-height: @month-view-event-height;
+      max-height: @month-view-event-height;
+      margin: 0 4px;
       cursor: default;
       overflow: hidden;
-      flex-shrink: 0;
       position: relative;
       display: flex;
+      pointer-events: auto;
 
       &.continues-before {
+        margin-left: 0;
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
 
@@ -655,6 +641,7 @@ body.platform-win32 {
         }
       }
       &.continues-after {
+        margin-right: 0;
         border-top-right-radius: 0;
         border-bottom-right-radius: 0;
       }
@@ -732,7 +719,6 @@ body.platform-win32 {
       font-size: 11px;
       color: @text-color-subtle;
       cursor: pointer;
-      flex-shrink: 0;
 
       &:hover {
         color: @text-color;

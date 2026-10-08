@@ -1,6 +1,7 @@
 import React from 'react';
 import moment, { Moment } from 'moment-timezone';
 import { InjectedComponentSet } from 'mailspring-component-kit';
+import { CalendarDateUtils } from 'mailspring-exports';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
 import { CalendarEventContainer } from './calendar-event-container';
 import { CalendarView } from './calendar-constants';
@@ -8,6 +9,7 @@ import { HeaderControls } from './header-controls';
 import { EventOccurrence } from './calendar-data-source';
 import { Disposable } from 'rx-core';
 import { MonthViewWeek } from './month-view-week';
+import { WeekBarsLayout, firstVisibleBarIds, layoutWeekBars } from './month-view-helpers';
 import { getEventsWithDragPreview } from './calendar-drag-utils';
 
 const DAYS_IN_WEEK = 7;
@@ -127,14 +129,14 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
     );
   }
 
-  _renderWeek(week: Moment[], weekIdx: number, events: EventOccurrence[]) {
+  _renderWeek(week: Moment[], weekIdx: number, layout: WeekBarsLayout, firstBarIds: Set<string>) {
     return (
       <MonthViewWeek
         key={weekIdx}
         days={week}
-        events={events}
+        layout={layout}
+        firstBarIds={firstBarIds}
         currentMonth={this.props.focusedMoment.month()}
-        isFirstWeek={weekIdx === 0}
         maxVisibleEvents={MAX_VISIBLE_EVENTS}
         focusedEvent={this.props.focusedEvent}
         selectedEvents={this.props.selectedEvents}
@@ -153,6 +155,14 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
   render() {
     const weeks = this._getWeeksInMonth();
     const events = getEventsWithDragPreview(this.state.events, this.props.dragState);
+    const layouts = weeks.map((week) =>
+      layoutWeekBars(
+        events,
+        week.map((d) => CalendarDateUtils.calendarDateFromUnix(d.unix())),
+        MAX_VISIBLE_EVENTS
+      )
+    );
+    const firstBarIds = firstVisibleBarIds(layouts);
     const headerText = this.props.focusedMoment.format('MMMM YYYY');
 
     return (
@@ -184,7 +194,9 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
           <div className="month-view-grid-container">
             {this._renderWeekdayHeaders()}
             <div className="month-view-grid">
-              {weeks.map((week, idx) => this._renderWeek(week, idx, events))}
+              {weeks.map((week, idx) =>
+                this._renderWeek(week, idx, layouts[idx], firstBarIds[idx])
+              )}
             </div>
           </div>
         </CalendarEventContainer>

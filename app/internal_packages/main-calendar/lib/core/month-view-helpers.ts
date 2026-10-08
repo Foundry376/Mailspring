@@ -1,30 +1,30 @@
+import { Moment } from 'moment-timezone';
 import { CalendarDate, CalendarDateUtils } from 'mailspring-exports';
 import { EventOccurrence, occurrenceStartUnix } from './calendar-data-source';
 
-/** One week row's piece of an event: a multi-day event cut at the row's edges, or a one-day chip. */
 export interface MonthViewBar {
   event: EventOccurrence;
-  /** Columns are indexes into the row's days, inclusive at both ends. */
+  /** Indexes into the row's days, inclusive at both ends. */
   firstColumn: number;
   lastColumn: number;
-  /** The lane, 0 at the top; the same in every column the bar covers. */
   slot: number;
-  /** Whether the event began in an earlier row, so this bar's start edge is a cut, not its start. */
   continuesBefore: boolean;
-  /** Whether the event goes on into a later row. */
   continuesAfter: boolean;
 }
 
 export interface WeekBarsLayout {
-  /** The bars to draw, in render order. Hidden bars are left out. */
+  /** Hidden bars are left out. */
   bars: MonthViewBar[];
-  /** Per column, how many events covering that day are hidden; "+N more" takes the last lane where nonzero. */
   hiddenCountByDay: number[];
 }
 
-// Google's order, within any one day: multi-day bars, then one-day all-day, then one-day timed by
-// start. Start date then longest first gives it: a lane is contested only by events sharing a
-// column, and of those the bars always start earlier or run longer.
+/** The day's `data-calendar-start`/`-end`: what the drag hit-test reads off a cell, a bar or "+N more". */
+export function dayBoundsUnix(first: Moment, last: Moment = first) {
+  return { start: first.clone().startOf('day').unix(), end: last.clone().endOf('day').unix() };
+}
+
+// Google's order (bars, then one-day all-day, then timed by start) falls out of start date then
+// longest first: only events sharing a column contest a lane, and of those a bar starts earlier or runs longer.
 function compareForLayout(a: EventOccurrence, b: EventOccurrence) {
   return (
     a.startDate - b.startDate ||
@@ -35,11 +35,8 @@ function compareForLayout(a: EventOccurrence, b: EventOccurrence) {
 }
 
 /**
- * Lays out one week row of the month grid: each event covering the row becomes one bar, given the
- * lowest lane free across every column it covers.
- *
- * `maxSlots` lanes fit in a day. Where a day has more, its last lane holds "+N more" instead, so a
- * bar in that lane is hidden if any day it covers overflows, and counted in each of those days.
+ * Where a day has more than `maxSlots` events its last lane holds "+N more", so a bar in that lane
+ * is hidden if any day it covers overflows, and counted in each of those days.
  */
 export function layoutWeekBars(
   events: EventOccurrence[],
@@ -98,4 +95,19 @@ export function layoutWeekBars(
     }
   }
   return { bars, hiddenCountByDay };
+}
+
+/** Per row, the events whose first visible bar is in that row: the bar that takes Tab and focus. */
+export function firstVisibleBarIds(layouts: WeekBarsLayout[]): Set<string>[] {
+  const seen = new Set<string>();
+  return layouts.map(({ bars }) => {
+    const first = new Set<string>();
+    for (const { event } of bars) {
+      if (!seen.has(event.id)) {
+        seen.add(event.id);
+        first.add(event.id);
+      }
+    }
+    return first;
+  });
 }

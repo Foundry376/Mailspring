@@ -344,7 +344,7 @@ describe('updateDragState move with day snapping', function () {
     const state = createDragState(
       event,
       { mode: 'move', cursor: 'move' },
-      start, // grabbed on its first day
+      start,
       0,
       0,
       MONTH_VIEW_DRAG_CONFIG
@@ -374,8 +374,6 @@ describe('updateDragState move with day snapping', function () {
     });
   });
 
-  // Grabbed on `grabbed` and dropped on the day containing `dropped`, as a bar in month view or on
-  // the week view's all-day row is: the hit-test hands over the day under the cursor both times.
   function dragMoveFrom(
     event: EventOccurrence,
     grabbed: number,
@@ -402,7 +400,6 @@ describe('updateDragState move with day snapping', function () {
   }
 
   it('moves a multi-day bar by the days the cursor moved, wherever it was grabbed', function () {
-    // Aug 14-16, grabbed on the 16th and dropped on the 17th: one day later, not starting on the 17th.
     const event = makeOccurrence({
       isAllDay: true,
       start: localDay(2026, 8, 14),
@@ -429,7 +426,6 @@ describe('updateDragState move with day snapping', function () {
   });
 
   it('moves a timed event crossing midnight by days from its second day, keeping its clock', function () {
-    // 10pm Aug 14 to 1am Aug 15, grabbed on the 15th and dropped on the 18th: three days later.
     const event = makeOccurrence({
       isAllDay: false,
       start: localDay(2026, 8, 14) + 22 * HOUR,
@@ -439,6 +435,36 @@ describe('updateDragState move with day snapping', function () {
       start: localDay(2026, 8, 17) + 22 * HOUR,
       end: localDay(2026, 8, 18) + 1 * HOUR,
     });
+  });
+
+  it('turns a timed event into one all-day day under the cursor, wherever it was grabbed', function () {
+    // Grabbed in week view on its second column, then dropped on the all-day row.
+    const event = makeOccurrence({
+      isAllDay: false,
+      start: localDay(2026, 8, 14) + 22 * HOUR,
+      end: localDay(2026, 8, 15) + 1 * HOUR,
+    });
+    const state = createDragState(
+      event,
+      { mode: 'move', cursor: 'grab' },
+      localDay(2026, 8, 15) + HOUR / 2,
+      0,
+      0,
+      DEFAULT_DRAG_CONFIG
+    );
+    const dragged = updateDragState(
+      state,
+      localDay(2026, 8, 18),
+      100,
+      100,
+      'all-day-area',
+      DEFAULT_DRAG_CONFIG
+    );
+    expect({
+      start: dragged.previewStart,
+      end: dragged.previewEnd,
+      isAllDay: dragged.previewIsAllDay,
+    }).toEqual({ start: localDay(2026, 8, 18), end: localDay(2026, 8, 19), isAllDay: true });
   });
 
   it('leaves a bar where it was when it is dropped on the day it was grabbed', function () {
@@ -468,7 +494,7 @@ describe('updateDragState move with day snapping', function () {
     const state = createDragState(
       event,
       { mode: 'move', cursor: 'move' },
-      start, // grabbed on its first day
+      start,
       0,
       0,
       MONTH_VIEW_DRAG_CONFIG
@@ -580,7 +606,7 @@ describe('updateDragState move converting all-day to timed', function () {
     const state = createDragState(
       event,
       { mode: 'move', cursor: 'move' },
-      start, // grabbed on the all-day row, on its first day
+      start,
       0,
       0,
       DEFAULT_DRAG_CONFIG
