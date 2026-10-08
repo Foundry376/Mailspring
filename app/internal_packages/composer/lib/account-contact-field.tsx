@@ -19,6 +19,11 @@ interface AccountContactFieldProps {
   onChange: (val: { from: Contact[]; cc: Contact[]; bcc: Contact[] }) => void;
 }
 
+export function fromIdentitiesForDraft(accounts: Account[], draft: Message) {
+  const scoped = draft.threadId ? accounts.filter((a) => a.id === draft.accountId) : accounts;
+  return AccountStore.aliasesFor(scoped);
+}
+
 export default class AccountContactField extends React.Component<AccountContactFieldProps> {
   static displayName = 'AccountContactField';
 
@@ -26,7 +31,10 @@ export default class AccountContactField extends React.Component<AccountContactF
 
   _onChooseContact = async (contact: Contact) => {
     const { draft, session, onChange } = this.props;
-    const { autoaddress } = AccountStore.accountForEmail(contact.email);
+    const sendingAccount = draft.threadId
+      ? AccountStore.accountForId(draft.accountId)
+      : AccountStore.accountForId(contact.accountId) || AccountStore.accountForEmail(contact.email);
+    const autoaddress = sendingAccount?.autoaddress || { type: 'bcc', value: '' };
 
     const existing = [...draft.to, ...draft.cc, ...draft.bcc].map((c) => c.email);
     let autocontacts = await ContactStore.parseContactsInString(autoaddress.value);
@@ -116,7 +124,7 @@ export default class AccountContactField extends React.Component<AccountContactF
   };
 
   _renderAccounts(accounts: Account[]) {
-    const items = AccountStore.aliasesFor(accounts);
+    const items = fromIdentitiesForDraft(accounts, this.props.draft);
     return (
       <Menu
         items={items}
