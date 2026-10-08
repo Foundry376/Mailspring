@@ -1,6 +1,8 @@
 {
   " On Linux, Mailspring stores passwords in your desktop keyring (KWallet, GNOME Keyring, or another Secret Service provider). Please make sure it is installed, running, and unlocked, then restart Mailspring.": " On Linux, Mailspring stores passwords in your desktop keyring (KWallet, GNOME Keyring, or another Secret Service provider). Please make sure it is installed, running, and unlocked, then restart Mailspring.",
   "Add a shortcut": "Add a shortcut",
+  "Clear": "Clear",
+  "Clear All": "Clear All",
   "Mailspring could not read your saved passwords and cannot continue.": "Mailspring could not read your saved passwords and cannot continue.",
   "Mailspring could not store your password securely because encryption is not available on this system.": "Mailspring could not store your password securely because encryption is not available on this system.",
   "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.": "\"Launch on system start\" only works in XDG-compliant desktop environments. To enable the Mailspring icon in the system tray, you may need to install libappindicator or libayatana-appindicator.",
@@ -578,6 +580,7 @@
   "Reminder set for %@ from now": "Reminder set for %@ from now",
   "Reminders": "Reminders",
   "Remove": "Remove",
+  "Remove every shortcut in this list? Add back the ones you want with +, or use Restore Defaults.": "Remove every shortcut in this list? Add back the ones you want with +, or use Restore Defaults.",
   "Remove HTML": "Remove HTML",
   "Remove Star": "Remove Star",
   "Remove Stars": "Remove Stars",

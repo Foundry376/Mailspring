@@ -3,7 +3,14 @@ import { Flexbox } from 'mailspring-component-kit';
 import { localized } from 'mailspring-exports';
 
 import { keyAndModifiersForEvent } from './mousetrap-keybinding-helpers';
-import { readUserKeymap, writeUserKeymap, bindingFromKeys, withBinding } from './user-keymap';
+import {
+  readUserKeymap,
+  writeUserKeymap,
+  bindingFromKeys,
+  withBinding,
+  withoutBinding,
+  pressedKeys,
+} from './user-keymap';
 
 // Mousetrap waits this long for the next key of a sequence (_resetSequenceTimer in mousetrap.js),
 // so a plain key recorded alone is the same key the keymap will later wait for.
@@ -13,6 +20,8 @@ interface CommandKeybindingProps {
   bindings: string[];
   label: string;
   command: string;
+  /** Whether the user keymap sets this command's keys, so it can be reset to the template's. */
+  customized: boolean;
 }
 interface CommandKeybindingState {
   recording: boolean;
@@ -134,12 +143,15 @@ export default class CommandKeybinding extends React.Component<
     }
   };
 
-  _onFinishRecording = () => {
-    const { keys, modifiers } = this.state;
-    const binding = bindingFromKeys(keys, modifiers, process.platform);
+  /** Writes this command's keys to the user keymap, or removes its entry when given null. */
+  _saveBindings(bindings: string[] | null) {
     const keymapPath = AppEnv.keymaps.getUserKeymapPath();
     const keymap = readUserKeymap(keymapPath);
-    keymap[this.props.command] = withBinding(this.props.bindings, binding);
+    if (bindings) {
+      keymap[this.props.command] = bindings;
+    } else {
+      delete keymap[this.props.command];
+    }
     try {
       writeUserKeymap(keymapPath, keymap);
     } catch (err) {
@@ -149,7 +161,21 @@ export default class CommandKeybinding extends React.Component<
           err.toString()
       );
     }
+  }
+
+  _onFinishRecording = () => {
+    const { keys, modifiers } = this.state;
+    const binding = bindingFromKeys(keys, modifiers, process.platform);
+    this._saveBindings(withBinding(this.props.bindings, binding));
     this._stopRecording({ refocus: true });
+  };
+
+  _onRemove = (binding: string) => {
+    this._saveBindings(withoutBinding(this.props.bindings, binding, process.platform));
+  };
+
+  _onReset = () => {
+    this._saveBindings(null);
   };
 
   _onRecorderKey = (event: React.KeyboardEvent<HTMLElement>) => {
@@ -195,15 +221,25 @@ export default class CommandKeybinding extends React.Component<
 
   render() {
     const { recording } = this.state;
-    const { bindings } = this.props;
+    const { bindings, customized } = this.props;
 
-    let value: React.ReactChild | React.ReactChild[] = 'None';
+    let value: React.ReactChild | React.ReactChild[] = localized('None');
     if (bindings.length > 0) {
       // Templates may list mod+a and ctrl+a for one command; they are the same key
       // on Windows and Linux, so dedupe by what the user would actually press.
-      const mod = process.platform === 'darwin' ? 'command' : 'ctrl';
-      const byKey = new Map(bindings.map((b) => [b.replace(/\bmod\b/g, mod), b]));
-      value = [...byKey.values()].map(this._renderKeystrokes);
+      const byKey = new Map(bindings.map((b) => [pressedKeys(b, process.platform), b]));
+      value = [...byKey.values()].map((binding, idx) => (
+        <span key={binding} className="shortcut-chip">
+          {this._renderKeystrokes(binding, idx)}
+          <button
+            className="remove-shortcut"
+            title={localized('Remove')}
+            onClick={() => this._onRemove(binding)}
+          >
+            ×
+          </button>
+        </span>
+      ));
     }
 
     return (
@@ -222,6 +258,11 @@ export default class CommandKeybinding extends React.Component<
             >
               +
             </button>
+          )}
+          {customized && !recording && (
+            <a className="reset-shortcut" onClick={this._onReset}>
+              {localized('Reset')}
+            </a>
           )}
         </div>
       </Flexbox>
