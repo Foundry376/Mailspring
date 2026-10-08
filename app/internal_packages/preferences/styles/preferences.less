@@ -226,6 +226,51 @@
       }
     }
 
+    .shortcut-search {
+      align-items: center;
+      gap: 8px;
+      margin: @padding-base-vertical 0 @padding-large-vertical;
+      .shortcut-search-input {
+        flex: 0 1 340px;
+      }
+      .shortcut-recorder {
+        flex: 0 1 340px;
+        padding: 4px 10px;
+        font-family: @font-family-monospace;
+        color: @component-active-color;
+        background: @input-bg;
+        border-radius: 5px;
+        outline: 2px solid @component-active-color;
+      }
+      .shortcut-key-query {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        .shortcut-value {
+          padding: 1px 8px;
+          font-family: @font-family-monospace;
+          font-weight: @font-weight-semi-bold;
+          background: @input-bg;
+          border: 1px solid @input-border-color;
+          border-bottom-width: 2px;
+          border-radius: 5px;
+        }
+        .clear-key-query {
+          border: none;
+          background: none;
+          cursor: pointer;
+          color: @text-color-very-subtle;
+          &:hover {
+            color: @text-color;
+          }
+        }
+      }
+    }
+    .shortcut-no-matches {
+      padding: @padding-large-vertical 0;
+      color: @text-color-very-subtle;
+    }
+
     // One column in a narrow window, two side by side once each can be 460px wide.
     .shortcut-sections {
       columns: 2 460px;
