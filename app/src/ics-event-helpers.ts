@@ -38,6 +38,12 @@ function nowUTC(ical: ICAL) {
 /**
  * Options for creating a new ICS event
  */
+/**
+ * Whether an event blocks time for free/busy (RFC 5545 section 3.8.2.7). An event without TRANSP
+ * is OPAQUE. iCalendar has no tentative value here; STATUS:TENTATIVE is a different property.
+ */
+export type Transparency = 'OPAQUE' | 'TRANSPARENT';
+
 export interface CreateEventOptions {
   uid?: string;
   summary: string;
@@ -50,6 +56,7 @@ export interface CreateEventOptions {
   organizer?: { email: string; name?: string };
   attendees?: Array<{ email: string; name?: string; role?: string }>;
   recurrenceRule?: string;
+  transparency?: Transparency;
 }
 
 /**
@@ -591,6 +598,10 @@ export function createICSString(options: CreateEventOptions): string {
     vevent.addPropertyWithValue('rrule', ical.Recur.fromString(options.recurrenceRule));
   }
 
+  if (options.transparency) {
+    vevent.addPropertyWithValue('transp', options.transparency);
+  }
+
   // Set timestamp
   vevent.addPropertyWithValue('dtstamp', nowUTC(ical));
 
@@ -824,7 +835,7 @@ export function createRecurrenceException(
 }
 
 /**
- * Applies property edits (summary, location, description, attendees) to an inline
+ * Applies property edits (summary, location, description, attendees, TRANSP) to an inline
  * exception VEVENT inside a master VCALENDAR ICS string.
  *
  * This is needed because `updateEventProperty` and `updateAttendees` target the
@@ -844,6 +855,7 @@ export function applyEditsToException(
     description?: string;
     attendees?: AttendeeInput[];
     organizer?: Organizer;
+    transparency?: Transparency;
   }
 ): string {
   const ical = getICAL();
@@ -879,6 +891,9 @@ export function applyEditsToException(
   }
   if (edits.organizer) {
     nameOrganizer(vcalendar, edits.organizer);
+  }
+  if (edits.transparency) {
+    exceptionVevent.updatePropertyWithValue('transp', edits.transparency);
   }
 
   exceptionVevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
@@ -1560,7 +1575,7 @@ export function getEventTimezone(ics: string): string | null {
  */
 export function updateEventProperty(
   ics: string,
-  property: 'summary' | 'description' | 'location',
+  property: 'summary' | 'description' | 'location' | 'transp',
   value: string
 ): string {
   const ical = getICAL();
@@ -1575,6 +1590,9 @@ export function updateEventProperty(
       break;
     case 'location':
       event.location = value;
+      break;
+    case 'transp':
+      event.component.updatePropertyWithValue('transp', value);
       break;
   }
 

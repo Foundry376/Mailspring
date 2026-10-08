@@ -12,6 +12,7 @@ import {
   localized,
   CalendarDateUtils,
 } from 'mailspring-exports';
+import { ShowAsOption } from './show-as-selector';
 import { MIN_EVENT_DURATION_SECONDS } from './calendar-constants';
 import { EventOccurrence, isTimed } from './calendar-data-source';
 import { dayFraction } from './week-view-helpers';
@@ -436,6 +437,7 @@ export interface CreateCalendarEventOptions {
   attendees?: Array<{ email: string; name?: string }>;
   recurrenceRule?: string;
   timezone?: string;
+  transparency?: ShowAsOption;
 }
 
 /** The account, as the ORGANIZER the ICS helpers name once an event has guests. */
@@ -464,6 +466,7 @@ export async function createCalendarEvent(options: CreateCalendarEventOptions): 
     organizer: organizerForAccount(options.accountId),
     attendees: options.attendees,
     recurrenceRule: options.recurrenceRule,
+    transparency: options.transparency,
   });
 
   const event = new Event({

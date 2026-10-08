@@ -76,7 +76,7 @@ function makeEvent(ics: string) {
   } as any);
 }
 
-function makeOccurrence(title: string): TimedOccurrence {
+function makeOccurrence(title: string, extra: Partial<TimedOccurrence> = {}): TimedOccurrence {
   return {
     id: 'event-1-e0',
     accountId: 'account-1',
@@ -94,15 +94,20 @@ function makeOccurrence(title: string): TimedOccurrence {
     attendees: [],
     start: START,
     end: END,
+    ...extra,
   } as TimedOccurrence;
 }
 
 // The editor is exercised the way the UI drives it: onEdit reads the event's recurrence into
 // state, updateField is what every input calls, and _saveAllOccurrences is the save. The
 // component is not mounted, so setState is redirected straight into state.
-async function openEditor(event: MailspringEvent, title: string) {
+async function openEditor(
+  event: MailspringEvent,
+  title: string,
+  extra: Partial<TimedOccurrence> = {}
+) {
   const popover: any = new CalendarEventPopover({
-    event: makeOccurrence(title),
+    event: makeOccurrence(title, extra),
     onEdit: () => {},
     onDelete: () => {},
   } as any);
@@ -315,5 +320,111 @@ describe('CalendarEventPopover save path and the organizer', function () {
     for (const vevent of vevents) {
       expect(vevent).toContain('ORGANIZER;CN=Me:mailto:me@example.com');
     }
+  });
+});
+
+describe('CalendarEventPopover save path and Show As', function () {
+  // Google writes TRANSP on every VEVENT, and makes all-day events TRANSPARENT by default.
+  const BUSY_SERIES_ICS = FORTNIGHTLY_ICS.replace('SEQUENCE:0', 'SEQUENCE:0\nTRANSP:OPAQUE');
+  const FREE_SERIES_ICS = FORTNIGHTLY_ICS.replace('SEQUENCE:0', 'SEQUENCE:0\nTRANSP:TRANSPARENT');
+  let queued: any[];
+
+  beforeEach(function () {
+    queued = [];
+    spyOn(Actions, 'queueTask').andCallFake((task) => queued.push(task));
+    spyOn(SyncbackEventTask, 'forUpdating').andCallFake((opts) => opts);
+  });
+
+  /** TRANSP of each VEVENT in file order; null where a VEVENT has none. */
+  const transpsOf = (ics: string) =>
+    ics
+      .split('BEGIN:VEVENT')
+      .slice(1)
+      .map((v) => (/^TRANSP:(.*)$/m.exec(v) || [])[1] || null);
+
+  it('shows a free event as Free', async function () {
+    const free = await openEditor(makeEvent(FREE_SERIES_ICS), 'Planning', { isFree: true });
+    expect(free.state.showAs).toBe('TRANSPARENT');
+  });
+
+  it('shows a busy event as Busy', async function () {
+    const busy = await openEditor(makeEvent(BUSY_SERIES_ICS), 'Planning', { isFree: false });
+    expect(busy.state.showAs).toBe('OPAQUE');
+  });
+
+  it('marks the series free when Show As changes to Free', async function () {
+    const event = makeEvent(BUSY_SERIES_ICS);
+    const popover = await openEditor(event, 'Planning');
+    popover.updateField('showAs', 'TRANSPARENT');
+
+    popover._saveAllOccurrences(event);
+
+    expect(transpsOf(queued[0].event.ics)).toEqual(['TRANSPARENT']);
+    expect(sequencesOf(queued[0].event.ics)).toEqual([1]);
+  });
+
+  it('marks a free series busy when Show As changes to Busy', async function () {
+    const event = makeEvent(FREE_SERIES_ICS);
+    const popover = await openEditor(event, 'Planning', { isFree: true });
+    popover.updateField('showAs', 'OPAQUE');
+
+    popover._saveAllOccurrences(event);
+
+    expect(transpsOf(queued[0].event.ics)).toEqual(['OPAQUE']);
+  });
+
+  it('leaves TRANSP as it was when Show As was not touched', async function () {
+    const event = makeEvent(FORTNIGHTLY_ICS);
+    const popover = await openEditor(event, 'Planning');
+    popover.updateField('title', 'Planning (renamed)');
+
+    popover._saveAllOccurrences(event);
+
+    expect(transpsOf(queued[0].event.ics)).toEqual([null]);
+  });
+
+  it('marks only the occurrence free when one occurrence is edited', async function () {
+    const event = makeEvent(BUSY_SERIES_ICS);
+    const popover = await openEditor(event, 'Planning');
+    popover.updateField('showAs', 'TRANSPARENT');
+
+    await popover._saveOccurrenceException(event);
+
+    expect(transpsOf(queued[0].event.ics)).toEqual(['OPAQUE', 'TRANSPARENT']);
+  });
+
+  it('adds no TRANSP to an occurrence whose Show As was not touched', async function () {
+    const event = makeEvent(FORTNIGHTLY_ICS);
+    const popover = await openEditor(event, 'Planning');
+    popover.updateField('title', 'Planning (moved)');
+
+    await popover._saveOccurrenceException(event);
+
+    expect(transpsOf(queued[0].event.ics)).toEqual([null, null]);
+  });
+
+  it('follows the event when it changes under the editor', async function () {
+    const popover = await openEditor(makeEvent(BUSY_SERIES_ICS), 'Planning');
+    const prevProps = popover.props;
+    popover.props = { ...prevProps, event: makeOccurrence('Planning', { isFree: true }) };
+    popover.componentDidUpdate(prevProps, popover.state);
+    expect(popover.state.showAs).toBe('TRANSPARENT');
+    expect(popover._changedShowAs()).toBe(undefined);
+  });
+
+  it('creates the event with the Show As the user picked', async function () {
+    const helpers = require('../internal_packages/main-calendar/lib/core/calendar-helpers');
+    spyOn(helpers, 'createCalendarEvent').andReturn(Promise.resolve());
+    spyOn(Actions, 'closePopover');
+    const popover: any = new CalendarEventPopover({
+      event: makeOccurrence(''),
+      isNewEvent: true,
+    } as any);
+    popover.setState = (update: object) => Object.assign(popover.state, update);
+    popover.updateField('showAs', 'TRANSPARENT');
+
+    await popover._createNewEvent();
+
+    expect(helpers.createCalendarEvent.mostRecentCall.args[0].transparency).toBe('TRANSPARENT');
   });
 });

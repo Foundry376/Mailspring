@@ -2,12 +2,12 @@ import React from 'react';
 import { localized } from 'mailspring-exports';
 import { EventPropertyRow } from './event-property-row';
 
-export type ShowAsOption = 'busy' | 'free' | 'tentative';
+/** The event's TRANSP value, which is all iCalendar records about busy and free. */
+export type ShowAsOption = 'OPAQUE' | 'TRANSPARENT';
 
 const SHOW_AS_OPTIONS: { value: ShowAsOption; label: string }[] = [
-  { value: 'busy', label: localized('Busy') },
-  { value: 'free', label: localized('Free') },
-  { value: 'tentative', label: localized('Tentative') },
+  { value: 'OPAQUE', label: localized('Busy') },
+  { value: 'TRANSPARENT', label: localized('Free') },
 ];
 
 interface ShowAsSelectorProps {

@@ -100,7 +100,7 @@ Dropdown for recurrence (None, Daily, Weekly, Monthly, Yearly, Custom).
 Alert configuration with type and timing.
 
 ### 7. ShowAsSelector
-Dropdown for availability status (Busy, Free, Tentative).
+Dropdown for availability, saved as TRANSP: Busy (OPAQUE) or Free (TRANSPARENT).
 
 ### 8. EventPopoverActions
 Footer with Save/Cancel buttons using `.btn` classes.
