@@ -218,6 +218,15 @@
       }
     }
 
+    .shortcut-conflict-count {
+      margin-bottom: @padding-base-vertical;
+      color: @text-color;
+      &:before {
+        content: '⚠ ';
+        color: @color-warning;
+      }
+    }
+
     .shortcut-section-title {
       border-bottom: 1px solid @border-color-divider;
       margin: @padding-large-vertical * 1.5 0;
@@ -272,6 +281,27 @@
       }
       .reset-shortcut {
         font-size: 0.9em;
+      }
+      .shortcut-chip.conflict {
+        background: fade(@color-warning, 18%);
+        outline: 1px solid fade(@color-warning, 60%);
+      }
+      .shortcut-conflict {
+        flex-basis: 100%;
+        padding-left: @padding-small-horizontal;
+        font-size: 0.9em;
+        color: @text-color;
+        &:before {
+          content: '⚠ ';
+          color: @color-warning;
+        }
+        .shortcut-value {
+          font-family: @font-family-monospace;
+          font-weight: @font-weight-semi-bold;
+        }
+        a {
+          margin-left: @padding-small-horizontal;
+        }
       }
       .add-shortcut {
         padding: 0 6px;

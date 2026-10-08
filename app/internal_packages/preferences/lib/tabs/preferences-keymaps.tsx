@@ -7,7 +7,22 @@ import { localized } from 'mailspring-exports';
 
 import displayedKeybindings from './keymaps/displayed-keybindings';
 import CommandItem from './keymaps/command-item';
-import { readUserKeymap, writeUserKeymap, clearedKeymap, UserKeymap } from './keymaps/user-keymap';
+import {
+  readUserKeymap,
+  writeUserKeymap,
+  clearedKeymap,
+  withoutBinding,
+  addedBindings,
+  findConflicts,
+  Conflicts,
+  UserKeymap,
+} from './keymaps/user-keymap';
+
+const LABELS: { [command: string]: string } = Object.fromEntries(
+  displayedKeybindings.flatMap((section) =>
+    section.items.map(([command, label]) => [command, label])
+  )
+);
 import { Disposable } from 'event-kit';
 
 export default class PreferencesKeymaps extends React.Component<
@@ -87,6 +102,30 @@ export default class PreferencesKeymaps extends React.Component<
     }
   }
 
+  /** Keys the user added to each command they changed, which the conflict check is about. */
+  _addedBindings(all: { [command: string]: string[] }) {
+    const added: { [command: string]: string[] } = {};
+    for (const command of Object.keys(this.state.userKeymap)) {
+      added[command] = addedBindings(
+        all[command] || [],
+        AppEnv.keymaps.getDefaultBindingsForCommand(command),
+        process.platform
+      );
+    }
+    return added;
+  }
+
+  _onRemoveFrom = (command: string, binding: string) => {
+    const keymapPath = AppEnv.keymaps.getUserKeymapPath();
+    const keymap = readUserKeymap(keymapPath);
+    keymap[command] = withoutBinding(
+      AppEnv.keymaps.getBindingsForCommand(command),
+      binding,
+      process.platform
+    );
+    writeUserKeymap(keymapPath, keymap);
+  };
+
   _onClear(commands: string[]) {
     const keymapPath = AppEnv.keymaps.getUserKeymapPath();
     writeUserKeymap(keymapPath, clearedKeymap(readUserKeymap(keymapPath), commands));
@@ -106,7 +145,11 @@ export default class PreferencesKeymaps extends React.Component<
     }
   };
 
-  _renderBindingsSection = (section: { title: string; items: string[][] }) => {
+  _renderBindingsSection = (
+    section: { title: string; items: string[][] },
+    conflicts: Conflicts,
+    added: { [command: string]: string[] }
+  ) => {
     return (
       <section key={`section-${section.title}`}>
         <Flexbox className="shortcut-section-title">
@@ -126,6 +169,14 @@ export default class PreferencesKeymaps extends React.Component<
               label={label}
               bindings={this.state.bindings[command]}
               customized={command in this.state.userKeymap}
+              added={added[command] || []}
+              conflicts={Object.fromEntries(
+                Object.entries(conflicts[command] || {}).map(([binding, others]) => [
+                  binding,
+                  others.map((other) => ({ command: other, label: LABELS[other] || other })),
+                ])
+              )}
+              onRemoveFrom={this._onRemoveFrom}
             />
           );
         })}
@@ -134,6 +185,15 @@ export default class PreferencesKeymaps extends React.Component<
   };
 
   render() {
+    const all = AppEnv.keymaps.getBindingsForAllCommands();
+    const added = this._addedBindings(all);
+    const conflicts = findConflicts(all, added, process.platform);
+    const conflictCount = Object.keys(added).reduce(
+      (count, command) => count + added[command].filter((b) => conflicts[command]?.[b]).length,
+      0
+    );
+    const renderSection = (section) => this._renderBindingsSection(section, conflicts, added);
+
     return (
       <div className="container-keymaps">
         <section>
@@ -169,14 +229,17 @@ export default class PreferencesKeymaps extends React.Component<
               'You can choose a shortcut set to use keyboard shortcuts of familiar email clients. To add a shortcut, click + next to a command and press the keys.'
             )}
           </p>
+          {conflictCount > 0 && (
+            <div className="shortcut-conflict-count">
+              {conflictCount === 1
+                ? localized('1 shortcut you added also runs another command.')
+                : localized('%@ shortcuts you added also run other commands.', conflictCount)}
+            </div>
+          )}
           <div className="two-columns-flexbox">
-            <div style={{ flex: 1 }}>
-              {displayedKeybindings.slice(0, 3).map(this._renderBindingsSection)}
-            </div>
+            <div style={{ flex: 1 }}>{displayedKeybindings.slice(0, 3).map(renderSection)}</div>
             <div style={{ width: 30 }} />
-            <div style={{ flex: 1 }}>
-              {displayedKeybindings.slice(3).map(this._renderBindingsSection)}
-            </div>
+            <div style={{ flex: 1 }}>{displayedKeybindings.slice(3).map(renderSection)}</div>
           </div>
         </section>
         <section>

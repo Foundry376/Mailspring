@@ -67,6 +67,9 @@ describe('Recording a shortcut on the Shortcuts page', function () {
         label="Archive"
         bindings={['e']}
         customized={false}
+        added={[]}
+        conflicts={{}}
+        onRemoveFrom={() => {}}
       />,
       host
     );
