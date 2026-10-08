@@ -166,8 +166,8 @@ export class MailspringCalendar extends React.Component<
   _unlistenFocusedMoment?: () => void;
   _dataSource = new CalendarDataSource();
   /**
-   * A press on empty grid space that has not travelled yet. Held out of state because a
-   * setState on every press re-renders the grid; it enters state once it is a drag.
+   * The press that began drawing a new event, held until release. It reaches state only once
+   * the pointer travels, because a setState on every press re-renders the grid.
    */
   _pendingCreateDrag: CreateDragState | null = null;
   /** The click that ends a create-drag is the drag's, not a click on the grid. */
@@ -770,7 +770,6 @@ export class MailspringCalendar extends React.Component<
       if (!travelled) {
         return;
       }
-      this._pendingCreateDrag = null;
       this.setState({ createDrag: { ...createDrag, currentTime: args.time, isDragging: true } });
       return;
     }
@@ -815,11 +814,8 @@ export class MailspringCalendar extends React.Component<
    * Handle mouse up to complete drag
    */
   _onCalendarMouseUp = (args: CalendarEventArgs) => {
-    if (this._pendingCreateDrag) {
-      // Never travelled: a click on the grid, and the click event that follows is its own.
-      this._pendingCreateDrag = null;
-      return;
-    }
+    // An untravelled press was a click on the grid; the click event that follows is its own.
+    this._pendingCreateDrag = null;
     const { createDrag } = this.state;
     if (createDrag) {
       this.setState({ createDrag: null });
@@ -872,6 +868,8 @@ export class MailspringCalendar extends React.Component<
    * left press over grid time begins drawing a new event, held until the pointer travels.
    */
   _onCalendarMouseDown = (args: CalendarEventArgs) => {
+    // A drag released outside the calendar is followed by no click, so the flag lives one press.
+    this._suppressNextCalendarClick = false;
     const pending = this._pendingDrag;
     this._pendingDrag = null;
     if (args.time === null) {
@@ -898,8 +896,8 @@ export class MailspringCalendar extends React.Component<
     }
     // A press on an event that cannot be dragged sets no pending grab but still bubbles here;
     // the DOM says where it landed, and a new event is never drawn over an existing one.
-    const target = args.mouseEvent.target as HTMLElement | null;
-    if (target && target.closest && target.closest('.calendar-event, .month-view-event')) {
+    const target = args.mouseEvent.target as HTMLElement;
+    if (target.closest('.calendar-event, .month-view-event')) {
       return;
     }
     const editable = getEditableCalendars(this.state.calendars, this.state.disabledCalendars || []);
