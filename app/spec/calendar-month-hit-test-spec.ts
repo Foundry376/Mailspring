@@ -12,7 +12,7 @@ function monthCell(firstISO: string, lastISO = firstISO) {
   el.dataset.calendarType = 'month-cell';
   const chip = document.createElement('span');
   el.appendChild(chip);
-  spyOn(el, 'getBoundingClientRect').and.returnValue({
+  spyOn(el, 'getBoundingClientRect').andReturn({
     left: 0,
     top: 0,
     width: 300,
