@@ -275,7 +275,7 @@ describe('drawing a new event on empty grid space', function () {
     cal._onEventDragStart(occurrence, {} as any, { mode: 'move' } as any);
     cal._onCalendarMouseDown(at(BASE));
     expect(cal._pendingCreateDrag).toBe(null);
-    expect(cal.state.dragState).not.toBe(null);
+    expect(cal._pendingDragState).not.toBe(null);
   });
 
   it('follows the pointer once drawing, including back toward where it began', function () {
