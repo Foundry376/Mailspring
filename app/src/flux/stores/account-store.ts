@@ -205,8 +205,10 @@ class _AccountStore extends MailspringStore {
 
     if (remainingAccounts.length === 0) {
       // Clear everything and logout. application:reset-database destroys this window
-      // before relaunching, which would cancel an in-flight revocation request.
+      // before relaunching, which would cancel an in-flight revocation request. It only
+      // deletes the database, so the secrets in config.json must be removed here.
       await revocation;
+      await KeyManager.deleteAccountSecrets(account);
       const ipc = require('electron').ipcRenderer;
       ipc.send('command', 'application:reset-database', {});
     } else {
