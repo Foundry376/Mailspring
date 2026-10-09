@@ -18,7 +18,7 @@ import {
 import { registerViewCredentialIPCHandlers } from './view-credentials';
 
 /**
- * Main-process half of Sandboxed Views (docs/plans/sandboxed-views-exploration.md).
+ * Main-process half of Sandboxed Views: user- or agent-authored pages run in a locked-down webview.
  *
  * Every View runs in a `<webview>` whose partition is `persist:view-<viewId>`. The first
  * time such a partition is attached, its session is locked down here: it can only load

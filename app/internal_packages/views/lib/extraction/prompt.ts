@@ -2,7 +2,7 @@ import crypto from 'crypto';
 
 /**
  * Turns a View's flat extraction schema into the prompt and JSON schema the on-device model
- * runs (docs/plans/sandboxed-views-exploration.md §9.5, §9.8). The host owns this template:
+ * runs. The host owns this template:
  * Views send only field names, types and short descriptions. Hints never contain sample values:
  * a 0.8B model copies them into its answers (an `e.g. "$23.10"` hint became the total of
  * every marketing email that mentioned no price), and a worked example with unrelated field
@@ -22,7 +22,7 @@ export const PROMPT_VERSION = 3;
 
 const MAX_LIST_ITEMS = 8;
 // Bodies are cut here; receipts and notices put what matters near the top, and the model is
-// decode-bound, so a longer input buys little (§9.8).
+// decode-bound, so a longer input buys little.
 const MAX_BODY_CHARS = 4000;
 
 const SYSTEM =
@@ -144,6 +144,6 @@ export function buildPrompt(schema: Schema, message: PromptMessage, instructions
     '\n'
   )}\n${notes}\nEMAIL:\n${emailBlock(message)}`;
   // The ChatML markers stay plain text: on the eval set this measured better than encoding
-  // them as special tokens (§9.8). The empty think block turns off Qwen3.5's reasoning mode.
+  // them as special tokens. The empty think block turns off Qwen3.5's reasoning mode.
   return `<|im_start|>system\n${SYSTEM}<|im_end|>\n<|im_start|>user\n${user}<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n`;
 }

@@ -2,8 +2,7 @@ import { AppleFMHelper, HelperError } from './apple-fm';
 import type { SystemModel } from './local-model';
 
 /**
- * The model backends behind ai.extract / ai.summarize / ai.generate
- * (docs/plans/views-apple-foundation-models-plan.md §4). Apple's on-device model is used where
+ * The model backends behind ai.extract / ai.summarize / ai.generate. Apple's on-device model is used where
  * it's available; the downloadable Qwen model everywhere else, or when the user picks it with
  * `core.views.localModelProvider = 'qwen'` (mostly so Mac developers can test what Windows and
  * Linux users get).

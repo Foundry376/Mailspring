@@ -1,6 +1,6 @@
 /* eslint-disable */
 /**
- * Utility-process half of on-device extraction (docs/plans/sandboxed-views-exploration.md §9).
+ * Utility-process half of on-device extraction for Views.
  *
  * Holds the one bundled model and runs one prompt at a time. Everything else (queueing,
  * caching, prompt construction, normalization) lives in the processes that own the data, so
@@ -56,7 +56,7 @@ async function run({ prompt, jsonSchema, schemaKey, maxTokens }) {
   const started = Date.now();
   try {
     // A plain string keeps `<|im_start|>` markers as text. That measured better than real
-    // special tokens on the eval set (§9.8), so the template stays in this form.
+    // special tokens on our extraction eval set, so the template stays in this form.
     const raw = await completion.generateCompletion(prompt, { grammar, maxTokens, temperature: 0 });
     let value = null;
     if (!grammar) {

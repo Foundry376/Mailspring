@@ -93,9 +93,33 @@ export async function respondToCalendarEvent(
     if (choice === 'cancel') return;
     thisOccurrenceOnly = choice === 'this-occurrence';
   }
+  await recordAndSendRSVP({
+    event,
+    myEmail: me.email,
+    status,
+    recurrenceId: thisOccurrenceOnly ? occurrenceRecurrenceId(occurrence) : null,
+  });
+}
+
+/**
+ * The RSVP itself, shared with Views: our PARTSTAT on our copy when that copy is writable, and
+ * an emailed REPLY to the organizer either way. `recurrenceId` answers one occurrence; null
+ * answers the whole stored object. Not undoable: the REPLY cannot be retracted.
+ */
+export async function recordAndSendRSVP({
+  event,
+  myEmail,
+  status,
+  recurrenceId,
+}: {
+  event: Event;
+  myEmail: string;
+  status: ICSParticipantStatus;
+  recurrenceId: ICAL.Time | null;
+}): Promise<void> {
   // What the answer is about: the one occurrence's VEVENT, or the whole stored object.
-  const answered = thisOccurrenceOnly
-    ? ICSEventHelpers.occurrenceIcs(event.ics, occurrenceRecurrenceId(occurrence))
+  const answered = recurrenceId
+    ? ICSEventHelpers.occurrenceIcs(event.ics, recurrenceId)
     : event.ics;
 
   // A calendar the server named as somebody else's holds their event, not ours; the invitation
@@ -104,18 +128,18 @@ export async function respondToCalendarEvent(
   const writable =
     calendar && !calendar.readOnly && !CalendarUtils.isSomeoneElsesCalendar(calendar);
   if (writable) {
-    const ics = thisOccurrenceOnly
-      ? ICSEventHelpers.updateOccurrenceAttendeeStatus(event.ics, answered, me.email, status)
-      : ICSEventHelpers.updateAttendeeStatus(event.ics, me.email, status);
+    const ics = recurrenceId
+      ? ICSEventHelpers.updateOccurrenceAttendeeStatus(event.ics, answered, myEmail, status)
+      : ICSEventHelpers.updateAttendeeStatus(event.ics, myEmail, status);
     if (ics) {
       const updated = event.clone();
       updated.ics = ics;
-      // Not undoable: the REPLY emailed below cannot be retracted.
       Actions.queueTask(SyncbackEventTask.forUpdating({ event: updated }));
     }
   }
 
-  const organizerEmail = CalendarUtils.emailFromParticipantURI(parsed.event.organizer);
+  const { event: parsed } = CalendarUtils.parseICSString(event.ics);
+  const organizerEmail = CalendarUtils.emailFromParticipantURI(parsed.organizer);
   if (!organizerEmail) return; // nothing to tell - an event with no organizer isn't scheduled
 
   try {

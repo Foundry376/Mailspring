@@ -1,6 +1,5 @@
 // The `@mailspring/view` module: the idiomatic React surface over window.mailspring, the raw
 // bridge exposed by bridge.preload.js. Views import from here rather than calling the bridge.
-// The API is specified in docs/plans/views-api.md §3.
 (function () {
   const React = window.React;
   const { useEffect, useState } = React;
@@ -821,7 +820,7 @@
   };
 
   // ── Credentials ───────────────────────────────────────────────────────────
-  // API keys the user stored for this View (views-api.md §3.10). The View never sees a key:
+  // API keys the user stored for this View. The View never sees a key:
   // credentialFetch asks the host to send the request with it attached, and gets back the
   // response with any echo of the key redacted.
 
@@ -890,7 +889,7 @@
   Object.assign(window.MailspringView, { credentialFetch, useCredentialStatus });
 
   // ── Calendars ─────────────────────────────────────────────────────────────
-  // Calendar reads and writes (views-api.md §3.11). Writes that would email other people
+  // Calendar reads and writes. Writes that would email other people
   // (invitations, updates, cancellations, RSVPs) are confirmed by the user in a host dialog,
   // and reject with code 'cancelled' if they decline.
 

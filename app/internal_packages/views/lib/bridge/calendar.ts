@@ -10,6 +10,7 @@ import {
   DestroyEventTask,
   Event,
   ICSEventHelpers,
+  ICSParticipantStatus,
   SyncbackEventTask,
   localized,
 } from 'mailspring-exports';
@@ -20,6 +21,7 @@ import { ViewError } from './errors';
 import { eventIdOf } from './events';
 import moment from 'moment';
 import FocusedMomentStore from '../../../main-calendar/lib/core/focused-moment-store';
+import { recordAndSendRSVP } from '../../../main-calendar/lib/core/calendar-rsvp';
 
 /**
  * Calendar reads beyond events, and the calendar writes Views may make. Every write goes
@@ -185,15 +187,13 @@ function checkTimes(start: Date, end: Date) {
 export async function rsvp(viewId: string, grant: ViewGrant, id: string, status: string) {
   requirePermission(grant, 'calendar.write');
   const answer = check(Status, status);
-  const event = await writableEvent(grant, id);
+  const event = await DatabaseStore.find<Event>(Event, eventIdOf(id));
+  if (!event || !isAccountAllowed(grant.scope, event.accountId)) {
+    throw new ViewError('not_found', `No event with id ${id}.`);
+  }
   const { event: parsed } = CalendarUtils.parseICSString(event.ics);
-  const attendees = (parsed.attendees || []).map((a) => ({
-    email: CalendarUtils.emailFromParticipantURI(String(a.getFirstValue() || '')) || '',
-    name: a.getFirstParameter('cn') || undefined,
-    partstat: a.getFirstParameter('partstat') || 'NEEDS-ACTION',
-  }));
-  const mine = attendees.filter((a) => isMe(a.email));
-  if (!mine.length) {
+  const me = CalendarUtils.selfParticipant(parsed, event.accountId);
+  if (!me) {
     throw new ViewError(
       'invalid',
       "You aren't an attendee of this event, so there's nothing to answer."
@@ -206,13 +206,14 @@ export async function rsvp(viewId: string, grant: ViewGrant, id: string, status:
     title: parsed.summary || localized('(no title)'),
     people: organizer && !isMe(organizer) ? [organizer] : [],
   });
-  const undoData = snapshot(event);
-  for (const a of mine) a.partstat = PARTSTAT[answer];
-  // Replying applies to the whole series, the way calendar invitations are answered.
-  event.ics = ICSEventHelpers.updateAttendees(event.ics, attendees);
-  Actions.queueTask(
-    SyncbackEventTask.forUpdating({ event, undoData, description: localized('Respond to event') })
-  );
+  // The calendar's own RSVP: our copy's PARTSTAT plus an emailed REPLY to the organizer, for
+  // the whole series. Not undoable, since the REPLY can't be retracted.
+  await recordAndSendRSVP({
+    event,
+    myEmail: me.email,
+    status: PARTSTAT[answer] as ICSParticipantStatus,
+    recurrenceId: null,
+  });
   return {};
 }
 

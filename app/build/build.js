@@ -93,9 +93,8 @@ const symlinkedPackages = [];
 let fmHelperPath = null;
 
 /**
- * Builds `mailspring-fm`, the helper for Apple's on-device model
- * (docs/plans/views-apple-foundation-models-plan.md). Apple Intelligence runs only on Apple
- * silicon, so Intel builds skip it and always use the downloadable model.
+ * Builds `mailspring-fm`, the helper for Apple's on-device model. Apple Intelligence runs only
+ * on Apple silicon, so Intel builds skip it and always use the downloadable model.
  */
 async function buildFMHelper() {
   const arch = process.env.OVERRIDE_TO_INTEL ? 'x64' : process.arch;

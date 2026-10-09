@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { credentialFetch, useCredentialStatus, call } from '@mailspring/view';
 
-// Development red team for View credentials. Run against the local echo server described in
-// docs/plans/views-api.md §3.10 (hosts mapped to 127.0.0.1 with --host-resolver-rules). Each
+// Development red team for View credentials. Run against a local echo server, with the
+// manifest's hosts mapped to 127.0.0.1 via --host-resolver-rules. Each
 // probe records what the View could observe; the test harness then checks that the secret it
 // stored never appears anywhere in window.__results and that only echo.* ever received it.
 

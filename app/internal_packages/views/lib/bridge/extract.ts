@@ -17,7 +17,7 @@ export type { Schema };
 /**
  * `ai.extract`. Each message goes through tier 0 first (schema.org markup embedded in the
  * message, see content.ts), and only messages without matching markup go to the on-device
- * model (docs/plans/sandboxed-views-exploration.md §9.8), which runs in a utility process via
+ * model, which runs in a utility process via
  * app/src/browser/extraction-service.ts.
  *
  * Model work runs on this device and isn't metered. If the model isn't downloaded, misses come
@@ -36,7 +36,7 @@ const BATCH_SIZE = 25;
 // and bound how much queued work a cancelled job leaves behind.
 const MODEL_BATCH_SIZE = 4;
 const MAX_MESSAGES = 2000;
-// Field accuracy of the bundled model on the eval set (§9.8). Grammar-constrained output has
+// Field accuracy of the bundled model on our extraction eval set. Grammar-constrained output has
 // no per-answer probability, so model answers report this rather than a made-up score.
 const MODEL_CONFIDENCE = 0.9;
 const cache = new Map<string, ExtractResult>();

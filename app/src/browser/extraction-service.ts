@@ -24,19 +24,19 @@ import {
 } from './local-model-provider';
 
 /**
- * Main-process owner of on-device extraction (docs/plans/sandboxed-views-exploration.md §9).
+ * Main-process owner of on-device extraction and generation for Views.
  *
  * The renderer (the views package) builds prompts and normalizes answers; this service decides
  * what runs when, remembers answers, and keeps the model in a utility process
  * (extraction-worker.js). Prompts run one at a time: the model is memory-bound, and parallel
- * sequences measured no faster per message (§9.8).
+ * sequences measured no faster per message.
  *
  * Answers are cached by (message, schema, model) in their own SQLite file. The mail database
  * is read-only outside the sync engine, and a message's body never changes, so an answer is
  * computed once and kept until the pinned model changes.
  */
 
-// Leaves the UI's cores alone; 8 threads measured no faster than 4 (§9.8).
+// Leaves the UI's cores alone; 8 threads measured no faster than 4.
 const CPU_THREADS = 4;
 // Room for a packed briefing digest (≈3k tokens) plus its answer.
 const CONTEXT_SIZE = 8192;

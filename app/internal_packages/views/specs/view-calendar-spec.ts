@@ -1,4 +1,5 @@
 import {
+  AccountStore,
   Actions,
   Calendar,
   Contact,
@@ -172,6 +173,9 @@ describe('Views calendar API', function () {
         recurrenceStart: 1792000000,
         recurrenceEnd: 1792003600,
       } as any);
+      spyOn(AccountStore, 'accountForEmail').andCallFake((email) =>
+        email && email.toLowerCase() === ME ? ({ id: 'a1' } as any) : null
+      );
       spyOn(DatabaseStore, 'find').andCallFake((klass, id) =>
         Promise.resolve(
           klass === Calendar ? (id === 'c1' ? calendar : null) : id === 'ev1' ? event : null
@@ -183,15 +187,20 @@ describe('Views calendar API', function () {
       expect(otherParticipants(invitationICS())).toEqual(['guest@example.com']);
     });
 
-    it('RSVPs after the user confirms the reply to the organizer, with undo', async () => {
+    it('RSVPs like the calendar: records our answer and emails the organizer, once confirmed', async () => {
       await rsvp('spec', WRITE, 'ev1-e1792000000', 'accepted');
       expect(dialog).toHaveBeenCalled();
       expect(dialog.mostRecentCall.args[0].detail).toContain('boss@example.com');
-      const task = (Actions.queueTask as any as jasmine.Spy).mostRecentCall.args[0];
-      expect(task.canBeUndone).toBe(true);
-      const ics = task.event.ics.replace(/\r?\n /g, '');
+      const tasks = (Actions.queueTask as any as jasmine.Spy).calls.map((c) => c.args[0]);
+      const write = tasks.find((t) => t.constructor.name === 'SyncbackEventTask');
+      const ics = write.event.ics.replace(/\r?\n /g, '');
       expect(ics).toMatch(/PARTSTAT=ACCEPTED[^\n]*mailto:me@example.com/);
       expect(ics).toMatch(/PARTSTAT=NEEDS-ACTION[^\n]*mailto:guest@example.com/);
+      // The emailed REPLY can't be retracted, so the write isn't offered for undo.
+      expect(write.canBeUndone).toBe(false);
+      const reply = tasks.find((t) => t.constructor.name === 'EventRSVPTask');
+      expect(reply).toBeDefined();
+      expect(reply.to).toBe('boss@example.com');
     });
 
     it('does nothing when the user declines the confirmation', async () => {
@@ -201,13 +210,16 @@ describe('Views calendar API', function () {
       expect(Actions.queueTask).not.toHaveBeenCalled();
     });
 
-    it('refuses RSVPs to events the user is not invited to, and read-only calendars', async () => {
+    it('refuses RSVPs to events the user is not invited to', async () => {
       event.ics = invitationICS({ attendees: ['guest@example.com'] });
       expect((await errorFrom(() => rsvp('spec', WRITE, 'ev1', 'accepted'))).code).toBe('invalid');
+    });
+
+    it('still emails the organizer when our copy of the event is read-only', async () => {
       calendar.readOnly = true;
-      expect((await errorFrom(() => rsvp('spec', WRITE, 'ev1', 'accepted'))).code).toBe(
-        'read_only'
-      );
+      await rsvp('spec', WRITE, 'ev1', 'tentative');
+      const tasks = (Actions.queueTask as any as jasmine.Spy).calls.map((c) => c.args[0]);
+      expect(tasks.map((t) => t.constructor.name)).toEqual(['EventRSVPTask']);
     });
 
     it('creates private events silently but confirms before inviting guests', async () => {

@@ -5,8 +5,7 @@ import https from 'https';
 import path from 'path';
 
 /**
- * The one model bundled for on-device extraction (docs/plans/sandboxed-views-exploration.md
- * §9.8). It is downloaded on demand, never shipped in the installer, and its bytes are pinned:
+ * The downloadable model for on-device extraction (Qwen3.5-0.8B). It is downloaded on demand, never shipped in the installer, and its bytes are pinned:
  * a file whose size or SHA-256 differs is never loaded.
  */
 export interface ModelSpec {

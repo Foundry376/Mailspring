@@ -42,8 +42,8 @@ import {
 } from '../generation/briefing';
 
 /**
- * `ai.summarize` (phase 1) and `ai.generate` (phase 2) — see lib/generation/briefing.ts and
- * docs/plans/sandboxed-views-exploration.md §9.9. Both run on the same utility-process model
+ * `ai.summarize` (phase 1) and `ai.generate` (phase 2) — see lib/generation/briefing.ts.
+ * Both run on the same utility-process model
  * and queue as `ai.extract`, and share its job tracking: callers keep an `ExtractJob`-shaped
  * `{ cancelled }` object and cancel it on reload.
  *

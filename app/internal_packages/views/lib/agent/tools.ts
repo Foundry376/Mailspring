@@ -5,8 +5,8 @@ import { checkSignedRevision, SignedRevision } from './signing';
 import { RevisionEntry, ToolContent } from './types';
 
 /**
- * The client half of the agent's custom tools (docs/plans/views-agent-protocol.md, "Client
- * tools"). Each executor returns the tool result content; anything that needs the user goes
+ * The client half of the agent's custom tools (preview_revision, request_examples,
+ * request_screenshot, ask_user). Each executor returns the tool result content; anything that needs the user goes
  * through `ask`, which the session store turns into the panel's pending request.
  */
 

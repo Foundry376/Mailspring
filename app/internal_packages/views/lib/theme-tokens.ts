@@ -1,7 +1,7 @@
 import _ from 'underscore';
 
 /**
- * The `Theme` pushed to Views (see docs/plans/views-api.md, `useTheme`). `colors` keys become
+ * The `Theme` pushed to Views (`useTheme`). `colors` keys become
  * `--ms-<key>` CSS variables and `ms-<key>` Tailwind colors inside the View, so renaming one
  * breaks every View that uses it.
  */

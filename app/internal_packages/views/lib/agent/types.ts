@@ -1,7 +1,7 @@
 import { LimitNotice } from './quota';
 /**
  * Wire and UI types for building a View with the hosted authoring agent. The wire half mirrors
- * docs/plans/views-agent-protocol.md; the rest is the state the floating authoring panel renders.
+ * the authoring proxy's routes and events; the rest is the state the floating panel renders.
  */
 
 export interface ExampleContact {

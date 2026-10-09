@@ -7,7 +7,7 @@ import { FieldType, Schema, fieldType } from './prompt';
  *
  * It is also the hallucination filter. On mail that isn't a receipt, Qwen3.5-0.8B fills a
  * money field 88% of the time with the nearest number, address or time, and a relevance
- * question in the same prompt didn't change that (§9.8). So copied values must actually occur
+ * question in the same prompt didn't change that. So copied values must actually occur
  * in the email, money must look like money, and dates must name a day or month.
  */
 

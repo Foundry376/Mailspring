@@ -1,7 +1,7 @@
 import Foundation
 import FoundationModels
 
-// Mailspring's bridge to Apple's on-device model (docs/plans/views-apple-foundation-models-plan.md).
+// Mailspring's bridge to Apple's on-device model (Foundation Models framework).
 //
 // Protocol: one JSON object per line on stdin, one JSON reply per line on stdout. Every request
 // carries a numeric `id` that its reply echoes.

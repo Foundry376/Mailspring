@@ -11,7 +11,7 @@ import { ViewError, ViewErrorCode } from './errors';
 import { Handler, parse } from './handlers';
 
 /**
- * Bridge methods for View credentials (views-api.md §3.10). None of them return a secret:
+ * Bridge methods for View credentials. None of them return a secret:
  * `credentials.fetch` sends the request from the main process and returns the scrubbed
  * response, `credentials.status` says whether a key is stored, and `ui.requestCredential`
  * opens the host's Connect sheet.

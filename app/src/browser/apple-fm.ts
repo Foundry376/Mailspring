@@ -5,8 +5,7 @@ import path from 'path';
 import type { SystemModel } from './local-model';
 
 /**
- * Talks to `mailspring-fm`, the Swift helper that reaches Apple's on-device model
- * (docs/plans/views-apple-foundation-models-plan.md; protocol in
+ * Talks to `mailspring-fm`, the Swift helper that reaches Apple's on-device model (protocol in
  * app/native/mailspring-fm/Sources/mailspring-fm/main.swift).
  *
  * The helper is its own process, so a crash in the framework never takes down Mailspring; it

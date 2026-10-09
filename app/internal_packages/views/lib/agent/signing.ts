@@ -2,8 +2,8 @@ import crypto from 'crypto';
 import { ViewRevision } from '../authoring/drafts';
 
 /**
- * Verification of `preview_revision` payloads signed by the authoring proxy (see
- * docs/plans/views-agent-protocol.md, "Signing preview_revision"). The signature proves a
+ * Verification of `preview_revision` payloads signed by the authoring proxy: Ed25519 over the
+ * canonical JSON of { identityId, viewId, revision, manifest, files }. The signature proves a
  * revision came from Mailspring's backend for this account and View; the sandbox and the
  * consent sheet remain the security boundary for what the code can do.
  */

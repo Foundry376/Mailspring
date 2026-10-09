@@ -12,8 +12,7 @@ import { isMessageAllowed, isThreadAllowed } from '../../../mcp-server/lib/capab
 import { isMyAddress } from '../../../mcp-server/lib/capabilities/identity';
 import type { ViewGrant } from './grant';
 
-// Authorization + output shaping for everything that crosses the View bridge (shapes in
-// docs/plans/views-api.md §3.6). The thread and message serializers return null when the
+// Authorization + output shaping for everything that crosses the View bridge. The thread and message serializers return null when the
 // grant excludes the model, so no call site can emit a model without passing the gate.
 // Bodies are never part of a summary; they leave only through `messages.content`, which
 // requires `mail.bodies`.

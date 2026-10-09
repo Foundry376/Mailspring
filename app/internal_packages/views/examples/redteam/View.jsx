@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { call } from '@mailspring/view';
 
-// Adversarial View: tries every way out of the sandbox described in
-// docs/plans/sandboxed-views-exploration.md §4 and tabulates what the page itself observed.
+// Adversarial View: tries every way out of the View sandbox (network, navigation, storage,
+// workers, the bridge) and tabulates what the page itself observed.
 // The page's view is not proof. Run a listener on 127.0.0.1:47123 (HTTP/WS) and :47124
 // (UDP/TCP) and treat any hit there as a leak. Every probe below targets those ports.
 

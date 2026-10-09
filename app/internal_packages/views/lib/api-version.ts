@@ -1,6 +1,6 @@
 /**
  * Views declare the API they were written against as `apiVersion: "YYYY-MM-DD"` in their
- * manifest (docs/plans/views-api.md §1.2). The host runs any View between
+ * manifest. The host runs any View between
  * MIN_SUPPORTED_API_VERSION and CURRENT_API_VERSION, applying the shims below for older ones,
  * and shows a host card instead of loading anything outside that range.
  */

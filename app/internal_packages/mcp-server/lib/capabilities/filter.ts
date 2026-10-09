@@ -5,7 +5,7 @@ import { knownAddresses } from './identity';
 /**
  * A JSON mail filter, compiled straight to SQL on the host. It is the structured alternative
  * to the search-bar grammar: no string parsing, explicit semantics per field, and limits that
- * fail with an error instead of a slow query. Spec: docs/plans/views-api.md §3.1.
+ * fail with an error instead of a slow query.
  */
 export type Filter =
   | { and: Filter[] }

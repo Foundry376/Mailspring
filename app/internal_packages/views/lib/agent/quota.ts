@@ -12,7 +12,7 @@ export const BUDGET_STEP_CENTS = 200;
 
 export type Plan = 'pro' | 'free';
 
-/** `GET /api/views/agent/usage` (docs/plans/views-agent-protocol.md). */
+/** The authoring proxy's `GET /api/views/agent/usage`. */
 export interface AccountUsage {
   plan: Plan;
   /** `YYYY-MM` for monthly allowances, `unlimited` for the free plan's all-time one. */
