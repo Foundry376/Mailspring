@@ -12,7 +12,7 @@ import {
   localized,
   CalendarDateUtils,
 } from 'mailspring-exports';
-import { ShowAsOption } from './show-as-selector';
+import { ShowAsOption, defaultShowAs } from './show-as-selector';
 import { MIN_EVENT_DURATION_SECONDS } from './calendar-constants';
 import { EventOccurrence, isTimed } from './calendar-data-source';
 import { dayFraction } from './week-view-helpers';
@@ -466,7 +466,7 @@ export async function createCalendarEvent(options: CreateCalendarEventOptions): 
     organizer: organizerForAccount(options.accountId),
     attendees: options.attendees,
     recurrenceRule: options.recurrenceRule,
-    transparency: options.transparency,
+    transparency: options.transparency ?? defaultShowAs(options.isAllDay),
   });
 
   const event = new Event({

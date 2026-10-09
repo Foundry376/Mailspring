@@ -2,6 +2,8 @@ import { AccountStore, Actions, DatabaseStore, SyncbackEventTask } from 'mailspr
 import { Event as MailspringEvent } from '../src/flux/models/event';
 import { CalendarEventPopover } from '../internal_packages/main-calendar/lib/core/calendar-event-popover';
 import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
+import { AllDayToggle } from '../internal_packages/main-calendar/lib/core/all-day-toggle';
+import { ShowAsSelector } from '../internal_packages/main-calendar/lib/core/show-as-selector';
 
 // A fortnightly Tue/Thu meeting that ends in June. Every part of this rule beyond FREQ is
 // something the five-value Repeat control cannot express.
@@ -355,7 +357,7 @@ describe('CalendarEventPopover save path and Show As', function () {
   it('marks the series free when Show As changes to Free', async function () {
     const event = makeEvent(BUSY_SERIES_ICS);
     const popover = await openEditor(event, 'Planning');
-    popover.updateField('showAs', 'TRANSPARENT');
+    popover.updateShowAs('TRANSPARENT');
 
     popover._saveAllOccurrences(event);
 
@@ -366,7 +368,7 @@ describe('CalendarEventPopover save path and Show As', function () {
   it('marks a free series busy when Show As changes to Busy', async function () {
     const event = makeEvent(FREE_SERIES_ICS);
     const popover = await openEditor(event, 'Planning', { isFree: true });
-    popover.updateField('showAs', 'OPAQUE');
+    popover.updateShowAs('OPAQUE');
 
     popover._saveAllOccurrences(event);
 
@@ -386,7 +388,7 @@ describe('CalendarEventPopover save path and Show As', function () {
   it('marks only the occurrence free when one occurrence is edited', async function () {
     const event = makeEvent(BUSY_SERIES_ICS);
     const popover = await openEditor(event, 'Planning');
-    popover.updateField('showAs', 'TRANSPARENT');
+    popover.updateShowAs('TRANSPARENT');
 
     await popover._saveOccurrenceException(event);
 
@@ -412,6 +414,92 @@ describe('CalendarEventPopover save path and Show As', function () {
     expect(popover._changedShowAs()).toBe(undefined);
   });
 
+  // A popover for an event that does not exist yet, as the grid opens one.
+  const newEventPopover = (isAllDay: boolean) => {
+    const popover: any = new CalendarEventPopover({
+      event: makeOccurrence('', { isAllDay } as any),
+      isNewEvent: true,
+    } as any);
+    popover.setState = (update: object) => Object.assign(popover.state, update);
+    return popover;
+  };
+
+  /** The first element of this type in a rendered tree. */
+  const findElement = (node: any, type: any): any => {
+    if (!node || typeof node !== 'object') return null;
+    if (Array.isArray(node)) {
+      for (const child of node) {
+        const found = findElement(child, type);
+        if (found) return found;
+      }
+      return null;
+    }
+    if (node.type === type) return node;
+    return findElement(node.props && node.props.children, type);
+  };
+
+  it('opens a new all-day event as Free and a new timed one as Busy', function () {
+    expect(newEventPopover(true).state.showAs).toBe('TRANSPARENT');
+    expect(newEventPopover(false).state.showAs).toBe('OPAQUE');
+  });
+
+  it('opens an existing all-day event with the Show As it has', async function () {
+    const busy = await openEditor(makeEvent(BUSY_SERIES_ICS), 'Planning', {
+      isAllDay: true,
+      isFree: false,
+    } as any);
+    expect(busy.state.showAs).toBe('OPAQUE');
+  });
+
+  it('moves a new event between Busy and Free with the all-day switch', function () {
+    const popover = newEventPopover(false);
+    popover.updateAllDay(true);
+    expect(popover.state.allDay).toBe(true);
+    expect(popover.state.showAs).toBe('TRANSPARENT');
+    popover.updateAllDay(false);
+    expect(popover.state.showAs).toBe('OPAQUE');
+  });
+
+  it("keeps a new event's Show As once the user has picked one", function () {
+    const popover = newEventPopover(false);
+    popover.updateShowAs('OPAQUE');
+    popover.updateAllDay(true);
+    expect(popover.state.allDay).toBe(true);
+    expect(popover.state.showAs).toBe('OPAQUE');
+  });
+
+  it("leaves an existing event's Show As alone when it is made all-day", async function () {
+    const popover = await openEditor(makeEvent(BUSY_SERIES_ICS), 'Planning');
+    popover.updateAllDay(true);
+    expect(popover.state.allDay).toBe(true);
+    expect(popover.state.showAs).toBe('OPAQUE');
+  });
+
+  it('follows the all-day switch again for the next event the editor is given', function () {
+    const popover = newEventPopover(false);
+    popover.updateShowAs('OPAQUE');
+    const prevProps = popover.props;
+    popover.props = { ...prevProps, event: makeOccurrence('Other', { isAllDay: false } as any) };
+    popover.componentDidUpdate(prevProps, popover.state);
+    popover.updateAllDay(true);
+    expect(popover.state.showAs).toBe('TRANSPARENT');
+  });
+
+  it('wires the all-day switch and Show As control to their handlers', function () {
+    const popover = newEventPopover(false);
+    const tree = popover.renderEditable();
+    expect(findElement(tree, AllDayToggle).props.onChange).toBe(popover.updateAllDay);
+    expect(findElement(tree, ShowAsSelector).props.onChange).toBe(popover.updateShowAs);
+  });
+
+  it('creates a new all-day event as Free when Show As was left alone', async function () {
+    const helpers = require('../internal_packages/main-calendar/lib/core/calendar-helpers');
+    spyOn(helpers, 'createCalendarEvent').andReturn(Promise.resolve());
+    spyOn(Actions, 'closePopover');
+    await newEventPopover(true)._createNewEvent();
+    expect(helpers.createCalendarEvent.mostRecentCall.args[0].transparency).toBe('TRANSPARENT');
+  });
+
   it('creates the event with the Show As the user picked', async function () {
     const helpers = require('../internal_packages/main-calendar/lib/core/calendar-helpers');
     spyOn(helpers, 'createCalendarEvent').andReturn(Promise.resolve());
@@ -421,7 +509,7 @@ describe('CalendarEventPopover save path and Show As', function () {
       isNewEvent: true,
     } as any);
     popover.setState = (update: object) => Object.assign(popover.state, update);
-    popover.updateField('showAs', 'TRANSPARENT');
+    popover.updateShowAs('TRANSPARENT');
 
     await popover._createNewEvent();
 

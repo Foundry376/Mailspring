@@ -43,7 +43,7 @@ import { LocationVideoInput } from './location-video-input';
 import { AllDayToggle } from './all-day-toggle';
 import { RepeatSelector, RepeatOption } from './repeat-selector';
 import { AlertSelector, AlertTiming } from './alert-selector';
-import { ShowAsSelector, ShowAsOption } from './show-as-selector';
+import { ShowAsSelector, ShowAsOption, defaultShowAs } from './show-as-selector';
 import { EventPopoverActions } from './event-popover-actions';
 import { TimeZoneSelector } from './timezone-selector';
 import { parseEventIdFromOccurrence } from './calendar-drag-utils';
@@ -118,6 +118,8 @@ interface CalendarEventPopoverState {
   originalTimezone: string;
   alert: AlertTiming;
   showAs: ShowAsOption;
+  /** Whether the user picked Show As; until then a new event's follows the all-day switch. */
+  showAsChosen: boolean;
   /** The Show As value the event arrived with, so a save writes TRANSP only when it changed. */
   originalShowAs: ShowAsOption;
   calendarColor: string;
@@ -158,6 +160,7 @@ export class CalendarEventPopover extends React.Component<
       originalTimezone: DateUtils.timeZone,
       alert: '10min',
       showAs: this._eventShowAs(),
+      showAsChosen: false,
       originalShowAs: this._eventShowAs(),
       calendarColor: '#419bf9',
       timezone: DateUtils.timeZone,
@@ -183,6 +186,7 @@ export class CalendarEventPopover extends React.Component<
         attendees,
         title,
         showAs,
+        showAsChosen: false,
         originalShowAs: showAs,
       });
     }
@@ -240,8 +244,19 @@ export class CalendarEventPopover extends React.Component<
   }
 
   _eventShowAs(): ShowAsOption {
+    if (this.props.isNewEvent) return defaultShowAs(this.props.event.isAllDay);
     return this.props.event.isFree ? 'TRANSPARENT' : 'OPAQUE';
   }
+
+  updateAllDay = (allDay: boolean): void => {
+    const followsAllDay = this.props.isNewEvent && !this.state.showAsChosen;
+    const showAs = followsAllDay ? defaultShowAs(allDay) : this.state.showAs;
+    this.setState({ allDay, showAs });
+  };
+
+  updateShowAs = (showAs: ShowAsOption): void => {
+    this.setState({ showAs, showAsChosen: true });
+  };
 
   /** The Show As value to write, or undefined when the user left it as the event had it. */
   _changedShowAs(): ShowAsOption | undefined {
@@ -578,10 +593,7 @@ export class CalendarEventPopover extends React.Component<
             />
 
             {/* All-day toggle */}
-            <AllDayToggle
-              checked={allDay}
-              onChange={(checked) => this.updateField('allDay', checked)}
-            />
+            <AllDayToggle checked={allDay} onChange={this.updateAllDay} />
 
             {/* Start/End times using property rows */}
             <EventPropertyRow label={localized('starts:')}>
@@ -625,10 +637,7 @@ export class CalendarEventPopover extends React.Component<
             <AlertSelector value={alert} onChange={(value) => this.updateField('alert', value)} />
 
             {/* Show as selector */}
-            <ShowAsSelector
-              value={showAs}
-              onChange={(value) => this.updateField('showAs', value)}
-            />
+            <ShowAsSelector value={showAs} onChange={this.updateShowAs} />
 
             {/* Invitees section - collapsible */}
             {showInvitees ? (

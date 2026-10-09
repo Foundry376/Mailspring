@@ -256,6 +256,13 @@ describe('createCalendarEvent and the organizer', function () {
     expect(unfold(queued[0].event.ics)).toContain('TRANSP:TRANSPARENT');
   });
 
+  it('makes an all-day event Free and a timed one Busy when no Show As is given', async function () {
+    await createCalendarEvent({ ...options([]), isAllDay: true });
+    await createCalendarEvent(options([]));
+    expect(unfold(queued[0].event.ics)).toContain('TRANSP:TRANSPARENT');
+    expect(unfold(queued[1].event.ics)).toContain('TRANSP:OPAQUE');
+  });
+
   it('leaves a private appointment without an organizer', async function () {
     await createCalendarEvent(options([]));
     expect(queued[0].event.ics).not.toContain('ORGANIZER');
