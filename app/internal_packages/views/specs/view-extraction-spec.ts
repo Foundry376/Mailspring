@@ -199,6 +199,8 @@ describe('View extraction', function viewExtractionSpec() {
       );
       spyOn(ipcRenderer, 'invoke').andCallFake(async (channel, req) => {
         if (channel === 'extraction:status') return { available: true };
+        // LocalModelStore refreshes its status over IPC; that's not a model request.
+        if (String(channel).startsWith('local-model:')) return null;
         if (channel === 'extraction:cancel-view') return 0;
         requests.push(req);
         return req.items.map((item) =>

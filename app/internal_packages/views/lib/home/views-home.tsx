@@ -11,6 +11,7 @@ import { openView } from '../authoring';
 import { Starter, installStarter, listStarters } from './starters';
 import { ThumbnailEvents, thumbnailPath } from './thumbnails';
 import { removeView } from './view-actions';
+import { ModelBadge } from '../local-model/model-badge';
 import {
   isBuilding,
   listenToSessions,
@@ -316,7 +317,10 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
       <div className="views-home">
         <div className={`views-home-backdrop ${BACKDROP_VARIANT}`} aria-hidden="true" />
         <div className="views-home-content">
-          <h1>{localized('Views')}</h1>
+          <div className="views-home-header">
+            <h1>{localized('Views')}</h1>
+            <ModelBadge />
+          </div>
           <p className="views-home-intro">
             {localized(
               'Views are custom perspectives on your mail. They run in a sandbox: they can read the mail you allow, but not your files or the internet.'

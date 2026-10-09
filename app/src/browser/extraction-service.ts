@@ -1,13 +1,27 @@
-import { utilityProcess, UtilityProcess, IpcMain, IpcMainInvokeEvent } from 'electron';
+import {
+  BrowserWindow,
+  utilityProcess,
+  UtilityProcess,
+  IpcMain,
+  IpcMainInvokeEvent,
+} from 'electron';
 import path from 'path';
 import { isMailspringWindowContents } from './mailspring-window';
+import { cacheKey, EXTRACTION_MODEL_VERSION, ModelSpec } from './extraction-model';
 import {
-  cacheKey,
-  EXTRACTION_MODEL_VERSION,
-  downloadModel,
-  resolveModelPath,
-  EXTRACTION_MODEL,
-} from './extraction-model';
+  LocalModelController,
+  LocalModelMode,
+  LocalModelProvider,
+  onSystemModelChange,
+  freeBytesOnVolume,
+} from './local-model';
+import { appleFMHelper, configureAppleFM, getSystemModel, probeSystemModel } from './apple-fm';
+import {
+  AppleFMBackend,
+  backendModelVersion,
+  ModelBackendId,
+  selectBackend,
+} from './local-model-provider';
 
 /**
  * Main-process owner of on-device extraction (docs/plans/sandboxed-views-exploration.md §9).
@@ -80,7 +94,7 @@ interface QueuedItem {
 
 class ExtractionService {
   private configDirPath: string;
-  private getOverridePath: () => string | undefined;
+  private model: LocalModelController;
   private worker: UtilityProcess | null = null;
   private workerReady: Promise<{ gpu: string }> | null = null;
   private workerCalls = new Map<number, { resolve: (v: any) => void; reject: (e: any) => void }>();
@@ -90,33 +104,51 @@ class ExtractionService {
   private running = false;
   private idleTimer: NodeJS.Timeout | null = null;
   private db: any = null;
-  private download: Promise<string> | null = null;
-  private downloadProgress = { received: 0, total: EXTRACTION_MODEL.size };
-
-  constructor(configDirPath: string, getOverridePath: () => string | undefined) {
+  private apple: AppleFMBackend | null = null;
+  constructor(configDirPath: string, model: LocalModelController) {
     this.configDirPath = configDirPath;
-    this.getOverridePath = getOverridePath;
+    this.model = model;
+  }
+
+  /** Apple's model when it's available and the user hasn't picked Qwen; Qwen otherwise. */
+  backend(): ModelBackendId {
+    return selectBackend(this.model.status().provider, getSystemModel());
+  }
+
+  /** Part of every cache key, so switching backends or updating macOS never reuses answers. */
+  modelVersion(backend = this.backend()) {
+    return backendModelVersion(backend, EXTRACTION_MODEL_VERSION, getSystemModel());
+  }
+
+  private appleBackend() {
+    if (!this.apple) {
+      this.apple = new AppleFMBackend(appleFMHelper(), () => getSystemModel().contextSize || 4096);
+    }
+    return this.apple;
   }
 
   status() {
-    const modelPath = resolveModelPath(this.configDirPath, this.getOverridePath());
+    const model = this.model.state();
+    const backend = this.backend();
     return {
-      available: !!modelPath,
-      modelVersion: EXTRACTION_MODEL_VERSION,
-      downloading: !!this.download,
-      download: this.downloadProgress,
+      available: backend === 'apple-fm' || !!this.model.modelPath(),
+      modelVersion: this.modelVersion(backend),
+      backend,
+      // Apple rate-limits background work on battery; answers are waiting, not failing.
+      throttled: backend === 'apple-fm' && !!this.apple && this.apple.throttled,
+      downloading: model.kind === 'downloading',
+      download:
+        model.kind === 'downloading'
+          ? { received: model.receivedBytes, total: model.totalBytes }
+          : { received: 0, total: this.model.spec.size },
       queued: this.queue.length,
+      model,
     };
   }
 
-  startDownload() {
-    if (this.download) return;
-    this.download = downloadModel(this.configDirPath, (p) => (this.downloadProgress = p)).finally(
-      () => (this.download = null)
-    );
-    this.download.catch(() => {
-      // surfaced through status(); the next startDownload() resumes from the partial file
-    });
+  /** Stops the worker when the model goes away, e.g. after downloads are turned off. */
+  shutdownWorker() {
+    if (this.worker) this.worker.kill();
   }
 
   /**
@@ -126,9 +158,10 @@ class ExtractionService {
    */
   async run(req: ExtractionRequest): Promise<(ExtractionAnswer | null)[]> {
     const db = this.cache();
+    const version = this.modelVersion();
     return Promise.all(
       req.items.map((item) => {
-        const key = cacheKey(item.messageId, req.schemaHash, EXTRACTION_MODEL_VERSION);
+        const key = cacheKey(item.messageId, req.schemaHash, version);
         const hit = db.prepare('SELECT value FROM answers WHERE key = ?').get(key);
         if (hit) {
           return Promise.resolve({
@@ -185,14 +218,17 @@ class ExtractionService {
         const next = this.queue.shift();
         let answer: ExtractionAnswer | null = null;
         try {
-          await this.ensureWorker();
-          const result = await this.callWorker({
-            type: 'run',
-            prompt: next.item.prompt,
-            jsonSchema: next.jsonSchema,
-            schemaKey: next.schemaHash,
-            maxTokens: next.maxTokens,
-          });
+          const backend = this.backend();
+          const result =
+            backend === 'apple-fm'
+              ? // A guardrail refusal comes back as `value: null`, the same "no value" the host
+                // already handles for an email that doesn't state a field.
+                await this.appleBackend().run({
+                  prompt: next.item.prompt,
+                  jsonSchema: next.jsonSchema,
+                  maxTokens: next.maxTokens,
+                })
+              : await this.runOnWorker(next);
           answer = {
             messageId: next.item.messageId,
             value: result.value,
@@ -203,12 +239,15 @@ class ExtractionService {
             this.cache()
               .prepare('INSERT OR REPLACE INTO answers (key, value, createdAt) VALUES (?, ?, ?)')
               .run(
-                cacheKey(next.item.messageId, next.schemaHash, EXTRACTION_MODEL_VERSION),
+                cacheKey(next.item.messageId, next.schemaHash, this.modelVersion(backend)),
                 JSON.stringify(result.value),
                 Date.now()
               );
           }
         } catch (err) {
+          // The renderer treats a failed prompt like an email with no value; the code
+          // (e.g. Apple's `rateLimited`) only shows up here.
+          console.warn(`Extraction failed: ${(err && (err.code || err.message)) || err}`);
           answer = { messageId: next.item.messageId, value: null, cached: false, ms: 0 };
         }
         next.resolve(answer);
@@ -217,6 +256,17 @@ class ExtractionService {
       this.running = false;
       this.scheduleIdleShutdown();
     }
+  }
+
+  private async runOnWorker(next: QueuedItem) {
+    await this.ensureWorker();
+    return this.callWorker({
+      type: 'run',
+      prompt: next.item.prompt,
+      jsonSchema: next.jsonSchema,
+      schemaKey: next.schemaHash,
+      maxTokens: next.maxTokens,
+    });
   }
 
   private scheduleIdleShutdown() {
@@ -230,7 +280,7 @@ class ExtractionService {
 
   private ensureWorker(): Promise<{ gpu: string }> {
     if (this.workerReady) return this.workerReady;
-    const modelPath = resolveModelPath(this.configDirPath, this.getOverridePath());
+    const modelPath = this.model.modelPath();
     if (!modelPath) return Promise.reject(new Error('The extraction model is not downloaded.'));
 
     const worker = utilityProcess.fork(unpacked(path.join(__dirname, 'extraction-worker.js')), [], {
@@ -315,19 +365,113 @@ function validRequest(req: any): ExtractionRequest {
   };
 }
 
+interface ConfigLike {
+  get: (key: string) => any;
+  set: (key: string, value: any) => void;
+}
+
+/**
+ * `core.views.localModelTestSource` ({ url, size, sha256 }) replaces the pinned model in dev
+ * mode, so the download flow can be exercised against a small local file.
+ */
+function modelSpecOverride(config: ConfigLike, devMode: boolean): ModelSpec | undefined {
+  const source = devMode ? config.get('core.views.localModelTestSource') : null;
+  if (!source || !source.url || !source.size || !source.sha256) return undefined;
+  return {
+    id: 'test-model',
+    label: source.label || 'Test model',
+    fileName: 'test-model.bin',
+    url: source.url,
+    size: Number(source.size),
+    sha256: String(source.sha256),
+  };
+}
+
 export function registerExtractionIPCHandlers(
   ipcMain: IpcMain,
-  { configDirPath, getOverridePath }: { configDirPath: string; getOverridePath: () => string }
+  {
+    configDirPath,
+    config,
+    devMode,
+  }: { configDirPath: string; config: ConfigLike; devMode: boolean }
 ) {
-  service = new ExtractionService(configDirPath, getOverridePath);
+  const broadcast = (channel: string, payload: any) => {
+    for (const win of BrowserWindow.getAllWindows()) {
+      if (!win.isDestroyed() && isMailspringWindowContents(win.webContents)) {
+        win.webContents.send(channel, payload);
+      }
+    }
+  };
+  const model = new LocalModelController({
+    configDirPath,
+    spec: modelSpecOverride(config, devMode),
+    getMode: () => (config.get('core.views.localModel') === 'off' ? 'off' : 'auto'),
+    setMode: (mode: LocalModelMode) => config.set('core.views.localModel', mode),
+    getProvider: () => (config.get('core.views.localModelProvider') === 'qwen' ? 'qwen' : 'auto'),
+    setProvider: (provider: LocalModelProvider) =>
+      config.set('core.views.localModelProvider', provider),
+    getAutoStarted: () => !!config.get('core.views.localModelAutoStarted'),
+    setAutoStarted: () => config.set('core.views.localModelAutoStarted', true),
+    getOverridePath: () => config.get('core.views.extractionModelPath'),
+    // Dev mode: `core.views.localModelTestFreeBytes` simulates a nearly full disk.
+    freeBytes: (dir: string) => {
+      const simulated = devMode ? config.get('core.views.localModelTestFreeBytes') : null;
+      return simulated != null ? Number(simulated) : freeBytesOnVolume(dir);
+    },
+    onChange: (status) => {
+      if (status.state.kind === 'disabled' && service) service.shutdownWorker();
+      broadcast('local-model:status', status);
+    },
+  });
+  onSystemModelChange(() => model.systemChanged());
+  service = new ExtractionService(configDirPath, model);
+  // Until this probe answers, the system model reads `checking` and no Qwen download starts,
+  // so Macs with Apple Intelligence never fetch a model they don't need.
+  configureAppleFM({
+    resourcePath: path.resolve(__dirname, '..', '..'),
+    resourcesDir: process.resourcesPath,
+  });
+  probeSystemModel();
   ipcMain.handle('extraction:status', (event) => {
     trusted(event);
     return service.status();
   });
   ipcMain.handle('extraction:download', (event) => {
     trusted(event);
-    service.startDownload();
+    model.start({ force: false });
     return service.status();
+  });
+  ipcMain.handle('local-model:status', (event) => {
+    trusted(event);
+    return model.status();
+  });
+  ipcMain.handle('local-model:views-opened', (event) => {
+    trusted(event);
+    model.viewsOpened();
+    return model.state();
+  });
+  ipcMain.handle('local-model:start', (event, force: boolean) => {
+    trusted(event);
+    model.start({ force: !!force });
+    return model.state();
+  });
+  ipcMain.handle('local-model:cancel', (event) => {
+    trusted(event);
+    model.cancel();
+    return model.state();
+  });
+  ipcMain.handle('local-model:set-enabled', (event, enabled: boolean) => {
+    trusted(event);
+    return model.setEnabled(!!enabled);
+  });
+  ipcMain.handle('local-model:set-provider', (event, provider: string) => {
+    trusted(event);
+    model.setProvider(provider === 'qwen' ? 'qwen' : 'auto');
+    return model.status();
+  });
+  ipcMain.handle('local-model:delete-downloaded', (event) => {
+    trusted(event);
+    return model.deleteDownloaded();
   });
   ipcMain.handle('extraction:run', (event, req) => {
     trusted(event);

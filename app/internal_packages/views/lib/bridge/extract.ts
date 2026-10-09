@@ -229,11 +229,13 @@ async function run(
   const hash = schemaHash(schema, instructions);
   const jsonSchema = compileJsonSchema(schema);
   const targets = ids.slice(0, MAX_MESSAGES);
-  const modelAvailable = (await extractionStatus()).available;
+  const { available: modelAvailable, modelVersion } = await extractionStatus();
   let processed = 0;
+  // Includes the model, so switching between Apple's model and Qwen never reuses answers.
+  const key = (id: string) => `${id}:${hash}:${modelVersion}`;
 
   const remember = (result: ExtractResult) => {
-    cache.set(`${result.messageId}:${hash}`, result);
+    cache.set(key(result.messageId), result);
     return result;
   };
 
@@ -241,12 +243,12 @@ async function run(
     if (job.cancelled) return;
     const batchIds = targets.slice(i, i + BATCH_SIZE);
     const results: ExtractResult[] = [];
-    const uncached = batchIds.filter((id) => !cache.has(`${id}:${hash}`));
+    const uncached = batchIds.filter((id) => !cache.has(key(id)));
     const messages = uncached.length ? await messagesWithBodies(grant, uncached) : [];
     const misses: { message: Message; text: string }[] = [];
 
     for (const id of batchIds) {
-      const known = cache.get(`${id}:${hash}`);
+      const known = cache.get(key(id));
       if (known) {
         results.push(known);
         processed += 1;

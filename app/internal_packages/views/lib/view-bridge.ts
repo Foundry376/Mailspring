@@ -27,7 +27,8 @@ import {
   threadsPage,
 } from './bridge/handlers';
 import { countMessages } from './bridge/counts';
-import { eventQuery, parseRange, serializeEvents } from './bridge/events';
+import { eventQuery, freeBusy, parseRange, serializeEvents } from './bridge/events';
+import { calendarsQuery, listCalendars } from './bridge/calendar';
 import {
   ExtractJob,
   cancelJobsForView,
@@ -37,6 +38,7 @@ import {
 } from './bridge/extract';
 import { fillThreadSnippets } from './bridge/serializers';
 import { generationHandlers } from './bridge/generate';
+import { LocalModelStore, modelStatusForViews } from './local-model/store';
 
 // Channel names shared with runtime/bridge.preload.js.
 export const CALL_CHANNEL = 'mailspring-view:call';
@@ -265,6 +267,19 @@ export class ViewBridge {
           data: serializeEvents(grant, events, range),
         }));
       }
+      case 'freeBusy': {
+        requirePermission(grant, 'calendar.read');
+        const range = parseRange({ ...params, includeDeclined: false });
+        return Rx.Observable.fromQuery(eventQuery(range)).map((events) => ({
+          data: freeBusy(serializeEvents(grant, events, range), range),
+        }));
+      }
+      case 'calendars': {
+        requirePermission(grant, 'calendar.read');
+        return Rx.Observable.fromQuery(calendarsQuery()).map((calendars) => ({
+          data: listCalendars(grant, calendars),
+        }));
+      }
       case 'accounts': {
         requirePermission(grant, 'mail.read');
         return Rx.Observable.fromStore<any>(AccountStore)
@@ -301,18 +316,27 @@ export class ViewBridge {
           ({ data, hasMore }) => this.pushSnapshot(subId, data, hasMore),
           SUBSCRIPTION_THROTTLE_MS
         );
-        const disposable = observable.subscribe(push, (err) => {
-          this.emit('subscription.error', {
-            subId,
-            error: { code: 'internal', message: err.message },
-          });
-        });
+        // Registered before subscribing: a query the pool already runs (e.g. the same range
+        // for events and freeBusy) replays its last result synchronously inside subscribe(),
+        // and pushSnapshot drops snapshots for ids it doesn't know yet.
+        let disposable: Rx.IDisposable | null = null;
         this.subscriptions.set(subId, {
           dispose: () => {
             push.cancel();
-            disposable.dispose();
+            if (disposable) disposable.dispose();
           },
         });
+        try {
+          disposable = observable.subscribe(push, (err) => {
+            this.emit('subscription.error', {
+              subId,
+              error: { code: 'internal', message: err.message },
+            });
+          });
+        } catch (err) {
+          this.subscriptions.delete(subId);
+          throw err;
+        }
         return { subId };
       },
 
@@ -361,7 +385,11 @@ export class ViewBridge {
           job,
           (progress) => {
             if (job.cancelled) return;
-            this.emit('ai.progress', { jobId, ...progress });
+            this.emit('ai.progress', {
+              jobId,
+              ...progress,
+              ...modelStatusForViews(LocalModelStore.status()),
+            });
             if (progress.status !== 'running') this.jobs.delete(jobId);
           },
           { instructions }

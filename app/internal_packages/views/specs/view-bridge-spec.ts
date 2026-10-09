@@ -1,3 +1,4 @@
+import Rx from 'rx-lite';
 import { ViewBridge, CALL_CHANNEL, HELLO_CHANNEL } from '../lib/view-bridge';
 import { HANDLERS, mailQuery, BridgeContext } from '../lib/bridge/handlers';
 import { ViewGrant, ViewPermission } from '../lib/bridge/grant';
@@ -42,6 +43,22 @@ describe('View bridge', function () {
       ['messages.find', 'mail.read', { query: 'in:inbox' }],
       ['counts.find', 'mail.read', { query: '', groupBy: 'sender' }],
       ['events.find', 'calendar.read', { start: '2026-01-01', end: '2026-02-01' }],
+      ['events.freeBusy', 'calendar.read', { start: '2026-01-01', end: '2026-02-01' }],
+      ['calendars.find', 'calendar.read', {}],
+      ['calendar.rsvp', 'calendar.write', { id: 'e1', status: 'accepted' }],
+      [
+        'calendar.createEvent',
+        'calendar.write',
+        {
+          calendarId: 'c1',
+          title: 'x',
+          start: '2026-01-01T10:00:00Z',
+          end: '2026-01-01T11:00:00Z',
+        },
+      ],
+      ['calendar.updateEvent', 'calendar.write', { id: 'e1', patch: { title: 'y' } }],
+      ['calendar.deleteEvent', 'calendar.write', { id: 'e1' }],
+      ['ui.showEvent', 'calendar.read', { id: 'e1' }],
       ['messages.content', 'mail.bodies', { ids: ['m1'] }],
       ['metadata.set', 'metadata.own', { kind: 'thread', id: 't1', value: {} }],
       ['mail.modify', 'mail.modify', { threadIds: ['t1'], change: { starred: true } }],
@@ -58,6 +75,7 @@ describe('View bridge', function () {
             'metadata.own',
             'mail.modify',
             'calendar.read',
+            'calendar.write',
           ] as ViewPermission[]
         ).filter((p) => p !== permission);
         const err = await errorFrom(() => HANDLERS[method](ctxWith(grantWith(others)), params));
@@ -172,6 +190,18 @@ describe('ViewBridge dispatch limits', function () {
     const bridge = new ViewBridge('spec', webview as any);
     await webview.call(1, 'ui.setHeight', { blob: 'x'.repeat(2 * 1024 * 1024) });
     expect(webview.replies[0].error.code).toBe('limit');
+    bridge.dispose();
+  });
+
+  it('delivers a snapshot a shared query replays synchronously on subscribe', async () => {
+    const webview = fakeWebview();
+    const bridge = new ViewBridge('spec', webview as any);
+    // QuerySubscriptionPool replays an already-running query's last result inside subscribe().
+    spyOn(bridge as any, 'observableFor').andReturn(Rx.Observable.just({ data: { busy: [] } }));
+    await webview.call(1, 'subscribe', { subId: 's1', kind: 'freeBusy', params: {} });
+    const snapshot = webview.replies.find((r) => r.event === 'subscription');
+    expect(snapshot && snapshot.payload.subId).toBe('s1');
+    expect(snapshot.payload.data).toEqual({ busy: [] });
     bridge.dispose();
   });
 

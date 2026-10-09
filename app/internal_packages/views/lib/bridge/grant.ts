@@ -7,7 +7,8 @@ export type ViewPermission =
   | 'mail.bodies'
   | 'metadata.own'
   | 'mail.modify'
-  | 'calendar.read';
+  | 'calendar.read'
+  | 'calendar.write';
 
 const KNOWN_PERMISSIONS: ViewPermission[] = [
   'mail.read',
@@ -15,6 +16,7 @@ const KNOWN_PERMISSIONS: ViewPermission[] = [
   'metadata.own',
   'mail.modify',
   'calendar.read',
+  'calendar.write',
 ];
 
 /**

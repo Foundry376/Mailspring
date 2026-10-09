@@ -21,6 +21,8 @@ export interface ExtractionStatus {
 }
 
 export function extractionStatus(): Promise<ExtractionStatus> {
+  // A View asking for the model counts as opening Views: it starts the first download.
+  ipcRenderer.invoke('local-model:views-opened').catch(() => {});
   return ipcRenderer.invoke('extraction:status');
 }
 

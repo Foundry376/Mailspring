@@ -88,6 +88,31 @@ function spawn(options) {
 
 const symlinkedPackages = [];
 
+// Set by buildFMHelper on Apple-silicon Mac builds; the helper ships in Contents/Resources and
+// is signed by osxSign like any other nested binary (with entitlements.child.plist).
+let fmHelperPath = null;
+
+/**
+ * Builds `mailspring-fm`, the helper for Apple's on-device model
+ * (docs/plans/views-apple-foundation-models-plan.md). Apple Intelligence runs only on Apple
+ * silicon, so Intel builds skip it and always use the downloadable model.
+ */
+async function buildFMHelper() {
+  const arch = process.env.OVERRIDE_TO_INTEL ? 'x64' : process.arch;
+  if (process.platform !== 'darwin' || arch !== 'arm64') return;
+  const packagePath = path.resolve(appDir, 'native', 'mailspring-fm');
+  const args = ['build', '-c', 'release', '--arch', 'arm64', '--package-path', packagePath];
+  console.log('---> Building mailspring-fm');
+  await spawn({ cmd: 'swift', args, opts: { cwd: packagePath } });
+  const { stdout } = await spawn({
+    cmd: 'swift',
+    args: [...args, '--show-bin-path'],
+    opts: { cwd: packagePath },
+  });
+  fmHelperPath = path.join(stdout.trim(), 'mailspring-fm');
+  if (!fs.existsSync(fmHelperPath)) throw new Error(`mailspring-fm not found at ${fmHelperPath}`);
+}
+
 function resolveRealSymlinkPaths() {
   console.log('---> Resolving symlinks');
   const dirs = ['internal_packages', 'src', 'spec', 'node_modules'];
@@ -282,6 +307,8 @@ function buildPackagerOptions() {
       /^\/dist.*/,
       /^\/docs.*/,
       /^\/docs_src.*/,
+      // The Swift helper's sources and build products; the binary ships as an extraResource.
+      /^\/native.*/,
       /^\/script.*/,
       /^\/spec.*/,
       // Views used for development and sandbox testing; production ships starters/ instead.
@@ -371,7 +398,8 @@ function buildPackagerOptions() {
     extendInfo: path.resolve(appDir, 'build', 'resources', 'mac', 'extra.plist'),
     extraResource:
       platform === 'darwin'
-        ? [path.resolve(appDir, 'build', 'resources', 'mac', 'new-mail.mp3')]
+        ? [path.resolve(appDir, 'build', 'resources', 'mac', 'new-mail.mp3'), fmHelperPath]
+            .filter(Boolean)
         : undefined,
     appBundleId: 'com.mailspring.mailspring',
     afterCopy: [
@@ -386,6 +414,7 @@ function buildPackagerOptions() {
 }
 
 async function runPackager() {
+  await buildFMHelper();
   const opts = buildPackagerOptions();
   console.log('---> Running packager with options:');
   console.log(util.inspect(opts, true, 7, true));

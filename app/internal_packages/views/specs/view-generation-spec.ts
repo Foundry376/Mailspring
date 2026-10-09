@@ -289,6 +289,8 @@ describe('View generation (daily briefing)', function viewGenerationSpec() {
       );
       invoke = spyOn(ipcRenderer, 'invoke').andCallFake(async (channel, req) => {
         if (channel === 'extraction:status') return { available: true };
+        // LocalModelStore refreshes its status over IPC; that's not a model request.
+        if (String(channel).startsWith('local-model:')) return null;
         requests.push(req);
         return req.items.map((i) => ({
           messageId: i.messageId,

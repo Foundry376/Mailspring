@@ -15,6 +15,7 @@ import {
 import { validateSchema } from './extract';
 import type { Schema } from '../extraction/prompt';
 import { extractionStatus, runModel } from '../extraction/client';
+import { LocalModelStore, modelStatusForViews } from '../local-model/store';
 import {
   BriefingItem,
   BriefingMessage,
@@ -312,6 +313,8 @@ export async function runGenerateJob(
   onProgress({ ...base, status: 'running' });
 
   const key = generationKey({
+    // Answers from Apple's model and Qwen are kept apart.
+    model: (await extractionStatus()).modelVersion,
     messageIds: messages.map((m) => m.id),
     task: opts.task,
     instructions: opts.instructions,
@@ -386,7 +389,7 @@ function track<P>(host: GenerationHost, ctx: BridgeContext, jobId: string, total
   host.jobs.set(jobId, job);
   const progress = (p: P & { status: string }) => {
     if (job.cancelled) return;
-    ctx.emit('ai.progress', { jobId, ...p });
+    ctx.emit('ai.progress', { jobId, ...p, ...modelStatusForViews(LocalModelStore.status()) });
     if (p.status !== 'running') host.jobs.delete(jobId);
   };
   const fail = (err: Error) => {

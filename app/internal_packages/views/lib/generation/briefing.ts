@@ -415,6 +415,8 @@ export function schemaUsesThreads(schema: Schema) {
 
 /** Cache key for a phase-2 answer: the same inputs on the same day reuse it. */
 export function generationKey(parts: {
+  /** The backend's model version (extraction status), so providers never share answers. */
+  model?: string;
   messageIds: string[];
   task: GenerateTask;
   instructions?: string;
@@ -427,6 +429,7 @@ export function generationKey(parts: {
       JSON.stringify({
         v: BRIEFING_PROMPT_VERSION,
         m: MICRO_PROMPT_VERSION,
+        model: parts.model || '',
         ids: [...parts.messageIds].sort(),
         task: parts.task,
         instructions: parts.instructions || '',

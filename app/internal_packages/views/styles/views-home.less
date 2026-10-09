@@ -321,3 +321,201 @@
   padding-right: 8px;
   -webkit-app-region: no-drag;
 }
+
+// The on-device AI badge in the header (lib/local-model/model-badge.tsx).
+.views-home .views-home-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+
+  h1 {
+    flex: 1;
+  }
+}
+
+.model-badge {
+  position: relative;
+  margin-top: 4px;
+  flex-shrink: 0;
+
+  .model-badge-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 12px;
+    border-radius: 14px;
+    border: 1px solid @border-color-primary;
+    background: fade(@background-primary, 85%);
+    backdrop-filter: blur(6px);
+    color: @text-color-subtle;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    cursor: default;
+    white-space: nowrap;
+
+    &:hover,
+    &.open {
+      color: @text-color;
+      border-color: fade(@text-color, 25%);
+    }
+  }
+
+  .model-badge-name {
+    color: @text-color;
+    font-weight: @font-weight-medium;
+  }
+
+  .model-badge-sep {
+    opacity: 0.5;
+  }
+
+  .model-badge-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: @text-color-very-subtle;
+  }
+
+  .ready .model-badge-dot,
+  .system .model-badge-dot {
+    background: #3fb950;
+  }
+
+  .downloading .model-badge-dot,
+  .checking .model-badge-dot,
+  .system-preparing .model-badge-dot {
+    background: @accent-primary;
+    animation: model-badge-pulse 1.4s ease-in-out infinite;
+  }
+
+  .error .model-badge-dot,
+  .insufficient-disk .model-badge-dot,
+  .system-disabled .model-badge-dot {
+    background: #d29922;
+  }
+
+  .model-badge-popover {
+    position: absolute;
+    z-index: 10;
+    top: 36px;
+    right: 0;
+    width: 320px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid @border-color-primary;
+    background: @background-primary;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+    font-size: 13px;
+    animation: model-badge-pop 140ms ease-out both;
+  }
+
+  .model-badge-title {
+    font-weight: @font-weight-semi-bold;
+    color: @text-color-heading;
+    margin-bottom: 6px;
+  }
+
+  .model-badge-local {
+    margin: 0 0 10px;
+    color: @text-color-subtle;
+    line-height: 1.45;
+  }
+
+  .model-badge-detail {
+    color: @text-color-very-subtle;
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
+  .model-badge-error {
+    color: @text-color;
+    margin-bottom: 10px;
+    line-height: 1.45;
+  }
+
+  .model-badge-progress {
+    margin-bottom: 10px;
+  }
+
+  .model-badge-progress-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: fade(@text-color, 10%);
+    overflow: hidden;
+  }
+
+  .model-badge-progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: @accent-primary;
+    transition: width 250ms linear;
+  }
+
+  .model-badge-progress-text {
+    margin-top: 4px;
+    font-size: 11px;
+    color: @text-color-very-subtle;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .model-badge-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .model-badge-link {
+    display: block;
+    border: 0;
+    padding: 0;
+    margin: 0 0 10px;
+    background: none;
+    color: @text-color-link;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .model-badge-switch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid @border-color-primary;
+    color: @text-color;
+    font-weight: normal;
+
+    input {
+      margin: 0;
+    }
+  }
+}
+
+@keyframes model-badge-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes model-badge-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .model-badge .model-badge-dot,
+  .model-badge .model-badge-popover {
+    animation: none !important;
+  }
+}

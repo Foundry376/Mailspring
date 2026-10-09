@@ -6,6 +6,9 @@ export type ViewErrorCode =
   | 'unavailable'
   | 'timeout'
   | 'not_connected'
+  | 'cancelled'
+  | 'read_only'
+  | 'unsupported'
   | 'internal';
 
 /** Errors the bridge returns to Views. Serialized as `{ code, message, feature?, permission? }`. */

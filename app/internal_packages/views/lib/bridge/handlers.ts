@@ -31,7 +31,16 @@ import {
 } from './serializers';
 import { countMessages, Dim, DIMS } from './counts';
 import { contentFor, messagesWithBodies } from './bodies';
-import { eventQuery, parseRange, serializeEvents } from './events';
+import { eventQuery, freeBusy, parseRange, serializeEvents } from './events';
+import {
+  calendarsQuery,
+  createEvent,
+  deleteEvent,
+  listCalendars,
+  rsvp,
+  showInCalendar,
+  updateEvent,
+} from './calendar';
 import { ViewBridgeEvents } from './view-events';
 import { attachmentURLFor, renderableFor } from './renderable';
 
@@ -311,6 +320,34 @@ export const HANDLERS: { [method: string]: Handler } = {
     return serializeEvents(grant, await eventQuery(range), range);
   },
 
+  'events.freeBusy': async ({ grant }, params) => {
+    requirePermission(grant, 'calendar.read');
+    const range = parseRange({ ...params, includeDeclined: false });
+    return freeBusy(serializeEvents(grant, await eventQuery(range), range), range);
+  },
+
+  'calendars.find': async ({ grant }) => {
+    requirePermission(grant, 'calendar.read');
+    return listCalendars(grant, await calendarsQuery());
+  },
+
+  'calendar.rsvp': ({ viewId, grant }, params) => {
+    const { id, status } = parse(z.object({ id: z.string(), status: z.string() }), params);
+    return rsvp(viewId, grant, id, status);
+  },
+
+  'calendar.createEvent': ({ viewId, grant }, params) => createEvent(viewId, grant, params),
+
+  'calendar.updateEvent': ({ viewId, grant }, params) => {
+    const { id, patch } = parse(z.object({ id: z.string(), patch: z.any() }), params);
+    return updateEvent(viewId, grant, id, patch);
+  },
+
+  'calendar.deleteEvent': ({ viewId, grant }, params) => {
+    const { id } = parse(z.object({ id: z.string() }), params);
+    return deleteEvent(viewId, grant, id);
+  },
+
   'messages.content': async ({ grant }, params) => {
     requirePermission(grant, 'mail.bodies');
     const { ids, ...opts } = parse(
@@ -408,6 +445,18 @@ export const HANDLERS: { [method: string]: Handler } = {
     }
     Actions.setFocus({ collection: 'thread', item: thread });
     return {};
+  },
+
+  'ui.showEvent': ({ grant }, params) => {
+    requirePermission(grant, 'calendar.read');
+    const { id } = parse(z.object({ id: z.string() }), params);
+    return showInCalendar(grant, { id });
+  },
+
+  'ui.showDate': ({ grant }, params) => {
+    requirePermission(grant, 'calendar.read');
+    const { date } = parse(z.object({ date: z.string() }), params);
+    return showInCalendar(grant, { date });
   },
 
   'ui.search': (ctx, params) => {

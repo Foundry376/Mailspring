@@ -100,13 +100,19 @@
     useLive('messages', { query: withOptions(query, options) }, query != null);
   const useCounts = (query, groupBy) => useLive('counts', { query, groupBy }, query != null);
   const useAccounts = () => useLive('accounts', {}, true);
-  function useEvents(range) {
-    const params = range && {
+  // `range` is { start, end, search?, calendarIds?, attendee?, includeDeclined? }.
+  function rangeParams(range) {
+    return {
       start: new Date(range.start).toISOString(),
       end: new Date(range.end).toISOString(),
       search: range.search,
+      calendarIds: range.calendarIds,
+      attendee: range.attendee,
+      includeDeclined: range.includeDeclined,
     };
-    return useLive('events', params, !!range);
+  }
+  function useEvents(range) {
+    return useLive('events', range && rangeParams(range), !!range);
   }
 
   // ── One-shot reads ────────────────────────────────────────────────────────
@@ -121,12 +127,7 @@
   const getThreads = (q, options) => call('threads.find', splitQuery(withOptions(q, options)));
   const getMessages = (q, options) => call('messages.find', splitQuery(withOptions(q, options)));
   const getCounts = (query, groupBy) => call('counts.find', { query, groupBy });
-  const getEvents = (range) =>
-    call('events.find', {
-      start: new Date(range.start).toISOString(),
-      end: new Date(range.end).toISOString(),
-      search: range.search,
-    });
+  const getEvents = (range) => call('events.find', rangeParams(range));
 
   // Bodies never change, so content is cached for the life of the View.
   const contentCache = new Map();
@@ -887,4 +888,61 @@
   }
 
   Object.assign(window.MailspringView, { credentialFetch, useCredentialStatus });
+
+  // ── Calendars ─────────────────────────────────────────────────────────────
+  // Calendar reads and writes (views-api.md §3.11). Writes that would email other people
+  // (invitations, updates, cancellations, RSVPs) are confirmed by the user in a host dialog,
+  // and reject with code 'cancelled' if they decline.
+
+  const useCalendars = () => useLive('calendars', {}, true);
+  const getCalendars = () => call('calendars.find', {});
+  // Free/busy is one object, not a list: `data` is null until the first result arrives.
+  function useFreeBusy(range) {
+    const state = useLive('freeBusy', range && rangeParams(range), !!range);
+    return Array.isArray(state.data) ? { ...state, data: null } : state;
+  }
+  const getFreeBusy = (range) => call('events.freeBusy', rangeParams(range));
+
+  const toISO = (d) => (d === undefined ? undefined : new Date(d).toISOString());
+
+  const rsvp = (eventId, status) => call('calendar.rsvp', { id: eventId, status });
+  const createEvent = (event) =>
+    call('calendar.createEvent', { ...event, start: toISO(event.start), end: toISO(event.end) });
+  const updateEvent = (eventId, patch) =>
+    call('calendar.updateEvent', {
+      id: eventId,
+      patch: { ...patch, start: toISO(patch.start), end: toISO(patch.end) },
+    });
+  const deleteEvent = (eventId) => call('calendar.deleteEvent', { id: eventId });
+
+  /**
+   * Mail threads with an event's other attendees (or organizer) from the last `days` days,
+   * newest first. Needs mail.read. Built from the ordinary thread query, so Views can adapt it.
+   */
+  async function getRelatedThreads(event, { days = 60, limit = 10 } = {}) {
+    const people = [...(event.attendees || []), event.organizer]
+      .filter((p) => p && p.email && !p.isMe)
+      .map((p) => p.email);
+    if (!people.length) return { items: [], hasMore: false };
+    const after = new Date(Date.now() - days * 86400000).toISOString();
+    return getThreads({
+      where: { and: [{ participant: [...new Set(people)].slice(0, 50) }, { date: { after } }] },
+      limit,
+    });
+  }
+
+  ui.showEvent = (eventId) => call('ui.showEvent', { id: eventId });
+  ui.showDate = (date) => call('ui.showDate', { date: new Date(date).toISOString() });
+
+  Object.assign(window.MailspringView, {
+    useCalendars,
+    getCalendars,
+    useFreeBusy,
+    getFreeBusy,
+    getRelatedThreads,
+    rsvp,
+    createEvent,
+    updateEvent,
+    deleteEvent,
+  });
 })();

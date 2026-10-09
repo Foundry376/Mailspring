@@ -13,7 +13,7 @@ Status: draft for prototyping, 2026-10-02.
 
 ```
 my-view/
-  manifest.json   { name, placement: "page" | "thread-sidebar",
+  manifest.json   { name, apiVersion: "2026-10-05", placement: "page" | "thread-sidebar",
                     sidebar?: { mode: "card" | "panel", title? },   // thread-sidebar only (§1.1)
                     permissions: [...], network: ["api.example.com"],
                     credentials?: [{ id, label, hosts, header?, format?, help?, helpUrl? }] }  // §3.10
@@ -83,6 +83,31 @@ appears only when at least one panel is registered:
 - The choice is remembered in `core.messageListSidebar.panel`, and falls back to Contact when
   its provider disappears.
 
+### 1.2 API versions (`apiVersion`)
+
+Every manifest declares the View API it was written against as a date, `"apiVersion":
+"YYYY-MM-DD"`, like Stripe's API versions. Write the current version (`2026-10-05`) in new
+Views. A manifest without one is treated as `2026-10-01`, the first release of the API.
+
+| The View's version is… | The host… |
+|---|---|
+| between the oldest supported version and the current one | runs it, applying a compatibility shim for each behavior that changed after its version |
+| older than the oldest supported version | doesn't load it. A host card says the View was built for an older version of Mailspring and offers **Rebuild with AI** (opens the authoring panel with a prefilled request to update the View) and **Remove** |
+| newer than this build | doesn't load it. A host card asks the user to update Mailspring |
+
+- **Changing behavior:** a change that would break existing Views ships with a shim in
+  `lib/api-version.ts` (`SHIMS`, keyed by the version that introduced it). The runtime and the
+  bridge keep the old behavior for older Views. The oldest supported version only moves forward
+  when a shim is retired.
+- **Drafts:** a revision written without `apiVersion` is stamped with the current version, since
+  whoever wrote it wrote it against this API.
+- **Runtime:** the version is passed to the View page in its URL fragment (`#apiVersion=…`).
+
+| Version | Changes |
+|---|---|
+| `2026-10-01` | First release. |
+| `2026-10-05` | `ai.extract`, `ai.summarize` and `ai.generate` no longer report a `quota` status (on-device work is unmetered). Calendar reads and writes (§3.11). No shim needed: older Views never relied on the removed status, and calendar calls are additions. |
+
 ## 2. Transport (`window.mailspring`)
 
 The low-level surface is exposed by the preload through `contextBridge`. View authors never
@@ -103,8 +128,14 @@ rejected Error, so errors travel as data and `@mailspring/view` rethrows them as
 | `messages.find` | `{ query, offset? }` → `{ items: MessageSummary[], hasMore }` | `mail.read` |
 | `counts.find` | `{ query, groupBy }` → `CountRow[]` | `mail.read` |
 | `identity.get` | `{}` → `Identity` | `mail.read` |
-| `events.find` | `{ start, end, search? }` → `Event[]` | `calendar.read` |
-| `subscribe` | `{ kind: 'threads'\|'messages'\|'counts'\|'events'\|'accounts', params }` → `{ subId }` | as the matching `find` |
+| `events.find` | `EventRange` → `Event[]` | `calendar.read` |
+| `events.freeBusy` | `EventRange` → `{ busy: { start, end }[], busyMinutes }` | `calendar.read` |
+| `calendars.find` | `{}` → `CalendarInfo[]` | `calendar.read` |
+| `calendar.rsvp` | `{ id, status }` → `{}` (host confirms the reply to the organizer) | `calendar.write` |
+| `calendar.createEvent` | `NewEvent` → `{ eventId }` (host confirms when inviting guests) | `calendar.write` |
+| `calendar.updateEvent` | `{ id, patch }` → `{}` (host confirms when guests are notified) | `calendar.write` |
+| `calendar.deleteEvent` | `{ id }` → `{}` (host always confirms) | `calendar.write` |
+| `subscribe` | `{ kind: 'threads'\|'messages'\|'counts'\|'events'\|'freeBusy'\|'calendars'\|'accounts', params }` → `{ subId }` | as the matching `find` |
 | `unsubscribe` | `{ subId }` → `{}` | none |
 | `messages.content` | `{ ids, text?, html?, structured?, includeQuoted? }` → `Record<id, MessageContent>` | `mail.bodies` |
 | `messages.renderable` | `{ id }` → `{ html, headers }` (sanitized, for `<MessageView>`) | `mail.bodies` |
@@ -114,6 +145,7 @@ rejected Error, so errors travel as data and `@mailspring/view` rethrows them as
 | `metadata.set` | `{ kind: 'thread'\|'message', id, value: object\|null }` → `{}` | `metadata.own` |
 | `mail.modify` | `{ threadIds, change }` → `{ taskIds }` | `mail.modify` |
 | `ui.showThread` | `{ id }` | none |
+| `ui.showEvent` / `ui.showDate` | `{ id }` / `{ date }` (opens the calendar window there) | `calendar.read` |
 | `ui.search` | `{ search }` (opens the main thread list with this query) | none |
 | `ui.compose` | `{ to?, cc?, subject?, body?, accountId? }` | none (user sends) |
 | `ui.reply` | `{ messageId, body?, all? }` | none (user sends) |
@@ -221,7 +253,9 @@ type Live<T> = { data: T; loading: boolean; error: ViewError | null; hasMore?: b
 function useThreads(q: Query): Live<ThreadSummary[]>;
 function useMessages(q: Query): Live<MessageSummary[]>;
 function useCounts(q: Query, groupBy: Dim | [Dim, Dim]): Live<CountRow[]>;
-function useEvents(range: { start: Date | string; end: Date | string; search?: string }): Live<Event[]>;
+function useEvents(range: EventRange): Live<Event[]>;   // §3.11
+function useCalendars(): Live<CalendarInfo[]>;
+function useFreeBusy(range: EventRange): Live<{ busy: { start: string; end: string }[]; busyMinutes: number }>;
 function useAccounts(): Live<Account[]>;
 function useIdentity(): Identity | null;                // null until loaded
 function useContent(ids: string[], opts?: ContentOpts): Live<Record<string, MessageContent>> & { loaded: number; total: number };  // cached, not live
@@ -232,7 +266,10 @@ function useViewState<T>(key: string, initial: T): [T, (v: T) => void];   // dev
 function getThreads(q: Query & { offset?: number }): Promise<{ items: ThreadSummary[]; hasMore: boolean }>;
 function getMessages(q: Query & { offset?: number }): Promise<{ items: MessageSummary[]; hasMore: boolean }>;
 function getCounts(q: Query, groupBy: Dim | [Dim, Dim]): Promise<CountRow[]>;
-function getEvents(range: {...}): Promise<Event[]>;
+function getEvents(range: EventRange): Promise<Event[]>;
+function getCalendars(): Promise<CalendarInfo[]>;
+function getFreeBusy(range: EventRange): Promise<{ busy: { start: string; end: string }[]; busyMinutes: number }>;
+function getRelatedThreads(event: Event, opts?: { days?: number; limit?: number }): Promise<{ items: ThreadSummary[]; hasMore: boolean }>;  // needs mail.read
 function getContent(ids: string[], opts?: ContentOpts): Promise<Record<string, MessageContent>>;  // batched internally
 function getIdentity(): Promise<Identity>;
 
@@ -390,6 +427,22 @@ type Priority = {
 - **Prompt safety:** email text is fenced and the model is told it's untrusted data. Even so,
   render model text as text, never HTML.
 
+### 3.3b Model status
+
+Every `ai.extract` / `ai.summarize` / `ai.generate` progress event also carries the state of
+the on-device model, so a View can explain why AI results are missing instead of looking
+broken:
+
+| `modelStatus` | Meaning | What to show |
+|---|---|---|
+| `'ready'` | A model is available (downloaded, or built into the OS) | Results as normal |
+| `'model_downloading'` | First download in progress; `modelProgress` is 0–1 | "AI summaries will appear when the on-device model finishes downloading (38%)", with every non-AI section working |
+| `'model_off'` | The user turned on-device AI off | "AI summaries are turned off" — don't prompt to turn it on; the Views home badge owns that |
+| `'model_unavailable'` | Not downloaded, out of disk space, or the system model is still preparing | The same calm fallback as `model_off` |
+
+`modelAvailable: false` still accompanies every state except `'ready'`. Never block a View on
+the model: render the deterministic parts first and fill AI values in when they arrive.
+
 ### 3.4 Writes
 
 ```ts
@@ -473,13 +526,33 @@ interface MessageSummary {
 interface Attachment { id: string; messageId: string; filename: string; contentType: string | null; size: number; isInline: boolean }
 
 interface Event {
-  id: string; calendarId: string; accountId: string;
+  id: string;                        // this occurrence; pass it to ui.showEvent
+  eventId: string;                   // the stored event (the whole series for recurring ones)
+  calendarId: string; accountId: string;
   title: string; start: string; end: string; allDay: boolean;
   location: string | null; description: string | null;
   status: 'CONFIRMED' | 'TENTATIVE' | 'CANCELLED' | null;
   organizer: Contact | null;
   attendees: (Contact & { status: 'accepted'|'declined'|'tentative'|'needs-action'|null })[];
+  myStatus: 'accepted'|'declined'|'tentative'|'needs-action'|null;   // null: you aren't an attendee
+  conferenceUrl: string | null;      // Zoom/Meet/Teams/… link found in the location or description
   recurring: boolean;                // occurrences are already expanded within the range
+  exception: boolean;                // a moved or edited occurrence of a series
+}
+
+interface EventRange {
+  start: Date | string; end: Date | string;   // at most 400 days apart
+  search?: string;                   // title, location or description contains
+  calendarIds?: string[];
+  attendee?: string;                 // email of an attendee or the organizer
+  includeDeclined?: boolean;         // declined occurrences are left out by default
+}
+
+interface CalendarInfo { id: string; accountId: string; name: string; color: string | null; readOnly: boolean; isDefault: boolean }
+
+interface NewEvent {
+  calendarId: string; title: string; start: Date | string; end: Date | string; allDay?: boolean;
+  location?: string; description?: string; attendees?: { email: string; name?: string }[];
 }
 
 interface Theme {
@@ -536,7 +609,8 @@ Search matches threads, so in a message query it returns every message of a matc
 | `mail.bodies` | `useContent`/`getContent`, `useExtract`/`extract`, `<MessageView>`, `attachmentUrl` |
 | `metadata.own` | `setMetadata` (`meta` and `tagged` are readable with `mail.read`) |
 | `mail.modify` | `modify` |
-| `calendar.read` | `useEvents`/`getEvents` |
+| `calendar.read` | `useEvents`/`useCalendars`/`useFreeBusy` (+ `get*`), `ui.showEvent`/`ui.showDate` |
+| `calendar.write` | `rsvp`, `createEvent`, `updateEvent`, `deleteEvent` |
 | `network` | `fetch` to listed hosts |
 | `credentials` (manifest) | `credentialFetch`, `useCredentialStatus`, `ui.requestCredential` for the declared ids (§3.10) |
 
@@ -588,6 +662,35 @@ function credentialFetch(id: string, url: string, init?: { method?, headers?, bo
 - **The View's own `fetch`** to the same host never carries the key, and usually fails CORS.
 - **Errors** carry codes `permission`, `not_connected`, `invalid`, `limit`, `timeout`, or
   `unavailable` (network failure).
+
+### 3.11 Calendars
+
+Views read calendars and events with `calendar.read` and change them with `calendar.write`.
+Events are recurrence-expanded within the range, the same occurrences the calendar shows.
+
+```js
+const { data: events } = useEvents({ start: today, end: nextWeek, includeDeclined: false });
+const { data: calendars } = useCalendars();
+const { data: freeBusy } = useFreeBusy({ start: today, end: nextWeek });
+const related = await getRelatedThreads(event, { days: 30 });   // mail with the attendees
+ui.showEvent(event.id);                                          // opens the calendar window
+```
+
+| Write | Notes |
+|---|---|
+| `rsvp(eventId, 'accepted'\|'tentative'\|'declined')` | Sets your response on the whole series. The organizer is notified, so the host asks the user first. Undoable. |
+| `createEvent(newEvent)` → `{ eventId }` | On a writable calendar (`CalendarInfo.readOnly === false`). With guests, the host asks the user before invitations go out. |
+| `updateEvent(eventId, patch)` | `patch`: `title`, `start`, `end`, `allDay`, `location`, `description`. Undoable. If guests would get an update, the host asks first. |
+| `deleteEvent(eventId)` | Not undoable, so the host always asks. Guests get a cancellation. |
+
+- **Whole events only.** Writes take `eventId`. Passing an occurrence `id` of a recurring
+  series fails with `unsupported`: Views change a whole series, never one occurrence.
+- **The user can say no.** Any write that asks first rejects with `cancelled` when the user
+  declines. Treat it as a normal outcome, not an error to retry.
+- **No silent email.** A View can never invite, update, cancel or reply on the user's behalf
+  without the user seeing who will be emailed.
+- **Combined mail and calendar Views** pair `useEvents` with `getRelatedThreads` or a
+  `participant` thread query, and need `mail.read` as well.
 
 ## 4. Coverage walk
 
