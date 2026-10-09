@@ -20,7 +20,17 @@ function confirm(message: string, detail: string, action: string) {
   return choice === 0;
 }
 
-/** The pill's short state, after "On-device AI ·". */
+/**
+ * The pill's prefix. The badge is about running Views, not building them (that uses cloud AI),
+ * so it names what Views run on rather than saying "AI" alone.
+ */
+export function badgePrefix(status: LocalModelStatus | null) {
+  return status && status.state.kind === 'disabled'
+    ? localized('AI in Views')
+    : localized('Views run on');
+}
+
+/** The pill's short state, after the prefix. */
 export function badgeLabel(status: LocalModelStatus | null) {
   if (!status) return localized('Checking…');
   const { state } = status;
@@ -34,10 +44,10 @@ export function badgeLabel(status: LocalModelStatus | null) {
     case 'system-disabled':
       return localized('Not set up');
     case 'ready':
-      return state.label;
+      return localized('%@ (local)', state.label);
     case 'downloading':
       return localized(
-        'Downloading %@%',
+        'downloading %@%',
         Math.floor((state.receivedBytes / (state.totalBytes || 1)) * 100)
       );
     case 'error':
@@ -146,18 +156,20 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
     const { state } = status;
     const local = (
       <p className="model-badge-local">
-        {localized('Runs on your computer. Your mail is never sent anywhere to be summarized.')}
+        {localized(
+          "Some Views summarize mail or pull out details like prices and tracking numbers. They use a model on this computer — your mail isn't sent anywhere."
+        )}
       </p>
     );
     switch (state.kind) {
       case 'system':
         return (
-          <p className="model-badge-local">
-            {localized(
-              'Provided by macOS (%@). Runs on your Mac, with nothing extra to download.',
-              state.label
-            )}
-          </p>
+          <>
+            {local}
+            <div className="model-badge-detail">
+              {localized('Provided by macOS (%@) · nothing extra to download', state.label)}
+            </div>
+          </>
         );
       case 'checking':
         return local;
@@ -287,16 +299,23 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
 
   _renderPopover(status: LocalModelStatus) {
     const enabled = status.state.kind !== 'disabled';
-    const title = enabled ? status.state.label : localized('On-device AI is off');
     return (
       <div className="model-badge-popover" role="dialog">
-        <div className="model-badge-title">{title}</div>
+        <div className="model-badge-title">{localized('AI inside your Views')}</div>
+        <div className="model-badge-model">
+          {enabled ? status.state.label : localized('Turned off')}
+        </div>
         {this._renderBody(status)}
         {this._renderProviderChoice(status)}
         <label className="model-badge-switch">
           <input type="checkbox" checked={enabled} onChange={this._onToggleEnabled} />
           <span>{localized('Download AI models for Views')}</span>
         </label>
+        <p className="model-badge-footnote">
+          {localized(
+            "Creating or editing a View is different: it uses Mailspring's cloud AI with the examples you choose."
+          )}
+        </p>
       </div>
     );
   }
@@ -309,10 +328,10 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
         <button
           className={classnames('model-badge-pill', kind, { open })}
           onClick={() => this.setState({ open: !open })}
-          title={localized('On-device AI used by Views')}
+          title={localized('The AI that Views use on this computer')}
         >
           <span className="model-badge-dot" />
-          <span className="model-badge-name">{localized('On-device AI')}</span>
+          <span className="model-badge-name">{badgePrefix(status)}</span>
           <span className="model-badge-sep">·</span>
           <span className="model-badge-state">{badgeLabel(status)}</span>
         </button>

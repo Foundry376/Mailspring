@@ -5,11 +5,12 @@ import { ViewManifest, ViewRegistryEvents, installedViews } from '../view-regist
 import { ViewsNavStore } from '../views-nav';
 import { badgeFor, ViewBadgeEvents } from './badges';
 
-/** The Views that get their own rail item: the user's page Views, installed or being tried. */
+/**
+ * The Views that get their own rail item: the user's installed page Views. Drafts stay on the
+ * Views home until they're kept, which is what makes "draft" mean something.
+ */
 export function railViews(views: ViewManifest[] = installedViews()) {
-  return views.filter(
-    (v) => v.placement === 'page' && (v.source === 'installed' || v.source === 'draft')
-  );
+  return views.filter((v) => v.placement === 'page' && v.source === 'installed');
 }
 
 // A manifest `icon` is a short emoji; anything else falls back to a monogram.
@@ -35,7 +36,6 @@ export function tooltipFor(view: ViewManifest) {
   const parts: string[] = [];
   const description = view.json && view.json.description;
   if (typeof description === 'string' && description.trim()) parts.push(description.trim());
-  if (view.source === 'draft') parts.push(localized('Preview: not installed yet.'));
   return { title: view.name, description: parts.join(' ') || undefined };
 }
 
@@ -88,6 +88,8 @@ export class ViewsNavRailSection extends React.Component<Record<string, never>, 
 
   render() {
     const { views, showing, viewId } = this.state;
+    // A draft opened from the home has no item of its own, so the Views item stays lit.
+    const viewHasItem = views.some((v) => v.id === viewId);
     return (
       <NavRailSection label={localized('Views')}>
         <NavRailItem
@@ -97,7 +99,7 @@ export class ViewsNavRailSection extends React.Component<Record<string, never>, 
             title: localized('Views'),
             description: localized('Your custom views of your mail, and the starters.'),
           }}
-          active={showing && !viewId}
+          active={showing && !viewHasItem}
           onClick={() => ViewsNavStore.showHome()}
         />
         {views.map((view) => (

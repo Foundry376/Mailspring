@@ -17,14 +17,14 @@ const manifest = (over: Partial<ViewManifest>): ViewManifest => ({
 
 describe('Views in the nav rail', function () {
   describe('railViews', function () {
-    it("lists the user's page Views, installed or being tried, but not dev examples or sidebar Views", function () {
+    it("lists the user's installed page Views, but not drafts, dev examples or sidebar Views", function () {
       const views = [
         manifest({ id: 'board' }),
         manifest({ id: 'trying', source: 'draft' }),
         manifest({ id: 'hello', source: 'example' }),
         manifest({ id: 'history', placement: 'thread-sidebar' }),
       ];
-      expect(railViews(views).map((v) => v.id)).toEqual(['board', 'trying']);
+      expect(railViews(views).map((v) => v.id)).toEqual(['board']);
     });
   });
 
@@ -40,60 +40,85 @@ describe('Views in the nav rail', function () {
       expect(monogramFor('rides & receipts').background).toEqual(m.background);
     });
 
-    it('describes a View, and says when it is only a preview', function () {
+    it('describes a View from its manifest', function () {
       expect(tooltipFor(manifest({ json: { description: 'Sort conversations.' } }))).toEqual({
         title: 'Board',
         description: 'Sort conversations.',
       });
-      expect(tooltipFor(manifest({ source: 'draft' })).description).toContain('Preview');
       expect(tooltipFor(manifest({})).description).toBeUndefined();
     });
   });
 
   describe('ViewsNavStore', function () {
-    let root: any;
+    let stack: any[];
 
     beforeEach(function () {
-      // The Views package defines its sheet when it activates, which specs don't do.
+      // The Views package defines its sheets when it activates, which specs don't do.
       if (!WorkspaceStore.Sheet.Views) {
         WorkspaceStore.defineSheet('Views', { root: true }, { list: ['ViewContent'] });
       }
-      root = WorkspaceStore.Sheet.Threads;
-      spyOn(WorkspaceStore, 'rootSheet').andCallFake(() => root);
-      spyOn(WorkspaceStore, 'topSheet').andCallFake(() => root);
+      if (!WorkspaceStore.Sheet.ViewPage) {
+        WorkspaceStore.defineSheet('ViewPage', {}, { list: ['ViewPageContent'] });
+      }
+      stack = [WorkspaceStore.Sheet.Threads];
+      spyOn(WorkspaceStore, 'rootSheet').andCallFake(() => stack[0]);
+      spyOn(WorkspaceStore, 'topSheet').andCallFake(() => stack[stack.length - 1]);
+      spyOn(WorkspaceStore, 'sheetStack').andCallFake(() => stack);
       spyOn(Actions, 'selectRootSheet').andCallFake((sheet) => {
-        root = sheet;
+        stack = [sheet];
+        ViewsNavStore._onWorkspaceChanged();
+      });
+      spyOn(Actions, 'popToRootSheet').andCallFake(() => {
+        stack = stack.slice(0, 1);
+        ViewsNavStore._onWorkspaceChanged();
+      });
+      spyOn(Actions, 'pushSheet').andCallFake((sheet) => {
+        stack = [...stack, sheet];
+        ViewsNavStore._onWorkspaceChanged();
       });
       spyOn(Actions, 'setFocus');
+      ViewsNavStore.showHome();
+      stack = [WorkspaceStore.Sheet.Threads];
+      ViewsNavStore._onWorkspaceChanged();
     });
 
-    it('switches the main window to the Views sheet for a View, and reports it as focused', function () {
+    it('pushes a View over the Views home, so Back returns home', function () {
       ViewsNavStore.showView('board');
-      expect(Actions.selectRootSheet).toHaveBeenCalledWith(WorkspaceStore.Sheet.Views);
+      expect(stack).toEqual([WorkspaceStore.Sheet.Views, WorkspaceStore.Sheet.ViewPage]);
       expect(ViewsNavStore.viewId()).toEqual('board');
       expect(ViewsNavStore.focusedPageViewId()).toEqual('board');
       expect(ViewsNavStore.isShowingHome()).toBe(false);
     });
 
+    it('forgets the View when its sheet is popped', function () {
+      ViewsNavStore.showView('board');
+      stack = [WorkspaceStore.Sheet.Views];
+      ViewsNavStore._onWorkspaceChanged();
+      expect(ViewsNavStore.viewId()).toBe(null);
+      expect(ViewsNavStore.isShowingHome()).toBe(true);
+    });
+
     it("doesn't report a focused View while another section is showing", function () {
       ViewsNavStore.showView('board');
-      root = WorkspaceStore.Sheet.Threads;
+      stack = [WorkspaceStore.Sheet.Threads];
+      ViewsNavStore._onWorkspaceChanged();
       expect(ViewsNavStore.focusedPageViewId()).toBe(null);
+    });
+
+    it('switches between Views by replacing the pushed View', function () {
+      ViewsNavStore.showView('board');
+      ViewsNavStore.showView('rides');
+      expect(stack).toEqual([WorkspaceStore.Sheet.Views, WorkspaceStore.Sheet.ViewPage]);
+      expect(ViewsNavStore.viewId()).toEqual('rides');
     });
 
     it('shows the home, and clears a thread a View had opened', function () {
       spyOn(FocusedContentStore, 'focused').andReturn({ id: 't1' });
       ViewsNavStore.showView('board');
       ViewsNavStore.showHome();
+      expect(stack).toEqual([WorkspaceStore.Sheet.Views]);
       expect(ViewsNavStore.viewId()).toBe(null);
-      expect(ViewsNavStore.isShowingHome()).toBe(true);
       expect(Actions.setFocus).toHaveBeenCalledWith({ collection: 'thread', item: null });
-    });
-
-    it("doesn't reselect the sheet when it's already showing", function () {
-      root = WorkspaceStore.Sheet.Views;
-      ViewsNavStore.showView('board');
-      expect(Actions.selectRootSheet).not.toHaveBeenCalled();
     });
   });
 });

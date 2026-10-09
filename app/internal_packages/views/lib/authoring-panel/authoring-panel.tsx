@@ -1,7 +1,7 @@
 import React from 'react';
 import { credentialsFromManifest } from '../../../../src/browser/view-credential-policy';
 import classnames from 'classnames';
-import { DragDropTypes } from 'mailspring-exports';
+import { DragDropTypes, localized } from 'mailspring-exports';
 import { panelSource, onPanelSourceChanged } from './store';
 import { Markdown } from './markdown';
 import {
@@ -651,6 +651,16 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
           <span className="ap-name">{session.name || 'New View'}</span>
           <span className={classnames('ap-status', `tone-${status.tone}`)}>{status.text}</span>
         </div>
+        {!this.state.geometry.collapsed && (
+          <span
+            className="ap-cloud-hint"
+            title={localized(
+              "Building and editing Views uses Mailspring's cloud AI. It sees your messages here, the example emails you drop in, and screenshots you choose to send — nothing else from your mailbox."
+            )}
+          >
+            {localized('Cloud AI · sees only what you share here')}
+          </span>
+        )}
         {!this.state.geometry.collapsed && this._renderMeter(session)}
         {/* Expanded, Stop lives on the busy card in the transcript. */}
         {working && this.state.geometry.collapsed && (

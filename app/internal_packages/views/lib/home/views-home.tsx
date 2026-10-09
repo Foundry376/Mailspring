@@ -26,6 +26,12 @@ import {
 // accent color).
 const BACKDROP_VARIANT = 'grid-fine';
 
+// Building happens remotely; running happens here. Said wherever a View gets created.
+const CLOUD_NOTE = () =>
+  localized(
+    "Building a View uses Mailspring's cloud AI and only the example emails you choose to share. Once built, it runs entirely on this computer."
+  );
+
 interface ViewsHomeState {
   views: ViewManifest[];
   starters: Starter[];
@@ -144,10 +150,9 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
           <div>
             <div className="views-home-create-title">{localized('Create a View')}</div>
             <div className="views-home-create-subtitle">
-              {localized(
-                'Describe the view of your mail you want, and Mailspring builds it with you.'
-              )}
+              {localized("Describe it in your own words. Mailspring's AI builds it with you.")}
             </div>
+            <div className="views-home-create-note">{CLOUD_NOTE()}</div>
           </div>
         </button>
       );
@@ -183,6 +188,7 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
             'Next, you will drag a few example emails into the authoring panel. Only the emails you add there are shared with the agent.'
           )}
         </div>
+        <div className="views-home-create-note">{CLOUD_NOTE()}</div>
         <div className="views-home-create-actions">
           <button
             type="button"
@@ -323,7 +329,12 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
           </div>
           <p className="views-home-intro">
             {localized(
-              'Views are custom perspectives on your mail. They run in a sandbox: they can read the mail you allow, but not your files or the internet.'
+              'Custom dashboards built from your mail — track packages, chart spending, run a board for your projects. Describe what you want and Mailspring builds it.'
+            )}
+          </p>
+          <p className="views-home-intro-secondary">
+            {localized(
+              'Views run privately on this computer and can only read the mail you allow.'
             )}
           </p>
 

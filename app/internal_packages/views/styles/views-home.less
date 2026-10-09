@@ -5,6 +5,8 @@
 // (the system accent), so it's mixed with color-mix() rather than LESS's fade().
 @views-grid-minor: fade(@text-color, 4%);
 @views-grid-major: fade(@text-color, 7%);
+// The thread list's draft composer tint (composer.less), strengthened enough to read as a tag.
+@views-draft-tint: mix(@background-primary, #ffbb00, 82%);
 
 .views-home-grid(@minor-color; @major-color; @minor; @major) {
   background-image:
@@ -98,6 +100,13 @@
 
   .views-home-intro {
     color: @text-color-subtle;
+    margin: 0 0 4px;
+    max-width: 640px;
+  }
+
+  .views-home-intro-secondary {
+    color: @text-color-very-subtle;
+    font-size: @font-size-small;
     margin: 0 0 22px;
     max-width: 640px;
   }
@@ -112,7 +121,6 @@
     background: @background-primary;
     border: 1px solid @border-color-primary;
     border-radius: 8px;
-    box-shadow: @standard-shadow;
     cursor: pointer;
     color: @text-color;
 
@@ -155,6 +163,13 @@
     margin-top: 2px;
   }
 
+  .views-home-create-note {
+    margin-top: 6px;
+    color: @text-color-very-subtle;
+    font-size: @font-size-smaller;
+    line-height: 1.4;
+  }
+
   .views-home-create-form {
     display: flex;
     flex-direction: column;
@@ -163,7 +178,6 @@
     background: @background-primary;
     border: 1px solid @border-color-primary;
     border-radius: 8px;
-    box-shadow: @standard-shadow;
 
     label {
       display: flex;
@@ -226,7 +240,6 @@
     background: @background-primary;
     border: 1px solid @border-color-primary;
     border-radius: 8px;
-    box-shadow: @standard-shadow;
     overflow: hidden;
     min-width: 0;
   }
@@ -293,7 +306,8 @@
     color: @text-color-subtle;
 
     &.draft {
-      background: @background-color-warning;
+      background: @views-draft-tint;
+      box-shadow: inset 0 0 0 1px mix(@background-primary, #ffbb00, 60%);
       color: @text-color;
     }
     &.working {
@@ -313,7 +327,6 @@
     }
   }
 }
-
 
 // The on-device AI badge in the header (lib/local-model/model-badge.tsx).
 .views-home .views-home-header {
@@ -408,6 +421,19 @@
     font-weight: @font-weight-semi-bold;
     color: @text-color-heading;
     margin-bottom: 6px;
+  }
+
+  .model-badge-model {
+    color: @text-color-subtle;
+    font-size: 12px;
+    margin: -4px 0 8px;
+  }
+
+  .model-badge-footnote {
+    margin: 10px 0 0;
+    color: @text-color-very-subtle;
+    font-size: 11px;
+    line-height: 1.4;
   }
 
   .model-badge-local {

@@ -2,9 +2,10 @@ import MailspringStore from 'mailspring-store';
 import { Actions, FocusedContentStore, WorkspaceStore } from 'mailspring-exports';
 
 /**
- * What the Views sheet shows: the Views home, or one page View. Views are a section of the main
- * window reached from the nav rail, so this is independent of the mailbox perspective; leaving
- * for Mail returns to the mailbox that was showing.
+ * Where the user is within Views. The Views root sheet is the Views home; a View is the
+ * ViewPage sheet pushed over it, so the toolbar's Back button ("‹ Views") returns home and a
+ * thread the View opens is pushed over the View ("‹ <View name>"). Views are a section of the
+ * main window reached from the nav rail, independent of the mailbox perspective.
  */
 class _ViewsNavStore extends MailspringStore {
   _viewId: string | null = null;
@@ -15,7 +16,7 @@ class _ViewsNavStore extends MailspringStore {
     this.listenTo(WorkspaceStore, this._onWorkspaceChanged);
   }
 
-  /** The View the Views sheet shows, or null for the home. */
+  /** The View on screen within Views, or null for the home. */
   viewId() {
     return this._viewId;
   }
@@ -35,33 +36,54 @@ class _ViewsNavStore extends MailspringStore {
   }
 
   showHome() {
-    this._show(null);
+    clearFocusedThread();
+    this._showRoot();
+    this._setViewId(null);
   }
 
   showView(viewId: string) {
-    this._show(viewId);
+    clearFocusedThread();
+    this._showRoot();
+    Actions.pushSheet(WorkspaceStore.Sheet.ViewPage);
+    this._setViewId(viewId);
   }
 
-  _show(viewId: string | null) {
-    const changed = viewId !== this._viewId;
-    this._viewId = viewId;
-    // A thread a View opened would otherwise reappear over the next View.
-    if (FocusedContentStore.focused('thread')) {
-      Actions.setFocus({ collection: 'thread', item: null });
+  // Leaves only the Views home on the sheet stack.
+  _showRoot() {
+    if (!this.isShowingViews()) {
+      Actions.selectRootSheet(WorkspaceStore.Sheet.Views);
+    } else {
+      Actions.popToRootSheet();
     }
-    const atRoot =
-      this.isShowingViews() && WorkspaceStore.topSheet() === WorkspaceStore.Sheet.Views;
-    if (!atRoot) Actions.selectRootSheet(WorkspaceStore.Sheet.Views);
-    if (changed) this.trigger();
+  }
+
+  _setViewId(viewId: string | null) {
+    if (viewId === this._viewId) return;
+    this._viewId = viewId;
+    this.trigger();
   }
 
   _onWorkspaceChanged = () => {
+    // Back from a View, or switching sections, pops the ViewPage sheet.
+    if (this._viewId && !WorkspaceStore.sheetStack().includes(WorkspaceStore.Sheet.ViewPage)) {
+      this._viewId = null;
+      this._showing = this.isShowingViews();
+      this.trigger();
+      return;
+    }
     const showing = this.isShowingViews();
     if (showing !== this._showing) {
       this._showing = showing;
       this.trigger();
     }
   };
+}
+
+// A thread a View opened would otherwise reappear over the next View or the home.
+function clearFocusedThread() {
+  if (FocusedContentStore.focused('thread')) {
+    Actions.setFocus({ collection: 'thread', item: null });
+  }
 }
 
 export const ViewsNavStore = new _ViewsNavStore();

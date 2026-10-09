@@ -4,7 +4,12 @@ import { localized } from 'mailspring-exports';
 import { ViewBridge } from './view-bridge';
 import { registerHost } from './authoring/hosts';
 import { ViewDiagnostics, reportFromGuest, summarizeParams } from './authoring/diagnostics';
-import { ApiCompatibility, CURRENT_API_VERSION, compatibility, rebuildRequest } from './api-version';
+import {
+  ApiCompatibility,
+  CURRENT_API_VERSION,
+  compatibility,
+  rebuildRequest,
+} from './api-version';
 import { ViewRegistryEvents, ViewsChange, installedViews } from './view-registry';
 
 export type ViewPlacement = 'page' | 'thread-sidebar';

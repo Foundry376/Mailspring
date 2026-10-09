@@ -1,7 +1,7 @@
 import { ComponentRegistry, WorkspaceStore, localized } from 'mailspring-exports';
 import { ViewManifest, ViewRegistryEvents, ViewsChange, installedViews } from './view-registry';
 import { ViewsNavStore } from './views-nav';
-import { ViewsRoot } from './views-root';
+import { ViewPageRoot, ViewsRoot } from './views-root';
 import { createSidebarViewComponent } from './sidebar-view';
 import { ViewsNavRailSection } from './nav/views-nav-rail';
 import { startTrackingBadges, stopTrackingBadges } from './nav/badges';
@@ -72,7 +72,7 @@ function reloadFocusedViews() {
 }
 
 // Back from a thread a View opened returns to that View, so it's named after the View.
-function viewsBackTitle() {
+function viewPageBackTitle() {
   const viewId = ViewsNavStore.viewId();
   const view = viewId && installedViews().find((v) => v.id === viewId);
   return view ? view.name : localized('Views');
@@ -82,12 +82,20 @@ export function activate() {
   // `list` is the only mode, whatever the user's reading-pane preference: focusing a thread
   // from a View then pushes the Thread sheet over it, with the standard toolbar and Back.
   // No mailbox sidebar: Views are a section of their own, switched from the nav rail.
+  // The home is the root sheet and each View is pushed over it, so the toolbar's Back button
+  // leads from a View to the home and from a thread to its View.
   WorkspaceStore.defineSheet(
     'Views',
-    { root: true, backTitle: viewsBackTitle },
+    { root: true, backTitle: () => localized('Views') },
     { list: ['ViewContent'] }
   );
+  WorkspaceStore.defineSheet(
+    'ViewPage',
+    { backTitle: viewPageBackTitle },
+    { list: ['ViewPageContent'] }
+  );
   ComponentRegistry.register(ViewsRoot, { location: WorkspaceStore.Location.ViewContent });
+  ComponentRegistry.register(ViewPageRoot, { location: WorkspaceStore.Location.ViewPageContent });
   registerAuthoringPanel();
   ComponentRegistry.register(ViewsNavRailSection, { role: 'NavRail:Section' });
   stopThumbnails = captureThumbnailsOnRender();
@@ -121,5 +129,6 @@ export function deactivate() {
   stopThumbnails = null;
   ComponentRegistry.unregister(ViewsNavRailSection);
   ComponentRegistry.unregister(ViewsRoot);
+  ComponentRegistry.unregister(ViewPageRoot);
   unregisterAuthoringPanel();
 }
