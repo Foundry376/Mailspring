@@ -627,6 +627,54 @@ export function bumpEventSequence(ics: string, recurrenceId?: string): string {
   return root.toString();
 }
 
+/**
+ * Re-sends an older copy of an event (undo, redo) as a new revision of `current`, the copy last
+ * sent. Google answers 409 to a VEVENT whose SEQUENCE is below the one it holds, so each VEVENT
+ * that differs from its counterpart in `current` moves one past the higher of the two. One that
+ * matches apart from SEQUENCE and DTSTAMP takes `current`'s, so guests see no revision of an
+ * occurrence nobody changed.
+ */
+export function bumpEventSequenceUp(ics: string, current: string): string {
+  const ical = getICAL();
+  const { root } = parseICSString(ics);
+  const currentVevents = veventsOf(parseICSString(current).root);
+  const now = nowUTC(ical);
+
+  for (const vevent of veventsOf(root)) {
+    const rid = vevent.getFirstPropertyValue('recurrence-id');
+    const counterpart = currentVevents.find((v) =>
+      rid ? matchesRecurrenceId(v, String(rid)) : !v.getFirstPropertyValue('recurrence-id')
+    );
+
+    if (counterpart && contentApartFromRevision(counterpart) === contentApartFromRevision(vevent)) {
+      for (const name of ['sequence', 'dtstamp']) {
+        vevent.removeAllProperties(name);
+        const prop = counterpart.getFirstProperty(name);
+        if (prop) vevent.addProperty(prop);
+      }
+    } else {
+      const sequence = Math.max(sequenceOf(vevent), counterpart ? sequenceOf(counterpart) : 0);
+      vevent.updatePropertyWithValue('sequence', sequence + 1);
+      vevent.updatePropertyWithValue('dtstamp', now);
+    }
+  }
+  return root.toString();
+}
+
+function sequenceOf(vevent: ICALComponent): number {
+  return parseInt(String(vevent.getFirstPropertyValue('sequence')), 10) || 0;
+}
+
+function veventsOf(root: ICALComponent): ICALComponent[] {
+  return root.name === 'vevent' ? [root] : (root.getAllSubcomponents('vevent') as ICALComponent[]);
+}
+
+function contentApartFromRevision(vevent: ICALComponent): string {
+  const [name, props, components] = vevent.toJSON() as [string, string[][], unknown[]];
+  const content = props.filter(([prop]) => prop !== 'sequence' && prop !== 'dtstamp');
+  return JSON.stringify([name, content, components]);
+}
+
 /** Whether this VEVENT is the inline exception `recurrenceId` names, in either date form. */
 function matchesRecurrenceId(vevent: ICALComponent, recurrenceId: string): boolean {
   const rid = vevent.getFirstPropertyValue('recurrence-id');
