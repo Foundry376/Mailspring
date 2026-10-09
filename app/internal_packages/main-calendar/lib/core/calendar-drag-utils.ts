@@ -239,8 +239,13 @@ export function createDragState(
   // The grab offset keeps the event from jumping when the drag starts. `mouseTime` comes from
   // the grid, so it is measured against the grid's reading of the edge, not the edge itself.
   let clickOffset = 0;
+  let grabDayOffset = 0;
   if (hitZone.mode === 'move') {
     clickOffset = mouseTime - CalendarDateUtils.firstOccurrenceUnix(start);
+    grabDayOffset = CalendarDateUtils.calendarDaysBetween(
+      event.startDate,
+      CalendarDateUtils.calendarDateFromUnix(mouseTime)
+    );
   } else if (hitZone.mode === 'resize-end') {
     clickOffset = mouseTime - CalendarDateUtils.firstOccurrenceUnix(end);
   }
@@ -251,6 +256,7 @@ export function createDragState(
     originalStart: start,
     originalEnd: end,
     clickOffset,
+    grabDayOffset,
     initialMouseX: mouseX,
     initialMouseY: mouseY,
     previewStart: start,
@@ -325,10 +331,15 @@ export function updateDragState(
   switch (state.mode) {
     case 'move': {
       if (previewIsAllDay) {
-        // Target is all-day. An all-day event keeps its whole-day span; a converting timed
-        // event becomes a single day. Snap the start, then span that many whole days.
+        // Target is all-day. An all-day event keeps its whole-day span and the day it was grabbed
+        // by; a converting timed event becomes a single day under the cursor.
         const numDays = state.event.isAllDay ? Math.max(1, Math.round(eventDuration / 86400)) : 1;
-        previewStart = moment.unix(mouseTime).startOf('day').unix();
+        const cursorDay = CalendarDateUtils.calendarDateFromUnix(mouseTime);
+        previewStart = CalendarDateUtils.dayStartUnix(
+          state.event.isAllDay
+            ? CalendarDateUtils.addCalendarDays(cursorDay, -state.grabDayOffset)
+            : cursorDay
+        );
         // Via the helpers, not a raw add: where the drop day's midnight doesn't exist, add()
         // keeps the 01:00 wall clock and snapAllDayTimes then rounds it up an extra day.
         previewEnd = CalendarDateUtils.nextDayStartUnix(
@@ -347,10 +358,11 @@ export function updateDragState(
         // Timed event on a day-granular surface — a month cell, or a recurring event on the
         // all-day row (not converted). Shift by whole calendar days and keep the clock time;
         // moment add() holds 10am at 10am across a DST change.
-        const daysDelta = CalendarDateUtils.calendarDaysBetween(
-          CalendarDateUtils.calendarDateFromUnix(state.originalStart),
-          CalendarDateUtils.calendarDateFromUnix(mouseTime)
-        );
+        const daysDelta =
+          CalendarDateUtils.calendarDaysBetween(
+            CalendarDateUtils.calendarDateFromUnix(state.originalStart),
+            CalendarDateUtils.calendarDateFromUnix(mouseTime)
+          ) - state.grabDayOffset;
         previewStart = moment.unix(state.originalStart).add(daysDelta, 'days').unix();
         previewEnd = previewStart + eventDuration;
       } else {
@@ -483,4 +495,70 @@ export function formatDragPreviewTime(start: number, end: number, isAllDay: bool
   const startTime = moment.unix(start).format('h:mm A');
   const endTime = moment.unix(end).format('h:mm A');
   return `${startTime} - ${endTime}`;
+}
+
+/** A press on empty grid space and where the pointer has gone since. */
+export interface CreateDragState {
+  /** The instant under the pointer when it went down, in unix seconds. */
+  anchorTime: number;
+  /** The instant under the pointer now, in unix seconds. */
+  currentTime: number;
+  isAllDay: boolean;
+  /** False until the pointer has travelled a snap interval; a press that has not is a click. */
+  isDragging: boolean;
+  /** The calendar the event would be created on, so the preview paints in its colour. */
+  calendarId: string;
+  accountId: string;
+}
+
+/** New events snap to the quarter hour, which is what the grid lines imply. */
+export const CREATE_DRAG_SNAP_SECONDS = 15 * 60;
+
+/**
+ * The range a create-drag describes, ordered and snapped. The anchor is whichever end the
+ * pointer started at, and a drag that barely moved still describes one snap interval, not an
+ * instant.
+ */
+export function createDragRange(state: CreateDragState): { start: number; end: number } {
+  const snap = (t: number) => Math.round(t / CREATE_DRAG_SNAP_SECONDS) * CREATE_DRAG_SNAP_SECONDS;
+  const from = snap(Math.min(state.anchorTime, state.currentTime));
+  const to = snap(Math.max(state.anchorTime, state.currentTime));
+  return { start: from, end: Math.max(to, from + CREATE_DRAG_SNAP_SECONDS) };
+}
+
+/** The range being drawn, as an occurrence, so it renders through the normal pipeline. */
+export function createNewEventPreview(state: CreateDragState): EventOccurrence {
+  const range = createDragRange(state);
+  // An all-day range's end is the last day the pointer covered; coveredDates wants the
+  // exclusive end, the next day's start.
+  const end = state.isAllDay
+    ? CalendarDateUtils.nextDayStartUnix(CalendarDateUtils.calendarDateFromUnix(range.end))
+    : range.end;
+  const shared = {
+    id: '__new_event_drag_preview',
+    accountId: state.accountId,
+    calendarId: state.calendarId,
+    title: '',
+    description: '',
+    location: '',
+    organizer: null,
+    attendees: [],
+    isDragPreview: true,
+    ...coveredDates(range.start, end, state.isAllDay),
+  } as any;
+
+  return state.isAllDay
+    ? { ...shared, isAllDay: true }
+    : { ...shared, isAllDay: false, start: range.start, end: range.end };
+}
+
+/** A view's events plus the range being drawn, once the pointer has travelled. */
+export function withCreateDragPreview(
+  events: EventOccurrence[],
+  createDrag: CreateDragState | null
+): EventOccurrence[] {
+  if (!createDrag?.isDragging) {
+    return events;
+  }
+  return [...events, createNewEventPreview(createDrag)];
 }

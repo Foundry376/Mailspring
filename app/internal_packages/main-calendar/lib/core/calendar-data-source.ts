@@ -123,8 +123,8 @@ interface OccurrenceBase {
   /**
    * The days covered, inclusive both ends — a one-day event has `startDate === endDate`.
    *
-   * The authoritative span for all-day events, and what the day-cell filters read per event
-   * per cell via eventCoversDate.
+   * The authoritative span for all-day events, and what month rows (layoutWeekBars) and agenda
+   * days (eventCoversDate) place events by.
    */
   startDate: CalendarDate;
   endDate: CalendarDate;
