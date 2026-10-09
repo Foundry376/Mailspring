@@ -73,6 +73,7 @@ lazyLoad('OpenIdentityPageButton', 'open-identity-page-button');
 lazyLoad('Flexbox', 'flexbox');
 lazyLoad('RetinaImg', 'retina-img');
 lazyLoad('NavRailItem', 'nav-rail');
+lazyLoad('NavRailSection', 'nav-rail');
 lazyLoad('SwipeContainer', 'swipe-container');
 lazyLoad('FluxContainer', 'flux-container');
 lazyLoad('FocusContainer', 'focus-container');

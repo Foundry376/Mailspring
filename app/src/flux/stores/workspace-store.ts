@@ -48,6 +48,8 @@ export interface SheetDeclaration {
   name: string;
   root: boolean;
   sidebarComponent: any;
+  /** The Back button's label on sheets pushed over this one; defaults to the mailbox name. */
+  backTitle?: () => string;
 
   Toolbar: SheetToolbarDeclaration;
   Header: { id: string };
@@ -314,6 +316,7 @@ class WorkspaceStore extends MailspringStore {
       name: options.name,
       root: options.root,
       sidebarComponent: options.sidebarComponent,
+      backTitle: options.backTitle,
 
       Toolbar: {
         Left: { id: `Sheet:${id}:Toolbar:Left` },

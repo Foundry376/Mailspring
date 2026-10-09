@@ -532,10 +532,11 @@ const TESTS = [
     async () => {
       const div = document.createElement('div');
       div.innerHTML =
-        '<img src="data:," onerror="window.__rtXss1=1" onload="window.__rtXss1=1"><script>window.__rtXss2=1<\/script><svg onload="window.__rtXss3=1"></svg>';
+        '<img src="data:," onerror="window.__rtXss1=1" onload="window.__rtXss1=1"><script>window.__rtXss2=1</' +
+        'script><svg onload="window.__rtXss3=1"></svg>';
       document.getElementById('redteam-sandbox').appendChild(div);
       const frame = document.createElement('iframe');
-      frame.srcdoc = '<script>parent.__rtXss4=1<\/script>';
+      frame.srcdoc = '<script>parent.__rtXss4=1</' + 'script>';
       document.getElementById('redteam-sandbox').appendChild(frame);
       await WAIT(800);
       const fired = [1, 2, 3, 4].filter((n) => window[`__rtXss${n}`]);

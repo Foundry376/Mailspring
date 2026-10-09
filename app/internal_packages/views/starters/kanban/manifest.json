@@ -1,6 +1,7 @@
 {
   "id": "kanban",
   "name": "Board",
+  "icon": "📋",
   "apiVersion": "2026-10-05",
   "description": "Sort conversations into To do, Waiting and Done columns.",
   "version": "1.0.0",

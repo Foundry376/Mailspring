@@ -1,6 +1,5 @@
-import { Actions, FocusedPerspectiveStore } from 'mailspring-exports';
 import { installedViews } from '../view-registry';
-import { ViewMailboxPerspective } from '../view-mailbox-perspective';
+import { ViewsNavStore } from '../views-nav';
 import { reloadMountedView } from './hosts';
 import {
   ViewRevision,
@@ -20,12 +19,7 @@ export function openView(viewId: string) {
   const view = installedViews().find((v) => v.id === viewId);
   if (!view) throw new Error(`No View "${viewId}".`);
   if (view.placement !== 'page') return false;
-  const perspective = new ViewMailboxPerspective(
-    FocusedPerspectiveStore.sidebarAccountIds(),
-    view.id,
-    view.name
-  );
-  Actions.focusMailboxPerspective(perspective);
+  ViewsNavStore.showView(view.id);
   return true;
 }
 

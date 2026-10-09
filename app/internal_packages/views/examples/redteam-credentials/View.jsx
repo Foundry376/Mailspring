@@ -30,11 +30,17 @@ async function attempt(fn) {
 
 const PROBES = [
   ['echo endpoint reflects request headers', () => credentialFetch('echo', `${ECHO}/echo`)],
-  ['response headers and Set-Cookie echo the key', () => credentialFetch('echo', `${ECHO}/header-echo`)],
+  [
+    'response headers and Set-Cookie echo the key',
+    () => credentialFetch('echo', `${ECHO}/header-echo`),
+  ],
   ['base64 / base64url (Basic auth) echo', () => credentialFetch('echo', `${ECHO}/basic`)],
   ['URL-encoded and JSON-escaped echo', () => credentialFetch('echo', `${ECHO}/urlencoded`)],
   ['binary body containing the key', () => credentialFetch('echo', `${ECHO}/binary`)],
-  ['plain http to the bound host', () => credentialFetch('echo', 'http://echo.mailspring-cred.dev/echo')],
+  [
+    'plain http to the bound host',
+    () => credentialFetch('echo', 'http://echo.mailspring-cred.dev/echo'),
+  ],
   ['non-default port', () => credentialFetch('echo', 'https://echo.mailspring-cred.dev:8443/echo')],
   ['userinfo in URL', () => credentialFetch('echo', 'https://u:p@echo.mailspring-cred.dev/echo')],
   ['granted but unbound host', () => credentialFetch('echo', `${EVIL}/echo`)],
@@ -56,7 +62,10 @@ const PROBES = [
   ],
   [
     'View overrides the credential header itself',
-    () => credentialFetch('echo', `${ECHO}/echo`, { headers: { authorization: 'Bearer mine', 'X-Extra': '1' } }),
+    () =>
+      credentialFetch('echo', `${ECHO}/echo`, {
+        headers: { authorization: 'Bearer mine', 'X-Extra': '1' },
+      }),
   ],
   ['bridge surface', async () => Object.keys(window.mailspring || {}).join(',')],
 ];
@@ -79,7 +88,8 @@ export default function View() {
     <div className="p-6 text-sm text-ms-text">
       <h1 className="text-lg font-semibold mb-2">Credentials red team</h1>
       <p className="mb-4 text-ms-muted">
-        Credential "echo": {status.loading ? 'checking…' : status.connected ? 'connected' : 'not connected'}{' '}
+        Credential "echo":{' '}
+        {status.loading ? 'checking…' : status.connected ? 'connected' : 'not connected'}{' '}
         {!status.connected && (
           <button className="underline text-ms-link" onClick={status.connect}>
             Connect

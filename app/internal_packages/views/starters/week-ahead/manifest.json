@@ -1,6 +1,7 @@
 {
   "id": "week-ahead",
   "name": "Week Ahead",
+  "icon": "🗓️",
   "apiVersion": "2026-10-05",
   "description": "This week's meetings next to your recent mail with the people in them, a prep list, and your free time.",
   "version": "1.0.0",

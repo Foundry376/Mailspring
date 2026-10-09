@@ -1,5 +1,5 @@
-import { FocusedPerspectiveStore } from 'mailspring-exports';
 import { ViewRegistryEvents } from '../view-registry';
+import { ViewsNavStore } from '../views-nav';
 import { panelSource } from './store';
 import { AgentSessionState } from './types';
 import { focusedPageViewId, isTryDraft, viewById } from './launch';
@@ -51,7 +51,7 @@ export function activateTryMode() {
     if (current && !untouched(current)) return;
     source.actions.preview(view.id, view.name, 'try');
   };
-  unsubscribers = [FocusedPerspectiveStore.listen(syncTryMode)];
+  unsubscribers = [ViewsNavStore.listen(syncTryMode)];
   ViewRegistryEvents.on('changed', onRegistry);
   unsubscribers.push(() => ViewRegistryEvents.removeListener('changed', onRegistry));
   syncTryMode();

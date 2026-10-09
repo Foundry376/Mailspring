@@ -1,8 +1,7 @@
 import fs from 'fs';
 import path from 'path';
-import { FocusedPerspectiveStore } from 'mailspring-exports';
 import { ViewManifest, installDir, installedViews } from '../view-registry';
-import { ViewMailboxPerspective } from '../view-mailbox-perspective';
+import { ViewsNavStore } from '../views-nav';
 
 /**
  * The Edit buttons that open the panel for a View register their elements here, so the panel
@@ -24,8 +23,7 @@ export function editButtonRect(viewId: string): DOMRect | null {
 }
 
 export function focusedPageViewId(): string | null {
-  const perspective = FocusedPerspectiveStore.current();
-  return perspective instanceof ViewMailboxPerspective ? perspective.viewId : null;
+  return ViewsNavStore.focusedPageViewId();
 }
 
 /**

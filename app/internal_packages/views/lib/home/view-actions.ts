@@ -1,17 +1,14 @@
 import fs from 'fs';
 import path from 'path';
-import { Actions, FocusedPerspectiveStore, localized } from 'mailspring-exports';
+import { localized } from 'mailspring-exports';
 import { ViewManifest, installDir, notifyViewsChanged } from '../view-registry';
 import { discardDraft } from '../authoring/drafts';
-import { ViewMailboxPerspective } from '../view-mailbox-perspective';
-import { ViewsHomePerspective } from './views-home-perspective';
+import { ViewsNavStore } from '../views-nav';
 import { removeThumbnail } from './thumbnails';
 import { removeAllCredentials } from '../credentials/store';
 
 export function openViewsHome() {
-  Actions.focusMailboxPerspective(
-    new ViewsHomePerspective(FocusedPerspectiveStore.sidebarAccountIds())
-  );
+  ViewsNavStore.showHome();
 }
 
 /**
@@ -30,10 +27,7 @@ export function removeView(view: ViewManifest) {
   });
   if (chosen !== 0) return false;
 
-  const perspective = FocusedPerspectiveStore.current();
-  if (perspective instanceof ViewMailboxPerspective && perspective.viewId === view.id) {
-    openViewsHome();
-  }
+  if (ViewsNavStore.viewId() === view.id) openViewsHome();
   discardDraft(view.id);
   fs.rmSync(path.join(installDir(), view.id), { recursive: true, force: true });
   removeThumbnail(view.id);

@@ -1,6 +1,7 @@
 {
   "id": "newsletters",
   "name": "Newsletters",
+  "icon": "📰",
   "apiVersion": "2026-10-05",
   "description": "Read your newsletters like a magazine, and find the ones you never open.",
   "version": "1.0.0",

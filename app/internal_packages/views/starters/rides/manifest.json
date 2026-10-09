@@ -1,6 +1,7 @@
 {
   "id": "rides",
   "name": "Rides & Receipts",
+  "icon": "🚗",
   "apiVersion": "2026-10-05",
   "description": "Chart what you spend on rides, deliveries and other receipts each month.",
   "version": "1.0.0",

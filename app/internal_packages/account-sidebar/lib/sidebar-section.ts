@@ -66,14 +66,8 @@ class SidebarSection {
     ExtensionRegistry.AccountSidebar.extensions()
       .filter((ext) => ext.sidebarItem != null)
       .forEach((ext) => {
-        const { id, name, iconName, perspective, insertAtTop, count } = ext.sidebarItem([
-          account.id,
-        ]);
-        const item = SidebarItem.forPerspective(id, perspective, {
-          name,
-          iconName,
-          ...(typeof count === 'number' ? { count } : {}),
-        });
+        const { id, name, iconName, perspective, insertAtTop } = ext.sidebarItem([account.id]);
+        const item = SidebarItem.forPerspective(id, perspective, { name, iconName });
         if (insertAtTop) {
           return items.splice(3, 0, item);
         } else {
@@ -149,13 +143,11 @@ class SidebarSection {
     ExtensionRegistry.AccountSidebar.extensions()
       .filter((ext) => ext.sidebarItem != null)
       .forEach((ext) => {
-        const { id, name, iconName, perspective, insertAtTop, perAccount, count } =
-          ext.sidebarItem(accountIds);
+        const { id, name, iconName, perspective, insertAtTop } = ext.sidebarItem(accountIds);
         const item = SidebarItem.forPerspective(id, perspective, {
           name,
           iconName,
-          ...(typeof count === 'number' ? { count } : {}),
-          children: (perAccount === false ? [] : accounts).map((acc) => {
+          children: accounts.map((acc) => {
             const subItem = ext.sidebarItem([acc.id]);
             return SidebarItem.forPerspective(subItem.id + `-${acc.id}`, subItem.perspective, {
               name: acc.label,

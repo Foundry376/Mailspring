@@ -1,6 +1,7 @@
 {
   "id": "daily-briefing",
   "name": "Daily Briefing",
+  "icon": "☀️",
   "apiVersion": "2026-10-05",
   "description": "What arrived today, what needs you first, and who is waiting on a reply, summarized on this device.",
   "version": "1.0.0",

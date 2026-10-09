@@ -1,78 +1,28 @@
-import {
-  ComponentRegistry,
-  ExtensionRegistry,
-  FocusedPerspectiveStore,
-  WorkspaceStore,
-  localized,
-} from 'mailspring-exports';
+import { ComponentRegistry, WorkspaceStore, localized } from 'mailspring-exports';
 import { ViewManifest, ViewRegistryEvents, ViewsChange, installedViews } from './view-registry';
-import { ViewMailboxPerspective } from './view-mailbox-perspective';
+import { ViewsNavStore } from './views-nav';
 import { ViewsRoot } from './views-root';
 import { createSidebarViewComponent } from './sidebar-view';
-import { ViewBridgeEvents } from './bridge/view-events';
+import { ViewsNavRailSection } from './nav/views-nav-rail';
+import { startTrackingBadges, stopTrackingBadges } from './nav/badges';
 import { reloadMountedView, hostsFor } from './authoring/hosts';
 import { watchViewFolders } from './authoring/watcher';
 import { ViewAuthoring } from './authoring';
 import { registerAuthoringPanel, unregisterAuthoringPanel } from './authoring-panel';
-import { ViewsHomePerspective } from './home/views-home-perspective';
-import { ViewToolbarActions } from './home/view-toolbar-actions';
 import { captureThumbnailsOnRender } from './home/thumbnails';
 
-let sidebarExtensions = [];
 let sidebarComponents = [];
 let registeredSignature = '';
 let unwatch: () => void = null;
 let commands: { dispose(): void } = null;
 let stopThumbnails: () => void = null;
 
-// The "Views" entry heading the Views in the account sidebar. Registered before any View, so
-// it stays above them as they are re-registered.
-const HomeSidebarExtension = {
-  name: 'Views',
-  sidebarItem(accountIds: string[]) {
-    return {
-      id: 'Views',
-      name: localized('Views'),
-      iconName: 'plugins.png',
-      perspective: new ViewsHomePerspective(accountIds),
-      perAccount: false,
-    };
-  },
-};
-
-// The last count each View reported with `ui.setBadge`. A page View only runs while it is
-// open, so the count is remembered across launches and shown until the View next changes it.
-const BADGES_KEY = 'views-badges';
-let badges: { [viewId: string]: number } = {};
-
-function loadBadges() {
-  try {
-    badges = JSON.parse(window.localStorage.getItem(BADGES_KEY) || '{}') || {};
-  } catch {
-    badges = {};
-  }
-}
-
-function onBadge(viewId: string, count: number | null) {
-  if ((badges[viewId] || null) === (count || null)) return;
-  if (count) badges[viewId] = count;
-  else delete badges[viewId];
-  try {
-    window.localStorage.setItem(BADGES_KEY, JSON.stringify(badges));
-  } catch {
-    // The badge still shows for this session.
-  }
-  ExtensionRegistry.AccountSidebar.triggerDebounced();
-}
-
 function unregisterViews() {
-  sidebarExtensions.forEach((ext) => ExtensionRegistry.AccountSidebar.unregister(ext));
   sidebarComponents.forEach((component) => ComponentRegistry.unregister(component));
-  sidebarExtensions = [];
   sidebarComponents = [];
 }
 
-// What the registered sidebar entries depend on. Re-registering only when it changes keeps
+// What the registered sidebar Views depend on. Re-registering only when it changes keeps
 // mounted sidebar Views alive across code-only edits, which reload in place instead.
 function registrationSignature(views: ViewManifest[]) {
   return JSON.stringify(
@@ -81,9 +31,9 @@ function registrationSignature(views: ViewManifest[]) {
 }
 
 /**
- * Registers the account-sidebar entry for each page View and the MessageListSidebar
- * component for each thread-sidebar View. Runs at activation and again whenever the set of
- * Views or their manifests change (new folder, promoted or discarded draft, manifest edit).
+ * Registers the MessageListSidebar component for each thread-sidebar View. Page Views are
+ * listed by the nav rail's Views section, which follows the registry itself. Runs at
+ * activation and again whenever the set of Views or their manifests change.
  */
 function registerViews() {
   const views = installedViews();
@@ -91,24 +41,6 @@ function registerViews() {
   if (signature === registeredSignature) return;
   registeredSignature = signature;
   unregisterViews();
-
-  sidebarExtensions = views
-    .filter((view) => view.placement === 'page')
-    .map((view) => ({
-      name: `View:${view.id}`,
-      sidebarItem(accountIds: string[]) {
-        return {
-          id: `View:${view.id}`,
-          name: view.name,
-          iconName: 'folder.png',
-          perspective: new ViewMailboxPerspective(accountIds, view.id, view.name),
-          // Views aren't account-scoped, so per-account children would all be identical.
-          perAccount: false,
-          count: badges[view.id] || 0,
-        };
-      },
-    }));
-  sidebarExtensions.forEach((ext) => ExtensionRegistry.AccountSidebar.register(ext));
 
   sidebarComponents = views
     .filter((view) => view.placement === 'thread-sidebar')
@@ -131,30 +63,36 @@ function onViewsChanged({ viewIds, structural }: ViewsChange) {
 }
 
 function reloadFocusedViews() {
-  const perspective = FocusedPerspectiveStore.current();
-  if (perspective instanceof ViewMailboxPerspective) {
-    reloadMountedView(perspective.viewId);
-  }
+  const viewId = ViewsNavStore.focusedPageViewId();
+  if (viewId) reloadMountedView(viewId);
   // Sidebar Views are visible alongside any perspective.
   installedViews()
     .filter((v) => v.placement === 'thread-sidebar' && hostsFor(v.id).length)
     .forEach((v) => reloadMountedView(v.id));
 }
 
+// Back from a thread a View opened returns to that View, so it's named after the View.
+function viewsBackTitle() {
+  const viewId = ViewsNavStore.viewId();
+  const view = viewId && installedViews().find((v) => v.id === viewId);
+  return view ? view.name : localized('Views');
+}
+
 export function activate() {
   // `list` is the only mode, whatever the user's reading-pane preference: focusing a thread
   // from a View then pushes the Thread sheet over it, with the standard toolbar and Back.
-  WorkspaceStore.defineSheet('Views', { root: true }, { list: ['RootSidebar', 'ViewContent'] });
+  // No mailbox sidebar: Views are a section of their own, switched from the nav rail.
+  WorkspaceStore.defineSheet(
+    'Views',
+    { root: true, backTitle: viewsBackTitle },
+    { list: ['ViewContent'] }
+  );
   ComponentRegistry.register(ViewsRoot, { location: WorkspaceStore.Location.ViewContent });
   registerAuthoringPanel();
-  ComponentRegistry.register(ViewToolbarActions, {
-    location: WorkspaceStore.Location.ViewContent.Toolbar,
-  });
-  ExtensionRegistry.AccountSidebar.register(HomeSidebarExtension);
+  ComponentRegistry.register(ViewsNavRailSection, { role: 'NavRail:Section' });
   stopThumbnails = captureThumbnailsOnRender();
 
-  loadBadges();
-  ViewBridgeEvents.on('badge', onBadge);
+  startTrackingBadges();
   registeredSignature = '';
   registerViews();
   ViewRegistryEvents.on('changed', onViewsChanged);
@@ -171,7 +109,7 @@ export function activate() {
 }
 
 export function deactivate() {
-  ViewBridgeEvents.removeListener('badge', onBadge);
+  stopTrackingBadges();
   ViewRegistryEvents.removeListener('changed', onViewsChanged);
   if (unwatch) unwatch();
   if (commands) commands.dispose();
@@ -181,8 +119,7 @@ export function deactivate() {
   registeredSignature = '';
   if (stopThumbnails) stopThumbnails();
   stopThumbnails = null;
-  ExtensionRegistry.AccountSidebar.unregister(HomeSidebarExtension);
-  ComponentRegistry.unregister(ViewToolbarActions);
+  ComponentRegistry.unregister(ViewsNavRailSection);
   ComponentRegistry.unregister(ViewsRoot);
   unregisterAuthoringPanel();
 }

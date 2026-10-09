@@ -85,7 +85,11 @@ class ToolbarBack extends React.Component<Record<string, unknown>, { categoryNam
 
   render() {
     let title = localized('Back');
-    if (this.state.categoryName === Category.AllMailName) {
+    const stack = WorkspaceStore.sheetStack();
+    const below = stack[stack.length - 2];
+    if (below && below.backTitle) {
+      title = below.backTitle();
+    } else if (this.state.categoryName === Category.AllMailName) {
       title = localized('All Mail');
     } else if (this.state.categoryName === 'INBOX') {
       title = localized('Inbox');

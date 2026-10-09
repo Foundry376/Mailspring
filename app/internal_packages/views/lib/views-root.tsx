@@ -1,8 +1,7 @@
 import React from 'react';
-import { Actions, FocusedContentStore, FocusedPerspectiveStore } from 'mailspring-exports';
+import { Actions, FocusedContentStore } from 'mailspring-exports';
 import { ViewHost } from './view-host';
-import { ViewMailboxPerspective } from './view-mailbox-perspective';
-import { ViewsHomePerspective } from './home/views-home-perspective';
+import { ViewsNavStore } from './views-nav';
 import { ViewsHome } from './home/views-home';
 import { EditViewButton } from './authoring-panel';
 
@@ -11,16 +10,9 @@ interface ViewsRootState {
   home: boolean;
 }
 
-function focusedState(previous?: ViewsRootState): ViewsRootState {
-  const perspective = FocusedPerspectiveStore.current();
-  if (perspective instanceof ViewMailboxPerspective) {
-    return { viewId: perspective.viewId, home: false };
-  }
-  if (perspective instanceof ViewsHomePerspective) {
-    return { viewId: previous ? previous.viewId : null, home: true };
-  }
-  // Another sheet's perspective: keep showing what we had while the Views sheet animates out.
-  return previous || { viewId: null, home: true };
+function focusedState(): ViewsRootState {
+  const viewId = ViewsNavStore.viewId();
+  return { viewId, home: !viewId };
 }
 
 /**
@@ -40,8 +32,8 @@ export class ViewsRoot extends React.Component<Record<string, never>, ViewsRootS
     // A thread focused in the mailbox would otherwise open the moment the View focuses it
     // again, without a push.
     clearFocusedThread();
-    this._unlisten = FocusedPerspectiveStore.listen(() => {
-      const next = focusedState(this.state);
+    this._unlisten = ViewsNavStore.listen(() => {
+      const next = focusedState();
       if (next.viewId !== this.state.viewId || next.home !== this.state.home) {
         this.setState(next);
       }

@@ -3,8 +3,34 @@
 .nav-rail {
   flex-shrink: 0;
   width: 48px;
+  display: flex;
+  flex-direction: column;
+  // Many registered items scroll rather than push the rail past the window.
+  overflow-y: auto;
+  overflow-x: hidden;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-rail-section {
+    display: flex;
+    flex-direction: column;
+    margin-top: 4px;
+    padding-top: 12px;
+    position: relative;
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 12px;
+      right: 12px;
+      border-top: 1px solid fade(@text-color, 12%);
+    }
+  }
 
   .nav-rail-item {
+    position: relative;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -30,6 +56,85 @@
     &.active img.content-mask {
       background-color: @source-list-active-color;
     }
+
+    // Items without a bundled image: an emoji, or a monogram for Views without an icon.
+    .nav-rail-item-glyph {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      font-size: 16px;
+      line-height: 1;
+    }
+    .nav-rail-monogram {
+      width: 20px;
+      height: 20px;
+      border-radius: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      color: @white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-rail-item-badge {
+      position: absolute;
+      top: -3px;
+      right: -5px;
+      min-width: 15px;
+      height: 15px;
+      padding: 0 4px;
+      border-radius: 8px;
+      background: @accent-primary;
+      color: @white;
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 15px;
+      text-align: center;
+      box-shadow: 0 0 0 1.5px @toolbar-background-color;
+    }
+  }
+}
+
+.nav-rail-tooltip {
+  position: fixed;
+  z-index: 10000;
+  transform: translateY(-50%);
+  max-width: 260px;
+  padding: 6px 9px;
+  border-radius: 6px;
+  // Fixed colours rather than theme variables: dark themes redefine @black and @white, and a
+  // tooltip should read the same over any theme. The hairline keeps it distinct on dark ones.
+  background: rgba(28, 28, 32, 0.96);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 12px;
+  line-height: 1.35;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+  animation: nav-rail-tooltip-in 120ms ease-out;
+
+  .nav-rail-tooltip-title {
+    font-weight: 600;
+  }
+  .nav-rail-tooltip-description {
+    margin-top: 2px;
+    opacity: 0.8;
+  }
+}
+
+@keyframes nav-rail-tooltip-in {
+  from {
+    opacity: 0;
+    transform: translate(-3px, -50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-rail-tooltip {
+    animation: none;
   }
 }
 
