@@ -8,6 +8,7 @@ import {
   Label,
   Event as MailspringEvent,
 } from 'mailspring-exports';
+import { parseICSString } from '../../src/calendar-utils';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -692,8 +693,28 @@ describe('ChangeLabelsTask', function () {
 // ---------------------------------------------------------------------------
 
 describe('SyncbackEventTask', function () {
-  const SAMPLE_ICS_ORIGINAL = 'BEGIN:VCALENDAR\nSUMMARY:Original\nEND:VCALENDAR';
-  const SAMPLE_ICS_NEW = 'BEGIN:VCALENDAR\nSUMMARY:Updated\nEND:VCALENDAR';
+  const eventIcs = (start: string, sequence: number) => `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Test//Test//EN
+BEGIN:VEVENT
+UID:undo-uid@test
+DTSTART:20261008T${start}00Z
+DTEND:20261008T140000Z
+SUMMARY:Test move
+DTSTAMP:20261001T000000Z
+SEQUENCE:${sequence}
+END:VEVENT
+END:VCALENDAR`;
+  const revisionOf = (ics: string) => {
+    const vevent = parseICSString(ics).root.getFirstSubcomponent('vevent');
+    return {
+      start: vevent.getFirstPropertyValue('dtstart').toString(),
+      sequence: vevent.getFirstPropertyValue('sequence'),
+    };
+  };
+  // Moved 8:00 to 8:15 CDT.
+  const SAMPLE_ICS_ORIGINAL = eventIcs('1300', 1);
+  const SAMPLE_ICS_NEW = eventIcs('1315', 2);
 
   describe('forCreating()', function () {
     it('creates a task without undoData', function () {
@@ -803,7 +824,7 @@ describe('SyncbackEventTask', function () {
       const undoData = { ics: SAMPLE_ICS_ORIGINAL, recurrenceStart: 1000, recurrenceEnd: 2000 };
       const task = SyncbackEventTask.forUpdating({ event, undoData });
       const undoTask = task.createUndoTask();
-      expect(undoTask.event.ics).toBe(SAMPLE_ICS_ORIGINAL);
+      expect(revisionOf(undoTask.event.ics).start).toBe('2026-10-08T13:00:00Z');
       expect(undoTask.event.recurrenceStart).toBe(1000);
       expect(undoTask.event.recurrenceEnd).toBe(2000);
     });
@@ -846,6 +867,42 @@ describe('SyncbackEventTask', function () {
     });
   });
 
+  describe('SEQUENCE across undo and redo', function () {
+    // Google answers 409 to a SEQUENCE below the one it holds.
+    it('sends each undo and redo one revision past the last', function () {
+      const event = makeEvent({ id: 'undo-redo-event', ics: SAMPLE_ICS_NEW } as any);
+      const undoData = { ics: SAMPLE_ICS_ORIGINAL, recurrenceStart: 1000, recurrenceEnd: 2000 };
+      const move = SyncbackEventTask.forUpdating({ event, undoData });
+
+      const undo = revisionOf(move.createUndoTask().event.ics);
+      const redo = revisionOf(move.createIdenticalTask().event.ics);
+      const undoAgain = revisionOf(move.createUndoTask().event.ics);
+
+      expect(undo).toEqual({ start: '2026-10-08T13:00:00Z', sequence: 3 });
+      expect(redo).toEqual({ start: '2026-10-08T13:15:00Z', sequence: 4 });
+      expect(undoAgain).toEqual({ start: '2026-10-08T13:00:00Z', sequence: 5 });
+    });
+
+    it('undoes two moves of one event past the later move', function () {
+      const event = makeEvent({ id: 'two-moves-event', ics: SAMPLE_ICS_NEW } as any);
+      const first = SyncbackEventTask.forUpdating({
+        event,
+        undoData: { ics: SAMPLE_ICS_ORIGINAL, recurrenceStart: 1000, recurrenceEnd: 2000 },
+      });
+      const movedAgain = makeEvent({ id: 'two-moves-event', ics: eventIcs('1330', 3) } as any);
+      const second = SyncbackEventTask.forUpdating({
+        event: movedAgain,
+        undoData: { ics: SAMPLE_ICS_NEW, recurrenceStart: 1000, recurrenceEnd: 2000 },
+      });
+
+      const undoSecond = revisionOf(second.createUndoTask().event.ics);
+      const undoFirst = revisionOf(first.createUndoTask().event.ics);
+
+      expect(undoSecond).toEqual({ start: '2026-10-08T13:15:00Z', sequence: 4 });
+      expect(undoFirst).toEqual({ start: '2026-10-08T13:00:00Z', sequence: 5 });
+    });
+  });
+
   describe('createIdenticalTask()', function () {
     it('falls back to default behavior when newData is not present (forCreating path)', function () {
       const event = makeEvent({ ics: SAMPLE_ICS_NEW } as any);
@@ -873,7 +930,7 @@ describe('SyncbackEventTask', function () {
 
       const redoTask = task.createIdenticalTask();
       // The redo task should use the snapshot, not the mutated event
-      expect(redoTask.event.ics).toBe(SAMPLE_ICS_NEW);
+      expect(revisionOf(redoTask.event.ics).start).toBe('2026-10-08T13:15:00Z');
       expect(redoTask.event.recurrenceStart).toBe(5000);
     });
 
