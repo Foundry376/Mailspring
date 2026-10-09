@@ -639,7 +639,7 @@ export function bumpEventSequence(ics: string, recurrenceId?: string): string {
 export function matchEventSequence(ics: string, current: string): string {
   const ical = getICAL();
   const currentVevents = veventsOf(parseICSString(current).root);
-  const { root } = parseICSString(pinOverridesLeftOut(ics, currentVevents));
+  const { root } = parseICSString(ics);
   const now = nowUTC(ical);
 
   for (const vevent of veventsOf(root)) {
@@ -661,35 +661,39 @@ export function matchEventSequence(ics: string, current: string): string {
 }
 
 /**
- * Google keeps an override that a PUT leaves out, so an undo that drops one would not revert the
- * occurrence. Each override in `currentVevents` that `ics` lacks goes back at its own slot with the
- * master's content, which is the occurrence as the series generates it. A slot the master's
- * EXDATEs cancel stays cancelled.
+ * Google keeps an override that a PUT leaves out, so undoing an edit that added one would not
+ * revert the occurrence. Each override `after` has and `before` lacks goes back into `before` at its
+ * own slot with the master's content, the occurrence as the series generates it. Only when the edit
+ * left the master alone: a series move relabels its overrides, so they would read as added.
  */
-function pinOverridesLeftOut(ics: string, currentVevents: ICALComponent[]): string {
-  const { root, event: master } = parseICSString(ics);
-  const vevents = veventsOf(root);
-  const excluded = master.component
-    .getAllProperties('exdate')
-    .flatMap((p) => p.getValues() as ICALTime[])
-    .map((d) => d.toUnixTime());
-  const duration = master.endDate.subtractDate(master.startDate).toSeconds();
+export function revertAddedOverrides(before: string, after: string): string {
+  const ical = getICAL();
+  const beforeVevents = veventsOf(parseICSString(before).root);
+  const afterVevents = veventsOf(parseICSString(after).root);
+  const isMaster = (v: ICALComponent) => !v.getFirstPropertyValue('recurrence-id');
+  const master = beforeVevents.find(isMaster);
+  const afterMaster = afterVevents.find(isMaster);
+  // A lone occurrence (an invitation to one date) has no master to rebuild an override from.
+  if (!master || !afterMaster) return before;
+  if (contentApartFromRevision(master) !== contentApartFromRevision(afterMaster)) return before;
 
-  let pinned = ics;
-  for (const override of currentVevents) {
-    const slot = override.getFirstPropertyValue('recurrence-id') as ICALTime | null;
-    if (!slot || excluded.includes(slot.toUnixTime())) continue;
-    if (vevents.some((v) => sameOccurrence(v, override))) continue;
-    const start = slot.toJSDate().getTime() / 1000;
-    pinned = createRecurrenceException(
-      pinned,
-      start,
-      start,
-      start + duration,
-      master.startDate.isDate
+  const duration = new ical.Event(master).duration;
+  let restored = before;
+  for (const override of afterVevents) {
+    if (isMaster(override) || beforeVevents.some((v) => sameOccurrence(v, override))) continue;
+    const slot = override.getFirstPropertyValue('recurrence-id') as ICALTime;
+    const end = slot.clone();
+    end.addDuration(duration);
+    const unix = (t: ICALTime) => t.toJSDate().getTime() / 1000;
+    restored = createRecurrenceException(
+      restored,
+      unix(slot),
+      unix(slot),
+      unix(end),
+      slot.isDate
     ).masterIcs;
   }
-  return pinned;
+  return restored;
 }
 
 function sequenceOf(vevent: ICALComponent): number {

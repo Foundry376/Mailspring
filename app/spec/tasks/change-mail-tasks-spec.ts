@@ -868,7 +868,6 @@ END:VCALENDAR`;
   });
 
   describe('SEQUENCE across undo and redo', function () {
-    // Google answers 409 to a SEQUENCE below the one it holds, and accepts a tie.
     it('never sends an undo or redo below the SEQUENCE last sent', function () {
       const event = makeEvent({ id: 'undo-redo-event', ics: SAMPLE_ICS_NEW } as any);
       const undoData = { ics: SAMPLE_ICS_ORIGINAL, recurrenceStart: 1000, recurrenceEnd: 2000 };
@@ -900,6 +899,97 @@ END:VCALENDAR`;
 
       expect(undoSecond).toEqual({ start: '2026-10-08T13:15:00Z', sequence: 3 });
       expect(undoFirst).toEqual({ start: '2026-10-08T13:00:00Z', sequence: 3 });
+    });
+  });
+
+  describe('undo and redo against the copy last queued', function () {
+    // A daily series at 13:00Z, with optional overrides ([RECURRENCE-ID time, start time, SEQUENCE])
+    // and EXDATEs.
+    const seriesIcs = (overrides: [string, string, number][] = [], exdate = '') =>
+      [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Test//Test//EN',
+        'BEGIN:VEVENT',
+        'UID:series-uid@test',
+        'DTSTART:20261008T130000Z',
+        'DTEND:20261008T140000Z',
+        'RRULE:FREQ=DAILY',
+        ...(exdate ? [`EXDATE:${exdate}`] : []),
+        'SUMMARY:Test series',
+        'DTSTAMP:20261001T000000Z',
+        'SEQUENCE:0',
+        'END:VEVENT',
+        ...overrides.flatMap(([rid, start, sequence]) => [
+          'BEGIN:VEVENT',
+          'UID:series-uid@test',
+          `RECURRENCE-ID:${rid}`,
+          `DTSTART:${start}`,
+          `DTEND:${start.replace(/T(\d\d)/, (_, h) => `T${String(+h + 1).padStart(2, '0')}`)}`,
+          'SUMMARY:Test series',
+          'DTSTAMP:20261001T000000Z',
+          `SEQUENCE:${sequence}`,
+          'END:VEVENT',
+        ]),
+        'END:VCALENDAR',
+      ].join('\r\n');
+    const overridesOf = (ics: string) =>
+      parseICSString(ics)
+        .root.getAllSubcomponents('vevent')
+        .filter((v) => v.getFirstPropertyValue('recurrence-id'))
+        .map((v) => [
+          v.getFirstPropertyValue('recurrence-id').toString(),
+          v.getFirstPropertyValue('dtstart').toString(),
+          v.getFirstPropertyValue('sequence'),
+        ]);
+    const snapshot = (ics: string) => ({ ics, recurrenceStart: 1000, recurrenceEnd: 2000 });
+    const queue = (id: string, ics: string, undoIcs?: string) =>
+      SyncbackEventTask.forUpdating({
+        event: makeEvent({ id, ics } as any),
+        undoData: undoIcs ? snapshot(undoIcs) : undefined,
+      });
+
+    it('leaves an occurrence response made after the undone edit alone', function () {
+      const before = seriesIcs();
+      const edited = seriesIcs([['20261009T130000Z', '20261009T150000Z', 1]]);
+      const edit = queue('rsvp-series', edited, before);
+      queue(
+        'rsvp-series',
+        seriesIcs([
+          ['20261009T130000Z', '20261009T150000Z', 1],
+          ['20261010T130000Z', '20261010T130000Z', 1],
+        ])
+      );
+
+      expect(overridesOf(edit.createUndoTask().event.ics)).toEqual([
+        ['2026-10-09T13:00:00Z', '2026-10-09T13:00:00Z', 1],
+      ]);
+    });
+
+    it('redoes the first of two undone moves at the later SEQUENCE', function () {
+      const first = queue('two-undos', eventIcs('1315', 2), SAMPLE_ICS_ORIGINAL);
+      const second = queue('two-undos', eventIcs('1330', 3), eventIcs('1315', 2));
+      second.createUndoTask();
+      first.createUndoTask();
+      expect(revisionOf(first.createIdenticalTask().event.ics)).toEqual({
+        start: '2026-10-08T13:15:00Z',
+        sequence: 3,
+      });
+    });
+
+    it('measures an undo against the undo queued before it', function () {
+      // Edit an override (SEQUENCE 1 to 2), then cancel that occurrence, then undo both. The
+      // second undo's override has no counterpart in the cancelling copy, only in the first undo.
+      const rid = '20261009T130000Z';
+      const original = seriesIcs([[rid, '20261009T150000Z', 1]]);
+      const edited = seriesIcs([[rid, '20261009T160000Z', 2]]);
+      const cancelled = seriesIcs([], rid);
+      const edit = queue('undo-chain', edited, original);
+      const cancel = queue('undo-chain', cancelled, edited);
+      cancel.createUndoTask();
+      expect(overridesOf(edit.createUndoTask().event.ics)).toEqual([
+        ['2026-10-09T13:00:00Z', '2026-10-09T15:00:00Z', 2],
+      ]);
     });
   });
 

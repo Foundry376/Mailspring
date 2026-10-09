@@ -3123,7 +3123,7 @@ describe('matchEventSequence, so an undo or redo is never below the copy it repl
 
   it('leaves an undone occurrence where its next edit is not below it', function () {
     // An edit restarts the override from master + 1 (createRecurrenceException), so an undo that
-    // lifted it higher made the next edit of that occurrence a 409.
+    // lifts it higher makes that occurrence's next edit a 409.
     const occurrence = Date.UTC(2026, 2, 2, 6, 0, 0) / 1000;
     const edit = (ics: string, start: number) => {
       const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
@@ -3142,7 +3142,7 @@ describe('matchEventSequence, so an undo or redo is never below the copy it repl
   });
 
   it('keeps the own SEQUENCE of an occurrence the last copy did not have', function () {
-    // Redo after undo brings back an override the undo removed.
+    // Undoing the cancellation of an overridden occurrence brings the override back.
     const masterOnly = RECURRING_WITH_EXCEPTION_ICS.replace(
       /BEGIN:VEVENT\nUID:master-uid@test\nRECURRENCE-ID[\s\S]*?END:VEVENT\n/,
       ''
@@ -3156,38 +3156,6 @@ describe('matchEventSequence, so an undo or redo is never below the copy it repl
     expect(exception.dtstamp).not.toBe(OLD_DTSTAMP);
   });
 
-  it('puts back an override the restored copy leaves out, as the series has it', function () {
-    // Google keeps an override a PUT omits, so undoing the edit that made it would not revert it.
-    const masterOnly = RECURRING_WITH_EXCEPTION_ICS.replace(
-      /BEGIN:VEVENT\nUID:master-uid@test\nRECURRENCE-ID[\s\S]*?END:VEVENT\n/,
-      ''
-    );
-    const current = RECURRING_WITH_EXCEPTION_ICS.replace('SEQUENCE:1', 'SEQUENCE:3');
-    const [master, pinned, ...rest] = vevents(
-      ICSEventHelpers.matchEventSequence(masterOnly, current)
-    );
-    expect(rest).toEqual([]);
-    expect(master.sequence).toBe(0);
-    expect(master.dtstamp).toBe(OLD_DTSTAMP);
-    expect(pinned.recurrenceId).toBe('2026-03-02T06:00:00Z');
-    expect(pinned.dtstart).toBe('2026-03-02T06:00:00Z');
-    expect(pinned.dtend).toBe('2026-03-02T07:00:00Z');
-    expect(pinned.summary).toBe('Morning Sync');
-    expect(pinned.sequence).toBe(3);
-  });
-
-  it('leaves a slot the restored copy cancels cancelled', function () {
-    // Redo of cancelling an overridden occurrence, which drops the override and adds an EXDATE.
-    const cancelled = ICSEventHelpers.removeInlineException(
-      RECURRING_WITH_EXCEPTION_ICS,
-      '20260302T060000Z'
-    );
-    const restored = vevents(
-      ICSEventHelpers.matchEventSequence(cancelled, RECURRING_WITH_EXCEPTION_ICS)
-    );
-    expect(restored.map((v) => v.recurrenceId)).toEqual([null]);
-  });
-
   it('raises an absent SEQUENCE to the one last sent', function () {
     const noSeq = SIMPLE_ICS.replace('SEQUENCE:0\n', '');
     const moved = SIMPLE_ICS.replace(
@@ -3196,6 +3164,65 @@ describe('matchEventSequence, so an undo or redo is never below the copy it repl
     ).replace('SEQUENCE:0', 'SEQUENCE:2');
     const [undone] = vevents(ICSEventHelpers.matchEventSequence(noSeq, moved));
     expect(undone.sequence).toBe(2);
+  });
+});
+
+describe('revertAddedOverrides, so undo reverts an occurrence on a server that keeps overrides', function () {
+  const vevents = (ics: string) =>
+    parseICSString(ics)
+      .root.getAllSubcomponents('vevent')
+      .map((v) => ({
+        recurrenceId: v.getFirstPropertyValue('recurrence-id')?.toString() ?? null,
+        dtstart: v.getFirstPropertyValue('dtstart')?.toString(),
+        dtend: v.getFirstPropertyValue('dtend')?.toString(),
+        summary: v.getFirstPropertyValue('summary'),
+      }));
+  const withoutOverride = (ics: string) =>
+    ics.replace(/BEGIN:VEVENT\nUID:master-uid@test\nRECURRENCE-ID[\s\S]*?END:VEVENT\n/, '');
+
+  it('puts an override the edit added back at its slot, as the series has it', function () {
+    // Google keeps an override a PUT omits, so undoing the edit that made it would not revert it.
+    const before = withoutOverride(RECURRING_WITH_EXCEPTION_ICS);
+    const [, reverted, ...rest] = vevents(
+      ICSEventHelpers.revertAddedOverrides(before, RECURRING_WITH_EXCEPTION_ICS)
+    );
+    expect(rest).toEqual([]);
+    expect(reverted).toEqual({
+      recurrenceId: '2026-03-02T06:00:00Z',
+      dtstart: '2026-03-02T06:00:00Z',
+      dtend: '2026-03-02T07:00:00Z',
+      summary: 'Morning Sync',
+    });
+  });
+
+  it('adds nothing for a series move, which relabels the overrides it carries', function () {
+    const start = Date.UTC(2026, 2, 1, 6, 0, 0) / 1000;
+    const moved = ICSEventHelpers.shiftInlineExceptions(
+      ICSEventHelpers.updateRecurringEventTimes(
+        RECURRING_WITH_EXCEPTION_ICS,
+        start,
+        start + 3600,
+        start + 7200,
+        false
+      ),
+      3600 * 1000
+    );
+    expect(ICSEventHelpers.revertAddedOverrides(RECURRING_WITH_EXCEPTION_ICS, moved)).toBe(
+      RECURRING_WITH_EXCEPTION_ICS
+    );
+  });
+
+  it('keeps a reverted all-day override to one day across the spring-forward', function () {
+    // 2026-03-08 is 23 hours long in America/Chicago, where specs run.
+    const after = ALL_DAY_RECURRING_ICS.replace(
+      'END:VEVENT\nEND:VCALENDAR',
+      'END:VEVENT\nBEGIN:VEVENT\nUID:all-day-uid@test\nRECURRENCE-ID;VALUE=DATE:20260308\nDTSTART;VALUE=DATE:20260309\nDTEND;VALUE=DATE:20260310\nSUMMARY:Weekly All Day\nDTSTAMP:20260101T000000Z\nSEQUENCE:1\nEND:VEVENT\nEND:VCALENDAR'
+    );
+    const [, reverted] = vevents(
+      ICSEventHelpers.revertAddedOverrides(ALL_DAY_RECURRING_ICS, after)
+    );
+    expect(reverted.dtstart).toBe('2026-03-08');
+    expect(reverted.dtend).toBe('2026-03-09');
   });
 });
 

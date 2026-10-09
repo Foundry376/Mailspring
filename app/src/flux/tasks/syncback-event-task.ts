@@ -3,7 +3,7 @@ import * as Attributes from '../attributes';
 import { Event } from '../models/event';
 import { AttributeValues } from '../models/model';
 import { localized } from '../../intl';
-import { matchEventSequence } from '../../ics-event-helpers';
+import { matchEventSequence, revertAddedOverrides } from '../../ics-event-helpers';
 
 /**
  * Snapshot of event data for undo/redo support.
@@ -16,7 +16,7 @@ interface EventSnapshot {
 }
 
 // Event id to the ICS this window last queued for it. Undo and redo re-send a snapshot that can be
-// several revisions behind, and Google answers 409 to a SEQUENCE below the one it holds.
+// several revisions behind it.
 const latestQueuedIcs = new Map<string, string>();
 
 export class SyncbackEventTask extends Task {
@@ -121,7 +121,10 @@ export class SyncbackEventTask extends Task {
 
     // Create a new event with the original state restored (deep clone)
     const restoredEvent = this.event.clone();
-    restoredEvent.ics = matchEventSequence(this.undoData.ics, latestQueuedIcs.get(this.event.id));
+    restoredEvent.ics = matchEventSequence(
+      revertAddedOverrides(this.undoData.ics, this.newData.ics),
+      latestQueuedIcs.get(this.event.id)
+    );
     latestQueuedIcs.set(restoredEvent.id, restoredEvent.ics);
     restoredEvent.recurrenceStart = this.undoData.recurrenceStart;
     restoredEvent.recurrenceEnd = this.undoData.recurrenceEnd;
