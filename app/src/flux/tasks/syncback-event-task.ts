@@ -3,6 +3,13 @@ import * as Attributes from '../attributes';
 import { Event } from '../models/event';
 import { AttributeValues } from '../models/model';
 import { localized } from '../../intl';
+import {
+  Actions,
+  DatabaseChangeRecord,
+  DatabaseStore,
+  ICSEventHelpers,
+  ICSParticipantStatus,
+} from 'mailspring-exports';
 
 /**
  * Snapshot of event data for undo/redo support.
@@ -13,6 +20,18 @@ interface EventSnapshot {
   recurrenceStart: number;
   recurrenceEnd: number;
 }
+
+/** An answer to an invitation, kept so it can be made again on a copy that changed under it. */
+export interface RSVPAnswer {
+  email: string;
+  status: ICSParticipantStatus;
+  /** The invitation to one occurrence, when only that occurrence was answered. */
+  occurrenceIcs?: string;
+  /** Set on the write made again, which is not retried a second time. */
+  retried?: boolean;
+}
+
+const FRESH_COPY_TIMEOUT_MS = 30 * 1000;
 
 export class SyncbackEventTask extends Task {
   static attributes = {
@@ -36,6 +55,9 @@ export class SyncbackEventTask extends Task {
     taskDescription: Attributes.String({
       modelKey: 'taskDescription',
     }),
+    rsvp: Attributes.Obj({
+      modelKey: 'rsvp',
+    }),
   };
 
   event: Event;
@@ -43,6 +65,7 @@ export class SyncbackEventTask extends Task {
   undoData?: EventSnapshot;
   newData?: EventSnapshot;
   taskDescription?: string;
+  rsvp?: RSVPAnswer;
 
   static forCreating({
     event,
@@ -87,6 +110,19 @@ export class SyncbackEventTask extends Task {
       undoData,
       newData,
       taskDescription: description,
+    });
+  }
+
+  /**
+   * Records our answer to an invitation on our copy of the event. Not undoable: the REPLY
+   * emailed beside it cannot be retracted.
+   */
+  static forAnswering({ event, answer }: { event: Event; answer: RSVPAnswer }) {
+    return new SyncbackEventTask({
+      event,
+      calendarId: event.calendarId,
+      accountId: event.accountId,
+      rsvp: answer,
     });
   }
 
@@ -169,7 +205,10 @@ export class SyncbackEventTask extends Task {
 
   // Keys from TaskProcessor::perform{Local,Remote}SyncbackEvent and DAVWorker::writeAndResyncEvent.
   // Only the network ones (etag-conflict, no-calendar, not-found) leave the rejected edit on screen.
-  onError({ key, debuginfo }: { key: string; debuginfo: string }) {
+  async onError({ key, debuginfo }: { key: string; debuginfo: string }) {
+    if (key === 'etag-conflict' && this.rsvp && !this.rsvp.retried) {
+      if (await this._answerAgainOnCurrentCopy()) return;
+    }
     const messages: { [key: string]: string } = {
       'etag-conflict': localized(
         'This event was changed by another client. Refresh the calendar and make your change again.'
@@ -188,5 +227,45 @@ export class SyncbackEventTask extends Task {
       },
       { detail: debuginfo }
     );
+  }
+
+  /**
+   * An invitation update reaches our copy on the server before the engine's periodic sync shows
+   * it, so an answer given in between is refused as an etag-conflict. Our answer is the only
+   * change this write made, so it is made once more on the copy the server holds now. False
+   * when that copy did not arrive or no longer lists us.
+   */
+  async _answerAgainOnCurrentCopy(): Promise<boolean> {
+    const current = await this._nextCopyOfEvent();
+    if (!current) return false;
+    const { email, status, occurrenceIcs } = this.rsvp;
+    const ics = occurrenceIcs
+      ? ICSEventHelpers.updateOccurrenceAttendeeStatus(current.ics, occurrenceIcs, email, status)
+      : ICSEventHelpers.updateAttendeeStatus(current.ics, email, status);
+    if (!ics) return false;
+    const event = current.clone();
+    event.ics = ics;
+    Actions.queueTask(
+      SyncbackEventTask.forAnswering({ event, answer: { ...this.rsvp, retried: true } })
+    );
+    return true;
+  }
+
+  // Asks the engine to re-read the calendar, and resolves with the event as that sync stores it.
+  _nextCopyOfEvent(): Promise<Event | null> {
+    return new Promise((resolve) => {
+      const finish = (event: Event | null) => {
+        clearTimeout(timer);
+        unlisten();
+        resolve(event);
+      };
+      const timer = setTimeout(() => finish(null), FRESH_COPY_TIMEOUT_MS);
+      const unlisten = DatabaseStore.listen((record: DatabaseChangeRecord<Event>) => {
+        if (record.type !== 'persist' || record.objectClass !== Event.name) return;
+        const stored = record.objects.find((e) => e.id === this.event.id);
+        if (stored) finish(stored);
+      });
+      AppEnv.mailsyncBridge.sendSyncCalendarNow(this.accountId);
+    });
   }
 }

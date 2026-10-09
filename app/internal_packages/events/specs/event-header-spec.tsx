@@ -496,6 +496,7 @@ describe('EventHeader answering an invitation', function () {
       expect(unfold(write.event.ics)).toMatch(
         /ATTENDEE[^\r\n]*PARTSTAT=TENTATIVE[^\r\n]*brian@example.com/
       );
+      expect(write.rsvp.status).toBe('TENTATIVE');
     });
   });
 
