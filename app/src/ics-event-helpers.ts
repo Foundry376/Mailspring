@@ -641,10 +641,7 @@ export function bumpEventSequenceUp(ics: string, current: string): string {
   const now = nowUTC(ical);
 
   for (const vevent of veventsOf(root)) {
-    const rid = vevent.getFirstPropertyValue('recurrence-id');
-    const counterpart = currentVevents.find((v) =>
-      rid ? matchesRecurrenceId(v, String(rid)) : !v.getFirstPropertyValue('recurrence-id')
-    );
+    const counterpart = currentVevents.find((v) => sameOccurrence(v, vevent));
 
     if (counterpart && contentApartFromRevision(counterpart) === contentApartFromRevision(vevent)) {
       for (const name of ['sequence', 'dtstamp']) {
@@ -669,9 +666,19 @@ function veventsOf(root: ICALComponent): ICALComponent[] {
   return root.name === 'vevent' ? [root] : (root.getAllSubcomponents('vevent') as ICALComponent[]);
 }
 
+// Google stores a RECURRENCE-ID sent in UTC back in the event's zone, so compare the instants.
+function sameOccurrence(a: ICALComponent, b: ICALComponent): boolean {
+  const ridA = a.getFirstPropertyValue('recurrence-id') as ICALTime | null;
+  const ridB = b.getFirstPropertyValue('recurrence-id') as ICALTime | null;
+  return ridA && ridB ? ridA.toUnixTime() === ridB.toUnixTime() : !ridA && !ridB;
+}
+
+// RECURRENCE-ID is left out too: sameOccurrence already matched it, in whichever form.
 function contentApartFromRevision(vevent: ICALComponent): string {
   const [name, props, components] = vevent.toJSON() as [string, string[][], unknown[]];
-  const content = props.filter(([prop]) => prop !== 'sequence' && prop !== 'dtstamp');
+  const content = props.filter(
+    ([prop]) => !['sequence', 'dtstamp', 'recurrence-id'].includes(prop)
+  );
   return JSON.stringify([name, content, components]);
 }
 

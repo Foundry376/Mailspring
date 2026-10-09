@@ -3104,6 +3104,21 @@ describe('bumpEventSequenceUp, so an undo or redo outranks the copy it replaces'
     expect(exception.dtstamp).not.toBe(OLD_DTSTAMP);
   });
 
+  it('matches an occurrence the server rewrote into the event zone', function () {
+    // Sent as 20260302T060000Z, stored back by Google as the same instant in America/Chicago.
+    const current = RECURRING_WITH_EXCEPTION_ICS.replace(
+      'DTSTAMP:20260101T000000Z\nSEQUENCE:1',
+      'DTSTAMP:20260105T000000Z\nSEQUENCE:4'
+    );
+    const older = RECURRING_WITH_EXCEPTION_ICS.replace(
+      'RECURRENCE-ID:20260302T060000Z',
+      'RECURRENCE-ID;TZID=America/Chicago:20260302T000000'
+    );
+    const [, exception] = vevents(ICSEventHelpers.bumpEventSequenceUp(older, current));
+    expect(exception.sequence).toBe(4);
+    expect(exception.dtstamp).toBe('2026-01-05T00:00:00Z');
+  });
+
   it('revises an occurrence the last copy did not have past its own number', function () {
     // Redo after undo brings back an override the undo removed.
     const masterOnly = RECURRING_WITH_EXCEPTION_ICS.replace(
