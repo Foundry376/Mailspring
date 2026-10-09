@@ -24,7 +24,7 @@ jobs:
           echo "This workflow can only be run on master branch to ensure code-signed builds come from merged PRs"
           exit 1
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install system deps
         env:
@@ -43,7 +43,7 @@ jobs:
           # No PPA needed on 22.04 for these packages.
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '20' # LTS; change to '22' if you’re ready for current
           cache: 'npm' # enables npm cache based on lockfile
@@ -53,7 +53,7 @@ jobs:
         working-directory: .
 
       - name: Setup AWS CLI
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -72,14 +72,14 @@ jobs:
             --exclude "*" --include *.deb --include *.rpm
 
       - name: Upload DEB artifact for testing
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mailspring-deb
           path: app/dist/*.deb
           retention-days: 1
 
       - name: Upload RPM artifact for testing
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mailspring-rpm
           path: app/dist/*.rpm
@@ -95,10 +95,10 @@ jobs:
           echo "This workflow can only be run on master branch to ensure code-signed builds come from merged PRs"
           exit 1
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Download DEB artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: mailspring-deb
           path: app/dist/
@@ -121,7 +121,7 @@ jobs:
         ubuntu_version: ['22.04', '24.04', '25.04']
     steps:
       - name: Download DEB artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: mailspring-deb
 
@@ -216,7 +216,7 @@ jobs:
         fedora_version: ['40', '41', '43']
     steps:
       - name: Download RPM artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: mailspring-rpm
 
@@ -310,7 +310,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Download RPM artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: mailspring-rpm
 
@@ -415,7 +415,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Download DEB artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: mailspring-deb
 
@@ -509,7 +509,7 @@ jobs:
         mint_version: ['22']
     steps:
       - name: Download DEB artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: mailspring-deb
 

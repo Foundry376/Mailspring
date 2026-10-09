@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { CalendarDateUtils } from 'mailspring-exports';
+import { CalendarDateUtils, isRTL } from 'mailspring-exports';
 
 import { EventOccurrence } from './calendar-data-source';
 import { CalendarContainerType } from './calendar-drag-types';
@@ -27,6 +27,7 @@ interface CalendarEventContainerProps {
   onCalendarMouseUp: (args: CalendarEventArgs) => void;
   onCalendarDoubleClick?: (args: CalendarEventArgs) => void;
   onCalendarClick?: (args: CalendarEventArgs) => void;
+  onCalendarContextMenu?: (args: CalendarEventArgs) => void;
 }
 
 export class CalendarEventContainer extends React.Component<CalendarEventContainerProps> {
@@ -77,6 +78,12 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
     // Only fire for background double-clicks (not on events).
     // CalendarEvent components stop propagation of their own double-clicks.
     this._runPropsHandler('onCalendarDoubleClick', event.nativeEvent);
+  };
+
+  _onCalendarContextMenu = (event: React.MouseEvent) => {
+    // Only fire for background right-clicks (not on events).
+    // CalendarEvent and MonthViewEvent components stop propagation of their own.
+    this._runPropsHandler('onCalendarContextMenu', event.nativeEvent);
   };
 
   _runPropsHandler(name: keyof CalendarEventContainerProps, event: MouseEvent) {
@@ -199,12 +206,13 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
       }
 
       case 'month-cell': {
-        // Month view: the container IS the day, just use its start time
+        // Bars sit on a grid that follows the text direction, so measure from its start edge.
         x = event.clientX - rect.left;
         y = event.clientY - rect.top;
         width = rect.width;
         height = rect.height;
-        time = startTime;
+        const fromLeft = x / width;
+        time = allDayColumnStartUnix(startTime, endTime, isRTL ? 1 - fromLeft : fromLeft);
         break;
       }
 
@@ -245,6 +253,7 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
         onMouseMove={this._onCalendarMouseMove}
         onClick={this._onCalendarClick}
         onDoubleClick={this._onCalendarDoubleClick}
+        onContextMenu={this._onCalendarContextMenu}
       >
         {this.props.children}
       </div>

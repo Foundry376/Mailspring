@@ -19,8 +19,38 @@
   background: @background-color-error;
 }
 
-.notification.offline {
-  background: linear-gradient(to top, darken(#cc9900, 4%) 0%, #cc9900 100%);
+.offline-indicator {
+  display: flex;
+  align-items: center;
+  margin: 0 10px 8px;
+  font-size: @font-size-smaller;
+  color: @text-color-subtle;
+  cursor: default;
+
+  .offline-indicator-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    cursor: pointer;
+  }
+
+  .offline-indicator-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background-color: @text-color-very-subtle;
+  }
+
+  .offline-indicator-retry {
+    flex-shrink: 0;
+    margin-left: 6px;
+    color: @text-color-link;
+    cursor: pointer;
+  }
 }
 
 .notification.highest-priority {

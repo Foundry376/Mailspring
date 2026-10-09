@@ -87,7 +87,6 @@
   "By default, mail rules are only applied to new mail as it arrives. Applying rules to your entire inbox may take a long time and degrade performance.": "默认情况下，邮件规则仅在新邮件到达时应用于新邮件。将规则应用于整个收件箱可能需要很长时间并降低性能。",
   "Caching mail": "缓存邮件",
   "Caching recent mail": "缓存最近的邮件",
-  "Calendar Preview": "日历预览",
   "Can't find the selected thread in your mailbox": "无法在邮箱中找到所选会话",
   "Cancel": "取消",
   "Cancel Send Later": "取消稍后发送",

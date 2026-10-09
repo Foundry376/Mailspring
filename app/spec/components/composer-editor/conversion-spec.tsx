@@ -1,5 +1,7 @@
-import { Value } from 'slate';
+import * as Immutable from 'immutable';
+import { Block, Editor, Text, Value } from 'slate';
 import {
+  plugins,
   convertFromHTML,
   convertToHTML,
   convertToPlainText,
@@ -8,6 +10,7 @@ import {
   ComposerEditor,
   normalizePlainTextForPaste,
 } from '../../../src/components/composer-editor/composer-editor';
+import { BLOCK_CONFIG } from '../../../src/components/composer-editor/base-block-plugins';
 
 describe('Composer HTML conversion', () => {
   it('drops near-white source text colors that would be unreadable on a light email background', () => {
@@ -67,6 +70,37 @@ describe('Composer HTML conversion', () => {
     expect(convertToPlainText(value)).toContain('Hidden text');
   });
 
+  it('marks empty editor blocks so pasted blank lines remain visible', () => {
+    const emptyBlock = Block.create({
+      type: BLOCK_CONFIG.div.type,
+      nodes: Immutable.List([Text.create('')]),
+    });
+    const rendered = BLOCK_CONFIG.div.render({
+      node: emptyBlock,
+      attributes: {},
+      children: null,
+      targetIsHTML: false,
+    } as any) as React.ReactElement<any>;
+
+    expect(rendered.props.className).toContain('empty-composer-block');
+  });
+
+  it('does not add the editor-only empty-block class to serialized HTML', () => {
+    const emptyBlock = Block.create({
+      type: BLOCK_CONFIG.div.type,
+      nodes: Immutable.List([Text.create('')]),
+    });
+    const rendered = BLOCK_CONFIG.div.render({
+      node: emptyBlock,
+      attributes: {},
+      children: null,
+      targetIsHTML: true,
+    } as any) as React.ReactElement<any>;
+
+    expect(rendered.type).toBe('br');
+    expect(rendered.props.className).toBeUndefined();
+  });
+
   it('normalizes Windows line endings before plain-text paste', () => {
     expect(normalizePlainTextForPaste('First\r\n\r\nSecond')).toBe('First\n\nSecond');
   });
@@ -98,5 +132,38 @@ describe('Composer HTML conversion', () => {
     expect(convertToHTML(pasted)).not.toContain('&nbsp;');
     expect(preventDefault).toHaveBeenCalled();
     expect(next).not.toHaveBeenCalled();
+  });
+
+  describe('dropping text into the editor', () => {
+    // Mirrors slate-react's AfterPlugin.onDrop, which splits on `\n` and inserts each line.
+    const drop = (text: string) => {
+      const editor = new Editor({
+        plugins: plugins as any,
+        value: convertFromHTML('<div>Existing</div>'),
+      });
+      editor.moveToEndOfDocument().splitBlock();
+      text.split('\n').forEach((line, i) => {
+        if (i > 0) editor.splitBlock();
+        editor.insertText(line);
+      });
+      return editor.value;
+    };
+    const blockTexts = (value: Value) =>
+      value.document
+        .getBlocks()
+        .toArray()
+        .map((b) => b.text);
+
+    it('does not leave carriage returns behind when CRLF text is dropped', () => {
+      const value = drop('Dropped\r\n\r\nText\r\n\r\n\r\nEnd');
+      expect(blockTexts(value)).toEqual(['Existing', 'Dropped', '', 'Text', '', '', 'End']);
+      expect(convertToHTML(value)).not.toContain('&nbsp;');
+    });
+
+    it('keeps CR-only line endings as line breaks rather than merging lines', () => {
+      const value = drop('line1\rline2\r\rline3');
+      expect(blockTexts(value)).toEqual(['Existing', 'line1\nline2\n\nline3']);
+      expect(convertToHTML(value)).toContain('line1<br/>line2<br/><br/>line3');
+    });
   });
 });

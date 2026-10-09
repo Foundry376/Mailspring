@@ -1,7 +1,7 @@
 import os from 'os';
 import path from 'path';
 import fs from 'fs';
-import { execSync } from 'child_process';
+import { execFileSync, execSync } from 'child_process';
 import ini from 'ini';
 import { ICON_PATHS } from './utils/xdg-paths';
 
@@ -297,13 +297,15 @@ function getIcon(
  */
 function convertToPNG(iconName: string, iconPath: string) {
   try {
-    const version = execSync('convert --version').toString().trim();
+    const version = execFileSync('convert', ['--version']).toString().trim();
     if (!version) {
       console.warn('Cannot find ImageMagick');
       return null;
     }
     const tmpPath = path.join(os.tmpdir(), `${iconName}-${crypto.randomUUID()}.png`);
-    execSync(`convert ${iconPath} -transparent white ${tmpPath}`);
+    // An argv array keeps the shell out of it, so theme-supplied paths containing
+    // spaces or shell metacharacters reach `convert` intact.
+    execFileSync('convert', [iconPath, '-transparent', 'white', tmpPath]);
     return tmpPath;
   } catch (error) {
     console.warn(error);

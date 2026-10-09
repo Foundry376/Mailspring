@@ -54,7 +54,8 @@ export function contactToVCFString(contact: Contact): string {
     idx === 0 ? card.set('adr', value, params) : card.add('adr', value, params);
   });
 
-  if (data.birthdays?.length) {
+  // Google People birthdays can carry only a free-form `text` and no `date`.
+  if (data.birthdays?.[0]?.date) {
     card.set('bday', serializeBirthday(data.birthdays[0]).value);
   }
 

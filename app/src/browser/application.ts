@@ -10,6 +10,7 @@ import {
   ipcMain,
   dialog,
   nativeImage,
+  powerMonitor,
   shell,
 } from 'electron';
 
@@ -34,6 +35,8 @@ import moveToApplications from './move-to-applications';
 import { MailsyncProcess } from '../mailsync-process';
 import Config from '../config';
 import { registerQuickpreviewIPCHandlers } from './quickpreview-ipc';
+import { guardAuxiliaryWindowNavigation } from './auxiliary-window-guard';
+import { isMailspringWindowContents } from './mailspring-window';
 import {
   handleWindowsToastXMLProtocolAction,
   registerNotificationIPCHandlers,
@@ -150,6 +153,7 @@ export default class Application extends EventEmitter {
     await this.oneTimeMoveToApplications();
     await this.oneTimeAddToDock();
 
+    guardAuxiliaryWindowNavigation();
     this.autoUpdateManager = new AutoUpdateManager(version, config, specMode);
     this.applicationMenu = new ApplicationMenu(version);
     this.windowManager = new WindowManager({
@@ -441,13 +445,20 @@ export default class Application extends EventEmitter {
       }
     });
 
-    this.on('application:show-calendar', () => {
-      this.windowManager.ensureWindow(WindowManager.CALENDAR_WINDOW, {});
-      this.sendCalendarSync();
+    // Unlike show-main-window (tray, Preferences), these also switch the main window's section.
+    this.on('application:show-mail', () => {
+      this.ensureWindowsForTokenState();
+      this.windowManager.get(WindowManager.MAIN_WINDOW)?.sendMessage('show-mail');
     });
 
-    // The calendar window's MailsyncBridge has no sync clients, so a manual
-    // refresh has to be routed through the main window's bridge.
+    // `focusEvent` names an event to show; the menu item passes none.
+    this.on('application:show-calendar', (focusEvent?: unknown) => {
+      this.ensureWindowsForTokenState();
+      this.windowManager.get(WindowManager.MAIN_WINDOW)?.sendMessage('show-calendar', focusEvent);
+    });
+
+    // Only the main window's MailsyncBridge has sync clients, so other windows route a
+    // refresh through here.
     this.on('application:sync-calendar', (accountId?: string) => {
       this.sendCalendarSync(accountId);
     });
@@ -692,6 +703,17 @@ export default class Application extends EventEmitter {
       }
     });
 
+    // The sync engine's retry wait only counts awake time, so after sleep it can sit out
+    // its full 120s interval before reconnecting unless the main window wakes it.
+    const onSystemResumed = () => {
+      const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
+      if (main) {
+        main.sendMessage('system-resumed');
+      }
+    };
+    powerMonitor.on('resume', onSystemResumed);
+    powerMonitor.on('unlock-screen', onSystemResumed);
+
     app.on('activate', (event, hasVisibleWindows) => {
       if (!hasVisibleWindows) {
         this.ensureWindowsForTokenState();
@@ -707,10 +729,13 @@ export default class Application extends EventEmitter {
     });
 
     ipcMain.on('command', (event, command, ...args) => {
+      if (!isMailspringWindowContents(event.sender)) return;
+      if (typeof command !== 'string' || !command.startsWith('application:')) return;
       this.emit(command, ...args);
     });
 
     ipcMain.on('window-command', (event, command, ...args) => {
+      if (!isMailspringWindowContents(event.sender)) return;
       const win = BrowserWindow.fromWebContents(event.sender);
       if (!win) return;
       win.emit(command, ...args);
@@ -1005,7 +1030,15 @@ export default class Application extends EventEmitter {
       return;
     }
 
-    const parts = url.parse(urlToOpen, true);
+    // url.parse throws on malformed input, and the URL comes from whatever app
+    // launched us (MAILSPRING-CLIENT-M2).
+    let parts: url.UrlWithParsedQuery;
+    try {
+      parts = url.parse(urlToOpen, true);
+    } catch (err) {
+      console.warn(`Ignoring URL - could not parse ${urlToOpen}: ${err.message}`);
+      return;
+    }
     const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
 
     if (!main) {

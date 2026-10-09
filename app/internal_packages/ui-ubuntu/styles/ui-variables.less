@@ -70,6 +70,18 @@
       }
     }
   }
+
+  // The nav rail continues the toolbar, flat at the gradient's bottom stop. Matches the
+  // specificity of the toolbar rule above to outrank the core platform rules.
+  .sheet-toolbar ~ .nav-rail-frame {
+    background: darken(@toolbar-background-color, 5%);
+  }
+  .nav-rail .nav-rail-item:hover {
+    background: fade(@light, 12%);
+  }
+  .nav-rail .nav-rail-item:not(.active) img.content-mask {
+    background-color: @light;
+  }
 }
 
 .btn-icon img.content-mask {

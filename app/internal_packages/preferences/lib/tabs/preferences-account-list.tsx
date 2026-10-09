@@ -6,6 +6,7 @@ import classnames from 'classnames';
 interface PreferencesAccountListProps {
   accounts: Account[];
   selected: Account;
+  offlineAccountIds: string[];
   onAddAccount: () => void;
   onReorderAccount: (account: Account, oldIndex: number, newIndex: number) => void;
   onSelectAccount: (account: Account) => void;
@@ -22,6 +23,23 @@ class PreferencesAccountList extends Component<PreferencesAccountListProps> {
             name="ic-settings-account-error.png"
             mode={RetinaImg.Mode.ContentIsMask}
           />
+        </div>
+      );
+    }
+    return null;
+  }
+
+  _renderAccountStatus(account: Account) {
+    if (account.syncState === Account.SYNC_STATE_AUTH_FAILED) {
+      return <div className="account-status error">{localized('Cannot authenticate')}</div>;
+    }
+    if (account.hasSyncStateError()) {
+      return <div className="account-status error">{localized('Sync error')}</div>;
+    }
+    if (this.props.offlineAccountIds.includes(account.id)) {
+      return (
+        <div className="account-status offline">
+          {localized('Offline')} - {localized('Retrying...')}
         </div>
       );
     }
@@ -65,6 +83,7 @@ class PreferencesAccountList extends Component<PreferencesAccountListProps> {
             <div className="account-subtext" dir="auto">
               {accountSub} ({account.displayProvider()})
             </div>
+            {this._renderAccountStatus(account)}
           </div>
         </Flexbox>
       </div>

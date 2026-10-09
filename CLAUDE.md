@@ -11,17 +11,22 @@ npm install
 # Run the app in development mode (uses --dev flag, data stored in Mailspring-dev folder)
 npm start
 
-# Run with specific language locale
-npm start -- --lang=de
-
-# Run linting (prettier + eslint)
+# Run linting (prettier runs as an eslint rule); lint:check reports without fixing
 npm run lint
+npm run lint:check
 
-# Run all tests
+# TypeScript type checking
+npm run typecheck
+
+# Run all tests, or only spec files whose path matches a regex
 npm test
+npm test -- --spec-file-pattern='calendar'
 
 # Run window-specific tests
-npm test-window
+npm run test-window
+
+# Run Playwright end-to-end tests
+npm run test:e2e
 
 # TypeScript type checking in watch mode
 npm run tsc-watch
@@ -217,26 +222,12 @@ smaller functions over commentary; a comment that restates the code should be de
 
 ## Development Notes
 
-- Hot reload is available via `CTRL+R` (Windows/Linux) or `CMD+R` (macOS)
+- Reload the window with Developer > Reload: `Cmd+Option+L` (macOS), `Ctrl+Alt+L` (Linux), `Ctrl+Shift+R` (Windows). It reruns renderer code and recompiles edited files (the compile cache is keyed on file contents); main-process code in `app/src/browser` needs a full restart. `Cmd/Ctrl+R` is Reply
 - Dev tools accessible via Menu > Developer > Toggle Developer Tools
 - In dev tools console, `$m` provides access to `mailspring-exports` for debugging
 - Dev mode data is stored separately (e.g., `~/.config/Mailspring-dev/` on Linux)
+- The interface language is set in Preferences > General (`core.intl.language`) and read at launch, so relaunch to apply it. Arabic, Persian, Hebrew and Kurdish run right-to-left: the workspace gets `dir="rtl"` and every stylesheet goes through `rtlcss`
 
 ## Claude Hooks
 
-### after_edit
-
-Run linting after modifying TypeScript or JavaScript files.
-
-```json
-{
-  "hooks": {
-    "after_edit": [
-      {
-        "command": "npm run lint",
-        "file_paths": ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
-      }
-    ]
-  }
-}
-```
+A `PostToolUse` hook in `.claude/settings.json` runs `.claude/hooks/lint-edited-file.sh` after each edit to a `.ts`/`.tsx` file under `app/src` or `app/internal_packages`. It runs `eslint --fix` on that one file and reports anything it couldn't fix.

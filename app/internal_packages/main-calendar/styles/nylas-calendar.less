@@ -41,62 +41,103 @@ body.platform-win32 {
   }
 }
 
+.calendar-source-list {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: @source-list-bg;
+  border-right: 1px solid @border-color-divider;
+  color: @text-color-subtle;
+  .calendar-source-list-wrap {
+    padding: 12px;
+    padding-top: 0;
+  }
+  .colored-checkbox {
+    position: relative;
+    top: 1px;
+    margin-left: 1px;
+    display: inline-block;
+    border-radius: 3px;
+    width: 12px;
+    height: 12px;
+    box-shadow:
+      0 0 0.5px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(0, 0, 0, 0.13);
+    background: white;
+    .bg-color {
+      width: 100%;
+      height: 100%;
+      border-radius: 3px;
+    }
+  }
+  label {
+    padding-left: 0.4em;
+  }
+  .toggle-wrap,
+  .account-label {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+  }
+  .account-calendars-wrap {
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+  .account-label {
+    cursor: default;
+    color: @text-color-very-subtle;
+    font-weight: @font-weight-semi-bold;
+    font-size: @font-size-small * 0.9;
+    margin-top: @padding-large-vertical;
+    letter-spacing: -0.2px;
+  }
+}
+
+// Takes the sidebar's colours so it follows any theme's sidebar. :where() holds each rule at core
+// specificity: this wins over core by load order, and a theme's .mini-month-view rules still win.
+:where(.calendar-source-list) {
+  .mini-month-view {
+    background: transparent;
+    border: none;
+    color: inherit;
+
+    .header,
+    .legend {
+      background: transparent;
+      border-bottom-color: color-mix(in srgb, currentColor 15%, transparent);
+    }
+    .header .month-title {
+      color: inherit;
+    }
+    .header img.content-mask {
+      background-color: currentColor;
+    }
+    .day-grid .day {
+      color: inherit;
+      opacity: 0.5;
+      &.cur-month {
+        color: inherit;
+        opacity: 1;
+      }
+      &.cur-day {
+        opacity: 1;
+      }
+      &:hover {
+        background: color-mix(in srgb, currentColor 10%, transparent);
+      }
+      &.cur-day {
+        color: @text-color-inverse;
+      }
+    }
+  }
+}
+
 .mailspring-calendar {
   height: 100%;
   display: flex;
   color: @text-color;
-
-  .calendar-source-list {
-    display: flex;
-    background-color: @source-list-bg;
-    border-right: 1px solid @border-color-divider;
-    color: @text-color-subtle;
-    .calendar-source-list-wrap {
-      padding: 12px;
-      padding-top: 0;
-    }
-    .colored-checkbox {
-      position: relative;
-      top: 1px;
-      margin-left: 1px;
-      display: inline-block;
-      border-radius: 3px;
-      width: 12px;
-      height: 12px;
-      box-shadow:
-        0 0 0.5px rgba(0, 0, 0, 0.4),
-        inset 0 1px 0 rgba(0, 0, 0, 0.13);
-      background: white;
-      .bg-color {
-        width: 100%;
-        height: 100%;
-        border-radius: 3px;
-      }
-    }
-    label {
-      padding-left: 0.4em;
-    }
-    .toggle-wrap,
-    .account-label {
-      overflow: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      margin-top: 2px;
-    }
-    .account-calendars-wrap {
-      &:first-child {
-        margin-top: 0;
-      }
-    }
-    .account-label {
-      cursor: default;
-      color: @text-color-very-subtle;
-      font-weight: @font-weight-semi-bold;
-      font-size: @font-size-small * 0.9;
-      margin-top: @padding-large-vertical;
-      letter-spacing: -0.2px;
-    }
-  }
 
   background: @background-off-primary;
   .calendar-view {
@@ -492,6 +533,7 @@ body.platform-win32 {
     .month-view-week {
       flex: 1;
       display: flex;
+      position: relative;
       min-height: 0; // Allow flex children to shrink
       min-width: 0;
       width: 100%;
@@ -532,7 +574,12 @@ body.platform-win32 {
       }
     }
 
+    @month-view-day-header-height: 32px;
+    @month-view-event-height: 20px;
+
     .month-view-day-header {
+      height: @month-view-day-header-height;
+      box-sizing: border-box;
       padding: 4px 8px;
       flex-shrink: 0;
     }
@@ -553,29 +600,56 @@ body.platform-win32 {
       }
     }
 
-    .month-view-day-events {
-      flex: 1;
+    // The layer passes the pointer through to the cells, so empty space still hit-tests as its day.
+    .month-view-week-bars {
+      position: absolute;
+      top: @month-view-day-header-height;
+      left: 0;
+      right: 0;
+      bottom: 4px;
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      grid-auto-rows: @month-view-event-height;
+      row-gap: 2px;
       overflow: hidden;
-      padding: 0 4px 4px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
+      pointer-events: none;
+    }
+
+    .month-view-bar {
+      min-width: 0;
     }
 
     .month-view-event {
-      @event-height: 20px;
-
       .event-chip();
-      height: @event-height;
-      min-height: @event-height;
-      max-height: @event-height;
+      height: @month-view-event-height;
+      min-height: @month-view-event-height;
+      max-height: @month-view-event-height;
+      margin: 0 4px;
       cursor: default;
       overflow: hidden;
-      flex-shrink: 0;
       position: relative;
+      display: flex;
+      pointer-events: auto;
+
+      &.continues-before {
+        margin-left: 0;
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+
+        &:before {
+          display: none;
+        }
+      }
+      &.continues-after {
+        margin-right: 0;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+      }
 
       .month-view-event-title {
         display: block;
+        flex: 1;
+        min-width: 0;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -588,7 +662,15 @@ body.platform-win32 {
         box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
       }
 
-      &.selected .month-view-event-title {
+      .month-view-event-end-time {
+        flex-shrink: 0;
+        padding-left: 4px;
+        white-space: nowrap;
+        color: var(--event-text-color, inherit);
+      }
+
+      &.selected .month-view-event-title,
+      &.selected .month-view-event-end-time {
         color: var(--event-selected-text-color);
         opacity: 1;
       }
@@ -631,11 +713,12 @@ body.platform-win32 {
     }
 
     .month-view-overflow {
+      margin: 0 4px;
       padding: 2px 4px;
+      pointer-events: auto;
       font-size: 11px;
       color: @text-color-subtle;
       cursor: pointer;
-      flex-shrink: 0;
 
       &:hover {
         color: @text-color;
@@ -956,6 +1039,11 @@ body.platform-win32 {
       font-style: italic;
     }
   }
+}
+
+// Same specificity as `.calendar-source-list`, so a theme's own colour still wins.
+:where(.nav-rail-content) .calendar-source-list {
+  background-color: @source-list-inset-bg;
 }
 
 // Below this width Today, the date and the view switcher cannot share a row, so each takes one.

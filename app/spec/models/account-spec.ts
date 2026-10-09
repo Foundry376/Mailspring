@@ -74,6 +74,24 @@ describe('Account', function () {
     });
   });
 
+  describe('usesOAuth()', function () {
+    const cases = [
+      { provider: 'gmail', expected: true },
+      { provider: 'office365', expected: true },
+      { provider: 'outlook', expected: true },
+      { provider: 'imap', expected: false },
+      { provider: 'yahoo', expected: false },
+      { provider: 'eas', expected: false },
+    ];
+
+    cases.forEach(({ provider, expected }) => {
+      it(`returns ${expected} for provider '${provider}'`, function () {
+        const account = new Account({ id: 'test-id', emailAddress: 'test@example.com', provider });
+        expect(account.usesOAuth()).toBe(expected);
+      });
+    });
+  });
+
   describe('usesLabels()', function () {
     it('returns true for gmail accounts', function () {
       const account = new Account({

@@ -215,6 +215,7 @@ export default class ThreadListContextMenu {
         const tasks = TaskFactory.tasksForArchiving({
           source: 'Context Menu: Thread List',
           threads: this.threads,
+          perspective,
         });
         Actions.queueTasks(tasks);
       },

@@ -1,4 +1,4 @@
-import { AccountStore, RegExpUtils } from 'mailspring-exports';
+import { AccountStore, Calendar, RegExpUtils, Utils } from 'mailspring-exports';
 import { findOneIana } from 'windows-iana';
 
 type ICAL = typeof import('ical.js').default;
@@ -557,4 +557,22 @@ export function selfParticipant(
     return acct && acct.id === accountId;
   });
   return me;
+}
+
+/**
+ * DAV:owner (RFC 3744 section 5.1) when the server gave one. Otherwise the calendar is ours when
+ * it is named after one of the account's addresses, as Google and Fastmail name the default one.
+ */
+export function isOwnCalendar(calendar: Calendar, addresses: string[]): boolean {
+  if (calendar.ownership === 'mine') return true;
+  if (calendar.ownership === 'other') return false;
+  return addresses.some((address) => Utils.emailIsEquivalent(calendar.name, address));
+}
+
+/**
+ * True only when the server named an owner and it was not us. Unlike `!isOwnCalendar`, a
+ * calendar the server said nothing about is not ruled out.
+ */
+export function isSomeoneElsesCalendar(calendar: Calendar | undefined | null): boolean {
+  return !!calendar && calendar.ownership === 'other';
 }

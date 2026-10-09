@@ -3,6 +3,22 @@
 @import 'ui-mixins';
 
 .fixed-popover .calendar-event-popover {
+  // The one action a read-only card offers. Drawn as a link rather than a .btn box so it
+  // sits with the card's text instead of floating in a section of its own.
+  .section.propose-time-action .btn-link {
+    background: none;
+    border: none;
+    box-shadow: none;
+    color: @accent-primary;
+    height: auto;
+    padding: 0;
+
+    &:hover {
+      background: none;
+      text-decoration: underline;
+    }
+  }
+
   color: fadeout(@text-color, 20%);
   background-color: @background-primary;
   display: flex;
@@ -494,25 +510,13 @@
   width: 250px;
 }
 
-.preview-notice {
-  display: block;
-  box-sizing: border-box;
-  -webkit-print-color-adjust: exact;
-  padding: 8px 12px;
-  border-bottom: 1px solid rgb(235, 224, 204);
-  color: rgb(169, 136, 66);
-  background-color: rgb(242, 235, 222);
-  white-space: nowrap;
-  overflow: hidden;
-}
-
 // Event Search Bar - matches ThreadSearchBar styling
 .event-search-bar {
   position: relative;
   order: -100;
   overflow: visible;
   z-index: 100;
-  width: 400px;
+  width: 450px;
   height: 23px;
   font-weight: 400;
   line-height: 23px;

@@ -1,5 +1,5 @@
 import _ from 'underscore';
-import { app, BrowserWindow, screen } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import WindowLauncher from './window-launcher';
 import { localized } from '../intl';
 import MailspringWindow from './mailspring-window';
@@ -7,14 +7,12 @@ import MailspringWindow from './mailspring-window';
 const MAIN_WINDOW = 'default';
 const SPEC_WINDOW = 'spec';
 const ONBOARDING_WINDOW = 'onboarding';
-const CALENDAR_WINDOW = 'calendar';
 const CONTACTS_WINDOW = 'contacts';
 
 export default class WindowManager {
   static MAIN_WINDOW = MAIN_WINDOW;
   static SPEC_WINDOW = SPEC_WINDOW;
   static ONBOARDING_WINDOW = ONBOARDING_WINDOW;
-  static CALENDAR_WINDOW = CALENDAR_WINDOW;
   static CONTACTS_WINDOW = CONTACTS_WINDOW;
 
   initializeInBackground: boolean;
@@ -283,20 +281,6 @@ export default class WindowManager {
       resizable: false,
       width: 900,
       height: 600,
-    };
-
-    const primaryDisplay = screen.getPrimaryDisplay();
-    const { width: screenWidth, height: screenHeight } = primaryDisplay.workAreaSize;
-
-    coreWinOpts[WindowManager.CALENDAR_WINDOW] = {
-      windowKey: WindowManager.CALENDAR_WINDOW,
-      windowType: WindowManager.CALENDAR_WINDOW,
-      title: localized('Calendar Preview'),
-      width: Math.round(screenWidth * 0.75),
-      height: Math.round(screenHeight * 0.75),
-      toolbar: true,
-      hidden: false,
-      ...(process.platform === 'win32' ? { autoHideMenuBar: false } : {}),
     };
 
     coreWinOpts[WindowManager.CONTACTS_WINDOW] = {

@@ -21,6 +21,7 @@ import {
   CODE_VERIFIER,
   GMAIL_SCOPES,
   CODE_CHALLENGE,
+  createOAuthState,
 } from './onboarding-constants';
 import { parseStringPromise } from 'xml2js';
 
@@ -161,7 +162,9 @@ export async function expandAccountWithCommonSettings(account: Account) {
   // only, so any key the provider table owns has to come from the template either way.
   let mstemplate = mailspringTemplateFor(domain, account.provider);
 
-  if (await TryThunderbirdAutoconfig(populated, account, mstemplate)) {
+  // An OAuth token is only accepted by its provider's servers. The servers in the domain's
+  // autoconfig file can be different ones, such as a mail server the domain used before.
+  if (!account.usesOAuth() && (await TryThunderbirdAutoconfig(populated, account, mstemplate))) {
     return applyContainerFolderDefault(populated);
   }
 
@@ -229,6 +232,7 @@ export async function buildGmailAccountFromAuthResponse(code: string) {
       client_id: GMAIL_CLIENT_ID,
       client_secret: GMAIL_CLIENT_SECRET,
       redirect_uri: `http://127.0.0.1:${LOCAL_SERVER_PORT}`,
+      code_verifier: CODE_VERIFIER,
       grant_type: 'authorization_code',
     }
   );
@@ -373,6 +377,7 @@ export async function buildMicrosoftAccountFromAuthResponse(
   return account;
 }
 
+// Each call issues a new `state` value and invalidates the one on any URL built before it.
 export function buildGmailAuthURL() {
   return `https://accounts.google.com/o/oauth2/auth?${qs.stringify({
     client_id: GMAIL_CLIENT_ID,
@@ -380,6 +385,9 @@ export function buildGmailAuthURL() {
     response_type: 'code',
     scope: GMAIL_SCOPES.join(' '),
     access_type: 'offline',
+    code_challenge: CODE_CHALLENGE,
+    code_challenge_method: 'S256',
+    state: createOAuthState(),
     prompt: 'select_account consent',
   })}`;
 }
@@ -393,6 +401,7 @@ export function buildO365AuthURL() {
     response_mode: 'query',
     code_challenge: CODE_CHALLENGE,
     code_challenge_method: 'S256',
+    state: createOAuthState(),
     prompt: 'select_account',
   })}`;
 }

@@ -1,0 +1,47 @@
+@import 'ui-variables';
+
+.nav-rail {
+  flex-shrink: 0;
+  width: 48px;
+
+  .nav-rail-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    align-self: center;
+    margin: 0 0 8px; // btn-icon's own margins would push it off-centre
+    border-radius: 4px;
+
+    // Set here rather than inherited from .btn-icon, which themes recolour for their toolbars.
+    img.content-mask {
+      background-color: @text-color-subtle;
+    }
+    &:hover {
+      background: fade(@text-color, 6%);
+    }
+    // The rail shares the sidebar's colour on macOS, so selection lifts to the content colour.
+    &.active {
+      background: @background-primary;
+      box-shadow: 0 1px 2px fade(@black, 14%);
+    }
+    &.active img.content-mask {
+      background-color: @source-list-active-color;
+    }
+  }
+}
+
+// The sheets sit on the toolbar's surface as an inset card whose border replaces the toolbar's
+// hairline. Outranks the platform `.sheet-toolbar` borders in workspace.less.
+.sheet-container .sheet-toolbar:has(+ .nav-rail-frame) {
+  border-bottom: none;
+}
+
+.nav-rail-content {
+  margin: 0 4px 4px 0;
+  border: 1px solid fade(@text-color, 7%);
+  border-radius: 6px;
+  overflow: hidden;
+}

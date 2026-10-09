@@ -1,4 +1,7 @@
 {
+  "application:show-mail": ["mod+shift+1", "mod+0"],
+  "application:show-calendar": "mod+shift+2",
+
   "core:copy": "ctrl+insert",
   "core:paste": "shift+insert",
   "window:toggle-full-screen": "f11",

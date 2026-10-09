@@ -223,8 +223,6 @@ module.exports = {
           command: 'application:toggle-dev',
         },
         { type: 'separator' },
-        { label: localized('Calendar Preview'), command: 'application:show-calendar' },
-        { type: 'separator' },
         { label: localized('Create a Plugin') + '...', command: 'window:create-package' },
         { label: localized('Install a Plugin') + '...', command: 'window:install-package' },
         { type: 'separator' },
@@ -247,10 +245,8 @@ module.exports = {
         { label: localized('Minimize'), command: 'application:minimize' },
         { label: localized('Zoom'), command: 'application:zoom' },
         { type: 'separator' },
-        {
-          label: localized('Message Viewer'),
-          command: 'application:show-main-window',
-        },
+        { label: localized('Mail'), command: 'application:show-mail' },
+        { label: localized('Calendar'), command: 'application:show-calendar' },
         {
           label: localized('Contacts'),
           command: 'application:show-contacts',

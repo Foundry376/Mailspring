@@ -1,6 +1,7 @@
 import moment from 'moment';
 import {
   Utils,
+  AccountStore,
   Calendar,
   Actions,
   DateUtils,
@@ -437,6 +438,14 @@ export interface CreateCalendarEventOptions {
   timezone?: string;
 }
 
+/** The account, as the ORGANIZER the ICS helpers name once an event has guests. */
+export function organizerForAccount(
+  accountId: string
+): { email: string; name?: string } | undefined {
+  const account = AccountStore.accountForId(accountId);
+  return account ? { email: account.emailAddress, name: account.name } : undefined;
+}
+
 /**
  * Create a new calendar event, queue the syncback task, and focus the event.
  * Shared by CalendarEventPopover and QuickEventPopover.
@@ -452,6 +461,7 @@ export async function createCalendarEvent(options: CreateCalendarEventOptions): 
     timezone: options.timezone || DateUtils.timeZone,
     description: options.description,
     location: options.location,
+    organizer: organizerForAccount(options.accountId),
     attendees: options.attendees,
     recurrenceRule: options.recurrenceRule,
   });

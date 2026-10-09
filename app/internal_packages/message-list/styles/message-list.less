@@ -430,6 +430,10 @@ body.platform-win32 {
         font-weight: @font-weight-normal;
         margin-left: 0;
       }
+
+      .message-folder-chip + .message-folder-chip::before {
+        content: ', ';
+      }
     }
 
     .message-actions-wrap {

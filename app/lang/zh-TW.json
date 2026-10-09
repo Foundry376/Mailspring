@@ -88,7 +88,6 @@
   "By default, mail rules are only applied to new mail as it arrives. Applying rules to your entire inbox may take a long time and degrade performance.": "預設情況下，郵件規則只會套用於新收到的電子郵件。將規則套用於整個收件匣可能需要較長時間且影響效能。",
   "Caching mail": "正在快取郵件",
   "Caching recent mail": "正在快取最近的電子郵件",
-  "Calendar Preview": "行事曆預覽",
   "Can't find the selected thread in your mailbox": "在您的信箱中找不到選取的討論串",
   "Cancel": "取消",
   "Cancel Send Later": "取消稍後寄出",

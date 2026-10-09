@@ -6,7 +6,8 @@ interface YYMMDD {
   day: number;
 }
 interface YYMMDDInputProps {
-  value: YYMMDD;
+  // Google People birthdays can carry only a free-form `text` and no `date`.
+  value: YYMMDD | undefined;
   onChange: (date: YYMMDD) => void;
 }
 
@@ -23,7 +24,7 @@ export class YYMMDDInput extends React.Component<YYMMDDInputProps> {
   };
 
   render() {
-    const { year, month, day } = this.props.value;
+    const { year, month, day } = this.props.value || { year: null, month: null, day: null };
 
     return (
       <fieldset style={{ border: 0, padding: 0, margin: 0 }}>

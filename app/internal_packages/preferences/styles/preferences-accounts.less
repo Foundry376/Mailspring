@@ -41,6 +41,27 @@
           cursor: default;
         }
 
+        .account-status {
+          font-size: @font-size-small;
+          font-weight: 500;
+          cursor: default;
+
+          &.offline::before {
+            content: '';
+            display: inline-block;
+            width: 7px;
+            height: 7px;
+            margin-right: 5px;
+            border-radius: 50%;
+            background-color: currentColor;
+            opacity: 0.6;
+          }
+        }
+
+        .list-item:not(.selected) .account-status.offline {
+          color: @text-color-subtle;
+        }
+
         .btn-editable-list {
           height: 37px;
           width: 37px;
@@ -71,6 +92,10 @@
           display: flex;
           flex-direction: column;
           background: linear-gradient(to top, #ca2541 0%, #d55268 100%);
+
+          &.offline {
+            background: @gray-light;
+          }
 
           .action {
             flex-shrink: 0;

@@ -12,6 +12,6 @@
   },
   "syncInit": true,
   "windowTypes": {
-    "calendar": true
+    "default": true
   }
 }

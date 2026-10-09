@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import { ipcRenderer } from 'electron';
 import MailspringStore from 'mailspring-store';
 import { AccountStore } from './account-store';
 import WorkspaceStore from './workspace-store';
@@ -18,6 +19,25 @@ class FocusedPerspectiveStore extends MailspringStore {
     this.listenTo(Actions.focusDefaultMailboxPerspectiveForAccounts, this._onFocusDefault);
     this.listenTo(Actions.ensureCategoryIsFocused, this._onEnsureCategoryIsFocused);
     this._listenToCommands();
+
+    // Sent by the main process for application:show-mail.
+    if (AppEnv.isMainWindow()) {
+      ipcRenderer.on('show-mail', () => this.showMail());
+    }
+  }
+
+  /** Whether the main window shows mail rather than another section, such as the calendar. */
+  isShowingMail() {
+    return WorkspaceStore.rootSheet() === this._current.sheet();
+  }
+
+  /** Leaves another section of the main window for the mailbox that was last showing. */
+  showMail() {
+    if (!this.isShowingMail()) {
+      Actions.selectRootSheet(this._current.sheet());
+    } else if (WorkspaceStore.topSheet() === WorkspaceStore.Sheet.Preferences) {
+      Actions.popSheet();
+    }
   }
 
   current(): MailboxPerspective {

@@ -21,6 +21,7 @@ interface WeekViewEventColumnProps {
   focusedEvent: FocusedEventInfo | null;
   onEventClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
   onEventDoubleClick: (event: EventOccurrence) => void;
+  onEventContextMenu: (event: EventOccurrence) => void;
   onEventFocused: (event: EventOccurrence) => void;
   selectedEvents: EventOccurrence[];
   dragState: DragState | null;
@@ -31,6 +32,8 @@ interface WeekViewEventColumnProps {
   ) => void;
   /** Set of calendar IDs that are read-only */
   readOnlyCalendarIds: Set<string>;
+  /** See MailspringCalendarViewProps.paintVersion; a new value is what gets past the guard below. */
+  paintVersion: string;
 }
 
 export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProps> {
@@ -49,6 +52,7 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
       day,
       onEventClick,
       onEventDoubleClick,
+      onEventContextMenu,
       onEventFocused,
       dragState,
       onEventDragStart,
@@ -82,6 +86,7 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
             concurrentEvents={overlap[e.id]?.concurrentEvents || 1}
             onClick={onEventClick}
             onDoubleClick={onEventDoubleClick}
+            onContextMenu={onEventContextMenu}
             onFocused={onEventFocused}
             isDragging={dragState?.event.id === e.id}
             onDragStart={onEventDragStart}

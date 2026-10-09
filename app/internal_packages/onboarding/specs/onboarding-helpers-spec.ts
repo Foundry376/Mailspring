@@ -48,10 +48,13 @@ function accountFor(emailAddress: string, provider = 'imap', settings = {}) {
 }
 
 describe('expandAccountWithCommonSettings', function onboardingHelpersTests() {
+  let resolveMxSpy: jasmine.Spy;
+
   beforeEach(() => {
     // The MX lookup only feeds the Mailcore table's mx-match rules, and it is a real
     // network call - stub it so specs don't depend on DNS.
-    spyOn(dns, 'resolveMx').andCallFake((domain, callback) => callback(new Error('ENOTFOUND')));
+    resolveMxSpy = spyOn(dns, 'resolveMx');
+    resolveMxSpy.andCallFake((domain, callback) => callback(new Error('ENOTFOUND')));
     spyOn(AccountStore, 'containerFolderDefaultGetter').andReturn('');
   });
 
@@ -130,6 +133,41 @@ describe('expandAccountWithCommonSettings', function onboardingHelpersTests() {
 
     expect(account.settings.imap_host).toEqual('imap.gmail.com');
     expect(account.settings.smtp_host).toEqual('smtp.gmail.com');
+    expect(window.fetch).not.toHaveBeenCalled();
+  });
+
+  it('uses Google servers for a domain whose MX record is smtp.google.com', async () => {
+    resolveMxSpy.andCallFake((domain, callback) =>
+      callback(null, [{ exchange: 'SMTP.GOOGLE.COM', priority: 1 }])
+    );
+    stubAutoconfig(['workspace.example']);
+    const account = await expandAccountWithCommonSettings(accountFor('user@workspace.example'));
+
+    expect(account.settings.imap_host).toEqual('imap.gmail.com');
+    expect(account.settings.smtp_host).toEqual('smtp.gmail.com');
+    expect(window.fetch).not.toHaveBeenCalled();
+  });
+
+  it('does not download autoconfig for an account added with Google sign-in', async () => {
+    stubAutoconfig(['workspace.example']);
+    const account = await expandAccountWithCommonSettings(
+      accountFor('user@workspace.example', 'gmail')
+    );
+
+    expect(account.settings.imap_host).toEqual('imap.gmail.com');
+    expect(account.settings.imap_port).toEqual(993);
+    expect(account.settings.smtp_host).toEqual('smtp.gmail.com');
+    expect(window.fetch).not.toHaveBeenCalled();
+  });
+
+  it('does not download autoconfig for an account added with Microsoft sign-in', async () => {
+    stubAutoconfig(['contoso.example']);
+    const account = await expandAccountWithCommonSettings(
+      accountFor('user@contoso.example', 'office365')
+    );
+
+    expect(account.settings.imap_host).toEqual('outlook.office365.com');
+    expect(account.settings.smtp_host).toEqual('smtp.office365.com');
     expect(window.fetch).not.toHaveBeenCalled();
   });
 

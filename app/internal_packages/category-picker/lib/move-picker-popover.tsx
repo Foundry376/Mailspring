@@ -168,11 +168,17 @@ export default class MovePickerPopover extends Component<
     const { threads } = this.props;
 
     if (category instanceof Folder) {
+      // Move only the copies shown in the current folder, as remove / swipe / drag do
+      // (see CategoryMailboxPerspective.tasksForRemovingItems).
+      const currentCat = (FocusedPerspectiveStore.current().categories() || []).find(
+        (c) => c.accountId === this.props.account.id
+      );
       Actions.queueTask(
         new ChangeFolderTask({
           source: 'Category Picker: New Category',
           threads: threads,
           folder: category,
+          sourceFolderIds: currentCat instanceof Folder ? [currentCat.id] : [],
         })
       );
     } else {

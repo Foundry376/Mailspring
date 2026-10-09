@@ -20,6 +20,7 @@ export const ThreadArchiveQuickAction: React.FC<{ thread: Thread }> = React.memo
     const tasks = TaskFactory.tasksForArchiving({
       source: 'Quick Actions: Thread List',
       threads: [thread],
+      perspective: FocusedPerspectiveStore.current(),
     });
     Actions.queueTasks(tasks);
     event.stopPropagation();

@@ -208,6 +208,7 @@ describe('UnreadNotifications', function UnreadNotifications() {
       expect(NativeNotifications.displayNotification).toHaveBeenCalled();
       const options = NativeNotifications.displayNotification.mostRecentCall.args[0];
       delete options.onActivate;
+      delete options.playSound;
       expect(options).toEqual({
         title: 'Ben',
         subtitle: 'Hello World',
@@ -293,6 +294,50 @@ describe('UnreadNotifications', function UnreadNotifications() {
     });
   });
 
+  it('should keep notifying after a notification fails to display', () => {
+    spyOn(AppEnv, 'reportError');
+    NativeNotifications.displayNotification.andCallFake(() => Promise.reject(new Error('boom')));
+    waitsForPromise(async () => {
+      await this.notifier._onDatabaseChanged({
+        objectClass: Message.name,
+        objects: [this.msg1],
+        objectsRawJSON: getObjectsRawJson(['1'])
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(AppEnv.reportError).toHaveBeenCalled();
+      expect(this.notifier.hasScheduledNotify).toBe(false);
+
+      NativeNotifications.displayNotification.andReturn(this.notification);
+      await this.notifier._onDatabaseChanged({
+        objectClass: Message.name,
+        objects: [this.msg2],
+        objectsRawJSON: getObjectsRawJson(['2'])
+      });
+      expect(NativeNotifications.displayNotification.callCount).toEqual(2);
+    });
+  });
+
+  it('should not retry a summary Notification that fails to display', () => {
+    spyOn(AppEnv, 'reportError');
+    NativeNotifications.displaySummaryNotification.andCallFake(() =>
+      Promise.reject(new Error('boom'))
+    );
+    waitsForPromise(async () => {
+      await this.notifier._onDatabaseChanged({
+        objectClass: Message.name,
+        objects: [this.msg1, this.msg2, this.msg3, this.msg4, this.msg5],
+        objectsRawJSON: getObjectsRawJson(['1', '2', '3', '4', '5'])
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(AppEnv.reportError).toHaveBeenCalled();
+      expect(this.notifier.unnotifiedQueue.length).toEqual(0);
+      expect(this.notifier.hasScheduledNotify).toBe(false);
+    });
+  });
+
   it('should create a Notification correctly, even if new mail has no sender', () => {
     waitsForPromise(async () => {
       await this.notifier._onDatabaseChanged({
@@ -304,6 +349,7 @@ describe('UnreadNotifications', function UnreadNotifications() {
 
       const options = NativeNotifications.displayNotification.mostRecentCall.args[0];
       delete options.onActivate;
+      delete options.playSound;
       expect(options).toEqual({
         title: 'Unknown',
         subtitle: 'Hello World',
@@ -344,6 +390,7 @@ describe('UnreadNotifications', function UnreadNotifications() {
       expect(NativeNotifications.displayNotification).toHaveBeenCalled();
       const options = NativeNotifications.displayNotification.mostRecentCall.args[0];
       delete options.onActivate;
+      delete options.playSound;
       expect(options).toEqual({
         title: 'Ben',
         subtitle: 'Hello World',
@@ -441,64 +488,113 @@ describe('UnreadNotifications', function UnreadNotifications() {
     });
   });
 
-  it('should play a sound when it gets new mail', () => {
-    spyOn(AppEnv.config, 'get').andCallFake(config => {
-      if (config === 'core.notifications.enabled') return true;
-      if (config === 'core.notifications.sounds') return true;
-      return undefined;
-    });
+  describe('new mail sound', () => {
+    let playsSoundWithNotification;
 
-    spyOn(SoundRegistry, 'playSound');
-    waitsForPromise(async () => {
-      await this.notifier._onDatabaseChanged({
-        objectClass: Message.name,
-        objects: [this.msg1],
-        objectsRawJSON: getObjectsRawJson(['1'])
-      });
-      expect(AppEnv.config.get.calls[1].args[0]).toBe('core.notifications.sounds');
-      expect(SoundRegistry.playSound).toHaveBeenCalledWith('new-mail');
-    });
-  });
-
-  it('should not play a sound if the config is off', () => {
-    spyOn(AppEnv.config, 'get').andCallFake(config => {
-      if (config === 'core.notifications.enabled') return true;
-      if (config === 'core.notifications.sounds') return false;
-      return undefined;
-    });
-    spyOn(SoundRegistry, 'playSound');
-    waitsForPromise(async () => {
-      await this.notifier._onDatabaseChanged({
-        objectClass: Message.name,
-        objects: [this.msg1],
-        objectsRawJSON: getObjectsRawJson(['1'])
-      });
-      expect(AppEnv.config.get.calls[1].args[0]).toBe('core.notifications.sounds');
-      expect(SoundRegistry.playSound).not.toHaveBeenCalled();
-    });
-  });
-
-  it('should not play a sound if other notiications are still in flight', () => {
-    spyOn(AppEnv.config, 'get').andCallFake(config => {
-      if (config === 'core.notifications.enabled') return true;
-      if (config === 'core.notifications.sounds') return true;
-      return undefined;
-    });
-    waitsForPromise(async () => {
+    beforeEach(() => {
+      playsSoundWithNotification = NativeNotifications.playsSoundWithNotification;
       spyOn(SoundRegistry, 'playSound');
-      await this.notifier._onDatabaseChanged({
-        objectClass: Message.name,
-        objects: [this.msg1, this.msg2],
-        objectsRawJSON: getObjectsRawJson(['1', '2'])
+      spyOn(AppEnv.config, 'get').andCallFake(config => {
+        if (config === 'core.notifications.enabled') return true;
+        if (config === 'core.notifications.sounds') return this.soundsEnabled;
+        return undefined;
       });
-      expect(SoundRegistry.playSound).toHaveBeenCalled();
-      SoundRegistry.playSound.reset();
-      await this.notifier._onDatabaseChanged({
+      this.soundsEnabled = true;
+    });
+
+    afterEach(() => {
+      NativeNotifications.playsSoundWithNotification = playsSoundWithNotification;
+    });
+
+    const receive = ids =>
+      this.notifier._onDatabaseChanged({
         objectClass: Message.name,
-        objects: [this.msg3],
-        objectsRawJSON: getObjectsRawJson(['3'])
+        objects: ids.map(id => this[`msg${id}`]),
+        objectsRawJSON: getObjectsRawJson(ids),
       });
-      expect(SoundRegistry.playSound).not.toHaveBeenCalled();
+
+    describe('when the app plays the sound', () => {
+      beforeEach(() => {
+        NativeNotifications.playsSoundWithNotification = false;
+      });
+
+      it('should play a sound when it gets new mail', () => {
+        waitsForPromise(async () => {
+          await receive(['1']);
+          expect(SoundRegistry.playSound).toHaveBeenCalledWith('new-mail');
+          expect(NativeNotifications.displayNotification.mostRecentCall.args[0].playSound).toBe(
+            false
+          );
+        });
+      });
+
+      it('should not play a sound if the config is off', () => {
+        this.soundsEnabled = false;
+        waitsForPromise(async () => {
+          await receive(['1']);
+          expect(SoundRegistry.playSound).not.toHaveBeenCalled();
+        });
+      });
+
+      it('should not play a sound if other notifications are still in flight', () => {
+        waitsForPromise(async () => {
+          await receive(['1', '2']);
+          expect(SoundRegistry.playSound).toHaveBeenCalled();
+          SoundRegistry.playSound.reset();
+          await receive(['3']);
+          expect(SoundRegistry.playSound).not.toHaveBeenCalled();
+        });
+      });
+    });
+
+    describe('when the notification carries the sound (macOS)', () => {
+      beforeEach(() => {
+        NativeNotifications.playsSoundWithNotification = true;
+      });
+
+      it('should attach the sound to the first notification instead of playing it', () => {
+        waitsForPromise(async () => {
+          await receive(['1']);
+          expect(SoundRegistry.playSound).not.toHaveBeenCalled();
+          expect(NativeNotifications.displayNotification.mostRecentCall.args[0].playSound).toBe(
+            true
+          );
+        });
+      });
+
+      it('should not attach the sound if the config is off', () => {
+        this.soundsEnabled = false;
+        waitsForPromise(async () => {
+          await receive(['1']);
+          expect(NativeNotifications.displayNotification.mostRecentCall.args[0].playSound).toBe(
+            false
+          );
+        });
+      });
+
+      it('should not attach the sound again for mail arriving within the quiet period', () => {
+        waitsForPromise(async () => {
+          await receive(['1']);
+          // drain microtasks so _notifyMessages finishes and msg2 starts a new burst
+          await Promise.resolve();
+          await Promise.resolve();
+          await receive(['2']);
+          const calls = NativeNotifications.displayNotification.calls;
+          expect(calls.map(c => c.args[0].playSound)).toEqual([true, false]);
+        });
+      });
+
+      it('should attach the sound again once the quiet period has passed', () => {
+        waitsForPromise(async () => {
+          await receive(['1']);
+          await Promise.resolve();
+          await Promise.resolve();
+          this.notifier.lastNewMailSoundRequest = Date.now() - 6000;
+          await receive(['2']);
+          const calls = NativeNotifications.displayNotification.calls;
+          expect(calls.map(c => c.args[0].playSound)).toEqual([true, true]);
+        });
+      });
     });
   });
 });

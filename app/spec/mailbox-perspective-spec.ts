@@ -3,6 +3,7 @@ import {
   MailboxPerspective,
   TaskFactory,
   Label,
+  Folder,
   CategoryStore,
 } from 'mailspring-exports';
 
@@ -117,6 +118,29 @@ describe('MailboxPerspective', function mailboxPerspective() {
 
     describe('receiveThreads', () => {
       // TODO
+    });
+  });
+
+  describe('sourceFolderIdsForAccount', () => {
+    it('returns the folder the perspective shows for each account of a unified view', () => {
+      const perspective = MailboxPerspective.forCategories([
+        new Folder({ id: 'inbox-1', accountId: 'a1', role: 'inbox', path: 'INBOX' } as any),
+        new Folder({ id: 'inbox-2', accountId: 'a2', role: 'inbox', path: 'INBOX' } as any),
+      ]);
+      expect(perspective.sourceFolderIdsForAccount('a1')).toEqual(['inbox-1']);
+      expect(perspective.sourceFolderIdsForAccount('a2')).toEqual(['inbox-2']);
+      expect(perspective.sourceFolderIdsForAccount('a3')).toEqual([]);
+    });
+
+    it('returns nothing for a label, which holds no copy of its own', () => {
+      const perspective = MailboxPerspective.forCategories([
+        new Label({ id: 'label-1', accountId: 'a1', path: 'Receipts' } as any),
+      ]);
+      expect(perspective.sourceFolderIdsForAccount('a1')).toEqual([]);
+    });
+
+    it('returns nothing for a perspective without categories', () => {
+      expect(MailboxPerspective.forStarred(['a1']).sourceFolderIdsForAccount('a1')).toEqual([]);
     });
   });
 });

@@ -15,6 +15,7 @@ import {
   createDragState,
   updateDragState,
   allDayColumnStartUnix,
+  canAttemptMove,
 } from '../internal_packages/main-calendar/lib/core/calendar-drag-utils';
 import {
   DEFAULT_DRAG_CONFIG,
@@ -46,6 +47,7 @@ function makeOccurrence(overrides: OccurrenceOverrides = {}): EventOccurrence {
     description: '',
     isCancelled: false,
     isPending: false,
+    isMine: true,
     isException: false,
     isRecurring: false,
     organizer: null,
@@ -342,7 +344,7 @@ describe('updateDragState move with day snapping', function () {
     const state = createDragState(
       event,
       { mode: 'move', cursor: 'move' },
-      mouseTime,
+      start,
       0,
       0,
       MONTH_VIEW_DRAG_CONFIG
@@ -372,6 +374,111 @@ describe('updateDragState move with day snapping', function () {
     });
   });
 
+  function dragMoveFrom(
+    event: EventOccurrence,
+    grabbed: number,
+    dropped: number,
+    containerType: 'month-cell' | 'all-day-area' = 'month-cell'
+  ) {
+    const state = createDragState(
+      event,
+      { mode: 'move', cursor: 'grab' },
+      grabbed,
+      0,
+      0,
+      MONTH_VIEW_DRAG_CONFIG
+    );
+    const dragged = updateDragState(
+      state,
+      dropped,
+      100,
+      100,
+      containerType,
+      MONTH_VIEW_DRAG_CONFIG
+    );
+    return { start: dragged.previewStart, end: dragged.previewEnd };
+  }
+
+  it('moves a multi-day bar by the days the cursor moved, wherever it was grabbed', function () {
+    const event = makeOccurrence({
+      isAllDay: true,
+      start: localDay(2026, 8, 14),
+      end: localDay(2026, 8, 17),
+    });
+    expect(dragMoveFrom(event, localDay(2026, 8, 16), localDay(2026, 8, 17))).toEqual({
+      start: localDay(2026, 8, 15),
+      end: localDay(2026, 8, 18),
+    });
+  });
+
+  it('keeps the grabbed day on the week view all-day row too', function () {
+    const event = makeOccurrence({
+      isAllDay: true,
+      start: localDay(2026, 8, 14),
+      end: localDay(2026, 8, 17),
+    });
+    expect(
+      dragMoveFrom(event, localDay(2026, 8, 15), localDay(2026, 8, 13), 'all-day-area')
+    ).toEqual({
+      start: localDay(2026, 8, 12),
+      end: localDay(2026, 8, 15),
+    });
+  });
+
+  it('moves a timed event crossing midnight by days from its second day, keeping its clock', function () {
+    const event = makeOccurrence({
+      isAllDay: false,
+      start: localDay(2026, 8, 14) + 22 * HOUR,
+      end: localDay(2026, 8, 15) + 1 * HOUR,
+    });
+    expect(dragMoveFrom(event, localDay(2026, 8, 15), localDay(2026, 8, 18))).toEqual({
+      start: localDay(2026, 8, 17) + 22 * HOUR,
+      end: localDay(2026, 8, 18) + 1 * HOUR,
+    });
+  });
+
+  it('turns a timed event into one all-day day under the cursor, wherever it was grabbed', function () {
+    // Grabbed in week view on its second column, then dropped on the all-day row.
+    const event = makeOccurrence({
+      isAllDay: false,
+      start: localDay(2026, 8, 14) + 22 * HOUR,
+      end: localDay(2026, 8, 15) + 1 * HOUR,
+    });
+    const state = createDragState(
+      event,
+      { mode: 'move', cursor: 'grab' },
+      localDay(2026, 8, 15) + HOUR / 2,
+      0,
+      0,
+      DEFAULT_DRAG_CONFIG
+    );
+    const dragged = updateDragState(
+      state,
+      localDay(2026, 8, 18),
+      100,
+      100,
+      'all-day-area',
+      DEFAULT_DRAG_CONFIG
+    );
+    expect({
+      start: dragged.previewStart,
+      end: dragged.previewEnd,
+      isAllDay: dragged.previewIsAllDay,
+    }).toEqual({ start: localDay(2026, 8, 18), end: localDay(2026, 8, 19), isAllDay: true });
+  });
+
+  it('leaves a bar where it was when it is dropped on the day it was grabbed', function () {
+    const event = makeOccurrence({
+      isAllDay: true,
+      start: localDay(2026, 8, 14),
+      end: localDay(2026, 8, 17),
+    });
+    expect(dragMoveFrom(event, localDay(2026, 8, 16), localDay(2026, 8, 16))).toEqual({
+      start: localDay(2026, 8, 14),
+      end: localDay(2026, 8, 17),
+    });
+  });
+
   // A midnight-gap block lived here, pinned with moment.tz.setDefault. The move path now
   // computes through calendar-date, which setDefault cannot reach — and the runner's pinned
   // zone transitions at 2am, so it has no missing midnight either. That case is uncovered.
@@ -387,7 +494,7 @@ describe('updateDragState move with day snapping', function () {
     const state = createDragState(
       event,
       { mode: 'move', cursor: 'move' },
-      mouseTime,
+      start,
       0,
       0,
       MONTH_VIEW_DRAG_CONFIG
@@ -437,7 +544,7 @@ describe('updateDragState move with day snapping', function () {
     const state = createDragState(
       event,
       { mode: 'move', cursor: 'move' },
-      localDay(2026, 8, 20),
+      start,
       0,
       0,
       MONTH_VIEW_DRAG_CONFIG
@@ -499,7 +606,7 @@ describe('updateDragState move converting all-day to timed', function () {
     const state = createDragState(
       event,
       { mode: 'move', cursor: 'move' },
-      mouseTime,
+      start,
       0,
       0,
       DEFAULT_DRAG_CONFIG
@@ -826,5 +933,36 @@ describe('createDragState anchored on the grid', function () {
       DEFAULT_DRAG_CONFIG
     );
     expect(dragged.previewStart).toBe(start + HOUR);
+  });
+});
+
+describe('canAttemptMove', function () {
+  it("lets a guest's drag begin, so it can be answered with the offer to counter", function () {
+    expect(canAttemptMove(makeOccurrence({ isMine: false } as any))).toBe(true);
+  });
+
+  it('refuses a drag on a read-only calendar, a cancelled event or a drag preview', function () {
+    expect(canAttemptMove(makeOccurrence(), true)).toBe(false);
+    expect(canAttemptMove(makeOccurrence({ isCancelled: true } as any))).toBe(false);
+    expect(canAttemptMove(makeOccurrence({ isDragPreview: true } as any))).toBe(false);
+  });
+});
+
+describe('canMoveEvent and the organizer', function () {
+  it("refuses to reschedule someone else's meeting", function () {
+    const theirs = makeOccurrence({ isMine: false } as any);
+    expect(canMoveEvent(theirs)).toBe(false);
+  });
+
+  it('allows rescheduling a meeting we organise', function () {
+    expect(canMoveEvent(makeOccurrence({ isMine: true } as any))).toBe(true);
+  });
+
+  it('still refuses on a read-only calendar even when the meeting is ours', function () {
+    expect(canMoveEvent(makeOccurrence({ isMine: true } as any), true)).toBe(false);
+  });
+
+  it('still refuses a cancelled meeting that is ours', function () {
+    expect(canMoveEvent(makeOccurrence({ isMine: true, isCancelled: true } as any))).toBe(false);
   });
 });

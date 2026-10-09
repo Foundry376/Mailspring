@@ -52,10 +52,16 @@ export interface DragState {
   /** Offset between click position and event start (for 'move' mode) - preserves grab point */
   clickOffset: number;
 
-  /** Initial mouse X position */
+  /**
+   * For a move: whole days from the event's first day to the day it was grabbed on. A day-snapped
+   * drop keeps that day under the cursor, so a bar grabbed on its third day doesn't jump.
+   */
+  grabDayOffset: number;
+
+  /** Initial mouse X position, in window coordinates (clientX) */
   initialMouseX: number;
 
-  /** Initial mouse Y position */
+  /** Initial mouse Y position, in window coordinates (clientY) */
   initialMouseY: number;
 
   /** Current preview start time (updated during drag) */

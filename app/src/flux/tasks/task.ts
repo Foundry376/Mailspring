@@ -37,6 +37,13 @@ export class Task extends Model {
   /** Set in subclasses to enable undo support. Defaults to falsy (undefined). */
   canBeUndone: boolean;
 
+  /**
+   * True when the engine writes data the undo needs onto the task during its local phase
+   * (ChangeFolderTask.undoPlacements), so UndoRedoStore must build the undo from the
+   * version streamed back rather than the one the client queued.
+   */
+  engineWritesUndoData = false;
+
   // Public: Override the constructor to pass initial args to your Task and
   // initialize instance variables.
   //
@@ -64,8 +71,15 @@ export class Task extends Model {
   // Public: Return from `createIdenticalTask` and set a flag so your
   // `performLocal` and `performRemote` methods know that this is an undo
   // task.
-  createUndoTask() {
+  createUndoTask(): Task {
     throw new Error('Unimplemented');
+  }
+
+  // Public: Override when one undo can need several tasks (ChangeFolderTask reversing
+  // a move from several folders). UndoRedoStore queues whatever this returns; an empty
+  // array means the task cannot be reversed with the data at hand.
+  createUndoTasks(): Task[] {
+    return [this.createUndoTask()];
   }
 
   // Public: Return a deep-cloned task to be used for an undo task

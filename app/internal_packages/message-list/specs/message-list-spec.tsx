@@ -2,14 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import ReactTestUtils from 'react-dom/test-utils';
 
-import {
-  Thread,
-  Contact,
-  Folder,
-  Message,
-  MessageStore,
-  MailspringTestUtils,
-} from 'mailspring-exports';
+import { Thread, Contact, Message, MessageStore, MailspringTestUtils } from 'mailspring-exports';
 
 import MessageParticipants from '../lib/message-participants';
 import MessageItemContainer from '../lib/message-item-container';
@@ -58,7 +51,7 @@ const m1 = new Message({
   subject: 'Subject One',
   threadId: 'thread_12345',
   accountId: TEST_ACCOUNT_ID,
-  folder: new Folder({ role: 'all', path: 'All Mail' }),
+  folders: { 'all-id': 0 },
 });
 const m2 = new Message({
   id: '222',
@@ -75,7 +68,7 @@ const m2 = new Message({
   subject: 'Subject Two',
   threadId: 'thread_12345',
   accountId: TEST_ACCOUNT_ID,
-  folder: new Folder({ role: 'all', path: 'All Mail' }),
+  folders: { 'all-id': 0 },
 });
 const m3 = new Message({
   id: '333',
@@ -92,7 +85,7 @@ const m3 = new Message({
   subject: 'Subject Three',
   threadId: 'thread_12345',
   accountId: TEST_ACCOUNT_ID,
-  folder: new Folder({ role: 'all', path: 'All Mail' }),
+  folders: { 'all-id': 0 },
 });
 const m4 = new Message({
   id: '444',
@@ -109,7 +102,7 @@ const m4 = new Message({
   subject: 'Subject Four',
   threadId: 'thread_12345',
   accountId: TEST_ACCOUNT_ID,
-  folder: new Folder({ role: 'all', path: 'All Mail' }),
+  folders: { 'all-id': 0 },
 });
 const m5 = new Message({
   id: '555',
@@ -126,7 +119,7 @@ const m5 = new Message({
   subject: 'Subject Five',
   threadId: 'thread_12345',
   accountId: TEST_ACCOUNT_ID,
-  folder: new Folder({ role: 'all', path: 'All Mail' }),
+  folders: { 'all-id': 0 },
 });
 const testMessages = [m1, m2, m3, m4, m5];
 const draftMessages = [
@@ -146,7 +139,7 @@ const draftMessages = [
     subject: 'Draft One',
     threadId: 'thread_12345',
     accountId: TEST_ACCOUNT_ID,
-    folder: new Folder({ role: 'all', path: 'All Mail' }),
+    folders: { 'all-id': 0 },
   }),
 ];
 

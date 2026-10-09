@@ -1,7 +1,7 @@
 import {
   TaskFactory,
-  AccountStore,
   CategoryStore,
+  Folder,
   Label,
   Thread,
   ChangeFolderTask,
@@ -10,47 +10,103 @@ import {
 
 describe('TaskFactory', function taskFactory() {
   beforeEach(() => {
+    // ac-1 is a folder-based IMAP account; ac-2 is Gmail, whose Inbox is a label and
+    // whose All Mail, Spam and Trash are folders.
     this.categories = {
       'ac-1': {
-        archive: new Label({ name: 'archive' } as any),
-        inbox: new Label({ name: 'inbox1' } as any),
-        trash: new Label({ name: 'trash1' } as any),
+        archive: new Folder({ id: 'f-archive', accountId: 'ac-1', role: 'archive' } as any),
+        inbox: new Folder({ id: 'f-inbox', accountId: 'ac-1', role: 'inbox' } as any),
+        spam: new Folder({ id: 'f-spam', accountId: 'ac-1', role: 'spam' } as any),
+        trash: new Folder({ id: 'f-trash', accountId: 'ac-1', role: 'trash' } as any),
       },
       'ac-2': {
-        archive: new Label({ name: 'all' } as any),
-        inbox: new Label({ name: 'inbox2' } as any),
-        trash: new Label({ name: 'trash2' } as any),
+        archive: new Folder({ id: 'g-all', accountId: 'ac-2', role: 'all' } as any),
+        all: new Folder({ id: 'g-all', accountId: 'ac-2', role: 'all' } as any),
+        inbox: new Label({ id: 'g-inbox', accountId: 'ac-2', role: 'inbox' } as any),
+        spam: new Folder({ id: 'g-spam', accountId: 'ac-2', role: 'spam' } as any),
+        trash: new Folder({ id: 'g-trash', accountId: 'ac-2', role: 'trash' } as any),
       },
     };
-    this.accounts = {
-      'ac-1': {
-        id: 'ac-1',
-        usesFolders: () => true,
-        preferredRemovalDestination: () => this.categories['ac-1'].archive,
-      },
-      'ac-2': {
-        id: 'ac-2',
-        usesFolders: () => false,
-        preferredRemovalDestination: () => this.categories['ac-2'].trash,
-      },
-    };
-    this.threads = [new Thread({ accountId: 'ac-1' }), new Thread({ accountId: 'ac-2' })];
+    this.threads = [
+      new Thread({ id: 't1', accountId: 'ac-1' }),
+      new Thread({ id: 't2', accountId: 'ac-2' }),
+    ];
 
-    spyOn(CategoryStore, 'getArchiveCategory').andCallFake((acc) => {
-      return this.categories[acc.id].archive;
+    const byRole = (role) => (accountId) => this.categories[accountId][role];
+    spyOn(CategoryStore, 'getArchiveCategory').andCallFake(byRole('archive'));
+    spyOn(CategoryStore, 'getAllMailCategory').andCallFake(byRole('all'));
+    spyOn(CategoryStore, 'getInboxCategory').andCallFake(byRole('inbox'));
+    spyOn(CategoryStore, 'getSpamCategory').andCallFake(byRole('spam'));
+    spyOn(CategoryStore, 'getTrashCategory').andCallFake(byRole('trash'));
+  });
+
+  describe('tasksForArchiving', () => {
+    const perspectiveShowing = (folderIdsByAccount) => ({
+      sourceFolderIdsForAccount: (accountId) => folderIdsByAccount[accountId] || [],
     });
-    spyOn(CategoryStore, 'getInboxCategory').andCallFake((acc) => {
-      return this.categories[acc.id].inbox;
+
+    it('scopes a folder move to the folder the perspective shows for that account', () => {
+      const perspective = perspectiveShowing({ 'ac-1': ['f-sent'] });
+      const [folderTask] = TaskFactory.tasksForArchiving({
+        threads: [this.threads[0]],
+        source: 'Toolbar Button: Thread List',
+        perspective,
+      });
+      expect(folderTask instanceof ChangeFolderTask).toBe(true);
+      expect(folderTask.folder.id).toBe('f-archive');
+      expect(folderTask.sourceFolderIds).toEqual(['f-sent']);
     });
-    spyOn(CategoryStore, 'getTrashCategory').andCallFake((acc) => {
-      return this.categories[acc.id].trash;
+
+    it('leaves the choice of copies to the engine when there is no perspective', () => {
+      const [folderTask] = TaskFactory.tasksForArchiving({
+        threads: [this.threads[0]],
+        source: 'MCP',
+      });
+      expect(folderTask.sourceFolderIds).toEqual([]);
     });
-    spyOn(AccountStore, 'accountForId').andCallFake((accId) => {
-      return this.accounts[accId];
+
+    it('archives Gmail by removing the Inbox label, whatever the perspective', () => {
+      const perspective = perspectiveShowing({ 'ac-1': ['f-inbox'], 'ac-2': ['g-spam'] });
+      const [folderTask, labelTask] = TaskFactory.tasksForArchiving({
+        threads: this.threads,
+        source: 'Toolbar Button: Thread List',
+        perspective,
+      });
+      expect(folderTask.sourceFolderIds).toEqual(['f-inbox']);
+      expect(labelTask instanceof ChangeLabelsTask).toBe(true);
+      expect(labelTask.labelsToRemove.map((l) => l.id)).toEqual(['g-inbox']);
+      expect(labelTask.labelsToAdd).toEqual([]);
     });
   });
 
-  describe('taskForInvertingUnread', () => {});
+  describe('tasksForMarkingNotSpam', () => {
+    it('moves only the Spam copies back to the Inbox', () => {
+      const [task] = TaskFactory.tasksForMarkingNotSpam({
+        threads: [this.threads[0]],
+        source: 'Toolbar Button: Thread List',
+      });
+      expect(task.folder.id).toBe('f-inbox');
+      expect(task.sourceFolderIds).toEqual(['f-spam']);
+    });
 
-  describe('taskForInvertingStarred', () => {});
+    it('moves Gmail Spam copies to All Mail', () => {
+      const [task] = TaskFactory.tasksForMarkingNotSpam({
+        threads: [this.threads[1]],
+        source: 'Toolbar Button: Thread List',
+      });
+      expect(task.folder.id).toBe('g-all');
+      expect(task.sourceFolderIds).toEqual(['g-spam']);
+    });
+  });
+
+  describe('tasksForMovingToTrash', () => {
+    it('does not scope, since the engine moves every copy to Trash', () => {
+      const tasks = TaskFactory.tasksForMovingToTrash({
+        threads: this.threads,
+        source: 'Toolbar Button: Thread List',
+      });
+      expect(tasks.map((t) => t.folder.id)).toEqual(['f-trash', 'g-trash']);
+      expect(tasks.map((t) => t.sourceFolderIds)).toEqual([[], []]);
+    });
+  });
 });

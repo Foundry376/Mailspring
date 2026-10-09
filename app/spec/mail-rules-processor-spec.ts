@@ -206,6 +206,50 @@ describe('MailRulesProcessor', function () {
       });
     }));
 
+  describe('_applyRuleToMessage ordering', function () {
+    it("does not finish until the rule's tasks have run locally", async function () {
+      let resolveLocal;
+      spyOn(TaskQueue, 'waitForPerformLocal').andReturn(new Promise((r) => (resolveLocal = r)));
+      spyOn(Actions, 'queueTasks');
+      const rule = Tests[0].rule;
+      const thread = new Thread({ accountId: rule.accountId, unread: true });
+
+      let finished = false;
+      const done = MailRulesProcessor._applyRuleToMessage(
+        rule,
+        new Message({ accountId: rule.accountId }),
+        thread
+      ).then(() => (finished = true));
+
+      await new Promise((r) => window.originalSetTimeout(r, 0));
+      expect(Actions.queueTasks).toHaveBeenCalled();
+      expect(finished).toBe(false);
+
+      resolveLocal();
+      await done;
+      expect(finished).toBe(true);
+    });
+
+    it('stops waiting for an engine that never runs the tasks', async function () {
+      spyOn(TaskQueue, 'waitForPerformLocal').andReturn(new Promise(() => {}));
+      spyOn(Actions, 'queueTasks');
+      const rule = Tests[0].rule;
+
+      let finished = false;
+      MailRulesProcessor._applyRuleToMessage(
+        rule,
+        new Message({ accountId: rule.accountId }),
+        new Thread({ accountId: rule.accountId, unread: true })
+      ).then(() => (finished = true));
+
+      await new Promise((r) => window.originalSetTimeout(r, 0));
+      expect(finished).toBe(false);
+      advanceClock(10001);
+      await new Promise((r) => window.originalSetTimeout(r, 0));
+      expect(finished).toBe(true);
+    });
+  });
+
   describe('category resolution', function () {
     const accountId = 'b5djvgcuhj6i3x8nm53d0vnjm';
     const folder = new Folder({ id: 'new-id', accountId, path: 'INBOX/Receipts' });

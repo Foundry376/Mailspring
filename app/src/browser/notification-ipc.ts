@@ -15,10 +15,17 @@ interface NotificationOptions {
   hasReply?: boolean;
   replyPlaceholder?: string;
   actions?: Array<{ type: 'button'; text: string }>;
+  playSound?: boolean;
   urgency?: 'low' | 'normal' | 'critical';
   timeoutType?: 'default' | 'never';
   toastXml?: string;
 }
+
+// Copied into Contents/Resources by build.js, where UNNotificationSound looks it up by name.
+// Must be an MP3: NotificationCenter ignores .caf files in an app bundle (IMA4 and PCM alike)
+// and plays the default tone instead. https://developer.apple.com/forums/thread/716650
+// (FB11642483), reproduced on macOS 27.
+const MAC_NEW_MAIL_SOUND = 'new-mail.mp3';
 
 const handledWindowsToastXMLProtocolActionsForIds: string[] = [];
 
@@ -102,7 +109,7 @@ const displayNotification = (
     title: options.title,
     body: options.subtitle || options.body,
     icon: validatedIconPath ? nativeImage.createFromPath(validatedIconPath) : undefined,
-    silent: true, // App handles sounds separately via SoundRegistry
+    silent: true, // Sounds play via SoundRegistry, or via `sound` below on macOS
   };
 
   // macOS-specific options
@@ -117,6 +124,10 @@ const displayNotification = (
     }
     if (options.actions && options.actions.length > 0) {
       notifOptions.actions = options.actions;
+    }
+    if (options.playSound) {
+      notifOptions.silent = false;
+      notifOptions.sound = MAC_NEW_MAIL_SOUND;
     }
   }
 

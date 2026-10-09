@@ -1,5 +1,5 @@
-const ipc = require('electron').ipcRenderer;
+const { contextBridge, ipcRenderer } = require('electron');
 
-global.printToPDF = async () => {
-  ipc.postMessage('print-to-pdf');
-};
+contextBridge.exposeInMainWorld('printToPDF', () => {
+  ipcRenderer.postMessage('print-to-pdf');
+});

@@ -43,11 +43,15 @@ export function moveThreads(
         canBeUndone: snooze ? true : false,
       });
     }
+    // Snoozing moves the Inbox copy only, and unsnoozing brings back only what was
+    // snoozed; a Sent copy of the same message is never dragged along.
+    const sourceCat = snooze ? inboxCat : snoozeCat;
     return new ChangeFolderTask({
       source: 'Snooze Move',
       threads: accountThreads,
       taskDescription: description,
       folder: snooze ? snoozeCat : inboxCat,
+      sourceFolderIds: sourceCat ? [sourceCat.id] : [],
       canBeUndone: snooze ? true : false,
     });
   });

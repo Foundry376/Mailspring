@@ -191,6 +191,10 @@ export class Account extends ModelWithMetadata {
     return this.provider === 'gmail';
   }
 
+  usesOAuth() {
+    return ['gmail', 'office365', 'outlook'].includes(this.provider);
+  }
+
   // Public: Returns the localized, properly capitalized provider name,
   // like Gmail, Exchange, or Outlook 365
   displayProvider() {

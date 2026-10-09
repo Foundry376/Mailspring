@@ -53,6 +53,7 @@ class AutoaddressControl extends Component<AutoaddressControlProps> {
 class PreferencesAccountDetails extends Component<
   {
     account: Account;
+    isOffline: boolean;
     onAccountUpdated: (account: Account, newAccount: Account) => void;
   },
   {
@@ -241,9 +242,13 @@ class PreferencesAccountDetails extends Component<
 
   // Renderers
 
-  _renderErrorDetail(message, actions: { text: string; action: () => void }[]) {
+  _renderErrorDetail(
+    message,
+    actions: { text: string; action: () => void }[],
+    { offline }: { offline?: boolean } = {}
+  ) {
     return (
-      <div className="account-error-detail">
+      <div className={`account-error-detail${offline ? ' offline' : ''}`}>
         <div className="message">{message}</div>
         <div style={{ display: 'flex', flexShrink: 0 }}>
           {actions.map(({ text, action }) => (
@@ -282,7 +287,23 @@ class PreferencesAccountDetails extends Component<
           ]
         );
       default:
-        return null;
+        if (!this.props.isOffline) {
+          return null;
+        }
+        return this._renderErrorDetail(
+          localized(
+            `Mailspring can't connect to %@ and will keep retrying. This usually means your computer is offline. If your internet connection is working, your mail provider may be having trouble.`,
+            account.settings.imap_host || account.emailAddress
+          ),
+          [
+            {
+              text: localized('Try now'),
+              action: () => AppEnv.mailsyncBridge.sendSyncMailNow(),
+            },
+            { text: localized('Error Details...'), action: this._onShowErrorDetails },
+          ],
+          { offline: true }
+        );
     }
   }
 

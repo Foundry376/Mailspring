@@ -60,12 +60,14 @@ export function isThreadAllowed(thread: Pick<Thread, 'accountId' | 'categories'>
   return !(thread.categories || []).some((c) => excluded.includes(c.id));
 }
 
-export function isMessageAllowed(message: Pick<Message, 'accountId' | 'folder'>): boolean {
+// Same exclusion-wins rule as `isThreadAllowed`: a message with a copy in any
+// excluded folder is blocked, even if another copy sits in an allowed folder.
+export function isMessageAllowed(message: Pick<Message, 'accountId' | 'folderIds'>): boolean {
   if (!isAccountAllowed(message.accountId)) return false;
   const { enabledAccounts } = getMcpConfig();
   const excluded = enabledAccounts[message.accountId]?.excludedFolderIds || [];
-  if (excluded.length === 0 || !message.folder) return true;
-  return !excluded.includes(message.folder.id);
+  if (excluded.length === 0) return true;
+  return !message.folderIds().some((id) => excluded.includes(id));
 }
 
 // Returns the subset of `allAccountIds` permitted for MCP access. When no

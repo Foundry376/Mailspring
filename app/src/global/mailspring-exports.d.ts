@@ -198,7 +198,9 @@ export { CalendarDate } from '../calendar-date';
 export type ICSEventHelpers = typeof import('../ics-event-helpers');
 export const ICSEventHelpers: ICSEventHelpers;
 export {
+  CalendarConflict,
   CreateEventOptions,
+  Occurrence,
   UpdateTimesOptions,
   RecurrenceExceptionResult,
   RecurrenceInfo,

@@ -22,7 +22,7 @@ import {
   tickGenerator,
 } from './week-view-helpers';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
-import { getEventsWithDragPreview } from './calendar-drag-utils';
+import { getEventsWithDragPreview, withCreateDragPreview } from './calendar-drag-utils';
 
 const BUFFER_DAYS = 1; // Buffer one day on each side for smooth navigation
 const DAYS_IN_VIEW = 1;
@@ -226,7 +226,10 @@ export class DayView extends React.Component<
 
   render() {
     const days = this._daysInView();
-    const events = getEventsWithDragPreview(this.state.events, this.props.dragState);
+    const events = withCreateDragPreview(
+      getEventsWithDragPreview(this.state.events, this.props.dragState),
+      this.props.createDrag
+    );
     const eventsByDay = eventsGroupedByDay(events, days);
     const dayEnds = exclusiveDayEnds(days);
     const todayColumnIdx = days.findIndex((d) => this._isToday(d));
@@ -250,6 +253,7 @@ export class DayView extends React.Component<
           onCalendarMouseMove={this.props.onCalendarMouseMove}
           onCalendarClick={this.props.onCalendarClick}
           onCalendarDoubleClick={this.props.onCalendarDoubleClick}
+          onCalendarContextMenu={this.props.onCalendarContextMenu}
         >
           <div className="top-banner">
             {/* Role follows pattern: Calendar:{ViewName}:Banner (cf. WeekView's Calendar:Week:Banner) */}
@@ -299,7 +303,9 @@ export class DayView extends React.Component<
                   selectedEvents={this.props.selectedEvents}
                   onEventClick={this.props.onEventClick}
                   onEventDoubleClick={this.props.onEventDoubleClick}
+                  onEventContextMenu={this.props.onEventContextMenu}
                   onEventFocused={this.props.onEventFocused}
+                  paintVersion={this.props.paintVersion}
                   dragState={this.props.dragState}
                   onEventDragStart={this.props.onEventDragStart}
                   readOnlyCalendarIds={this.props.readOnlyCalendarIds}
@@ -326,7 +332,9 @@ export class DayView extends React.Component<
                       selectedEvents={this.props.selectedEvents}
                       onEventClick={this.props.onEventClick}
                       onEventDoubleClick={this.props.onEventDoubleClick}
+                      onEventContextMenu={this.props.onEventContextMenu}
                       onEventFocused={this.props.onEventFocused}
+                      paintVersion={this.props.paintVersion}
                       dragState={this.props.dragState}
                       onEventDragStart={this.props.onEventDragStart}
                       readOnlyCalendarIds={this.props.readOnlyCalendarIds}
@@ -344,6 +352,7 @@ export class DayView extends React.Component<
                     height={totalHeight}
                     intervalHeight={this.state.intervalHeight}
                     numColumns={BUFFER_DAYS * 2 + DAYS_IN_VIEW}
+                    paintVersion={this.props.paintVersion}
                   />
                 </div>
               </ScrollRegion>

@@ -14,6 +14,17 @@ import {
 let WindowIconPath = null;
 let idNum = 0;
 
+const mailspringWebContents = new WeakSet<Electron.WebContents>();
+
+/**
+ * True for the renderers of Mailspring's own windows. Other top-level windows (print
+ * preview, quick preview, "show original") display untrusted content and must not be
+ * able to drive the main process.
+ */
+export function isMailspringWindowContents(contents: Electron.WebContents) {
+  return mailspringWebContents.has(contents);
+}
+
 export interface MailspringWindowSettings {
   frame?: boolean;
   title?: string;
@@ -144,6 +155,7 @@ export default class MailspringWindow extends EventEmitter {
     }
 
     this.browserWindow = new BrowserWindow(browserWindowOptions);
+    mailspringWebContents.add(this.browserWindow.webContents);
 
     // Constrain every <webview> guest to low-privilege preferences regardless of
     // the attributes on the tag, and strip any preload it requests. The only

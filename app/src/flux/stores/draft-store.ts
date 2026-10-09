@@ -538,7 +538,27 @@ class DraftStore extends MailspringStore {
 
     // move the draft to another account if necessary to match the from: field
     const accountIdBeforeEnsure = session.draft()?.accountId;
-    await session.ensureCorrectAccount();
+    try {
+      await session.ensureCorrectAccount();
+    } catch (err) {
+      // Clear the sending flag, or the composer treats the draft as mid-send and
+      // ignores every later click of Send.
+      this._draftsSending[headerMessageId] = false;
+      this.trigger({ headerMessageId });
+      if (!session.draft()) {
+        return this._onUnexpectedNotFoundDuringSend(headerMessageId, {
+          ...diagnostics,
+          failedAt: 'session.draft() was null in ensureCorrectAccount',
+        });
+      }
+      if (session.hasSendableFromAddress()) {
+        AppEnv.showErrorDialog(localized('Sorry, this message could not be sent. %@', err.message));
+        AppEnv.reportError(err, { headerMessageId });
+      } else {
+        AppEnv.showErrorDialog(DraftEditingSession.unsendableFromAddressMessage());
+      }
+      return;
+    }
     diagnostics.ensureCorrectAccountChangedAccount =
       session.draft()?.accountId !== accountIdBeforeEnsure;
     diagnostics.draftIdAfterEnsure = session.draft()?.id;

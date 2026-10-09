@@ -4,6 +4,7 @@ import _ from 'underscore';
 
 import MailspringStore from 'mailspring-store';
 import KeyManager from '../../key-manager';
+import { revokeOAuthGrant } from '../../oauth-revocation';
 import * as Actions from '../actions';
 import { Account } from '../models/account';
 import { Thread } from '../models/thread';
@@ -179,11 +180,14 @@ class _AccountStore extends MailspringStore {
    * the AccountStore and runs `ensureK2Consistency`. This will actually
    * delete the Account on the local sync side.
    */
-  _onRemoveAccount = (id: string) => {
+  _onRemoveAccount = async (id: string) => {
     const account = this._accounts.find((a) => a.id === id);
     if (!account) return;
 
     this._caches = {};
+
+    // Started before anything below clears the keychain entry it needs to read.
+    const revocation = revokeOAuthGrant(account);
 
     const remainingAccounts = this._accounts.filter((a) => a !== account);
     // This action is called before saving because we need to unfocus the
@@ -200,7 +204,11 @@ class _AccountStore extends MailspringStore {
     this._save();
 
     if (remainingAccounts.length === 0) {
-      // Clear everything and logout
+      // Clear everything and logout. application:reset-database destroys this window
+      // before relaunching, which would cancel an in-flight revocation request. It only
+      // deletes the database, so the secrets in config.json must be removed here.
+      await revocation;
+      await KeyManager.deleteAccountSecrets(account);
       const ipc = require('electron').ipcRenderer;
       ipc.send('command', 'application:reset-database', {});
     } else {

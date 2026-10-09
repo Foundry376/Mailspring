@@ -1,4 +1,5 @@
 import { Actions, DatabaseStore, DestroyEventTask, SyncbackEventTask } from 'mailspring-exports';
+import { dialog } from '@electron/remote';
 import { Event as MailspringEvent } from '../src/flux/models/event';
 import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
 import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
@@ -114,5 +115,59 @@ describe('deleting a moved occurrence from the calendar', function () {
 
     expect(queued.length).toBe(0);
     expect(AppEnv.showErrorDialog).toHaveBeenCalled();
+  });
+
+  it('revises the series, so guests take the cancellation', async function () {
+    stubRows(exceptionRow('20260302T060000Z'), master());
+
+    await calendar._deleteEvent(occurrence);
+
+    expect(queued[0].event.ics).toContain('SEQUENCE:1');
+    expect(queued[0].event.ics).not.toContain('SEQUENCE:0');
+  });
+
+  it('revises a series that never carried a SEQUENCE', async function () {
+    const noSequence = MASTER_ICS.replace(/SEQUENCE:0\r\n/g, '');
+    const row = master();
+    row.ics = noSequence;
+    const exception = exceptionRow('20260302T060000Z');
+    exception.ics = noSequence;
+    stubRows(exception, row);
+
+    await calendar._deleteEvent(occurrence);
+
+    expect(queued[0].event.ics).toContain('SEQUENCE:1');
+  });
+});
+
+describe('deleting one plain occurrence from the calendar', function () {
+  let queued: any[];
+
+  beforeEach(function () {
+    queued = [];
+    spyOn(Actions, 'queueTask').andCallFake((task) => queued.push(task));
+    spyOn(DatabaseStore, 'find').andReturn(Promise.resolve(master()));
+    // The recurring-event dialog's first button is "this occurrence".
+    spyOn(dialog, 'showMessageBoxSync').andReturn(0);
+  });
+
+  it('excludes the slot and revises the series', async function () {
+    const start = MASTER_START + 2 * 86400;
+    const plain = {
+      ...occurrence,
+      id: 'master-row-e2',
+      isException: false,
+      isRecurring: true,
+      start,
+      end: start + 3600,
+    };
+    const calendar: any = new MailspringCalendar({} as any);
+
+    await calendar._deleteEvent(plain);
+
+    expect(queued.length).toBe(1);
+    const [masterVevent] = queued[0].event.ics.split('BEGIN:VEVENT').slice(1);
+    expect(masterVevent).toContain('EXDATE:20260303T060000Z');
+    expect(masterVevent).toContain('SEQUENCE:1');
   });
 });

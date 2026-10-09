@@ -7,8 +7,11 @@ import {
   CategoryStore,
   TaskFactory,
   MailboxPerspective,
+  FocusedPerspectiveStore,
+  Folder,
 } from 'mailspring-exports';
 import {
+  ArchiveButton,
   ToggleStarredButton,
   ToggleUnreadButton,
   MarkAsSpamButton,
@@ -59,6 +62,31 @@ describe('ThreadToolbarButtons', function () {
       expect((TaskFactory.taskForInvertingStarred as any).mostRecentCall.args[0].threads).toEqual([
         test_thread_starred,
       ]);
+    });
+  });
+
+  describe('Archiving', function () {
+    it('scopes the archive to the folder being viewed', function () {
+      const sent = new Folder({
+        id: 'sent-id',
+        accountId: TEST_ACCOUNT_ID,
+        role: 'sent',
+        path: 'Sent',
+      } as any);
+      const perspective = MailboxPerspective.forCategories([sent]);
+      spyOn(FocusedPerspectiveStore, 'current').andReturn(perspective);
+      spyOn(perspective, 'canArchiveThreads').andReturn(true);
+      spyOn(TaskFactory, 'tasksForArchiving').andReturn([]);
+      spyOn(Actions, 'popSheet');
+
+      const thread = new Thread({ id: 'thread-archive', accountId: TEST_ACCOUNT_ID });
+      const button = ReactTestUtils.renderIntoDocument(<ArchiveButton items={[thread]} />) as any;
+      ReactTestUtils.Simulate.click(ReactDOM.findDOMNode(button) as HTMLElement);
+
+      const args = (TaskFactory.tasksForArchiving as any).mostRecentCall.args[0];
+      expect(args.threads).toEqual([thread]);
+      expect(args.perspective).toBe(perspective);
+      expect(args.perspective.sourceFolderIdsForAccount(TEST_ACCOUNT_ID)).toEqual(['sent-id']);
     });
   });
 

@@ -88,7 +88,6 @@
     "By default, mail rules are only applied to new mail as it arrives. Applying rules to your entire inbox may take a long time and degrade performance.": "Alapértelmezés szerint az e-mail szabályok csak az új, beérkező levelekre vonatkoznak. A szabályok alkalmazása a teljes postaládára sok időt vehet igénybe és ronthatja a teljesítményt.",
     "Caching mail": "Levelek gyorsítótárazása",
     "Caching recent mail": "A legutóbbi levelek gyorsítótárazása",
-    "Calendar Preview": "Naptár Előnézete",
     "Can't find the selected thread in your mailbox": "A kiválasztott szál nem található a postafiókjában",
     "Cancel": "Mégsem",
     "Cancel Send Later": "Későbbi küldés törlése",

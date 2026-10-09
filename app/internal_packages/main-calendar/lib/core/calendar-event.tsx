@@ -10,7 +10,7 @@ import {
 } from './calendar-data-source';
 import { calcEventColors, extractMeetingDomain, formatEventTimeRange } from './calendar-helpers';
 import { HitZone, ViewDirection } from './calendar-drag-types';
-import { detectHitZone, canMoveEvent, formatDragPreviewTime } from './calendar-drag-utils';
+import { detectHitZone, canAttemptMove, formatDragPreviewTime } from './calendar-drag-utils';
 import { DAY_DUR, columnSpan } from './week-view-helpers';
 
 const EVENT_GAP = 2;
@@ -42,6 +42,7 @@ interface CalendarEventProps {
 
   onClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
   onDoubleClick: (event: EventOccurrence) => void;
+  onContextMenu?: (event: EventOccurrence) => void;
   onFocused: (event: EventOccurrence) => void;
 
   /** Called when a drag operation starts on this event */
@@ -65,6 +66,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     isCalendarReadOnly: false,
     onClick: () => {},
     onDoubleClick: () => {},
+    onContextMenu: () => {},
     onFocused: () => {},
   };
 
@@ -74,10 +76,21 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
 
   componentDidMount() {
     this._revealOnFocusGained(false);
+    this._takeFocusIfSelected();
   }
 
   componentDidUpdate(prevProps: CalendarEventProps) {
     this._revealOnFocusGained(prevProps.focused);
+    this._takeFocusIfSelected();
+  }
+
+  // A moved event is re-drawn under a new id, so the focus its old element had falls to <body>;
+  // taking it back keeps the arrow keys moving it.
+  _takeFocusIfSelected() {
+    if (!this.props.selected || document.activeElement !== document.body) {
+      return;
+    }
+    (ReactDOM.findDOMNode(this) as HTMLElement | null)?.focus({ preventScroll: true });
   }
 
   // Announce focus only as it arrives: onFocused opens the card and the reveal scrolls to it, so
@@ -180,12 +193,8 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
    * Check if this event can be dragged
    */
   _canDrag(): boolean {
-    // Drag preview events are not interactive
-    if (this.props.event.isDragPreview) {
-      return false;
-    }
     return (
-      canMoveEvent(this.props.event, this.props.isCalendarReadOnly) && !!this.props.onDragStart
+      canAttemptMove(this.props.event, this.props.isCalendarReadOnly) && !!this.props.onDragStart
     );
   }
 
@@ -234,8 +243,10 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       return;
     }
 
-    // Prevent text selection during drag
+    // Prevent text selection during drag. That also stops the browser focusing the event, so take
+    // focus here; preventScroll keeps a half-hidden event under the pointer for the drag.
     e.preventDefault();
+    e.currentTarget.focus({ preventScroll: true });
 
     // No time is passed: the container's hit-test supplies it as this mousedown bubbles.
     if (this.props.onDragStart) {
@@ -355,7 +366,8 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
   }
 
   render() {
-    const { direction, event, onClick, onDoubleClick, selected, isDragging } = this.props;
+    const { direction, event, onClick, onDoubleClick, onContextMenu, selected, isDragging } =
+      this.props;
 
     const classNames = [
       'calendar-event',
@@ -400,6 +412,11 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
         onDoubleClick={(e) => {
           e.stopPropagation();
           onDoubleClick(event);
+        }}
+        onContextMenu={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          onContextMenu(event);
         }}
         onMouseMove={this._onMouseMove}
         onMouseLeave={this._onMouseLeave}

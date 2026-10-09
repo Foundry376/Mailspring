@@ -17,6 +17,11 @@
   }
 }
 
+// Same specificity as `.account-sidebar`, so a theme's own sidebar colour still wins.
+:where(.nav-rail-content) .account-sidebar {
+  background-color: @source-list-inset-bg;
+}
+
 .account-switcher {
   position: absolute;
   top: 7px;

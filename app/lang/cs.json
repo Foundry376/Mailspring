@@ -84,7 +84,6 @@
   "By default, mail rules are only applied to new mail as it arrives. Applying rules to your entire inbox may take a long time and degrade performance.": "Ve výchozím nastavení jsou pravidla pro poštu aplikována pouze na novou poštu, jakmile dorazí. Použití pravidel pro celou doručenou poštu může trvat dlouho a snížit výkon.",
   "Caching mail": "Ukládání do mezipaměti",
   "Caching recent mail": "Ukládání nedávných zpráv do mezipaměti",
-  "Calendar Preview": "Náhled kalendáře",
   "Can't find the selected thread in your mailbox": "Nelze najít vybrané vlákno ve vaší poštovní schránce",
   "Cancel": "Zrušit",
   "Cancel Send Later": "Zrušit odeslat později",

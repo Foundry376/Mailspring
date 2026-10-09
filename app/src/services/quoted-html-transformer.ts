@@ -321,6 +321,8 @@ class QuotedHTMLTransformer {
       /You received this message because/i,
     ];
 
+    const hasQuote = !!doc.querySelector('.gmail_quote, blockquote');
+
     let head = doc.body;
     while (head) {
       const tc = head.textContent.trim();
@@ -342,8 +344,9 @@ class QuotedHTMLTransformer {
       }
 
       // chop off gmail_signature if the user has it configured to go at the absolute
-      // bottom of the email
-      if (head.nodeName === 'DIV' && head.classList.contains('gmail_signature')) {
+      // bottom of the email, beneath the quote. Without a quote it must stay: Gmail can
+      // put text typed below the greeting inside the signature div.
+      if (hasQuote && head.nodeName === 'DIV' && head.classList.contains('gmail_signature')) {
         return [head];
       }
 
