@@ -3072,6 +3072,8 @@ describe('matchEventSequence, so an undo or redo is never below the copy it repl
       sequence: v.getFirstPropertyValue('sequence'),
       dtstamp: v.getFirstPropertyValue('dtstamp')?.toString(),
       dtstart: v.getFirstPropertyValue('dtstart')?.toString(),
+      dtend: v.getFirstPropertyValue('dtend')?.toString(),
+      summary: v.getFirstPropertyValue('summary'),
     }));
   };
   const OLD_DTSTAMP = '2026-01-01T00:00:00Z';
@@ -3154,13 +3156,34 @@ describe('matchEventSequence, so an undo or redo is never below the copy it repl
     expect(exception.dtstamp).not.toBe(OLD_DTSTAMP);
   });
 
-  it('drops an occurrence the restored copy does not have', function () {
+  it('puts back an override the restored copy leaves out, as the series has it', function () {
+    // Google keeps an override a PUT omits, so undoing the edit that made it would not revert it.
     const masterOnly = RECURRING_WITH_EXCEPTION_ICS.replace(
       /BEGIN:VEVENT\nUID:master-uid@test\nRECURRENCE-ID[\s\S]*?END:VEVENT\n/,
       ''
     );
+    const current = RECURRING_WITH_EXCEPTION_ICS.replace('SEQUENCE:1', 'SEQUENCE:3');
+    const [master, pinned, ...rest] = vevents(
+      ICSEventHelpers.matchEventSequence(masterOnly, current)
+    );
+    expect(rest).toEqual([]);
+    expect(master.sequence).toBe(0);
+    expect(master.dtstamp).toBe(OLD_DTSTAMP);
+    expect(pinned.recurrenceId).toBe('2026-03-02T06:00:00Z');
+    expect(pinned.dtstart).toBe('2026-03-02T06:00:00Z');
+    expect(pinned.dtend).toBe('2026-03-02T07:00:00Z');
+    expect(pinned.summary).toBe('Morning Sync');
+    expect(pinned.sequence).toBe(3);
+  });
+
+  it('leaves a slot the restored copy cancels cancelled', function () {
+    // Redo of cancelling an overridden occurrence, which drops the override and adds an EXDATE.
+    const cancelled = ICSEventHelpers.removeInlineException(
+      RECURRING_WITH_EXCEPTION_ICS,
+      '20260302T060000Z'
+    );
     const restored = vevents(
-      ICSEventHelpers.matchEventSequence(masterOnly, RECURRING_WITH_EXCEPTION_ICS)
+      ICSEventHelpers.matchEventSequence(cancelled, RECURRING_WITH_EXCEPTION_ICS)
     );
     expect(restored.map((v) => v.recurrenceId)).toEqual([null]);
   });

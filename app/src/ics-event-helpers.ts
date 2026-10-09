@@ -638,8 +638,8 @@ export function bumpEventSequence(ics: string, recurrenceId?: string): string {
  */
 export function matchEventSequence(ics: string, current: string): string {
   const ical = getICAL();
-  const { root } = parseICSString(ics);
   const currentVevents = veventsOf(parseICSString(current).root);
+  const { root } = parseICSString(pinOverridesLeftOut(ics, currentVevents));
   const now = nowUTC(ical);
 
   for (const vevent of veventsOf(root)) {
@@ -658,6 +658,38 @@ export function matchEventSequence(ics: string, current: string): string {
     }
   }
   return root.toString();
+}
+
+/**
+ * Google keeps an override that a PUT leaves out, so an undo that drops one would not revert the
+ * occurrence. Each override in `currentVevents` that `ics` lacks goes back at its own slot with the
+ * master's content, which is the occurrence as the series generates it. A slot the master's
+ * EXDATEs cancel stays cancelled.
+ */
+function pinOverridesLeftOut(ics: string, currentVevents: ICALComponent[]): string {
+  const { root, event: master } = parseICSString(ics);
+  const vevents = veventsOf(root);
+  const excluded = master.component
+    .getAllProperties('exdate')
+    .flatMap((p) => p.getValues() as ICALTime[])
+    .map((d) => d.toUnixTime());
+  const duration = master.endDate.subtractDate(master.startDate).toSeconds();
+
+  let pinned = ics;
+  for (const override of currentVevents) {
+    const slot = override.getFirstPropertyValue('recurrence-id') as ICALTime | null;
+    if (!slot || excluded.includes(slot.toUnixTime())) continue;
+    if (vevents.some((v) => sameOccurrence(v, override))) continue;
+    const start = slot.toJSDate().getTime() / 1000;
+    pinned = createRecurrenceException(
+      pinned,
+      start,
+      start,
+      start + duration,
+      master.startDate.isDate
+    ).masterIcs;
+  }
+  return pinned;
 }
 
 function sequenceOf(vevent: ICALComponent): number {
