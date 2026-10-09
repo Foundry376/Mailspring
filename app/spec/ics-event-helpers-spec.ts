@@ -3064,7 +3064,7 @@ describe('SEQUENCE, so guests see an update as an update', function () {
   });
 });
 
-describe('bumpEventSequenceUp, so an undo or redo outranks the copy it replaces', function () {
+describe('matchEventSequence, so an undo or redo is never below the copy it replaces', function () {
   const vevents = (ics: string) => {
     const { root } = parseICSString(ics);
     return root.getAllSubcomponents('vevent').map((v) => ({
@@ -3076,14 +3076,14 @@ describe('bumpEventSequenceUp, so an undo or redo outranks the copy it replaces'
   };
   const OLD_DTSTAMP = '2026-01-01T00:00:00Z';
 
-  it('puts an undone move one revision past the move', function () {
+  it('sends an undone move at the SEQUENCE of the move', function () {
     // Google answered 409 to the pre-move copy re-sent at SEQUENCE:1 while it held 2.
     const before = SIMPLE_ICS.replace('SEQUENCE:0', 'SEQUENCE:1');
     const moved = before
       .replace('DTSTART:20260301T140000Z', 'DTSTART:20260301T141500Z')
       .replace('SEQUENCE:1', 'SEQUENCE:2');
-    const [undone] = vevents(ICSEventHelpers.bumpEventSequenceUp(before, moved));
-    expect(undone.sequence).toBe(3);
+    const [undone] = vevents(ICSEventHelpers.matchEventSequence(before, moved));
+    expect(undone.sequence).toBe(2);
     expect(undone.dtstart).toBe('2026-03-01T14:00:00Z');
     expect(undone.dtstamp).not.toBe(OLD_DTSTAMP);
   });
@@ -3092,12 +3092,12 @@ describe('bumpEventSequenceUp, so an undo or redo outranks the copy it replaces'
     const current = RECURRING_WITH_EXCEPTION_ICS.replace(
       'DTSTAMP:20260101T000000Z\nSEQUENCE:0',
       'DTSTAMP:20260105T000000Z\nSEQUENCE:3'
-    );
+    ).replace('SEQUENCE:1', 'SEQUENCE:2');
     const older = RECURRING_WITH_EXCEPTION_ICS.replace(
       'DTSTART:20260302T080000Z\nDTEND:20260302T090000Z',
       'DTSTART:20260302T100000Z\nDTEND:20260302T110000Z'
     );
-    const [master, exception] = vevents(ICSEventHelpers.bumpEventSequenceUp(older, current));
+    const [master, exception] = vevents(ICSEventHelpers.matchEventSequence(older, current));
     expect(master.sequence).toBe(3);
     expect(master.dtstamp).toBe('2026-01-05T00:00:00Z');
     expect(exception.sequence).toBe(2);
@@ -3114,23 +3114,44 @@ describe('bumpEventSequenceUp, so an undo or redo outranks the copy it replaces'
       'RECURRENCE-ID:20260302T060000Z',
       'RECURRENCE-ID;TZID=America/Chicago:20260302T000000'
     );
-    const [, exception] = vevents(ICSEventHelpers.bumpEventSequenceUp(older, current));
+    const [, exception] = vevents(ICSEventHelpers.matchEventSequence(older, current));
     expect(exception.sequence).toBe(4);
     expect(exception.dtstamp).toBe('2026-01-05T00:00:00Z');
   });
 
-  it('revises an occurrence the last copy did not have past its own number', function () {
+  it('leaves an undone occurrence where its next edit is not below it', function () {
+    // An edit restarts the override from master + 1 (createRecurrenceException), so an undo that
+    // lifted it higher made the next edit of that occurrence a 409.
+    const occurrence = Date.UTC(2026, 2, 2, 6, 0, 0) / 1000;
+    const edit = (ics: string, start: number) => {
+      const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
+        ics,
+        occurrence,
+        start,
+        start + 3600,
+        false
+      );
+      return ICSEventHelpers.bumpEventSequence(masterIcs, recurrenceId);
+    };
+    const edited = edit(RECURRING_WITH_EXCEPTION_ICS, occurrence + 4 * 3600);
+    const undone = ICSEventHelpers.matchEventSequence(RECURRING_WITH_EXCEPTION_ICS, edited);
+    const reEdited = edit(undone, occurrence + 5 * 3600);
+    expect(vevents(reEdited)[1].sequence).not.toBeLessThan(vevents(undone)[1].sequence);
+  });
+
+  it('keeps the own SEQUENCE of an occurrence the last copy did not have', function () {
     // Redo after undo brings back an override the undo removed.
     const masterOnly = RECURRING_WITH_EXCEPTION_ICS.replace(
       /BEGIN:VEVENT\nUID:master-uid@test\nRECURRENCE-ID[\s\S]*?END:VEVENT\n/,
       ''
     );
     const [master, exception] = vevents(
-      ICSEventHelpers.bumpEventSequenceUp(RECURRING_WITH_EXCEPTION_ICS, masterOnly)
+      ICSEventHelpers.matchEventSequence(RECURRING_WITH_EXCEPTION_ICS, masterOnly)
     );
     expect(master.sequence).toBe(0);
     expect(exception.recurrenceId).toBe('2026-03-02T06:00:00Z');
-    expect(exception.sequence).toBe(2);
+    expect(exception.sequence).toBe(1);
+    expect(exception.dtstamp).not.toBe(OLD_DTSTAMP);
   });
 
   it('drops an occurrence the restored copy does not have', function () {
@@ -3139,16 +3160,19 @@ describe('bumpEventSequenceUp, so an undo or redo outranks the copy it replaces'
       ''
     );
     const restored = vevents(
-      ICSEventHelpers.bumpEventSequenceUp(masterOnly, RECURRING_WITH_EXCEPTION_ICS)
+      ICSEventHelpers.matchEventSequence(masterOnly, RECURRING_WITH_EXCEPTION_ICS)
     );
     expect(restored.map((v) => v.recurrenceId)).toEqual([null]);
   });
 
-  it('counts an absent SEQUENCE as zero on both sides', function () {
+  it('raises an absent SEQUENCE to the one last sent', function () {
     const noSeq = SIMPLE_ICS.replace('SEQUENCE:0\n', '');
-    const moved = noSeq.replace('DTSTART:20260301T140000Z', 'DTSTART:20260301T141500Z');
-    const [undone] = vevents(ICSEventHelpers.bumpEventSequenceUp(noSeq, moved));
-    expect(undone.sequence).toBe(1);
+    const moved = SIMPLE_ICS.replace(
+      'DTSTART:20260301T140000Z',
+      'DTSTART:20260301T141500Z'
+    ).replace('SEQUENCE:0', 'SEQUENCE:2');
+    const [undone] = vevents(ICSEventHelpers.matchEventSequence(noSeq, moved));
+    expect(undone.sequence).toBe(2);
   });
 });
 

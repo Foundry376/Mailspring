@@ -628,13 +628,15 @@ export function bumpEventSequence(ics: string, recurrenceId?: string): string {
 }
 
 /**
- * Re-sends an older copy of an event (undo, redo) as a new revision of `current`, the copy last
- * sent. Google answers 409 to a VEVENT whose SEQUENCE is below the one it holds, so each VEVENT
- * that differs from its counterpart in `current` moves one past the higher of the two. One that
- * matches apart from SEQUENCE and DTSTAMP takes `current`'s, so guests see no revision of an
- * occurrence nobody changed.
+ * Re-sends an older copy of an event (undo, redo) over `current`, the copy last sent. Google
+ * answers 409 to a VEVENT whose SEQUENCE is below the one it holds but accepts a tie, so each
+ * VEVENT that differs from its counterpart in `current` takes the higher of the two SEQUENCEs and
+ * a fresh DTSTAMP. A bump would lift an override past the master + 1 that createRecurrenceException
+ * restarts it from, and the next edit of that occurrence would be rejected. A VEVENT that matches
+ * apart from SEQUENCE and DTSTAMP takes `current`'s, so guests see no revision of an occurrence
+ * nobody changed.
  */
-export function bumpEventSequenceUp(ics: string, current: string): string {
+export function matchEventSequence(ics: string, current: string): string {
   const ical = getICAL();
   const { root } = parseICSString(ics);
   const currentVevents = veventsOf(parseICSString(current).root);
@@ -651,7 +653,7 @@ export function bumpEventSequenceUp(ics: string, current: string): string {
       }
     } else {
       const sequence = Math.max(sequenceOf(vevent), counterpart ? sequenceOf(counterpart) : 0);
-      vevent.updatePropertyWithValue('sequence', sequence + 1);
+      vevent.updatePropertyWithValue('sequence', sequence);
       vevent.updatePropertyWithValue('dtstamp', now);
     }
   }

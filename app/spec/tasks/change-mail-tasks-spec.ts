@@ -868,8 +868,8 @@ END:VCALENDAR`;
   });
 
   describe('SEQUENCE across undo and redo', function () {
-    // Google answers 409 to a SEQUENCE below the one it holds.
-    it('sends each undo and redo one revision past the last', function () {
+    // Google answers 409 to a SEQUENCE below the one it holds, and accepts a tie.
+    it('never sends an undo or redo below the SEQUENCE last sent', function () {
       const event = makeEvent({ id: 'undo-redo-event', ics: SAMPLE_ICS_NEW } as any);
       const undoData = { ics: SAMPLE_ICS_ORIGINAL, recurrenceStart: 1000, recurrenceEnd: 2000 };
       const move = SyncbackEventTask.forUpdating({ event, undoData });
@@ -878,12 +878,12 @@ END:VCALENDAR`;
       const redo = revisionOf(move.createIdenticalTask().event.ics);
       const undoAgain = revisionOf(move.createUndoTask().event.ics);
 
-      expect(undo).toEqual({ start: '2026-10-08T13:00:00Z', sequence: 3 });
-      expect(redo).toEqual({ start: '2026-10-08T13:15:00Z', sequence: 4 });
-      expect(undoAgain).toEqual({ start: '2026-10-08T13:00:00Z', sequence: 5 });
+      expect(undo).toEqual({ start: '2026-10-08T13:00:00Z', sequence: 2 });
+      expect(redo).toEqual({ start: '2026-10-08T13:15:00Z', sequence: 2 });
+      expect(undoAgain).toEqual({ start: '2026-10-08T13:00:00Z', sequence: 2 });
     });
 
-    it('undoes two moves of one event past the later move', function () {
+    it("undoes two moves of one event at the later move's SEQUENCE", function () {
       const event = makeEvent({ id: 'two-moves-event', ics: SAMPLE_ICS_NEW } as any);
       const first = SyncbackEventTask.forUpdating({
         event,
@@ -898,8 +898,8 @@ END:VCALENDAR`;
       const undoSecond = revisionOf(second.createUndoTask().event.ics);
       const undoFirst = revisionOf(first.createUndoTask().event.ics);
 
-      expect(undoSecond).toEqual({ start: '2026-10-08T13:15:00Z', sequence: 4 });
-      expect(undoFirst).toEqual({ start: '2026-10-08T13:00:00Z', sequence: 5 });
+      expect(undoSecond).toEqual({ start: '2026-10-08T13:15:00Z', sequence: 3 });
+      expect(undoFirst).toEqual({ start: '2026-10-08T13:00:00Z', sequence: 3 });
     });
   });
 

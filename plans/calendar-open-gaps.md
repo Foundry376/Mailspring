@@ -18,7 +18,9 @@ before planning from it, and delete it here when it lands.
 - **Sending invitations.** Attendees and the organizer are written into the event, but neither the app
   nor the sync engine sends an iMIP REQUEST or CANCEL; the engine sends only REPLY and COUNTER
   (`TaskProcessor.cpp`). Guests hear about a meeting only if the CalDAV server does the scheduling,
-  which is unverified per provider.
+  which is unverified per provider. Undo and redo re-send an older copy at the SEQUENCE last sent, a
+  tie, because Google rejects a lower one; whether Google's update emails to non-Google guests carry
+  that SEQUENCE, and whether those guests' clients apply a tie on its newer DTSTAMP, is untested.
 - **Keyboard.** Enter does not open the selected event, and New Event (`core:add-item`) has no default
   key.
 - **CalDAV server address.** Hosts are discovered through the identity server
