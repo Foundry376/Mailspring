@@ -120,6 +120,8 @@ export interface SessionActionsLike {
   discard(viewId: string): Promise<void>;
   /** Leaves a View's intro for the composer, attaching to its server session if it has one. */
   chat?(viewId: string): Promise<void>;
+  /** Suggests composer text the user can edit before sending. Optional for older stores. */
+  prefill?(viewId: string, text: string): Promise<void>;
   /** Shows the panel's intro for a View without contacting the backend. */
   preview?(viewId: string, name: string, intro: 'try' | 'edit'): Promise<void>;
   resume?(viewId: string, name: string): Promise<void>;

@@ -976,6 +976,13 @@ class AgentSessionStoreImpl extends MailspringStore {
     }
   }
 
+  /** Puts suggested text in the panel's composer for the user to edit and send. */
+  prefill(viewId: string, text: string) {
+    this.update(viewId, (s) => ({
+      returnedDraft: { text, seq: (s.returnedDraft?.seq || 0) + 1 },
+    }));
+  }
+
   async sendMessage(viewId: string, text: string) {
     const rt = this.runtime(viewId);
     const examples = [...rt.staged.values()];
@@ -1248,6 +1255,7 @@ export const AgentActions = {
   preview: async (viewId: string, name: string, intro: 'try' | 'edit') =>
     AgentSessionStore.preview(viewId, name, intro),
   chat: async (viewId: string) => AgentSessionStore.chat(viewId),
+  prefill: async (viewId: string, text: string) => AgentSessionStore.prefill(viewId, text),
   sendMessage: async (viewId: string, text: string) => AgentSessionStore.sendMessage(viewId, text),
   retry: async (viewId: string) => AgentSessionStore.retry(viewId),
   startFresh: async (viewId: string) => AgentSessionStore.startFresh(viewId),

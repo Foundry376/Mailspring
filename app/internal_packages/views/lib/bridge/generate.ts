@@ -14,7 +14,7 @@ import {
 } from './handlers';
 import { validateSchema } from './extract';
 import type { Schema } from '../extraction/prompt';
-import { canSpendUnit, extractionStatus, runModel, spendUnits } from '../extraction/client';
+import { extractionStatus, runModel } from '../extraction/client';
 import {
   BriefingItem,
   BriefingMessage,
@@ -46,9 +46,7 @@ import {
  * and queue as `ai.extract`, and share its job tracking: callers keep an `ExtractJob`-shaped
  * `{ cancelled }` object and cancel it on reload.
  *
- * Metering matches extraction: one `smart-extraction` unit per message the model summarizes
- * for the first time. Cached summaries, the deterministic sections and the phase-2 prose cost
- * nothing extra.
+ * Like extraction, all model work runs on this device and isn't metered.
  */
 
 export const MAX_GENERATE_MESSAGES = 40;
@@ -68,7 +66,7 @@ export interface MicroResult {
   needsAction: boolean;
 }
 
-type Status = 'running' | 'done' | 'quota';
+type Status = 'running' | 'done';
 
 function briefingMessage(message: Message, text: string | null): BriefingMessage {
   const from = (message.from && message.from[0]) || ({} as any);
@@ -85,7 +83,7 @@ function briefingMessage(message: Message, text: string | null): BriefingMessage
 
 /**
  * Phase 1 for each message, in batches, reporting the records produced since the last call.
- * Resolves with every record (null where the model was unavailable or the quota ran out).
+ * Resolves with every record (null where the model was unavailable or dropped the item).
  */
 async function summarizeAll(
   grant: ViewGrant,
@@ -98,7 +96,7 @@ async function summarizeAll(
     status: Status,
     modelAvailable: boolean
   ) => void
-): Promise<{ micros: Map<string, Micro | null>; modelAvailable: boolean; quota: boolean }> {
+): Promise<{ micros: Map<string, Micro | null>; modelAvailable: boolean }> {
   const micros = new Map<string, Micro | null>();
   const modelAvailable = (await extractionStatus()).available;
   let processed = 0;
@@ -115,18 +113,16 @@ async function summarizeAll(
   if (!modelAvailable) {
     messages.forEach((m) => micros.set(m.id, null));
     onBatch(messages.map(record), messages.length, 'running', false);
-    return { micros, modelAvailable, quota: false };
+    return { micros, modelAvailable };
   }
   for (let i = 0; i < messages.length; i += MODEL_BATCH_SIZE) {
     if (job.cancelled) break;
     const chunk = messages.slice(i, i + MODEL_BATCH_SIZE);
-    const cacheOnly = !canSpendUnit();
     const answers = await runModel({
       viewId: grant.viewId,
       priority,
       schemaHash: MICRO_SCHEMA_HASH,
       jsonSchema: MICRO_JSON_SCHEMA,
-      cacheOnly,
       maxTokens: 120,
       items: chunk.map((m) => ({
         messageId: m.id,
@@ -134,16 +130,13 @@ async function summarizeAll(
       })),
     });
     if (job.cancelled) break;
-    spendUnits(answers.filter((a) => a && !a.cached).length);
     chunk.forEach((m, idx) =>
       micros.set(m.id, answers[idx] ? normalizeMicro(answers[idx].value) : null)
     );
     processed += chunk.length;
-    const quota = cacheOnly && answers.some((a) => !a);
-    onBatch(chunk.map(record), processed, quota ? 'quota' : 'running', true);
-    if (quota) return { micros, modelAvailable, quota: true };
+    onBatch(chunk.map(record), processed, 'running', true);
   }
-  return { micros, modelAvailable, quota: false };
+  return { micros, modelAvailable };
 }
 
 async function loadMessages(grant: ViewGrant, ids: string[]) {
@@ -230,7 +223,7 @@ export async function runSummarizeJob(
   const targets = ids.slice(0, MAX_SUMMARIZE_MESSAGES);
   const messages = await loadMessages(grant, targets);
   if (job.cancelled) return;
-  const { modelAvailable, quota } = await summarizeAll(
+  const { modelAvailable } = await summarizeAll(
     grant,
     messages,
     job,
@@ -238,7 +231,7 @@ export async function runSummarizeJob(
     (results, processed, status, available) =>
       onProgress({ results, processed, total: messages.length, status, modelAvailable: available })
   );
-  if (job.cancelled || quota) return;
+  if (job.cancelled) return;
   onProgress({
     results: [],
     processed: messages.length,
@@ -282,7 +275,7 @@ export async function runGenerateJob(
   if (job.cancelled) return;
   const total = messages.length;
 
-  const { micros, modelAvailable, quota } = await summarizeAll(
+  const { micros, modelAvailable } = await summarizeAll(
     grant,
     messages,
     job,
@@ -292,12 +285,12 @@ export async function runGenerateJob(
         phase: 'summaries',
         processed,
         total,
-        status: status === 'quota' ? 'quota' : 'running',
+        status,
         modelAvailable: available,
         summaries: results,
       })
   );
-  if (job.cancelled || quota) return;
+  if (job.cancelled) return;
 
   const items = await briefingItems(messages, micros);
   const priorities = choosePriorities(items);

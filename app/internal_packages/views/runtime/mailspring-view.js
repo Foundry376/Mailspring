@@ -237,15 +237,6 @@
         if (p.status === 'error') {
           cancel();
           reject(new ViewError(p.error || { code: 'internal', message: 'Extraction failed' }));
-        } else if (p.status === 'quota') {
-          cancel();
-          const err = new ViewError({
-            code: 'quota',
-            message: 'The smart-extraction quota is used up.',
-            feature: 'smart-extraction',
-          });
-          err.results = results;
-          reject(err);
         } else if (p.status === 'done') {
           cancel();
           resolve(results);
@@ -304,15 +295,6 @@
     return { started, cancel };
   }
 
-  function quotaError(extra) {
-    const err = new ViewError({
-      code: 'quota',
-      message: 'The smart-extraction quota is used up.',
-      feature: 'smart-extraction',
-    });
-    return Object.assign(err, extra);
-  }
-
   function summarize(opts, onProgress) {
     return new Promise((resolve, reject) => {
       const results = {};
@@ -322,9 +304,6 @@
         if (p.status === 'error') {
           cancel();
           reject(new ViewError(p.error || { code: 'internal', message: 'Summarizing failed' }));
-        } else if (p.status === 'quota') {
-          cancel();
-          reject(quotaError({ results }));
         } else if (p.status === 'done') {
           cancel();
           resolve(results);
@@ -410,9 +389,6 @@
         if (p.status === 'error') {
           cancel();
           reject(state.error);
-        } else if (p.status === 'quota') {
-          cancel();
-          reject(quotaError({ partial: state }));
         } else if (p.status === 'done') {
           cancel();
           resolve(state);

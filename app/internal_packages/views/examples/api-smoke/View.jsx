@@ -125,7 +125,7 @@ export default function ApiSmoke() {
     }
   }, [content.data]);
   useEffect(() => {
-    if (live.status === 'done' || live.status === 'error' || live.status === 'quota') {
+    if (live.status === 'done' || live.status === 'error') {
       const hits = Object.values(live.results).filter((r) => r.value).length;
       record('useExtract', live.status === 'done', `${live.status}: ${live.processed}/${live.total} processed, ${hits} with structured data`);
     }

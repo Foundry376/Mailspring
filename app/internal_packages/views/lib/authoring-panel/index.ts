@@ -45,6 +45,13 @@ export async function openPanelForView(viewId: string) {
   if (actions.chat) await actions.chat(viewId);
 }
 
+/** Opens the panel for a View with `text` waiting in the composer, unsent. */
+export async function openPanelWithMessage(viewId: string, text: string) {
+  await openPanelForView(viewId);
+  const source = panelSource();
+  if (source && source.actions.prefill) await source.actions.prefill(viewId, text);
+}
+
 // Global.Footer renders on every sheet, so the panel stays put while the user navigates —
 // including over a pushed Thread sheet. The panel positions itself (fixed) above everything.
 export function registerAuthoringPanel() {

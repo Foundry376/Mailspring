@@ -1,6 +1,5 @@
 export type ViewErrorCode =
   | 'permission'
-  | 'quota'
   | 'invalid'
   | 'not_found'
   | 'limit'

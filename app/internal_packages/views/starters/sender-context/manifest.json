@@ -1,6 +1,7 @@
 {
   "id": "sender-context",
   "name": "Sender Context",
+  "apiVersion": "2026-10-05",
   "description": "Your history with the person in the open thread, beside the conversation.",
   "version": "1.0.0",
   "placement": "thread-sidebar",

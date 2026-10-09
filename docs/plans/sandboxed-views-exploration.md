@@ -466,9 +466,7 @@ const kinds = await mailspring.ai.classify({ ids, labels: ['receipt', 'shipping'
   (for example, a package's delivered status) to make it sync and survive cache eviction.
   Users should understand that metadata syncs through the Mailspring ID server, so the
   consent copy for `metadata.own` must say so.
-- **Extraction is metered** under the `smart-extraction` quota (§14.3). Tiers 0–1 are free
-  and unmetered. Model tiers count one unit per message, and persisted results are also
-  counted on the server.
+- **Extraction is not metered.** Every tier runs on this device and costs us nothing (§14.3).
 
 ### 9.6 Evaluation and fine-tuning
 
@@ -771,7 +769,7 @@ tuned and A/B tested from the server without shipping a client.
 | Build a View by asking the agent | first View free | ✓, with a monthly fair-use cap | **server** (`view-agent-build`) |
 | Edit or remix a View with the agent | – | ✓, same cap | **server** |
 | Embedded schema.org data and agent-written parsers (tiers 0–1) | ✓, unmetered | ✓ | n/a |
-| Smart extraction (model tiers 2–3) | ~500 messages / month | unlimited (or a high fair-use cap) | client + **server** (§14.3) |
+| Smart extraction (model tiers 2–3) | ✓, unmetered (on device) | ✓ | n/a (§14.3) |
 | `view:*` metadata stored | capped | unlimited | **server** |
 | Sync Views across devices | – | ✓ | **server** |
 | Publish or share a View by link | install only (counts toward the 2) | publish | **server** |
@@ -789,31 +787,18 @@ have their own Claude write a View and load it in dev mode. We don't fight this:
 are evangelists, the 2-View cap still applies, and their Views can feed a future shared
 gallery.
 
-### 14.3 Smart-extraction metering, enforced through metadata
+### 14.3 On-device extraction is unmetered (decided 2026-10-05)
 
-Model-tier extraction runs locally and costs us nothing per call. **Persisting** its results
-as metadata does cost us: every `view:*` metadata value is stored and synced by the identity
-server indefinitely. So the quota is defined in terms we can enforce on the server:
+Extraction, summaries and generation all run on the user's machine (§9) and cost us nothing per
+call, so they are not metered or limited beyond per-job caps. A client-side `smart-extraction`
+meter existed briefly as a placeholder and was removed: the feature was never defined
+server-side, so it was always usable, and it only added a dead 'quota' path for Views to
+handle.
 
-- **Unit:** one message processed by a model tier (2 or 3) for a View. Tier 0–1 results are
-  free and unmetered, which keeps the deterministic Packages and Rides Views fully usable on
-  free accounts.
-- **Client counting:** the extraction service calls `markUsed('smart-extraction')` per
-  message before running a model tier, and stops the backfill at the quota boundary with a
-  partial-results prompt (§14.4). Cache hits (§9.5) don't count, so re-opening a View never
-  burns quota.
-- **Server counting:** `smart-extraction` joins `UsageRecordedServerSide`. The identity server
-  counts `view:*` metadata **creates** per account per period and rejects writes over a free
-  account's quota. Updates to existing values, such as moving a kanban card, are not counted,
-  so ordinary board use never hits the wall. The server also caps total stored `view:*` objects
-  for free accounts, which bounds the recurring storage cost.
-- **Why both:** a modified client can skip local counting, but its results then exist only
-  in its local cache, which costs us nothing. As soon as it wants sync or durability through
-  our servers, the server-side count applies. The gate sits exactly where the cost is.
-- **Error path (new contract):** the identity server doesn't enforce metadata quotas today.
-  The new contract has the server return a typed quota rejection on metadata syncback, and the
-  sync engine surface it as a distinct task error. The bridge then returns
-  `{ error: 'quota', feature }` to the View and the host shows the upgrade modal.
+Persisted results are different: every `view:*` metadata value is stored and synced by the
+identity server. If that cost becomes material, metering metadata **creates** server-side
+(with a typed rejection the sync engine surfaces) is the place to add a limit later.
+
 - **Retention:** `view:*` metadata expires 12 months after its last write, for all accounts.
   That bounds storage cost independently of the free/Pro split. The consent copy for
   `metadata.own` mentions it.

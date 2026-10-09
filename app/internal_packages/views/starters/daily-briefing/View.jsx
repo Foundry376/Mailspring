@@ -223,9 +223,7 @@ export default function DailyBriefing() {
             </div>
           ) : (
             <p className="px-4 py-3 text-sm text-ms-muted">
-              {briefing.status === 'quota'
-                ? 'You have used this month’s on-device summaries. The sections below still work.'
-                : briefing.error
+              {briefing.error
                 ? briefing.error.message
                 : inWindow.loading
                 ? 'Loading…'

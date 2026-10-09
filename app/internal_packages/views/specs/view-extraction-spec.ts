@@ -212,7 +212,6 @@ describe('View extraction', function viewExtractionSpec() {
               }
         );
       });
-      window.localStorage.clear();
     });
 
     it('sends tier-0 misses to the model, normalizes answers, and drops ungrounded ones', async () => {
@@ -233,10 +232,7 @@ describe('View extraction', function viewExtractionSpec() {
       expect(progress[progress.length - 1].status).toBe('done');
     });
 
-    it('stops with status quota and keeps earlier answers when units run out', async () => {
-      spyOn(AppEnv.config, 'get').andCallFake((key) =>
-        key === 'core.views.extractQuotaForTesting' ? 0 : undefined
-      );
+    it('never limits on-device model work', async () => {
       const progress = [];
       await runExtractJob(
         grant,
@@ -245,8 +241,8 @@ describe('View extraction', function viewExtractionSpec() {
         { cancelled: false },
         (p) => progress.push(p)
       );
-      expect(requests[0].cacheOnly).toBe(true);
-      expect(progress[progress.length - 1].status).toBe('quota');
+      expect(requests[0].cacheOnly).toBeUndefined();
+      expect(progress.map((p) => p.status)).not.toContain('quota');
     });
 
     it('cancels a View’s jobs and its queued prompts', async () => {

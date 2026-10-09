@@ -4,6 +4,8 @@ import { localized } from 'mailspring-exports';
 import { ViewBridge } from './view-bridge';
 import { registerHost } from './authoring/hosts';
 import { ViewDiagnostics, reportFromGuest, summarizeParams } from './authoring/diagnostics';
+import { ApiCompatibility, CURRENT_API_VERSION, compatibility, rebuildRequest } from './api-version';
+import { ViewRegistryEvents, ViewsChange, installedViews } from './view-registry';
 
 export type ViewPlacement = 'page' | 'thread-sidebar';
 
@@ -22,6 +24,8 @@ interface ViewHostProps {
 
 interface ViewHostState {
   status: HostStatus;
+  /** Whether this build runs the View's declared API version; anything else shows a card. */
+  compat: { result: ApiCompatibility; version: string };
   issues: number;
   hovering: boolean;
 }
@@ -65,7 +69,12 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
   _visible = true;
   _killedByWatchdog = false;
 
-  state: ViewHostState = { status: 'running', issues: 0, hovering: false };
+  state: ViewHostState = {
+    status: 'running',
+    issues: 0,
+    hovering: false,
+    compat: { result: 'ok', version: CURRENT_API_VERSION },
+  };
 
   get bridge() {
     return this._bridge;
@@ -95,8 +104,27 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
       this._reportVisibility();
     });
     this._visibilityObserver.observe(this._container);
+    ViewRegistryEvents.on('changed', this._onViewsChanged);
     this._mount();
   }
+
+  /** Reads the View's declared API version from its manifest on disk. */
+  _readCompat() {
+    const view = installedViews().find((v) => v.id === this.props.viewId);
+    const version = view ? view.apiVersion : CURRENT_API_VERSION;
+    return { result: compatibility(version), version };
+  }
+
+  // A rebuilt (or hand-edited) manifest can move a View into or out of the supported range.
+  _onViewsChanged = ({ viewIds, structural }: ViewsChange) => {
+    if (!structural || !viewIds.includes(this.props.viewId)) return;
+    const next = this._readCompat();
+    if (next.result === this.state.compat.result && next.version === this.state.compat.version) {
+      return;
+    }
+    this._unmount();
+    this._mount();
+  };
 
   _reportVisibility() {
     if (this._guestId !== null) {
@@ -127,6 +155,7 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     this._unlistenDiagnostics();
     this._visibilityObserver.disconnect();
     ipcRenderer.removeListener(WATCHDOG_KILL_CHANNEL, this._onWatchdogKill);
+    ViewRegistryEvents.removeListener('changed', this._onViewsChanged);
     this._unmount();
   }
 
@@ -168,9 +197,17 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
   // never sees.
   _mount() {
     const { viewId, placement } = this.props;
+    const compat = this._readCompat();
+    // Out-of-range Views never load: their code may call APIs this build doesn't have, or
+    // rely on behavior it no longer has. The card offers a rebuild instead.
+    if (compat.result !== 'ok') {
+      this.setState({ compat, status: 'running' });
+      return;
+    }
     const webview = document.createElement('webview') as Electron.WebviewTag;
     webview.setAttribute('partition', `persist:view-${viewId}`);
-    webview.setAttribute('src', `mailspring-view://${viewId}/#placement=${placement}`);
+    const fragment = new URLSearchParams({ placement, apiVersion: compat.version });
+    webview.setAttribute('src', `mailspring-view://${viewId}/#${fragment.toString()}`);
     webview.addEventListener('did-start-navigation', this._onStartNavigation as any);
     webview.addEventListener('dom-ready', this._onDomReady);
     webview.addEventListener('console-message', this._onConsoleMessage as any);
@@ -192,7 +229,7 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     });
     this._webview = webview;
     this._container.appendChild(webview);
-    this.setState({ status: 'running' });
+    this.setState({ status: 'running', compat });
   }
 
   _unmount() {
@@ -274,6 +311,47 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     this._unmount();
     this.setState({ status: 'closed' });
   };
+
+  _onRebuild = () => {
+    // Required lazily: the panel package requires this module through the Views root.
+    const { openPanelWithMessage } = require('./authoring-panel');
+    openPanelWithMessage(this.props.viewId, rebuildRequest(this.state.compat.version));
+  };
+
+  _onRemove = () => {
+    const { removeView } = require('./home/view-actions');
+    removeView(this.props.viewId);
+  };
+
+  _renderVersionCard() {
+    const { result } = this.state.compat;
+    if (result === 'ok') return null;
+    const tooOld = result === 'too-old';
+    return (
+      <div className="view-host-cover view-host-version">
+        <div className="view-host-cover-title">
+          {tooOld
+            ? localized('This View was built for an older version of Mailspring.')
+            : localized('This View needs a newer version of Mailspring.')}
+        </div>
+        <div className="view-host-cover-detail">
+          {tooOld
+            ? localized('Rebuild it with AI to update it, or remove it.')
+            : localized('Update Mailspring to use it.')}
+        </div>
+        <div className="view-host-cover-actions">
+          {tooOld && (
+            <button className="btn btn-emphasis" onClick={this._onRebuild}>
+              {localized('Rebuild with AI')}
+            </button>
+          )}
+          <button className="btn" onClick={this._onRemove}>
+            {localized('Remove')}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   _renderCover() {
     const { status } = this.state;
@@ -366,7 +444,7 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
       >
         <div className="view-host-webview" ref={(el) => (this._container = el)} />
         {this._renderDevControls()}
-        {this._renderCover()}
+        {this._renderVersionCard() || this._renderCover()}
       </div>
     );
   }

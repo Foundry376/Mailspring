@@ -1,5 +1,6 @@
 {
   "name": "Hello View",
+  "apiVersion": "2026-10-05",
   "placement": "page",
   "permissions": ["mail.read"]
 }

@@ -1,5 +1,6 @@
 {
   "name": "Sandbox Red Team",
+  "apiVersion": "2026-10-05",
   "placement": "page",
   "permissions": []
 }

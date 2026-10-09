@@ -1,5 +1,6 @@
 {
   "name": "Sandbox Red Team (granted)",
+  "apiVersion": "2026-10-05",
   "placement": "page",
   "permissions": [],
   "network": ["api.github.com", "127.0.0.1", "localhost", "*.test"]

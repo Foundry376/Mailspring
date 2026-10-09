@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { EventEmitter } from 'events';
+import { apiVersionOf } from './api-version';
 
 export type ViewSource = 'draft' | 'installed' | 'example';
 
@@ -9,6 +10,8 @@ export interface ViewManifest {
   name: string;
   placement: 'page' | 'thread-sidebar';
   permissions: string[];
+  /** The View API the View was written against (lib/api-version.ts). */
+  apiVersion: string;
   dir: string;
   source: ViewSource;
   /** The raw manifest.json, for placement-specific options (e.g. `sidebar`). */
@@ -61,6 +64,7 @@ export function readManifest(dir: string, id: string, source: ViewSource): ViewM
     name: json.name || id,
     placement: json.placement === 'thread-sidebar' ? 'thread-sidebar' : 'page',
     permissions: Array.isArray(json.permissions) ? json.permissions : [],
+    apiVersion: apiVersionOf(json),
   };
 }
 

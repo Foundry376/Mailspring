@@ -2,6 +2,7 @@
   "id": "redteam-credentials",
   "version": 1,
   "name": "Sandbox Red Team (credentials)",
+  "apiVersion": "2026-10-05",
   "placement": "page",
   "permissions": [],
   "network": ["echo.mailspring-cred.dev", "evil.mailspring-cred.dev"],

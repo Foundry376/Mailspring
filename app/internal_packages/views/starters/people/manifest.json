@@ -1,6 +1,7 @@
 {
   "id": "people",
   "name": "People",
+  "apiVersion": "2026-10-05",
   "description": "Who you write to most, where those conversations live, and who you have lost touch with.",
   "version": "1.0.0",
   "placement": "page",

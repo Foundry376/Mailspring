@@ -356,8 +356,7 @@ export default function RidesView() {
               </table>
               {unread > 0 && (
                 <div className="border-t border-ms-border px-4 py-2 text-xs text-ms-muted">
-                  {unread} {unread === 1 ? 'email has' : 'emails have'} no amount we could read
-                  {ai.status === 'quota' ? ' (extraction quota reached)' : ''}.
+                  {unread} {unread === 1 ? 'email has' : 'emails have'} no amount we could read.
                 </div>
               )}
             </div>

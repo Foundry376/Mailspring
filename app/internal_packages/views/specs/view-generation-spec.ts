@@ -299,7 +299,6 @@ describe('View generation (daily briefing)', function viewGenerationSpec() {
           ms: 1,
         }));
       });
-      window.localStorage.clear();
     });
 
     it('summarizes each message, then writes prose over the digest with host-chosen priorities', async () => {

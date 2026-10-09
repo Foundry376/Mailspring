@@ -2,6 +2,7 @@
   "id": "github-prs-credentialed",
   "version": 1,
   "name": "GitHub PRs (API)",
+  "apiVersion": "2026-10-05",
   "placement": "page",
   "permissions": [],
   "network": ["api.github.com"],

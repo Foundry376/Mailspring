@@ -2,6 +2,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { VIEW_ID_REGEXP, draftsDir, installDir, notifyViewsChanged } from '../view-registry';
+import { withApiVersion } from '../api-version';
 
 /**
  * Drafts are revisions of a View that preview in place of its installed copy until they are
@@ -89,10 +90,13 @@ function readBundle(dir: string): ViewRevision {
   return { manifest, files };
 }
 
-/** Writes `revision` as the View's draft. Returns the View.jsx revision hash. */
+/**
+ * Writes `revision` as the View's draft. Returns the View.jsx revision hash. A manifest without
+ * `apiVersion` is stamped with the current one: whoever wrote it wrote it against this API.
+ */
 export function writeDraft(viewId: string, revision: ViewRevision) {
   validateRevision(viewId, revision);
-  writeBundle(draftDirFor(viewId), revision);
+  writeBundle(draftDirFor(viewId), { ...revision, manifest: withApiVersion(revision.manifest) });
   notifyViewsChanged([viewId], true);
   return revisionOf(revision.files['View.jsx']);
 }

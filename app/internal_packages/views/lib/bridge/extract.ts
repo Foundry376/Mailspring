@@ -10,13 +10,7 @@ import {
   schemaHash,
 } from '../extraction/prompt';
 import { normalizeAnswer } from '../extraction/normalize';
-import {
-  canSpendUnit,
-  cancelModelJobsForView,
-  extractionStatus,
-  runModel,
-  spendUnits,
-} from '../extraction/client';
+import { cancelModelJobsForView, extractionStatus, runModel } from '../extraction/client';
 
 export type { Schema };
 
@@ -26,10 +20,8 @@ export type { Schema };
  * model (docs/plans/sandboxed-views-exploration.md §9.8), which runs in a utility process via
  * app/src/browser/extraction-service.ts.
  *
- * Model work is metered as `smart-extraction` units: one per message the model actually
- * reads. Cache hits and tier-0 answers are free. When the quota runs out the job stops with
- * status 'quota', keeping everything answered so far. If the model isn't downloaded, misses
- * come back `value: null` and progress carries `modelAvailable: false`.
+ * Model work runs on this device and isn't metered. If the model isn't downloaded, misses come
+ * back `value: null` and progress carries `modelAvailable: false`.
  */
 
 export interface ExtractResult {
@@ -200,7 +192,7 @@ type Progress = {
   results: ExtractResult[];
   processed: number;
   total: number;
-  status: 'running' | 'done' | 'quota';
+  status: 'running' | 'done';
   modelAvailable?: boolean;
 };
 
@@ -288,20 +280,17 @@ async function run(
     for (let m = 0; m < misses.length; m += MODEL_BATCH_SIZE) {
       if (job.cancelled) return;
       const chunk = misses.slice(m, m + MODEL_BATCH_SIZE);
-      const cacheOnly = !canSpendUnit();
       const answers = await runModel({
         viewId: grant.viewId,
         priority: hiddenViews.has(grant.viewId) ? 1 : 0,
         schemaHash: hash,
         jsonSchema,
-        cacheOnly,
         items: chunk.map(({ message, text }) => ({
           messageId: message.id,
           prompt: buildPrompt(schema, promptMessage(message, text), instructions),
         })),
       });
       if (job.cancelled) return;
-      spendUnits(answers.filter((a) => a && !a.cached).length);
 
       const chunkResults: ExtractResult[] = [];
       chunk.forEach(({ message, text }, idx) => {
@@ -323,16 +312,6 @@ async function run(
         );
         processed += 1;
       });
-      if (cacheOnly && chunkResults.length < chunk.length) {
-        onProgress({
-          results: chunkResults,
-          processed,
-          total: targets.length,
-          status: 'quota',
-          modelAvailable,
-        });
-        return;
-      }
       onProgress({
         results: chunkResults,
         processed,

@@ -282,7 +282,7 @@ type Schema = Record<string, FieldType>;  // flat; max 12 fields
 function useExtract(opts: { query?: Query; ids?: string[]; schema: Schema; instructions?: string }): {
   results: Record<string, ExtractResult>;     // keyed by message id, grows as it streams
   processed: number; total: number;
-  status: 'idle' | 'running' | 'done' | 'quota' | 'error';
+  status: 'idle' | 'running' | 'done' | 'error';
   error: ViewError | null;
 };
 function extract(opts, onProgress?: (p) => void): Promise<Record<string, ExtractResult>>;
@@ -315,10 +315,8 @@ type ExtractResult = {
 - **Speed:** about 0.6–0.9 s per message with GPU acceleration and ~1.8 s on CPU, so run regex
   or structured data first and send only the misses (Example B). If the model isn't installed,
   progress carries `modelAvailable: false` and model-tier values are `null`.
-- **Caching and metering:** results are cached per (message, schema, model). Cache hits are
-  free. Model-tier work counts against the `smart-extraction` quota. When the quota runs out,
-  `status` becomes `'quota'`, `results` keeps everything finished so far, and the host shows the
-  upgrade banner over the View. Render partial data. Don't show an error.
+- **Caching:** results are cached per (message, schema, model). The model runs on this device,
+  so extraction is not metered or limited beyond the per-job caps below.
 - **Limits:** at most 2,000 messages per job. Jobs run in a queue, and visible Views go first.
 
 ### 3.3a Summaries and briefings (`ai.summarize`, `ai.generate`)
@@ -351,7 +349,7 @@ type GenerateOpts = ({ ids: string[] } | { query: Query }) & {
   maxTokens?: number;           // ≤600
 };
 type GenerateState = {
-  status: 'idle' | 'running' | 'done' | 'quota' | 'error';
+  status: 'idle' | 'running' | 'done' | 'error';
   phase: 'summaries' | 'briefing' | null;
   processed: number; total: number;
   priorities: Priority[];       // host-chosen, always present once phase 2 runs
@@ -387,9 +385,8 @@ type Priority = {
 - **Speed (Apple M1 Pro):** phase 1 is about 0.65 s per new message with GPU and about 2 s on
   CPU. 40 messages take roughly 25 s on GPU and 80 s on CPU the first time and are nearly
   instant afterwards. Phase-2 prose adds 2–5 s. Phase 1 runs in the same queue as extraction.
-- **Metering:** one `smart-extraction` unit per message summarized for the first time. Cached
-  summaries, priorities, groups, headline and prose cost nothing extra. Results are cached for
-  the day per (messages, task, instructions, schema).
+- **Caching:** summaries are computed once per message; the briefing is cached for the day per
+  (messages, task, instructions, schema). All of it runs on this device and is not metered.
 - **Prompt safety:** email text is fenced and the model is told it's untrusted data. Even so,
   render model text as text, never HTML.
 
@@ -494,8 +491,7 @@ interface Theme {
 }
 
 class ViewError extends Error {
-  code: 'permission' | 'quota' | 'invalid' | 'not_found' | 'limit' | 'timeout' | 'unavailable' | 'internal';
-  feature?: string;                  // for 'quota': which metered feature
+  code: 'permission' | 'invalid' | 'not_found' | 'limit' | 'timeout' | 'unavailable' | 'not_connected' | 'internal';
   permission?: string;               // for 'permission': what the manifest lacks
 }
 ```
@@ -703,8 +699,8 @@ means not expressible.
 >   `reason` set when it's null (body not downloaded yet, or no such message). For
 >   regular senders (receipts, alerts), parse the text with a regex first. Use
 >   `useExtract({ ids, schema })` only for messages your parser missed. It runs an on-device
->   model, is metered, and may stop early with `status: 'quota'`. When that happens, render the
->   partial results and don't show an error.
+>   model on this device: it's free but slow (about a second per message), so render results
+>   as they stream in.
 > - **Schemas:** flat, at most 12 fields. Types are `'string' | 'number' | 'money' | 'date' |
 >   'boolean'`, `{ type: 'enum', values }`, or `{ type: 'list', of }`. `money` comes back as
 >   `{ amount, currency }` and `date` as an ISO string.
@@ -978,7 +974,7 @@ export default function View() {
 | 8 | Message vs. thread metadata | **Support both.** Boards use threads and extraction-backed Views use messages. Examples should steer toward threads. |
 | 9 | `useContent` caching across reloads | **Keep the cache on the host** (bodies are immutable), with no persistence in the View. Re-opening a View should be instant without a View-side cache. |
 | 10 | Live `useContent` | **Not live.** Bodies never change, and drafts are excluded. |
-| 11 | Expose `ai.extract` over arbitrary text (for example, fetched API data) | **No.** It keeps the extractor from becoming a general local LLM, and it keeps metering tied to messages. |
+| 11 | Expose `ai.extract` over arbitrary text (for example, fetched API data) | **No.** It keeps the extractor from becoming a general local LLM, and keeps the model's work tied to the user's mail. |
 | 12 | Hook-call rules when `q` is null (Example C passes `{ ids: [] }`) | **Accept `null` as "no query":** return empty `data`, `loading: false`. This matches common React data-hook conventions and reads better. |
 
 ## 8. Prototype implementation status (2026-10-02)
@@ -999,7 +995,7 @@ implementation are marked **CHANGED**.
 | **CHANGED:** `CountRow.labels` / `isMe` | Rows carry `labels` with names for `category`, `account`, `sender` and `recipient` (the most common display name in the group), and `isMe` for person keys. `week` keys use SQLite `%W` (Monday-based week of year), not strict ISO weeks. |
 | Counts and folder exclusion | Account scope is applied in SQL; per-folder exclusion is not (Views currently get a full-account grant). |
 | `setMetadata(target, null)` | Stored as `{}` because metadata rows can't be deleted. Empty values read back as `meta: null`, and `tagged` queries skip them. Undo restores the previous value. |
-| `useExtract` / `extract` (wave 4) | Tier 0 (schema.org JSON-LD + microdata, with field-name synonyms such as `carrier`→`provider`), then Qwen3.5-0.8B in a utility process (`app/src/browser/extraction-service.ts`, node-llama-cpp, JSON-schema-constrained), batches of 4, then host-side validation (`views/lib/extraction/normalize.ts`). Results cached in `<configDir>/extraction-cache.db` by (message, schema + instructions, model). Jobs are cancelled when a View reloads, and hidden Views' prompts queue behind visible ones. Quota is a local monthly `smart-extraction` meter for now; `core.views.extractQuotaForTesting = N` forces it. |
+| `useExtract` / `extract` (wave 4) | Tier 0 (schema.org JSON-LD + microdata, with field-name synonyms such as `carrier`→`provider`), then Qwen3.5-0.8B in a utility process (`app/src/browser/extraction-service.ts`, node-llama-cpp, JSON-schema-constrained), batches of 4, then host-side validation (`views/lib/extraction/normalize.ts`). Results cached in `<configDir>/extraction-cache.db` by (message, schema + instructions, model). Jobs are cancelled when a View reloads, and hidden Views' prompts queue behind visible ones. Runs on device and is not metered. |
 | `useContent` / `getContent` | Implemented, including host-side HTML→text with one line per block (table rows stay on one line) and quoted-text stripping. Missing bodies are fetched and waited for up to 10 s per batch; each id comes back with `reason` when text is null, `body_unavailable` results are retried on the next request rather than cached, and `useContent` reports `loaded`/`total`. |
 | Thread snippets | Threads have no stored snippet. `threads.find` and live `useThreads` subscriptions fill it from the newest message that has one; threads whose bodies haven't been fetched keep `snippet: null`. |
 | `ui.reply` `body` option | Ignored for now; the reply opens empty in a popout composer. |
