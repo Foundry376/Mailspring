@@ -19,8 +19,9 @@ before planning from it, and delete it here when it lands.
   nor the sync engine sends an iMIP REQUEST or CANCEL; the engine sends only REPLY and COUNTER
   (`TaskProcessor.cpp`). Guests hear about a meeting only if the CalDAV server does the scheduling,
   which is unverified per provider. Undo and redo re-send an older copy at the SEQUENCE last sent, a
-  tie, because Google rejects a lower one; whether Google's update emails to non-Google guests carry
-  that SEQUENCE, and whether those guests' clients apply a tie on its newer DTSTAMP, is untested.
+  tie, because Google rejects a lower one. Google's update emails to non-Google guests carry that
+  SEQUENCE with a fresh DTSTAMP of Google's own, and an Outlook.com guest applied the ties; other
+  clients are untested.
 - **Keyboard.** Enter does not open the selected event, and New Event (`core:add-item`) has no default
   key.
 - **CalDAV server address.** Hosts are discovered through the identity server
