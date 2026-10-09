@@ -58,9 +58,8 @@ export const O365_SCOPES = [
   'https://outlook.office.com/SMTP.Send', // email
 ];
 
-// The PKCE verifier below and the OAuth state value are re-created only at onboarding
-// page load / auth session start because storing them would require additional state
-// refactoring.
+// Re-created only at onboarding page load / auth session start because storing
+// verifier would require additional state refactoring
 //
 // 32 random bytes base64url-encode to exactly 43 characters, the minimum length
 // RFC 7636 §4.1 allows (`code-verifier = 43*128unreserved`). A UUID is only 36
@@ -80,11 +79,21 @@ export const CODE_CHALLENGE = crypto
   .replace(/=/g, '');
 
 // Carried alongside PKCE as defense in depth per RFC 6749 §10.12: the authorization
-// server echoes it on the redirect, and a missing or mismatched value aborts the
-// sign-in instead of exchanging the code.
-export const OAUTH_STATE = crypto
-  .randomBytes(32)
-  .toString('base64')
-  .replace(/\+/g, '-')
-  .replace(/\//g, '_')
-  .replace(/=/g, '');
+// server echoes it on the redirect, and a callback that does not carry the value from
+// the most recently built authorization URL aborts the sign-in instead of exchanging
+// the code.
+let latestOAuthState: string | null = null;
+
+export function createOAuthState(): string {
+  latestOAuthState = crypto
+    .randomBytes(32)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+  return latestOAuthState;
+}
+
+export function getLatestOAuthState(): string | null {
+  return latestOAuthState;
+}

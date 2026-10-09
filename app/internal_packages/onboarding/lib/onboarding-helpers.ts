@@ -21,7 +21,7 @@ import {
   CODE_VERIFIER,
   GMAIL_SCOPES,
   CODE_CHALLENGE,
-  OAUTH_STATE,
+  createOAuthState,
 } from './onboarding-constants';
 import { parseStringPromise } from 'xml2js';
 
@@ -377,8 +377,7 @@ export async function buildMicrosoftAccountFromAuthResponse(
   return account;
 }
 
-// PKCE binds the authorization code to this client, which is the CSRF protection a
-// `state` parameter would otherwise provide (RFC 7636 §1, OWASP OAuth 2.0 Cheat Sheet).
+// Each call issues a new `state` value and invalidates the one on any URL built before it.
 export function buildGmailAuthURL() {
   return `https://accounts.google.com/o/oauth2/auth?${qs.stringify({
     client_id: GMAIL_CLIENT_ID,
@@ -388,7 +387,7 @@ export function buildGmailAuthURL() {
     access_type: 'offline',
     code_challenge: CODE_CHALLENGE,
     code_challenge_method: 'S256',
-    state: OAUTH_STATE,
+    state: createOAuthState(),
     prompt: 'select_account consent',
   })}`;
 }
@@ -402,7 +401,7 @@ export function buildO365AuthURL() {
     response_mode: 'query',
     code_challenge: CODE_CHALLENGE,
     code_challenge_method: 'S256',
-    state: OAUTH_STATE,
+    state: createOAuthState(),
     prompt: 'select_account',
   })}`;
 }

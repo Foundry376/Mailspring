@@ -7,7 +7,7 @@ import http from 'http';
 import url from 'url';
 
 import FormErrorMessage from './form-error-message';
-import { LOCAL_SERVER_PORT, OAUTH_STATE } from './onboarding-constants';
+import { LOCAL_SERVER_PORT, getLatestOAuthState } from './onboarding-constants';
 import AccountProviders from './account-providers';
 
 /**
@@ -38,11 +38,14 @@ export function extractOAuthStateFromUrl(requestUrl: string): string | null {
 
 /**
  * The `state` value is carried alongside PKCE as defense in depth (RFC 6749 §10.12).
- * A callback whose state is absent or does not match the value this page sent to the
- * authorization server aborts the sign-in rather than exchanging the code.
+ * A callback whose state is absent or does not match the value on the most recently
+ * built authorization URL aborts the sign-in rather than exchanging the code.
  */
-export function oauthStateIsValid(received: string | null, expected = OAUTH_STATE): boolean {
-  if (!received) return false;
+export function oauthStateIsValid(
+  received: string | null,
+  expected: string | null = getLatestOAuthState()
+): boolean {
+  if (!received || !expected) return false;
   const receivedBuffer = Buffer.from(received, 'utf8');
   const expectedBuffer = Buffer.from(expected, 'utf8');
   if (receivedBuffer.length !== expectedBuffer.length) return false;
@@ -152,8 +155,9 @@ export default class OAuthSignInPage extends React.Component<
 
   _onStateMismatch() {
     AppEnv.focus();
-    // A callback left over from an earlier sign-in attempt in the same browser also
-    // lands here, so this is shown to the user rather than reported to Sentry.
+    // A callback for an authorization URL built before the current one (e.g. a sign-in
+    // tab left open from an earlier visit to this page) lands here, so this is shown
+    // to the user rather than reported to Sentry.
     const err: any = new Error(
       localized(
         'The sign-in response did not match this sign-in attempt. Please go back and try again.'

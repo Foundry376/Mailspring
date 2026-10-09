@@ -3,7 +3,7 @@ import {
   extractOAuthStateFromUrl,
   oauthStateIsValid,
 } from '../lib/oauth-signin-page';
-import { OAUTH_STATE } from '../lib/onboarding-constants';
+import { createOAuthState } from '../lib/onboarding-constants';
 
 describe('extractOAuthCodeFromUrl', function extractOAuthCodeTests() {
   it('extracts a standard Google OAuth code with a slash', () => {
@@ -57,7 +57,8 @@ describe('OAuth state validation', function oauthStateTests() {
   });
 
   it('accepts a callback whose state matches the value that was sent', () => {
-    const requestUrl = `/?code=4%2F0AX4XfWi&state=${encodeURIComponent(OAUTH_STATE)}`;
+    const state = createOAuthState();
+    const requestUrl = `/?code=4%2F0AX4XfWi&state=${encodeURIComponent(state)}`;
     expect(oauthStateIsValid(extractOAuthStateFromUrl(requestUrl))).toBe(true);
     expect(extractOAuthCodeFromUrl(requestUrl)).toEqual('4/0AX4XfWi');
   });
@@ -67,11 +68,20 @@ describe('OAuth state validation', function oauthStateTests() {
   });
 
   it('rejects a callback whose state does not match', () => {
-    const requestUrl = `/desktop?code=M.R3_BAY.abc&state=${encodeURIComponent(OAUTH_STATE)}x`;
+    const state = createOAuthState();
+    const requestUrl = `/desktop?code=M.R3_BAY.abc&state=${encodeURIComponent(state)}x`;
     expect(oauthStateIsValid(extractOAuthStateFromUrl(requestUrl))).toBe(false);
   });
 
   it('rejects a state that is the same length as the expected value', () => {
-    expect(oauthStateIsValid('a'.repeat(OAUTH_STATE.length))).toBe(false);
+    const state = createOAuthState();
+    expect(oauthStateIsValid('a'.repeat(state.length))).toBe(false);
+  });
+
+  it('rejects a callback carrying the state from an earlier authorization URL', () => {
+    const earlier = createOAuthState();
+    const latest = createOAuthState();
+    expect(oauthStateIsValid(earlier)).toBe(false);
+    expect(oauthStateIsValid(latest)).toBe(true);
   });
 });
