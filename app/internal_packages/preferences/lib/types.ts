@@ -1,5 +1,5 @@
 export interface ConfigLike {
-  get: (key: string) => string;
+  get: (key: string) => any;
   toggle: (key: string) => void;
   set: (key: string, val: any) => void;
 }
@@ -15,4 +15,9 @@ export interface ConfigSchemaLike {
   enum?: string;
   enumLabels: string;
   platforms?: string[];
+  platform?: string;
+  minimum?: number;
+  maximum?: number;
+  multipleOf?: number;
+  unit?: string;
 }

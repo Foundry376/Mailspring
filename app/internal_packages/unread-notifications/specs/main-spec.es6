@@ -1,3 +1,5 @@
+import fs from 'fs';
+import { pathToFileURL } from 'url';
 import {
   Contact,
   Message,
@@ -497,9 +499,13 @@ describe('UnreadNotifications', function UnreadNotifications() {
       spyOn(AppEnv.config, 'get').andCallFake(config => {
         if (config === 'core.notifications.enabled') return true;
         if (config === 'core.notifications.sounds') return this.soundsEnabled;
+        if (config === 'core.notifications.soundVolume') return this.soundVolume;
+        if (config === 'core.notifications.customSoundPath') return this.customSoundPath;
         return undefined;
       });
       this.soundsEnabled = true;
+      this.soundVolume = 100;
+      this.customSoundPath = undefined;
     });
 
     afterEach(() => {
@@ -521,7 +527,7 @@ describe('UnreadNotifications', function UnreadNotifications() {
       it('should play a sound when it gets new mail', () => {
         waitsForPromise(async () => {
           await receive(['1']);
-          expect(SoundRegistry.playSound).toHaveBeenCalledWith('new-mail');
+          expect(SoundRegistry.playSound).toHaveBeenCalledWith('new-mail', { volume: 1 });
           expect(NativeNotifications.displayNotification.mostRecentCall.args[0].playSound).toBe(
             false
           );
@@ -558,6 +564,32 @@ describe('UnreadNotifications', function UnreadNotifications() {
           expect(SoundRegistry.playSound).not.toHaveBeenCalled();
           expect(NativeNotifications.displayNotification.mostRecentCall.args[0].playSound).toBe(
             true
+          );
+        });
+      });
+
+      it('should play the sound with the configured volume', () => {
+        this.soundVolume = 35;
+        waitsForPromise(async () => {
+          await receive(['1']);
+          expect(SoundRegistry.playSound).toHaveBeenCalledWith('new-mail', { volume: 0.35 });
+          expect(NativeNotifications.displayNotification.mostRecentCall.args[0].playSound).toBe(
+            false
+          );
+        });
+      });
+
+      it('should play a custom sound instead of attaching the default sound', () => {
+        this.customSoundPath = '/tmp/mailspring-custom-sound.wav';
+        spyOn(fs, 'statSync').andReturn({ size: 100, isFile: () => true });
+        waitsForPromise(async () => {
+          await receive(['1']);
+          expect(SoundRegistry.playSound).toHaveBeenCalledWith('new-mail', {
+            volume: 1,
+            source: pathToFileURL(this.customSoundPath).toString(),
+          });
+          expect(NativeNotifications.displayNotification.mostRecentCall.args[0].playSound).toBe(
+            false
           );
         });
       });
