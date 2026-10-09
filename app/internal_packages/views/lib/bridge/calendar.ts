@@ -18,6 +18,8 @@ import type { ViewGrant } from './grant';
 import { requirePermission } from './grant';
 import { ViewError } from './errors';
 import { eventIdOf } from './events';
+import moment from 'moment';
+import FocusedMomentStore from '../../../main-calendar/lib/core/focused-moment-store';
 
 /**
  * Calendar reads beyond events, and the calendar writes Views may make. Every write goes
@@ -329,23 +331,25 @@ export async function deleteEvent(viewId: string, grant: ViewGrant, id: string) 
   return {};
 }
 
-/** Opens the calendar window focused on an occurrence, or on a date when `id` is absent. */
+/** Switches the main window to the calendar, focused on an occurrence or on a date. */
 export async function showInCalendar(grant: ViewGrant, params: { id?: string; date?: string }) {
-  let start: number;
-  let id: string | undefined;
   if (params.id) {
     const event = await DatabaseStore.find<Event>(Event, eventIdOf(params.id));
     if (!event || !isAccountAllowed(grant.scope, event.accountId)) {
       throw new ViewError('not_found', `No event with id ${params.id}.`);
     }
     const m = params.id.match(/-e(-?\d+)$/);
-    start = m && Number(m[1]) > 0 ? Number(m[1]) : event.recurrenceStart;
-    id = params.id;
-  } else {
-    const d = new Date(params.date);
-    if (isNaN(d.getTime())) throw new ViewError('invalid', 'date must be a date');
-    start = Math.floor(d.getTime() / 1000);
+    const recurrenceIdStart = m && Number(m[1]) > 0 ? Number(m[1]) : undefined;
+    ipcRenderer.send('command', 'application:show-calendar', {
+      icsuid: event.icsuid,
+      accountId: event.accountId,
+      recurrenceIdStart,
+    });
+    return {};
   }
-  ipcRenderer.send('command', 'application:show-calendar', { id, start });
+  const d = new Date(params.date);
+  if (isNaN(d.getTime())) throw new ViewError('invalid', 'date must be a date');
+  ipcRenderer.send('command', 'application:show-calendar');
+  FocusedMomentStore.setFocusedMoment(moment(d));
   return {};
 }

@@ -934,7 +934,8 @@ export default class Application extends EventEmitter {
     registerViewSessionIPCHandlers(ipcMain);
     registerExtractionIPCHandlers(ipcMain, {
       configDirPath: this.configDirPath,
-      getOverridePath: () => this.config.get('core.views.extractionModelPath'),
+      config: this.config,
+      devMode: this.devMode,
     });
   }
 
