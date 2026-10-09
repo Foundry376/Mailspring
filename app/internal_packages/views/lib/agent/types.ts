@@ -156,7 +156,8 @@ export interface AgentSessionState {
   intro?: 'try' | 'edit' | null;
   /**
    * A refusal the user can recover from, shown as a calm notice rather than an error: the
-   * backend's generic `rate_limited` (deliberately without a reason) offers Retry, and
+   * backend's generic `rate_limited` (deliberately without a reason) and `session_busy` (a
+   * fresh chat asked for while the old one is still working) offer Retry, and
    * `session_turn_limit` offers a fresh chat for the same View.
    */
   notice?: SessionNotice | null;
@@ -170,7 +171,7 @@ export interface AgentSessionState {
 }
 
 export interface SessionNotice {
-  code: 'rate_limited' | 'session_turn_limit';
+  code: 'rate_limited' | 'session_busy' | 'session_turn_limit';
   message: string;
   action: 'retry' | 'start_fresh';
 }

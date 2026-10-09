@@ -74,7 +74,7 @@ export interface AgentSessionState {
   intro?: 'try' | 'edit' | null;
   /** A recoverable refusal shown as a calm notice: Retry, or a fresh chat for the View. */
   notice?: {
-    code: 'rate_limited' | 'session_turn_limit';
+    code: 'rate_limited' | 'session_busy' | 'session_turn_limit';
     message: string;
     action: 'retry' | 'start_fresh';
   } | null;

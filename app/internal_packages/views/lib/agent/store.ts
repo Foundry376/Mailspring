@@ -352,7 +352,8 @@ class AgentSessionStoreImpl extends MailspringStore {
 
   /**
    * Handles the backend refusing a message the user just sent: the generic rate limit, the
-   * message length cap and the chat's turn limit. The optimistic transcript entry is taken
+   * message length cap, the chat's turn limit, and a fresh chat refused because the old
+   * session is still working. The optimistic transcript entry is taken
    * back and its examples restaged, so nothing the user wrote is lost. Returns false for any
    * other error, which the caller passes to fail().
    */
@@ -362,10 +363,20 @@ class AgentSessionStoreImpl extends MailspringStore {
     sent: { entryId: string | null; text: string; examples: Example[] }
   ) {
     const code = err instanceof AgentAPIError ? err.code : null;
-    if (code !== 'rate_limited' && code !== 'message_too_long' && code !== 'session_turn_limit') {
+    if (
+      code !== 'rate_limited' &&
+      code !== 'message_too_long' &&
+      code !== 'session_turn_limit' &&
+      code !== 'session_busy'
+    ) {
       return false;
     }
     const rt = this.runtime(viewId);
+    if (code === 'session_busy') {
+      // The backend won't replace a session that's still spending. The user asked to start
+      // over, so the old work is stopped and Retry sends the message once it has wound down.
+      this.d.transport.interrupt(viewId).catch(() => {});
+    }
     for (const example of sent.examples) rt.staged.set(example.messageId, example);
     const details = (err.details as { limit?: number }) || {};
     this.update(viewId, (s) => {
@@ -385,6 +396,15 @@ class AgentSessionStoreImpl extends MailspringStore {
           code,
           action: 'retry',
           message: err.message || localized('Too many requests. Please try again later.'),
+        };
+      } else if (code === 'session_busy') {
+        rt.unsent = sent.text;
+        next.notice = {
+          code,
+          action: 'retry',
+          message: localized(
+            'The assistant was still working on this View, so it has been stopped. Retry in a moment to start the fresh chat.'
+          ),
         };
       } else {
         next.returnedDraft = { text: sent.text, seq: (s.returnedDraft?.seq || 0) + 1 };

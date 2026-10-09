@@ -388,6 +388,36 @@ describe('Views agent: session store', function () {
     expect((AgentSessionStore as any).runtime(VIEW).needsSession).toBe(null);
   });
 
+  it('stops a session that is still working when a fresh chat is refused, then retries', async () => {
+    await start();
+    await AgentSessionStore.startFresh(VIEW);
+    transport.createSession.reset();
+    transport.createSession.andReturn(
+      refuse(
+        'session_busy',
+        'The assistant is still working on View v. Stop it before starting over.',
+        409
+      )
+    );
+    await AgentSessionStore.sendMessage(VIEW, 'Start over with a table');
+    let s = AgentSessionStore.session(VIEW);
+    expect(transport.interrupt).toHaveBeenCalledWith(VIEW);
+    expect(s.error).toBe(null);
+    expect(s.notice.code).toBe('session_busy');
+    expect(s.notice.action).toBe('retry');
+    expect(s.transcript.some((e) => e.text === 'Start over with a table')).toBe(false);
+
+    transport.createSession.andReturn(
+      Promise.resolve({ viewId: VIEW, sessionId: 's2', resumed: false, replaced: true })
+    );
+    await AgentSessionStore.retry(VIEW);
+    s = AgentSessionStore.session(VIEW);
+    const body = transport.createSession.mostRecentCall.args[0];
+    expect(body.fresh).toBe(true);
+    expect(body.request).toBe('Start over with a table');
+    expect(s.notice).toBe(null);
+  });
+
   it('clears a limit notice when a later message goes through', async () => {
     await start();
     transport.sendMessage.andReturn(
