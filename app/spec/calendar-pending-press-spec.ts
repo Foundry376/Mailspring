@@ -72,6 +72,22 @@ describe('pressing an event', function () {
     expect(cal._pendingDragState).toBe(null);
   });
 
+  it('stays a click when the pointer slips 2px off a month bar onto the cell below', function () {
+    // Same pointer, two containers: inside the bar it reads y=10; in the cell under it, y=52.
+    const over = (container: { x: number; y: number }, clientY: number) =>
+      ({
+        ...at(container.x, container.y),
+        mouseEvent: { button: 0, clientX: 400, clientY },
+      }) as any;
+    cal = new MailspringCalendar({} as any);
+    cal.setState = (next: any) => Object.assign(cal.state, next);
+    cal.state = { ...cal.state, calendarsLoaded: true, view: CalendarView.MONTH };
+    cal._onEventDragStart(occurrence, {} as any, { mode: 'move' } as any);
+    cal._onCalendarMouseDown(over({ x: 10, y: 10 }, 300));
+    cal._onCalendarMouseMove(over({ x: 10, y: 52 }, 302));
+    expect(cal.state.dragState).toBe(null);
+  });
+
   it('is a click when released without travelling: no state written, nothing persisted', function () {
     cal._onCalendarMouseUp(at(10, 10));
     expect(renders).toBe(0);
