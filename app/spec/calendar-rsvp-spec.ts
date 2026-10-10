@@ -193,6 +193,8 @@ describe('answering and countering from the calendar', function () {
       const [write, reply] = queued as [SyncbackEventTask, EventRSVPTask];
       expect(write instanceof SyncbackEventTask).toBe(true);
       expect(lines(write.event.ics).find((l) => l.includes(ME))).toContain('PARTSTAT=ACCEPTED');
+      expect(write.rsvp.email).toBe(ME);
+      expect(write.rsvp.status).toBe('ACCEPTED');
       expect(reply instanceof EventRSVPTask).toBe(true);
       expect(reply.toJSON().to).toBe('ada@example.com');
       expect(reply.icsRSVPStatus).toBe('ACCEPTED');
@@ -218,6 +220,7 @@ describe('answering and countering from the calendar', function () {
       expect(exception).toContain('DTEND:20260310T150000Z');
       expect(exception).not.toContain('RRULE');
       expect(myLines(exception)[0]).toContain('PARTSTAT=ACCEPTED');
+      expect(write.rsvp.occurrenceIcs).toContain('RECURRENCE-ID:20260310T140000Z');
       // The REPLY is about that occurrence alone (RFC 5546 section 3.2.3).
       const replied = veventsOf(reply.ics);
       expect(replied.length).toBe(1);
@@ -231,6 +234,7 @@ describe('answering and countering from the calendar', function () {
       const [write, reply] = queued as [SyncbackEventTask, EventRSVPTask];
       expect(veventsOf(write.event.ics).length).toBe(1);
       expect(myLines(write.event.ics)[0]).toContain('PARTSTAT=DECLINED');
+      expect(write.rsvp.occurrenceIcs).toBeUndefined();
       expect(reply.ics).toContain('RRULE:FREQ=WEEKLY');
     });
 
