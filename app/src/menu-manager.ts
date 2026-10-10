@@ -80,7 +80,7 @@ export default class MenuManager {
         }
       });
 
-      this.sendToBrowserProcess(this.template, AppEnv.keymaps.getBindingsForAllCommands());
+      this.sendToBrowserProcess(this.template, AppEnv.keymaps.getActiveBindingsForAllCommands());
     });
   };
 
