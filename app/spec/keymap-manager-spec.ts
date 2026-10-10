@@ -1,3 +1,5 @@
+import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import mousetrap from 'mousetrap';
 import KeymapManager from '../src/keymap-manager';
@@ -80,5 +82,44 @@ describe('KeymapManager', function () {
 
     expect(manager.getBindingsForCommand('composer:send-message')).toEqual(['alt+s', 'mod+enter']);
     expect(manager.getBindingsForCommand('composer:focus-to')).toEqual(['mod+shift+t']);
+  });
+
+  describe('with a user keymap', function () {
+    let configDirPath: string;
+
+    beforeEach(function () {
+      configDirPath = fs.mkdtempSync(path.join(os.tmpdir(), 'keymap-spec-'));
+      spyOn(fs, 'watch');
+      spyOn(AppEnv.config, 'observe').andCallFake((key, callback) => {
+        callback('Gmail');
+        return { dispose: () => {} };
+      });
+    });
+    afterEach(function () {
+      fs.rmSync(configDirPath, { recursive: true, force: true });
+    });
+
+    const loadWithUserKeymap = (userKeymap: object) => {
+      fs.writeFileSync(path.join(configDirPath, 'keymap.json'), JSON.stringify(userKeymap));
+      const user = new KeymapManager({ configDirPath, resourcePath });
+      user.loadKeymaps();
+      return user;
+    };
+
+    it('unbinds a command the user keymap lists with no keys', function () {
+      const user = loadWithUserKeymap({ 'core:archive-item': [] });
+      expect(user.getBindingsForCommand('core:archive-item')).toEqual([]);
+      expect((user as any)._commandsCache['e']).toBe(undefined);
+    });
+
+    it('replaces the template keys of a command the user keymap lists', function () {
+      const user = loadWithUserKeymap({ 'core:archive-item': ['y', 'mod+e'] });
+      expect(user.getBindingsForCommand('core:archive-item')).toEqual(['y', 'mod+e']);
+    });
+
+    it("still knows a command's keys from before the user keymap", function () {
+      const user = loadWithUserKeymap({ 'core:archive-item': ['y'] });
+      expect(user.getDefaultBindingsForCommand('core:archive-item')).toEqual(['e']);
+    });
   });
 });
