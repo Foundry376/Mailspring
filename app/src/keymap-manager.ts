@@ -123,9 +123,10 @@ class KeymapFile {
       if (!(keystrokesArray instanceof Array)) {
         keystrokesArray = [keystrokesArray];
       }
+      // An empty list is a command with no keys, which overrides the layers below it.
+      this._bindings[command] = [];
       for (const keystrokes of keystrokesArray) {
         this._manager.ensureKeystrokesRegistered(keystrokes);
-        this._bindings[command] = this._bindings[command] || [];
         this._bindings[command].push(keystrokes);
       }
     });
@@ -160,6 +161,8 @@ export default class KeymapManager {
   _unobserveTemplate?: Disposable;
   _removeTemplate?: Disposable;
   _bindingsCache: any;
+  /** Each command's keys from the base, template and package keymaps, before the user's. */
+  _defaultBindingsCache: { [command: string]: string[] } = {};
   _commandsCache: any;
   _altKeyDown = false;
   _altKeyTimer: NodeJS.Timeout = null;
@@ -308,6 +311,7 @@ export default class KeymapManager {
         }
       }
     }
+    this._defaultBindingsCache = { ...this._bindingsCache };
     if (this.userKeymap) {
       const userBindings = this.userKeymap.bindings();
       for (const command of Object.keys(userBindings)) {
@@ -341,5 +345,9 @@ export default class KeymapManager {
 
   getBindingsForCommand(command: string) {
     return this._bindingsCache[command] || [];
+  }
+
+  getDefaultBindingsForCommand(command: string): string[] {
+    return this._defaultBindingsCache[command] || [];
   }
 }
