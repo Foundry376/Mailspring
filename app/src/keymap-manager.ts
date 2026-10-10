@@ -123,9 +123,10 @@ class KeymapFile {
       if (!(keystrokesArray instanceof Array)) {
         keystrokesArray = [keystrokesArray];
       }
+      // An empty list is a command with no keys, which overrides the layers below it.
+      this._bindings[command] = [];
       for (const keystrokes of keystrokesArray) {
         this._manager.ensureKeystrokesRegistered(keystrokes);
-        this._bindings[command] = this._bindings[command] || [];
         this._bindings[command].push(keystrokes);
       }
     });
