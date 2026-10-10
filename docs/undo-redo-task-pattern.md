@@ -48,6 +48,7 @@ For operations where the inverse isn't a simple toggle, snapshot the state on th
 - The constructor sets `this.canBeUndone = !!this.undoData`, so a task built without `undoData` (creation, for example) is not undoable.
 - `createUndoTask()` restores `undoData` and swaps the two snapshots, so undoing the undo reapplies the edit.
 - `createIdenticalTask()` (redo) rebuilds the event from `newData` rather than reading `this.event`, which may have been mutated since the task was queued.
+- Both re-send their snapshot through `matchEventSequence`, measured against the ICS this window last queued for the event. A snapshot carries the SEQUENCE it had when captured, and Google answers 409 to one below the SEQUENCE it holds, so a snapshot cannot be sent verbatim. A tie is accepted, and changed VEVENTs go out at one. Both first run `revertAddedOverrides`, because Google keeps an override a PUT leaves out: an occurrence overridden since the snapshot goes back as the snapshot's series has it.
 
 `SyncbackMetadataTask` follows the same shape with `undoValue`.
 
