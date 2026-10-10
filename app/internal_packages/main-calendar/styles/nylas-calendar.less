@@ -533,6 +533,7 @@ body.platform-win32 {
     .month-view-week {
       flex: 1;
       display: flex;
+      position: relative;
       min-height: 0; // Allow flex children to shrink
       min-width: 0;
       width: 100%;
@@ -573,7 +574,12 @@ body.platform-win32 {
       }
     }
 
+    @month-view-day-header-height: 32px;
+    @month-view-event-height: 20px;
+
     .month-view-day-header {
+      height: @month-view-day-header-height;
+      box-sizing: border-box;
       padding: 4px 8px;
       flex-shrink: 0;
     }
@@ -594,29 +600,56 @@ body.platform-win32 {
       }
     }
 
-    .month-view-day-events {
-      flex: 1;
+    // The layer passes the pointer through to the cells, so empty space still hit-tests as its day.
+    .month-view-week-bars {
+      position: absolute;
+      top: @month-view-day-header-height;
+      left: 0;
+      right: 0;
+      bottom: 4px;
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      grid-auto-rows: @month-view-event-height;
+      row-gap: 2px;
       overflow: hidden;
-      padding: 0 4px 4px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
+      pointer-events: none;
+    }
+
+    .month-view-bar {
+      min-width: 0;
     }
 
     .month-view-event {
-      @event-height: 20px;
-
       .event-chip();
-      height: @event-height;
-      min-height: @event-height;
-      max-height: @event-height;
+      height: @month-view-event-height;
+      min-height: @month-view-event-height;
+      max-height: @month-view-event-height;
+      margin: 0 4px;
       cursor: default;
       overflow: hidden;
-      flex-shrink: 0;
       position: relative;
+      display: flex;
+      pointer-events: auto;
+
+      &.continues-before {
+        margin-left: 0;
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+
+        &:before {
+          display: none;
+        }
+      }
+      &.continues-after {
+        margin-right: 0;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+      }
 
       .month-view-event-title {
         display: block;
+        flex: 1;
+        min-width: 0;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -629,7 +662,15 @@ body.platform-win32 {
         box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
       }
 
-      &.selected .month-view-event-title {
+      .month-view-event-end-time {
+        flex-shrink: 0;
+        padding-left: 4px;
+        white-space: nowrap;
+        color: var(--event-text-color, inherit);
+      }
+
+      &.selected .month-view-event-title,
+      &.selected .month-view-event-end-time {
         color: var(--event-selected-text-color);
         opacity: 1;
       }
@@ -672,11 +713,12 @@ body.platform-win32 {
     }
 
     .month-view-overflow {
+      margin: 0 4px;
       padding: 2px 4px;
+      pointer-events: auto;
       font-size: 11px;
       color: @text-color-subtle;
       cursor: pointer;
-      flex-shrink: 0;
 
       &:hover {
         color: @text-color;
