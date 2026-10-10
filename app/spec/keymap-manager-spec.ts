@@ -1,6 +1,8 @@
+import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import mousetrap from 'mousetrap';
-import KeymapManager from '../src/keymap-manager';
+import KeymapManager, { isCharacterKeyShortcut } from '../src/keymap-manager';
 
 describe('KeymapManager', function () {
   const resourcePath = AppEnv.getLoadSettings().resourcePath;
@@ -80,5 +82,120 @@ describe('KeymapManager', function () {
 
     expect(manager.getBindingsForCommand('composer:send-message')).toEqual(['alt+s', 'mod+enter']);
     expect(manager.getBindingsForCommand('composer:focus-to')).toEqual(['mod+shift+t']);
+  });
+
+  describe('with a user keymap', function () {
+    let configDirPath: string;
+
+    beforeEach(function () {
+      configDirPath = fs.mkdtempSync(path.join(os.tmpdir(), 'keymap-spec-'));
+      spyOn(fs, 'watch');
+      spyOn(AppEnv.config, 'observe').andCallFake((key, callback) => {
+        callback('Gmail');
+        return { dispose: () => {} };
+      });
+    });
+    afterEach(function () {
+      fs.rmSync(configDirPath, { recursive: true, force: true });
+    });
+
+    const loadWithUserKeymap = (userKeymap: object) => {
+      fs.writeFileSync(path.join(configDirPath, 'keymap.json'), JSON.stringify(userKeymap));
+      const user = new KeymapManager({ configDirPath, resourcePath });
+      user.loadKeymaps();
+      return user;
+    };
+
+    it('unbinds a command the user keymap lists with no keys', function () {
+      const user = loadWithUserKeymap({ 'core:archive-item': [] });
+      expect(user.getBindingsForCommand('core:archive-item')).toEqual([]);
+      expect((user as any)._commandsCache['e']).toBe(undefined);
+    });
+
+    it('replaces the template keys of a command the user keymap lists', function () {
+      const user = loadWithUserKeymap({ 'core:archive-item': ['y', 'mod+e'] });
+      expect(user.getBindingsForCommand('core:archive-item')).toEqual(['y', 'mod+e']);
+    });
+
+    describe('with single-key shortcuts turned off', function () {
+      afterEach(function () {
+        AppEnv.config.set('core.keymapSingleKeys', true);
+      });
+
+      // Mousetrap binds a plain key to keypress, so that is the event pressed here.
+      const pressE = () => {
+        const event = new KeyboardEvent('keypress', { key: 'e' });
+        Object.defineProperty(event, 'target', { value: document.body });
+        trap.handleKey('e', [], event);
+      };
+
+      it('runs a plain key while they are on', function () {
+        spyOn(AppEnv.commands, 'dispatch');
+        loadWithUserKeymap({});
+        pressE();
+        expect(AppEnv.commands.dispatch).toHaveBeenCalledWith('core:archive-item');
+      });
+
+      it('runs no command from a key typed without Ctrl, Alt or Cmd, and keeps the rest', function () {
+        spyOn(AppEnv.commands, 'dispatch');
+        AppEnv.config.set('core.keymapSingleKeys', false);
+        const user = loadWithUserKeymap({});
+        expect(user.getActiveBindingsForAllCommands()['core:archive-item']).toEqual([]);
+        expect(user.getActiveBindingsForAllCommands()['application:new-message']).toEqual([
+          'mod+n',
+        ]);
+        expect(user.getBindingsForCommand('core:archive-item')).toEqual(['e']);
+        pressE();
+        expect(AppEnv.commands.dispatch).not.toHaveBeenCalledWith('core:archive-item');
+      });
+
+      it('takes effect as soon as the setting changes', function () {
+        const user = loadWithUserKeymap({});
+        expect(user.getActiveBindingsForAllCommands()['core:archive-item']).toEqual(['e']);
+        AppEnv.config.set('core.keymapSingleKeys', false);
+        expect(user.getActiveBindingsForAllCommands()['core:archive-item']).toEqual([]);
+      });
+    });
+
+    it("still knows a command's keys from before the user keymap", function () {
+      const user = loadWithUserKeymap({ 'core:archive-item': ['y'] });
+      expect(user.getDefaultBindingsForCommand('core:archive-item')).toEqual(['e']);
+    });
+  });
+
+  describe('isCharacterKeyShortcut', function () {
+    it('is a key typed without Ctrl, Alt or Cmd, alone or in a sequence', function () {
+      for (const keys of ['e', 'shift+3', '#', 'g i', 'space']) {
+        expect(isCharacterKeyShortcut(keys)).toBe(true);
+      }
+    });
+
+    it('is not a key with Ctrl, Alt or Cmd, nor a non-character key', function () {
+      for (const keys of [
+        'mod+e',
+        'ctrl+e',
+        'alt+e',
+        'command+e',
+        'g mod+i',
+        'enter',
+        'escape',
+        'f5',
+        'shift+up',
+      ]) {
+        expect(isCharacterKeyShortcut(keys)).toBe(false);
+      }
+    });
+  });
+
+  describe('MenuManager', function () {
+    it('shows only the keys that run commands now', function () {
+      const active = { 'core:archive-item': [] as string[] };
+      spyOn(AppEnv.keymaps, 'getActiveBindingsForAllCommands').andReturn(active);
+      // The spec runner already spies on sendToBrowserProcess for every spec.
+      spyOn(window, 'requestAnimationFrame').andCallFake((callback) => callback(0));
+      (AppEnv.menu as any).pendingUpdateOperation = false;
+      AppEnv.menu.update();
+      expect((AppEnv.menu.sendToBrowserProcess as jasmine.Spy).mostRecentCall.args[1]).toBe(active);
+    });
   });
 });

@@ -1,218 +1,187 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import { Flexbox } from 'mailspring-component-kit';
 import { localized } from 'mailspring-exports';
-import fs from 'fs';
 
-import { keyAndModifiersForEvent } from './mousetrap-keybinding-helpers';
+import {
+  readUserKeymap,
+  writeUserKeymap,
+  withBinding,
+  withoutBinding,
+  pressedKeys,
+} from './user-keymap';
+import { renderKeystrokes } from './keystrokes';
+import { ShortcutRecorder } from './shortcut-recorder';
 
 interface CommandKeybindingProps {
   bindings: string[];
   label: string;
   command: string;
+  /** Whether the user keymap sets this command's keys, so it can be reset to the template's. */
+  customized: boolean;
+  /** The keys the user added to this command, beyond its default keys. */
+  added: string[];
+  /** For each of this command's keys that another command also runs on, those commands. */
+  conflicts: { [binding: string]: { command: string; label: string }[] };
+  onRemoveFrom: (command: string, binding: string) => void;
+  /** Whether keys without Ctrl, Alt or Cmd are turned off, so this row shows them as off. */
+  singleKeysOff: boolean;
 }
 interface CommandKeybindingState {
-  editing: boolean;
-  editingBinding?: string;
-  modifiers?: string[];
-  keys?: string[];
+  recording: boolean;
 }
 
 export default class CommandKeybinding extends React.Component<
   CommandKeybindingProps,
   CommandKeybindingState
 > {
-  _mounted = false;
+  _addButtonRef = React.createRef<HTMLButtonElement>();
 
   constructor(props) {
     super(props);
-
-    this.state = {
-      editing: false,
-    };
+    this.state = { recording: false };
   }
 
-  componentDidMount() {
-    this._mounted = true;
-  }
+  _onStartRecording = () => {
+    this.setState({ recording: true });
+  };
 
-  componentDidUpdate() {
-    const { modifiers, keys, editing } = this.state;
-    if (editing) {
-      const finished = (modifiers.length > 0 && keys.length > 0) || keys.length >= 2;
-      if (finished) {
-        (ReactDOM.findDOMNode(this) as HTMLElement).blur();
-      }
-    }
-  }
-
-  componentWillUnmount() {
-    this._mounted = false;
-  }
-
-  _formatKeystrokes(original: string) {
-    // macOS shows menu-bar glyphs (⌘⇧D); Windows and Linux spell shortcuts out
-    // (Ctrl+Shift+D), and their users don't read ^ or ⌥ as modifier keys.
-    const isMac = process.platform === 'darwin';
-    const modifiers: [RegExp, string][] = isMac
-      ? [
-          [/\+(?!$)/gi, ''],
-          [/command/gi, '⌘'],
-          [/meta/gi, '⌘'],
-          [/alt/gi, '⌥'],
-          [/shift/gi, '⇧'],
-          [/ctrl/gi, '^'],
-          [/mod/gi, '⌘'],
-        ]
-      : [
-          [/alt/gi, 'Alt'],
-          [/shift/gi, 'Shift'],
-          [/ctrl/gi, 'Ctrl'],
-          [/mod/gi, 'Ctrl'],
-        ];
-    let clean = original;
-    for (const [regexp, char] of modifiers) {
-      clean = clean.replace(regexp, char);
-    }
-
-    if (isMac) {
-      // ⌘⇧c => ⌘⇧C
-      if (clean !== original) {
-        clean = clean.toUpperCase();
-      }
-      // backspace => Backspace
-      if (original.length > 1 && clean === original) {
-        clean = clean[0].toUpperCase() + clean.slice(1);
-      }
-      return clean;
-    }
-
-    // ctrl+shift+d => Ctrl+Shift+D, alt+backspace => Alt+Backspace
-    return clean
-      .split('+')
-      .map((part) => (part.length > 0 ? part[0].toUpperCase() + part.slice(1) : part))
-      .join('+');
-  }
-
-  _renderKeystrokes = (keystrokes: string, idx: number) => {
-    const elements = [];
-    const splitKeystrokes = keystrokes.split(' ');
-    splitKeystrokes.forEach((keystroke, kidx) => {
-      elements.push(<span key={kidx}>{this._formatKeystrokes(keystroke)}</span>);
-      if (kidx < splitKeystrokes.length - 1) {
-        elements.push(
-          <span className="then" key={`then${kidx}`}>
-            {` ${localized('then')} `}
-          </span>
-        );
+  // Focus goes back to the + button: left on the body, the next key would reach the mail list.
+  _stopRecording = ({ refocus }: { refocus: boolean }) => {
+    this.setState({ recording: false }, () => {
+      if (refocus) {
+        this._addButtonRef.current.focus();
       }
     });
+  };
+
+  /** Writes this command's keys to the user keymap, or removes its entry when given null. */
+  _saveBindings(bindings: string[] | null) {
+    const keymapPath = AppEnv.keymaps.getUserKeymapPath();
+    const keymap = readUserKeymap(keymapPath);
+    if (bindings) {
+      keymap[this.props.command] = bindings;
+    } else {
+      delete keymap[this.props.command];
+    }
+    try {
+      writeUserKeymap(keymapPath, keymap);
+    } catch (err) {
+      AppEnv.showErrorDialog(
+        localized(`Mailspring was unable to modify your keymaps at %@.`, keymapPath) +
+          ' ' +
+          err.toString()
+      );
+    }
+  }
+
+  _onRecord = (binding: string) => {
+    this._saveBindings(withBinding(this.props.bindings, binding));
+    this._stopRecording({ refocus: true });
+  };
+
+  _isOff(binding: string) {
+    return this.props.singleKeysOff && AppEnv.keymaps.isCharacterKeyShortcut(binding);
+  }
+
+  _onRemove = (binding: string) => {
+    this._saveBindings(withoutBinding(this.props.bindings, binding, process.platform));
+  };
+
+  _onReset = () => {
+    this._saveBindings(null);
+  };
+
+  // Shown on the command the key was added to, which is the change the user can take back.
+  _renderConflict = (binding: string) => {
+    const others = this.props.conflicts[binding];
+    const names = others.map((o) => o.label).join(', ');
     return (
-      <span key={`keystrokes-${idx}`} className="shortcut-value">
-        {elements}
-      </span>
+      <div key={binding} className="shortcut-conflict">
+        {renderKeystrokes(binding, 0)} {localized('also runs %@.', names)}{' '}
+        <a
+          className="remove-from-others"
+          onClick={() => others.forEach((o) => this.props.onRemoveFrom(o.command, binding))}
+        >
+          {localized('Remove from %@', names)}
+        </a>{' '}
+        <a className="remove-here" onClick={() => this._onRemove(binding)}>
+          {localized('Remove here')}
+        </a>
+      </div>
     );
   };
 
-  _onEdit = () => {
-    this.setState({ editing: true, editingBinding: null, keys: [], modifiers: [] });
-    AppEnv.keymaps.suspendAllKeymaps();
-  };
-
-  _onFinishedEditing = () => {
-    if (this.state.editingBinding) {
-      const keymapPath = AppEnv.keymaps.getUserKeymapPath();
-      let keymaps = {};
-
-      try {
-        const exists = fs.existsSync(keymapPath);
-        if (exists) {
-          keymaps = JSON.parse(fs.readFileSync(keymapPath).toString());
-        }
-      } catch (err) {
-        console.error(err);
-      }
-
-      keymaps[this.props.command] = this.state.editingBinding;
-
-      try {
-        fs.writeFileSync(keymapPath, JSON.stringify(keymaps, null, 2));
-      } catch (err) {
-        AppEnv.showErrorDialog(
-          localized(`Mailspring was unable to modify your keymaps at %@.`, keymapPath) +
-            ' ' +
-            err.toString()
-        );
-      }
-    }
-
-    AppEnv.keymaps.resumeAllKeymaps();
-
-    setTimeout(() => {
-      if (!this._mounted) return;
-      this.setState({ editing: false, editingBinding: null });
-    }, 100);
-  };
-
-  _onKey = (event: React.KeyboardEvent<HTMLElement>) => {
-    if (!this.state.editing) {
-      return;
-    }
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    const [eventKey, eventMods] = keyAndModifiersForEvent(event);
-    if (!eventKey || ['mod', 'meta', 'command', 'ctrl', 'alt', 'shift'].includes(eventKey)) {
-      return;
-    }
-
-    let { keys, modifiers } = this.state;
-    keys = keys.concat([eventKey]);
-    modifiers = [...new Set(modifiers.concat(eventMods))];
-
-    let editingBinding = keys.join(' ');
-    if (modifiers.length > 0) {
-      editingBinding = [...modifiers, ...keys].join('+');
-      if (process.platform === 'darwin') {
-        editingBinding = editingBinding.replace(/meta/g, 'mod');
-      } else {
-        editingBinding = editingBinding.replace(/ctrl/g, 'mod');
-      }
-    }
-
-    this.setState({ keys, modifiers, editingBinding });
-  };
-
   render() {
-    const { editing, editingBinding } = this.state;
-    const bindings = editingBinding ? [editingBinding] : this.props.bindings;
+    const { recording } = this.state;
+    const { bindings, customized, added, conflicts } = this.props;
 
-    let value: React.ReactChild | React.ReactChild[] = 'None';
+    let value: React.ReactChild | React.ReactChild[] = localized('None');
     if (bindings.length > 0) {
       // Templates may list mod+a and ctrl+a for one command; they are the same key
       // on Windows and Linux, so dedupe by what the user would actually press.
-      const mod = process.platform === 'darwin' ? 'command' : 'ctrl';
-      const byKey = new Map(bindings.map((b) => [b.replace(/\bmod\b/g, mod), b]));
-      value = [...byKey.values()].map(this._renderKeystrokes);
+      const byKey = new Map(bindings.map((b) => [pressedKeys(b, process.platform), b]));
+      value = [...byKey.values()].map((binding, idx) => (
+        <span
+          key={binding}
+          className={[
+            'shortcut-chip',
+            conflicts[binding] && 'conflict',
+            this._isOff(binding) && 'off',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+          title={
+            this._isOff(binding)
+              ? localized('Off: single-key shortcuts are turned off')
+              : conflicts[binding]
+                ? localized('Also runs %@', conflicts[binding].map((o) => o.label).join(', '))
+                : undefined
+          }
+        >
+          {renderKeystrokes(binding, idx)}
+          <button
+            className="remove-shortcut"
+            title={localized('Remove')}
+            onClick={() => this._onRemove(binding)}
+          >
+            ×
+          </button>
+        </span>
+      ));
     }
 
-    let classnames = 'shortcut';
-    if (editing) {
-      classnames += ' editing';
-    }
     return (
-      <Flexbox
-        className={classnames}
-        tabIndex={-1}
-        onKeyDown={this._onKey}
-        onKeyPress={this._onKey}
-        onFocus={this._onEdit}
-        onBlur={this._onFinishedEditing}
-      >
-        <div className="col-left shortcut-name">{this.props.label}</div>
+      <Flexbox className={recording ? 'shortcut recording' : 'shortcut'}>
+        <div className="col-left">
+          {customized && (
+            <span className="changed-dot" title={localized('Changed from the default')} />
+          )}
+          <span className="shortcut-name">{this.props.label}</span>
+        </div>
         <div className="col-right">
           <div className="values">{value}</div>
+          {recording ? (
+            <ShortcutRecorder
+              placeholder={localized('Press a shortcut, Esc to cancel')}
+              onRecord={this._onRecord}
+              onCancel={this._stopRecording}
+            />
+          ) : (
+            <button
+              className="btn btn-small add-shortcut"
+              ref={this._addButtonRef}
+              title={localized('Add a shortcut')}
+              onClick={this._onStartRecording}
+            >
+              + {localized('Add')}
+            </button>
+          )}
+          {customized && !recording && (
+            <a className="reset-shortcut" onClick={this._onReset}>
+              {localized('Reset')}
+            </a>
+          )}
+          {added.filter((binding) => conflicts[binding]).map(this._renderConflict)}
         </div>
       </Flexbox>
     );

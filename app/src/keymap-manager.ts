@@ -6,6 +6,19 @@ import { Emitter, Disposable } from 'event-kit';
 
 let suspended = false;
 const templateConfigKey = 'core.keymapTemplate';
+const singleKeysConfigKey = 'core.keymapSingleKeys';
+
+/**
+ * Whether every keystroke of a binding is a character typed without Ctrl, Alt or Cmd ("e",
+ * "shift+3", "g i"). WCAG 2.1.4 asks that these can be turned off: someone dictating "e" would
+ * otherwise archive a message.
+ */
+export const isCharacterKeyShortcut = (keystrokes: string) =>
+  keystrokes.split(' ').every((keystroke) => {
+    const parts = keystroke.split('+');
+    const key = parts.pop();
+    return parts.every((modifier) => modifier === 'shift') && (key.length === 1 || key === 'space');
+  });
 
 // Bindings are resolved base → template → package regardless of the order the
 // files were loaded in. Base files layer additively. A template (Gmail, Outlook,
@@ -123,9 +136,10 @@ class KeymapFile {
       if (!(keystrokesArray instanceof Array)) {
         keystrokesArray = [keystrokesArray];
       }
+      // An empty list is a command with no keys, which overrides the layers below it.
+      this._bindings[command] = [];
       for (const keystrokes of keystrokesArray) {
         this._manager.ensureKeystrokesRegistered(keystrokes);
-        this._bindings[command] = this._bindings[command] || [];
         this._bindings[command].push(keystrokes);
       }
     });
@@ -158,8 +172,13 @@ export default class KeymapManager {
   resourcePath: string;
   userKeymap?: KeymapFile;
   _unobserveTemplate?: Disposable;
+  _unobserveSingleKeys?: Disposable;
   _removeTemplate?: Disposable;
   _bindingsCache: any;
+  /** _bindingsCache without the single-key shortcuts while those are turned off. */
+  _activeBindingsCache: { [command: string]: string[] } = {};
+  /** Each command's keys from the base, template and package keymaps, before the user's. */
+  _defaultBindingsCache: { [command: string]: string[] } = {};
   _commandsCache: any;
   _altKeyDown = false;
   _altKeyTimer: NodeJS.Timeout = null;
@@ -229,6 +248,12 @@ export default class KeymapManager {
       this._unobserveTemplate.dispose();
     }
     this._unobserveTemplate = AppEnv.config.observe(templateConfigKey, this.loadTemplateKeymap);
+    if (this._unobserveSingleKeys) {
+      this._unobserveSingleKeys.dispose();
+    }
+    this._unobserveSingleKeys = AppEnv.config.onDidChange(singleKeysConfigKey, () =>
+      this.keymapCacheInvalidated()
+    );
 
     const userKeymapPath = this.getUserKeymapPath();
     if (!fs.existsSync(userKeymapPath)) {
@@ -308,6 +333,7 @@ export default class KeymapManager {
         }
       }
     }
+    this._defaultBindingsCache = { ...this._bindingsCache };
     if (this.userKeymap) {
       const userBindings = this.userKeymap.bindings();
       for (const command of Object.keys(userBindings)) {
@@ -315,9 +341,17 @@ export default class KeymapManager {
       }
     }
 
-    this._commandsCache = {};
+    const singleKeys = AppEnv.config.get(singleKeysConfigKey);
+    this._activeBindingsCache = {};
     for (const command of Object.keys(this._bindingsCache)) {
-      for (const keystrokes of this._bindingsCache[command]) {
+      this._activeBindingsCache[command] = singleKeys
+        ? this._bindingsCache[command]
+        : this._bindingsCache[command].filter((k: string) => !isCharacterKeyShortcut(k));
+    }
+
+    this._commandsCache = {};
+    for (const command of Object.keys(this._activeBindingsCache)) {
+      for (const keystrokes of this._activeBindingsCache[command]) {
         const platformKeystrokes = normalizePlatformKeystrokes(keystrokes);
         if (!this._commandsCache[platformKeystrokes]) {
           this._commandsCache[platformKeystrokes] = [];
@@ -339,7 +373,20 @@ export default class KeymapManager {
     return this._bindingsCache;
   }
 
+  isCharacterKeyShortcut(keystrokes: string) {
+    return isCharacterKeyShortcut(keystrokes);
+  }
+
+  /** The keys that run commands now: getBindingsForAllCommands less any turned-off single keys. */
+  getActiveBindingsForAllCommands() {
+    return this._activeBindingsCache;
+  }
+
   getBindingsForCommand(command: string) {
     return this._bindingsCache[command] || [];
+  }
+
+  getDefaultBindingsForCommand(command: string): string[] {
+    return this._defaultBindingsCache[command] || [];
   }
 }
