@@ -123,6 +123,7 @@ export class SyncbackEventTask extends Task {
    * emailed beside it cannot be retracted.
    */
   static forAnswering({ event, answer }: { event: Event; answer: RSVPAnswer }) {
+    latestQueuedIcs.set(event.id, event.ics);
     return new SyncbackEventTask({
       event,
       calendarId: event.calendarId,

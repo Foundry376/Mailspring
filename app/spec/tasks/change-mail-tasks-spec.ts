@@ -900,6 +900,24 @@ END:VCALENDAR`;
       expect(undoSecond).toEqual({ start: '2026-10-08T13:15:00Z', sequence: 3 });
       expect(undoFirst).toEqual({ start: '2026-10-08T13:00:00Z', sequence: 3 });
     });
+
+    it('undoes an edit at the SEQUENCE of an answer queued after it', function () {
+      // The organizer's update reached our copy at SEQUENCE 3, and our answer was written on it.
+      const event = makeEvent({ id: 'answered-event', ics: SAMPLE_ICS_NEW } as any);
+      const edit = SyncbackEventTask.forUpdating({
+        event,
+        undoData: { ics: SAMPLE_ICS_ORIGINAL, recurrenceStart: 1000, recurrenceEnd: 2000 },
+      });
+      SyncbackEventTask.forAnswering({
+        event: makeEvent({ id: 'answered-event', ics: eventIcs('1315', 3) } as any),
+        answer: { email: 'me@example.com', status: 'ACCEPTED' },
+      });
+
+      expect(revisionOf(edit.createUndoTask().event.ics)).toEqual({
+        start: '2026-10-08T13:00:00Z',
+        sequence: 3,
+      });
+    });
   });
 
   describe('undo and redo against the copy last queued', function () {
