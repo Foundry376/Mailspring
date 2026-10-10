@@ -905,7 +905,11 @@ END:VCALENDAR`;
   describe('undo and redo against the copy last queued', function () {
     // A daily series at 13:00Z, with optional overrides ([RECURRENCE-ID time, start time, SEQUENCE])
     // and EXDATEs.
-    const seriesIcs = (overrides: [string, string, number][] = [], exdate = '') =>
+    const seriesIcs = (
+      overrides: [string, string, number][] = [],
+      exdate = '',
+      summary = 'Test series'
+    ) =>
       [
         'BEGIN:VCALENDAR',
         'VERSION:2.0',
@@ -916,7 +920,7 @@ END:VCALENDAR`;
         'DTEND:20261008T140000Z',
         'RRULE:FREQ=DAILY',
         ...(exdate ? [`EXDATE:${exdate}`] : []),
-        'SUMMARY:Test series',
+        `SUMMARY:${summary}`,
         'DTSTAMP:20261001T000000Z',
         'SEQUENCE:0',
         'END:VEVENT',
@@ -949,20 +953,35 @@ END:VCALENDAR`;
         undoData: undoIcs ? snapshot(undoIcs) : undefined,
       });
 
-    it('leaves an occurrence response made after the undone edit alone', function () {
-      const before = seriesIcs();
-      const edited = seriesIcs([['20261009T130000Z', '20261009T150000Z', 1]]);
-      const edit = queue('rsvp-series', edited, before);
-      queue(
-        'rsvp-series',
-        seriesIcs([
-          ['20261009T130000Z', '20261009T150000Z', 1],
-          ['20261010T130000Z', '20261010T130000Z', 1],
-        ])
+    it('reverts an occurrence through two undos, the second a series edit', function () {
+      // Rename the series, then move one occurrence; undoing both must bring that occurrence back
+      // to the old title, though the rename never touched it.
+      const rid = '20261009T130000Z';
+      const original = seriesIcs();
+      const renamed = seriesIcs([], '', 'Renamed series');
+      const moved = seriesIcs([[rid, '20261009T150000Z', 1]], '', 'Renamed series');
+      const rename = queue('rename-chain', renamed, original);
+      const move = queue('rename-chain', moved, renamed);
+      move.createUndoTask();
+      const undone = parseICSString(rename.createUndoTask().event.ics).root.getAllSubcomponents(
+        'vevent'
       );
+      expect(
+        undone.map((v) => [
+          v.getFirstPropertyValue('recurrence-id')?.toString() ?? null,
+          v.getFirstPropertyValue('summary'),
+        ])
+      ).toEqual([
+        [null, 'Test series'],
+        ['2026-10-09T13:00:00Z', 'Test series'],
+      ]);
 
-      expect(overridesOf(edit.createUndoTask().event.ics)).toEqual([
-        ['2026-10-09T13:00:00Z', '2026-10-09T13:00:00Z', 1],
+      const redone = parseICSString(
+        rename.createIdenticalTask().event.ics
+      ).root.getAllSubcomponents('vevent');
+      expect(redone.map((v) => v.getFirstPropertyValue('summary'))).toEqual([
+        'Renamed series',
+        'Renamed series',
       ]);
     });
 

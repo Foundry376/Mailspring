@@ -121,9 +121,10 @@ export class SyncbackEventTask extends Task {
 
     // Create a new event with the original state restored (deep clone)
     const restoredEvent = this.event.clone();
+    const current = latestQueuedIcs.get(this.event.id);
     restoredEvent.ics = matchEventSequence(
-      revertAddedOverrides(this.undoData.ics, this.newData.ics),
-      latestQueuedIcs.get(this.event.id)
+      revertAddedOverrides(this.undoData.ics, current),
+      current
     );
     latestQueuedIcs.set(restoredEvent.id, restoredEvent.ics);
     restoredEvent.recurrenceStart = this.undoData.recurrenceStart;
@@ -154,7 +155,8 @@ export class SyncbackEventTask extends Task {
 
     // Create a fresh event with the new state from our snapshot
     const redoEvent = this.event.clone();
-    redoEvent.ics = matchEventSequence(this.newData.ics, latestQueuedIcs.get(this.event.id));
+    const current = latestQueuedIcs.get(this.event.id);
+    redoEvent.ics = matchEventSequence(revertAddedOverrides(this.newData.ics, current), current);
     latestQueuedIcs.set(redoEvent.id, redoEvent.ics);
     redoEvent.recurrenceStart = this.newData.recurrenceStart;
     redoEvent.recurrenceEnd = this.newData.recurrenceEnd;

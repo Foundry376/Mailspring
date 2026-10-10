@@ -3212,6 +3212,33 @@ describe('revertAddedOverrides, so undo reverts an occurrence on a server that k
     );
   });
 
+  it('reverts an override when the edit also named an organizer on the series', function () {
+    // Adding the first guest to one occurrence writes ORGANIZER onto every VEVENT (nameOrganizer).
+    const before = withoutOverride(RECURRING_WITH_EXCEPTION_ICS);
+    const current = RECURRING_WITH_EXCEPTION_ICS.replace(
+      'SUMMARY:Morning Sync\n',
+      'SUMMARY:Morning Sync\nORGANIZER:mailto:me@example.com\n'
+    );
+    const [, reverted] = vevents(ICSEventHelpers.revertAddedOverrides(before, current));
+    expect(reverted.dtstart).toBe('2026-03-02T06:00:00Z');
+  });
+
+  it('skips a slot the series cancels', function () {
+    const cancelled = ICSEventHelpers.removeInlineException(
+      RECURRING_WITH_EXCEPTION_ICS,
+      '20260302T060000Z'
+    );
+    expect(ICSEventHelpers.revertAddedOverrides(cancelled, RECURRING_WITH_EXCEPTION_ICS)).toBe(
+      cancelled
+    );
+  });
+
+  it('leaves a lone occurrence, which has no series to rebuild from', function () {
+    const lone = SIMPLE_ICS.replace('DTSTART:', 'RECURRENCE-ID:20260301T140000Z\nDTSTART:');
+    const moved = lone.replace('DTSTART:20260301T140000Z', 'DTSTART:20260301T150000Z');
+    expect(ICSEventHelpers.revertAddedOverrides(lone, moved)).toBe(lone);
+  });
+
   it('keeps a reverted all-day override to one day across the spring-forward', function () {
     // 2026-03-08 is 23 hours long in America/Chicago, where specs run.
     const after = ALL_DAY_RECURRING_ICS.replace(
