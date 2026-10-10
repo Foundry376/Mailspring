@@ -66,6 +66,7 @@ import {
   canMoveEvent,
   CreateDragState,
   createDragRange,
+  createNewEventPreview,
   CREATE_DRAG_SNAP_SECONDS,
 } from './calendar-drag-utils';
 import { showRecurringEventDialog } from './recurring-event-dialog';
@@ -111,8 +112,8 @@ export interface MailspringCalendarViewProps extends EventRendererProps {
 
   // Drag-related props
   dragState: DragState | null;
-  /** The range being drawn on empty grid space, if any. */
-  createDrag: CreateDragState | null;
+  /** The new event being drawn on empty grid space, or being filled in by the open editor. */
+  newEventPreview: EventOccurrence | null;
   onEventDragStart: (
     event: EventOccurrence,
     mouseEvent: React.MouseEvent,
@@ -142,6 +143,8 @@ interface MailspringCalendarState {
   disabledCalendars: string[];
   dragState: DragState | null;
   createDrag: CreateDragState | null;
+  /** The event the open editor is creating, kept on the grid until the editor closes. */
+  newEvent: EventOccurrence | null;
   readOnlyCalendarIds: Set<string>;
   themeVersion: number;
 }
@@ -187,6 +190,7 @@ export class MailspringCalendar extends React.Component<
       disabledCalendars: AppEnv.config.get(DISABLED_CALENDARS) || [],
       dragState: null,
       createDrag: null,
+      newEvent: null,
       readOnlyCalendarIds: new Set<string>(),
       themeVersion: 0,
     };
@@ -534,6 +538,9 @@ export class MailspringCalendar extends React.Component<
       ? { ...base, isAllDay: true }
       : { ...base, isAllDay: false, start: startUnix, end: endUnix };
 
+    const preview = { ...newEventOccurrence, isDragPreview: true };
+    this.setState({ newEvent: preview });
+
     // Open the popover anchored near the mouse position
     const originRect = new DOMRect(clientX - 1, clientY - 1, 2, 2);
 
@@ -544,6 +551,7 @@ export class MailspringCalendar extends React.Component<
         calendars={this.state.calendars}
         accounts={this.state.accounts}
         disabledCalendars={this.state.disabledCalendars}
+        onClosed={() => this._onNewEventEditorClosed(preview)}
       />,
       {
         originRect,
@@ -552,6 +560,16 @@ export class MailspringCalendar extends React.Component<
         closeOnAppBlur: false,
       }
     );
+  }
+
+  // Opening an editor over an open one unmounts the old one after the new one has set its own.
+  _onNewEventEditorClosed(preview: EventOccurrence) {
+    this.setState((state) => (state.newEvent === preview ? { newEvent: null } : null));
+  }
+
+  _newEventPreview(): EventOccurrence | null {
+    const { createDrag, newEvent } = this.state;
+    return createDrag ? createNewEventPreview(createDrag) : newEvent;
   }
 
   // Fires once the focused event has scrolled itself into view. Clearing the flag here keeps
@@ -1228,7 +1246,7 @@ export class MailspringCalendar extends React.Component<
         onEventContextMenu={this._onEventContextMenu}
         onEventFocused={this._onEventFocused}
         dragState={this.state.dragState}
-        createDrag={this.state.createDrag}
+        newEventPreview={this._newEventPreview()}
         onEventDragStart={this._onEventDragStart}
         readOnlyCalendarIds={this.state.readOnlyCalendarIds}
         isCalendarReadOnly={this._isCalendarReadOnly}

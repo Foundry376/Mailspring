@@ -552,13 +552,10 @@ export function createNewEventPreview(state: CreateDragState): EventOccurrence {
     : { ...shared, isAllDay: false, start: range.start, end: range.end };
 }
 
-/** A view's events plus the range being drawn, once the pointer has travelled. */
-export function withCreateDragPreview(
+/** A view's events plus the new event being drawn or edited, if any. */
+export function withNewEventPreview(
   events: EventOccurrence[],
-  createDrag: CreateDragState | null
+  preview: EventOccurrence | null
 ): EventOccurrence[] {
-  if (!createDrag?.isDragging) {
-    return events;
-  }
-  return [...events, createNewEventPreview(createDrag)];
+  return preview ? [...events, preview] : events;
 }
