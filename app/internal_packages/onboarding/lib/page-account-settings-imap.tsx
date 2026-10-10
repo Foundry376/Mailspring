@@ -30,7 +30,16 @@ class AccountIMAPSettingsForm extends React.Component<AccountIMAPSettingsFormPro
     return localized('Set up Account');
   };
 
-  static subtitleLabel = () => {
+  static subtitleLabel = (
+    providerConfig: { note?: React.ReactNode },
+    { account, confirmServers }: { account: Account; confirmServers?: boolean }
+  ) => {
+    if (confirmServers) {
+      return localized(
+        'One or more of these servers came from the DNS records of %@ and belong to another domain. Make sure your email provider runs them before connecting.',
+        account.emailAddress.split('@').pop()
+      );
+    }
     return localized('Complete the IMAP and SMTP settings below to connect your account.');
   };
 
