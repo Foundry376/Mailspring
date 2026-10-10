@@ -10,6 +10,7 @@ import {
   ICSEventHelpers,
   ICSParticipantStatus,
 } from 'mailspring-exports';
+import { matchEventSequence, revertAddedOverrides } from '../../ics-event-helpers';
 
 /**
  * Snapshot of event data for undo/redo support.
@@ -32,6 +33,9 @@ export interface RSVPAnswer {
 }
 
 const FRESH_COPY_TIMEOUT_MS = 30 * 1000;
+// Event id to the ICS this window last queued for it. Undo and redo re-send a snapshot that can be
+// several revisions behind it.
+const latestQueuedIcs = new Map<string, string>();
 
 export class SyncbackEventTask extends Task {
   static attributes = {
@@ -102,6 +106,7 @@ export class SyncbackEventTask extends Task {
       recurrenceStart: event.recurrenceStart,
       recurrenceEnd: event.recurrenceEnd,
     };
+    latestQueuedIcs.set(event.id, event.ics);
 
     return new SyncbackEventTask({
       event,
@@ -137,7 +142,8 @@ export class SyncbackEventTask extends Task {
   }
 
   /**
-   * Creates an undo task that restores the event to its previous state.
+   * Creates an undo task that restores the event to its previous state, at no lower a SEQUENCE
+   * than the copy last queued.
    *
    * Note: This relies on Event.clone() creating a deep clone. If Event.clone()
    * were shallow, modifications to restoredEvent would leak to this.event,
@@ -150,7 +156,12 @@ export class SyncbackEventTask extends Task {
 
     // Create a new event with the original state restored (deep clone)
     const restoredEvent = this.event.clone();
-    restoredEvent.ics = this.undoData.ics;
+    const current = latestQueuedIcs.get(this.event.id);
+    restoredEvent.ics = matchEventSequence(
+      revertAddedOverrides(this.undoData.ics, current),
+      current
+    );
+    latestQueuedIcs.set(restoredEvent.id, restoredEvent.ics);
     restoredEvent.recurrenceStart = this.undoData.recurrenceStart;
     restoredEvent.recurrenceEnd = this.undoData.recurrenceEnd;
 
@@ -167,9 +178,9 @@ export class SyncbackEventTask extends Task {
   }
 
   /**
-   * Creates an identical task for redo.
-   * Uses the captured newData snapshot to ensure reliable redo even if
-   * the event object has been mutated since task creation.
+   * Creates the redo task: the captured newData snapshot, at no lower a SEQUENCE than the copy
+   * last queued. The snapshot keeps redo reliable even if the event object has been mutated since
+   * task creation.
    */
   createIdenticalTask(): this {
     if (!this.newData) {
@@ -179,7 +190,9 @@ export class SyncbackEventTask extends Task {
 
     // Create a fresh event with the new state from our snapshot
     const redoEvent = this.event.clone();
-    redoEvent.ics = this.newData.ics;
+    const current = latestQueuedIcs.get(this.event.id);
+    redoEvent.ics = matchEventSequence(revertAddedOverrides(this.newData.ics, current), current);
+    latestQueuedIcs.set(redoEvent.id, redoEvent.ics);
     redoEvent.recurrenceStart = this.newData.recurrenceStart;
     redoEvent.recurrenceEnd = this.newData.recurrenceEnd;
 
