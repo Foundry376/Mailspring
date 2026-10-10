@@ -3480,3 +3480,40 @@ describe('ICSEventHelpers.updateOccurrenceAttendeeStatus', function () {
     expect(() => answer(SERIES.join('\r\n'))).toThrow();
   });
 });
+
+describe('TRANSP, the Show As of an event', function () {
+  const transpsOf = (ics: string) =>
+    ics
+      .split('BEGIN:VEVENT')
+      .slice(1)
+      .map((v) => (/^TRANSP:(.*)$/m.exec(v) || [])[1] || null);
+  const createOptions = {
+    summary: 'Offsite',
+    start: new Date(Date.UTC(2026, 2, 1, 14)),
+    end: new Date(Date.UTC(2026, 2, 1, 15)),
+  };
+
+  it('is written on a new event when one is given', function () {
+    const ics = ICSEventHelpers.createICSString({ ...createOptions, transparency: 'TRANSPARENT' });
+    expect(transpsOf(ics)).toEqual(['TRANSPARENT']);
+  });
+
+  it('is left out of a new event when none is given, which reads as busy', function () {
+    expect(transpsOf(ICSEventHelpers.createICSString(createOptions))).toEqual([null]);
+  });
+
+  it('replaces the series value rather than adding a second one', function () {
+    const busy = SIMPLE_ICS.replace('SEQUENCE:0', 'SEQUENCE:0\nTRANSP:OPAQUE');
+    const ics = ICSEventHelpers.updateEventProperty(busy, 'transp', 'TRANSPARENT');
+    expect(transpsOf(ics)).toEqual(['TRANSPARENT']);
+  });
+
+  it('is set on the named exception only', function () {
+    const ics = ICSEventHelpers.applyEditsToException(
+      RECURRING_WITH_EXCEPTION_ICS,
+      '20260302T060000Z',
+      { transparency: 'TRANSPARENT' }
+    );
+    expect(transpsOf(ics)).toEqual([null, 'TRANSPARENT']);
+  });
+});

@@ -148,6 +148,8 @@ interface OccurrenceBase {
    * secondary calendar's own id as ORGANIZER). Governs who may reschedule it.
    */
   isMine: boolean;
+  /** TRANSP:TRANSPARENT on this occurrence's own VEVENT: it does not block time. */
+  isFree?: boolean;
   isException: boolean;
   /**
    * For exception occurrences only: the Unix timestamp (seconds) of the **original**
@@ -335,6 +337,7 @@ function occurrenceFromICS(args: {
     isCancelled: status === 'CANCELLED',
     isPending: status === 'TENTATIVE' || !!isAwaitingMyResponse,
     isMine: !organizerEmail || iAmOrganizer,
+    isFree: item.component?.getFirstPropertyValue('transp') === 'TRANSPARENT',
     isException: args.isException ?? !!rid,
     recurrenceIdStart: rid ? (rid as any).toJSDate().getTime() / 1000 : undefined,
     isRecurring: args.isRecurring,
