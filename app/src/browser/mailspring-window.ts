@@ -4,6 +4,7 @@ import fs from 'fs';
 import url from 'url';
 import { EventEmitter } from 'events';
 import { isWaylandSession } from './is-wayland';
+import { developerToolsAvailable } from '../developer-tools';
 import { XDG_DATA_PATHS, getFirstExistingPath } from '../utils/xdg-paths';
 
 import {
@@ -558,6 +559,7 @@ export default class MailspringWindow extends EventEmitter {
   }
 
   toggleDevTools() {
+    if (!developerToolsAvailable()) return;
     this.browserWindow.webContents.toggleDevTools();
   }
 }

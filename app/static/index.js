@@ -26,7 +26,9 @@ function handleSetupError(error) {
   currentWindow.setSize(800, 600);
   currentWindow.center();
   currentWindow.show();
-  currentWindow.openDevTools();
+  if (require('../src/developer-tools').developerToolsAvailable()) {
+    currentWindow.openDevTools();
+  }
   console.error(error.stack || error);
 }
 
