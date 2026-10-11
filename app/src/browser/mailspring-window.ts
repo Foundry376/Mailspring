@@ -126,6 +126,11 @@ export default class MailspringWindow extends EventEmitter {
         nodeIntegration: true,
         contextIsolation: false,
         webviewTag: true,
+        // Withholding the capability, rather than only the ways to ask for it, is what makes
+        // the console unreachable in a packaged build: these windows hand the renderer a
+        // @electron/remote handle to their own webContents, so any code running in them could
+        // otherwise call openDevTools() directly. Electron turns such calls into silent no-ops.
+        devTools: developerToolsAvailable(),
         // Note: @electron/remote is enabled via remote.initialize() in main process
       },
       autoHideMenuBar,
@@ -173,6 +178,7 @@ export default class MailspringWindow extends EventEmitter {
       webPreferences.nodeIntegrationInSubFrames = false;
       webPreferences.contextIsolation = true;
       webPreferences.sandbox = true;
+      webPreferences.devTools = developerToolsAvailable();
     });
 
     require('@electron/remote/main').enable(this.browserWindow.webContents);

@@ -242,6 +242,7 @@ export function displayQuickPreviewWindow(filePath: string) {
         nodeIntegration: false,
         contextIsolation: true,
         partition: QuickPreviewPartition,
+        devTools: developerToolsAvailable(),
       },
     });
 
@@ -341,6 +342,7 @@ function _createCaptureWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       partition: QuickPreviewPartition,
+      devTools: developerToolsAvailable(),
     },
   });
 

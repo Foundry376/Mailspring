@@ -10,6 +10,7 @@ import {
   Account,
   AccountAutoaddress,
 } from 'mailspring-exports';
+import { developerToolsAvailable } from '../../../../src/developer-tools';
 
 interface AutoaddressControlProps {
   autoaddress: AccountAutoaddress;
@@ -235,6 +236,7 @@ class PreferencesAccountDetails extends Component<
       webPreferences: {
         javascript: false,
         nodeIntegration: false,
+        devTools: developerToolsAvailable(),
       },
     });
     win.loadURL(`file://${filepath}`);
