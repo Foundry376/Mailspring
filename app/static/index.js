@@ -21,15 +21,34 @@ function setLoadTime(loadTime) {
   }
 }
 
+// Paints the stack into the window the user is already looking at, selectable so it can be
+// pasted into a bug report. Deliberately uses no app modules: window setup has just failed,
+// so anything it might require may be the thing that's broken.
+function showSetupErrorInWindow(stack) {
+  var pre = document.createElement('pre');
+  pre.style.cssText =
+    'margin:0;padding:20px;font:12px/1.5 monospace;white-space:pre-wrap;' +
+    'color:#333;background:#fff;-webkit-user-select:text;user-select:text;';
+  var heading = document.createElement('strong');
+  heading.textContent = 'Mailspring failed to start.\n\n';
+  pre.appendChild(heading);
+  pre.appendChild(document.createTextNode(stack));
+  document.body.textContent = '';
+  document.body.appendChild(pre);
+}
+
 function handleSetupError(error) {
   var currentWindow = require('@electron/remote').getCurrentWindow();
   currentWindow.setSize(800, 600);
   currentWindow.center();
   currentWindow.show();
+  var stack = (error && error.stack) || String(error);
+  console.error(stack);
   if (require('../src/developer-tools').developerToolsAvailable()) {
     currentWindow.openDevTools();
+  } else {
+    showSetupErrorInWindow(stack);
   }
-  console.error(error.stack || error);
 }
 
 function copyEnvFromMainProcess() {
