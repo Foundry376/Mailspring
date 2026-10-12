@@ -43,7 +43,7 @@ import { LocationVideoInput } from './location-video-input';
 import { AllDayToggle } from './all-day-toggle';
 import { RepeatSelector, RepeatOption } from './repeat-selector';
 import { AlertSelector, AlertTiming } from './alert-selector';
-import { ShowAsSelector, ShowAsOption } from './show-as-selector';
+import { ShowAsSelector, ShowAsOption, defaultShowAs } from './show-as-selector';
 import { EventPopoverActions } from './event-popover-actions';
 import { TimeZoneSelector } from './timezone-selector';
 import { parseEventIdFromOccurrence } from './calendar-drag-utils';
@@ -118,6 +118,10 @@ interface CalendarEventPopoverState {
   originalTimezone: string;
   alert: AlertTiming;
   showAs: ShowAsOption;
+  /** Whether the user picked Show As; until then a new event's follows the all-day switch. */
+  showAsChosen: boolean;
+  /** The Show As value the event arrived with, so a save writes TRANSP only when it changed. */
+  originalShowAs: ShowAsOption;
   calendarColor: string;
   timezone: string;
   showInvitees: boolean;
@@ -155,7 +159,9 @@ export class CalendarEventPopover extends React.Component<
       originalRepeat: 'none',
       originalTimezone: DateUtils.timeZone,
       alert: '10min',
-      showAs: 'busy',
+      showAs: this._eventShowAs(),
+      showAsChosen: false,
+      originalShowAs: this._eventShowAs(),
       calendarColor: '#419bf9',
       timezone: DateUtils.timeZone,
       showInvitees: attendees && attendees.length > 0,
@@ -171,7 +177,18 @@ export class CalendarEventPopover extends React.Component<
       const { description, location, attendees, title } = this.props.event;
       const start = occurrenceStartUnix(this.props.event);
       const end = occurrenceEndUnix(this.props.event);
-      this.setState({ description, start, end, location, attendees, title });
+      const showAs = this._eventShowAs();
+      this.setState({
+        description,
+        start,
+        end,
+        location,
+        attendees,
+        title,
+        showAs,
+        showAsChosen: false,
+        originalShowAs: showAs,
+      });
     }
 
     // Autofocus invitees input when section is expanded
@@ -224,6 +241,26 @@ export class CalendarEventPopover extends React.Component<
     if (this.props.startEditing && !this.props.isNewEvent) {
       this._loadEditDefaults();
     }
+  }
+
+  _eventShowAs(): ShowAsOption {
+    if (this.props.isNewEvent) return defaultShowAs(this.props.event.isAllDay);
+    return this.props.event.isFree ? 'TRANSPARENT' : 'OPAQUE';
+  }
+
+  updateAllDay = (allDay: boolean): void => {
+    const followsAllDay = this.props.isNewEvent && !this.state.showAsChosen;
+    const showAs = followsAllDay ? defaultShowAs(allDay) : this.state.showAs;
+    this.setState({ allDay, showAs });
+  };
+
+  updateShowAs = (showAs: ShowAsOption): void => {
+    this.setState({ showAs, showAsChosen: true });
+  };
+
+  /** The Show As value to write, or undefined when the user left it as the event had it. */
+  _changedShowAs(): ShowAsOption | undefined {
+    return this.state.showAs !== this.state.originalShowAs ? this.state.showAs : undefined;
   }
 
   getStartMoment = () => moment(this.state.start * 1000);
@@ -360,6 +397,10 @@ export class CalendarEventPopover extends React.Component<
     if (this.state.repeat !== this.state.originalRepeat) {
       ics = ICSEventHelpers.updateRecurrenceRule(ics, repeatOptionToRRule(this.state.repeat));
     }
+    const showAs = this._changedShowAs();
+    if (showAs) {
+      ics = ICSEventHelpers.updateEventProperty(ics, 'transp', showAs);
+    }
 
     // One save is one revision, however many helpers assembled it.
     event.ics = ICSEventHelpers.bumpEventSequence(ics);
@@ -416,6 +457,7 @@ export class CalendarEventPopover extends React.Component<
       description: this.state.description || '',
       attendees: this.state.attendees || [],
       organizer: organizerForAccount(this.props.event.accountId),
+      transparency: this._changedShowAs(),
     });
 
     masterEvent.ics = ICSEventHelpers.bumpEventSequence(updatedMasterIcs, recurrenceId);
@@ -443,6 +485,7 @@ export class CalendarEventPopover extends React.Component<
       attendees,
       repeat,
       timezone,
+      showAs,
       selectedCalendarId,
       selectedAccountId,
     } = this.state;
@@ -464,6 +507,7 @@ export class CalendarEventPopover extends React.Component<
           : undefined,
       recurrenceRule: repeatOptionToRRule(repeat) || undefined,
       timezone,
+      transparency: showAs,
     });
   };
 
@@ -549,10 +593,7 @@ export class CalendarEventPopover extends React.Component<
             />
 
             {/* All-day toggle */}
-            <AllDayToggle
-              checked={allDay}
-              onChange={(checked) => this.updateField('allDay', checked)}
-            />
+            <AllDayToggle checked={allDay} onChange={this.updateAllDay} />
 
             {/* Start/End times using property rows */}
             <EventPropertyRow label={localized('starts:')}>
@@ -596,10 +637,7 @@ export class CalendarEventPopover extends React.Component<
             <AlertSelector value={alert} onChange={(value) => this.updateField('alert', value)} />
 
             {/* Show as selector */}
-            <ShowAsSelector
-              value={showAs}
-              onChange={(value) => this.updateField('showAs', value)}
-            />
+            <ShowAsSelector value={showAs} onChange={this.updateShowAs} />
 
             {/* Invitees section - collapsible */}
             {showInvitees ? (

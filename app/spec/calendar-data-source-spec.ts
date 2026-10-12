@@ -562,3 +562,45 @@ describe('ownCalendarAddresses', function () {
     expect(calendarAddress(cal('e', 'mine', undefined))).toBe('');
   });
 });
+
+describe('occurrencesForEvents and Show As', function () {
+  it('reads TRANSP:TRANSPARENT as free and TRANSP:OPAQUE as busy', function () {
+    const at = (transp: string) =>
+      expand(makeEvent(icsFor('DTSTART:20260301T140000Z', 'DTEND:20260301T150000Z', transp)))[0];
+    expect(at('TRANSP:TRANSPARENT').isFree).toBe(true);
+    expect(at('TRANSP:OPAQUE').isFree).toBe(false);
+  });
+
+  it("reads each occurrence's own TRANSP, so a busy exception of a free series is busy", function () {
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Test//Test//EN',
+      'BEGIN:VEVENT',
+      'UID:uid@test',
+      'DTSTART;VALUE=DATE:20260301',
+      'DTEND;VALUE=DATE:20260302',
+      'RRULE:FREQ=DAILY;COUNT=3',
+      'TRANSP:TRANSPARENT',
+      'SUMMARY:On call',
+      'DTSTAMP:20260101T000000Z',
+      'END:VEVENT',
+      'BEGIN:VEVENT',
+      'UID:uid@test',
+      'RECURRENCE-ID;VALUE=DATE:20260302',
+      'DTSTART;VALUE=DATE:20260302',
+      'DTEND;VALUE=DATE:20260303',
+      'TRANSP:OPAQUE',
+      'SUMMARY:On call (handover)',
+      'DTSTAMP:20260101T000000Z',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\n');
+    const freeByDay = new Map(
+      expand(makeEvent(ics)).map((o) => [formatCalendarDate(o.startDate), o.isFree])
+    );
+    expect(freeByDay.get('2026-03-01')).toBe(true);
+    expect(freeByDay.get('2026-03-02')).toBe(false);
+    expect(freeByDay.get('2026-03-03')).toBe(true);
+  });
+});
