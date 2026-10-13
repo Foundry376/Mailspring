@@ -26,7 +26,6 @@ import {
   CalendarDataSource,
   EventOccurrence,
   FocusedEventInfo,
-  coveredDates,
   isEventSelected,
   occurrenceId,
   occurrencesForEvents,
@@ -47,6 +46,8 @@ import {
   invalidateThemeTextColorCache,
   shiftEndWithStart,
   clampEnd,
+  newEventOccurrence,
+  NewEventDraft,
 } from './calendar-helpers';
 import { Disposable } from 'rx-core';
 import { CalendarEventArgs } from './calendar-event-container';
@@ -153,6 +154,8 @@ export class MailspringCalendar extends React.Component<
   MailspringCalendarProps,
   MailspringCalendarState
 > {
+  /** Distinguishes the editors of events that do not exist yet, so a closing one clears only its own. */
+  _newEventSerial = 0;
   static displayName = 'MailspringCalendar';
 
   static DayView = DayView;
@@ -516,42 +519,29 @@ export class MailspringCalendar extends React.Component<
       return;
     }
 
-    // Build a temporary EventOccurrence to open the popover in "new event" mode. Build the
-    // right variant — an all-day new event carries dates only, like every other occurrence.
-    const base = {
-      id: `__new_event_${Date.now()}`,
-      ...coveredDates(startUnix, endUnix, isAllDay),
+    const id = `__new_event_${++this._newEventSerial}`;
+    const draft: NewEventDraft = {
       title: '',
-      description: '',
-      location: '',
-      isRecurring: false,
-      isCancelled: false,
-      isPending: false,
-      isMine: true,
-      isException: false,
-      organizer: null,
-      attendees: [],
-      accountId: editableCalendars[0].accountId,
+      start: startUnix,
+      end: endUnix,
+      isAllDay,
       calendarId: editableCalendars[0].id,
+      accountId: editableCalendars[0].accountId,
     };
-    const newEventOccurrence: EventOccurrence = isAllDay
-      ? { ...base, isAllDay: true }
-      : { ...base, isAllDay: false, start: startUnix, end: endUnix };
-
-    const preview = { ...newEventOccurrence, isDragPreview: true };
-    this.setState({ newEvent: preview });
+    this._showNewEvent(id, draft);
 
     // Open the popover anchored near the mouse position
     const originRect = new DOMRect(clientX - 1, clientY - 1, 2, 2);
 
     Actions.openPopover(
       <CalendarEventPopover
-        event={newEventOccurrence}
+        event={newEventOccurrence(id, draft)}
         isNewEvent
         calendars={this.state.calendars}
         accounts={this.state.accounts}
         disabledCalendars={this.state.disabledCalendars}
-        onClosed={() => this._onNewEventEditorClosed(preview)}
+        onDraftChange={(edited) => this._showNewEvent(id, edited)}
+        onClosed={() => this._onNewEventEditorClosed(id)}
       />,
       {
         originRect,
@@ -562,9 +552,14 @@ export class MailspringCalendar extends React.Component<
     );
   }
 
+  /** Draws the event its editor would save now, under the id that editor was opened with. */
+  _showNewEvent(id: string, draft: NewEventDraft) {
+    this.setState({ newEvent: { ...newEventOccurrence(id, draft), isDragPreview: true } });
+  }
+
   // Opening an editor over an open one unmounts the old one after the new one has set its own.
-  _onNewEventEditorClosed(preview: EventOccurrence) {
-    this.setState((state) => (state.newEvent === preview ? { newEvent: null } : null));
+  _onNewEventEditorClosed(id: string) {
+    this.setState((state) => (state.newEvent?.id === id ? { newEvent: null } : null));
   }
 
   _newEventPreview(): EventOccurrence | null {

@@ -324,6 +324,8 @@ describe('opening the editor for a new event', function () {
 
   const shown = () => cal._renderMainContent().props.newEventPreview;
   const editor = () => Actions.openPopover.mostRecentCall.args[0];
+  const mountEditor = (): any => ReactDOM.render(editor(), document.createElement('div'));
+  const dateOf = (unix: number) => CalendarDateUtils.calendarDateFromUnix(unix);
 
   const range = {
     startUnix: BASE,
@@ -357,6 +359,7 @@ describe('opening the editor for a new event', function () {
     cal._openNewEventPopover(range);
     expect(shown().start).toBe(BASE);
     expect(shown().end).toBe(BASE + 3600);
+    expect(shown().startDate).toEqual(dateOf(BASE));
     expect(shown().calendarId).toBe('cal-1');
     expect(shown().isDragPreview).toBe(true);
 
@@ -373,6 +376,64 @@ describe('opening the editor for a new event', function () {
     cal._openNewEventPopover({ ...range, startUnix: BASE + 7200, endUnix: BASE + 10800 });
     first.props.onClosed();
     expect(shown().start).toBe(BASE + 7200);
+  });
+
+  it('draws an all-day event opened from the grid as the one day its range covers', function () {
+    const dayStart = CalendarDateUtils.dayStartUnix(dateOf(BASE));
+    const nextDayStart = CalendarDateUtils.nextDayStartUnix(dateOf(BASE));
+    cal._openNewEventPopover({
+      ...range,
+      startUnix: dayStart,
+      endUnix: nextDayStart,
+      isAllDay: true,
+    });
+    expect(shown().isAllDay).toBe(true);
+    expect(shown().endDate).toEqual(dateOf(BASE));
+  });
+
+  it('redraws the new event with the title typed in its editor', function () {
+    cal._openNewEventPopover(range);
+    mountEditor().updateField('title', 'Standup');
+    expect(shown().title).toBe('Standup');
+  });
+
+  it('moves the new event when its editor changes the start, keeping its length', function () {
+    cal._openNewEventPopover(range);
+    mountEditor().updateStart(BASE + 1800);
+    expect(shown().start).toBe(BASE + 1800);
+    expect(shown().end).toBe(BASE + 5400);
+  });
+
+  it('resizes the new event when its editor changes the end', function () {
+    cal._openNewEventPopover(range);
+    mountEditor().updateEnd(BASE + 7200);
+    expect(shown().start).toBe(BASE);
+    expect(shown().end).toBe(BASE + 7200);
+  });
+
+  it('turns the new event all-day when its editor does, over the days its times spanned', function () {
+    cal._openNewEventPopover(range);
+    const opened = mountEditor();
+    opened.updateEnd(BASE + 86400);
+    opened.updateAllDay(true);
+    expect(shown().isAllDay).toBe(true);
+    expect(shown().startDate).toEqual(dateOf(BASE));
+    expect(shown().endDate).toEqual(dateOf(BASE + 86400));
+  });
+
+  it('recolours the new event when its editor picks another calendar', function () {
+    cal._openNewEventPopover(range);
+    mountEditor().updateCalendar('cal-2', 'acct-2');
+    expect(shown().calendarId).toBe('cal-2');
+    expect(shown().accountId).toBe('acct-2');
+  });
+
+  it('leaves the grid alone when the editor changes a field the grid does not draw', function () {
+    cal._openNewEventPopover(range);
+    const opened = mountEditor();
+    spyOn(cal, 'setState');
+    opened.updateField('description', 'Bring the slides');
+    expect(cal.setState).not.toHaveBeenCalled();
   });
 
   it("shows the range being drawn over an open editor's event", function () {
