@@ -13,6 +13,7 @@ import {
   CalendarUtils,
   SyncbackEventTask,
   CalendarDateUtils,
+  Utils,
 } from 'mailspring-exports';
 import {
   DatePicker,
@@ -36,6 +37,7 @@ import {
   inclusiveAllDayEnd,
   shiftEndWithStart,
   clampEnd,
+  NewEventDraft,
 } from './calendar-helpers';
 // CalendarColorPicker import removed - disabled until custom event colors are fully supported
 import { CalendarSelector } from './calendar-selector';
@@ -99,6 +101,9 @@ interface CalendarEventPopoverProps {
   disabledCalendars?: string[];
   /** Whether the calendar containing this event is read-only */
   isCalendarReadOnly?: boolean;
+  /** Receives the event as the editor would now save it, whenever a field the grid draws changes. */
+  onDraftChange?: (draft: NewEventDraft) => void;
+  onClosed?: () => void;
 }
 
 interface CalendarEventPopoverState {
@@ -191,6 +196,11 @@ export class CalendarEventPopover extends React.Component<
       });
     }
 
+    const draft = this._draft();
+    if (!Utils.isEqualReact(draft, this._draft(prevState))) {
+      this.props.onDraftChange?.(draft);
+    }
+
     // Autofocus invitees input when section is expanded
     // Use requestAnimationFrame to ensure DOM is ready
     if (this.state.showInvitees && !prevState.showInvitees) {
@@ -241,6 +251,22 @@ export class CalendarEventPopover extends React.Component<
     if (this.props.startEditing && !this.props.isNewEvent) {
       this._loadEditDefaults();
     }
+  }
+
+  componentWillUnmount() {
+    this.props.onClosed?.();
+  }
+
+  _draft(state: CalendarEventPopoverState = this.state): NewEventDraft {
+    const { title, start, end, allDay, selectedCalendarId, selectedAccountId } = state;
+    return {
+      title,
+      start,
+      end,
+      isAllDay: allDay,
+      calendarId: selectedCalendarId,
+      accountId: selectedAccountId,
+    };
   }
 
   _eventShowAs(): ShowAsOption {
@@ -533,6 +559,10 @@ export class CalendarEventPopover extends React.Component<
     this.setState({ end: clampEnd(this.state.start, end, this.state.allDay) });
   };
 
+  updateCalendar = (calendarId: string, accountId: string): void => {
+    this.setState({ selectedCalendarId: calendarId, selectedAccountId: accountId });
+  };
+
   renderEditable = () => {
     const {
       title,
@@ -577,9 +607,7 @@ export class CalendarEventPopover extends React.Component<
                 accounts={this.props.accounts}
                 disabledCalendars={this.props.disabledCalendars || []}
                 selectedCalendarId={this.state.selectedCalendarId}
-                onChange={(calendarId, accountId) => {
-                  this.setState({ selectedCalendarId: calendarId, selectedAccountId: accountId });
-                }}
+                onChange={this.updateCalendar}
               />
             )}
 
