@@ -1,6 +1,7 @@
 import { app, ipcMain, nativeImage, NativeImage } from 'electron';
 import { localized } from '../intl';
 import Application from './application';
+import { onFromMailspringWindows } from './trusted-ipc';
 
 /**
  * Manages Windows-specific taskbar integration features:
@@ -75,7 +76,7 @@ class WindowsTaskbarManager {
    */
   private _registerIpcHandlers() {
     // Overlay icon: updated when badge/unread count changes
-    ipcMain.on('set-overlay-icon', (_event, unreadCount: number) => {
+    onFromMailspringWindows(ipcMain, 'set-overlay-icon', (_event, unreadCount: number) => {
       this._updateOverlayIcon(unreadCount);
     });
   }
