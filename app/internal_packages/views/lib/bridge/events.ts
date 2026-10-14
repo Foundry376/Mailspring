@@ -194,3 +194,28 @@ export function freeBusy(events: SerializedOccurrence[], range: EventRange) {
   const busySeconds = merged.reduce((sum, [s, e]) => sum + (e - s), 0);
   return { busy, busyMinutes: Math.round(busySeconds / 60) };
 }
+
+/**
+ * The events `ai.extract` reads for a range: one per stored event, taken from its first
+ * occurrence in the range, so a weekly series is read once and its answer applies to every
+ * occurrence (results are keyed by `eventId`).
+ */
+export async function eventsForExtraction(grant: ViewGrant, range: EventRange) {
+  const seen = new Set<string>();
+  const out = [];
+  for (const e of serializeEvents(grant, await eventQuery(range), range)) {
+    if (seen.has(e.eventId) || e.status === 'CANCELLED') continue;
+    seen.add(e.eventId);
+    out.push({
+      eventId: e.eventId,
+      title: e.title || '',
+      start: new Date(e.start),
+      allDay: e.allDay,
+      location: e.location,
+      organizer: e.organizer ? e.organizer.name || e.organizer.email : null,
+      attendees: e.attendees.filter((a) => !a.isMe).map((a) => a.name || a.email),
+      description: e.description,
+    });
+  }
+  return out;
+}

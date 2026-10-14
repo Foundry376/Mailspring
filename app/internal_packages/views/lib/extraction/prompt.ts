@@ -25,8 +25,16 @@ const MAX_LIST_ITEMS = 8;
 // decode-bound, so a longer input buys little.
 const MAX_BODY_CHARS = 4000;
 
-const SYSTEM =
-  'You extract structured data from emails. Answer only with JSON that matches the requested fields. Copy values verbatim from the email when asked. Use null when a field is not present.';
+/** What a prompt is about: an email, or a calendar event (`ai.extract` over `events`). */
+export type SourceKind = 'email' | 'event';
+
+const NOUN: { [kind in SourceKind]: { one: string; plural: string } } = {
+  email: { one: 'email', plural: 'emails' },
+  event: { one: 'calendar event', plural: 'calendar events' },
+};
+
+const system = (kind: SourceKind) =>
+  `You extract structured data from ${NOUN[kind].plural}. Answer only with JSON that matches the requested fields. Copy values verbatim from the ${NOUN[kind].one} when asked. Use null when a field is not present.`;
 
 export function fieldType(t: FieldType): string {
   return typeof t === 'string' ? t : t.type;
@@ -134,16 +142,61 @@ export function emailBlock(m: PromptMessage): string {
   }\nDate: ${date}\n\n${(m.text || '').slice(0, MAX_BODY_CHARS)}`;
 }
 
+export interface PromptEvent {
+  title: string;
+  start: Date;
+  allDay: boolean;
+  location: string | null;
+  organizer: string | null;
+  attendees: string[];
+  description: string | null;
+}
+
+const MAX_ATTENDEES = 12;
+
+export function eventBlock(e: PromptEvent): string {
+  const when = e.allDay
+    ? e.start.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    : e.start.toLocaleString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      });
+  const lines = [`Title: ${e.title || ''}`, `When: ${when}`];
+  if (e.location) lines.push(`Location: ${e.location}`);
+  if (e.organizer) lines.push(`Organizer: ${e.organizer}`);
+  if (e.attendees.length)
+    lines.push(`Attendees: ${e.attendees.slice(0, MAX_ATTENDEES).join(', ')}`);
+  return `${lines.join('\n')}\n\n${(e.description || '').slice(0, MAX_BODY_CHARS)}`;
+}
+
 export function buildPrompt(schema: Schema, message: PromptMessage, instructions?: string) {
+  return promptFor(schema, 'email', emailBlock(message), instructions);
+}
+
+export function buildEventPrompt(schema: Schema, event: PromptEvent, instructions?: string) {
+  return promptFor(schema, 'event', eventBlock(event), instructions);
+}
+
+function promptFor(schema: Schema, kind: SourceKind, block: string, instructions?: string) {
+  const noun = NOUN[kind].one;
   const lines = Object.keys(schema).map((f) => {
     const desc = description(schema[f]);
     return `- ${f}: ${desc ? `${desc}; ` : ''}${hint(schema[f])}`;
   });
   const notes = instructions ? `\nAlso: ${instructions.slice(0, 500)}\n` : '';
-  const user = `Fill these fields from the email below. Use null when the email does not state a value; never invent one, and never put a different kind of value in a field (an address is not an order number).\n${lines.join(
+  const user = `Fill these fields from the ${noun} below. Use null when the ${noun} does not state a value; never invent one, and never put a different kind of value in a field (an address is not an order number).\n${lines.join(
     '\n'
-  )}\n${notes}\nEMAIL:\n${emailBlock(message)}`;
+  )}\n${notes}\n${noun.toUpperCase()}:\n${block}`;
   // The ChatML markers stay plain text: on the eval set this measured better than encoding
   // them as special tokens. The empty think block turns off Qwen3.5's reasoning mode.
-  return `<|im_start|>system\n${SYSTEM}<|im_end|>\n<|im_start|>user\n${user}<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n`;
+  return `<|im_start|>system\n${system(kind)}<|im_end|>\n<|im_start|>user\n${user}<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n`;
 }

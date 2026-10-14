@@ -217,10 +217,19 @@
     if (listener) listener(progress);
   });
 
-  function startExtract({ ids, query, schema, instructions }, onProgress) {
+  // `events` is an event range (as for useEvents), optionally narrowed to `eventIds`; its
+  // results are keyed by eventId.
+  function startExtract({ ids, query, events, schema, instructions }, onProgress) {
     const jobId = uid('j');
     jobListeners.set(jobId, onProgress);
-    const started = call('ai.extract', { jobId, ids, query, schema, instructions });
+    const started = call('ai.extract', {
+      jobId,
+      ids,
+      query,
+      events: events ? { ...rangeParams(events), eventIds: events.eventIds } : undefined,
+      schema,
+      instructions,
+    });
     const cancel = () => {
       jobListeners.delete(jobId);
       call('ai.cancel', { jobId }).catch(() => {});
@@ -232,7 +241,7 @@
     return new Promise((resolve, reject) => {
       const results = {};
       const { started, cancel } = startExtract(opts, (p) => {
-        for (const r of p.results) results[r.messageId] = r;
+        for (const r of p.results) results[r.messageId || r.eventId] = r;
         if (onProgress) onProgress({ ...p, results });
         if (p.status === 'error') {
           cancel();
@@ -249,7 +258,11 @@
   const IDLE = { results: {}, processed: 0, total: 0, status: 'idle', error: null };
 
   function useExtract(opts) {
-    const enabled = !!(opts && opts.schema && (opts.ids ? opts.ids.length : opts.query != null));
+    const enabled = !!(
+      opts &&
+      opts.schema &&
+      (opts.events ? true : opts.ids ? opts.ids.length : opts.query != null)
+    );
     const key = enabled ? JSON.stringify(opts) : null;
     const [state, setState] = useState(IDLE);
     useEffect(() => {
@@ -261,13 +274,15 @@
       const { started, cancel } = startExtract(opts, (p) =>
         setState((s) => {
           const results = { ...s.results };
-          for (const r of p.results) results[r.messageId] = r;
+          for (const r of p.results) results[r.messageId || r.eventId] = r;
           return {
             results,
             processed: p.processed,
             total: p.total,
             status: p.status,
             error: p.error ? new ViewError(p.error) : null,
+            modelStatus: p.modelStatus || s.modelStatus,
+            modelProgress: p.modelProgress ?? s.modelProgress,
           };
         })
       );
@@ -488,6 +503,7 @@
     reply: (messageId, opts = {}) => call('ui.reply', { messageId, ...opts }),
     openExternal: (url) => call('ui.openExternal', { url }),
     setBadge: (count) => call('ui.setBadge', { count }),
+    print: (opts = {}) => call('ui.print', { landscape: !!opts.landscape }),
   };
 
   async function attachmentUrl(id) {

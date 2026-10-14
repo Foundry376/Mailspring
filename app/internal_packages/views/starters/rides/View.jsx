@@ -2,6 +2,8 @@ import React, { useMemo, useState } from 'react';
 import {
   BarChart,
   Bar,
+  PieChart,
+  Pie,
   Cell,
   XAxis,
   YAxis,
@@ -9,7 +11,20 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from 'recharts';
-import { Car, ParkingSquare, UtensilsCrossed, Receipt, Search, Loader2, X } from 'lucide-react';
+import {
+  Car,
+  ParkingSquare,
+  UtensilsCrossed,
+  Plane,
+  ShoppingBag,
+  Cloud,
+  Zap,
+  HeartPulse,
+  Receipt,
+  Search,
+  Loader2,
+  X,
+} from 'lucide-react';
 import {
   useMessages,
   useContent,
@@ -21,10 +36,15 @@ import {
   ThreadActions,
 } from '@mailspring/view';
 
+// `query: true` categories also widen the search: their senders' transactional mail counts even
+// without "receipt" in the subject. The rest only sort receipts the search already found, so
+// a retailer's "Your order has shipped" doesn't double-count its order confirmation.
+// Categories are checked in order, so aws.amazon.com is Software before amazon.com is Shopping.
 const CATEGORIES = [
   {
     id: 'Rides',
     icon: Car,
+    query: true,
     domains: [
       'uber.com',
       'lyft.com',
@@ -38,11 +58,13 @@ const CATEGORIES = [
   {
     id: 'Parking',
     icon: ParkingSquare,
+    query: true,
     domains: ['metropolis.io', 'parkmobile.io', 'spothero.com', 'paybyphone.com'],
   },
   {
-    id: 'Food',
+    id: 'Food & dining',
     icon: UtensilsCrossed,
+    query: true,
     domains: [
       'doordash.com',
       'grubhub.com',
@@ -51,11 +73,137 @@ const CATEGORIES = [
       'seamless.com',
       'toasttab.com',
     ],
+    subject: /restaurant|dining|\bmeal\b|\bcafe\b|coffee/i,
   },
-  { id: 'Other receipts', icon: Receipt, domains: [] },
+  {
+    id: 'Travel',
+    icon: Plane,
+    domains: [
+      'delta.com',
+      'united.com',
+      'aa.com',
+      'southwest.com',
+      'luv.southwest.com',
+      'jetblue.com',
+      'alaskaair.com',
+      'airbnb.com',
+      'hoteltonight.com',
+      'booking.com',
+      'expedia.com',
+      'hotels.com',
+      'vrbo.com',
+      'marriott.com',
+      'hilton.com',
+      'hyatt.com',
+      'ihg.com',
+      'amtrak.com',
+      'hertz.com',
+      'avis.com',
+      'enterprise.com',
+      'nationalcar.com',
+      'turo.com',
+    ],
+    subject: /flight|itinerary|e-?ticket|hotel|reservation|check-?in|boarding/i,
+  },
+  {
+    id: 'Software & services',
+    icon: Cloud,
+    domains: [
+      'aws.amazon.com',
+      'apple.com',
+      'google.com',
+      'microsoft.com',
+      'github.com',
+      'heroku.com',
+      'sentry.io',
+      'digitalocean.com',
+      'vercel.com',
+      'cloudflare.com',
+      'godaddy.com',
+      'namecheap.com',
+      'squarespace.com',
+      'adobe.com',
+      'dropbox.com',
+      'slack.com',
+      'zoom.us',
+      'notion.so',
+      'figma.com',
+      'atlassian.com',
+      'linear.app',
+      'openai.com',
+      'anthropic.com',
+      '1password.com',
+      'zenledger.io',
+      'cointracker.io',
+      'intuit.com',
+      'netflix.com',
+      'spotify.com',
+      'hulu.com',
+      'disneyplus.com',
+      'nytimes.com',
+    ],
+    subject: /subscription|renewal|domain|hosting|\bplan\b|license/i,
+  },
+  {
+    id: 'Shopping',
+    icon: ShoppingBag,
+    domains: [
+      'amazon.com',
+      'target.com',
+      'walmart.com',
+      'bestbuy.com',
+      'costco.com',
+      'etsy.com',
+      'ebay.com',
+      'shopify.com',
+      'shop.app',
+      'homedepot.com',
+      'lowes.com',
+      'ikea.com',
+      'wayfair.com',
+      'rei.com',
+      'nike.com',
+      // Carriers bill for duties and shipping on things bought abroad.
+      'dhl.com',
+      'ups.com',
+      'fedex.com',
+    ],
+    subject: /\border\b|purchase|in-store receipt/i,
+  },
+  {
+    id: 'Bills & services',
+    icon: Zap,
+    domains: [
+      'comcast.com',
+      'xfinity.com',
+      'att.com',
+      'verizon.com',
+      't-mobile.com',
+      'spectrum.com',
+      'spectrum.net',
+      'googlefiber.net',
+    ],
+    subject: /utilit|electric|\bwater\b|\bgas bill|internet|wireless|\bphone bill|appointment/i,
+    // Accountants, lawyers and personal services bill under a firm name, not a known domain.
+    names: /\bp\.?l\.?l\.?c\b|\bcpa\b|\blaw\b|barber|salon|\bspa\b|cleaning|plumbing|electric/i,
+  },
+  {
+    id: 'Health',
+    icon: HeartPulse,
+    domains: [
+      'questdiagnostics.com',
+      'labcorp.com',
+      'cvs.com',
+      'walgreens.com',
+      'onemedical.com',
+      'zocdoc.com',
+    ],
+    subject: /pharmacy|prescription|\blab\b|medical|clinic|dental|copay|patient/i,
+  },
+  { id: 'Other', icon: Receipt, domains: [] },
 ];
 
-const KNOWN_DOMAINS = CATEGORIES.flatMap((c) => c.domains);
+const KNOWN_DOMAINS = CATEGORIES.filter((c) => c.query).flatMap((c) => c.domains);
 const RANGES = { 12: '12 months', 24: '24 months', 60: '5 years' };
 
 // Known senders also send promos, policy notices and sign-in codes; only these subjects are
@@ -122,9 +270,28 @@ function isCandidate(message) {
 
 function categoryOf(message) {
   const email = (message.from?.email || '').toLowerCase();
-  if (/uber\.com$/.test(email) && /eats/i.test(message.subject)) return 'Food';
-  const hit = CATEGORIES.find((c) => c.domains.some((d) => email.endsWith(d)));
-  return hit ? hit.id : 'Other receipts';
+  const subject = message.subject || '';
+  if (/uber\.com$/.test(email) && /eats/i.test(subject)) return 'Food & dining';
+  // Whole domains only: "aa.com" mustn't match baa.com, nor "att.com" matt.com.
+  const bySender = CATEGORIES.find((c) =>
+    c.domains.some((d) => email.endsWith(`@${d}`) || email.endsWith(`.${d}`))
+  );
+  if (bySender) return bySender.id;
+  // Payment processors (Stripe, Square) send on a merchant's behalf, and only the sender name
+  // says who: "Sentry <receipts@stripe.com>" is a sentry.io receipt.
+  const name = (message.from?.name || '').toLowerCase();
+  const byName = CATEGORIES.find(
+    (c) =>
+      (c.names && c.names.test(`${name} ${subject}`)) ||
+      c.domains.some((d) => {
+        // The first label: aws.amazon.com is "aws", so Amazon.com orders stay in Shopping.
+        const root = d.split('.')[0];
+        return root.length > 3 && new RegExp(`\\b${root}\\b`).test(name);
+      })
+  );
+  if (byName) return byName.id;
+  const bySubject = CATEGORIES.find((c) => c.subject && c.subject.test(subject));
+  return bySubject ? bySubject.id : 'Other';
 }
 
 function merchantOf(message) {
@@ -240,6 +407,102 @@ function CategoryLegend({ categories, colorOf, selected, onSelect }) {
   );
 }
 
+// The share of spend per category. It follows the month filter but not the category filter:
+// clicking a slice or row selects that category everywhere else, and the other slices stay
+// visible (dimmed) so the choice can be changed from here.
+function WhereItWent({ rows, colorOf, selected, onSelect, monthName, theme }) {
+  const total = rows.reduce((s, r) => s + r.amount, 0);
+  const slices = CATEGORIES.map((c) => {
+    const own = rows.filter((r) => r.category === c.id);
+    return { category: c, amount: own.reduce((s, r) => s + r.amount, 0), count: own.length };
+  })
+    .filter((x) => x.count > 0)
+    // Biggest first, with Other last however big it is: it's the remainder, not a category.
+    .sort(
+      (a, b) => (a.category.id === 'Other') - (b.category.id === 'Other') || b.amount - a.amount
+    );
+  const toggle = (id) => onSelect(selected === id ? null : id);
+  const faded = (id) => (selected && selected !== id ? 0.3 : 1);
+
+  return (
+    <div className="rounded-lg border border-ms-border bg-ms-panel p-4">
+      <div className="mb-3 flex items-baseline gap-x-3 text-sm">
+        <span className="font-semibold">Where it went</span>
+        {monthName && <span className="text-xs text-ms-muted">{monthName}</span>}
+      </div>
+      {slices.length === 0 ? (
+        <div className="py-6 text-center text-sm text-ms-muted">No receipts in this month.</div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-6">
+          <div className="h-40 w-40 shrink-0 cursor-pointer [&_*]:outline-none">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart accessibilityLayer={false}>
+                <Pie
+                  data={slices}
+                  dataKey="amount"
+                  nameKey="category.id"
+                  innerRadius="45%"
+                  outerRadius="100%"
+                  stroke={theme.colors.panel}
+                  isAnimationActive={false}
+                  onClick={(slice) => toggle(slice.payload.category.id)}
+                >
+                  {slices.map((x) => (
+                    <Cell
+                      key={x.category.id}
+                      fill={colorOf(x.category)}
+                      fillOpacity={faded(x.category.id)}
+                    />
+                  ))}
+                </Pie>
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="min-w-[240px] flex-1 space-y-1">
+            {slices.map(({ category: c, amount, count }) => {
+              const Icon = c.icon;
+              const share = total ? amount / total : 0;
+              return (
+                <button
+                  key={c.id}
+                  aria-pressed={selected === c.id}
+                  onClick={() => toggle(c.id)}
+                  style={{ opacity: faded(c.id) }}
+                  className={`block w-full rounded-md border px-2 py-1.5 text-left ${
+                    selected === c.id ? 'border-ms-accent' : 'border-transparent hover:bg-ms-bg'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 text-sm">
+                    <span
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{ background: colorOf(c) }}
+                    />
+                    <Icon size={14} className="shrink-0 text-ms-muted" />
+                    <span className="truncate">{c.id}</span>
+                    <span className="shrink-0 text-xs text-ms-muted">
+                      {count} {count === 1 ? 'receipt' : 'receipts'}
+                    </span>
+                    <span className="ml-auto shrink-0 tabular-nums">{money(amount)}</span>
+                    <span className="w-10 shrink-0 text-right text-xs tabular-nums text-ms-muted">
+                      {Math.round(share * 100)}%
+                    </span>
+                  </div>
+                  <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-ms-bg">
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: `${share * 100}%`, background: colorOf(c) }}
+                    />
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function RidesView() {
   const theme = useTheme();
   const [range, setRange] = useViewState('range', '24');
@@ -313,7 +576,9 @@ export default function RidesView() {
   }, [rows]);
 
   const usedCategories = CATEGORIES.filter((c) => rows.some((r) => r.category === c.id));
-  const colorOf = (c) => theme.chart[CATEGORIES.indexOf(c) % theme.chart.length];
+  // Eight chart colors for the eight named categories; Other stays neutral.
+  const colorOf = (c) =>
+    c.id === 'Other' ? theme.colors.muted : theme.chart[CATEGORIES.indexOf(c) % theme.chart.length];
   const total = rows.reduce((s, r) => s + r.amount, 0);
   const byMerchant = rows.reduce(
     (acc, r) => ({ ...acc, [r.merchant]: (acc[r.merchant] || 0) + r.amount }),
@@ -462,6 +727,15 @@ export default function RidesView() {
                 onSelect={setCategory}
               />
             </div>
+
+            <WhereItWent
+              rows={month ? rows.filter((r) => r.month === month) : rows}
+              colorOf={colorOf}
+              selected={category}
+              onSelect={setCategory}
+              monthName={month && monthLabel(month, { month: 'long', year: 'numeric' })}
+              theme={theme}
+            />
 
             <div className="rounded-lg border border-ms-border bg-ms-panel">
               <div className="flex flex-wrap items-baseline gap-x-3 px-4 pt-3 text-sm">

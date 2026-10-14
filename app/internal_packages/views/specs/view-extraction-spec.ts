@@ -1,6 +1,12 @@
 import { ipcRenderer } from 'electron';
 import { Message, Contact } from 'mailspring-exports';
-import { buildPrompt, compileJsonSchema, schemaHash, Schema } from '../lib/extraction/prompt';
+import {
+  buildEventPrompt,
+  buildPrompt,
+  compileJsonSchema,
+  schemaHash,
+  Schema,
+} from '../lib/extraction/prompt';
 import {
   normalizeAnswer,
   parseMoney,
@@ -9,7 +15,7 @@ import {
   looksLikeMoney,
   occursIn,
 } from '../lib/extraction/normalize';
-import { runExtractJob, cancelJobsForView } from '../lib/bridge/extract';
+import { runExtractJob, runEventExtractJob, cancelJobsForView } from '../lib/bridge/extract';
 import { ViewGrant } from '../lib/bridge/grant';
 import { FULL_GRANT } from '../../mcp-server/lib/capabilities/grant';
 import * as bodies from '../lib/bridge/bodies';
@@ -163,6 +169,24 @@ describe('View extraction', function viewExtractionSpec() {
       expect(prompt.endsWith('<think>\n\n</think>\n\n')).toBe(true);
     });
 
+    it('asks about a calendar event, not an email, when extracting over events', () => {
+      const prompt = buildEventPrompt(schema, {
+        title: 'Library storytime',
+        start: SENT,
+        allDay: false,
+        location: 'Main library',
+        organizer: 'Bellevue Library',
+        attendees: ['Grandma'],
+        description: 'Songs and stories for ages 2-5.',
+      });
+      expect(prompt).toContain('from calendar events.');
+      expect(prompt).toContain('Fill these fields from the calendar event below.');
+      expect(prompt).toContain('CALENDAR EVENT:\nTitle: Library storytime\nWhen: Fri, Oct 2, 2026');
+      expect(prompt).toContain('Location: Main library\nOrganizer: Bellevue Library');
+      expect(prompt).toContain('Attendees: Grandma\n\nSongs and stories for ages 2-5.');
+      expect(prompt).not.toContain('EMAIL:');
+    });
+
     it('keys the answer cache by message, schema and model', () => {
       const a = cacheKey('m1', 'h1', EXTRACTION_MODEL_VERSION);
       expect(a).toBe(cacheKey('m1', 'h1', EXTRACTION_MODEL_VERSION));
@@ -260,6 +284,67 @@ describe('View extraction', function viewExtractionSpec() {
       await run;
       expect(job.cancelled).toBe(true);
       expect(ipcRenderer.invoke).toHaveBeenCalledWith('extraction:cancel-view', 'spec-extract');
+    });
+  });
+  describe('runEventExtractJob', () => {
+    const grant: ViewGrant = {
+      viewId: 'spec-events',
+      namespace: 'view:spec-events',
+      permissions: new Set(['calendar.read']),
+      scope: FULL_GRANT,
+    };
+    const event = (eventId: string, description: string) => ({
+      eventId,
+      title: 'Saturday plans',
+      start: SENT,
+      allDay: true,
+      location: null,
+      organizer: null,
+      attendees: [],
+      description,
+    });
+    let requests;
+
+    beforeEach(() => {
+      requests = [];
+      spyOn(ipcRenderer, 'invoke').andCallFake(async (channel, req) => {
+        if (channel === 'extraction:status') return { available: true, modelVersion: 'spec' };
+        if (String(channel).startsWith('local-model:')) return null;
+        if (channel === 'extraction:cancel-view') return 0;
+        requests.push(req);
+        return req.items.map((item) => ({
+          messageId: item.messageId,
+          value: { who: item.messageId === 'event:e1' ? 'Grandma' : 'Santa' },
+          cached: false,
+          ms: 5,
+        }));
+      });
+    });
+
+    async function run(events) {
+      const progress = [];
+      await runEventExtractJob(grant, events, { who: 'string' }, { cancelled: false }, (p) =>
+        progress.push(p)
+      );
+      return progress.reduce((all, p) => all.concat(p.results), []);
+    }
+
+    it('keys results by event, grounded in the event text', async () => {
+      const results = await run([event('e1', 'Grandma visits'), event('e2', 'Nothing here')]);
+      expect(requests[0].items.map((i) => i.messageId)).toEqual(['event:e1', 'event:e2']);
+      expect(results.map((r) => [r.eventId, r.value])).toEqual([
+        ['e1', { who: 'Grandma' }],
+        // "Santa" isn't in e2's text, so it never reaches the View.
+        ['e2', null],
+      ]);
+    });
+
+    it('reuses answers until the event text changes', async () => {
+      await run([event('e3', 'Grandma visits')]);
+      await run([event('e3', 'Grandma visits')]);
+      expect(requests.length).toBe(1);
+      await run([event('e3', 'Grandma and Grandpa visit')]);
+      expect(requests.length).toBe(2);
     });
   });
 });

@@ -219,6 +219,77 @@ describe('ViewBridge dispatch limits', function () {
   });
 });
 
+describe('ui.print', function () {
+  it('prints the View in the requested orientation, one dialog at a time', async () => {
+    const replies = [];
+    let listener = null;
+    let finishPrint = null;
+    const webview = {
+      addEventListener: (name, fn) => (listener = fn),
+      removeEventListener: () => {},
+      send: (channel, payload) => replies.push(payload),
+      print: jasmine.createSpy('print').andCallFake(() => new Promise((r) => (finishPrint = r))),
+    };
+    const bridge = new ViewBridge('spec', webview as any);
+    listener({ channel: HELLO_CHANNEL, args: [{ page: 'p1' }] });
+    const call = (id) =>
+      listener({
+        channel: CALL_CHANNEL,
+        args: [{ page: 'p1', id, method: 'ui.print', params: { landscape: true } }],
+      });
+
+    const first = call(1);
+    await call(2);
+    expect(replies.find((r) => r.id === 2).error.code).toBe('limit');
+    finishPrint();
+    await first;
+    expect(replies.find((r) => r.id === 1).result).toEqual({});
+    expect(webview.print).toHaveBeenCalledWith({ landscape: true, printBackground: true });
+    expect(webview.print.calls.length).toBe(1);
+    bridge.dispose();
+  });
+});
+
+describe('ai.extract over events', function () {
+  it('requires calendar.read rather than mail.bodies', async () => {
+    const replies = [];
+    let listener = null;
+    const webview = {
+      addEventListener: (name, fn) => (listener = fn),
+      removeEventListener: () => {},
+      send: (channel, payload) => replies.push(payload),
+    };
+    const bridge = new ViewBridge('spec', webview as any);
+    const call = async (permissions: ViewPermission[]) => {
+      bridge.grant = grantWith(permissions);
+      listener({ channel: HELLO_CHANNEL, args: [{ page: 'p1' }] });
+      await listener({
+        channel: CALL_CHANNEL,
+        args: [
+          {
+            page: 'p1',
+            id: replies.length + 1,
+            method: 'ai.extract',
+            params: {
+              jobId: 'j1',
+              events: { start: '2026-10-01', end: '2026-10-02', eventIds: [] },
+              schema: { who: 'string' },
+            },
+          },
+        ],
+      });
+      return replies[replies.length - 1];
+    };
+    const denied = await call(['mail.bodies']);
+    expect(denied.error.code).toBe('permission');
+    expect(denied.error.permission).toBe('calendar.read');
+    spyOn(DatabaseStore, 'findAll').andReturn({ where: () => Promise.resolve([]) } as any);
+    const allowed = await call(['calendar.read']);
+    expect(allowed.result).toEqual({ jobId: 'j1', total: 0 });
+    bridge.dispose();
+  });
+});
+
 describe('ui.threadMenu', function () {
   function fakeWebview() {
     const replies = [];

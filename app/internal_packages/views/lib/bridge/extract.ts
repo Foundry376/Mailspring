@@ -1,12 +1,16 @@
+import crypto from 'crypto';
 import { Message } from 'mailspring-exports';
 import { contentFor, messagesWithBodies } from './bodies';
 import type { ViewGrant } from './grant';
 import {
   FieldType,
   Schema,
+  PromptEvent,
+  buildEventPrompt,
   buildPrompt,
   compileJsonSchema,
   emailBlock,
+  eventBlock,
   schemaHash,
 } from '../extraction/prompt';
 import { normalizeAnswer } from '../extraction/normalize';
@@ -25,7 +29,9 @@ export type { Schema };
  */
 
 export interface ExtractResult {
-  messageId: string;
+  messageId?: string;
+  /** Set instead of `messageId` for results over calendar events (keyed by series). */
+  eventId?: string;
   value: { [field: string]: any } | null;
   confidence: number;
   tier: 'structured' | 'model';
@@ -36,6 +42,7 @@ const BATCH_SIZE = 25;
 // and bound how much queued work a cancelled job leaves behind.
 const MODEL_BATCH_SIZE = 4;
 const MAX_MESSAGES = 2000;
+const MAX_EVENTS = 1000;
 // Field accuracy of the bundled model on our extraction eval set. Grammar-constrained output has
 // no per-answer probability, so model answers report this rather than a made-up score.
 const MODEL_CONFIDENCE = 0.9;
@@ -324,4 +331,85 @@ async function run(
     }
   }
   onProgress({ results: [], processed, total: targets.length, status: 'done', modelAvailable });
+}
+
+/** A calendar event as `ai.extract` reads it: one per stored event, so a series is read once. */
+export interface ExtractEvent extends PromptEvent {
+  eventId: string;
+}
+
+/**
+ * `ai.extract` over calendar events. Events carry no schema.org markup, so every event goes to
+ * the model. Answers are cached by the event's text as well as its id, so editing an event
+ * reads it again.
+ */
+export async function runEventExtractJob(
+  grant: ViewGrant,
+  events: ExtractEvent[],
+  schema: Schema,
+  job: ExtractJob,
+  onProgress: (p: Progress) => void,
+  { instructions }: { instructions?: string } = {}
+) {
+  const jobs = jobsByView.get(grant.viewId) || new Set<ExtractJob>();
+  jobs.add(job);
+  jobsByView.set(grant.viewId, jobs);
+  try {
+    const hash = schemaHash(schema, instructions);
+    const jsonSchema = compileJsonSchema(schema);
+    const targets = events.slice(0, MAX_EVENTS);
+    const total = targets.length;
+    const { available: modelAvailable, modelVersion } = await extractionStatus();
+    const key = (e: ExtractEvent) => {
+      const text = crypto.createHash('sha256').update(eventBlock(e)).digest('hex').slice(0, 16);
+      return `event:${e.eventId}:${text}:${hash}:${modelVersion}`;
+    };
+
+    const known: ExtractResult[] = [];
+    const misses: ExtractEvent[] = [];
+    for (const e of targets) {
+      const cached = cache.get(key(e));
+      if (cached) known.push(cached);
+      else if (!modelAvailable)
+        known.push({ eventId: e.eventId, value: null, confidence: 0, tier: 'model' });
+      else misses.push(e);
+    }
+    let processed = known.length;
+    onProgress({ results: known, processed, total, status: 'running', modelAvailable });
+
+    for (let m = 0; m < misses.length; m += MODEL_BATCH_SIZE) {
+      if (job.cancelled) return;
+      const chunk = misses.slice(m, m + MODEL_BATCH_SIZE);
+      const answers = await runModel({
+        viewId: grant.viewId,
+        priority: hiddenViews.has(grant.viewId) ? 1 : 0,
+        schemaHash: hash,
+        jsonSchema,
+        items: chunk.map((e) => ({
+          messageId: `event:${e.eventId}`,
+          prompt: buildEventPrompt(schema, e, instructions),
+        })),
+      });
+      if (job.cancelled) return;
+      const results: ExtractResult[] = [];
+      chunk.forEach((e, idx) => {
+        processed += 1;
+        const answer = answers[idx];
+        if (!answer) return;
+        const value = normalizeAnswer(schema, answer.value, e.start, eventBlock(e));
+        const result: ExtractResult = {
+          eventId: e.eventId,
+          value,
+          confidence: value ? MODEL_CONFIDENCE : 0,
+          tier: 'model',
+        };
+        cache.set(key(e), result);
+        results.push(result);
+      });
+      onProgress({ results, processed, total, status: 'running', modelAvailable });
+    }
+    onProgress({ results: [], processed, total, status: 'done', modelAvailable });
+  } finally {
+    jobs.delete(job);
+  }
 }

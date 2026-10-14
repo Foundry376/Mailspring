@@ -30,11 +30,19 @@ import {
   threadsPage,
 } from './bridge/handlers';
 import { countMessages } from './bridge/counts';
-import { eventQuery, freeBusy, parseRange, serializeEvents } from './bridge/events';
+import {
+  eventQuery,
+  eventsForExtraction,
+  freeBusy,
+  parseRange,
+  serializeEvents,
+} from './bridge/events';
 import { calendarsQuery, listCalendars } from './bridge/calendar';
 import {
   ExtractJob,
+  Schema,
   cancelJobsForView,
+  runEventExtractJob,
   runExtractJob,
   setViewVisible,
   validateSchema,
@@ -57,6 +65,9 @@ const CALLS_PER_SECOND = 200;
 const CALL_BURST = 400;
 const WARN_INTERVAL_MS = 60 * 1000;
 const SUBSCRIPTION_THROTTLE_MS = 250;
+// After a print dialog closes, a View can't open another for this long, so a View that calls
+// ui.print in a loop can't trap the user in back-to-back system dialogs.
+const PRINT_COOLDOWN_MS = 1000;
 // Counts re-run a GROUP BY over every matching message, so they wait for a burst of sync
 // changes to settle before refreshing.
 const COUNTS_DEBOUNCE_MS = 2000;
@@ -109,6 +120,8 @@ export class ViewBridge {
   private callTokensAt = Date.now();
   private lastWarnAt = new Map<string, number>();
   private unlistenTheme: () => void;
+  private printing = false;
+  private printedAt = 0;
 
   constructor(viewId: string, webview: Electron.WebviewTag, options: ViewBridgeOptions = {}) {
     this.webview = webview;
@@ -353,17 +366,18 @@ export class ViewBridge {
       },
 
       'ai.extract': async (ctx, params) => {
-        requirePermission(this.grant, 'mail.bodies');
-        const { jobId, schema, ids, query, instructions } = parse(
+        const { jobId, schema, ids, query, events, instructions } = parse(
           z.object({
             jobId: z.string().min(1),
             schema: z.any(),
             ids: z.array(z.string()).optional(),
             query: z.any().optional(),
+            events: z.any().optional(),
             instructions: z.string().max(2000).optional(),
           }),
           params
         );
+        requirePermission(this.grant, events !== undefined ? 'calendar.read' : 'mail.bodies');
         let validSchema;
         try {
           validSchema = validateSchema(schema);
@@ -371,6 +385,9 @@ export class ViewBridge {
           throw new ViewError('invalid', err.message);
         }
         const generation = this.generation;
+        if (events !== undefined) {
+          return this.startEventExtract(jobId, events, validSchema, instructions, generation);
+        }
         let targetIds = ids;
         if (!targetIds) {
           if (query === undefined) throw new ViewError('invalid', 'Pass ids or query.');
@@ -419,6 +436,23 @@ export class ViewBridge {
 
       'theme.get': () => currentThemeTokens(),
 
+      // Opens the system print dialog for the View's page. The View lays itself out for paper
+      // with print CSS (`@page`, Tailwind's `print:`); `landscape` presets the orientation.
+      'ui.print': async (ctx, params) => {
+        const { landscape } = parse(z.object({ landscape: z.boolean().optional() }), params);
+        if (this.printing || Date.now() - this.printedAt < PRINT_COOLDOWN_MS) {
+          throw new ViewError('limit', 'A print dialog was just open. Try again in a moment.');
+        }
+        this.printing = true;
+        try {
+          await this.webview.print({ landscape: !!landscape, printBackground: true });
+        } finally {
+          this.printing = false;
+          this.printedAt = Date.now();
+        }
+        return {};
+      },
+
       'ui.threadMenu': async (ctx, params) => {
         requirePermission(this.grant, 'mail.read');
         const { threadIds, anchor } = parse(
@@ -439,6 +473,50 @@ export class ViewBridge {
         return {};
       },
     };
+  }
+
+  private async startEventExtract(
+    jobId: string,
+    rangeParams: any,
+    schema: Schema,
+    instructions: string | undefined,
+    generation: number
+  ) {
+    const params = rangeParams || {};
+    const only = Array.isArray(params.eventIds) ? new Set(params.eventIds) : null;
+    const events = (await eventsForExtraction(this.grant, parseRange(params))).filter(
+      (e) => !only || only.has(e.eventId)
+    );
+    if (generation !== this.generation) return { jobId, total: 0 };
+    const job: ExtractJob = { cancelled: false };
+    this.jobs.set(jobId, job);
+    runEventExtractJob(
+      this.grant,
+      events,
+      schema,
+      job,
+      (progress) => {
+        if (job.cancelled) return;
+        this.emit('ai.progress', {
+          jobId,
+          ...progress,
+          ...modelStatusForViews(LocalModelStore.status()),
+        });
+        if (progress.status !== 'running') this.jobs.delete(jobId);
+      },
+      { instructions }
+    ).catch((err) => {
+      this.jobs.delete(jobId);
+      this.emit('ai.progress', {
+        jobId,
+        results: [],
+        processed: 0,
+        total: events.length,
+        status: 'error',
+        error: { code: 'internal', message: err.message },
+      });
+    });
+    return { jobId, total: events.length };
   }
 
   /**
