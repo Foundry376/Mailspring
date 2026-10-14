@@ -1209,6 +1209,17 @@ class AgentSessionStoreImpl extends MailspringStore {
     if (s && s.limit && s.limit.canUpgrade) this.d.showUpgrade(s.limit);
   }
 
+  /** The free-plan limit that would stop a new build, or null while there's room (or on Pro,
+   * where there's nothing to upgrade to). */
+  newBuildUpgradeNotice() {
+    const notice = exhaustedNotice(this.usage, 'build') || exhaustedNotice(this.usage, 'spend');
+    return notice && notice.canUpgrade ? notice : null;
+  }
+
+  showUpgradeForNotice(notice: LimitNotice) {
+    this.d.showUpgrade(notice);
+  }
+
   async stopBudget(viewId: string) {
     try {
       await this.d.transport.budget(viewId, 'stop');

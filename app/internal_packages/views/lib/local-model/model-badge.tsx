@@ -167,7 +167,7 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
           <>
             {local}
             <div className="model-badge-detail">
-              {localized('Provided by macOS (%@) · nothing extra to download', state.label)}
+              {localized('Provided by macOS (%@)', state.label)}
             </div>
           </>
         );
@@ -311,11 +311,6 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
           <input type="checkbox" checked={enabled} onChange={this._onToggleEnabled} />
           <span>{localized('Download AI models for Views')}</span>
         </label>
-        <p className="model-badge-footnote">
-          {localized(
-            "Creating or editing a View is different: it uses Mailspring's cloud AI with the examples you choose."
-          )}
-        </p>
       </div>
     );
   }

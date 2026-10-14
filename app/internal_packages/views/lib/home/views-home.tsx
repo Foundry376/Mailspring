@@ -17,7 +17,9 @@ import {
   listenToSessions,
   newViewId,
   refreshUsage,
+  showUpgrade,
   startAuthoring,
+  upgradeNotice,
   usageLine,
 } from './agent-adapter';
 
@@ -29,7 +31,7 @@ const BACKDROP_VARIANT = 'grid-fine';
 // Building happens remotely; running happens here. Said wherever a View gets created.
 const CLOUD_NOTE = () =>
   localized(
-    "Building a View uses Mailspring's cloud AI and only the example emails you choose to share. Once built, it runs entirely on this computer."
+    "When you build a view, example emails and screenshots you explicitly share are sent to Mailspring's servers. Once built, views are entirely private and use Apple Intelligence or open models to extract data and summarize mail locally on your computer."
   );
 
 interface ViewsHomeState {
@@ -96,6 +98,11 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
 
   _onCreate = (e: React.FormEvent) => {
     e.preventDefault();
+    const notice = upgradeNotice();
+    if (notice) {
+      showUpgrade(notice);
+      return;
+    }
     const name = this.state.name.trim();
     const request = this.state.request.trim();
     if (!name || !request) return;
@@ -139,6 +146,8 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
 
   _renderCreate() {
     const { creating, name, request } = this.state;
+    const mustUpgrade = !!upgradeNotice();
+    const incomplete = !name.trim() || !request.trim();
 
     if (!creating) {
       return (
@@ -150,9 +159,10 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
           <div>
             <div className="views-home-create-title">{localized('Create a View')}</div>
             <div className="views-home-create-subtitle">
-              {localized("Describe it in your own words. Mailspring's AI builds it with you.")}
+              {localized(
+                "Describe your view, share example emails, and Mailspring's AI builds it with you."
+              )}
             </div>
-            <div className="views-home-create-note">{CLOUD_NOTE()}</div>
           </div>
         </button>
       );
@@ -183,11 +193,6 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
             onChange={(e) => this.setState({ request: e.target.value })}
           />
         </label>
-        <div className="views-home-create-hint">
-          {localized(
-            'Next, you will drag a few example emails into the authoring panel. Only the emails you add there are shared with the agent.'
-          )}
-        </div>
         <div className="views-home-create-note">{CLOUD_NOTE()}</div>
         <div className="views-home-create-actions">
           <button
@@ -197,13 +202,20 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
           >
             {localized('Cancel')}
           </button>
-          <button
-            type="submit"
-            className="btn btn-emphasis"
-            disabled={!name.trim() || !request.trim()}
-          >
-            {localized('Start Building')}
-          </button>
+          {mustUpgrade ? (
+            <button type="submit" className="btn btn-emphasis">
+              {localized('Upgrade to Mailspring Pro')}
+            </button>
+          ) : (
+            // The theme styles `.btn-disabled`, not `:disabled`, so both are needed.
+            <button
+              type="submit"
+              className={classnames('btn', 'btn-emphasis', { 'btn-disabled': incomplete })}
+              disabled={incomplete}
+            >
+              {localized('Start Building')}
+            </button>
+          )}
         </div>
       </form>
     );
@@ -329,12 +341,7 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
           </div>
           <p className="views-home-intro">
             {localized(
-              'Custom dashboards built from your mail — track packages, chart spending, run a board for your projects. Describe what you want and Mailspring builds it.'
-            )}
-          </p>
-          <p className="views-home-intro-secondary">
-            {localized(
-              'Views run privately on this computer and can only read the mail you allow.'
+              'Custom, live dashboards built from your mail — track packages, chart spending, organize work projects and more.'
             )}
           </p>
 

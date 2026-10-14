@@ -1,4 +1,4 @@
-import { AgentActions, AgentSessionStore, homeUsageLine, newViewId } from '../agent';
+import { AgentActions, AgentSessionStore, LimitNotice, homeUsageLine, newViewId } from '../agent';
 
 export { newViewId };
 
@@ -20,6 +20,15 @@ export function listenToSessions(callback: () => void): () => void {
 export function usageLine(): string | null {
   const usage = AgentSessionStore.accountUsage();
   return usage ? homeUsageLine(usage) : null;
+}
+
+/** The free-plan limit that blocks starting a new View, or null when one can be built. */
+export function upgradeNotice(): LimitNotice | null {
+  return AgentSessionStore.newBuildUpgradeNotice();
+}
+
+export function showUpgrade(notice: LimitNotice) {
+  AgentSessionStore.showUpgradeForNotice(notice);
 }
 
 export function refreshUsage() {

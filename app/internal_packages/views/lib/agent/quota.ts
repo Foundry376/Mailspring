@@ -68,35 +68,25 @@ export function limitNotice(code: string, details: QuotaDetails = {}): LimitNoti
   const plan: Plan = details.plan === 'pro' ? 'pro' : 'free';
   const pro = details.proLimits || {};
   const proBuilds = isNum(pro.builds) ? pro.builds : PRO_MONTHLY_BUILDS;
-  const proCents = isNum(pro.cents) ? pro.cents : PRO_MONTHLY_CENTS;
   const resets = resetDate(details.resetsAt);
   let message: string;
 
   if (plan === 'free' && kind === 'build') {
-    message = isNum(details.limit)
-      ? details.limit === 1
-        ? localized("You've used your free View.")
-        : localized("You've used your %@ free Views.", details.limit)
-      : localized("You've used the free Views included with your plan.");
-    message += ` ${localized('Upgrade to Pro to build up to %@ Views a month.', proBuilds)}`;
+    message = localized('Thanks for trying out Views!');
+    message += ` ${localized('Upgrade to Mailspring Pro and build %@ new Views every month.', proBuilds)}`;
   } else if (plan === 'free') {
-    message = isNum(details.limitCents)
-      ? localized(
-          "You've used the %@ of AI building included with the free plan.",
-          formatCents(details.limitCents)
-        )
-      : localized("You've used the AI building included with the free plan.");
-    message += ` ${localized('Upgrade to Pro for %@ of building every month.', formatCents(proCents))}`;
+    message = localized("You've used the AI tokens included with your trial of this Pro feature.");
+    message += ` ${localized('Upgrade to Mailspring Pro and build %@ new Views every month.', proBuilds)}`;
   } else if (kind === 'build') {
     message = isNum(details.limit)
       ? localized("You've built %@ Views this month.", details.limit)
       : localized("You've built this month's Views.");
     if (resets) message += ` ${localized('Your limit resets on %@.', resets)}`;
   } else {
-    message = isNum(details.limitCents)
-      ? localized("You've used this month's %@ of AI building.", formatCents(details.limitCents))
-      : localized("You've used this month's AI building.");
-    if (resets) message += ` ${localized('It resets on %@.', resets)}`;
+    message = localized(
+      "You've used up the AI tokens included in your Pro subscription this month."
+    );
+    if (resets) message += ` ${localized('Tokens reset on %@.', resets)}`;
   }
   return { kind, plan, message, canUpgrade: plan === 'free', details };
 }
@@ -166,8 +156,8 @@ export function homeUsageLine(usage: AccountUsage) {
   }
   if (limit === 1) {
     return used >= 1
-      ? localized("You've used your free View")
-      : localized('Your first View is free');
+      ? localized('Views are part of Mailspring Pro - Upgrade today to create more Views!')
+      : localized('Views are part of Mailspring Pro, but you can try building one for free!');
   }
   return localized('%1$@ of %2$@ free Views used', Math.min(used, limit), limit);
 }
