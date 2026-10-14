@@ -40,10 +40,6 @@ async function errorFrom(fn: () => any) {
 describe('View bridge', function () {
   describe('permissions', function () {
     const REQUIRED: [string, ViewPermission, any][] = [
-      ['accounts.list', 'mail.read', {}],
-      ['threads.find', 'mail.read', { query: 'in:inbox' }],
-      ['messages.find', 'mail.read', { query: 'in:inbox' }],
-      ['counts.find', 'mail.read', { query: '', groupBy: 'sender' }],
       ['events.find', 'calendar.read', { start: '2026-01-01', end: '2026-02-01' }],
       ['events.freeBusy', 'calendar.read', { start: '2026-01-01', end: '2026-02-01' }],
       ['calendars.find', 'calendar.read', {}],
@@ -88,7 +84,7 @@ describe('View bridge', function () {
   });
 
   describe('mailQuery', function () {
-    const grant = grantWith(['mail.read']);
+    const grant = grantWith([]);
 
     it('treats a string as a search and applies the default limit', () => {
       const q = mailQuery(grant, 'threads', 'from:uber.com');
@@ -134,7 +130,7 @@ describe('View bridge', function () {
     });
 
     it('puts counterparties before the account owner', () => {
-      const summary = serializeThreadSummary(grantWith(['mail.read']), thread);
+      const summary = serializeThreadSummary(grantWith([]), thread);
       expect(summary.participants.map((p) => p.email)).toEqual([
         'them@example.com',
         'me@example.com',
@@ -143,14 +139,14 @@ describe('View bridge', function () {
     });
 
     it('returns null for threads outside the grant', () => {
-      const scoped = grantWith(['mail.read'], {
+      const scoped = grantWith([], {
         accountIds: null,
         excludedFolderIds: { a1: ['f-excluded'] },
       });
       expect(serializeThreadSummary(scoped, thread)).toBe(null);
       expect(
         serializeThreadSummary(
-          grantWith(['mail.read'], { accountIds: ['other'], excludedFolderIds: {} }),
+          grantWith([], { accountIds: ['other'], excludedFolderIds: {} }),
           thread
         )
       ).toBe(null);
@@ -158,9 +154,9 @@ describe('View bridge', function () {
 
     it('never includes another plugin namespace as meta', () => {
       thread.directlyAttachMetadata('send-later', { expiration: 1 });
-      expect(serializeThreadSummary(grantWith(['mail.read']), thread).meta).toBe(null);
+      expect(serializeThreadSummary(grantWith([]), thread).meta).toBe(null);
       thread.directlyAttachMetadata('view:spec', { column: 'Done' });
-      expect(serializeThreadSummary(grantWith(['mail.read']), thread).meta).toEqual({
+      expect(serializeThreadSummary(grantWith([]), thread).meta).toEqual({
         column: 'Done',
       });
     });
@@ -325,7 +321,7 @@ describe('ui.threadMenu', function () {
     threadsInDatabase([new Thread({ id: 't1', accountId: 'a1' })]);
     const webview = fakeWebview();
     const bridge = new ViewBridge('spec', webview as any);
-    bridge.grant = grantWith(['mail.read']);
+    bridge.grant = grantWith([]);
     const reply = await webview.call({ threadIds: ['t1'], anchor: { x: 40, y: 20 } });
     expect(reply.error).toBe(undefined);
     const menu = ThreadListContextMenu.prototype.displayMenu as jasmine.Spy;
@@ -338,7 +334,7 @@ describe('ui.threadMenu', function () {
     threadsInDatabase([new Thread({ id: 't1', accountId: 'a1' })]);
     const webview = fakeWebview();
     const bridge = new ViewBridge('spec', webview as any);
-    bridge.grant = grantWith(['mail.read']);
+    bridge.grant = grantWith([]);
     await webview.call({ threadIds: ['t1'], anchor: { x: -500, y: 99999 } });
     const menu = ThreadListContextMenu.prototype.displayMenu as jasmine.Spy;
     expect(menu.calls[0].args[0]).toEqual({ x: 100 * 2, y: (50 + 300) * 2 });
@@ -349,25 +345,16 @@ describe('ui.threadMenu', function () {
     threadsInDatabase([new Thread({ id: 't1', accountId: 'other' })]);
     const webview = fakeWebview();
     const bridge = new ViewBridge('spec', webview as any);
-    bridge.grant = grantWith(['mail.read'], { accountIds: ['a1'], excludedFolderIds: {} });
+    bridge.grant = grantWith([], { accountIds: ['a1'], excludedFolderIds: {} });
     const reply = await webview.call({ threadIds: ['t1'] });
     expect(reply.error.code).toBe('not_found');
     expect(ThreadListContextMenu.prototype.displayMenu).not.toHaveBeenCalled();
     bridge.dispose();
   });
-
-  it('requires mail.read', async () => {
-    const webview = fakeWebview();
-    const bridge = new ViewBridge('spec', webview as any);
-    bridge.grant = grantWith([]);
-    const reply = await webview.call({ threadIds: ['t1'] });
-    expect(reply.error.code).toBe('permission');
-    bridge.dispose();
-  });
 });
 
 describe('renderableFor', function () {
-  const grant = grantWith(['mail.read', 'mail.bodies']);
+  const grant = grantWith(['mail.bodies']);
   let registered;
 
   function messageWithBody(body: string) {

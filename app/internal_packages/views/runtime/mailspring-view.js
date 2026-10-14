@@ -1006,7 +1006,7 @@
 
   /**
    * Mail threads with an event's other attendees (or organizer) from the last `days` days,
-   * newest first. Needs mail.read. Built from the ordinary thread query, so Views can adapt it.
+   * newest first. Built from the ordinary thread query, so Views can adapt it.
    */
   async function getRelatedThreads(event, { days = 60, limit = 10 } = {}) {
     const people = [...(event.attendees || []), event.organizer]

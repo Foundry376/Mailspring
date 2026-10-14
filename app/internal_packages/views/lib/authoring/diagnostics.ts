@@ -1,4 +1,8 @@
+import fs from 'fs';
+import path from 'path';
 import { EventEmitter } from 'events';
+import { installedViews } from '../view-registry';
+import { revisionOf } from './drafts';
 
 export type DiagnosticKind =
   | 'compile-error'
@@ -9,15 +13,16 @@ export type DiagnosticKind =
   | 'crash'
   | 'hang'
   | 'render-ok'
-  | 'screenshot-taken';
+  | 'screenshot-taken'
+  | 'consent';
 
 /**
- * One thing that happened to a View, shaped to be relayed to the agent that wrote it.
+ * One thing that happened to a View, shown in the authoring UI and relayed to the agent that
+ * wrote it.
  *
- * Records carry no mail data by construction: bridge errors list parameter names and types,
- * never values or results. `message` and `stack` on runtime errors and console records are
- * produced by the View's own code at runtime, so a View that logs a subject line puts that
- * subject here; those records are marked `untrusted` so a relay can ask before sending them.
+ * A View can put anything it can read into the text of its errors, console output and bridge
+ * calls, so records built from that text are marked `untrusted`. Untrusted text stays on this
+ * machine; the agent relay (agent/tools.ts) sends only fields the host produced itself.
  */
 export interface Diagnostic {
   ts: number;
@@ -32,6 +37,8 @@ export interface Diagnostic {
   method?: string;
   code?: string;
   params?: string;
+  /** For `permission` bridge errors: the permission the View lacked. */
+  permission?: string;
   untrusted?: boolean;
 }
 
@@ -227,14 +234,50 @@ export function reportFromGuest(viewId: string, params: any) {
     ViewDiagnostics.mounted(viewId);
     return;
   }
-  if (!['compile-error', 'runtime-error', 'unhandled-rejection'].includes(kind)) return;
+  if (kind === 'compile-error') {
+    // The guest's report is only a prompt to look: the host compiles the file itself, so the
+    // record says what Sucrase said rather than whatever the page claims.
+    const compiled = compileErrorFor(viewId);
+    if (compiled) {
+      ViewDiagnostics.add({ viewId, kind, level: 'error', ...compiled });
+    }
+    return;
+  }
+  if (!['runtime-error', 'unhandled-rejection'].includes(kind)) return;
   ViewDiagnostics.add({
     viewId,
     kind,
     level: 'error',
     message: params.message,
     stack: typeof params.stack === 'string' ? params.stack : undefined,
-    // Compile errors come from Sucrase, not from the View's runtime.
-    untrusted: kind !== 'compile-error',
+    untrusted: true,
   });
+}
+
+/** The View's current View.jsx, as the main process would compile it. */
+export function viewSource(viewId: string): string | null {
+  const view = installedViews().find((v) => v.id === viewId);
+  try {
+    return view ? fs.readFileSync(path.join(view.dir, 'View.jsx'), 'utf8') : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Sucrase's error for the View's current View.jsx, or null if it compiles. */
+function compileErrorFor(viewId: string) {
+  const source = viewSource(viewId);
+  if (source === null) return null;
+  try {
+    // Same transforms as compiledViewSource in app/src/browser/view-sessions.ts.
+    require('sucrase').transform(source, {
+      transforms: ['jsx', 'imports'],
+      jsxRuntime: 'classic',
+      production: true,
+      filePath: 'View.jsx',
+    });
+    return null;
+  } catch (err) {
+    return { message: String(err.message), revision: revisionOf(source) };
+  }
 }

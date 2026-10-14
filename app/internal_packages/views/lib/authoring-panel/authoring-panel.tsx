@@ -1,5 +1,4 @@
 import React from 'react';
-import { credentialsFromManifest } from '../../../../src/browser/view-credential-policy';
 import classnames from 'classnames';
 import { DragDropTypes, localized } from 'mailspring-exports';
 import { panelSource, onPanelSourceChanged } from './store';
@@ -21,7 +20,6 @@ import {
   SessionActionsLike,
   TranscriptEntry,
 } from './types';
-import { installedViews } from '../view-registry';
 import { openViewsHome } from '../home/view-actions';
 import { editButtonRect, focusedPageViewId } from './launch';
 
@@ -282,7 +280,6 @@ interface State {
   draft: string;
   answer: string;
   dragDepth: number;
-  confirmingInstall: boolean;
   busySince: number | null;
   busyLines: string[];
   now: number;
@@ -320,7 +317,6 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     draft: '',
     answer: '',
     dragDepth: 0,
-    confirmingInstall: false,
     busySince: null,
     busyLines: [],
     now: Date.now(),
@@ -396,10 +392,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
           (next.pendingRequest && next.pendingRequest.toolUseId) ||
         isBusy(prev) !== isBusy(next) ||
         prevState.geometry.collapsed !== this.state.geometry.collapsed);
-    if (
-      (grew || (this.state.confirmingInstall && !prevState.confirmingInstall)) &&
-      this._transcriptEl
-    ) {
+    if (grew && this._transcriptEl) {
       this._transcriptEl.scrollTop = this._transcriptEl.scrollHeight;
     }
   }
@@ -442,7 +435,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
       clearTimeout(this._exitTimer);
       this._exitTimer = setTimeout(
         () => {
-          this.setState({ session: null, leaving: false, anim: null, confirmingInstall: false });
+          this.setState({ session: null, leaving: false, anim: null });
         },
         morph ? MORPH_OUT_MS : EXIT_MS
       );
@@ -460,7 +453,6 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
         leaving: false,
         morph,
         anim: sameView ? s.anim : morph ? 'morph-in' : 'enter',
-        confirmingInstall: sameView ? s.confirmingInstall : false,
         answer: sameView && session.pendingRequest ? s.answer : '',
         busySince: !busy ? null : wasBusy && s.busySince ? s.busySince : turnStartedAt(session),
         busyLines: busy && wasBusy ? s.busyLines : busy ? shuffledLineOrder(session) : [],
@@ -785,28 +777,24 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
           You're previewing the <strong>{session.name}</strong> view. Install it, or chat to
           customize it.
         </div>
-        {this.state.confirmingInstall ? (
-          this._renderConsent(session)
-        ) : (
-          <div className="ap-try-footer">
-            <button className="ap-link" onClick={this._onRemovePreview}>
-              Remove preview
-            </button>
-            <span className="ap-ready-spacer" />
-            <button
-              className="ap-btn"
-              onClick={() => this._run((a, v) => (a.chat ? a.chat(v) : Promise.resolve()))}
-            >
-              Chat
-            </button>
-            <button
-              className="ap-btn ap-btn-primary"
-              onClick={() => this.setState({ confirmingInstall: true })}
-            >
-              Install
-            </button>
-          </div>
-        )}
+        <div className="ap-try-footer">
+          <button className="ap-link" onClick={this._onRemovePreview}>
+            Remove preview
+          </button>
+          <span className="ap-ready-spacer" />
+          <button
+            className="ap-btn"
+            onClick={() => this._run((a, v) => (a.chat ? a.chat(v) : Promise.resolve()))}
+          >
+            Chat
+          </button>
+          <button
+            className="ap-btn ap-btn-primary"
+            onClick={() => this._run((a, v) => a.install(v))}
+          >
+            Install
+          </button>
+        </div>
       </div>
     );
   }
@@ -981,73 +969,18 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     if (!rev || (rev.status !== 'ok' && rev.status !== 'unknown')) return null;
     if (isBusy(session) || session.pendingRequest) return null;
     if (session.status === 'terminated' || session.status === 'budget_reached') return null;
-    if (this.state.confirmingInstall) {
-      return <div className="ap-ready">{this._renderConsent(session)}</div>;
-    }
     return (
       <div className="ap-ready">
         <span className="ap-ready-label">
           Revision {rev.revision} {rev.status === 'ok' ? 'ready' : ''}
         </span>
         <span className="ap-ready-spacer" />
-        <button
-          className="ap-btn ap-btn-primary"
-          onClick={() => this.setState({ confirmingInstall: true })}
-        >
+        <button className="ap-btn ap-btn-primary" onClick={() => this._run((a, v) => a.install(v))}>
           Install View
         </button>
         <button className="ap-btn ap-btn-ghost" onClick={() => this._run((a, v) => a.discard(v))}>
           Discard
         </button>
-      </div>
-    );
-  }
-
-  _renderConsent(session: AgentSessionState) {
-    const manifest = installedViews().find((v) => v.id === session.viewId);
-    const permissions = manifest ? manifest.permissions : [];
-    const network: string[] = (manifest && manifest.json && manifest.json.network) || [];
-    const readsBodies = permissions.includes('mail.bodies');
-    return (
-      <div className="ap-consent">
-        <div className="ap-consent-title">Install “{session.name}”?</div>
-        <ul>
-          {permissions.length === 0 && <li>No special permissions.</li>}
-          {permissions.map((p) => (
-            <li key={p}>
-              <code>{p}</code>
-            </li>
-          ))}
-          {network.length > 0 && (
-            <li>
-              Can connect to <strong>{network.join(', ')}</strong>
-              {readsBodies ? ' — and can send your email content there.' : '.'}
-            </li>
-          )}
-          {credentialsFromManifest(manifest && manifest.json).map((c) => (
-            <li key={`credential-${c.id}`}>
-              Can ask for your <strong>{c.label}</strong> and use it for requests to{' '}
-              <strong>{c.hosts.join(', ')}</strong>. It never sees the key.
-            </li>
-          ))}
-        </ul>
-        <div className="ap-actions ap-actions-end">
-          <button
-            className="ap-btn ap-btn-ghost"
-            onClick={() => this.setState({ confirmingInstall: false })}
-          >
-            Cancel
-          </button>
-          <button
-            className="ap-btn ap-btn-primary"
-            onClick={() => {
-              this.setState({ confirmingInstall: false });
-              this._run((a, v) => a.install(v));
-            }}
-          >
-            Install
-          </button>
-        </div>
       </div>
     );
   }

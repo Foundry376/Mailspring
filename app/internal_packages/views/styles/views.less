@@ -133,3 +133,28 @@
     font-size: @font-size-base;
   }
 }
+
+// Shown in place of a View until the user allows what its manifest asks for. In flow rather
+// than covering, so a sidebar card grows to fit it.
+.view-host-consent {
+  position: static;
+  flex: 1;
+  background: @background-primary;
+
+  .view-host-consent-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: @text-color;
+    text-align: start;
+    li {
+      padding: 2px 0;
+    }
+  }
+  .view-host-consent-network {
+    font-weight: @font-weight-semi-bold;
+  }
+}
+.view-host:has(> .view-host-consent) > .view-host-webview {
+  display: none;
+}

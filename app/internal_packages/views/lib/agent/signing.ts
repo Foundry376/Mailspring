@@ -5,8 +5,27 @@ import { ViewRevision } from '../authoring/drafts';
  * Verification of `preview_revision` payloads signed by the authoring proxy: Ed25519 over the
  * canonical JSON of { identityId, viewId, revision, manifest, files }. The signature proves a
  * revision came from Mailspring's backend for this account and View; the sandbox and the
- * consent sheet remain the security boundary for what the code can do.
+ * consent card remain the security boundary for what the code can do.
  */
+
+/**
+ * The authoring proxy's Ed25519 public keys (base64 SPKI DER), by the `env` the client talks to.
+ * Pinned here and never fetched, so whoever answers the agent API can't also choose the key that
+ * vouches for its revisions. A developer without the development private key generates their own
+ * pair (`node agents/views/generate-signing-key.js` in the backend) and replaces the development
+ * key in their working copy. An environment without a key rejects every revision.
+ */
+const AGENT_PUBLIC_KEYS: { [env: string]: string | null } = {
+  development: 'MCowBQYDK2VwAyEAcTs62HcmKcJzPQ/qsitN5iOXlzSsNx2o3bf9ngZQ18I=',
+  staging: null,
+  production: null,
+};
+
+export function agentPublicKey(env: string): string | null {
+  return Object.prototype.hasOwnProperty.call(AGENT_PUBLIC_KEYS, env)
+    ? AGENT_PUBLIC_KEYS[env]
+    : null;
+}
 
 /** JSON with object keys sorted recursively and no whitespace, as the backend signs it. */
 export function canonicalJSON(value: any): string {

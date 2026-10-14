@@ -127,14 +127,27 @@ describe('View authoring', function () {
     });
 
     it('settles waitForOutcome on the revision it was asked about', async function () {
+      const broken = 'export default () => (\n';
+      const revision = writeDraft('diag', {
+        manifest: { name: 'Diag' },
+        files: { 'View.jsx': broken },
+      });
       reportFromGuest('diag', { kind: 'page', revision: 'old' });
       ViewDiagnostics.add({ viewId: 'diag', kind: 'crash', message: 'gone' });
-      const pending = ViewDiagnostics.waitForOutcome('diag', 'new', 1000);
-      reportFromGuest('diag', { kind: 'page', revision: 'new' });
-      reportFromGuest('diag', { kind: 'compile-error', message: 'View.jsx: bad (1:2)' });
+      const pending = ViewDiagnostics.waitForOutcome('diag', revision, 1000);
+      reportFromGuest('diag', { kind: 'page', revision });
+      reportFromGuest('diag', { kind: 'compile-error', message: 'made up by the page' });
       const outcome = await pending;
       expect(outcome.status).toBe('failed');
       expect(outcome.diagnostics.map((d) => d.kind)).toEqual(['compile-error']);
+      expect(outcome.diagnostics[0].message).not.toContain('made up');
+      expect(outcome.diagnostics[0].untrusted).toBeFalsy();
+    });
+
+    it('ignores compile errors reported for a View that compiles', function () {
+      writeDraft('diag', VIEW);
+      reportFromGuest('diag', { kind: 'compile-error', message: 'Subject: private' });
+      expect(ViewDiagnostics.get('diag')).toEqual([]);
     });
 
     it('ignores guest reports of kinds only the host may record', function () {

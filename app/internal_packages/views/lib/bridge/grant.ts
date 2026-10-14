@@ -1,27 +1,14 @@
 import { Grant, FULL_GRANT } from '../../../mcp-server/lib/capabilities/grant';
 import { installedViews } from '../view-registry';
+import { CONSENTED_PERMISSIONS, ViewPermission, approvedPermissions } from '../consent';
 import { ViewError } from './errors';
 
-export type ViewPermission =
-  | 'mail.read'
-  | 'mail.bodies'
-  | 'metadata.own'
-  | 'mail.modify'
-  | 'calendar.read'
-  | 'calendar.write';
-
-const KNOWN_PERMISSIONS: ViewPermission[] = [
-  'mail.read',
-  'mail.bodies',
-  'metadata.own',
-  'mail.modify',
-  'calendar.read',
-  'calendar.write',
-];
+export { ViewPermission, CONSENTED_PERMISSIONS };
 
 /**
- * What one View may do, built from its manifest. `scope` is the same account/folder grant
- * MCP uses, so both are enforced by mcp-server/lib/capabilities/grant.ts.
+ * What one View may do: the permissions its manifest declares that the user has approved.
+ * `scope` is the same account/folder grant MCP uses, so both are enforced by
+ * mcp-server/lib/capabilities/grant.ts.
  */
 export interface ViewGrant {
   viewId: string;
@@ -34,10 +21,14 @@ export interface ViewGrant {
 export function grantForView(viewId: string): ViewGrant {
   const manifest = installedViews().find((v) => v.id === viewId);
   const declared = manifest ? manifest.permissions : [];
+  const permitted = approvedPermissions(
+    viewId,
+    CONSENTED_PERMISSIONS.filter((p) => declared.includes(p))
+  ) as ViewPermission[];
   return {
     viewId,
     namespace: `view:${viewId}`,
-    permissions: new Set(KNOWN_PERMISSIONS.filter((p) => declared.includes(p))),
+    permissions: new Set(permitted),
     scope: FULL_GRANT,
   };
 }
@@ -46,7 +37,7 @@ export function requirePermission(grant: ViewGrant, permission: ViewPermission) 
   if (!grant.permissions.has(permission)) {
     throw new ViewError(
       'permission',
-      `This View's manifest must declare "${permission}" to use this call.`,
+      `This View's manifest must declare "${permission}", and the user must allow it, to use this call.`,
       { permission }
     );
   }

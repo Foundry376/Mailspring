@@ -1,4 +1,5 @@
 import fs from 'fs';
+import net from 'net';
 import path from 'path';
 
 /**
@@ -70,6 +71,26 @@ export function networkGrantsFromManifest(manifest: any): string[] {
   return [...new Set<string>(grants)];
 }
 
+/**
+ * What the user has approved for each View, by id: `{ [viewId]: { permissions, network } }`.
+ * Written only by the host window's consent card (views/lib/consent.ts). Drafts and installed
+ * copies of a View share one record, so a revision can never use more than the user allowed.
+ */
+export const APPROVALS_CONFIG_KEY = 'core.views.approvals';
+
+/** The entries of `declared` the user approved under `field` in `approvals[viewId]`. */
+export function approvedSubset(
+  declared: string[],
+  approvals: any,
+  viewId: string,
+  field: 'permissions' | 'network'
+): string[] {
+  const record =
+    approvals && Object.prototype.hasOwnProperty.call(approvals, viewId) ? approvals[viewId] : null;
+  const approved = record && Array.isArray(record[field]) ? record[field] : [];
+  return declared.filter((entry) => approved.includes(entry));
+}
+
 export function hostMatchesGrants(hostname: string, grants: string[]): boolean {
   const host = hostname.toLowerCase().replace(/\.$/, '');
   return grants.some((grant) =>
@@ -132,9 +153,11 @@ export function proxyConfig(grants: string[]): Electron.ProxyConfig {
 }
 
 /**
- * Whether the host may fetch `url` on a View's behalf as an email image. Only http(s) to
- * names that aren't loopback, private or link-local addresses: an email can point an <img>
- * anywhere, and the proxy must not become a way to probe local services.
+ * Whether the host may fetch `url` on a View's behalf as an email image: http(s) on the default
+ * port to a DNS name that isn't local. An email can point an <img> anywhere, and the proxy must
+ * not become a way to probe local services, so IP literals and trailing-dot names (`localhost.`)
+ * are refused outright. Names are also checked after resolution (isPublicAddress) on every
+ * redirect hop, in view-sessions.ts.
  */
 export function isProxyableImageURL(url: string): boolean {
   let target: URL;
@@ -144,31 +167,57 @@ export function isProxyableImageURL(url: string): boolean {
     return false;
   }
   if (!['http:', 'https:'].includes(target.protocol)) return false;
-  if (target.username || target.password) return false;
-  const host = target.hostname.toLowerCase().replace(/^\[|\]$/g, '');
-  if (!host || host === 'localhost' || (!host.includes('.') && !host.includes(':'))) return false;
-  if (NEVER_GRANTABLE_SUFFIXES.some((suffix) => `.${host}`.endsWith(suffix))) return false;
-  if (/^[\d.]+$/.test(host)) {
-    const [a, b] = host.split('.').map(Number);
-    return !(
-      a === 0 ||
-      a === 10 ||
-      a === 127 ||
-      (a === 169 && b === 254) ||
-      (a === 172 && b >= 16 && b <= 31) ||
-      (a === 192 && b === 168) ||
-      (a === 100 && b >= 64 && b <= 127)
-    );
+  if (target.username || target.password || target.port !== '') return false;
+  const host = target.hostname.toLowerCase();
+  if (!host.includes('.') || host.endsWith('.') || host.startsWith('[')) return false;
+  if (net.isIP(host) || /^[\d.]+$/.test(host)) return false;
+  return !NEVER_GRANTABLE_SUFFIXES.some((suffix) => `.${host}`.endsWith(suffix));
+}
+
+function isPublicIPv4(address: string) {
+  const [a, b, c] = address.split('.').map(Number);
+  return !(
+    a === 0 ||
+    a === 10 ||
+    a === 127 ||
+    (a === 100 && b >= 64 && b <= 127) ||
+    (a === 169 && b === 254) ||
+    (a === 172 && b >= 16 && b <= 31) ||
+    (a === 192 && b === 0 && c === 0) ||
+    (a === 192 && b === 168) ||
+    (a === 198 && (b === 18 || b === 19)) ||
+    a >= 224
+  );
+}
+
+/**
+ * Whether a resolved address is on the public internet: not loopback, private, link-local,
+ * CGNAT, benchmarking, multicast or reserved, including IPv4 addresses embedded in IPv6
+ * (`::ffff:127.0.0.1`, NAT64 `64:ff9b::7f00:1`).
+ */
+export function isPublicAddress(address: string): boolean {
+  const family = net.isIP(address);
+  if (family === 4) return isPublicIPv4(address);
+  if (family !== 6) return false;
+  const ip = address.toLowerCase();
+  const embedded = /^(?:::ffff:|64:ff9b::)(\d+\.\d+\.\d+\.\d+)$/.exec(ip);
+  if (embedded) return isPublicIPv4(embedded[1]);
+  const mapped = /^(?:::ffff:|64:ff9b::)([0-9a-f]{1,4}):([0-9a-f]{1,4})$/.exec(ip);
+  if (mapped) {
+    const hi = parseInt(mapped[1], 16);
+    const lo = parseInt(mapped[2], 16);
+    return isPublicIPv4(`${hi >> 8}.${hi & 255}.${lo >> 8}.${lo & 255}`);
   }
-  if (host.includes(':')) {
-    return !(
-      host === '::1' ||
-      host === '::' ||
-      /^(fc|fd|fe8|fe9|fea|feb)/.test(host) ||
-      host.startsWith('::ffff:')
-    );
+  // 6to4 (2002::/16) carries an IPv4 address in its second and third groups.
+  const sixToFour = /^2002:([0-9a-f]{1,4}):([0-9a-f]{1,4}):/.exec(ip);
+  if (sixToFour) {
+    const hi = parseInt(sixToFour[1], 16);
+    const lo = parseInt(sixToFour[2], 16);
+    return isPublicIPv4(`${hi >> 8}.${hi & 255}.${lo >> 8}.${lo & 255}`);
   }
-  return true;
+  // Global unicast is 2000::/3; everything else (::, ::1, fc00::/7, fe80::/10, ff00::/8, and
+  // the deprecated IPv4-compatible ::a.b.c.d) is local, reserved or multicast.
+  return /^[23][0-9a-f]{3}:/.test(ip);
 }
 
 /** Content types a View may receive for host-served resources; anything else is opaque bytes. */

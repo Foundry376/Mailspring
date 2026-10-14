@@ -48,24 +48,74 @@ const RELAYED_KINDS = [
   'crash',
   'hang',
   'render-ok',
+  'consent',
 ];
 const MAX_RELAYED_MESSAGE = 500;
+const MAX_SOURCE_LINE = 200;
+const BUILTIN_ERROR_NAMES = [
+  'Error',
+  'TypeError',
+  'ReferenceError',
+  'RangeError',
+  'SyntaxError',
+  'URIError',
+  'EvalError',
+  'AggregateError',
+];
 
-/** Diagnostics as sent to the agent: failures and the render-ok signal, trimmed. */
-export function relayableDiagnostics(diagnostics: Diagnostic[]) {
+const trimmed = (text: string, max: number) =>
+  text.length > max ? `${text.slice(0, max)}…` : text;
+
+/**
+ * A runtime error reduced to what the host can vouch for: the built-in error type and the line
+ * of View.jsx it was thrown from, quoted from the revision the agent itself sent. The message
+ * is left out because the View chooses it (`throw new Error(subjects.join())`).
+ */
+function runtimeErrorSummary(d: Diagnostic, sourceLines: string[]) {
+  const name = /^([A-Za-z]+Error)\b/.exec(d.stack || '');
+  const frame = /View\.jsx:(\d+):(\d+)/.exec(d.stack || '');
+  const line = frame ? Number(frame[1]) : 0;
+  const source = line >= 1 && line <= sourceLines.length ? sourceLines[line - 1] : null;
+  return {
+    kind: d.kind,
+    error: name && BUILTIN_ERROR_NAMES.includes(name[1]) ? name[1] : 'Error',
+    ...(source !== null
+      ? {
+          location: { line, column: Math.min(Number(frame[2]), source.length + 1) },
+          source: trimmed(source.trim(), MAX_SOURCE_LINE),
+        }
+      : {}),
+  };
+}
+
+/**
+ * Diagnostics as sent to the agent: failures and the render-ok signal, built only from what
+ * the host produced. Text the View controls (runtime error messages, bridge error messages and
+ * parameter names, console output) stays on this machine, so a View can't use its own errors
+ * to send mail to the agent. `viewSource` is the View.jsx of the revision being reported.
+ */
+export function relayableDiagnostics(diagnostics: Diagnostic[], viewSource = '') {
+  const sourceLines = viewSource.split('\n');
   return diagnostics
     .filter((d) => RELAYED_KINDS.includes(d.kind))
-    .map((d) => ({
-      kind: d.kind,
-      message:
-        d.message.length > MAX_RELAYED_MESSAGE
-          ? `${d.message.slice(0, MAX_RELAYED_MESSAGE)}…`
-          : d.message,
-      ...(d.location ? { location: d.location } : {}),
-      ...(d.method ? { method: d.method } : {}),
-      ...(d.code ? { code: d.code } : {}),
-      ...(d.params ? { params: d.params } : {}),
-    }));
+    .map((d) => {
+      if (d.kind === 'runtime-error' || d.kind === 'unhandled-rejection') {
+        return runtimeErrorSummary(d, sourceLines);
+      }
+      if (d.kind === 'bridge-error') {
+        return {
+          kind: d.kind,
+          method: d.method,
+          code: d.code,
+          ...(d.permission ? { permission: d.permission } : {}),
+        };
+      }
+      return {
+        kind: d.kind,
+        message: trimmed(d.message, MAX_RELAYED_MESSAGE),
+        ...(d.location ? { location: d.location } : {}),
+      };
+    });
 }
 
 export function summarizeOutcome(status: string, diagnostics: Diagnostic[]) {
@@ -132,7 +182,10 @@ async function previewRevision(deps: ToolDeps, input: SignedRevision, signature?
     summary: summarizeOutcome(outcome.status, outcome.diagnostics),
     ts: Date.now(),
   });
-  return text({ status: outcome.status, diagnostics: relayableDiagnostics(outcome.diagnostics) });
+  return text({
+    status: outcome.status,
+    diagnostics: relayableDiagnostics(outcome.diagnostics, input.files['View.jsx']),
+  });
 }
 
 export function screenshotPrompt(input: { reason?: string } | null) {

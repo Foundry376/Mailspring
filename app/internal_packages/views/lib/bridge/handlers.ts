@@ -280,12 +280,10 @@ function mailtoURL({ to, cc, subject, body }) {
 
 export const HANDLERS: { [method: string]: Handler } = {
   'accounts.list': ({ grant }) => {
-    requirePermission(grant, 'mail.read');
     return listAccounts(grant);
   },
 
   'threads.find': async ({ grant }, { query, offset }) => {
-    requirePermission(grant, 'mail.read');
     const q = mailQuery(grant, 'threads', query, offset);
     const page = threadsPage(
       grant,
@@ -297,20 +295,17 @@ export const HANDLERS: { [method: string]: Handler } = {
   },
 
   'messages.find': async ({ grant }, { query, offset }) => {
-    requirePermission(grant, 'mail.read');
     const q = mailQuery(grant, 'messages', query, offset);
     return messagesPage(grant, q, await withTimeout(run<Message[]>(messagesFindQuery(grant, q))));
   },
 
   'counts.find': ({ grant }, { query, groupBy }) => {
-    requirePermission(grant, 'mail.read');
     return withTimeout(
       countMessages(grant, mailQuery(grant, 'messages', query), parseGroupBy(groupBy))
     );
   },
 
   'identity.get': ({ grant }) => {
-    requirePermission(grant, 'mail.read');
     return currentIdentity();
   },
 

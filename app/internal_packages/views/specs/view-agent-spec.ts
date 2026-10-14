@@ -148,22 +148,87 @@ describe('Views agent: examples', function () {
 });
 
 describe('Views agent: diagnostics relay', function () {
+  const SOURCE = [
+    'import React from "react";',
+    '',
+    'export default function View() {',
+    '  return thread.subject;',
+    '}',
+  ].join('\n');
+
   it('sends failures and render-ok but never console output', () => {
-    const out = relayableDiagnostics([
-      { ts: 1, viewId: VIEW, revision: 'r', kind: 'console', message: 'Subject: private' },
+    const out: any[] = relayableDiagnostics(
+      [
+        { ts: 1, viewId: VIEW, revision: 'r', kind: 'console', message: 'Subject: private' },
+        { ts: 3, viewId: VIEW, revision: 'r', kind: 'render-ok', message: 'ok' },
+      ],
+      SOURCE
+    );
+    expect(out.map((d) => d.kind)).toEqual(['render-ok']);
+  });
+
+  it('reduces runtime errors to the error type and the line of View.jsx', () => {
+    const [out]: any[] = relayableDiagnostics(
+      [
+        {
+          ts: 2,
+          viewId: VIEW,
+          revision: 'r',
+          kind: 'runtime-error',
+          message: 'Subject: private',
+          stack: 'TypeError: Subject: private\n    at View (View.jsx:4:16)',
+          untrusted: true,
+        },
+      ],
+      SOURCE
+    );
+    expect(out).toEqual({
+      kind: 'runtime-error',
+      error: 'TypeError',
+      location: { line: 4, column: 16 },
+      source: 'return thread.subject;',
+    });
+  });
+
+  it('never relays error types or lines the View made up', () => {
+    const [out]: any[] = relayableDiagnostics(
+      [
+        {
+          ts: 2,
+          viewId: VIEW,
+          revision: 'r',
+          kind: 'unhandled-rejection',
+          message: 'x',
+          stack: 'PrivateSubjectError: x\n    at View.jsx:9999:1',
+          untrusted: true,
+        },
+      ],
+      SOURCE
+    );
+    expect(out).toEqual({ kind: 'unhandled-rejection', error: 'Error' });
+  });
+
+  it('relays bridge errors without their message or parameters', () => {
+    const [out]: any[] = relayableDiagnostics([
       {
         ts: 2,
         viewId: VIEW,
         revision: 'r',
-        kind: 'runtime-error',
-        message: 'x'.repeat(900),
-        location: { line: 4, column: 2 },
+        kind: 'bridge-error',
+        message: 'No message with id Subject: private.',
+        method: 'messages.content',
+        code: 'permission',
+        permission: 'mail.bodies',
+        params: '{ subjectprivate: number }',
+        untrusted: true,
       },
-      { ts: 3, viewId: VIEW, revision: 'r', kind: 'render-ok', message: 'ok' },
     ]);
-    expect(out.map((d) => d.kind)).toEqual(['runtime-error', 'render-ok']);
-    expect(out[0].message.length).toBeLessThan(510);
-    expect(out[0].location).toEqual({ line: 4, column: 2 });
+    expect(out).toEqual({
+      kind: 'bridge-error',
+      method: 'messages.content',
+      code: 'permission',
+      permission: 'mail.bodies',
+    });
   });
 });
 
@@ -201,7 +266,6 @@ describe('Views agent: session store', function () {
       interrupt: jasmine.createSpy('interrupt').andReturn(Promise.resolve()),
       budget: jasmine.createSpy('budget').andReturn(Promise.resolve({ maxListCostCents: 400 })),
       usage: jasmine.createSpy('usage').andCallFake(() => Promise.reject(new Error('offline'))),
-      publicKey: jasmine.createSpy('publicKey').andReturn(Promise.resolve(keys.publicKey)),
       streamEvents: jasmine
         .createSpy('streamEvents')
         .andCallFake((viewId, onEvent, signal, onOpen) => {
@@ -212,8 +276,7 @@ describe('Views agent: session store', function () {
     AgentSessionStore.configure({
       transport: transport as any,
       identityId: () => IDENTITY,
-      configuredPublicKey: () => keys.publicKey,
-      devMode: () => false,
+      publicKey: () => keys.publicKey,
       lastAcceptedRevision: (viewId) => accepted[viewId] || 0,
       setAcceptedRevision: (viewId, revision) => (accepted[viewId] = revision),
       buildExamples: async () => examples,
@@ -263,7 +326,7 @@ describe('Views agent: session store', function () {
     const s = AgentSessionStore.session(VIEW);
     expect(s.error).toBe(null);
     expect(s.limit.kind).toBe('build');
-    expect(s.limit.message).toContain("You've used your 2 free Views.");
+    expect(s.limit.message).toContain('Thanks for trying out Views!');
     const notice = (AgentSessionStore as any).d.showUpgrade.mostRecentCall.args[0];
     expect(notice.details.feature).toBe('view-agent-build');
     expect(notice.canUpgrade).toBe(true);
@@ -289,7 +352,7 @@ describe('Views agent: session store', function () {
     await start();
     const s = AgentSessionStore.session(VIEW);
     expect(s.limit.message).toBe(
-      "You've used this month's $8.00 of AI building. It resets on November 1."
+      "You've used up the AI tokens included in your Pro subscription this month. Tokens reset on November 1."
     );
     expect((AgentSessionStore as any).d.showUpgrade).not.toHaveBeenCalled();
   });

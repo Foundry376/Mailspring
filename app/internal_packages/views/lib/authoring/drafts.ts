@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { VIEW_ID_REGEXP, draftsDir, installDir, notifyViewsChanged } from '../view-registry';
 import { withApiVersion } from '../api-version';
+import { narrowApprovalToCurrent } from '../consent';
 
 /**
  * Drafts are revisions of a View that preview in place of its installed copy until they are
@@ -111,10 +112,14 @@ export function promoteDraft(viewId: string) {
   return revisionOf(revision.files['View.jsx']);
 }
 
-/** Drops the draft; the View falls back to its installed copy, or disappears if it has none. */
+/**
+ * Drops the draft; the View falls back to its installed copy, or disappears if it has none.
+ * Anything the user allowed only for the draft is withdrawn with it.
+ */
 export function discardDraft(viewId: string) {
   if (!hasDraft(viewId)) return false;
   fs.rmSync(draftDirFor(viewId), { recursive: true, force: true });
+  narrowApprovalToCurrent(viewId);
   notifyViewsChanged([viewId], true);
   return true;
 }

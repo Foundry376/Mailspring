@@ -53,14 +53,12 @@ describe('Views try mode', function () {
       interrupt: jasmine.createSpy('interrupt').andReturn(Promise.resolve()),
       budget: jasmine.createSpy('budget').andReturn(Promise.resolve({ maxListCostCents: 400 })),
       usage: jasmine.createSpy('usage').andCallFake(() => Promise.reject(new Error('offline'))),
-      publicKey: jasmine.createSpy('publicKey').andReturn(Promise.resolve('')),
       streamEvents: jasmine.createSpy('streamEvents').andCallFake(noSession),
     };
     AgentSessionStore.configure({
       transport: transport as any,
       identityId: () => 'identity-1',
-      configuredPublicKey: () => '',
-      devMode: () => false,
+      publicKey: () => '',
       lastAcceptedRevision: () => 0,
       setAcceptedRevision: () => {},
       buildExamples: async () => [],

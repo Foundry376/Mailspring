@@ -11,6 +11,15 @@ import {
   rebuildRequest,
 } from './api-version';
 import { ViewRegistryEvents, ViewsChange, installedViews } from './view-registry';
+import {
+  ConsentEvents,
+  ViewGrants,
+  approveView,
+  declineView,
+  hasApproval,
+  unapprovedGrants,
+} from './consent';
+import { credentialsFromManifest } from '../../../src/browser/view-credential-policy';
 
 export type ViewPlacement = 'page' | 'thread-sidebar';
 
@@ -24,6 +33,8 @@ interface ViewHostProps {
   // Called after the guest page loads, including after a reload or crash recovery, so the
   // owner can push state the new page hasn't seen (sidebar context, visibility).
   onReady?: (bridge: ViewBridge) => void;
+  // Called when the host shows or hides its consent card instead of the View.
+  onConsentChange?: (pending: boolean) => void;
   style?: React.CSSProperties;
 }
 
@@ -33,6 +44,22 @@ interface ViewHostState {
   compat: { result: ApiCompatibility; version: string };
   issues: number;
   hovering: boolean;
+  /** What the View asks for that the user hasn't allowed; the View doesn't load until they do. */
+  consent: { pending: ViewGrants; widening: boolean; declined: boolean } | null;
+}
+
+// Plain-language consent copy. Reading mail summaries needs no consent, so any network host
+// is described as a place the View can send your mail.
+function permissionCopy(permission: string) {
+  return {
+    'mail.bodies': localized('Read the full text of your messages'),
+    'metadata.own': localized(
+      'Save its own notes on your messages, synced with your Mailspring ID'
+    ),
+    'mail.modify': localized('Archive, move, label, star and mark your messages read or unread'),
+    'calendar.read': localized('See your calendars and events'),
+    'calendar.write': localized('Create, change and delete calendar events'),
+  }[permission];
 }
 
 // The loader prefixes what it logs itself; those errors already arrive as structured
@@ -79,6 +106,7 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     issues: 0,
     hovering: false,
     compat: { result: 'ok', version: CURRENT_API_VERSION },
+    consent: null,
   };
 
   get bridge() {
@@ -110,8 +138,25 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     });
     this._visibilityObserver.observe(this._container);
     ViewRegistryEvents.on('changed', this._onViewsChanged);
+    ConsentEvents.on('changed', this._onConsentChanged);
     this._mount();
   }
+
+  get awaitingConsent() {
+    return !!this.state.consent;
+  }
+
+  _readConsent() {
+    const view = installedViews().find((v) => v.id === this.props.viewId);
+    const pending = view && unapprovedGrants(view);
+    return pending ? { pending, widening: hasApproval(view.id), declined: false } : null;
+  }
+
+  _onConsentChanged = (viewId: string) => {
+    if (viewId !== this.props.viewId || !this.state.consent || this._readConsent()) return;
+    this._unmount();
+    this._mount();
+  };
 
   /** Reads the View's declared API version from its manifest on disk. */
   _readCompat() {
@@ -120,11 +165,18 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     return { result: compatibility(version), version };
   }
 
-  // A rebuilt (or hand-edited) manifest can move a View into or out of the supported range.
+  // A rebuilt (or hand-edited) manifest can move a View into or out of the supported range,
+  // or ask for something the user hasn't allowed yet.
   _onViewsChanged = ({ viewIds, structural }: ViewsChange) => {
     if (!structural || !viewIds.includes(this.props.viewId)) return;
     const next = this._readCompat();
-    if (next.result === this.state.compat.result && next.version === this.state.compat.version) {
+    const consent = this._readConsent();
+    if (
+      next.result === this.state.compat.result &&
+      next.version === this.state.compat.version &&
+      !consent === !this.state.consent
+    ) {
+      if (consent) this.setState({ consent });
       return;
     }
     this._unmount();
@@ -161,6 +213,7 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     this._visibilityObserver.disconnect();
     ipcRenderer.removeListener(WATCHDOG_KILL_CHANNEL, this._onWatchdogKill);
     ViewRegistryEvents.removeListener('changed', this._onViewsChanged);
+    ConsentEvents.removeListener('changed', this._onConsentChanged);
     this._unmount();
   }
 
@@ -206,9 +259,16 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     // Out-of-range Views never load: their code may call APIs this build doesn't have, or
     // rely on behavior it no longer has. The card offers a rebuild instead.
     if (compat.result !== 'ok') {
-      this.setState({ compat, status: 'running' });
+      this.setState({ compat, status: 'running', consent: null });
       return;
     }
+    const consent = this._readConsent();
+    if (consent) {
+      this.setState({ compat, status: 'running', consent });
+      if (this.props.onConsentChange) this.props.onConsentChange(true);
+      return;
+    }
+    if (this.state.consent && this.props.onConsentChange) this.props.onConsentChange(false);
     const webview = document.createElement('webview') as Electron.WebviewTag;
     webview.setAttribute('partition', `persist:view-${viewId}`);
     const fragment = new URLSearchParams({ placement, apiVersion: compat.version });
@@ -226,15 +286,18 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
           viewId,
           kind: 'bridge-error',
           level: 'error',
-          method,
+          method: method || '(unknown method)',
           code: error.code,
+          permission: error.permission,
+          // Error text can quote what the View passed, so it stays local.
           message: error.message,
           params: summarizeParams(params),
+          untrusted: true,
         }),
     });
     this._webview = webview;
     this._container.appendChild(webview);
-    this.setState({ status: 'running', compat });
+    this.setState({ status: 'running', compat, consent: null });
   }
 
   _unmount() {
@@ -358,6 +421,63 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     );
   }
 
+  _onAllow = () => {
+    approveView(this.props.viewId);
+  };
+
+  _onDecline = () => {
+    if (this.state.consent) this.setState({ consent: { ...this.state.consent, declined: true } });
+    declineView(this.props.viewId);
+  };
+
+  _renderConsentCard() {
+    const { consent } = this.state;
+    if (!consent) return null;
+    const view = installedViews().find((v) => v.id === this.props.viewId);
+    const name = view ? view.name : this.props.viewId;
+    const { permissions, network } = consent.pending;
+    const credentials = credentialsFromManifest(view && view.json);
+    return (
+      <div className="view-host-cover view-host-consent">
+        <div className="view-host-cover-title">
+          {consent.widening
+            ? localized('“%@” is asking for more access', name)
+            : localized('Allow “%@” to:', name)}
+        </div>
+        <ul className="view-host-consent-list">
+          {permissions.map((p) => (
+            <li key={p}>{permissionCopy(p)}</li>
+          ))}
+          {network.map((host) => (
+            <li key={host} className="view-host-consent-network">
+              {localized('Connect to %@, and send your email there', host)}
+            </li>
+          ))}
+          {credentials.map((c) => (
+            <li key={`credential-${c.id}`}>
+              {localized('Ask for your %@ and use it with %@', c.label, c.hosts.join(', '))}
+            </li>
+          ))}
+        </ul>
+        {consent.declined && (
+          <div className="view-host-cover-detail">
+            {localized('Not allowed. The View stays closed until you allow it.')}
+          </div>
+        )}
+        <div className="view-host-cover-actions">
+          {!consent.declined && (
+            <button className="btn" onClick={this._onDecline}>
+              {localized('Don’t Allow')}
+            </button>
+          )}
+          <button className="btn btn-emphasis" onClick={this._onAllow}>
+            {localized('Allow')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   _renderCover() {
     const { status } = this.state;
     if (status === 'running') return null;
@@ -449,7 +569,7 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
       >
         <div className="view-host-webview" ref={(el) => (this._container = el)} />
         {this._renderDevControls()}
-        {this._renderVersionCard() || this._renderCover()}
+        {this._renderVersionCard() || this._renderConsentCard() || this._renderCover()}
       </div>
     );
   }

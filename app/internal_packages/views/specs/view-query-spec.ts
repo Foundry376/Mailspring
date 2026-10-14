@@ -26,7 +26,7 @@ async function errorFrom(fn: () => any) {
 }
 
 describe('View queries', function () {
-  const grant = grantWith(['mail.read']);
+  const grant = grantWith([]);
 
   describe('mailQuery', function () {
     it('accepts a JSON filter under `where`', function () {
@@ -155,15 +155,6 @@ describe('View queries', function () {
           'pat.side@example.org',
           'pat@oldjob.com',
         ]);
-      });
-    });
-
-    it('requires mail.read', function () {
-      waitsForPromise(async () => {
-        const err = await errorFrom(() =>
-          HANDLERS['identity.get']({ viewId: 'spec', grant: grantWith([]), emit: () => {} }, {})
-        );
-        expect(err.code).toBe('permission');
       });
     });
   });

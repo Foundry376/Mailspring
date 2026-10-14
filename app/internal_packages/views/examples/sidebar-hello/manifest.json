@@ -2,6 +2,8 @@
   "name": "Thread Facts",
   "apiVersion": "2026-10-05",
   "placement": "thread-sidebar",
-  "sidebar": { "mode": "card" },
-  "permissions": ["mail.read"]
+  "sidebar": {
+    "mode": "card"
+  },
+  "permissions": []
 }

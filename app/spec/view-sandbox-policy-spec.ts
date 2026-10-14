@@ -11,6 +11,8 @@ import {
   contentSecurityPolicy,
   proxyConfig,
   isProxyableImageURL,
+  isPublicAddress,
+  approvedSubset,
   servableResourceType,
 } from '../src/browser/view-sandbox-policy';
 
@@ -183,7 +185,7 @@ describe('view-sandbox-policy', () => {
     it('allows public http(s) image hosts', () => {
       expect(isProxyableImageURL('https://static.nytimes.com/images/a.png')).toBe(true);
       expect(isProxyableImageURL('http://email.example.com/pixel.gif')).toBe(true);
-      expect(isProxyableImageURL('https://93.184.216.34/a.png')).toBe(true);
+      expect(isProxyableImageURL('https://email.example.com:443/pixel.gif')).toBe(true);
     });
 
     it('refuses local, private and non-http targets', () => {
@@ -202,9 +204,68 @@ describe('view-sandbox-policy', () => {
         'ftp://example.com/a.png',
         'https://user:pass@example.com/a.png',
         'not a url',
+        'https://93.184.216.34/a.png',
+        'http://localhost./a.png',
+        'http://example.com./a.png',
+        'http://[::7f00:1]/a.png',
+        'http://[64:ff9b::7f00:1]/a.png',
+        'http://0x7f.1/a.png',
+        'http://2130706433/a.png',
+        'https://example.com:8443/a.png',
+        'http://example.com:2587/a.png',
       ]) {
         expect(isProxyableImageURL(url)).toBe(false);
       }
+    });
+  });
+
+  describe('isPublicAddress', () => {
+    it('accepts public IPv4 and global IPv6 addresses', () => {
+      for (const address of ['93.184.216.34', '8.8.8.8', '2606:2800:220:1::1']) {
+        expect(isPublicAddress(address)).toBe(true);
+      }
+    });
+
+    it('refuses local, private, reserved and embedded-local addresses', () => {
+      for (const address of [
+        '127.0.0.1',
+        '10.1.2.3',
+        '172.16.0.1',
+        '192.168.0.1',
+        '169.254.169.254',
+        '100.64.0.1',
+        '198.18.0.1',
+        '0.0.0.0',
+        '224.0.0.1',
+        '255.255.255.255',
+        '::',
+        '::1',
+        'fd00::1',
+        'fe80::1',
+        'ff02::1',
+        '::ffff:127.0.0.1',
+        '::ffff:7f00:1',
+        '64:ff9b::7f00:1',
+        '2002:7f00:1::1',
+        'not an address',
+      ]) {
+        expect(isPublicAddress(address)).toBe(false);
+      }
+    });
+  });
+
+  describe('approvedSubset', () => {
+    it('keeps only what the user approved for that View', () => {
+      const approvals = { a: { permissions: ['mail.bodies'], network: ['api.example.com'] } };
+      expect(approvedSubset(['mail.bodies', 'mail.modify'], approvals, 'a', 'permissions')).toEqual(
+        ['mail.bodies']
+      );
+      expect(approvedSubset(['api.example.com', 'evil.com'], approvals, 'a', 'network')).toEqual([
+        'api.example.com',
+      ]);
+      expect(approvedSubset(['api.example.com'], approvals, 'b', 'network')).toEqual([]);
+      expect(approvedSubset(['x'], approvals, '__proto__', 'network')).toEqual([]);
+      expect(approvedSubset(['x'], undefined, 'a', 'network')).toEqual([]);
     });
   });
 

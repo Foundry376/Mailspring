@@ -19,6 +19,7 @@ interface SidebarViewProps {
 
 interface SidebarViewState {
   height: number;
+  awaitingConsent: boolean;
   hasContext: boolean;
 }
 
@@ -45,7 +46,7 @@ export function createSidebarViewComponent(view: ViewManifest) {
 
     _host: ViewHost;
     _unlisten: () => void;
-    state: SidebarViewState = { height: INITIAL_HEIGHT, hasContext: false };
+    state: SidebarViewState = { height: INITIAL_HEIGHT, hasContext: false, awaitingConsent: false };
 
     // Card Views report their content height whenever it changes. Clamped so a View can't push
     // the rest of the sidebar off screen or collapse to nothing. Panels fill the sidebar, so
@@ -96,7 +97,12 @@ export function createSidebarViewComponent(view: ViewManifest) {
     _lastVisible: boolean | null = null;
 
     _pushContext = (bridge: ViewBridge) => {
-      if (!bridge) return;
+      if (!bridge) {
+        // A View waiting for consent has no page to push to, but its card shows with a thread.
+        const hasContext = this.state.awaitingConsent && !!MessageStore.thread();
+        if (hasContext !== this.state.hasContext) this.setState({ hasContext });
+        return;
+      }
       const context = this._contextFor(bridge.grant);
       const json = JSON.stringify(context);
       if (json === this._lastContextJSON) return;
@@ -134,6 +140,9 @@ export function createSidebarViewComponent(view: ViewManifest) {
           placement="thread-sidebar"
           handlers={this._handlers}
           onReady={this._onReady}
+          onConsentChange={(awaitingConsent) =>
+            this.setState({ awaitingConsent }, () => this._pushContext(null))
+          }
         />
       );
     }
@@ -158,7 +167,10 @@ export function createSidebarViewComponent(view: ViewManifest) {
           style={{ display: this.state.hasContext ? 'block' : 'none' }}
         >
           {options.title && <h2>{options.title}</h2>}
-          <div className="sidebar-view-frame" style={{ height: this.state.height }}>
+          <div
+            className="sidebar-view-frame"
+            style={{ height: this.state.awaitingConsent ? 'auto' : this.state.height }}
+          >
             {this._renderHost()}
           </div>
           <EditViewButton viewId={view.id} variant="sidebar" />

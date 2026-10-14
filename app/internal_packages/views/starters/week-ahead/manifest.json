@@ -7,7 +7,6 @@
   "version": "1.0.0",
   "placement": "page",
   "permissions": [
-    "calendar.read",
-    "mail.read"
+    "calendar.read"
   ]
 }

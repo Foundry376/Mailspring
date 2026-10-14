@@ -11,6 +11,11 @@ import {
 } from './drafts';
 import { Diagnostic, ViewDiagnostics } from './diagnostics';
 import { captureViewPreview } from './preview';
+import { waitForConsent } from '../consent';
+
+// An agent's preview that asks for new access waits this long for the user to answer the
+// consent card before the agent is told it is still waiting.
+const CONSENT_TIMEOUT_MS = 10 * 60 * 1000;
 
 export { ViewRevision, Diagnostic, ViewDiagnostics, revisionOf };
 
@@ -43,9 +48,31 @@ export const ViewAuthoring = {
     return { revision: hash };
   },
 
-  /** Previews a revision and resolves once it renders cleanly, fails, or times out. */
+  /**
+   * Previews a revision and resolves once it renders cleanly, fails, or times out. A revision
+   * that asks for access the user hasn't allowed waits for their answer first; declining
+   * fails the revision with a record the agent sees.
+   */
   async previewAndWait(viewId: string, revision: ViewRevision, { timeoutMs = 15000 } = {}) {
     const { revision: hash } = this.previewView(viewId, revision);
+    const consent = await waitForConsent(viewId, CONSENT_TIMEOUT_MS);
+    if (consent !== 'approved') {
+      ViewDiagnostics.add({
+        viewId,
+        revision: hash,
+        kind: 'consent',
+        level: 'error',
+        message:
+          consent === 'declined'
+            ? 'The user did not allow the permissions or network hosts this revision asks for.'
+            : 'The user has not yet allowed the permissions or network hosts this revision asks for.',
+      });
+      return {
+        revision: hash,
+        status: consent === 'declined' ? ('failed' as const) : ('timeout' as const),
+        diagnostics: ViewDiagnostics.get(viewId, { revision: hash }),
+      };
+    }
     const outcome = await ViewDiagnostics.waitForOutcome(viewId, hash, timeoutMs);
     return { revision: hash, ...outcome };
   },

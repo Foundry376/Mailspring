@@ -81,8 +81,15 @@ interface Subscription {
 export interface ViewBridgeOptions {
   /** Extra methods merged over the built-ins, e.g. `ui.setHeight` for sidebar Views. */
   handlers?: { [method: string]: Handler };
-  /** Told about every call that fails, for the View's diagnostics. Params are not passed on. */
-  onCallError?: (method: string, error: { code: string; message: string }, params: any) => void;
+  /**
+   * Told about every call that fails, for the View's diagnostics. `method` is null when the View
+   * called a method that doesn't exist, so a made-up name never reaches a record.
+   */
+  onCallError?: (
+    method: string | null,
+    error: { code: string; message: string; permission?: string },
+    params: any
+  ) => void;
 }
 
 function sizeChecked(payload: any) {
@@ -239,7 +246,6 @@ export class ViewBridge {
     const { grant } = this;
     switch (kind) {
       case 'threads': {
-        requirePermission(grant, 'mail.read');
         const q = mailQuery(grant, 'threads', params.query);
         return Rx.Observable.fromQuery(threadsFindQuery(grant, q)).flatMapLatest(
           (threads: Thread[]) => {
@@ -251,7 +257,6 @@ export class ViewBridge {
         );
       }
       case 'messages': {
-        requirePermission(grant, 'mail.read');
         const q = mailQuery(grant, 'messages', params.query);
         return Rx.Observable.fromQuery(messagesFindQuery(grant, q)).map((messages: Message[]) => {
           const { items, hasMore } = messagesPage(grant, q, messages);
@@ -259,7 +264,6 @@ export class ViewBridge {
         });
       }
       case 'counts': {
-        requirePermission(grant, 'mail.read');
         const q = mailQuery(grant, 'messages', params.query);
         const dims = parseGroupBy(params.groupBy);
         const changes = Rx.Observable.create((observer) =>
@@ -297,7 +301,6 @@ export class ViewBridge {
         }));
       }
       case 'accounts': {
-        requirePermission(grant, 'mail.read');
         return Rx.Observable.fromStore<any>(AccountStore)
           .merge(Rx.Observable.fromStore<any>(CategoryStore))
           .map(() => ({ data: listAccounts(grant) }));
@@ -454,7 +457,6 @@ export class ViewBridge {
       },
 
       'ui.threadMenu': async (ctx, params) => {
-        requirePermission(this.grant, 'mail.read');
         const { threadIds, anchor } = parse(
           z.object({
             threadIds: z.array(z.string()).min(1).max(LIMITS.ids),
@@ -606,7 +608,9 @@ export class ViewBridge {
       const error =
         err instanceof ViewError ? err.toJSON() : { code: 'internal', message: err.message };
       if (this.options.onCallError && generation === this.generation) {
-        this.options.onCallError(String(method), error, params);
+        const known =
+          typeof method === 'string' && Object.prototype.hasOwnProperty.call(this.handlers, method);
+        this.options.onCallError(known ? method : null, error, params);
       }
       reply({ id, error });
     }

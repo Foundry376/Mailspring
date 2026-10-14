@@ -1,5 +1,6 @@
-import { BrowserWindow, IpcMain, session } from 'electron';
+import { BrowserWindow, IpcMain, net, session } from 'electron';
 import crypto from 'crypto';
+import dns from 'dns';
 import fs from 'fs';
 import path from 'path';
 import {
@@ -13,7 +14,10 @@ import {
   contentSecurityPolicy,
   proxyConfig,
   isProxyableImageURL,
+  isPublicAddress,
   servableResourceType,
+  APPROVALS_CONFIG_KEY,
+  approvedSubset,
 } from './view-sandbox-policy';
 import { registerViewCredentialIPCHandlers } from './view-credentials';
 
@@ -218,6 +222,7 @@ type ResourceEntry =
 const MAX_RESOURCES_PER_VIEW = 5000;
 const MAX_REMOTE_BYTES = 15 * 1024 * 1024;
 const REMOTE_TIMEOUT_MS = 15 * 1000;
+const MAX_REMOTE_REDIRECTS = 5;
 
 const resourcesByView = new Map<string, Map<string, ResourceEntry>>();
 
@@ -299,24 +304,93 @@ async function serveResource(viewId: string, token: string): Promise<Response> {
       'Content-Type': servableResourceType(entry.contentType),
     });
   }
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), REMOTE_TIMEOUT_MS);
+  const image = await fetchProxiedImage(entry.url);
+  return image ? respond(image.body, 'image', { 'Content-Type': image.contentType }) : notFound();
+}
+
+// Whether every address `url`'s host resolves to is public. The fetch below resolves the name
+// again, so a rebinding DNS server can still race this; what's left is a blind GET whose
+// response is discarded unless it's an image.
+async function resolvesToPublicAddresses(url: string) {
   try {
-    const upstream = await imageProxySession().fetch(entry.url, {
-      signal: controller.signal,
-      credentials: 'omit',
-      redirect: 'follow',
-    } as any);
-    const contentType = servableResourceType(upstream.headers.get('content-type'));
-    if (!upstream.ok || !contentType.startsWith('image/')) return notFound();
-    const body = Buffer.from(await upstream.arrayBuffer());
-    if (body.length > MAX_REMOTE_BYTES) return notFound();
-    return respond(body, 'image', { 'Content-Type': contentType });
+    const addresses = await dns.promises.lookup(new URL(url).hostname, { all: true });
+    return addresses.length > 0 && addresses.every(({ address }) => isPublicAddress(address));
   } catch {
-    return notFound();
-  } finally {
-    clearTimeout(timer);
+    return false;
   }
+}
+
+/**
+ * Fetches an email image for a View, following up to MAX_REMOTE_REDIRECTS redirects and
+ * checking each hop like the first: a public http(s) name on the default port. Resolves to
+ * null for anything that isn't an image under MAX_REMOTE_BYTES.
+ */
+async function fetchProxiedImage(url: string): Promise<{ body: Buffer; contentType: string }> {
+  if (!isProxyableImageURL(url) || !(await resolvesToPublicAddresses(url))) return null;
+  return new Promise((resolve) => {
+    let settled = false;
+    let redirects = 0;
+    const finish = (result: { body: Buffer; contentType: string } | null) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(result);
+    };
+    const req = net.request({
+      url,
+      session: imageProxySession(),
+      redirect: 'manual',
+      useSessionCookies: false,
+      credentials: 'omit',
+    } as any);
+    const timer = setTimeout(() => {
+      req.abort();
+      finish(null);
+    }, REMOTE_TIMEOUT_MS);
+
+    req.on('redirect', async (_status, _method, redirectUrl) => {
+      redirects += 1;
+      const allowed =
+        redirects <= MAX_REMOTE_REDIRECTS &&
+        isProxyableImageURL(redirectUrl) &&
+        (await resolvesToPublicAddresses(redirectUrl));
+      if (settled) return;
+      if (allowed) {
+        req.followRedirect();
+      } else {
+        req.abort();
+        finish(null);
+      }
+    });
+    req.on('response', (response) => {
+      const header = response.headers['content-type'];
+      const contentType = servableResourceType(Array.isArray(header) ? header[0] : header);
+      if (
+        response.statusCode < 200 ||
+        response.statusCode >= 300 ||
+        !contentType.startsWith('image/')
+      ) {
+        req.abort();
+        finish(null);
+        return;
+      }
+      const chunks: Buffer[] = [];
+      let size = 0;
+      response.on('data', (chunk: Buffer) => {
+        size += chunk.length;
+        if (size > MAX_REMOTE_BYTES) {
+          req.abort();
+          finish(null);
+          return;
+        }
+        chunks.push(chunk);
+      });
+      response.on('end', () => finish({ body: Buffer.concat(chunks), contentType }));
+      response.on('error', () => finish(null));
+    });
+    req.on('error', () => finish(null));
+    req.end();
+  });
 }
 
 let emailColorsSource: string | null = null;
@@ -360,9 +434,7 @@ export function readViewManifestJSON(viewId: string): any {
 
 const grantsCache = new Map<string, { mtimeMs: number; grants: string[] }>();
 
-// Read per request rather than once per session, so editing a manifest's `network` list
-// takes effect on the View's next reload instead of the next app launch.
-function networkGrantsForView(viewId: string): string[] {
+function declaredNetworkGrants(viewId: string): string[] {
   const bundleDir = bundleDirForView(viewId, viewPaths());
   const manifestFile = bundleDir && containedFile(bundleDir, 'manifest.json');
   if (!manifestFile) return [];
@@ -377,6 +449,14 @@ function networkGrantsForView(viewId: string): string[] {
   }
   grantsCache.set(manifestFile, { mtimeMs, grants });
   return grants;
+}
+
+// Read per request rather than once per session, so a manifest change or a new approval takes
+// effect on the View's next reload. Hosts the manifest declares but the user hasn't approved
+// stay blocked even if the host window mounts the View before asking.
+function networkGrantsForView(viewId: string): string[] {
+  const approvals = global.application.config.get(APPROVALS_CONFIG_KEY);
+  return approvedSubset(declaredNetworkGrants(viewId), approvals, viewId, 'network');
 }
 
 function respond(body: string | Buffer, filePath: string, extraHeaders = {}) {

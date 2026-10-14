@@ -6,6 +6,7 @@ import { ViewAuthoring, openView } from '../authoring';
 import { hostsFor } from '../authoring/hosts';
 import { installedViews } from '../view-registry';
 import { AgentClient, AgentTransport } from './client';
+import { agentPublicKey } from './signing';
 import { chipFor, examplesForThreads } from './examples';
 import {
   AccountUsage,
@@ -45,7 +46,6 @@ import {
  */
 
 const REVISIONS_CONFIG_KEY = 'core.views.agentRevisions';
-const PUBLIC_KEY_CONFIG_KEY = 'core.views.agentPublicKey';
 const SCREENSHOT_MAX_WIDTH = 1280;
 // A View that just mounted is often still loading its data. Before showing the user a
 // screenshot to approve, wait until consecutive captures stop changing (or give up).
@@ -97,8 +97,7 @@ const UPGRADE_ICON = 'mailspring://composer-grammar-check/assets/ic-modal-image@
 export interface AgentStoreDeps {
   transport: AgentTransport;
   identityId: () => string;
-  configuredPublicKey: () => string | null;
-  devMode: () => boolean;
+  publicKey: () => string | null;
   lastAcceptedRevision: (viewId: string) => number;
   setAcceptedRevision: (viewId: string, revision: number) => void;
   buildExamples: (threadIds: string[]) => Promise<Example[]>;
@@ -131,8 +130,7 @@ function defaultDeps(): AgentStoreDeps {
   return {
     transport: new AgentClient(),
     identityId: () => (IdentityStore.identity() || { id: '' }).id,
-    configuredPublicKey: () => AppEnv.config.get(PUBLIC_KEY_CONFIG_KEY) || null,
-    devMode: () => AppEnv.inDevMode(),
+    publicKey: () => agentPublicKey(AppEnv.config.get('env')),
     lastAcceptedRevision: (viewId) => (AppEnv.config.get(REVISIONS_CONFIG_KEY) || {})[viewId] || 0,
     setAcceptedRevision: (viewId, revision) => {
       const all = { ...(AppEnv.config.get(REVISIONS_CONFIG_KEY) || {}) };
@@ -213,7 +211,6 @@ interface SessionRuntime {
   /** Full payloads for the chips in `attachedExamples`, keyed by messageId. */
   staged: Map<string, Example>;
   asks: PendingAsk[];
-  publicKey: string | null;
   refreshing: boolean;
   /**
    * Set when the backend has no usable session for the View: `none` for a View never built
@@ -307,7 +304,6 @@ class AgentSessionStoreImpl extends MailspringStore {
         handledToolUseIds: new Set(),
         staged: new Map(),
         asks: [],
-        publicKey: null,
         refreshing: false,
         needsSession: null,
         unsent: null,
@@ -717,20 +713,11 @@ class AgentSessionStoreImpl extends MailspringStore {
 
   // ── Client tools ───────────────────────────────────────────────────────────
 
-  private async publicKey(viewId: string) {
-    const configured = this.d.configuredPublicKey();
-    if (configured) return configured;
-    if (!this.d.devMode()) return null;
-    const rt = this.runtime(viewId);
-    if (!rt.publicKey) rt.publicKey = await this.d.transport.publicKey();
-    return rt.publicKey;
-  }
-
   private toolDeps(viewId: string, toolUseId: string): ToolDeps {
     return {
       viewId,
       identityId: this.d.identityId,
-      publicKey: () => this.publicKey(viewId),
+      publicKey: async () => this.d.publicKey(),
       lastAcceptedRevision: this.d.lastAcceptedRevision,
       setAcceptedRevision: this.d.setAcceptedRevision,
       previewAndWait: this.d.previewAndWait,

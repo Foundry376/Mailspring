@@ -26,14 +26,14 @@ const pro = (used: number, usedCents: number) => ({
 
 describe('View agent quota', () => {
   describe('limitNotice', () => {
-    it('words each plan and limit from the payload', () => {
+    it('words each plan and limit', () => {
       expect(limitNotice('quota', { plan: 'free', limit: 2, period: 'unlimited' }).message).toBe(
-        "You've used your 2 free Views. Upgrade to Pro to build up to 10 Views a month."
+        'Thanks for trying out Views! Upgrade to Mailspring Pro and build 10 new Views every month.'
       );
       expect(
         limitNotice('spend_quota', { plan: 'free', limitCents: 500, period: 'unlimited' }).message
       ).toBe(
-        "You've used the $5.00 of AI building included with the free plan. Upgrade to Pro for $8.00 of building every month."
+        "You've used the AI tokens included with your trial of this Pro feature. Upgrade to Mailspring Pro and build 10 new Views every month."
       );
       expect(
         limitNotice('quota', {
@@ -50,17 +50,18 @@ describe('View agent quota', () => {
           period: 'monthly',
           resetsAt: '2026-11-01T00:00:00.000Z',
         }).message
-      ).toBe("You've used this month's $8.00 of AI building. It resets on November 1.");
+      ).toBe(
+        "You've used up the AI tokens included in your Pro subscription this month. Tokens reset on November 1."
+      );
     });
 
-    it('takes its numbers from the payload, including Pro limits quoted to free users', () => {
+    it('quotes the Pro build allowance from the payload to free users', () => {
       const notice = limitNotice('quota', {
         plan: 'free',
         limit: 3,
         proLimits: { builds: 25 },
       });
-      expect(notice.message).toContain('3 free Views');
-      expect(notice.message).toContain('up to 25 Views a month');
+      expect(notice.message).toContain('build 25 new Views every month');
     });
 
     it('only offers an upgrade on the free plan', () => {
@@ -97,7 +98,7 @@ describe('View agent quota', () => {
 
     it('describes an exhausted allowance as a notice', () => {
       expect(exhaustedNotice(free(1, 200), 'spend')).toBe(null);
-      expect(exhaustedNotice(free(1, 500), 'spend').message).toContain('$5.00');
+      expect(exhaustedNotice(free(1, 500), 'spend').message).toContain('AI tokens included');
       expect(exhaustedNotice(pro(10, 10), 'build').message).toContain('10 Views this month');
     });
   });
@@ -121,8 +122,12 @@ describe('View agent quota', () => {
       expect(homeUsageLine(pro(3, 120))).toBe('3 of 10 Views this month');
       expect(homeUsageLine(pro(3, 700))).toBe('3 of 10 Views this month · $7.00 of $8.00');
       const single = (used: number) => ({ ...free(used, 0), builds: { used, limit: 1 } });
-      expect(homeUsageLine(single(0))).toBe('Your first View is free');
-      expect(homeUsageLine(single(1))).toBe("You've used your free View");
+      expect(homeUsageLine(single(0))).toBe(
+        'Views are part of Mailspring Pro, but you can try building one for free!'
+      );
+      expect(homeUsageLine(single(1))).toBe(
+        'Views are part of Mailspring Pro - Upgrade today to create more Views!'
+      );
     });
   });
 

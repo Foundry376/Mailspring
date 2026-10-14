@@ -52,7 +52,6 @@ export interface AgentTransport {
   budget(viewId: string, action: 'raise' | 'stop'): Promise<{ maxListCostCents: number }>;
   /** The account's View-building allowance and what it has used, unvalidated. */
   usage(): Promise<any>;
-  publicKey(): Promise<string>;
   /**
    * Streams the session's events until `signal` aborts. Reconnects with Last-Event-ID after a
    * dropped connection; events the client has already seen are skipped by id.
@@ -146,11 +145,6 @@ export class AgentClient implements AgentTransport {
 
   usage() {
     return this.request('GET', '/api/views/agent/usage');
-  }
-
-  async publicKey() {
-    const json = await this.request('GET', '/api/views/agent/public-key');
-    return json.publicKey;
   }
 
   async streamEvents(
