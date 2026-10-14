@@ -12,12 +12,15 @@ import { audited } from '../../mcp-server/lib/capabilities/audit';
 import { currentThemeTokens, onThemeChange } from './theme-tokens';
 import { ViewError } from './bridge/errors';
 import { CREDENTIAL_HANDLERS } from './bridge/credentials';
+import ThreadListContextMenu from '../../thread-list/lib/thread-list-context-menu';
 import { ViewGrant, grantForView, requirePermission } from './bridge/grant';
 import {
   BridgeContext,
   Handler,
   HANDLERS,
+  LIMITS,
   listAccounts,
+  loadThreads,
   mailQuery,
   messagesFindQuery,
   messagesPage,
@@ -415,6 +418,42 @@ export class ViewBridge {
       },
 
       'theme.get': () => currentThemeTokens(),
+
+      'ui.threadMenu': async (ctx, params) => {
+        requirePermission(this.grant, 'mail.read');
+        const { threadIds, anchor } = parse(
+          z.object({
+            threadIds: z.array(z.string()).min(1).max(LIMITS.ids),
+            anchor: z.object({ x: z.number().finite(), y: z.number().finite() }).optional(),
+          }),
+          params
+        );
+        const generation = this.generation;
+        const threads = await loadThreads(this.grant, threadIds);
+        if (generation !== this.generation) return {};
+        new ThreadListContextMenu({
+          threadIds,
+          accountIds: [...new Set(threads.map((t) => t.accountId))],
+          source: 'Context Menu: View',
+        }).displayMenu(anchor ? this.windowPoint(anchor) : undefined);
+        return {};
+      },
+    };
+  }
+
+  /**
+   * Converts a point in the guest's CSS pixels to the window coordinates Menu.popup takes,
+   * clamped to the webview so a View can't place a menu elsewhere in the window. The guest
+   * and the host each have their own zoom (the host's is the interface zoom).
+   */
+  private windowPoint({ x, y }: { x: number; y: number }) {
+    const rect = this.webview.getBoundingClientRect();
+    const hostZoom = require('electron').webFrame.getZoomFactor();
+    const guestZoom = this.webview.getZoomFactor();
+    const clamp = (v: number, max: number) => Math.min(Math.max(v, 0), max);
+    return {
+      x: (rect.left + clamp((x * guestZoom) / hostZoom, rect.width)) * hostZoom,
+      y: (rect.top + clamp((y * guestZoom) / hostZoom, rect.height)) * hostZoom,
     };
   }
 

@@ -463,8 +463,26 @@
     return call('mail.modify', { threadIds, change });
   }
 
+  const threadIdsOf = (threads) =>
+    (Array.isArray(threads) ? threads : [threads]).map((t) => (typeof t === 'string' ? t : t.id));
+
+  // Right-clicks open the menu at the pointer; buttons open it below themselves. Read
+  // synchronously, while React's event still has its currentTarget.
+  function menuAnchor(event) {
+    if (!event) return undefined;
+    if (event.type === 'contextmenu') return { x: event.clientX, y: event.clientY };
+    const target = event.currentTarget;
+    if (!target || !target.getBoundingClientRect) return undefined;
+    const rect = target.getBoundingClientRect();
+    return { x: rect.left, y: rect.bottom };
+  }
+
   const ui = {
     showThread: (id) => call('ui.showThread', { id }),
+    showThreadMenu: (threads, event) => {
+      if (event && event.preventDefault) event.preventDefault();
+      return call('ui.threadMenu', { threadIds: threadIdsOf(threads), anchor: menuAnchor(event) });
+    },
     search: (search) => call('ui.search', { search }),
     compose: (draft) => call('ui.compose', draft || {}),
     reply: (messageId, opts = {}) => call('ui.reply', { messageId, ...opts }),
@@ -747,6 +765,60 @@
     );
   }
 
+  // ── Thread actions ────────────────────────────────────────────────────────
+  // The app's own thread menu (reply, archive, trash, star, spam, …) for threads a View renders.
+  // threadProps gives an element right-click and marks it as a thread; <ThreadActions> is the
+  // visible ⋯ button, because many people never think to right-click.
+
+  // `thread` may be several threads (a group). The menu covers the View's selection when the
+  // clicked thread is part of it, like the thread list.
+  function menuTargets(thread, selection) {
+    const ids = threadIdsOf(thread);
+    const selected = selection ? threadIdsOf(selection) : [];
+    return selected.includes(ids[0]) ? selected : ids;
+  }
+
+  function threadProps(thread, { selection } = {}) {
+    return {
+      'data-ms-thread': threadIdsOf(thread)[0],
+      onContextMenu: (event) => {
+        event.stopPropagation();
+        ui.showThreadMenu(menuTargets(thread, selection), event).catch(() => {});
+      },
+    };
+  }
+
+  const DOTS = h(
+    'svg',
+    { width: 16, height: 16, viewBox: '0 0 16 16', fill: 'currentColor', 'aria-hidden': true },
+    h('circle', { cx: 3, cy: 8, r: 1.5 }),
+    h('circle', { cx: 8, cy: 8, r: 1.5 }),
+    h('circle', { cx: 13, cy: 8, r: 1.5 })
+  );
+
+  // Clicks and presses stop here so the card underneath doesn't open the thread, change the
+  // View's selection, or start a drag.
+  function ThreadActions({ thread, selection, className, title = 'Actions' }) {
+    return h(
+      'button',
+      {
+        type: 'button',
+        className: `ms-thread-actions${className ? ` ${className}` : ''}`,
+        title,
+        'aria-label': title,
+        'aria-haspopup': 'menu',
+        draggable: false,
+        onMouseDown: (event) => event.stopPropagation(),
+        onPointerDown: (event) => event.stopPropagation(),
+        onClick: (event) => {
+          event.stopPropagation();
+          ui.showThreadMenu(menuTargets(thread, selection), event).catch(() => {});
+        },
+      },
+      DOTS
+    );
+  }
+
   // ── Height reporting ──────────────────────────────────────────────────────
   // Sidebar hosts size the webview to its content. view.css makes <html> height:auto for
   // sidebar Views, so its box is exactly the content, including margins that collapse out of
@@ -813,6 +885,8 @@
     attachmentUrl,
     // Components
     MessageView,
+    ThreadActions,
+    threadProps,
     ViewError,
     // Escape hatches for API smoke tests and debugging.
     call,

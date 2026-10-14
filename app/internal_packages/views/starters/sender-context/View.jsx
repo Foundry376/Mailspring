@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { ArrowDownLeft, ArrowUpRight, Clock, MessagesSquare, Mail, Search } from 'lucide-react';
-import { useSelectedThread, useCounts, useThreads, useMessages, useTheme, ui } from '@mailspring/view';
+import { useSelectedThread, useCounts, useThreads, useMessages, useTheme, ui, threadProps, ThreadActions } from '@mailspring/view';
 
 const lc = (s) => String(s ?? '').toLowerCase();
 
@@ -222,14 +222,16 @@ export default function SenderContext() {
         <Heading>Other threads</Heading>
         <div className="space-y-0.5">
           {otherThreads.map((t) => (
-            <button
+            <div
               key={t.id}
+              {...threadProps(t)}
               onClick={() => ui.showThread(t.id)}
-              className="flex w-full items-baseline gap-2 rounded px-1 -mx-1 py-0.5 text-left hover:bg-ms-panel"
+              className="group flex w-full cursor-pointer items-center gap-2 rounded px-1 -mx-1 py-0.5 text-left hover:bg-ms-panel"
             >
               <span className={`flex-1 truncate ${t.unread ? 'font-semibold' : ''}`}>{t.subject || '(no subject)'}</span>
-              <span className="shrink-0 text-[11px] text-ms-muted">{shortDate(t.lastReceivedAt || t.lastSentAt || t.firstMessageAt)}</span>
-            </button>
+              <span className="shrink-0 text-[11px] text-ms-muted group-hover:hidden">{shortDate(t.lastReceivedAt || t.lastSentAt || t.firstMessageAt)}</span>
+              <ThreadActions thread={t} className="hidden group-hover:inline-flex" />
+            </div>
           ))}
           {!recent.loading && otherThreads.length === 0 && <div className="text-xs text-ms-muted">This is your only thread together.</div>}
         </div>

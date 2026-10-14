@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { Users, Folder, Tag, Clock, Flame, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import { useAccounts, useCounts, useTheme, useViewState, ui } from '@mailspring/view';
 
@@ -145,18 +145,48 @@ function Heatmap({ rows, accent }) {
   );
 }
 
+// Counting years of mail takes a few seconds, so each result is kept in localStorage and shown
+// right away on the next visit while the live query catches up.
+const CACHE_VERSION = 1;
+
+function readCache(key) {
+  try {
+    const entry = JSON.parse(localStorage.getItem(key));
+    return entry && entry.version === CACHE_VERSION ? entry.data : null;
+  } catch {
+    return null;
+  }
+}
+
+function useCachedCounts(cacheKey, query, groupBy) {
+  const key = `people:${cacheKey}`;
+  const live = useCounts(query, groupBy);
+  const cached = useMemo(() => readCache(key), [key]);
+  useEffect(() => {
+    if (live.loading || live.error) return;
+    try {
+      localStorage.setItem(key, JSON.stringify({ version: CACHE_VERSION, data: live.data }));
+    } catch {
+      // Over the storage quota: the View still works, it just loads fresh next time.
+    }
+  }, [key, live.loading, live.error, live.data]);
+  if (!live.loading || !cached) return { ...live, stale: false };
+  return { ...live, data: cached, loading: false, stale: true };
+}
+
 export default function PeopleView() {
   const theme = useTheme();
   const [range, setRange] = useViewState('range', '3y');
   const since = { where: { date: { after: daysAgo(RANGES[range]) } } };
 
   const accounts = useAccounts();
-  const senders = useCounts(since, 'sender');
-  const pairs = useCounts(since, ['sender', 'recipient']);
-  const byFolder = useCounts(since, ['sender', 'category']);
-  const heat = useCounts(since, ['weekday', 'hour']);
-  const allSenders = useCounts({}, 'sender');
-  const allPairs = useCounts({}, ['sender', 'recipient']);
+  const senders = useCachedCounts(`senders:${range}`, since, 'sender');
+  const pairs = useCachedCounts(`pairs:${range}`, since, ['sender', 'recipient']);
+  const byFolder = useCachedCounts(`byFolder:${range}`, since, ['sender', 'category']);
+  const heat = useCachedCounts(`heat:${range}`, since, ['weekday', 'hour']);
+  const allSenders = useCachedCounts('allSenders', {}, 'sender');
+  const allPairs = useCachedCounts('allPairs', {}, ['sender', 'recipient']);
+  const refreshing = [senders, pairs, byFolder, heat, allSenders, allPairs].some((c) => c.stale);
 
   const roleOf = useMemo(() => {
     const m = {};
@@ -229,7 +259,10 @@ export default function PeopleView() {
             <h1 className="text-xl font-semibold flex items-center gap-2">
               <Users size={20} className="text-ms-accent" /> People
             </h1>
-            <p className="text-sm text-ms-muted">Who you correspond with, where those conversations live, and when.</p>
+            <p className="text-sm text-ms-muted">
+              Who you correspond with, where those conversations live, and when.
+              {refreshing && <span className="ml-2 text-xs">Updating…</span>}
+            </p>
           </div>
           <div className="flex rounded-md border border-ms-border overflow-hidden text-xs">
             {Object.keys(RANGES).map((r) => (

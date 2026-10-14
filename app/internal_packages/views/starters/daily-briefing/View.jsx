@@ -7,7 +7,6 @@ import {
   Inbox,
   Cpu,
   Loader2,
-  ChevronRight,
 } from 'lucide-react';
 import {
   useMessages,
@@ -17,6 +16,8 @@ import {
   useGenerate,
   useViewState,
   ui,
+  threadProps,
+  ThreadActions,
 } from '@mailspring/view';
 
 // Briefings read at most this many messages; people come first, then lists and notifications.
@@ -58,10 +59,12 @@ function Card({ icon: Icon, title, right, children }) {
   );
 }
 
-function Row({ title, detail, badge, onClick }) {
+// A row opens its first thread; its ⋯ menu covers all of them (a group's threads, together).
+function Row({ threadIds, title, detail, badge }) {
   return (
     <li
-      onClick={onClick}
+      {...threadProps(threadIds)}
+      onClick={() => ui.showThread(threadIds[0])}
       className="flex items-start gap-3 px-4 py-2.5 cursor-pointer hover:bg-ms-bg border-b border-ms-border last:border-b-0"
     >
       <div className="min-w-0 flex-1">
@@ -69,7 +72,7 @@ function Row({ title, detail, badge, onClick }) {
         {detail && <div className="mt-0.5 text-xs text-ms-muted line-clamp-2">{detail}</div>}
       </div>
       {badge}
-      <ChevronRight size={14} className="mt-1 shrink-0 text-ms-muted" />
+      <ThreadActions thread={threadIds} />
     </li>
   );
 }
@@ -251,7 +254,7 @@ export default function DailyBriefing() {
                     key={p.threadId}
                     title={p.title}
                     detail={p.reason}
-                    onClick={() => ui.showThread(p.threadId)}
+                    threadIds={[p.threadId]}
                     badge={
                       p.urgency === 'high' && (
                         <span className="mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase bg-ms-danger text-white">
@@ -279,7 +282,7 @@ export default function DailyBriefing() {
                       key={t.id}
                       title={t.subject || '(no subject)'}
                       detail={`${them ? them.name || them.email : 'Someone'} · ${ago(t.lastReceivedAt)}`}
-                      onClick={() => ui.showThread(t.id)}
+                      threadIds={[t.id]}
                     />
                   );
                 })}
@@ -301,7 +304,7 @@ export default function DailyBriefing() {
                     key={g.source}
                     title={`${g.source}${g.count > 1 ? ` (${g.count})` : ''}`}
                     detail={g.gists.join(' · ')}
-                    onClick={() => ui.showThread(g.threadIds[0])}
+                    threadIds={g.threadIds}
                   />
                 ))}
               </ul>

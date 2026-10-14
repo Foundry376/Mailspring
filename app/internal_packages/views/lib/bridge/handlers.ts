@@ -210,7 +210,7 @@ export function listAccounts(grant: ViewGrant) {
 
 // ── Writes ──────────────────────────────────────────────────────────────────
 
-async function loadThreads(grant: ViewGrant, ids: string[]) {
+export async function loadThreads(grant: ViewGrant, ids: string[]) {
   const threads = await DatabaseStore.findAll<Thread>(Thread).where(Thread.attributes.id.in(ids));
   if (threads.length !== ids.length || !threads.every((t) => isThreadAllowed(grant.scope, t))) {
     throw new ViewError('not_found', 'One or more threads were not found.');

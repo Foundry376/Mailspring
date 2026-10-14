@@ -12,7 +12,7 @@ import {
   MessageSquareReply,
   KanbanSquare,
 } from 'lucide-react';
-import { useThreads, useViewState, setMetadata, ui } from '@mailspring/view';
+import { useThreads, useViewState, setMetadata, ui, threadProps, ThreadActions } from '@mailspring/view';
 
 const COLUMNS = [
   { id: 'todo', title: 'To do', icon: Circle },
@@ -72,11 +72,12 @@ function Card({ thread, onDragStart, dragging }) {
 
   return (
     <div
+      {...threadProps(thread)}
       draggable
       onDragStart={(e) => {
         e.dataTransfer.effectAllowed = 'move';
         e.dataTransfer.setData('text/plain', thread.id);
-        onDragStart(thread.id);
+        onDragStart(thread);
       }}
       onDragEnd={() => onDragStart(null)}
       onClick={() => ui.showThread(thread.id)}
@@ -129,6 +130,7 @@ function Card({ thread, onDragStart, dragging }) {
         >
           <X size={14} />
         </button>
+        <ThreadActions thread={thread} />
       </div>
     </div>
   );
@@ -144,7 +146,9 @@ function useWidth() {
   return width;
 }
 
-function AddPanel({ boardIds, onClose, overlay }) {
+// Search results are drag sources like cards: dropping one on a column adds it there. The
+// panel is too narrow for a ⋯ button, so its rows offer the thread menu by right-click only.
+function AddPanel({ boardIds, onClose, overlay, onDragStart }) {
   const [draft, setDraft] = useViewState('lastSearch', 'in:inbox');
   const [search, setSearch] = useState(draft);
   const results = useThreads(search.trim() ? { search: search.trim(), limit: 30 } : null);
@@ -196,7 +200,18 @@ function AddPanel({ boardIds, onClose, overlay }) {
           return (
             <div
               key={t.id}
-              className="flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-ms-bg"
+              {...threadProps(t)}
+              draggable={!onBoard}
+              onDragStart={(e) => {
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', t.id);
+                onDragStart(t);
+              }}
+              onDragEnd={() => onDragStart(null)}
+              title={onBoard ? undefined : 'Drag onto a column, or click Add'}
+              className={`flex select-none items-center gap-2 rounded-md px-2 py-1.5 hover:bg-ms-bg ${
+                onBoard ? '' : 'cursor-grab'
+              }`}
             >
               <div className="min-w-0 flex-1 cursor-pointer" onClick={() => ui.showThread(t.id)}>
                 <div className={`truncate text-sm ${t.unread ? 'font-semibold' : ''}`}>
@@ -229,7 +244,8 @@ function AddPanel({ boardIds, onClose, overlay }) {
 
 export default function KanbanView() {
   const board = useThreads({ tagged: true, limit: 500 });
-  const [dragId, setDragId] = useState(null);
+  // The thread being dragged: a card, or a search result that isn't on the board yet.
+  const [dragThread, setDragThread] = useState(null);
   const [overColumn, setOverColumn] = useState(null);
   const [adding, setAdding] = useViewState('addPanelOpen', true);
   // Below this width the add panel floats over the board instead of taking a column of it.
@@ -250,9 +266,9 @@ export default function KanbanView() {
   const boardIds = useMemo(() => new Set(board.data.map((t) => t.id)), [board.data]);
 
   const drop = (column) => {
-    const thread = board.data.find((t) => t.id === dragId);
+    const thread = dragThread && (board.data.find((t) => t.id === dragThread.id) || dragThread);
     if (thread && thread.meta?.column !== column) moveTo(thread, column);
-    setDragId(null);
+    setDragThread(null);
     setOverColumn(null);
   };
 
@@ -291,7 +307,7 @@ export default function KanbanView() {
                   drop(id);
                 }}
                 className={`flex w-[220px] min-w-[180px] flex-1 flex-col rounded-lg border bg-ms-panel ${
-                  overColumn === id && dragId ? 'border-ms-accent' : 'border-ms-border'
+                  overColumn === id && dragThread ? 'border-ms-accent' : 'border-ms-border'
                 }`}
               >
                 <div className="flex items-center gap-2 px-3 py-2 text-sm font-semibold">
@@ -304,8 +320,8 @@ export default function KanbanView() {
                     <Card
                       key={t.id}
                       thread={t}
-                      onDragStart={setDragId}
-                      dragging={dragId === t.id}
+                      onDragStart={setDragThread}
+                      dragging={dragThread?.id === t.id}
                     />
                   ))}
                   {items.length === 0 && !board.loading && (
@@ -321,7 +337,12 @@ export default function KanbanView() {
           })}
         </div>
         {adding && (
-          <AddPanel boardIds={boardIds} overlay={narrow} onClose={() => setAdding(false)} />
+          <AddPanel
+            boardIds={boardIds}
+            overlay={narrow}
+            onClose={() => setAdding(false)}
+            onDragStart={setDragThread}
+          />
         )}
       </div>
     </div>

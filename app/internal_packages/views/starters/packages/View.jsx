@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Package, PackageCheck, Truck, ExternalLink, Loader2, AlertTriangle } from 'lucide-react';
-import { useMessages, useContent, useExtract, useViewState, ui } from '@mailspring/view';
+import { useMessages, useContent, useExtract, useViewState, ui, threadProps, ThreadActions } from '@mailspring/view';
 
 const CARRIERS = {
   UPS: { domains: ['ups.com'], url: (n) => `https://www.ups.com/track?tracknum=${n}` },
@@ -221,6 +221,7 @@ function PackageRow({ pkg }) {
     pkg.status === 'delivered' ? PackageCheck : pkg.status === 'exception' ? AlertTriangle : Truck;
   return (
     <div
+      {...threadProps(pkg.threadId)}
       onClick={() => ui.showThread(pkg.threadId)}
       className="group flex cursor-pointer items-center gap-3 border-t border-ms-border px-4 py-2.5 hover:bg-ms-bg"
     >
@@ -238,6 +239,20 @@ function PackageRow({ pkg }) {
           {pkg.carrier || pkg.sender}
           {pkg.tracking && <span className="font-mono"> · {pkg.tracking}</span>}
           {pkg.updates > 1 && ` · ${pkg.updates} updates`}
+          {pkg.tracking && carrier && (
+            <>
+              {' · '}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  ui.openExternal(carrier.url(pkg.tracking));
+                }}
+                className="inline-flex items-center gap-0.5 text-ms-link hover:underline"
+              >
+                Track <ExternalLink size={10} />
+              </button>
+            </>
+          )}
         </div>
       </div>
       <div className="flex shrink-0 flex-col items-end gap-1">
@@ -248,18 +263,7 @@ function PackageRow({ pkg }) {
             : relativeDay(pkg.date)}
         </span>
       </div>
-      {pkg.tracking && carrier && (
-        <button
-          title={`Track on ${pkg.carrier}`}
-          onClick={(e) => {
-            e.stopPropagation();
-            ui.openExternal(carrier.url(pkg.tracking));
-          }}
-          className="shrink-0 rounded p-1 text-ms-muted opacity-0 hover:text-ms-accent group-hover:opacity-100"
-        >
-          <ExternalLink size={14} />
-        </button>
-      )}
+      <ThreadActions thread={pkg.threadId} />
     </div>
   );
 }

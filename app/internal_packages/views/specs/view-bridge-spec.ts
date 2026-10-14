@@ -5,7 +5,8 @@ import { ViewGrant, ViewPermission } from '../lib/bridge/grant';
 import { serializeThreadSummary } from '../lib/bridge/serializers';
 import { FULL_GRANT } from '../../mcp-server/lib/capabilities/grant';
 import fs from 'fs';
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, webFrame } from 'electron';
+import ThreadListContextMenu from '../../thread-list/lib/thread-list-context-menu';
 import {
   Thread,
   Contact,
@@ -14,6 +15,7 @@ import {
   File,
   AttachmentStore,
   MessageBodyProcessor,
+  DatabaseStore,
 } from 'mailspring-exports';
 import { renderableFor } from '../lib/bridge/renderable';
 
@@ -213,6 +215,82 @@ describe('ViewBridge dispatch limits', function () {
     expect(codes.length).toBe(1000);
     expect(codes.filter((c) => c === 'ok').length).toBeLessThan(500);
     expect(codes.filter((c) => c === 'limit').length).toBeGreaterThan(500);
+    bridge.dispose();
+  });
+});
+
+describe('ui.threadMenu', function () {
+  function fakeWebview() {
+    const replies = [];
+    let listener = null;
+    return {
+      replies,
+      addEventListener: (name, fn) => (listener = fn),
+      removeEventListener: () => {},
+      send: (channel, payload) => replies.push(payload),
+      getBoundingClientRect: () => ({ left: 100, top: 50, width: 400, height: 300 }),
+      getZoomFactor: () => 1.5,
+      call: async (params) => {
+        listener({ channel: HELLO_CHANNEL, args: [{ page: 'p1' }] });
+        await listener({
+          channel: CALL_CHANNEL,
+          args: [{ page: 'p1', id: 1, method: 'ui.threadMenu', params }],
+        });
+        return replies[replies.length - 1];
+      },
+    };
+  }
+
+  function threadsInDatabase(threads: Thread[]) {
+    spyOn(DatabaseStore, 'findAll').andReturn({ where: () => Promise.resolve(threads) } as any);
+  }
+
+  beforeEach(() => {
+    spyOn(ThreadListContextMenu.prototype, 'displayMenu');
+    spyOn(webFrame, 'getZoomFactor').andReturn(2);
+  });
+
+  it('opens the menu for the threads at the anchor in window coordinates', async () => {
+    threadsInDatabase([new Thread({ id: 't1', accountId: 'a1' })]);
+    const webview = fakeWebview();
+    const bridge = new ViewBridge('spec', webview as any);
+    bridge.grant = grantWith(['mail.read']);
+    const reply = await webview.call({ threadIds: ['t1'], anchor: { x: 40, y: 20 } });
+    expect(reply.error).toBe(undefined);
+    const menu = ThreadListContextMenu.prototype.displayMenu as jasmine.Spy;
+    // Guest px × guest zoom ÷ host zoom = host px; host px × host zoom = window px.
+    expect(menu.calls[0].args[0]).toEqual({ x: (100 + 30) * 2, y: (50 + 15) * 2 });
+    bridge.dispose();
+  });
+
+  it('keeps the menu inside the webview', async () => {
+    threadsInDatabase([new Thread({ id: 't1', accountId: 'a1' })]);
+    const webview = fakeWebview();
+    const bridge = new ViewBridge('spec', webview as any);
+    bridge.grant = grantWith(['mail.read']);
+    await webview.call({ threadIds: ['t1'], anchor: { x: -500, y: 99999 } });
+    const menu = ThreadListContextMenu.prototype.displayMenu as jasmine.Spy;
+    expect(menu.calls[0].args[0]).toEqual({ x: 100 * 2, y: (50 + 300) * 2 });
+    bridge.dispose();
+  });
+
+  it('refuses threads outside the grant', async () => {
+    threadsInDatabase([new Thread({ id: 't1', accountId: 'other' })]);
+    const webview = fakeWebview();
+    const bridge = new ViewBridge('spec', webview as any);
+    bridge.grant = grantWith(['mail.read'], { accountIds: ['a1'], excludedFolderIds: {} });
+    const reply = await webview.call({ threadIds: ['t1'] });
+    expect(reply.error.code).toBe('not_found');
+    expect(ThreadListContextMenu.prototype.displayMenu).not.toHaveBeenCalled();
+    bridge.dispose();
+  });
+
+  it('requires mail.read', async () => {
+    const webview = fakeWebview();
+    const bridge = new ViewBridge('spec', webview as any);
+    bridge.grant = grantWith([]);
+    const reply = await webview.call({ threadIds: ['t1'] });
+    expect(reply.error.code).toBe('permission');
     bridge.dispose();
   });
 });

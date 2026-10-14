@@ -1,3 +1,7 @@
+/* Tailwind v4's layer order, declared before Tailwind loads so the runtime's component styles
+   sit above its preflight and below its utilities. */
+@layer theme, base, components, utilities;
+
 html,
 body,
 #root {
@@ -150,6 +154,28 @@ html[data-placement='thread-sidebar'] {
 }
 .ms-message-reply:hover {
   border-color: var(--ms-accent, #419bf9);
+}
+/* Layered so Tailwind utilities a View passes in className (hidden, w-5, …) override it. */
+@layer components {
+  .ms-thread-actions {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--ms-muted, #777);
+    cursor: pointer;
+  }
+  .ms-thread-actions:hover,
+  .ms-thread-actions:focus-visible {
+    background: var(--ms-panel, #f0f0f0);
+    color: var(--ms-text, #231f20);
+  }
 }
 .ms-message-body {
   padding: 0 16px 14px 58px;

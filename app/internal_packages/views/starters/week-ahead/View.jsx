@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { CalendarDays, Clock, ListChecks, MessagesSquare, Video, ChevronRight } from 'lucide-react';
-import { useEvents, useFreeBusy, useThreads, ui } from '@mailspring/view';
+import { useEvents, useFreeBusy, useThreads, ui, threadProps, ThreadActions } from '@mailspring/view';
 
 const DAYS = 7;
 const WORK_START_HOUR = 9;
@@ -179,11 +179,12 @@ export default function WeekAhead() {
                           {related.length > 0 && (
                             <ul className="mt-2 space-y-1">
                               {related.map((t) => (
-                                <li key={t.id}>
-                                  <button className="flex items-center gap-1.5 text-xs text-ms-link hover:underline" onClick={() => ui.showThread(t.id)}>
+                                <li key={t.id} {...threadProps(t)} className="flex items-center gap-1">
+                                  <button className="flex min-w-0 items-center gap-1.5 text-xs text-ms-link hover:underline" onClick={() => ui.showThread(t.id)}>
                                     <MessagesSquare size={12} />
                                     <span className="truncate">{t.subject || '(no subject)'}</span>
                                   </button>
+                                  <ThreadActions thread={t} />
                                 </li>
                               ))}
                             </ul>
