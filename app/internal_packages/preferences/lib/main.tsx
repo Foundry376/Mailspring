@@ -28,7 +28,7 @@ const settingsMenuTemplate = (): Electron.MenuItemConstructorOptions[] => [
   ...whoMenuItems(),
   { type: 'separator' },
   {
-    label: `${localized('Preferences')}...`,
+    label: localized('Preferences'),
     accelerator: 'CmdOrCtrl+,',
     click: () => Actions.openPreferences(),
   },
