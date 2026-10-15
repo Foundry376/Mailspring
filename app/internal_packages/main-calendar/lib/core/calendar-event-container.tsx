@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { CalendarDateUtils } from 'mailspring-exports';
+import { CalendarDateUtils, isRTL } from 'mailspring-exports';
 
 import { EventOccurrence } from './calendar-data-source';
 import { CalendarContainerType } from './calendar-drag-types';
@@ -206,12 +206,13 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
       }
 
       case 'month-cell': {
-        // Month view: the container IS the day, just use its start time
+        // Bars sit on a grid that follows the text direction, so measure from its start edge.
         x = event.clientX - rect.left;
         y = event.clientY - rect.top;
         width = rect.width;
         height = rect.height;
-        time = startTime;
+        const fromLeft = x / width;
+        time = allDayColumnStartUnix(startTime, endTime, isRTL ? 1 - fromLeft : fromLeft);
         break;
       }
 

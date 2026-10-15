@@ -13,6 +13,7 @@ import {
   CalendarUtils,
   SyncbackEventTask,
   CalendarDateUtils,
+  Utils,
 } from 'mailspring-exports';
 import {
   DatePicker,
@@ -36,6 +37,7 @@ import {
   inclusiveAllDayEnd,
   shiftEndWithStart,
   clampEnd,
+  NewEventDraft,
 } from './calendar-helpers';
 // CalendarColorPicker import removed - disabled until custom event colors are fully supported
 import { CalendarSelector } from './calendar-selector';
@@ -43,7 +45,7 @@ import { LocationVideoInput } from './location-video-input';
 import { AllDayToggle } from './all-day-toggle';
 import { RepeatSelector, RepeatOption } from './repeat-selector';
 import { AlertSelector, AlertTiming } from './alert-selector';
-import { ShowAsSelector, ShowAsOption } from './show-as-selector';
+import { ShowAsSelector, ShowAsOption, defaultShowAs } from './show-as-selector';
 import { EventPopoverActions } from './event-popover-actions';
 import { TimeZoneSelector } from './timezone-selector';
 import { parseEventIdFromOccurrence } from './calendar-drag-utils';
@@ -89,6 +91,8 @@ interface CalendarEventPopoverProps {
   event: EventOccurrence;
   /** When true, the popover opens in edit mode to create a new event */
   isNewEvent?: boolean;
+  /** Open straight into the editor rather than the read-only card. */
+  startEditing?: boolean;
   /** Available calendars (required when isNewEvent is true) */
   calendars?: Calendar[];
   /** Available accounts (required when isNewEvent is true) */
@@ -97,6 +101,9 @@ interface CalendarEventPopoverProps {
   disabledCalendars?: string[];
   /** Whether the calendar containing this event is read-only */
   isCalendarReadOnly?: boolean;
+  /** Receives the event as the editor would now save it, whenever a field the grid draws changes. */
+  onDraftChange?: (draft: NewEventDraft) => void;
+  onClosed?: () => void;
 }
 
 interface CalendarEventPopoverState {
@@ -116,6 +123,10 @@ interface CalendarEventPopoverState {
   originalTimezone: string;
   alert: AlertTiming;
   showAs: ShowAsOption;
+  /** Whether the user picked Show As; until then a new event's follows the all-day switch. */
+  showAsChosen: boolean;
+  /** The Show As value the event arrived with, so a save writes TRANSP only when it changed. */
+  originalShowAs: ShowAsOption;
   calendarColor: string;
   timezone: string;
   showInvitees: boolean;
@@ -145,7 +156,7 @@ export class CalendarEventPopover extends React.Component<
       end,
       location,
       title,
-      editing: !!this.props.isNewEvent,
+      editing: !!this.props.isNewEvent || !!this.props.startEditing,
       attendees,
       // Initialize new fields with defaults
       allDay: isAllDay || false,
@@ -153,7 +164,9 @@ export class CalendarEventPopover extends React.Component<
       originalRepeat: 'none',
       originalTimezone: DateUtils.timeZone,
       alert: '10min',
-      showAs: 'busy',
+      showAs: this._eventShowAs(),
+      showAsChosen: false,
+      originalShowAs: this._eventShowAs(),
       calendarColor: '#419bf9',
       timezone: DateUtils.timeZone,
       showInvitees: attendees && attendees.length > 0,
@@ -169,7 +182,23 @@ export class CalendarEventPopover extends React.Component<
       const { description, location, attendees, title } = this.props.event;
       const start = occurrenceStartUnix(this.props.event);
       const end = occurrenceEndUnix(this.props.event);
-      this.setState({ description, start, end, location, attendees, title });
+      const showAs = this._eventShowAs();
+      this.setState({
+        description,
+        start,
+        end,
+        location,
+        attendees,
+        title,
+        showAs,
+        showAsChosen: false,
+        originalShowAs: showAs,
+      });
+    }
+
+    const draft = this._draft();
+    if (!Utils.isEqualReact(draft, this._draft(prevState))) {
+      this.props.onDraftChange?.(draft);
     }
 
     // Autofocus invitees input when section is expanded
@@ -191,8 +220,9 @@ export class CalendarEventPopover extends React.Component<
     }
   }
 
-  onEdit = async () => {
-    // Load actual recurrence and timezone from the event's ICS data
+  // The Repeat control defaults to 'none' until this has read the event; the save writes the
+  // rule only when the control was changed, so a save before then leaves the rule alone.
+  async _loadEditDefaults(): Promise<void> {
     let repeat: RepeatOption = 'none';
     let timezone = this.state.timezone;
     try {
@@ -209,14 +239,55 @@ export class CalendarEventPopover extends React.Component<
     } catch (e) {
       // Fall back to defaults if we can't read the event
     }
-    this.setState({
-      editing: true,
-      repeat,
-      timezone,
-      originalRepeat: repeat,
-      originalTimezone: timezone,
-    });
+    this.setState({ repeat, timezone, originalRepeat: repeat, originalTimezone: timezone });
+  }
+
+  onEdit = async () => {
+    await this._loadEditDefaults();
+    this.setState({ editing: true });
   };
+
+  componentDidMount() {
+    if (this.props.startEditing && !this.props.isNewEvent) {
+      this._loadEditDefaults();
+    }
+  }
+
+  componentWillUnmount() {
+    this.props.onClosed?.();
+  }
+
+  _draft(state: CalendarEventPopoverState = this.state): NewEventDraft {
+    const { title, start, end, allDay, selectedCalendarId, selectedAccountId } = state;
+    return {
+      title,
+      start,
+      end,
+      isAllDay: allDay,
+      calendarId: selectedCalendarId,
+      accountId: selectedAccountId,
+    };
+  }
+
+  _eventShowAs(): ShowAsOption {
+    if (this.props.isNewEvent) return defaultShowAs(this.props.event.isAllDay);
+    return this.props.event.isFree ? 'TRANSPARENT' : 'OPAQUE';
+  }
+
+  updateAllDay = (allDay: boolean): void => {
+    const followsAllDay = this.props.isNewEvent && !this.state.showAsChosen;
+    const showAs = followsAllDay ? defaultShowAs(allDay) : this.state.showAs;
+    this.setState({ allDay, showAs });
+  };
+
+  updateShowAs = (showAs: ShowAsOption): void => {
+    this.setState({ showAs, showAsChosen: true });
+  };
+
+  /** The Show As value to write, or undefined when the user left it as the event had it. */
+  _changedShowAs(): ShowAsOption | undefined {
+    return this.state.showAs !== this.state.originalShowAs ? this.state.showAs : undefined;
+  }
 
   getStartMoment = () => moment(this.state.start * 1000);
   getEndMoment = () => moment(this.state.end * 1000);
@@ -352,6 +423,10 @@ export class CalendarEventPopover extends React.Component<
     if (this.state.repeat !== this.state.originalRepeat) {
       ics = ICSEventHelpers.updateRecurrenceRule(ics, repeatOptionToRRule(this.state.repeat));
     }
+    const showAs = this._changedShowAs();
+    if (showAs) {
+      ics = ICSEventHelpers.updateEventProperty(ics, 'transp', showAs);
+    }
 
     // One save is one revision, however many helpers assembled it.
     event.ics = ICSEventHelpers.bumpEventSequence(ics);
@@ -408,6 +483,7 @@ export class CalendarEventPopover extends React.Component<
       description: this.state.description || '',
       attendees: this.state.attendees || [],
       organizer: organizerForAccount(this.props.event.accountId),
+      transparency: this._changedShowAs(),
     });
 
     masterEvent.ics = ICSEventHelpers.bumpEventSequence(updatedMasterIcs, recurrenceId);
@@ -435,6 +511,7 @@ export class CalendarEventPopover extends React.Component<
       attendees,
       repeat,
       timezone,
+      showAs,
       selectedCalendarId,
       selectedAccountId,
     } = this.state;
@@ -456,6 +533,7 @@ export class CalendarEventPopover extends React.Component<
           : undefined,
       recurrenceRule: repeatOptionToRRule(repeat) || undefined,
       timezone,
+      transparency: showAs,
     });
   };
 
@@ -479,6 +557,10 @@ export class CalendarEventPopover extends React.Component<
 
   updateEnd = (end: number): void => {
     this.setState({ end: clampEnd(this.state.start, end, this.state.allDay) });
+  };
+
+  updateCalendar = (calendarId: string, accountId: string): void => {
+    this.setState({ selectedCalendarId: calendarId, selectedAccountId: accountId });
   };
 
   renderEditable = () => {
@@ -525,9 +607,7 @@ export class CalendarEventPopover extends React.Component<
                 accounts={this.props.accounts}
                 disabledCalendars={this.props.disabledCalendars || []}
                 selectedCalendarId={this.state.selectedCalendarId}
-                onChange={(calendarId, accountId) => {
-                  this.setState({ selectedCalendarId: calendarId, selectedAccountId: accountId });
-                }}
+                onChange={this.updateCalendar}
               />
             )}
 
@@ -541,10 +621,7 @@ export class CalendarEventPopover extends React.Component<
             />
 
             {/* All-day toggle */}
-            <AllDayToggle
-              checked={allDay}
-              onChange={(checked) => this.updateField('allDay', checked)}
-            />
+            <AllDayToggle checked={allDay} onChange={this.updateAllDay} />
 
             {/* Start/End times using property rows */}
             <EventPropertyRow label={localized('starts:')}>
@@ -588,10 +665,7 @@ export class CalendarEventPopover extends React.Component<
             <AlertSelector value={alert} onChange={(value) => this.updateField('alert', value)} />
 
             {/* Show as selector */}
-            <ShowAsSelector
-              value={showAs}
-              onChange={(value) => this.updateField('showAs', value)}
-            />
+            <ShowAsSelector value={showAs} onChange={this.updateShowAs} />
 
             {/* Invitees section - collapsible */}
             {showInvitees ? (

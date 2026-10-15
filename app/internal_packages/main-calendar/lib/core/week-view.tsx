@@ -22,7 +22,7 @@ import {
   tickGenerator,
 } from './week-view-helpers';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
-import { getEventsWithDragPreview } from './calendar-drag-utils';
+import { getEventsWithDragPreview, withNewEventPreview } from './calendar-drag-utils';
 
 const BUFFER_DAYS = 7; // in each direction
 const DAYS_IN_VIEW = 7;
@@ -226,7 +226,10 @@ export class WeekView extends React.Component<
 
   render() {
     const days = this._daysInView();
-    const events = getEventsWithDragPreview(this.state.events, this.props.dragState);
+    const events = withNewEventPreview(
+      getEventsWithDragPreview(this.state.events, this.props.dragState),
+      this.props.newEventPreview
+    );
     const eventsByDay = eventsGroupedByDay(events, days);
     const dayEnds = exclusiveDayEnds(days);
     const todayColumnIdx = days.findIndex((d) => this._isToday(d));
@@ -303,6 +306,7 @@ export class WeekView extends React.Component<
                   onEventDoubleClick={this.props.onEventDoubleClick}
                   onEventContextMenu={this.props.onEventContextMenu}
                   onEventFocused={this.props.onEventFocused}
+                  paintVersion={this.props.paintVersion}
                   dragState={this.props.dragState}
                   onEventDragStart={this.props.onEventDragStart}
                   readOnlyCalendarIds={this.props.readOnlyCalendarIds}
@@ -331,6 +335,7 @@ export class WeekView extends React.Component<
                       onEventDoubleClick={this.props.onEventDoubleClick}
                       onEventContextMenu={this.props.onEventContextMenu}
                       onEventFocused={this.props.onEventFocused}
+                      paintVersion={this.props.paintVersion}
                       dragState={this.props.dragState}
                       onEventDragStart={this.props.onEventDragStart}
                       readOnlyCalendarIds={this.props.readOnlyCalendarIds}
@@ -348,6 +353,7 @@ export class WeekView extends React.Component<
                     height={totalHeight}
                     intervalHeight={this.state.intervalHeight}
                     numColumns={BUFFER_DAYS * 2 + DAYS_IN_VIEW}
+                    paintVersion={this.props.paintVersion}
                   />
                 </div>
               </ScrollRegion>

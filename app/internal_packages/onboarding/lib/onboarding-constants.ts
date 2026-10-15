@@ -77,3 +77,23 @@ export const CODE_CHALLENGE = crypto
   .replace(/\+/g, '-')
   .replace(/\//g, '_')
   .replace(/=/g, '');
+
+// Carried alongside PKCE as defense in depth per RFC 6749 §10.12: the authorization
+// server echoes it on the redirect, and a callback that does not carry the value from
+// the most recently built authorization URL aborts the sign-in instead of exchanging
+// the code.
+let latestOAuthState: string | null = null;
+
+export function createOAuthState(): string {
+  latestOAuthState = crypto
+    .randomBytes(32)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=/g, '');
+  return latestOAuthState;
+}
+
+export function getLatestOAuthState(): string | null {
+  return latestOAuthState;
+}

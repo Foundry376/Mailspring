@@ -110,8 +110,12 @@ export async function respondToCalendarEvent(
     if (ics) {
       const updated = event.clone();
       updated.ics = ics;
-      // Not undoable: the REPLY emailed below cannot be retracted.
-      Actions.queueTask(SyncbackEventTask.forUpdating({ event: updated }));
+      const answer = {
+        email: me.email,
+        status,
+        occurrenceIcs: thisOccurrenceOnly ? answered : undefined,
+      };
+      Actions.queueTask(SyncbackEventTask.forAnswering({ event: updated, answer }));
     }
   }
 

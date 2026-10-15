@@ -38,6 +38,12 @@ function nowUTC(ical: ICAL) {
 /**
  * Options for creating a new ICS event
  */
+/**
+ * Whether an event blocks time for free/busy (RFC 5545 section 3.8.2.7). An event without TRANSP
+ * is OPAQUE. iCalendar has no tentative value here; STATUS:TENTATIVE is a different property.
+ */
+export type Transparency = 'OPAQUE' | 'TRANSPARENT';
+
 export interface CreateEventOptions {
   uid?: string;
   summary: string;
@@ -50,6 +56,7 @@ export interface CreateEventOptions {
   organizer?: { email: string; name?: string };
   attendees?: Array<{ email: string; name?: string; role?: string }>;
   recurrenceRule?: string;
+  transparency?: Transparency;
 }
 
 /**
@@ -591,6 +598,10 @@ export function createICSString(options: CreateEventOptions): string {
     vevent.addPropertyWithValue('rrule', ical.Recur.fromString(options.recurrenceRule));
   }
 
+  if (options.transparency) {
+    vevent.addPropertyWithValue('transp', options.transparency);
+  }
+
   // Set timestamp
   vevent.addPropertyWithValue('dtstamp', nowUTC(ical));
 
@@ -625,6 +636,104 @@ export function bumpEventSequence(ics: string, recurrenceId?: string): string {
   const current = target.getFirstPropertyValue('sequence');
   target.updatePropertyWithValue('sequence', (parseInt(String(current), 10) || 0) + 1);
   return root.toString();
+}
+
+/**
+ * Re-sends an older copy of an event (undo, redo) over `current`, the copy last sent. Google
+ * answers 409 to a VEVENT whose SEQUENCE is below the one it holds but accepts a tie, so each
+ * VEVENT that differs from its counterpart in `current` takes the higher of the two SEQUENCEs and
+ * a fresh DTSTAMP. A bump would lift an override past the master + 1 that createRecurrenceException
+ * restarts it from, and the next edit of that occurrence would be rejected. A VEVENT that matches
+ * apart from SEQUENCE and DTSTAMP takes `current`'s, so guests see no revision of an occurrence
+ * nobody changed.
+ */
+export function matchEventSequence(ics: string, current: string): string {
+  const ical = getICAL();
+  const currentVevents = veventsOf(parseICSString(current).root);
+  const { root } = parseICSString(ics);
+  const now = nowUTC(ical);
+
+  for (const vevent of veventsOf(root)) {
+    const counterpart = currentVevents.find((v) => sameOccurrence(v, vevent));
+
+    if (counterpart && contentApartFromRevision(counterpart) === contentApartFromRevision(vevent)) {
+      for (const name of ['sequence', 'dtstamp']) {
+        vevent.removeAllProperties(name);
+        const prop = counterpart.getFirstProperty(name);
+        if (prop) vevent.addProperty(prop);
+      }
+    } else {
+      const sequence = Math.max(sequenceOf(vevent), counterpart ? sequenceOf(counterpart) : 0);
+      vevent.updatePropertyWithValue('sequence', sequence);
+      vevent.updatePropertyWithValue('dtstamp', now);
+    }
+  }
+  return root.toString();
+}
+
+/**
+ * Google keeps an override that a PUT leaves out, so re-sending an older copy (undo, redo) would
+ * not revert an occurrence changed since. Each override in `current`, the copy last sent, that
+ * `before` lacks goes back into `before` at its own slot with the master's content, the occurrence
+ * as that series generates it. A slot the series no longer has, after a move relabelled its
+ * overrides or an EXDATE cancelled it, is skipped.
+ */
+export function revertAddedOverrides(before: string, current: string): string {
+  const ical = getICAL();
+  const beforeVevents = veventsOf(parseICSString(before).root);
+  const master = beforeVevents.find((v) => !v.getFirstPropertyValue('recurrence-id'));
+  // A lone occurrence (an invitation to one date) has no master to rebuild an override from.
+  if (!master) return before;
+
+  const duration = new ical.Event(master).duration;
+  const unix = (t: ICALTime) => t.toJSDate().getTime() / 1000;
+  const seriesStart = unix(master.getFirstPropertyValue('dtstart') as ICALTime);
+  const seriesHas = (slot: ICALTime) =>
+    expandBetween(before, seriesStart, unix(slot), unix(slot) + 1).some(
+      (o) => unix(o.recurrenceId || o.startDate) === unix(slot)
+    );
+
+  let reverted = before;
+  for (const override of veventsOf(parseICSString(current).root)) {
+    const slot = override.getFirstPropertyValue('recurrence-id') as ICALTime | null;
+    if (!slot || beforeVevents.some((v) => sameOccurrence(v, override)) || !seriesHas(slot)) {
+      continue;
+    }
+    const end = slot.clone();
+    end.addDuration(duration);
+    reverted = createRecurrenceException(
+      reverted,
+      unix(slot),
+      unix(slot),
+      unix(end),
+      slot.isDate
+    ).masterIcs;
+  }
+  return reverted;
+}
+
+function sequenceOf(vevent: ICALComponent): number {
+  return parseInt(String(vevent.getFirstPropertyValue('sequence')), 10) || 0;
+}
+
+function veventsOf(root: ICALComponent): ICALComponent[] {
+  return root.name === 'vevent' ? [root] : (root.getAllSubcomponents('vevent') as ICALComponent[]);
+}
+
+// Google stores a RECURRENCE-ID sent in UTC back in the event's zone, so compare the instants.
+function sameOccurrence(a: ICALComponent, b: ICALComponent): boolean {
+  const ridA = a.getFirstPropertyValue('recurrence-id') as ICALTime | null;
+  const ridB = b.getFirstPropertyValue('recurrence-id') as ICALTime | null;
+  return ridA && ridB ? ridA.toUnixTime() === ridB.toUnixTime() : !ridA && !ridB;
+}
+
+// RECURRENCE-ID is left out too: sameOccurrence already matched it, in whichever form.
+function contentApartFromRevision(vevent: ICALComponent): string {
+  const [name, props, components] = vevent.toJSON() as [string, string[][], unknown[]];
+  const content = props.filter(
+    ([prop]) => !['sequence', 'dtstamp', 'recurrence-id'].includes(prop)
+  );
+  return JSON.stringify([name, content, components]);
 }
 
 /** Whether this VEVENT is the inline exception `recurrenceId` names, in either date form. */
@@ -824,7 +933,7 @@ export function createRecurrenceException(
 }
 
 /**
- * Applies property edits (summary, location, description, attendees) to an inline
+ * Applies property edits (summary, location, description, attendees, TRANSP) to an inline
  * exception VEVENT inside a master VCALENDAR ICS string.
  *
  * This is needed because `updateEventProperty` and `updateAttendees` target the
@@ -844,6 +953,7 @@ export function applyEditsToException(
     description?: string;
     attendees?: AttendeeInput[];
     organizer?: Organizer;
+    transparency?: Transparency;
   }
 ): string {
   const ical = getICAL();
@@ -879,6 +989,9 @@ export function applyEditsToException(
   }
   if (edits.organizer) {
     nameOrganizer(vcalendar, edits.organizer);
+  }
+  if (edits.transparency) {
+    exceptionVevent.updatePropertyWithValue('transp', edits.transparency);
   }
 
   exceptionVevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
@@ -1560,7 +1673,7 @@ export function getEventTimezone(ics: string): string | null {
  */
 export function updateEventProperty(
   ics: string,
-  property: 'summary' | 'description' | 'location',
+  property: 'summary' | 'description' | 'location' | 'transp',
   value: string
 ): string {
   const ical = getICAL();
@@ -1575,6 +1688,9 @@ export function updateEventProperty(
       break;
     case 'location':
       event.location = value;
+      break;
+    case 'transp':
+      event.component.updatePropertyWithValue('transp', value);
       break;
   }
 

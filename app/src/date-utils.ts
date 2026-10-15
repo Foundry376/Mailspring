@@ -3,8 +3,47 @@ import moment, { Moment } from 'moment-timezone';
 // Init locale for moment
 moment.locale(navigator.language);
 
+/**
+ * The current IANA name of a zone: America/Indiana/Indianapolis for America/Indianapolis,
+ * Asia/Kolkata for Asia/Calcutta. The machine reports whatever name its zone is configured under,
+ * and every TZID this app writes for local time uses it. SabreDAV 4.7 (Baikal 0.10.1, measured
+ * 2026-10-09) resolves only current names and reads any other TZID as UTC in free/busy, despite
+ * the VTIMEZONE beside it.
+ *
+ * Current means listed in tzdata's zone.tab, as moment-timezone's metadata carries it. CLDR's
+ * names for the same location are tried first: tzdata links zones of different countries that
+ * share rules (Africa/Asmara to Africa/Nairobi), and only CLDR keeps them apart. Its list predates
+ * a few renames (Europe/Kyiv), which tzdata's links then supply. A name with no current zone
+ * (UTC, Etc/GMT+5) is returned unchanged.
+ */
+export function canonicalZoneName(name: string): string {
+  const current = require('moment-timezone/data/meta/latest.json').zones;
+  const isCurrent = (zone: string) => !!current[zone];
+  const sameLocation: string[] = require('windows-iana').findAlias(name) || [];
+  return sameLocation.find(isCurrent) || linkedZoneNames(name).find(isCurrent) || name;
+}
+
+// The name and every name tzdata links to it, directly or through another link.
+function linkedZoneNames(name: string): string[] {
+  const pairs: string[][] = require('moment-timezone/data/packed/latest.json').links.map(
+    (link: string) => link.split('|')
+  );
+  const group = new Set([name]);
+  for (let grew = true; grew; ) {
+    grew = false;
+    for (const [a, b] of pairs) {
+      if (group.has(a) !== group.has(b)) {
+        group.add(a);
+        group.add(b);
+        grew = true;
+      }
+    }
+  }
+  return [...group];
+}
+
 // Initialise moment timezone
-const tz = moment.tz.guess();
+const tz = canonicalZoneName(moment.tz.guess());
 if (!tz) {
   console.error('DateUtils: TimeZone could not be determined. This should not happen!');
 }
