@@ -240,7 +240,7 @@ describe('FocusedPerspectiveStore', function () {
       it('stays in the section when the focused folder disappears', function () {
         const goneInbox = this.inboxCategory.clone();
         goneInbox.id = 'gone-id';
-        FocusedPerspectiveStore._current = MailboxPerspective.forCategory(goneInbox);
+        (FocusedPerspectiveStore as any)._current = MailboxPerspective.forCategory(goneInbox);
         FocusedPerspectiveStore._initialized = true;
         spyOn(FocusedPerspectiveStore, '_defaultPerspective').andReturn(this.inboxPerspective);
         FocusedPerspectiveStore._onCategoryStoreChanged();
