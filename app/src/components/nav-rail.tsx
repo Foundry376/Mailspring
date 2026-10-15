@@ -19,7 +19,6 @@ type NavRailItemProps = {
       command: string;
     }
   | {
-      /** Shown as a native popup menu in place of running a command. */
       menuTemplate: () => Electron.MenuItemConstructorOptions[];
     }
 );
