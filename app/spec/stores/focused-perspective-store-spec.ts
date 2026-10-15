@@ -63,7 +63,8 @@ describe('FocusedPerspectiveStore', function () {
       FocusedPerspectiveStore._initializeFromSavedState();
       expect(FocusedPerspectiveStore._setPerspective).toHaveBeenCalledWith(
         this.default,
-        this.default.accountIds
+        this.default.accountIds,
+        { keepSection: true }
       );
     });
 
@@ -76,7 +77,8 @@ describe('FocusedPerspectiveStore', function () {
       FocusedPerspectiveStore._initializeFromSavedState();
       expect(FocusedPerspectiveStore._setPerspective).toHaveBeenCalledWith(
         this.default,
-        this.default.accountIds
+        this.default.accountIds,
+        { keepSection: true }
       );
 
       AppEnv.savedState.sidebarAccountIds = [1, 2, 3];
@@ -87,7 +89,8 @@ describe('FocusedPerspectiveStore', function () {
       FocusedPerspectiveStore._initializeFromSavedState();
       expect(FocusedPerspectiveStore._setPerspective).toHaveBeenCalledWith(
         this.default,
-        this.default.accountIds
+        this.default.accountIds,
+        { keepSection: true }
       );
     });
 
@@ -100,7 +103,8 @@ describe('FocusedPerspectiveStore', function () {
       FocusedPerspectiveStore._initializeFromSavedState();
       expect(FocusedPerspectiveStore._setPerspective).toHaveBeenCalledWith(
         this.default,
-        this.default.accountIds
+        this.default.accountIds,
+        { keepSection: true }
       );
     });
 
@@ -113,7 +117,8 @@ describe('FocusedPerspectiveStore', function () {
       FocusedPerspectiveStore._initializeFromSavedState();
       expect(FocusedPerspectiveStore._setPerspective).toHaveBeenCalledWith(
         AppEnv.savedState.perspective,
-        [1]
+        [1],
+        { keepSection: true }
       );
     });
 
@@ -126,7 +131,8 @@ describe('FocusedPerspectiveStore', function () {
       FocusedPerspectiveStore._initializeFromSavedState();
       expect(FocusedPerspectiveStore._setPerspective).toHaveBeenCalledWith(
         AppEnv.savedState.perspective,
-        [1, 2]
+        [1, 2],
+        { keepSection: true }
       );
 
       AppEnv.savedState.sidebarAccountIds = [1, 2];
@@ -139,7 +145,8 @@ describe('FocusedPerspectiveStore', function () {
       FocusedPerspectiveStore._initializeFromSavedState();
       expect(FocusedPerspectiveStore._setPerspective).toHaveBeenCalledWith(
         AppEnv.savedState.perspective,
-        [1, 2]
+        [1, 2],
+        { keepSection: true }
       );
 
       AppEnv.savedState.sidebarAccountIds = [1];
@@ -152,7 +159,8 @@ describe('FocusedPerspectiveStore', function () {
       FocusedPerspectiveStore._initializeFromSavedState();
       expect(FocusedPerspectiveStore._setPerspective).toHaveBeenCalledWith(
         AppEnv.savedState.perspective,
-        [1]
+        [1],
+        { keepSection: true }
       );
     });
   });
@@ -227,6 +235,33 @@ describe('FocusedPerspectiveStore', function () {
         });
         expect(Actions.selectRootSheet).not.toHaveBeenCalled();
         expect(FocusedPerspectiveStore.current()).toBe(this.inboxPerspective);
+      });
+
+      it('stays in the section when the focused folder disappears', function () {
+        const goneInbox = this.inboxCategory.clone();
+        goneInbox.id = 'gone-id';
+        FocusedPerspectiveStore._current = MailboxPerspective.forCategory(goneInbox);
+        FocusedPerspectiveStore._initialized = true;
+        spyOn(FocusedPerspectiveStore, '_defaultPerspective').andReturn(this.inboxPerspective);
+        FocusedPerspectiveStore._onCategoryStoreChanged();
+        expect(FocusedPerspectiveStore.current()).toBe(this.inboxPerspective);
+        expect(Actions.selectRootSheet).not.toHaveBeenCalled();
+      });
+
+      it('stays in the section while the mailbox is still initializing', function () {
+        AppEnv.savedState.perspective = undefined;
+        FocusedPerspectiveStore._initialized = false;
+        spyOn(FocusedPerspectiveStore, '_defaultPerspective').andReturn(this.inboxPerspective);
+        FocusedPerspectiveStore._onCategoryStoreChanged();
+        expect(FocusedPerspectiveStore.current()).toBe(this.inboxPerspective);
+        expect(Actions.selectRootSheet).not.toHaveBeenCalled();
+      });
+
+      it('stays in the section when an account is added or removed', function () {
+        spyOn(FocusedPerspectiveStore, '_defaultPerspective').andReturn(this.inboxPerspective);
+        Actions.focusDefaultMailboxPerspectiveForAccounts([this.account.id], { keepSection: true });
+        expect(FocusedPerspectiveStore.current()).toBe(this.inboxPerspective);
+        expect(Actions.selectRootSheet).not.toHaveBeenCalled();
       });
 
       it('still changes mail sheets with keepSection when mail is showing', function () {

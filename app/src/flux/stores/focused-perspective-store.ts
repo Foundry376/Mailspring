@@ -124,7 +124,7 @@ class FocusedPerspectiveStore extends MailspringStore {
       this._initialized = false;
     }
 
-    this._setPerspective(perspective, sidebarAccountIds);
+    this._setPerspective(perspective, sidebarAccountIds, { keepSection: true });
   }
 
   // Inbound Events
@@ -216,7 +216,6 @@ class FocusedPerspectiveStore extends MailspringStore {
 
     const desired = perspective.sheet();
 
-    // Switch to the perspective's sheet and pop to root when perspective set
     if (desired && WorkspaceStore.rootSheet() !== desired && (wasShowingMail || !keepSection)) {
       Actions.selectRootSheet(desired);
     }
