@@ -9,13 +9,20 @@ import {
 import { RetinaImg } from './retina-img';
 import { InjectedComponentSet } from './injected-component-set';
 
-interface NavRailItemProps {
+type NavRailItemProps = {
   label: string;
   iconName: string;
-  /** An application: command, so the rail, the Window menu and the shortcut take one path. */
-  command: string;
   isActive: () => boolean;
-}
+} & (
+  | {
+      /** An application: command, so the rail, the Window menu and the shortcut take one path. */
+      command: string;
+    }
+  | {
+      /** Shown as a native popup menu in place of running a command. */
+      menuTemplate: () => Electron.MenuItemConstructorOptions[];
+    }
+);
 
 export class NavRailItem extends React.Component<NavRailItemProps, { active: boolean }> {
   static displayName = 'NavRailItem';
@@ -32,8 +39,17 @@ export class NavRailItem extends React.Component<NavRailItemProps, { active: boo
     this._unlisten?.();
   }
 
+  _onClick = () => {
+    if ('menuTemplate' in this.props) {
+      const { Menu } = require('@electron/remote');
+      Menu.buildFromTemplate(this.props.menuTemplate()).popup({});
+    } else {
+      ipcRenderer.send('command', this.props.command);
+    }
+  };
+
   render() {
-    const { label, iconName, command } = this.props;
+    const { label, iconName } = this.props;
     const { active } = this.state;
     return (
       <button
@@ -41,7 +57,8 @@ export class NavRailItem extends React.Component<NavRailItemProps, { active: boo
         title={label}
         aria-label={label}
         aria-current={active ? 'page' : undefined}
-        onClick={() => ipcRenderer.send('command', command)}
+        aria-haspopup={'menuTemplate' in this.props ? 'menu' : undefined}
+        onClick={this._onClick}
       >
         <RetinaImg name={iconName} mode={RetinaImg.Mode.ContentIsMask} />
       </button>
