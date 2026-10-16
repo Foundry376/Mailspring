@@ -130,7 +130,7 @@ export default class PreferencesKeymaps extends React.Component<
           </Flexbox>
           <p style={{ maxWidth: 600 }}>
             {localized(
-              'You can choose a shortcut set to use keyboard shortcuts of familiar email clients. To edit a shortcut, click it in the list below and enter a replacement on the keyboard.'
+              'You can choose a shortcut set to use keyboard shortcuts of familiar email clients. To add a shortcut, click + next to a command and press the keys.'
             )}
           </p>
           <div className="two-columns-flexbox">
@@ -147,7 +147,7 @@ export default class PreferencesKeymaps extends React.Component<
           <h2>{localized('Customization')}</h2>
           <p>
             {localized(
-              'Click shortcuts above to edit them. For even more control, you can edit the shortcuts file directly below.'
+              'Add shortcuts above with +. For even more control, you can edit the shortcuts file directly below.'
             )}
           </p>
           <button className="btn" onClick={this._onShowUserKeymaps}>
