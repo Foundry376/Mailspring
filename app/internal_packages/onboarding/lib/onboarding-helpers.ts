@@ -105,12 +105,18 @@ const SRV_SERVICES: { imap: SRVService[]; smtp: SRVService[] } = {
   ],
 };
 
+// SRV is queried after the MX lookup and autoconfig, so on a resolver that drops packets
+// c-ares' default of 4 tries per query would stack on top of the MX wait. A timed-out query
+// is handled like any other failure: no records.
+const SRV_TIMEOUT_MS = 2500;
+
 async function srvServerFor(domain: string, services: SRVService[]): Promise<SRVServer | null> {
+  const resolver = new dns.Resolver({ timeout: SRV_TIMEOUT_MS, tries: 1 });
   const results = await Promise.all(
     services.map(
       (service) =>
         new Promise<{ service: SRVService; records: SrvRecord[] }>((resolve) => {
-          dns.resolveSrv(`${service.label}.${domain}`, (err, records) =>
+          resolver.resolveSrv(`${service.label}.${domain}`, (err, records) =>
             resolve({ service, records: err ? [] : records })
           );
         })
@@ -153,6 +159,23 @@ function applyContainerFolderDefault(populated: Account) {
     populated.settings.container_folder = containerFolderDefault;
   }
   return populated;
+}
+
+// Exact or subdomain match, so lookalikes such as "evil-example.com" or
+// "example.com.attacker.net" are outside "example.com".
+export function isHostInDomain(host: string, domain: string) {
+  const normalized = host.toLowerCase().replace(/\.$/, '');
+  const base = domain.toLowerCase().replace(/\.$/, '');
+  return normalized === base || normalized.endsWith(`.${base}`);
+}
+
+// The distinct IMAP and SMTP hosts that are not within the account's email domain.
+export function serversOutsideDomain(account: Account): string[] {
+  const domain = account.emailAddress.split('@').pop();
+  const hosts = [account.settings.imap_host, account.settings.smtp_host]
+    .filter((host) => host && !isHostInDomain(host, domain))
+    .map((host) => host.toLowerCase().replace(/\.$/, ''));
+  return [...new Set(hosts)];
 }
 
 export interface ExpandedAccount {
@@ -238,9 +261,7 @@ export async function expandAccountForSetup(account: Account): Promise<ExpandedA
       srvServerFor(domain, SRV_SERVICES.imap),
       srvServerFor(domain, SRV_SERVICES.smtp),
     ]);
-    confirmServers = [imap, smtp].some(
-      (server) => server && server.host !== domain && !server.host.endsWith(`.${domain}`)
-    );
+    confirmServers = [imap, smtp].some((server) => server && !isHostInDomain(server.host, domain));
     if (imap || smtp) {
       console.log(`Using SRV Records: ${JSON.stringify({ imap, smtp }, null, 2)}`);
     } else {

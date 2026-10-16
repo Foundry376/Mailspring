@@ -296,6 +296,10 @@ const CreatePageForForm = (FormComponent: React.ComponentType<any> & Record<stri
       }
 
       const hideTitle = errorMessage && errorMessage.length > 120;
+      const warning = FormComponent.warningLabel?.({
+        account,
+        confirmServers: this.props.confirmServers,
+      });
 
       return (
         <div className={`page account-setup ${FormComponent.displayName}`}>
@@ -312,14 +316,16 @@ const CreatePageForForm = (FormComponent: React.ComponentType<any> & Record<stri
           ) : (
             <h2>{FormComponent.titleLabel(providerConfig)}</h2>
           )}
-          <FormErrorMessage
-            log={errorLog}
-            message={errorMessage}
-            empty={FormComponent.subtitleLabel(providerConfig, {
-              account,
-              confirmServers: this.props.confirmServers,
-            })}
-          />
+          {warning && !errorMessage ? (
+            // Not a FormErrorMessage, which would turn the hostnames in the warning into links.
+            <div className="message error">{warning}</div>
+          ) : (
+            <FormErrorMessage
+              log={errorLog}
+              message={errorMessage}
+              empty={FormComponent.subtitleLabel(providerConfig)}
+            />
+          )}
           {this._renderCredentialsNote()}
           <FormComponent
             ref={(el) => {

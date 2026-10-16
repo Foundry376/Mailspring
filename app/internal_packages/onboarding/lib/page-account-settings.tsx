@@ -14,7 +14,7 @@ interface AccountBasicSettingsFormProps {
   onFieldChange: () => void;
   onFieldKeyPress: () => void;
 }
-class AccountBasicSettingsForm extends React.Component<AccountBasicSettingsFormProps> {
+export class AccountBasicSettingsForm extends React.Component<AccountBasicSettingsFormProps> {
   static displayName = 'AccountBasicSettingsForm';
 
   static submitLabel = (account: Account) => {
