@@ -204,10 +204,9 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
           </button>
           {mustUpgrade ? (
             <button type="submit" className="btn btn-emphasis">
-              {localized('Upgrade to Mailspring Pro')}
+              {localized('Start Building')}
             </button>
           ) : (
-            // The theme styles `.btn-disabled`, not `:disabled`, so both are needed.
             <button
               type="submit"
               className={classnames('btn', 'btn-emphasis', { 'btn-disabled': incomplete })}

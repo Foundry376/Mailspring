@@ -389,7 +389,6 @@ export const HANDLERS: { [method: string]: Handler } = {
   },
 
   'metadata.set': async ({ grant }, params) => {
-    requirePermission(grant, 'metadata.own');
     const { kind, id, value } = parse(
       z.object({
         kind: z.enum(['thread', 'message']),

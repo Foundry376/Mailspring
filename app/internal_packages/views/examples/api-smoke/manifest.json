@@ -4,7 +4,6 @@
   "placement": "page",
   "permissions": [
     "mail.bodies",
-    "metadata.own",
     "mail.modify",
     "calendar.read"
   ]

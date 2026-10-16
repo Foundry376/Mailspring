@@ -20,16 +20,10 @@ import { removeAllCredentials } from './credentials/store';
  * Allow on a draft never outlives the draft.
  */
 
-export type ViewPermission =
-  | 'mail.bodies'
-  | 'metadata.own'
-  | 'mail.modify'
-  | 'calendar.read'
-  | 'calendar.write';
+export type ViewPermission = 'mail.bodies' | 'mail.modify' | 'calendar.read' | 'calendar.write';
 
 export const CONSENTED_PERMISSIONS: ViewPermission[] = [
   'mail.bodies',
-  'metadata.own',
   'mail.modify',
   'calendar.read',
   'calendar.write',

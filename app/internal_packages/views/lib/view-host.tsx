@@ -12,9 +12,11 @@ import {
 } from './api-version';
 import { ViewRegistryEvents, ViewsChange, installedViews } from './view-registry';
 import {
+  CONSENTED_PERMISSIONS,
   ConsentEvents,
   ViewGrants,
   approveView,
+  declaredGrants,
   declineView,
   hasApproval,
   unapprovedGrants,
@@ -48,17 +50,14 @@ interface ViewHostState {
   consent: { pending: ViewGrants; widening: boolean; declined: boolean } | null;
 }
 
-// Plain-language consent copy. Reading mail summaries needs no consent, so any network host
-// is described as a place the View can send your mail.
+// Plain-language consent copy. Every View can read message envelopes without consent, so the
+// card lists that first to show what a View sees before it asks for anything.
 function permissionCopy(permission: string) {
   return {
-    'mail.bodies': localized('Read the full text of your messages'),
-    'metadata.own': localized(
-      'Save its own notes on your messages, synced with your Mailspring ID'
-    ),
-    'mail.modify': localized('Archive, move, label, star and mark your messages read or unread'),
-    'calendar.read': localized('See your calendars and events'),
-    'calendar.write': localized('Create, change and delete calendar events'),
+    'mail.bodies': localized('View the full text of your messages'),
+    'mail.modify': localized('Label, move or archive your mail'),
+    'calendar.read': localized('View your calendars and events'),
+    'calendar.write': localized('Create, change or delete calendar events'),
   }[permission];
 }
 
@@ -437,6 +436,8 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     const name = view ? view.name : this.props.viewId;
     const { permissions, network } = consent.pending;
     const credentials = credentialsFromManifest(view && view.json);
+    const declared = declaredGrants(view && view.json);
+    const withheld = CONSENTED_PERMISSIONS.filter((p) => !declared.permissions.includes(p));
     return (
       <div className="view-host-cover view-host-consent">
         <div className="view-host-cover-title">
@@ -444,21 +445,37 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
             ? localized('“%@” is asking for more access', name)
             : localized('Allow “%@” to:', name)}
         </div>
-        <ul className="view-host-consent-list">
-          {permissions.map((p) => (
-            <li key={p}>{permissionCopy(p)}</li>
-          ))}
-          {network.map((host) => (
-            <li key={host} className="view-host-consent-network">
-              {localized('Connect to %@, and send your email there', host)}
+        <div className="view-host-consent-box">
+          <ul className="view-host-consent-list view-host-consent-granted">
+            <li>{localized('View accounts, folders, and message envelopes')}</li>
+            {permissions.map((p) => (
+              <li key={p}>{permissionCopy(p)}</li>
+            ))}
+            {network.map((host) => (
+              <li key={host} className="view-host-consent-network">
+                {localized('Connect to %@ and send/receive data', host)}
+              </li>
+            ))}
+            {credentials.map((c) => (
+              <li key={`credential-${c.id}`}>
+                {localized('Ask for your %@ and use it with %@', c.label, c.hosts.join(', '))}
+              </li>
+            ))}
+          </ul>
+          <div className="view-host-consent-withheld-title">
+            {localized('It won’t be able to:')}
+          </div>
+          <ul className="view-host-consent-list view-host-consent-withheld">
+            {withheld.map((p) => (
+              <li key={p}>{permissionCopy(p)}</li>
+            ))}
+            <li>
+              {declared.network.length
+                ? localized('Connect to any other website')
+                : localized('Connect to the internet or send your mail anywhere')}
             </li>
-          ))}
-          {credentials.map((c) => (
-            <li key={`credential-${c.id}`}>
-              {localized('Ask for your %@ and use it with %@', c.label, c.hosts.join(', '))}
-            </li>
-          ))}
-        </ul>
+          </ul>
+        </div>
         {consent.declined && (
           <div className="view-host-cover-detail">
             {localized('Not allowed. The View stays closed until you allow it.')}

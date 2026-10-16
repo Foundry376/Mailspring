@@ -141,20 +141,66 @@
   flex: 1;
   background: @background-primary;
 
+  .view-host-consent-box {
+    width: 100%;
+    max-width: 440px;
+    box-sizing: border-box;
+    padding: @padding-large-vertical * 1.5 @padding-large-horizontal;
+    border: 1px solid @border-color-primary;
+    border-radius: @border-radius-base * 2;
+    background: @background-off-primary;
+    text-align: start;
+  }
   .view-host-consent-list {
     margin: 0;
     padding: 0;
     list-style: none;
-    color: @text-color;
-    text-align: start;
     li {
-      padding: 2px 0;
+      position: relative;
+      padding: 3px 0;
+      padding-inline-start: 22px;
+      &::before {
+        position: absolute;
+        inset-inline-start: 0;
+        width: 16px;
+        text-align: center;
+        font-weight: @font-weight-semi-bold;
+      }
+    }
+  }
+  .view-host-consent-granted {
+    color: @text-color;
+    li::before {
+      content: '✓';
+      color: @color-success;
     }
   }
   .view-host-consent-network {
     font-weight: @font-weight-semi-bold;
   }
+  .view-host-consent-withheld-title {
+    margin-top: @padding-large-vertical;
+    padding-top: @padding-large-vertical;
+    border-top: 1px solid @border-color-divider;
+    font-size: @font-size-small;
+    color: @text-color-subtle;
+  }
+  .view-host-consent-withheld {
+    font-size: @font-size-small;
+    color: @text-color-subtle;
+    li::before {
+      content: '✕';
+      color: @text-color-very-subtle;
+    }
+  }
 }
 .view-host:has(> .view-host-consent) > .view-host-webview {
   display: none;
+}
+
+// The sidebar card already draws a border, so the consent box drops its own there.
+.sidebar-view-card .view-host-consent-box {
+  padding: 0;
+  border: none;
+  background: none;
 }

@@ -6,7 +6,5 @@
   "description": "Sort conversations into To do, Waiting and Done columns.",
   "version": "1.0.0",
   "placement": "page",
-  "permissions": [
-    "metadata.own"
-  ]
+  "permissions": []
 }

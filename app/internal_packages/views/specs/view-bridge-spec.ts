@@ -58,7 +58,6 @@ describe('View bridge', function () {
       ['calendar.deleteEvent', 'calendar.write', { id: 'e1' }],
       ['ui.showEvent', 'calendar.read', { id: 'e1' }],
       ['messages.content', 'mail.bodies', { ids: ['m1'] }],
-      ['metadata.set', 'metadata.own', { kind: 'thread', id: 't1', value: {} }],
       ['mail.modify', 'mail.modify', { threadIds: ['t1'], change: { starred: true } }],
       ['messages.renderable', 'mail.bodies', { ids: ['m1'] }],
       ['attachments.url', 'mail.bodies', { fileId: 'f1' }],
@@ -67,14 +66,7 @@ describe('View bridge', function () {
     REQUIRED.forEach(([method, permission, params]) => {
       it(`rejects ${method} without ${permission}`, async () => {
         const others = (
-          [
-            'mail.read',
-            'mail.bodies',
-            'metadata.own',
-            'mail.modify',
-            'calendar.read',
-            'calendar.write',
-          ] as ViewPermission[]
+          ['mail.bodies', 'mail.modify', 'calendar.read', 'calendar.write'] as ViewPermission[]
         ).filter((p) => p !== permission);
         const err = await errorFrom(() => HANDLERS[method](ctxWith(grantWith(others)), params));
         expect(err && err.code).toBe('permission');
