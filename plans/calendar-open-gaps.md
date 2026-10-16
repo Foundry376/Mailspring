@@ -1,9 +1,9 @@
 # Calendar: open gaps
 
-What the calendar still lacks, checked against the code on 2026-10-07. Create, edit, delete, drag
+What the calendar still lacks, checked against the code on 2026-10-16. Create, edit, delete, drag
 and keyboard moves, day/week/month/agenda views, search, RSVP (including propose-a-new-time and
-accepting a counter), and Google plus generic CalDAV sync all work. Verify an item against the code
-before planning from it, and delete it here when it lands.
+accepting a counter; see Bugs), and Google plus generic CalDAV sync all work. Verify an item against
+the code before planning from it, and delete it here when it lands.
 
 ## Bugs
 
@@ -29,9 +29,10 @@ before planning from it, and delete it here when it lands.
   `occurrencesForEvents` expands the main row, and its standalone-exception branch reads the
   exception row's first VEVENT, which is the master. Seen in 2 of 56 exception rows in one real
   calendar.
-- **A rejected save stays on screen.** When the server refuses a save, the local row keeps the
-  rejected change, and a resync doesn't correct it because the row's etag already matches the
-  server's.
+- **A rejected save stays on screen.** When the server refuses a save without changing its own copy
+  (Google's 409 for a SEQUENCE lower than its own, or a 400 or 403), the local row keeps the rejected
+  change, and a resync doesn't correct it because the row's etag still matches the server's. An etag
+  conflict (412) does correct itself: the server's etag has changed, so the next sync re-reads it.
 
 ## Saved nowhere, though the editor shows it
 
