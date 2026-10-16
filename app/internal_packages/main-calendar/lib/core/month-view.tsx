@@ -29,7 +29,7 @@ interface MonthViewState {
   shownMonth: CalendarDate;
   scrollTarget: WeekScrollTarget;
   prevFocusedMoment: Moment;
-  followedMoment: Moment | null;
+  adjustedFocus: Moment | null;
 }
 
 export class MonthView extends React.Component<MailspringCalendarViewProps, MonthViewState> {
@@ -41,7 +41,7 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
   ): Partial<MonthViewState> | null {
     const { focusedMoment } = props;
     if (focusedMoment === state.prevFocusedMoment) return null;
-    if (focusedMoment === state.followedMoment) return { prevFocusedMoment: focusedMoment };
+    if (focusedMoment === state.adjustedFocus) return { prevFocusedMoment: focusedMoment };
     return {
       prevFocusedMoment: focusedMoment,
       scrollTarget: { date: monthStartDate(focusedMoment), animate: !props.focusedEvent },
@@ -64,7 +64,7 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
       shownMonth: month,
       scrollTarget: { date: month, animate: false },
       prevFocusedMoment: props.focusedMoment,
-      followedMoment: null,
+      adjustedFocus: null,
     };
   }
 
@@ -120,18 +120,15 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
     this._subscribe();
   };
 
-  // Moves the focused date into the month scrolled to, keeping its day as the arrows do, so the
-  // sidebar calendar follows and Week view opens on the month that was showing.
-  _onScrollEnd = (topWeek: CalendarDate) => {
+  _adjustFocus = (shownMonth: CalendarDate) => {
     const { focusedMoment } = this.props;
-    const shown = momentOf(WeekScroller.monthShownFrom(topWeek, VISIBLE_WEEKS));
-    const months = shown.diff(moment(focusedMoment).startOf('month'), 'months');
+    const months = momentOf(shownMonth).diff(moment(focusedMoment).startOf('month'), 'months');
     if (months === 0) {
       return;
     }
-    const followedMoment = moment(focusedMoment).add(months, 'months');
-    this.setState({ followedMoment });
-    this.props.onChangeFocusedMoment(followedMoment);
+    const adjustedFocus = moment(focusedMoment).add(months, 'months');
+    this.setState({ adjustedFocus });
+    this.props.onChangeFocusedMoment(adjustedFocus);
   };
 
   _onClickToday = () => {
@@ -242,7 +239,7 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
             prevAction={this._onClickPrevMonth}
             onChangeView={this.props.onChangeView}
             disabledViewButton={CalendarView.MONTH}
-            orientation="vertical"
+            arrows="vertical"
           >
             <button key="today" className="btn" onClick={this._onClickToday}>
               Today
@@ -257,7 +254,9 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
               scrollTarget={this.state.scrollTarget}
               renderWeeks={this._renderWeeks}
               onTopWeekChange={this._onTopWeekChange}
-              onScrollEnd={this._onScrollEnd}
+              onScrollEnd={(topWeek) =>
+                this._adjustFocus(WeekScroller.monthShownFrom(topWeek, VISIBLE_WEEKS))
+              }
             />
           </div>
         </CalendarEventContainer>

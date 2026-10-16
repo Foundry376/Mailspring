@@ -35,7 +35,7 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
   static defaultProps = { orientation: 'horizontal' };
 
   private _todayTimer?: number;
-  private _glideMonth: Moment | null = null;
+  private _glideTarget: Moment | null = null;
 
   constructor(props) {
     super(props);
@@ -118,7 +118,7 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
   };
 
   _onScrollEnd = () => {
-    this._glideMonth = null;
+    this._glideTarget = null;
   };
 
   _renderChevron(direction: 'previous' | 'next') {
@@ -209,8 +209,8 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
 
     const onChangeMonth = (delta: number) => {
       if (vertical) {
-        this._glideMonth = (this._glideMonth || month).clone().add(delta, 'months');
-        this.setState({ scrollTarget: { date: monthStartDate(this._glideMonth), animate: true } });
+        this._glideTarget = (this._glideTarget || month).clone().add(delta, 'months');
+        this.setState({ scrollTarget: { date: monthStartDate(this._glideTarget), animate: true } });
       } else {
         const next = month.clone().add(delta, 'months');
         this.setState({ shownYear: next.year(), shownMonth: next.month() });

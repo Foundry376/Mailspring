@@ -9,8 +9,7 @@ export class HeaderControls extends React.Component<{
   prevAction: () => void;
   onChangeView: (view: CalendarView) => void;
   disabledViewButton: string;
-  /** Which way the previous and next arrows point: the way the view scrolls. */
-  orientation?: 'horizontal' | 'vertical';
+  arrows?: 'horizontal' | 'vertical';
 }> {
   static displayName = 'HeaderControls';
 
@@ -31,7 +30,7 @@ export class HeaderControls extends React.Component<{
       >
         <RetinaImg
           name={
-            this.props.orientation === 'vertical'
+            this.props.arrows === 'vertical'
               ? 'ic-calendar-down-arrow.png'
               : 'ic-calendar-right-arrow.png'
           }
@@ -55,7 +54,7 @@ export class HeaderControls extends React.Component<{
       >
         <RetinaImg
           name={
-            this.props.orientation === 'vertical'
+            this.props.arrows === 'vertical'
               ? 'ic-calendar-up-arrow.png'
               : 'ic-calendar-left-arrow.png'
           }

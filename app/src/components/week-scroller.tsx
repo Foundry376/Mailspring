@@ -38,20 +38,16 @@ function indexOf(date: CalendarDate, visibleWeeks: number) {
 
 export interface WeekScrollTarget {
   date: CalendarDate;
-  /** Glide there when it's nearby. A reveal jumps, so what it opens measures where it lands. */
   animate: boolean;
 }
 
 interface WeekScrollerProps {
   className?: string;
-  /** Rows that fill the viewport; each takes that share of its height. */
   visibleWeeks: number;
   /** The week holding `date` becomes the top row on mount, and whenever a new target is passed. */
   scrollTarget: WeekScrollTarget;
-  /** One row per week start, in order; `topWeek` is the first of them in view. */
   renderWeeks: (weekStarts: CalendarDate[], topWeek: CalendarDate) => React.ReactNode[];
   onTopWeekChange: (topWeek: CalendarDate) => void;
-  /** Once a scroll, the user's or a target's, comes to rest. */
   onScrollEnd?: (topWeek: CalendarDate) => void;
   onClick?: React.MouseEventHandler<HTMLDivElement>;
 }
@@ -88,19 +84,16 @@ class TopSpacer extends React.Component<{ height: number; onCommit: () => void }
 export class WeekScroller extends React.Component<WeekScrollerProps, WeekScrollerState> {
   static displayName = 'WeekScroller';
 
-  /**
-   * The month a title over the rows names: the one holding the middle day. Six rows aligned on a
-   * month's first week always put the middle day between its 16th and 22nd.
-   */
   static monthShownFrom(topWeek: CalendarDate, visibleWeeks: number): CalendarDate {
-    return monthStartOf(addCalendarDays(topWeek, Math.floor((visibleWeeks * 7) / 2)));
+    const middleDay = addCalendarDays(topWeek, Math.floor((visibleWeeks * 7) / 2));
+    return monthStartOf(middleDay);
   }
 
-  /** A viewport's worth on each side of the visible rows, so a fling doesn't outrun rendering. */
   static weeksDrawnFrom(topWeek: CalendarDate, visibleWeeks: number) {
+    const overscan = visibleWeeks;
     return {
-      first: addCalendarDays(topWeek, -7 * visibleWeeks),
-      count: visibleWeeks * 3,
+      first: addCalendarDays(topWeek, -7 * overscan),
+      count: visibleWeeks + 2 * overscan,
     };
   }
 
