@@ -79,4 +79,14 @@
       }
     }
   }
+
+  // The scroller sizes its rows from its own height, so it can't take its height from them.
+  &.vertical .day-grid {
+    display: block;
+    flex: none;
+    height: 6 * 28px;
+    .week {
+      height: 100%;
+    }
+  }
 }
