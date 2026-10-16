@@ -381,8 +381,11 @@ describe('planRSVPWrite', function () {
   it('records the answer on our synced copy and leaves the invitation alone', function () {
     const rsvp = resolveRSVPTarget({ events: [synced], calendars: [MINE], addresses: ADDRESSES });
     const write = plan({ rsvp, status: 'DECLINED' });
-    expect(write.kind).toBe('update');
+    if (write.kind !== 'update') throw new Error(`expected an update, got ${write.kind}`);
     expect(write.event.id).toBe('e-mine');
+    expect(write.answer.email).toBe('brian@example.com');
+    expect(write.answer.status).toBe('DECLINED');
+    expect(write.answer.occurrenceIcs).toBeUndefined();
     expect(write.event).not.toBe(synced);
     expect(myLine(write.event.ics)).toContain('PARTSTAT=DECLINED');
     expect(myLine(synced.ics)).toContain('PARTSTAT=NEEDS-ACTION');
@@ -506,7 +509,8 @@ describe('planRSVPWrite', function () {
 
     it("answers on that occurrence's VEVENT of our copy, and leaves the series as it was", function () {
       const write = planOccurrence(copyWith(occurrence('Huddle (as synced)', '20260915T160000Z')));
-      expect(write.kind).toBe('update');
+      if (write.kind !== 'update') throw new Error(`expected an update, got ${write.kind}`);
+      expect(write.answer.occurrenceIcs).toBe(OCCURRENCE_INVITE);
       const [master, synced] = write.event.ics
         .replace(/\r\n[ \t]/g, '')
         .split('BEGIN:VEVENT')
