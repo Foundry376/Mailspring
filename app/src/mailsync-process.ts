@@ -10,6 +10,7 @@ import os from 'os';
 import { EventEmitter } from 'events';
 import fs from 'fs';
 import { localized } from './intl';
+import { developerToolsAvailable } from './developer-tools';
 import { IIdentity, Account } from 'mailspring-exports';
 
 import {
@@ -159,6 +160,7 @@ export class MailsyncProcess extends EventEmitter {
         nodeIntegration: false,
         javascript: false,
         contextIsolation: false,
+        devTools: developerToolsAvailable(),
       },
     });
     this._win.setContentSize(350, 90);
