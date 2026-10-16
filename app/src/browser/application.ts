@@ -37,13 +37,36 @@ import { MailsyncProcess } from '../mailsync-process';
 import Config from '../config';
 import { registerQuickpreviewIPCHandlers } from './quickpreview-ipc';
 import { guardAuxiliaryWindowNavigation } from './auxiliary-window-guard';
-import { isMailspringWindowContents } from './mailspring-window';
+import { onFromMailspringWindows, handleFromMailspringWindows } from './trusted-ipc';
 import {
   handleWindowsToastXMLProtocolAction,
   registerNotificationIPCHandlers,
 } from './notification-ipc';
 import WindowsTaskbarManager from './windows-taskbar-manager';
 import { resetThemeForRecovery } from './theme-recovery';
+
+// The options renderers may pass to `new-window`: what the popout composer (DraftStore) and
+// thread popout (MessageStore) send, plus window sizing for plugins. The main process sets
+// every other load setting itself, since some (like `bootstrapScript`) choose the code a
+// nodeIntegration window runs.
+const RENDERER_WINDOW_OPTIONS = [
+  'title',
+  'hidden',
+  'windowKey',
+  'windowType',
+  'windowProps',
+  'width',
+  'height',
+  'bounds',
+];
+
+function rendererWindowOptions(options: Record<string, unknown>) {
+  const safe: Record<string, unknown> = {};
+  for (const key of RENDERER_WINDOW_OPTIONS) {
+    if (key in options) safe[key] = options[key];
+  }
+  return safe;
+}
 
 // The application's singleton class.
 //
@@ -602,11 +625,11 @@ export default class Application extends EventEmitter {
     });
 
     // System Tray
-    ipcMain.on('update-system-tray', (event, iconPath, unreadString) => {
+    onFromMailspringWindows(ipcMain, 'update-system-tray', (event, iconPath, unreadString) => {
       this.systemTrayManager.updateTraySettings(iconPath, unreadString);
     });
 
-    ipcMain.on('set-badge-value', (event, value) => {
+    onFromMailspringWindows(ipcMain, 'set-badge-value', (event, value) => {
       if (app.dock && app.dock.setBadge) {
         app.dock.setBadge(value);
       } else if (app.setBadgeCount) {
@@ -627,13 +650,13 @@ export default class Application extends EventEmitter {
       }
     });
 
-    ipcMain.on('new-window', (event, options) => {
+    onFromMailspringWindows(ipcMain, 'new-window', (event, options) => {
       const win = options.windowKey ? this.windowManager.get(options.windowKey) : null;
       if (win) {
         win.show();
         win.focus();
       } else {
-        this.windowManager.newWindow(options);
+        this.windowManager.newWindow(rendererWindowOptions(options));
       }
     });
 
@@ -641,17 +664,23 @@ export default class Application extends EventEmitter {
 
     let userResetTheme = false;
 
-    ipcMain.handle('get-system-accent-color', () => {
+    handleFromMailspringWindows(ipcMain, 'get-system-accent-color', () => {
       return this.systemAccentWatcher ? this.systemAccentWatcher.getCurrent() : null;
     });
 
     // Synchronous because ThemeManager needs the value during its constructor to
     // pick the initial ui-light / ui-dark variant without a flash.
-    ipcMain.on('get-system-dark-mode-sync', (event: Electron.IpcMainEvent) => {
-      event.returnValue = this.systemAccentWatcher ? this.systemAccentWatcher.getDarkMode() : false;
-    });
+    onFromMailspringWindows(
+      ipcMain,
+      'get-system-dark-mode-sync',
+      (event: Electron.IpcMainEvent) => {
+        event.returnValue = this.systemAccentWatcher
+          ? this.systemAccentWatcher.getDarkMode()
+          : false;
+      }
+    );
 
-    ipcMain.on('encountered-theme-error', (event, { message, detail }) => {
+    onFromMailspringWindows(ipcMain, 'encountered-theme-error', (event, { message, detail }) => {
       if (userResetTheme) return;
 
       // showMessageBoxSync blocks the main process indefinitely in headless
@@ -685,7 +714,7 @@ export default class Application extends EventEmitter {
       }
     });
 
-    ipcMain.on('inline-style-parse', (event, { html, key }) => {
+    onFromMailspringWindows(ipcMain, 'inline-style-parse', (event, { html, key }) => {
       const juice = require('juice');
       let out = null;
       try {
@@ -723,21 +752,23 @@ export default class Application extends EventEmitter {
       event.preventDefault();
     });
 
-    ipcMain.on('update-application-menu', (event, template, keystrokesByCommand) => {
-      const win = BrowserWindow.fromWebContents(event.sender);
-      if (win) {
-        this.applicationMenu.update(win, template, keystrokesByCommand);
+    onFromMailspringWindows(
+      ipcMain,
+      'update-application-menu',
+      (event, template, keystrokesByCommand) => {
+        const win = BrowserWindow.fromWebContents(event.sender);
+        if (win) {
+          this.applicationMenu.update(win, template, keystrokesByCommand);
+        }
       }
-    });
+    );
 
-    ipcMain.on('command', (event, command, ...args) => {
-      if (!isMailspringWindowContents(event.sender)) return;
+    onFromMailspringWindows(ipcMain, 'command', (event, command, ...args) => {
       if (typeof command !== 'string' || !command.startsWith('application:')) return;
       this.emit(command, ...args);
     });
 
-    ipcMain.on('window-command', (event, command, ...args) => {
-      if (!isMailspringWindowContents(event.sender)) return;
+    onFromMailspringWindows(ipcMain, 'window-command', (event, command, ...args) => {
       const win = BrowserWindow.fromWebContents(event.sender);
       if (!win) return;
       win.emit(command, ...args);
@@ -758,7 +789,7 @@ export default class Application extends EventEmitter {
     );
     const ALLOWED_DEVTOOLS_WEBCONTENTS_METHODS = new Set(['executeJavaScript']);
 
-    ipcMain.on('call-window-method', (event, method, ...args) => {
+    onFromMailspringWindows(ipcMain, 'call-window-method', (event, method, ...args) => {
       if (!ALLOWED_WINDOW_METHODS.has(method)) {
         console.error(`Method ${method} is not permitted on BrowserWindow!`);
         return;
@@ -772,23 +803,27 @@ export default class Application extends EventEmitter {
       win[method](...args);
     });
 
-    ipcMain.on('call-devtools-webcontents-method', (event, method, ...args) => {
-      if (!ALLOWED_DEVTOOLS_WEBCONTENTS_METHODS.has(method)) {
-        console.error(`Method ${method} is not permitted on devToolsWebContents!`);
-        return;
+    onFromMailspringWindows(
+      ipcMain,
+      'call-devtools-webcontents-method',
+      (event, method, ...args) => {
+        if (!ALLOWED_DEVTOOLS_WEBCONTENTS_METHODS.has(method)) {
+          console.error(`Method ${method} is not permitted on devToolsWebContents!`);
+          return;
+        }
+        // If devtools aren't open the `webContents::devToolsWebContents` will be null
+        if (!event.sender.devToolsWebContents) {
+          return;
+        }
+        if (!event.sender.devToolsWebContents[method]) {
+          console.error(`Method ${method} does not exist on devToolsWebContents!`);
+          return;
+        }
+        event.sender.devToolsWebContents[method](...args);
       }
-      // If devtools aren't open the `webContents::devToolsWebContents` will be null
-      if (!event.sender.devToolsWebContents) {
-        return;
-      }
-      if (!event.sender.devToolsWebContents[method]) {
-        console.error(`Method ${method} does not exist on devToolsWebContents!`);
-        return;
-      }
-      event.sender.devToolsWebContents[method](...args);
-    });
+    );
 
-    ipcMain.on('call-webcontents-method', (event, method, ...args) => {
+    onFromMailspringWindows(ipcMain, 'call-webcontents-method', (event, method, ...args) => {
       if (!ALLOWED_WEBCONTENTS_METHODS.has(method)) {
         console.error(`Method ${method} is not permitted on WebContents!`);
         return;
@@ -800,17 +835,17 @@ export default class Application extends EventEmitter {
       event.sender[method](...args);
     });
 
-    ipcMain.on('mailsync-bridge-rebroadcast-to-all', (event, ...args) => {
+    onFromMailspringWindows(ipcMain, 'mailsync-bridge-rebroadcast-to-all', (event, ...args) => {
       const win = BrowserWindow.fromWebContents(event.sender);
       this.windowManager.sendToAllWindows('mailsync-bridge-message', { except: win }, ...args);
     });
 
-    ipcMain.on('action-bridge-rebroadcast-to-all', (event, ...args) => {
+    onFromMailspringWindows(ipcMain, 'action-bridge-rebroadcast-to-all', (event, ...args) => {
       const win = BrowserWindow.fromWebContents(event.sender);
       this.windowManager.sendToAllWindows('action-bridge-message', { except: win }, ...args);
     });
 
-    ipcMain.on('action-bridge-rebroadcast-to-default', (event, ...args) => {
+    onFromMailspringWindows(ipcMain, 'action-bridge-rebroadcast-to-default', (event, ...args) => {
       const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
       if (!mainWindow || !mainWindow.browserWindow.webContents) {
         return;
@@ -821,17 +856,17 @@ export default class Application extends EventEmitter {
       mainWindow.browserWindow.webContents.send('action-bridge-message', ...args);
     });
 
-    ipcMain.on('write-image-to-clipboard', (event, dataURL) => {
+    onFromMailspringWindows(ipcMain, 'write-image-to-clipboard', (event, dataURL) => {
       // This can't be done from the renderer due to https://github.com/electron/electron/issues/8151
       const png = nativeImage.createFromDataURL(dataURL).toPNG();
       clipboard.write([new ClipboardItem({ 'image/png': new Blob([png], { type: 'image/png' }) })]);
     });
 
-    ipcMain.on('write-text-to-selection-clipboard', (event, selectedText) => {
+    onFromMailspringWindows(ipcMain, 'write-text-to-selection-clipboard', (event, selectedText) => {
       if (clipboard.selection) clipboard.selection.writeText(selectedText);
     });
 
-    ipcMain.on('account-setup-successful', () => {
+    onFromMailspringWindows(ipcMain, 'account-setup-successful', () => {
       this.windowManager.ensureWindow(WindowManager.MAIN_WINDOW);
       const mainWindow = this.windowManager.get(WindowManager.MAIN_WINDOW);
       const onboarding = this.windowManager.get(WindowManager.ONBOARDING_WINDOW);
@@ -850,7 +885,7 @@ export default class Application extends EventEmitter {
       }
     });
 
-    ipcMain.on('run-in-window', (event, params) => {
+    onFromMailspringWindows(ipcMain, 'run-in-window', (event, params) => {
       const sourceWindow = BrowserWindow.fromWebContents(event.sender);
       this._sourceWindows[params.taskId] = sourceWindow;
 
@@ -868,64 +903,68 @@ export default class Application extends EventEmitter {
       targetWindow.browserWindow.webContents.send('run-in-window', params);
     });
 
-    ipcMain.on('remote-run-results', (event, params) => {
+    onFromMailspringWindows(ipcMain, 'remote-run-results', (event, params) => {
       const sourceWindow = this._sourceWindows[params.taskId];
       sourceWindow.webContents.send('remote-run-results', params);
       delete this._sourceWindows[params.taskId];
     });
 
-    ipcMain.on('report-error', (event, params: { extra?: string; errorJSON?: string } = {}) => {
-      try {
-        const errorParams = JSON.parse(params.errorJSON || '{}');
-        const extra = JSON.parse(params.extra || '{}');
+    onFromMailspringWindows(
+      ipcMain,
+      'report-error',
+      (event, params: { extra?: string; errorJSON?: string } = {}) => {
+        try {
+          const errorParams = JSON.parse(params.errorJSON || '{}');
+          const extra = JSON.parse(params.extra || '{}');
 
-        // LESS compilation errors from custom themes/plugins are already handled
-        // by the theme error dialog (encountered-theme-error IPC handler). These
-        // errors have no useful stack trace when reported to Sentry because
-        // LessError objects don't carry a JS stack, so the Sentry report only
-        // shows the IPC handler call site. Skip reporting them.
-        if (
-          errorParams &&
-          typeof errorParams === 'object' &&
-          typeof errorParams.line === 'number' &&
-          Array.isArray(errorParams.extract) &&
-          (errorParams.type === 'Parse' || errorParams.type === 'Syntax')
-        ) {
-          event.returnValue = true;
-          return;
+          // LESS compilation errors from custom themes/plugins are already handled
+          // by the theme error dialog (encountered-theme-error IPC handler). These
+          // errors have no useful stack trace when reported to Sentry because
+          // LessError objects don't carry a JS stack, so the Sentry report only
+          // shows the IPC handler call site. Skip reporting them.
+          if (
+            errorParams &&
+            typeof errorParams === 'object' &&
+            typeof errorParams.line === 'number' &&
+            Array.isArray(errorParams.extract) &&
+            (errorParams.type === 'Parse' || errorParams.type === 'Syntax')
+          ) {
+            event.returnValue = true;
+            return;
+          }
+
+          // Use new Error(message) to ensure the message is set as a proper Error property,
+          // since Object.assign on an Error with no initial message may not propagate it
+          // correctly to error reporting tools like Sentry/Raven.
+          const message =
+            errorParams && typeof errorParams === 'object' ? errorParams.message : undefined;
+          const stack =
+            errorParams && typeof errorParams === 'object' ? errorParams.stack : undefined;
+
+          // Drop reports with neither a message nor a stack: they would surface
+          // in Sentry as "Unknown error" with only this IPC handler frame,
+          // which is unactionable. The renderer wraps inputs before sending so
+          // this is defense-in-depth for any path that bypasses that wrapping.
+          if (!message && !stack) {
+            event.returnValue = true;
+            return;
+          }
+
+          const err = new Error(message || undefined);
+          if (stack) {
+            err.stack = stack;
+          }
+          Object.assign(err, errorParams);
+          global.errorLogger.reportError(err, extra);
+        } catch (parseError) {
+          console.error(parseError);
+          global.errorLogger.reportError(parseError, {});
         }
-
-        // Use new Error(message) to ensure the message is set as a proper Error property,
-        // since Object.assign on an Error with no initial message may not propagate it
-        // correctly to error reporting tools like Sentry/Raven.
-        const message =
-          errorParams && typeof errorParams === 'object' ? errorParams.message : undefined;
-        const stack =
-          errorParams && typeof errorParams === 'object' ? errorParams.stack : undefined;
-
-        // Drop reports with neither a message nor a stack: they would surface
-        // in Sentry as "Unknown error" with only this IPC handler frame,
-        // which is unactionable. The renderer wraps inputs before sending so
-        // this is defense-in-depth for any path that bypasses that wrapping.
-        if (!message && !stack) {
-          event.returnValue = true;
-          return;
-        }
-
-        const err = new Error(message || undefined);
-        if (stack) {
-          err.stack = stack;
-        }
-        Object.assign(err, errorParams);
-        global.errorLogger.reportError(err, extra);
-      } catch (parseError) {
-        console.error(parseError);
-        global.errorLogger.reportError(parseError, {});
+        event.returnValue = true;
       }
-      event.returnValue = true;
-    });
+    );
 
-    ipcMain.on('resize-window', (event, params) => {
+    onFromMailspringWindows(ipcMain, 'resize-window', (event, params) => {
       const sourceWindow = BrowserWindow.fromWebContents(event.sender);
       if (!sourceWindow) return;
       sourceWindow.setSize(params.width, params.height);
