@@ -6,27 +6,16 @@ import {
   addCalendarDays,
   calendarDateFromParts,
   calendarDaysBetween,
+  dayOfWeek,
+  monthStartOf,
 } from '../calendar-date';
 
-/** Further than this, a scroll jumps rather than animating through every row between. */
 const MAX_SMOOTH_WEEKS = 8;
-
-const MS_PER_DAY = 86400000;
-
-function dayOfWeek(date: CalendarDate) {
-  // Epoch day 0, 1970-01-01, was a Thursday.
-  return (((date + 4) % 7) + 7) % 7;
-}
 
 /** The first day of the locale's week holding `date`, matching `moment().startOf('week')`. */
 function weekStartOf(date: CalendarDate): CalendarDate {
   const firstDay = moment.localeData().firstDayOfWeek();
   return addCalendarDays(date, -((dayOfWeek(date) - firstDay + 7) % 7));
-}
-
-function monthStartOf(date: CalendarDate): CalendarDate {
-  const d = new Date(date * MS_PER_DAY);
-  return calendarDateFromParts(d.getUTCFullYear(), d.getUTCMonth() + 1, 1);
 }
 
 // Read per call rather than at module load, so the locale's first day of the week is already set.
@@ -59,25 +48,24 @@ interface WeekScrollerProps {
   visibleWeeks: number;
   /** The week holding `date` becomes the top row on mount, and whenever a new target is passed. */
   scrollTarget: WeekScrollTarget;
-  /** One row per week start, in order. */
-  renderWeeks: (weekStarts: CalendarDate[]) => React.ReactNode[];
-  onTopWeekChange?: (topWeek: CalendarDate) => void;
+  /** One row per week start, in order; `topWeek` is the first of them in view. */
+  renderWeeks: (weekStarts: CalendarDate[], topWeek: CalendarDate) => React.ReactNode[];
+  onTopWeekChange: (topWeek: CalendarDate) => void;
   /** Once a scroll, the user's or a target's, comes to rest. */
   onScrollEnd?: (topWeek: CalendarDate) => void;
   onClick?: React.MouseEventHandler<HTMLDivElement>;
 }
 
 interface WeekScrollerState {
-  scrollTarget: WeekScrollTarget;
+  prevScrollTarget: WeekScrollTarget;
   topIndex: number;
   rowHeight: number;
   pendingScroll: { index: number; smooth: boolean } | null;
 }
 
 /**
- * The top spacer, which also settles the scroll. As the scroller's first child it commits before
- * the rows, so a row that reveals itself as it mounts (a searched-for event opening its card)
- * measures where the scroll leaves it rather than where it was.
+ * The top spacer, which also settles the scroll. As the first child it commits before the rows,
+ * so a row that reveals itself as it mounts measures where the scroll lands, not where it was.
  */
 class TopSpacer extends React.Component<{ height: number; onCommit: () => void }> {
   componentDidMount() {
@@ -121,12 +109,12 @@ export class WeekScroller extends React.Component<WeekScrollerProps, WeekScrolle
     state: WeekScrollerState
   ): Partial<WeekScrollerState> | null {
     const target = props.scrollTarget;
-    if (target === state.scrollTarget) return null;
+    if (target === state.prevScrollTarget) return null;
     const index = indexOf(target.date, props.visibleWeeks);
     const smooth =
       target.animate && state.rowHeight > 0 && Math.abs(index - state.topIndex) <= MAX_SMOOTH_WEEKS;
     return {
-      scrollTarget: target,
+      prevScrollTarget: target,
       pendingScroll: { index, smooth },
       // A jump draws the destination's rows now, so it doesn't paint an empty viewport.
       topIndex: smooth ? state.topIndex : index,
@@ -134,15 +122,16 @@ export class WeekScroller extends React.Component<WeekScrollerProps, WeekScrolle
   }
 
   _el = React.createRef<HTMLDivElement>();
-  _resizeObserver?: ResizeObserver;
+  _resizeObserver: ResizeObserver;
   _appliedScroll: WeekScrollerState['pendingScroll'] = null;
+  _glideIndex: number | null = null;
   _reportedIndex: number;
 
   constructor(props: WeekScrollerProps) {
     super(props);
     const topIndex = indexOf(props.scrollTarget.date, props.visibleWeeks);
     this.state = {
-      scrollTarget: props.scrollTarget,
+      prevScrollTarget: props.scrollTarget,
       topIndex,
       rowHeight: 0,
       pendingScroll: { index: topIndex, smooth: false },
@@ -159,30 +148,33 @@ export class WeekScroller extends React.Component<WeekScrollerProps, WeekScrolle
   }
 
   componentWillUnmount() {
-    this._el.current?.removeEventListener('scrollend', this._onScrollEnd);
-    this._resizeObserver?.disconnect();
+    this._el.current.removeEventListener('scrollend', this._onScrollEnd);
+    this._resizeObserver.disconnect();
   }
 
   _scrolledIndex() {
-    const el = this._el.current;
     const { rowHeight, topIndex } = this.state;
-    return el && rowHeight ? Math.round(el.scrollTop / rowHeight) : topIndex;
+    return rowHeight ? Math.round(this._el.current.scrollTop / rowHeight) : topIndex;
   }
 
   _reportTop(index: number) {
     if (index === this._reportedIndex) return;
     this._reportedIndex = index;
-    this.props.onTopWeekChange?.(weekStartAt(index));
+    this.props.onTopWeekChange(weekStartAt(index));
   }
 
   _measure = () => {
-    const el = this._el.current;
-    if (!el) return;
-    const rowHeight = el.clientHeight / this.props.visibleWeeks;
-    if (rowHeight !== this.state.rowHeight) {
-      // Snapping keeps the same row at the top as rows change height.
-      this.setState({ rowHeight });
-    }
+    const rowHeight = this._el.current.clientHeight / this.props.visibleWeeks;
+    if (rowHeight === this.state.rowHeight) return;
+    // Snapping holds a resting row in place as rows change height, but a glide is headed for a
+    // pixel offset worked out at the old height, so land it on its week instead.
+    this.setState((state) => ({
+      rowHeight,
+      pendingScroll:
+        this._glideIndex === null
+          ? state.pendingScroll
+          : { index: this._glideIndex, smooth: false },
+    }));
   };
 
   _onCommit = () => {
@@ -192,6 +184,7 @@ export class WeekScroller extends React.Component<WeekScrollerProps, WeekScrolle
     if (!el || !rowHeight || pendingScroll === this._appliedScroll) return;
     this._appliedScroll = pendingScroll;
     const { index, smooth } = pendingScroll;
+    this._glideIndex = smooth ? index : null;
     el.scrollTo({ top: index * rowHeight, behavior: smooth ? 'smooth' : 'instant' });
   };
 
@@ -203,13 +196,15 @@ export class WeekScroller extends React.Component<WeekScrollerProps, WeekScrolle
   };
 
   _onScrollEnd = () => {
+    this._glideIndex = null;
     this.props.onScrollEnd?.(weekStartAt(this._scrolledIndex()));
   };
 
   render() {
     const { className, visibleWeeks, renderWeeks, onClick } = this.props;
     const { topIndex, rowHeight } = this.state;
-    const drawn = WeekScroller.weeksDrawnFrom(weekStartAt(topIndex), visibleWeeks);
+    const topWeek = weekStartAt(topIndex);
+    const drawn = WeekScroller.weeksDrawnFrom(topWeek, visibleWeeks);
     const drawnIndex = calendarDaysBetween(firstWeek(), drawn.first) / 7;
     const firstIndex = Math.max(0, drawnIndex);
     const lastIndex = Math.min(weekCount(), drawnIndex + drawn.count);
@@ -218,7 +213,7 @@ export class WeekScroller extends React.Component<WeekScrollerProps, WeekScrolle
     for (let i = firstIndex; i < lastIndex; i++) {
       weekStarts.push(weekStartAt(i));
     }
-    const rows = renderWeeks(weekStarts);
+    const rows = renderWeeks(weekStarts, topWeek);
 
     return (
       <div

@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 import { CalendarMenuCommands } from '../internal_packages/main-calendar/lib/calendar-menu-commands';
+import PopoverStore from '../src/flux/stores/popover-store';
 
 describe('CalendarMenuCommands', function () {
   let host: HTMLDivElement;
@@ -49,6 +50,18 @@ describe('CalendarMenuCommands', function () {
     render(true);
     AppEnv.commands.dispatch('calendar:move-event-left');
     AppEnv.commands.dispatch('calendar:move-event-right');
+    expect(onNavigatePrevious).not.toHaveBeenCalled();
+    expect(onNavigateNext).not.toHaveBeenCalled();
+  });
+  it('leaves those keys alone while a card or editor is open', function () {
+    render(false);
+    PopoverStore.isOpen = true;
+    try {
+      AppEnv.commands.dispatch('calendar:move-event-left');
+      AppEnv.commands.dispatch('calendar:move-event-right');
+    } finally {
+      PopoverStore.isOpen = false;
+    }
     expect(onNavigatePrevious).not.toHaveBeenCalled();
     expect(onNavigateNext).not.toHaveBeenCalled();
   });

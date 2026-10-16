@@ -4,18 +4,47 @@ import moment, { Moment } from 'moment';
 import Rx from 'rx-lite';
 
 import { MonthView } from '../internal_packages/main-calendar/lib/core/month-view';
+import {
+  EventOccurrence,
+  coveredDates,
+} from '../internal_packages/main-calendar/lib/core/calendar-data-source';
+import { calendarDateFromUnix, calendarDaysBetween } from '../src/calendar-date';
+
+function allDay(id: string, iso: string): EventOccurrence {
+  const start = moment(iso).unix();
+  return {
+    id,
+    accountId: 'acct-1',
+    calendarId: 'cal-1',
+    title: id,
+    location: '',
+    description: '',
+    isCancelled: false,
+    isPending: false,
+    isMine: true,
+    isException: false,
+    isRecurring: false,
+    organizer: null,
+    attendees: [],
+    ...coveredDates(start, moment(iso).add(1, 'day').unix(), true),
+    isAllDay: true,
+  } as EventOccurrence;
+}
+
+const NO_CALENDARS: string[] = [];
 
 describe('MonthView scrolling', function () {
-  const dataSource = { buildObservable: () => Rx.Observable.just({ events: [] }) };
+  let events: EventOccurrence[];
+  let dataSource: { buildObservable: jasmine.Spy };
   let host: HTMLDivElement;
   let onChangeFocusedMoment: jasmine.Spy;
 
-  const render = (focusedMoment: Moment, focusedEvent: any = null) => {
+  const render = (focusedMoment: Moment, focusedEvent = null, disabledCalendars = NO_CALENDARS) => {
     ReactDOM.render(
       <MonthView
         {...({
           dataSource,
-          disabledCalendars: [],
+          disabledCalendars,
           focusedMoment,
           focusedEvent,
           selectedEvents: [],
@@ -46,9 +75,20 @@ describe('MonthView scrolling', function () {
   const grid = () => host.querySelector('.month-view-grid') as HTMLElement;
   const rowHeight = () => grid().clientHeight / 6;
   const title = () => host.querySelector('.header-controls .title').textContent;
+  const scrollRows = (rows: number) => {
+    grid().scrollTop += rows * rowHeight();
+    grid().dispatchEvent(new Event('scroll'));
+  };
 
   beforeEach(function () {
-    onChangeFocusedMoment = jasmine.createSpy('onChangeFocusedMoment');
+    events = [];
+    dataSource = {
+      buildObservable: jasmine
+        .createSpy('buildObservable')
+        .andCallFake(() => Rx.Observable.just({ events })),
+    };
+    // Re-renders inside the call, as FocusedMomentStore's synchronous trigger does in the app.
+    onChangeFocusedMoment = jasmine.createSpy('onChangeFocusedMoment').andCallFake(render);
     host = document.createElement('div');
     host.style.width = '700px';
     document.body.appendChild(host);
@@ -67,20 +107,17 @@ describe('MonthView scrolling', function () {
 
   it('moves the focused date into the month scrolled to, and does not scroll back for it', function () {
     render(moment([2026, 9, 16]));
-    const octoberTop = grid().scrollTop;
     expect(title()).toBe('October 2026');
+    spyOn(grid(), 'scrollTo').andCallThrough();
 
     // Four weeks on from Sun 27 Sep, the rows run 25 Oct to 5 Dec: mostly November, but not
     // November's first week at the top, which is where scrolling back to it would go.
-    grid().scrollTop = octoberTop + 4 * rowHeight();
-    grid().dispatchEvent(new Event('scroll'));
+    scrollRows(4);
     grid().dispatchEvent(new Event('scrollend'));
+
     expect(title()).toBe('November 2026');
     const followed = onChangeFocusedMoment.mostRecentCall.args[0] as Moment;
     expect(followed.format('YYYY-MM-DD')).toBe('2026-11-16');
-
-    spyOn(grid(), 'scrollTo').andCallThrough();
-    render(followed);
     expect(grid().scrollTo).not.toHaveBeenCalled();
   });
 
@@ -88,9 +125,37 @@ describe('MonthView scrolling', function () {
     render(moment([2026, 9, 16]));
     const octoberTop = grid().scrollTop;
 
-    // A glide would still be at October here; the card opens where the event is now.
+    // A glide would still be at October here.
     render(moment([2026, 10, 3]), { id: 'evt', start: moment([2026, 10, 3]).unix() });
     expect(grid().scrollTop).toBe(octoberTop + 5 * rowHeight());
     expect(title()).toBe('November 2026');
+  });
+
+  it('gives Tab only to events in the rows in view', function () {
+    // October 2026 shows from Sun 27 Sep; the rows drawn above it start Sun 16 Aug.
+    events = [allDay('above', '2026-08-20'), allDay('shown', '2026-10-14')];
+    render(moment([2026, 9, 16]));
+
+    expect(document.getElementById('above').tabIndex).toBe(-1);
+    expect(document.getElementById('shown').tabIndex).toBe(0);
+  });
+
+  it('requeries once scrolling draws weeks outside the last query, and when calendars change', function () {
+    const october = moment([2026, 9, 16]);
+    render(october);
+    const firstQuery = dataSource.buildObservable.mostRecentCall.args[0];
+    const queriedFrom = (query) => calendarDateFromUnix(query.startUnix);
+
+    scrollRows(3);
+    expect(dataSource.buildObservable.callCount).toBe(1);
+
+    scrollRows(4);
+    expect(dataSource.buildObservable.callCount).toBe(2);
+    const secondQuery = dataSource.buildObservable.mostRecentCall.args[0];
+    expect(calendarDaysBetween(queriedFrom(firstQuery), queriedFrom(secondQuery))).toBe(49);
+
+    render(october, null, ['cal-2']);
+    expect(dataSource.buildObservable.callCount).toBe(3);
+    expect(dataSource.buildObservable.mostRecentCall.args[0].disabledCalendars).toEqual(['cal-2']);
   });
 });

@@ -17,7 +17,7 @@ const MAX_VISIBLE_EVENTS = 5;
 const VISIBLE_WEEKS = 6;
 
 function monthStartDate(m: Moment): CalendarDate {
-  return CalendarDateUtils.calendarDateFromUnix(moment(m).startOf('month').unix());
+  return CalendarDateUtils.calendarDateFromParts(m.year(), m.month() + 1, 1);
 }
 
 function momentOf(date: CalendarDate): Moment {
@@ -26,12 +26,9 @@ function momentOf(date: CalendarDate): Moment {
 
 interface MonthViewState {
   events: EventOccurrence[];
-  /** The 1st of the month the title names and the other days dim against. */
   shownMonth: CalendarDate;
   scrollTarget: WeekScrollTarget;
-  /** The last focusedMoment received, to tell a new one from a re-render. */
-  focusedMoment: Moment;
-  /** Set by this view to follow its own scroll, so it doesn't scroll back to it. */
+  prevFocusedMoment: Moment;
   followedMoment: Moment | null;
 }
 
@@ -43,10 +40,10 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
     state: MonthViewState
   ): Partial<MonthViewState> | null {
     const { focusedMoment } = props;
-    if (focusedMoment === state.focusedMoment) return null;
-    if (focusedMoment === state.followedMoment) return { focusedMoment };
+    if (focusedMoment === state.prevFocusedMoment) return null;
+    if (focusedMoment === state.followedMoment) return { prevFocusedMoment: focusedMoment };
     return {
-      focusedMoment,
+      prevFocusedMoment: focusedMoment,
       scrollTarget: { date: monthStartDate(focusedMoment), animate: !props.focusedEvent },
     };
   }
@@ -54,7 +51,6 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
   _mounted = false;
   _sub?: Disposable;
   _topWeek: CalendarDate;
-  /** The weeks the event subscription covers, end exclusive. */
   _subscribedWeeks: { first: CalendarDate; end: CalendarDate } | null = null;
 
   constructor(props: MailspringCalendarViewProps) {
@@ -67,7 +63,7 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
       events: [],
       shownMonth: month,
       scrollTarget: { date: month, animate: false },
-      focusedMoment: props.focusedMoment,
+      prevFocusedMoment: props.focusedMoment,
       followedMoment: null,
     };
   }
@@ -89,7 +85,6 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
     this._sub && this._sub.dispose();
   }
 
-  /** Covers the drawn weeks, requerying only once scrolling draws a week outside the last query. */
   _subscribe() {
     const drawn = WeekScroller.weeksDrawnFrom(this._topWeek, VISIBLE_WEEKS);
     const drawnEnd = CalendarDateUtils.addCalendarDays(drawn.first, drawn.count * DAYS_IN_WEEK);
@@ -199,7 +194,7 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
     );
   }
 
-  _renderWeeks = (weekStarts: CalendarDate[]) => {
+  _renderWeeks = (weekStarts: CalendarDate[], topWeek: CalendarDate) => {
     const events = withNewEventPreview(
       getEventsWithDragPreview(this.state.events, this.props.dragState),
       this.props.newEventPreview
@@ -208,10 +203,19 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
       Array.from({ length: DAYS_IN_WEEK }, (_, i) => CalendarDateUtils.addCalendarDays(start, i))
     );
     const layouts = weeks.map((days) => layoutWeekBars(events, days, MAX_VISIBLE_EVENTS));
-    const firstBarIds = firstVisibleBarIds(layouts);
+    const visibleFrom =
+      CalendarDateUtils.calendarDaysBetween(weekStarts[0], topWeek) / DAYS_IN_WEEK;
+    const visibleBarIds = firstVisibleBarIds(
+      layouts.slice(visibleFrom, visibleFrom + VISIBLE_WEEKS)
+    );
     const currentMonth = momentOf(this.state.shownMonth).month();
     return weeks.map((days, idx) =>
-      this._renderWeek(days.map(momentOf), layouts[idx], firstBarIds[idx], currentMonth)
+      this._renderWeek(
+        days.map(momentOf),
+        layouts[idx],
+        visibleBarIds[idx - visibleFrom] || new Set<string>(),
+        currentMonth
+      )
     );
   };
 

@@ -43,6 +43,13 @@ describe('WeekScroller', function () {
     return row?.getAttribute('data-start');
   };
 
+  const rowHeight = () =>
+    (host.querySelector('.week-scroller-row') as HTMLElement).getBoundingClientRect().height;
+
+  // ResizeObserver reports between layout and paint, so two frames covers it.
+  const nextFrames = () =>
+    new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+
   const mount = (scrollTarget: WeekScrollTarget, onMount?: (el: HTMLElement) => void) => {
     let scroller: WeekScroller = null;
     ReactDOM.render(
@@ -122,10 +129,51 @@ describe('WeekScroller', function () {
     expect(onScrollEnd.mostRecentCall.args[0]).toBe(calendarDateFromUnix(threeWeeksOn));
   });
 
-  it('keeps its top week as the viewport changes height', function () {
-    const scroller = mount({ date: calendarDateFromParts(2026, 10, 1), animate: false });
+  it('glides to a nearby target', function () {
+    mount({ date: calendarDateFromParts(2026, 10, 1), animate: false });
+    const el = scrollerEl();
+    spyOn(el, 'scrollTo').andCallThrough();
+    mount({ date: calendarDateFromParts(2026, 11, 1), animate: true });
+
+    const { top, behavior } = (el.scrollTo as jasmine.Spy).mostRecentCall.args[0];
+    expect(behavior).toBe('smooth');
+    expect(top).toBe(el.scrollTop + 5 * (el.clientHeight / 6));
+  });
+
+  it('keeps its top week as the viewport changes height', async function () {
+    mount({ date: calendarDateFromParts(2026, 10, 1), animate: false });
     host.style.height = '900px';
-    scroller._measure();
+    await nextFrames();
+
+    expect(rowHeight()).toBe(150);
     expect(topRowStart()).toBe(weekOf(2026, 10, 1));
+  });
+
+  it('lands a glide on its week when the viewport changes height on the way', async function () {
+    mount({ date: calendarDateFromParts(2026, 10, 1), animate: false });
+    await nextFrames();
+    const start = scrollerEl().scrollTop;
+    mount({ date: calendarDateFromParts(2026, 11, 1), animate: true });
+    const landed = new Promise((resolve) =>
+      scrollerEl().addEventListener('scrollend', resolve, { once: true })
+    );
+    while (scrollerEl().scrollTop - start < 200) {
+      await nextFrames();
+    }
+    host.style.height = '900px';
+    await landed;
+
+    expect(rowHeight()).toBe(150);
+    expect(topRowStart()).toBe(weekOf(2026, 11, 1));
+  });
+
+  describe('in a locale whose weeks start on Monday', function () {
+    beforeEach(() => moment.locale('en-gb'));
+    afterEach(() => moment.locale('en'));
+
+    it('starts its rows on Monday', function () {
+      mount({ date: calendarDateFromParts(2026, 10, 1), animate: false });
+      expect(topRowStart()).toBe('2026-09-28');
+    });
   });
 });

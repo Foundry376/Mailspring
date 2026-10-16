@@ -77,4 +77,39 @@ describe('MiniMonthView orientation', () => {
     expect(title()).toBe('March 2028');
     expect(host.querySelector('.cur-day').textContent).toBe('10');
   });
+
+  it('steps from where a glide is headed when its arrow is clicked again on the way', () => {
+    ReactDOM.render(
+      <MiniMonthView orientation="vertical" value={moment([2026, 9, 16])} onChange={() => {}} />,
+      host
+    );
+    const grid = host.querySelector('.day-grid') as HTMLElement;
+    const octoberTop = grid.scrollTop;
+    spyOn(grid, 'scrollTo').andCallThrough();
+    const down = host.querySelectorAll('.header .btn')[1] as HTMLElement;
+    down.click();
+    down.click();
+
+    // December's first week starts Sun 29 Nov, nine weeks on from Sun 27 Sep.
+    const { top } = (grid.scrollTo as jasmine.Spy).mostRecentCall.args[0];
+    expect(top).toBe(octoberTop + 9 * (grid.clientHeight / 6));
+  });
+
+  it('moves the today marker when its value changes', () => {
+    let view: MiniMonthView = null;
+    const renderWith = (value) =>
+      ReactDOM.render(
+        <MiniMonthView
+          ref={(v) => (view = v)}
+          orientation="vertical"
+          value={value}
+          onChange={() => {}}
+        />,
+        host
+      );
+    renderWith(moment([2026, 9, 16]));
+    view.setState({ today: moment().subtract(1, 'day').startOf('day') });
+    renderWith(moment([2026, 9, 20]));
+    expect(view.state.today.isSame(moment(), 'day')).toBe(true);
+  });
 });

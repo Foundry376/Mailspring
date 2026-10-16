@@ -6,6 +6,11 @@ import { WeekScroller, WeekScrollTarget } from './week-scroller';
 
 const VISIBLE_WEEKS = 6;
 
+const CHEVRONS = {
+  horizontal: { width: 8, height: 12, previous: 'M7 1L2 6l5 5', next: 'M1 1l5 5-5 5' },
+  vertical: { width: 12, height: 8, previous: 'M1 7l5-5 5 5', next: 'M1 1l5 5 5-5' },
+};
+
 interface MiniMonthViewProps {
   value: Moment;
   onChange: (moment: Moment) => void;
@@ -30,6 +35,7 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
   static defaultProps = { orientation: 'horizontal' };
 
   private _todayTimer?: number;
+  private _glideMonth: Moment | null = null;
 
   constructor(props) {
     super(props);
@@ -50,7 +56,10 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
     }
     if (this.props.orientation === 'vertical') {
       // The title follows the scroll there; setting it now would flash the destination first.
-      this.setState({ scrollTarget: { date: monthStartDate(this.props.value), animate: true } });
+      this.setState({
+        scrollTarget: { date: monthStartDate(this.props.value), animate: true },
+        today: moment().startOf('day'),
+      });
     } else {
       this.setState(this._stateFromProps(this.props));
     }
@@ -103,8 +112,34 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
 
   _onTopWeekChange = (topWeek: CalendarDate) => {
     const month = moment.unix(dayStartUnix(WeekScroller.monthShownFrom(topWeek, VISIBLE_WEEKS)));
-    this.setState({ shownYear: month.year(), shownMonth: month.month() });
+    if (month.year() !== this.state.shownYear || month.month() !== this.state.shownMonth) {
+      this.setState({ shownYear: month.year(), shownMonth: month.month() });
+    }
   };
+
+  _onScrollEnd = () => {
+    this._glideMonth = null;
+  };
+
+  _renderChevron(direction: 'previous' | 'next') {
+    const chevron = CHEVRONS[this.props.orientation];
+    return (
+      <svg
+        width={chevron.width}
+        height={chevron.height}
+        viewBox={`0 0 ${chevron.width} ${chevron.height}`}
+        fill="none"
+      >
+        <path
+          d={chevron[direction]}
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
+  }
 
   _renderWeek(weekStart: Moment, curMonthNumber: number, key: React.Key) {
     const dayIter = weekStart.clone();
@@ -161,6 +196,7 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
           )
         }
         onTopWeekChange={this._onTopWeekChange}
+        onScrollEnd={this._onScrollEnd}
         onClick={this._onClickDay}
       />
     );
@@ -172,10 +208,11 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
     const month = moment([this.state.shownYear, this.state.shownMonth]);
 
     const onChangeMonth = (delta: number) => {
-      const next = month.clone().add(delta, 'months');
       if (vertical) {
-        this.setState({ scrollTarget: { date: monthStartDate(next), animate: true } });
+        this._glideMonth = (this._glideMonth || month).clone().add(delta, 'months');
+        this.setState({ scrollTarget: { date: monthStartDate(this._glideMonth), animate: true } });
       } else {
+        const next = month.clone().add(delta, 'months');
         this.setState({ shownYear: next.year(), shownMonth: next.month() });
       }
     };
@@ -184,51 +221,11 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
       <div className={classnames('mini-month-view', { vertical })}>
         <div className="header">
           <div className="btn btn-icon" onClick={() => onChangeMonth(-1)}>
-            {vertical ? (
-              <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
-                <path
-                  d="M1 7l5-5 5 5"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            ) : (
-              <svg width="8" height="12" viewBox="0 0 8 12" fill="none">
-                <path
-                  d="M7 1L2 6l5 5"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            )}
+            {this._renderChevron('previous')}
           </div>
           <span className="month-title">{month.format('MMMM YYYY')}</span>
           <div className="btn btn-icon" onClick={() => onChangeMonth(1)}>
-            {vertical ? (
-              <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
-                <path
-                  d="M1 1l5 5 5-5"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            ) : (
-              <svg width="8" height="12" viewBox="0 0 8 12" fill="none">
-                <path
-                  d="M1 1l5 5-5 5"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            )}
+            {this._renderChevron('next')}
           </div>
         </div>
         <div className="legend">
