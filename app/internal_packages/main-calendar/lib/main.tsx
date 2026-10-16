@@ -14,6 +14,7 @@ import { MailspringCalendar } from './core/mailspring-calendar';
 import { CalendarSidebar } from './core/calendar-sidebar';
 import { EventSearchBar } from './core/event-search-bar';
 import { focusedEventInfoForEvents } from './core/calendar-data-source';
+import { SidebarAgendaPanel } from './sidebar-agenda-panel';
 
 type MenuItem = (typeof AppEnv.menu.template)[0];
 
@@ -153,6 +154,7 @@ export function activate() {
     location: WorkspaceStore.Location.CalendarContent.Toolbar,
   });
   ComponentRegistry.register(CalendarNavRailItem, { role: 'NavRail:Item' });
+  ComponentRegistry.register(SidebarAgendaPanel, { role: 'MessageListSidebar:Panel' });
 
   _unlistenWorkspace = WorkspaceStore.listen(updateMenus);
   ipcRenderer.on('show-calendar', onShowCalendar);
@@ -164,6 +166,7 @@ export function deactivate() {
   ComponentRegistry.unregister(QuickEventButton);
   ComponentRegistry.unregister(EventSearchBar);
   ComponentRegistry.unregister(CalendarNavRailItem);
+  ComponentRegistry.unregister(SidebarAgendaPanel);
 
   _unlistenWorkspace?.();
   ipcRenderer.removeListener('show-calendar', onShowCalendar);
