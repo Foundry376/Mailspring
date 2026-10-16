@@ -39,6 +39,10 @@ class ConfigSchemaItem extends React.Component<ConfigSchemaItemProps> {
     event.target.blur();
   };
 
+  _onChangeNumber = (event) => {
+    this.props.config.set(this.props.keyPath, Number(event.target.value));
+  };
+
   render() {
     if (!this._appliesToPlatform()) return false;
 
@@ -97,6 +101,30 @@ class ConfigSchemaItem extends React.Component<ConfigSchemaItemProps> {
             checked={!!this.props.config.get(this.props.keyPath)}
           />
           <label htmlFor={this.props.keyPath}>{this.props.configSchema.title}</label>
+          {note}
+        </div>
+      );
+    } else if (
+      this.props.configSchema.type === 'number' &&
+      this.props.configSchema.minimum !== undefined &&
+      this.props.configSchema.maximum !== undefined
+    ) {
+      const value = Number(this.props.config.get(this.props.keyPath));
+      return (
+        <div className="item config-schema-range-item">
+          <label htmlFor={this.props.keyPath}>
+            {this.props.configSchema.title}:{' '}
+            <output>{`${value}${this.props.configSchema.unit || ''}`}</output>
+          </label>
+          <input
+            id={this.props.keyPath}
+            type="range"
+            min={this.props.configSchema.minimum}
+            max={this.props.configSchema.maximum}
+            step={this.props.configSchema.multipleOf || 1}
+            value={value}
+            onChange={this._onChangeNumber}
+          />
           {note}
         </div>
       );
