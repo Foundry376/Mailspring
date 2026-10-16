@@ -2,6 +2,7 @@ import { execFile } from 'child_process';
 import path from 'path';
 import { File } from 'mailspring-exports';
 import { ipcRenderer } from 'electron';
+import { developerToolsAvailable } from '../developer-tools';
 
 // Generate token via IPC to ensure it's stored in the main process
 async function generatePreviewToken(previewPath: string): Promise<string> {
@@ -192,16 +193,21 @@ const PreviewWindowMenuTemplate: Electron.MenuItemConstructorOptions[] = [
           if (focusedWindow) focusedWindow.setFullScreen(!focusedWindow.isFullScreen());
         },
       },
-      {
-        label: 'Toggle Developer Tools',
-        accelerator: (function () {
-          if (process.platform === 'darwin') return 'Alt+Command+I';
-          else return 'Ctrl+Shift+I';
-        })(),
-        click: function (item, focusedWindow) {
-          if (focusedWindow) (focusedWindow as Electron.BrowserWindow).webContents.toggleDevTools();
-        },
-      },
+      ...(developerToolsAvailable()
+        ? [
+            {
+              label: 'Toggle Developer Tools',
+              accelerator: (function () {
+                if (process.platform === 'darwin') return 'Alt+Command+I';
+                else return 'Ctrl+Shift+I';
+              })(),
+              click: function (item, focusedWindow) {
+                if (focusedWindow)
+                  (focusedWindow as Electron.BrowserWindow).webContents.toggleDevTools();
+              },
+            },
+          ]
+        : []),
     ],
   },
 ];
@@ -236,6 +242,7 @@ export function displayQuickPreviewWindow(filePath: string) {
         nodeIntegration: false,
         contextIsolation: true,
         partition: QuickPreviewPartition,
+        devTools: developerToolsAvailable(),
       },
     });
 
@@ -335,6 +342,7 @@ function _createCaptureWindow() {
       nodeIntegration: false,
       contextIsolation: true,
       partition: QuickPreviewPartition,
+      devTools: developerToolsAvailable(),
     },
   });
 

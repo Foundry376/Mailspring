@@ -2,6 +2,7 @@
 import { shell, ipcRenderer } from 'electron';
 import url from 'url';
 import { localized } from './intl';
+import { developerToolsAvailable } from './developer-tools';
 
 let ComponentRegistry = null;
 
@@ -92,9 +93,11 @@ export default class WindowEventHandler {
       AppEnv.reload();
     });
 
-    AppEnv.commands.add(document.body, 'window:toggle-dev-tools', () => {
-      AppEnv.toggleDevTools();
-    });
+    if (developerToolsAvailable()) {
+      AppEnv.commands.add(document.body, 'window:toggle-dev-tools', () => {
+        AppEnv.toggleDevTools();
+      });
+    }
 
     AppEnv.commands.add(document.body, 'window:open-mailsync-logs', () => {
       AppEnv.mailsyncBridge.openLogs();

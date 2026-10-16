@@ -5,6 +5,7 @@
  * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
  */
 import { BrowserWindow, Menu, app } from 'electron';
+import { developerToolsAvailable } from '../developer-tools';
 const Utils = require('../flux/models/utils');
 const { localized } = require('../intl');
 
@@ -249,13 +250,17 @@ export default class ApplicationMenu {
             click: () =>
               BrowserWindow.getFocusedWindow() && BrowserWindow.getFocusedWindow().close(),
           },
-          {
-            label: localized('Toggle Dev Tools'),
-            accelerator: 'CmdOrCtrl+Alt+I',
-            click: () =>
-              BrowserWindow.getFocusedWindow() &&
-              BrowserWindow.getFocusedWindow().webContents.toggleDevTools(),
-          },
+          ...(developerToolsAvailable()
+            ? [
+                {
+                  label: localized('Toggle Dev Tools'),
+                  accelerator: 'CmdOrCtrl+Alt+I',
+                  click: () =>
+                    BrowserWindow.getFocusedWindow() &&
+                    BrowserWindow.getFocusedWindow().webContents.toggleDevTools(),
+                },
+              ]
+            : []),
           {
             label: localized('Quit'),
             accelerator: 'CmdOrCtrl+Q',

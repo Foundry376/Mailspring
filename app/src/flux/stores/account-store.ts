@@ -53,11 +53,13 @@ class _AccountStore extends MailspringStore {
         const newId = newAccountIds[0];
         Actions.focusDefaultMailboxPerspectiveForAccounts([newId], {
           sidebarAccountIds: accountIds,
+          keepSection: true,
         });
         const FolderSyncProgressStore = require('./folder-sync-progress-store').default;
         await FolderSyncProgressStore.whenCategoryListSynced(newId);
         Actions.focusDefaultMailboxPerspectiveForAccounts([newId], {
           sidebarAccountIds: accountIds,
+          keepSection: true,
         });
         // Uncollapse the inbox for the new account after the sidebar updates
         Actions.setCollapsedSidebarItem('Inbox', false);
@@ -195,7 +197,7 @@ class _AccountStore extends MailspringStore {
     // account, otherwise when we trigger with the new set of accounts, the
     // current perspective will still reference a stale accountId which will
     // cause things to break
-    Actions.focusDefaultMailboxPerspectiveForAccounts(remainingAccounts);
+    Actions.focusDefaultMailboxPerspectiveForAccounts(remainingAccounts, { keepSection: true });
     _.defer(() => {
       Actions.setCollapsedSidebarItem('Inbox', true);
     });
