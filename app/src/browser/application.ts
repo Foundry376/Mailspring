@@ -46,9 +46,19 @@ import WindowsTaskbarManager from './windows-taskbar-manager';
 import { resetThemeForRecovery } from './theme-recovery';
 
 // The options renderers may pass to `new-window`: what the popout composer (DraftStore) and
-// thread popout (MessageStore) send. The main process sets every other load setting itself,
-// since some (like `bootstrapScript`) choose the code a nodeIntegration window runs.
-const RENDERER_WINDOW_OPTIONS = ['title', 'hidden', 'windowKey', 'windowType', 'windowProps'];
+// thread popout (MessageStore) send, plus window sizing for plugins. The main process sets
+// every other load setting itself, since some (like `bootstrapScript`) choose the code a
+// nodeIntegration window runs.
+const RENDERER_WINDOW_OPTIONS = [
+  'title',
+  'hidden',
+  'windowKey',
+  'windowType',
+  'windowProps',
+  'width',
+  'height',
+  'bounds',
+];
 
 function rendererWindowOptions(options: Record<string, unknown>) {
   const safe: Record<string, unknown> = {};
