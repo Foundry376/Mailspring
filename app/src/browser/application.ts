@@ -45,23 +45,16 @@ import {
 import WindowsTaskbarManager from './windows-taskbar-manager';
 import { resetThemeForRecovery } from './theme-recovery';
 
-// Load settings that choose the code a window runs or where it loads its data and packages
-// from. The main process sets these itself; a renderer asking for a window only names its type.
-const PRIVILEGED_WINDOW_OPTIONS = [
-  'bootstrapScript',
-  'resourcePath',
-  'configDirPath',
-  'devMode',
-  'safeMode',
-  'isSpec',
-  'exitWhenDone',
-  'mainWindow',
-  'neverClose',
-];
+// The options renderers may pass to `new-window`: what the popout composer (DraftStore) and
+// thread popout (MessageStore) send. The main process sets every other load setting itself,
+// since some (like `bootstrapScript`) choose the code a nodeIntegration window runs.
+const RENDERER_WINDOW_OPTIONS = ['title', 'hidden', 'windowKey', 'windowType', 'windowProps'];
 
-function withoutPrivilegedWindowOptions(options: Record<string, unknown>) {
-  const safe = { ...options };
-  for (const key of PRIVILEGED_WINDOW_OPTIONS) delete safe[key];
+function rendererWindowOptions(options: Record<string, unknown>) {
+  const safe: Record<string, unknown> = {};
+  for (const key of RENDERER_WINDOW_OPTIONS) {
+    if (key in options) safe[key] = options[key];
+  }
   return safe;
 }
 
@@ -653,7 +646,7 @@ export default class Application extends EventEmitter {
         win.show();
         win.focus();
       } else {
-        this.windowManager.newWindow(withoutPrivilegedWindowOptions(options));
+        this.windowManager.newWindow(rendererWindowOptions(options));
       }
     });
 
