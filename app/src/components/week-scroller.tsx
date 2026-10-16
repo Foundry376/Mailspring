@@ -179,15 +179,10 @@ export class WeekScroller extends React.Component<WeekScrollerProps, WeekScrolle
     const el = this._el.current;
     if (!el) return;
     const rowHeight = el.clientHeight / this.props.visibleWeeks;
-    if (rowHeight === this.state.rowHeight) return;
-    // Rows change height with the viewport, so hold the same week at the top.
-    this.setState((state) => ({
-      rowHeight,
-      pendingScroll:
-        state.pendingScroll !== this._appliedScroll
-          ? state.pendingScroll
-          : { index: state.topIndex, smooth: false },
-    }));
+    if (rowHeight !== this.state.rowHeight) {
+      // Snapping keeps the same row at the top as rows change height.
+      this.setState({ rowHeight });
+    }
   };
 
   _onCommit = () => {
