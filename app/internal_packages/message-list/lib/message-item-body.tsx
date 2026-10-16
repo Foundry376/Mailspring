@@ -14,6 +14,7 @@ import { InjectedComponentSet, RetinaImg } from 'mailspring-component-kit';
 
 import EmailFrame from './email-frame';
 import { BrowserWindow } from '@electron/remote';
+import { developerToolsAvailable } from '../../../src/developer-tools';
 
 const TransparentPixel =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNikAQAACIAHF/uBd8AAAAASUVORK5CYII=';
@@ -127,6 +128,7 @@ export default class MessageItemBody extends React.Component<
       webPreferences: {
         javascript: false,
         nodeIntegration: false,
+        devTools: developerToolsAvailable(),
       },
     });
     win.loadURL(`file://${filepath}`);

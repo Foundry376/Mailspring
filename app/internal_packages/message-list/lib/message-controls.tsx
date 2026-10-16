@@ -12,6 +12,7 @@ import {
   ComponentRegistry,
 } from 'mailspring-exports';
 import { RetinaImg, ButtonDropdown, Menu } from 'mailspring-component-kit';
+import { developerToolsAvailable } from '../../../src/developer-tools';
 
 interface MessageControlsProps {
   thread: Thread;
@@ -185,6 +186,7 @@ export default class MessageControls extends React.Component<MessageControlsProp
       webPreferences: {
         javascript: false,
         nodeIntegration: false,
+        devTools: developerToolsAvailable(),
       },
     });
     win.loadURL(`file://${filepath}`).catch((err: Error) => {

@@ -29,6 +29,7 @@ import AutoUpdateManager from './autoupdate-manager';
 import SystemAccentWatcher from './system-accent-watcher';
 import SystemTrayManager from './system-tray-manager';
 import { DefaultClientHelper } from '../default-client-helper';
+import { developerToolsAvailable } from '../developer-tools';
 import MailspringProtocolHandler from './mailspring-protocol-handler';
 import ConfigPersistenceManager from './config-persistence-manager';
 import moveToApplications from './move-to-applications';
@@ -508,6 +509,7 @@ export default class Application extends EventEmitter {
     });
 
     this.on('application:toggle-dev', () => {
+      if (!developerToolsAvailable()) return;
       let args = process.argv.slice(1);
       if (args.includes('--dev')) {
         args = args.filter((a) => a !== '--dev');
@@ -751,7 +753,9 @@ export default class Application extends EventEmitter {
       'minimize',
       'setFullScreen',
     ]);
-    const ALLOWED_WEBCONTENTS_METHODS = new Set(['reload', 'openDevTools', 'toggleDevTools']);
+    const ALLOWED_WEBCONTENTS_METHODS = new Set(
+      developerToolsAvailable() ? ['reload', 'openDevTools', 'toggleDevTools'] : ['reload']
+    );
     const ALLOWED_DEVTOOLS_WEBCONTENTS_METHODS = new Set(['executeJavaScript']);
 
     ipcMain.on('call-window-method', (event, method, ...args) => {
@@ -967,7 +971,9 @@ export default class Application extends EventEmitter {
             focusedBrowserWindow.reload();
             break;
           case 'window:toggle-dev-tools':
-            focusedBrowserWindow.webContents.toggleDevTools();
+            if (developerToolsAvailable()) {
+              focusedBrowserWindow.webContents.toggleDevTools();
+            }
             break;
           case 'window:close':
             focusedBrowserWindow.close();

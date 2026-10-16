@@ -35,6 +35,7 @@ console.inspect = function consoleInspect(val) {
 
 const { app, session, protocol } = require('electron');
 const path = require('path');
+const { developerToolsAvailable } = require('../developer-tools');
 
 if (typeof process.setFdLimit === 'function') {
   process.setFdLimit(1024);
@@ -161,9 +162,12 @@ const parseCommandLine = argv => {
     process.stdout.write(`${version}\n`);
     process.exit(0);
   }
-  const devMode = args['dev'] || args['test'];
+  // A packaged build silently ignores both flags rather than letting a release be switched
+  // into development mode from the command line. See developerToolsAvailable().
+  const developerBuild = developerToolsAvailable();
+  const devMode = developerBuild && (args['dev'] || args['test']);
   const logFile = args['log-file'];
-  const specMode = args['test'];
+  const specMode = developerBuild && args['test'];
   const jUnitXmlPath = args['junit-xml'];
   const safeMode = args['safe'];
   const background = args['background'];
