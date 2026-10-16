@@ -4,7 +4,7 @@ import { Disposable } from 'rx-core';
 import { Rx, DatabaseStore, Calendar, localized } from 'mailspring-exports';
 import { AgendaView } from './core/agenda-view';
 import { CalendarDataSource, EventOccurrence } from './core/calendar-data-source';
-import { setCalendarColors } from './core/calendar-helpers';
+import { setCalendarColors, invalidateThemeTextColorCache } from './core/calendar-helpers';
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
@@ -32,6 +32,7 @@ export class SidebarAgendaPanel extends React.Component<
 
   _dataSource = new CalendarDataSource();
   _disposable?: Disposable;
+  _themeDisposable?: { dispose: () => void };
 
   state: SidebarAgendaPanelState = {
     focusedMoment: moment(),
@@ -54,10 +55,18 @@ export class SidebarAgendaPanel extends React.Component<
         readOnlyCalendarIds: new Set(calendars.filter((c) => c.readOnly).map((c) => c.id)),
       });
     });
+    // Titles mix in the theme's cached text colour, which MailspringCalendar only clears while
+    // it is mounted, and it isn't while Mail shows this panel.
+    invalidateThemeTextColorCache();
+    this._themeDisposable = AppEnv.themes.onDidChangeActiveThemes(() => {
+      invalidateThemeTextColorCache();
+      this.forceUpdate();
+    });
   }
 
   componentWillUnmount() {
     this._disposable?.dispose();
+    this._themeDisposable?.dispose();
   }
 
   // Fails closed until calendars load, matching MailspringCalendar._isCalendarReadOnly.
