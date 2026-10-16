@@ -258,8 +258,10 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
       <div key={view.id} className="views-home-card">
         {this._renderThumbnail(view)}
         <div className="views-home-card-body">
-          <div className="views-home-card-name">{view.name}</div>
-          {this._renderBadges(view)}
+          <div className="views-home-card-header">
+            <div className="views-home-card-name">{view.name}</div>
+            {this._renderBadges(view)}
+          </div>
           {view.placement === 'thread-sidebar' && (
             <div className="views-home-card-description">
               {localized('Shows beside conversations when you open one.')}
@@ -309,8 +311,10 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
           )}
         </div>
         <div className="views-home-card-body">
-          <div className="views-home-card-name">{starter.name}</div>
-          {this._renderBadges({ placement: starter.placement })}
+          <div className="views-home-card-header">
+            <div className="views-home-card-name">{starter.name}</div>
+            {this._renderBadges({ placement: starter.placement })}
+          </div>
           <div className="views-home-card-description">{starter.description}</div>
         </div>
         <div className="views-home-card-actions">

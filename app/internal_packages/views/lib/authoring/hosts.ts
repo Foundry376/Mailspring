@@ -4,6 +4,8 @@ export interface ReloadableHost {
   reloadView(): void;
   /** The View's own pixels (no host chrome), or null when its page isn't showing. */
   capturePage(): Promise<Electron.NativeImage | null>;
+  /** Width of the View's page in CSS px, or 0 when it isn't showing. */
+  viewportWidth(): number;
 }
 
 const hosts = new Set<ReloadableHost>();

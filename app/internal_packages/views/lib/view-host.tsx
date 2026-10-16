@@ -236,6 +236,10 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     }
   }
 
+  viewportWidth() {
+    return this._webview && this.state.status === 'running' ? this._webview.clientWidth : 0;
+  }
+
   capturePage(): Promise<Electron.NativeImage | null> {
     if (!this._webview || this.state.status !== 'running') return Promise.resolve(null);
     return this._webview.capturePage().catch(() => null);

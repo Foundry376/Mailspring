@@ -115,10 +115,12 @@ class DiagnosticsStore extends EventEmitter {
   }
 
   /**
-   * The View's first render committed. If nothing fails for RENDER_OK_QUIET_MS, record
-   * `render-ok`: the signal an authoring loop waits for to accept a revision.
+   * The View's first render committed (also emitted as `mounted`). If nothing fails for
+   * RENDER_OK_QUIET_MS, record `render-ok`: the signal an authoring loop waits for to accept a
+   * revision.
    */
   mounted(viewId: string) {
+    this.emit('mounted', viewId);
     this.cancelRenderOk(viewId);
     const revision = this.revisionFor(viewId);
     this.renderTimers.set(
