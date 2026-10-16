@@ -3,7 +3,7 @@
   "name": "Family Plans",
   "icon": "🎈",
   "apiVersion": "2026-10-05",
-  "description": "A month of storytimes, birthday parties, block parties and visits from family, picked out of your calendar, with the weather. Prints on one page for the fridge.",
+  "description": "Your month of kids' events and family visits, with the weather. Prints on one page for the fridge.",
   "version": "1.0.0",
   "placement": "page",
   "permissions": [

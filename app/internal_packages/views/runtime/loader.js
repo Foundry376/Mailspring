@@ -159,28 +159,65 @@
     return null;
   }
 
-  const reactRoot = window.ReactDOM.createRoot(root);
-  try {
-    if (window.__mailspringViewLoadError) {
-      const loadError = new Error(window.__mailspringViewLoadError);
-      loadError.stack = '';
-      console.error('[mailspring-view]', loadError.message);
-      report('compile-error', { message: loadError.message });
-      reactRoot.render(h(ErrorCard, { error: loadError, phase: 'failed to compile' }));
-      return;
+  // Mock mode (lib/mock in the host) renders the View from its mock-data.json. The session has
+  // no network, so fetch() is answered from the file's `fetch` entries, and `viewState` seeds
+  // useViewState before the View reads it. Scrollbars are hidden because mock renders become
+  // screenshots.
+  const mock = new URLSearchParams(window.location.hash.slice(1)).get('mock') === '1';
+  function enterMockMode() {
+    const style = document.createElement('style');
+    style.textContent =
+      '* { scrollbar-width: none !important; } *::-webkit-scrollbar { display: none !important; }';
+    document.head.appendChild(style);
+    window.fetch = async (input, init) => {
+      const url = input instanceof Request ? input.url : String(input);
+      const method = (init && init.method) || (input && input.method) || 'GET';
+      const { result, error } = await bridge.call('mock.fetch', { url: String(url), method });
+      if (error) throw new TypeError(`Failed to fetch (mock data): ${error.message}`);
+      return new Response(result.body, {
+        status: result.status,
+        headers: { 'Content-Type': result.contentType },
+      });
+    };
+    return bridge.call('mock.viewState').then(({ result }) => {
+      try {
+        window.localStorage.clear();
+        for (const [key, value] of Object.entries(result || {})) {
+          window.localStorage.setItem(`mailspring-view-state:${key}`, JSON.stringify(value));
+        }
+      } catch {
+        // Without storage the View starts from its defaults.
+      }
+    });
+  }
+
+  if (mock) enterMockMode().finally(mount);
+  else mount();
+
+  function mount() {
+    const reactRoot = window.ReactDOM.createRoot(root);
+    try {
+      if (window.__mailspringViewLoadError) {
+        const loadError = new Error(window.__mailspringViewLoadError);
+        loadError.stack = '';
+        console.error('[mailspring-view]', loadError.message);
+        report('compile-error', { message: loadError.message });
+        reactRoot.render(h(ErrorCard, { error: loadError, phase: 'failed to compile' }));
+        return;
+      }
+      if (typeof window.__mailspringViewFactory !== 'function') {
+        throw new Error('View.jsx did not load. Check the console for a syntax error.');
+      }
+      const module = { exports: {} };
+      window.__mailspringViewFactory(viewRequire, module, module.exports);
+      const View = module.exports.default || module.exports;
+      if (typeof View !== 'function') {
+        throw new Error('View.jsx must `export default` a React component.');
+      }
+      reactRoot.render(h(ErrorBoundary, null, h(View), h(MountSignal)));
+    } catch (err) {
+      reportError('runtime-error', err);
+      reactRoot.render(h(ErrorCard, { error: err, phase: 'failed to load' }));
     }
-    if (typeof window.__mailspringViewFactory !== 'function') {
-      throw new Error('View.jsx did not load. Check the console for a syntax error.');
-    }
-    const module = { exports: {} };
-    window.__mailspringViewFactory(viewRequire, module, module.exports);
-    const View = module.exports.default || module.exports;
-    if (typeof View !== 'function') {
-      throw new Error('View.jsx must `export default` a React component.');
-    }
-    reactRoot.render(h(ErrorBoundary, null, h(View), h(MountSignal)));
-  } catch (err) {
-    reportError('runtime-error', err);
-    reactRoot.render(h(ErrorCard, { error: err, phase: 'failed to load' }));
   }
 })();

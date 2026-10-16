@@ -1,0 +1,499 @@
+{
+ "me": {
+  "name": "Sam Carter",
+  "email": "sam@northwind.example"
+ },
+ "folders": [
+  "Projects",
+  "Receipts",
+  "Recruiting",
+  "Alerts",
+  "GitHub",
+  "Newsletters"
+ ],
+ "threads": [
+  {
+   "id": "t-renewal",
+   "subject": "Re: Contract renewal terms",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "me",
+     "to": "Helen Okafor <helen@brightline.example>",
+     "date": "@now-2d",
+     "body": "Can you share the redlines?"
+    },
+    {
+     "id": "m-renewal",
+     "from": "Helen Okafor <helen@brightline.example>",
+     "date": "@now-3h",
+     "body": "We can do a two-year term if the support tier stays the same. Can you confirm by Friday?",
+     "summary": {
+      "gist": "Brightline offers two-year term at current support tier",
+      "asks": "Confirm terms by Friday",
+      "needsAction": true
+     }
+    }
+   ]
+  },
+  {
+   "id": "t-design",
+   "subject": "Onboarding flow v2",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "me",
+     "to": "Jun Park <jun@northwind.example>",
+     "date": "@now-3d",
+     "body": "Left comments on screen two."
+    },
+    {
+     "id": "m-design",
+     "from": "Jun Park <jun@northwind.example>",
+     "date": "@now-5h",
+     "body": "v2 is up! Changed the copy on step two as well. Thoughts before the review?",
+     "summary": {
+      "gist": "Jun posted onboarding v2 with new step-two copy",
+      "asks": "Review before tomorrow",
+      "needsAction": true
+     }
+    }
+   ]
+  },
+  {
+   "id": "t-ref",
+   "subject": "Reference check for Alex M.",
+   "in": [
+    "inbox",
+    "Recruiting"
+   ],
+   "messages": [
+    {
+     "from": "me",
+     "to": "Dana Lee <dana@finchrecruiting.example>",
+     "date": "@now-4d",
+     "body": "Happy to chat. Does Friday work?"
+    },
+    {
+     "from": "Dana Lee <dana@finchrecruiting.example>",
+     "date": "@now-1d",
+     "body": "Friday at 2pm works. I'll send an invite."
+    }
+   ]
+  },
+  {
+   "id": "t-lunch",
+   "subject": "Lunch next week?",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "me",
+     "to": "Chris Wong <chris@example.com>",
+     "date": "@now-2d",
+     "body": "We should catch up!"
+    },
+    {
+     "from": "Chris Wong <chris@example.com>",
+     "date": "@now-26h",
+     "body": "Free Tuesday or Wednesday?"
+    }
+   ]
+  },
+  {
+   "id": "t-security",
+   "subject": "New sign-in to your account",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "id": "m-security",
+     "from": "Account Security <security@cloudvault.example>",
+     "date": "@now-1h",
+     "body": "We noticed a new sign-in from Chrome on Windows in Denver, CO.",
+     "summary": {
+      "gist": "New sign-in from Windows in Denver",
+      "asks": "Review if this wasn't you",
+      "needsAction": true
+     }
+    }
+   ]
+  },
+  {
+   "id": "t-deck",
+   "subject": "Q4 roadmap review — slides attached",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "id": "m-deck",
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@now-2h",
+     "body": "Here's the draft deck for Thursday. Can you take a pass at the hiring slide?",
+     "attachments": [
+      "Q4-roadmap-v3.pdf"
+     ],
+     "summary": {
+      "gist": "Priya shared Q4 roadmap deck draft",
+      "asks": "Edit the hiring slide",
+      "needsAction": true
+     }
+    }
+   ]
+  },
+  {
+   "id": "t-alert",
+   "subject": "[Alert] API error rate above 2%",
+   "in": [
+    "inbox",
+    "Alerts"
+   ],
+   "messages": [
+    {
+     "id": "m-alert",
+     "from": "Monitoring <alerts@statuspage.example>",
+     "date": "@now-40m",
+     "body": "Error rate on /v2/orders crossed 2% for 10 minutes.",
+     "summary": {
+      "gist": "Orders API error rate crossed 2%",
+      "asks": null,
+      "needsAction": true
+     }
+    }
+   ]
+  },
+  {
+   "id": "t-offsite",
+   "subject": "Offsite venue options",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "id": "m-offsite",
+     "from": "Marco Diaz <marco@northwind.example>",
+     "date": "@now-4h",
+     "body": "Shortlisted three places near the coast.",
+     "summary": {
+      "gist": "Marco shortlisted three coastal offsite venues",
+      "asks": "Pick a favorite",
+      "needsAction": false
+     }
+    }
+   ]
+  },
+  {
+   "id": "t-invoice",
+   "subject": "Invoice #2291 from Lumen Studio",
+   "in": [
+    "inbox",
+    "Receipts"
+   ],
+   "messages": [
+    {
+     "id": "m-invoice",
+     "from": "Lumen Studio Billing <billing@lumenstudio.example>",
+     "date": "@now-6h",
+     "body": "Your invoice for October is ready.",
+     "attachments": [
+      "invoice-2291.pdf"
+     ],
+     "summary": {
+      "gist": "October invoice from Lumen Studio, due in 14 days",
+      "asks": null,
+      "needsAction": false
+     }
+    }
+   ]
+  },
+  {
+   "id": "t-ship",
+   "subject": "Your order has shipped",
+   "in": [
+    "inbox",
+    "Receipts"
+   ],
+   "messages": [
+    {
+     "id": "m-ship",
+     "from": "Orders <orders@parcelpoint.example>",
+     "date": "@now-7h",
+     "body": "Your standing desk is on its way.",
+     "summary": {
+      "gist": "Standing desk shipped, arriving Thursday",
+      "asks": null,
+      "needsAction": false
+     }
+    }
+   ]
+  },
+  {
+   "id": "t-pr",
+   "subject": "[northwind/app] Fix flaky checkout test (#482)",
+   "in": [
+    "inbox",
+    "GitHub"
+   ],
+   "messages": [
+    {
+     "id": "m-pr",
+     "from": "GitHub <notifications@github.example>",
+     "date": "@now-3h",
+     "body": "jun requested your review.",
+     "listUnsubscribe": true,
+     "summary": {
+      "gist": "Review requested on checkout test fix",
+      "asks": null,
+      "needsAction": false
+     }
+    }
+   ]
+  },
+  {
+   "id": "t-pr2",
+   "subject": "[northwind/app] Bump dependencies (#483)",
+   "in": [
+    "inbox",
+    "GitHub"
+   ],
+   "messages": [
+    {
+     "id": "m-pr2",
+     "from": "GitHub <notifications@github.example>",
+     "date": "@now-5h",
+     "body": "Dependabot opened a pull request.",
+     "listUnsubscribe": true,
+     "summary": {
+      "gist": "Dependency bump PR opened",
+      "asks": null,
+      "needsAction": false
+     }
+    }
+   ]
+  },
+  {
+   "id": "t-news0",
+   "subject": "Five ideas for calmer mornings",
+   "in": [
+    "inbox",
+    "Newsletters"
+   ],
+   "messages": [
+    {
+     "id": "m-news0",
+     "from": "The Weekly Bearing <hello@weeklybearing.example>",
+     "date": "@now-1h",
+     "body": "Five ideas for calmer mornings",
+     "listUnsubscribe": true,
+     "summary": {
+      "gist": "Five ideas for calmer mornings",
+      "asks": null,
+      "needsAction": false
+     }
+    }
+   ]
+  },
+  {
+   "id": "t-news1",
+   "subject": "The quiet return of the RSS reader",
+   "in": [
+    "inbox",
+    "Newsletters"
+   ],
+   "messages": [
+    {
+     "id": "m-news1",
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@now-3h",
+     "body": "The quiet return of the RSS reader",
+     "listUnsubscribe": true,
+     "summary": {
+      "gist": "Why RSS readers are back",
+      "asks": null,
+      "needsAction": false
+     }
+    }
+   ]
+  },
+  {
+   "id": "t-news2",
+   "subject": "Autumn hikes worth the drive",
+   "in": [
+    "inbox",
+    "Newsletters"
+   ],
+   "messages": [
+    {
+     "id": "m-news2",
+     "from": "Fieldnotes <news@fieldnotes.example>",
+     "date": "@now-5h",
+     "body": "Autumn hikes worth the drive",
+     "listUnsubscribe": true,
+     "summary": {
+      "gist": "Six autumn hikes within two hours",
+      "asks": null,
+      "needsAction": false
+     }
+    }
+   ]
+  },
+  {
+   "id": "t-news3",
+   "subject": "What we learned shipping weekly",
+   "in": [
+    "inbox",
+    "Newsletters"
+   ],
+   "messages": [
+    {
+     "id": "m-news3",
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@now-7h",
+     "body": "What we learned shipping weekly",
+     "listUnsubscribe": true,
+     "summary": {
+      "gist": "Lessons from shipping weekly",
+      "asks": null,
+      "needsAction": false
+     }
+    }
+   ]
+  }
+ ],
+ "briefing": {
+  "headline": "Needs you: Helen at Brightline wants contract terms confirmed by Friday, Priya needs edits on the Q4 deck, and there's a new sign-in to review. Also: 4 newsletters, 2 from GitHub.",
+  "priorities": [
+   {
+    "threadId": "t-security",
+    "messageId": "m-security",
+    "from": "Account Security",
+    "title": "New sign-in to your account",
+    "kind": "security",
+    "reason": "Security notice · New sign-in from Windows in Denver",
+    "urgency": "high"
+   },
+   {
+    "threadId": "t-renewal",
+    "messageId": "m-renewal",
+    "from": "Helen Okafor",
+    "title": "Re: Contract renewal terms",
+    "kind": "reply",
+    "reason": "Waiting on your reply · Asks: Confirm terms by Friday",
+    "urgency": "high"
+   },
+   {
+    "threadId": "t-alert",
+    "messageId": "m-alert",
+    "from": "Monitoring",
+    "title": "[Alert] API error rate above 2%",
+    "kind": "error",
+    "reason": "Error report · Orders API error rate crossed 2%",
+    "urgency": "medium"
+   },
+   {
+    "threadId": "t-deck",
+    "messageId": "m-deck",
+    "from": "Priya Shah",
+    "title": "Q4 roadmap review — slides attached",
+    "kind": "direct",
+    "reason": "Asks: Edit the hiring slide · Priya shared Q4 roadmap deck draft",
+    "urgency": "medium"
+   },
+   {
+    "threadId": "t-design",
+    "messageId": "m-design",
+    "from": "Jun Park",
+    "title": "Onboarding flow v2",
+    "kind": "reply",
+    "reason": "Waiting on your reply · Asks: Review before tomorrow",
+    "urgency": "medium"
+   }
+  ],
+  "groups": [
+   {
+    "source": "Signal & Noise",
+    "count": 2,
+    "threadIds": [
+     "t-news1",
+     "t-news3"
+    ],
+    "gists": [
+     "Why RSS readers are back",
+     "Lessons from shipping weekly"
+    ]
+   },
+   {
+    "source": "GitHub",
+    "count": 2,
+    "threadIds": [
+     "t-pr",
+     "t-pr2"
+    ],
+    "gists": [
+     "Review requested on checkout test fix",
+     "Dependency bump PR opened"
+    ]
+   },
+   {
+    "source": "Lumen Studio Billing",
+    "count": 1,
+    "threadIds": [
+     "t-invoice"
+    ],
+    "gists": [
+     "October invoice from Lumen Studio, due in 14 days"
+    ]
+   },
+   {
+    "source": "Orders",
+    "count": 1,
+    "threadIds": [
+     "t-ship"
+    ],
+    "gists": [
+     "Standing desk shipped, arriving Thursday"
+    ]
+   },
+   {
+    "source": "Marco Diaz",
+    "count": 1,
+    "threadIds": [
+     "t-offsite"
+    ],
+    "gists": [
+     "Marco shortlisted three coastal offsite venues"
+    ]
+   },
+   {
+    "source": "The Weekly Bearing",
+    "count": 1,
+    "threadIds": [
+     "t-news0"
+    ],
+    "gists": [
+     "Five ideas for calmer mornings"
+    ]
+   },
+   {
+    "source": "Fieldnotes",
+    "count": 1,
+    "threadIds": [
+     "t-news2"
+    ],
+    "gists": [
+     "Six autumn hikes within two hours"
+    ]
+   }
+  ],
+  "text": "Brightline is ready to renew on a two-year term if the support tier stays the same; Helen wants an answer by Friday. Priya's Q4 deck is ready for your edits on hiring, and Jun posted the second version of the onboarding flow ahead of tomorrow's review."
+ }
+}

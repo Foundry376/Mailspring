@@ -492,13 +492,8 @@ const TESTS = [
   [
     'Unpermitted bridge method (manifest grants nothing)',
     async () => {
-      const r = await settles(
-        call('threads.subscribe', { subscriptionId: 'rt', query: 'in:inbox', limit: 1 })
-      );
-      if (r.ok) {
-        call('subscription.cancel', { subscriptionId: 'rt' }).catch(() => {});
-      }
-      return r.ok ? LEAK('threads.subscribe allowed without mail.read') : BLOCKED(r.e);
+      const r = await settles(call('messages.content', { ids: ['rt'] }));
+      return r.ok ? LEAK('messages.content allowed without mail.bodies') : BLOCKED(r.e);
     },
   ],
   [

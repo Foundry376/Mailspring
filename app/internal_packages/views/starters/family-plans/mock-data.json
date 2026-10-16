@@ -1,0 +1,431 @@
+{
+ "me": {
+  "name": "Sam Carter",
+  "email": "sam@example.com"
+ },
+ "calendars": [
+  {
+   "name": "Family",
+   "color": "#ec4899"
+  },
+  {
+   "name": "Personal",
+   "color": "#22c55e"
+  },
+  {
+   "name": "Work",
+   "color": "#3b82f6"
+  }
+ ],
+ "events": [
+  {
+   "title": "Storytime at Oak Street Library",
+   "calendar": "Family",
+   "start": "@today-16d 10:30",
+   "minutes": 45
+  },
+  {
+   "title": "Maya's soccer practice",
+   "calendar": "Family",
+   "start": "@today-13d 17:00",
+   "minutes": 60
+  },
+  {
+   "title": "Nora's 5th birthday party",
+   "calendar": "Family",
+   "start": "@today-11d 14:00",
+   "minutes": 120,
+   "location": "Riverside Park pavilion"
+  },
+  {
+   "title": "Swim lesson",
+   "calendar": "Family",
+   "start": "@today-9d 09:00",
+   "minutes": 45
+  },
+  {
+   "title": "Pumpkin patch at Hollow Farm",
+   "calendar": "Family",
+   "start": "@today-7d 10:00",
+   "minutes": 180
+  },
+  {
+   "title": "Maya's soccer practice",
+   "calendar": "Family",
+   "start": "@today-6d 17:00",
+   "minutes": 60
+  },
+  {
+   "title": "Grandma & Grandpa visiting",
+   "calendar": "Family",
+   "start": "@today-4d",
+   "allDay": true
+  },
+  {
+   "title": "Grandma & Grandpa visiting",
+   "calendar": "Family",
+   "start": "@today-3d",
+   "allDay": true
+  },
+  {
+   "title": "Storytime at Oak Street Library",
+   "calendar": "Family",
+   "start": "@today-2d 10:30",
+   "minutes": 45
+  },
+  {
+   "title": "Picnic concert in the park",
+   "calendar": "Family",
+   "start": "@today+0d 17:00",
+   "minutes": 120
+  },
+  {
+   "title": "Swim lesson",
+   "calendar": "Family",
+   "start": "@today+1d 09:00",
+   "minutes": 45
+  },
+  {
+   "title": "Block party on Elm Street",
+   "calendar": "Family",
+   "start": "@today+2d 15:00",
+   "minutes": 180
+  },
+  {
+   "title": "Maya's soccer practice",
+   "calendar": "Family",
+   "start": "@today+3d 17:00",
+   "minutes": 60
+  },
+  {
+   "title": "Children's Museum free day",
+   "calendar": "Family",
+   "start": "@today+5d 10:00",
+   "minutes": 180
+  },
+  {
+   "title": "Theo's 4 year checkup",
+   "calendar": "Family",
+   "start": "@today+6d 08:30",
+   "minutes": 30
+  },
+  {
+   "title": "Storytime at Oak Street Library",
+   "calendar": "Family",
+   "start": "@today+8d 10:30",
+   "minutes": 45
+  },
+  {
+   "title": "Fall Festival at Lincoln School",
+   "calendar": "Family",
+   "start": "@today+9d 11:00",
+   "minutes": 240
+  },
+  {
+   "title": "Maya's soccer practice",
+   "calendar": "Family",
+   "start": "@today+10d 17:00",
+   "minutes": 60
+  },
+  {
+   "title": "Aunt Jess in town",
+   "calendar": "Family",
+   "start": "@today+12d",
+   "allDay": true
+  },
+  {
+   "title": "Aunt Jess in town",
+   "calendar": "Family",
+   "start": "@today+13d",
+   "allDay": true
+  },
+  {
+   "title": "Ballet recital",
+   "calendar": "Family",
+   "start": "@today+15d 16:00",
+   "minutes": 90
+  },
+  {
+   "title": "Trick-or-treat on Maple Ave",
+   "calendar": "Family",
+   "start": "@today+16d 17:30",
+   "minutes": 120
+  },
+  {
+   "title": "Maya's soccer practice",
+   "calendar": "Family",
+   "start": "@today+17d 17:00",
+   "minutes": 60
+  },
+  {
+   "title": "Saturday at the Hendersons'",
+   "calendar": "Family",
+   "start": "@today-5d 11:00",
+   "minutes": 180,
+   "description": "Playdate with the Henderson kids. Bring swimsuits and snacks for the little ones.",
+   "extract": {
+    "familyPlan": true,
+    "kind": "kids activity"
+   }
+  },
+  {
+   "title": "Lantern walk",
+   "calendar": "Family",
+   "start": "@today+4d 18:30",
+   "minutes": 90,
+   "description": "Neighborhood lantern walk for families with young children, starting at the community garden.",
+   "extract": {
+    "familyPlan": true,
+    "kind": "neighborhood event"
+   }
+  },
+  {
+   "title": "Weekly team sync",
+   "calendar": "Work",
+   "start": "@today-15d 09:30",
+   "minutes": 30
+  },
+  {
+   "title": "Weekly team sync",
+   "calendar": "Work",
+   "start": "@today-8d 09:30",
+   "minutes": 30
+  },
+  {
+   "title": "Weekly team sync",
+   "calendar": "Work",
+   "start": "@today-1d 09:30",
+   "minutes": 30
+  },
+  {
+   "title": "Weekly team sync",
+   "calendar": "Work",
+   "start": "@today+7d 09:30",
+   "minutes": 30
+  },
+  {
+   "title": "Weekly team sync",
+   "calendar": "Work",
+   "start": "@today+14d 09:30",
+   "minutes": 30
+  },
+  {
+   "title": "Dentist",
+   "calendar": "Personal",
+   "start": "@today-12d 12:00",
+   "minutes": 60
+  },
+  {
+   "title": "Car service",
+   "calendar": "Personal",
+   "start": "@today-10d 12:00",
+   "minutes": 60
+  },
+  {
+   "title": "Haircut",
+   "calendar": "Personal",
+   "start": "@today+11d 12:00",
+   "minutes": 60
+  },
+  {
+   "title": "Book club (adults)",
+   "calendar": "Personal",
+   "start": "@today-1d 12:00",
+   "minutes": 60
+  }
+ ],
+ "viewState": {
+  "weatherPlace": {
+   "name": "Maplewood",
+   "latitude": 44.98,
+   "longitude": -93.27
+  },
+  "showOthers": false
+ },
+ "fetch": [
+  {
+   "url": "https://api.open-meteo.com/v1/forecast",
+   "json": {
+    "daily": {
+     "time": [
+      "@date-40d",
+      "@date-39d",
+      "@date-38d",
+      "@date-37d",
+      "@date-36d",
+      "@date-35d",
+      "@date-34d",
+      "@date-33d",
+      "@date-32d",
+      "@date-31d",
+      "@date-30d",
+      "@date-29d",
+      "@date-28d",
+      "@date-27d",
+      "@date-26d",
+      "@date-25d",
+      "@date-24d",
+      "@date-23d",
+      "@date-22d",
+      "@date-21d",
+      "@date-20d",
+      "@date-19d",
+      "@date-18d",
+      "@date-17d",
+      "@date-16d",
+      "@date-15d",
+      "@date-14d",
+      "@date-13d",
+      "@date-12d",
+      "@date-11d",
+      "@date-10d",
+      "@date-9d",
+      "@date-8d",
+      "@date-7d",
+      "@date-6d",
+      "@date-5d",
+      "@date-4d",
+      "@date-3d",
+      "@date-2d",
+      "@date-1d",
+      "@date+0d",
+      "@date+1d",
+      "@date+2d",
+      "@date+3d",
+      "@date+4d",
+      "@date+5d",
+      "@date+6d",
+      "@date+7d",
+      "@date+8d",
+      "@date+9d",
+      "@date+10d",
+      "@date+11d",
+      "@date+12d",
+      "@date+13d",
+      "@date+14d",
+      "@date+15d",
+      "@date+16d"
+     ],
+     "weather_code": [
+      0,
+      1,
+      2,
+      3,
+      2,
+      61,
+      1,
+      0,
+      0,
+      2,
+      3,
+      80,
+      1,
+      0,
+      0,
+      1,
+      2,
+      3,
+      2,
+      61,
+      1,
+      0,
+      0,
+      2,
+      3,
+      80,
+      1,
+      0,
+      0,
+      1,
+      2,
+      3,
+      2,
+      61,
+      1,
+      0,
+      0,
+      2,
+      3,
+      80,
+      1,
+      0,
+      0,
+      1,
+      2,
+      3,
+      2,
+      61,
+      1,
+      0,
+      0,
+      2,
+      3,
+      80,
+      1,
+      0,
+      0
+     ],
+     "temperature_2m_max": [
+      66.3,
+      64.9,
+      68.2,
+      64.0,
+      67.0,
+      65.7,
+      63.3,
+      66.3,
+      62.8,
+      65.4,
+      62.7,
+      62.7,
+      64.8,
+      67.4,
+      62.3,
+      62.9,
+      65.5,
+      67.6,
+      64.8,
+      63.4,
+      67.2,
+      60.5,
+      66.0,
+      61.9,
+      60.7,
+      60.3,
+      61.5,
+      64.9,
+      60.2,
+      62.9,
+      63.1,
+      61.0,
+      62.1,
+      58.5,
+      58.3,
+      59.1,
+      62.3,
+      60.3,
+      59.4,
+      61.1,
+      60.0,
+      58.7,
+      62.0,
+      61.2,
+      57.8,
+      59.9,
+      59.4,
+      61.7,
+      60.5,
+      57.2,
+      61.9,
+      55.6,
+      57.6,
+      59.8,
+      55.3,
+      57.5,
+      54.2
+     ]
+    }
+   }
+  }
+ ]
+}

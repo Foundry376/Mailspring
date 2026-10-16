@@ -116,9 +116,9 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
     this.setState({ creating: false, name: '', request: '', notice: null });
   };
 
-  _onAddStarter = (starter: Starter, asDraft: boolean) => {
+  _onTryStarter = (starter: Starter) => {
     try {
-      const viewId = installStarter(starter, { asDraft });
+      const viewId = installStarter(starter, { asDraft: true });
       if (starter.placement === 'page') {
         openView(viewId);
       } else {
@@ -299,24 +299,25 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
   }
 
   _renderStarterCard(starter: Starter) {
-    const added = this.state.views.filter(
-      (v) => v.json && v.json.starter && v.json.starter.id === starter.id
-    ).length;
     return (
       <div key={starter.id} className="views-home-card starter">
+        <div className={starter.poster ? 'views-home-thumb' : 'views-home-thumb empty'}>
+          {starter.poster ? (
+            <img alt="" src={`file://${starter.poster}`} />
+          ) : (
+            <RetinaImg name="plugins.png" mode={RetinaImg.Mode.ContentIsMask} />
+          )}
+        </div>
         <div className="views-home-card-body">
           <div className="views-home-card-name">{starter.name}</div>
           {this._renderBadges({ placement: starter.placement })}
           <div className="views-home-card-description">{starter.description}</div>
         </div>
         <div className="views-home-card-actions">
-          <button className="btn btn-emphasis" onClick={() => this._onAddStarter(starter, false)}>
-            {added ? localized('Add Another') : localized('Add')}
-          </button>
           <button
-            className="btn"
+            className="btn btn-emphasis"
             title={localized('Preview it as a draft you can keep or discard')}
-            onClick={() => this._onAddStarter(starter, true)}
+            onClick={() => this._onTryStarter(starter)}
           >
             {localized('Try')}
           </button>

@@ -22,6 +22,7 @@ import {
   unapprovedGrants,
 } from './consent';
 import { credentialsFromManifest } from '../../../src/browser/view-credential-policy';
+import { MockSource } from './mock/mock-bridge';
 
 export type ViewPlacement = 'page' | 'thread-sidebar';
 
@@ -37,6 +38,11 @@ interface ViewHostProps {
   onReady?: (bridge: ViewBridge) => void;
   // Called when the host shows or hides its consent card instead of the View.
   onConsentChange?: (pending: boolean) => void;
+  // Renders the View from mock data in an offline, in-memory session (lib/mock). Mock renders
+  // skip consent, aren't registered as hosts, and report diagnostics to `onMockDiagnostic`
+  // instead of the View's diagnostics log.
+  mock?: MockSource;
+  onMockDiagnostic?: (diagnostic: any) => void;
   style?: React.CSSProperties;
 }
 
@@ -117,7 +123,7 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
   }
 
   componentDidMount() {
-    this._unregister = registerHost(this);
+    this._unregister = this.props.mock ? () => {} : registerHost(this);
     const onDiagnostic = (d) => {
       if (d.viewId !== this.props.viewId) return;
       if (d.kind === 'render-ok') this.setState({ issues: 0 });
@@ -146,6 +152,7 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
   }
 
   _readConsent() {
+    if (this.props.mock) return null;
     const view = installedViews().find((v) => v.id === this.props.viewId);
     const pending = view && unapprovedGrants(view);
     return pending ? { pending, widening: hasApproval(view.id), declined: false } : null;
@@ -191,7 +198,7 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
   _onWatchdogKill = (_event, guestId: number) => {
     if (guestId !== this._guestId) return;
     this._killedByWatchdog = true;
-    ViewDiagnostics.add({
+    this._diagnostic({
       viewId: this.props.viewId,
       kind: 'hang',
       level: 'error',
@@ -238,12 +245,18 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     if (this._webview) this._webview.openDevTools();
   }
 
+  _diagnostic(diagnostic: Parameters<typeof ViewDiagnostics.add>[0]) {
+    if (!this.props.mock) ViewDiagnostics.add(diagnostic);
+    else if (this.props.onMockDiagnostic) this.props.onMockDiagnostic(diagnostic);
+  }
+
   _guestHandlers() {
-    const { viewId, handlers } = this.props;
+    const { viewId, handlers, mock, onMockDiagnostic } = this.props;
     return {
       ...(handlers || {}),
       'view.diagnostic': (ctx, params) => {
-        reportFromGuest(viewId, params);
+        if (!mock) reportFromGuest(viewId, params);
+        else if (onMockDiagnostic) onMockDiagnostic(params);
         return null;
       },
     };
@@ -269,8 +282,10 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     }
     if (this.state.consent && this.props.onConsentChange) this.props.onConsentChange(false);
     const webview = document.createElement('webview') as Electron.WebviewTag;
-    webview.setAttribute('partition', `persist:view-${viewId}`);
+    const { mock } = this.props;
+    webview.setAttribute('partition', mock ? `view-mock-${viewId}` : `persist:view-${viewId}`);
     const fragment = new URLSearchParams({ placement, apiVersion: compat.version });
+    if (mock) fragment.set('mock', '1');
     webview.setAttribute('src', `mailspring-view://${viewId}/#${fragment.toString()}`);
     webview.addEventListener('did-start-navigation', this._onStartNavigation as any);
     webview.addEventListener('dom-ready', this._onDomReady);
@@ -279,9 +294,10 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     webview.addEventListener('unresponsive', this._onUnresponsive);
     webview.addEventListener('responsive', this._onResponsive);
     this._bridge = new ViewBridge(viewId, webview, {
+      mock,
       handlers: this._guestHandlers(),
       onCallError: (method, error, params) =>
-        ViewDiagnostics.add({
+        this._diagnostic({
           viewId,
           kind: 'bridge-error',
           level: 'error',
@@ -326,7 +342,7 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
   _onConsoleMessage = (event: { level: any; message: string; sourceId: string; line: number }) => {
     const level = consoleLevel(event.level);
     if (!level || (event.message || '').startsWith(LOADER_LOG_PREFIX)) return;
-    ViewDiagnostics.add({
+    this._diagnostic({
       viewId: this.props.viewId,
       kind: 'console',
       level,
@@ -344,7 +360,7 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
       this.setState({ status: 'unresponsive' });
       return;
     }
-    ViewDiagnostics.add({
+    this._diagnostic({
       viewId: this.props.viewId,
       kind: 'crash',
       level: 'error',
@@ -354,7 +370,7 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
   };
 
   _onUnresponsive = () => {
-    ViewDiagnostics.add({
+    this._diagnostic({
       viewId: this.props.viewId,
       kind: 'hang',
       level: 'error',

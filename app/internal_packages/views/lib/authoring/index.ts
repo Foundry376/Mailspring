@@ -12,6 +12,8 @@ import {
 import { Diagnostic, ViewDiagnostics } from './diagnostics';
 import { captureViewPreview } from './preview';
 import { waitForConsent } from '../consent';
+import { renderMockScreenshot } from '../mock/mock-render';
+import { regenerateStarterPosters } from '../home/starter-posters';
 
 // An agent's preview that asks for new access waits this long for the user to answer the
 // consent card before the agent is told it is still waiting.
@@ -35,6 +37,10 @@ export function openView(viewId: string) {
  * and the installed copy is untouched until promotion.
  */
 export const ViewAuthoring = {
+  /** A screenshot of the View rendered from its mock-data.json (lib/mock/mock-render.tsx). */
+  renderMockScreenshot,
+  regenerateStarterPosters,
+
   /**
    * Writes the revision as the View's draft and reloads it (opening it first if it's a page
    * View that isn't on screen and `open` is true). Resolves to the revision hash to match

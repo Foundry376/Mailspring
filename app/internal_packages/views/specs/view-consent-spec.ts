@@ -48,7 +48,7 @@ describe('View consent', function () {
   });
 
   it('withholds declared permissions and hosts until the user allows them', function () {
-    writeDraft('spec-view', revision(['mail.bodies', 'mail.read'], ['api.example.com']));
+    writeDraft('spec-view', revision(['mail.bodies'], ['api.example.com']));
     expect(unapprovedGrants(view())).toEqual({
       permissions: ['mail.bodies'],
       network: ['api.example.com'],

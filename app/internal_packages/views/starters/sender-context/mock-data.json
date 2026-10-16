@@ -1,0 +1,583 @@
+{
+ "me": {
+  "name": "Sam Carter",
+  "email": "sam@northwind.example"
+ },
+ "folders": [
+  "Projects"
+ ],
+ "selectedThread": "sel",
+ "threads": [
+  {
+   "id": "sel",
+   "subject": "Q4 roadmap review — slides attached",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@now-1d",
+     "body": "Can you send the latest deck?"
+    },
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@now-3h",
+     "body": "Here's the draft deck for Thursday. Can you take a pass at the hiring slide?",
+     "attachments": [
+      "Q4-roadmap-v3.pdf"
+     ]
+    }
+   ]
+  },
+  {
+   "subject": "Q4 roadmap review",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-127d 10:55",
+     "body": "Thoughts?"
+    },
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-126d 18:10",
+     "body": "Looks good."
+    }
+   ]
+  },
+  {
+   "subject": "Planning doc",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-86d 11:35",
+     "body": "Thoughts?"
+    }
+   ]
+  },
+  {
+   "subject": "Team retro notes",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-216d 16:28",
+     "body": "Looks good."
+    },
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-215d 18:10",
+     "body": "Thoughts?"
+    }
+   ]
+  },
+  {
+   "subject": "Planning doc",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-33d 10:32",
+     "body": "Thoughts?"
+    }
+   ]
+  },
+  {
+   "subject": "Customer interviews",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-12d 11:13",
+     "body": "Looks good."
+    }
+   ]
+  },
+  {
+   "subject": "Customer interviews",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-227d 11:58",
+     "body": "Thoughts?"
+    }
+   ]
+  },
+  {
+   "subject": "Q4 roadmap review",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-105d 10:45",
+     "body": "Thoughts?"
+    }
+   ]
+  },
+  {
+   "subject": "Hiring plan",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-290d 14:08",
+     "body": "Thoughts?"
+    },
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-289d 11:10",
+     "body": "Looks good."
+    },
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-288d 14:10",
+     "body": "Thoughts?"
+    },
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-287d 20:10",
+     "body": "Looks good."
+    }
+   ]
+  },
+  {
+   "subject": "Hiring plan",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-327d 10:21",
+     "body": "Thoughts?"
+    },
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-326d 11:10",
+     "body": "Looks good."
+    }
+   ]
+  },
+  {
+   "subject": "Board prep",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-27d 15:31",
+     "body": "Looks good."
+    }
+   ]
+  },
+  {
+   "subject": "Offsite agenda",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-308d 10:40",
+     "body": "Thoughts?"
+    },
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-307d 11:10",
+     "body": "Looks good."
+    },
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-306d 20:10",
+     "body": "Thoughts?"
+    },
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-305d 21:10",
+     "body": "Looks good."
+    }
+   ]
+  },
+  {
+   "subject": "Board prep",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-37d 09:17",
+     "body": "Looks good."
+    }
+   ]
+  },
+  {
+   "subject": "Team retro notes",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-210d 16:36",
+     "body": "Looks good."
+    },
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-209d 11:10",
+     "body": "Thoughts?"
+    },
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-208d 13:10",
+     "body": "Looks good."
+    }
+   ]
+  },
+  {
+   "subject": "Board prep",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-321d 16:23",
+     "body": "Thoughts?"
+    }
+   ]
+  },
+  {
+   "subject": "Planning doc",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-174d 11:07",
+     "body": "Looks good."
+    }
+   ]
+  },
+  {
+   "subject": "Team retro notes",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-94d 15:47",
+     "body": "Thoughts?"
+    },
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-93d 11:10",
+     "body": "Looks good."
+    }
+   ]
+  },
+  {
+   "subject": "Budget draft",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-257d 09:13",
+     "body": "Thoughts?"
+    },
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-256d 12:10",
+     "body": "Looks good."
+    },
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-255d 18:10",
+     "body": "Thoughts?"
+    },
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-254d 17:10",
+     "body": "Looks good."
+    }
+   ]
+  },
+  {
+   "subject": "Team retro notes",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-263d 09:33",
+     "body": "Thoughts?"
+    },
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-262d 11:10",
+     "body": "Looks good."
+    },
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-261d 13:10",
+     "body": "Thoughts?"
+    }
+   ]
+  },
+  {
+   "subject": "Hiring plan",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-249d 11:45",
+     "body": "Looks good."
+    },
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-248d 12:10",
+     "body": "Thoughts?"
+    },
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-247d 19:10",
+     "body": "Looks good."
+    },
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-246d 22:10",
+     "body": "Thoughts?"
+    }
+   ]
+  },
+  {
+   "subject": "Launch checklist",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-114d 15:23",
+     "body": "Thoughts?"
+    },
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-113d 17:10",
+     "body": "Looks good."
+    },
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-112d 15:10",
+     "body": "Thoughts?"
+    },
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-111d 16:10",
+     "body": "Looks good."
+    }
+   ]
+  },
+  {
+   "subject": "Offsite agenda",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-37d 09:03",
+     "body": "Looks good."
+    },
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-36d 12:10",
+     "body": "Thoughts?"
+    },
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-35d 15:10",
+     "body": "Looks good."
+    }
+   ]
+  },
+  {
+   "subject": "Design review",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-336d 09:03",
+     "body": "Looks good."
+    }
+   ]
+  },
+  {
+   "subject": "Offsite agenda",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-47d 11:18",
+     "body": "Thoughts?"
+    }
+   ]
+  },
+  {
+   "subject": "Launch checklist",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-134d 16:35",
+     "body": "Thoughts?"
+    }
+   ]
+  },
+  {
+   "subject": "Offsite agenda",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-215d 10:45",
+     "body": "Thoughts?"
+    },
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-214d 17:10",
+     "body": "Looks good."
+    },
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-213d 18:10",
+     "body": "Thoughts?"
+    },
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-212d 21:10",
+     "body": "Looks good."
+    }
+   ]
+  },
+  {
+   "subject": "Offsite agenda",
+   "in": [
+    "inbox",
+    "Projects"
+   ],
+   "messages": [
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-202d 11:06",
+     "body": "Thoughts?"
+    },
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-201d 11:10",
+     "body": "Looks good."
+    },
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@today-200d 15:10",
+     "body": "Thoughts?"
+    },
+    {
+     "from": "me",
+     "to": "Priya Shah <priya@northwind.example>",
+     "date": "@today-199d 21:10",
+     "body": "Looks good."
+    }
+   ]
+  }
+ ]
+}

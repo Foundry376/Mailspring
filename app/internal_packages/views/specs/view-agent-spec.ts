@@ -21,7 +21,7 @@ function keypair() {
 
 const REVISION = {
   revision: 1,
-  manifest: { name: 'Receipts', permissions: ['mail.read'] },
+  manifest: { name: 'Receipts', permissions: [] },
   files: { 'View.jsx': 'export default () => null;\n' },
 };
 

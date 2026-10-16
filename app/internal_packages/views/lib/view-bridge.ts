@@ -50,6 +50,7 @@ import {
 import { fillThreadSnippets } from './bridge/serializers';
 import { generationHandlers } from './bridge/generate';
 import { LocalModelStore, modelStatusForViews } from './local-model/store';
+import { HOST_HANDLERS_IN_MOCK, MockSource } from './mock/mock-bridge';
 
 // Channel names shared with runtime/bridge.preload.js.
 export const CALL_CHANNEL = 'mailspring-view:call';
@@ -90,6 +91,11 @@ export interface ViewBridgeOptions {
     error: { code: string; message: string; permission?: string },
     params: any
   ) => void;
+  /**
+   * Renders the View from mock data: every data method answers from `mock` instead of the
+   * user's mail, and of `handlers` only the ones in HOST_HANDLERS_IN_MOCK are kept.
+   */
+  mock?: MockSource;
 }
 
 function sizeChecked(payload: any) {
@@ -133,33 +139,45 @@ export class ViewBridge {
   constructor(viewId: string, webview: Electron.WebviewTag, options: ViewBridgeOptions = {}) {
     this.webview = webview;
     this.options = options;
-    this.grant = grantForView(viewId);
+    this.grant = options.mock ? options.mock.grant : grantForView(viewId);
     this.ctx = {
       viewId,
       grant: this.grant,
       emit: (event, payload) => this.emit(event, payload),
     };
-    this.handlers = {
-      ...HANDLERS,
-      ...CREDENTIAL_HANDLERS,
-      ...this.statefulHandlers(),
-      ...generationHandlers({
-        grant: () => this.grant,
-        generation: () => this.generation,
-        visible: () => this.visible,
-        jobs: this.jobs,
-      }),
-      ...(options.handlers || {}),
-    };
+    this.handlers = options.mock
+      ? this.mockHandlers(options.mock)
+      : {
+          ...HANDLERS,
+          ...CREDENTIAL_HANDLERS,
+          ...this.statefulHandlers(),
+          ...generationHandlers({
+            grant: () => this.grant,
+            generation: () => this.generation,
+            visible: () => this.visible,
+            jobs: this.jobs,
+          }),
+          ...(options.handlers || {}),
+        };
     webview.addEventListener('ipc-message', this.onIPCMessage);
     this.unlistenTheme = onThemeChange(() => this.emit('theme', currentThemeTokens()));
+  }
+
+  private mockHandlers(mock: MockSource) {
+    const kept = {};
+    for (const method of HOST_HANDLERS_IN_MOCK) {
+      if (this.options.handlers && this.options.handlers[method]) {
+        kept[method] = this.options.handlers[method];
+      }
+    }
+    return { ...mock.handlers(), ...kept };
   }
 
   dispose() {
     this.webview.removeEventListener('ipc-message', this.onIPCMessage);
     this.unlistenTheme();
     this.dropPageState();
-    setViewVisible(this.ctx.viewId, true);
+    this.reportVisible(true);
   }
 
   /**
@@ -172,22 +190,32 @@ export class ViewBridge {
     this.dropPageState();
     this.page = null;
     this.visible = true;
-    setViewVisible(this.ctx.viewId, true);
+    this.reportVisible(true);
     this.callTokens = CALL_BURST;
     this.callTokensAt = Date.now();
-    this.grant = grantForView(this.ctx.viewId);
-    this.ctx.grant = this.grant;
+    if (!this.options.mock) {
+      this.grant = grantForView(this.ctx.viewId);
+      this.ctx.grant = this.grant;
+    }
   }
 
   private dropPageState() {
     this.generation += 1;
+    if (this.options.mock) this.options.mock.resetPage();
     for (const sub of this.subscriptions.values()) sub.dispose();
     this.subscriptions.clear();
     for (const job of this.jobs.values()) job.cancelled = true;
     this.jobs.clear();
+    if (this.options.mock) return;
     cancelJobsForView(this.ctx.viewId).catch(() => {
       // The extraction service may not be running; there is nothing queued to drop then.
     });
+  }
+
+  // Visibility orders the extraction queue for the View's real jobs, which a mock render of
+  // the same View must not reorder or cancel.
+  private reportVisible(visible: boolean) {
+    if (!this.options.mock) setViewVisible(this.ctx.viewId, visible);
   }
 
   /**
@@ -202,7 +230,7 @@ export class ViewBridge {
   private setVisible(visible: boolean) {
     if (visible === this.visible) return;
     this.visible = visible;
-    setViewVisible(this.ctx.viewId, visible);
+    this.reportVisible(visible);
     if (!visible) return;
     for (const sub of this.subscriptions.values()) {
       if (sub.pending !== undefined) {
@@ -594,6 +622,7 @@ export class ViewBridge {
       const run = () => Promise.resolve(handler(this.ctx, params || {}));
       // Subscription bookkeeping and theme reads are too frequent to be useful in the log.
       const result =
+        this.options.mock ||
         method === 'unsubscribe' ||
         method === 'theme.get' ||
         method === 'ui.setHeight' ||

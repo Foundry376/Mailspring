@@ -15,6 +15,9 @@ import path from 'path';
 
 export const VIEW_SCHEME = 'mailspring-view';
 export const PARTITION_PREFIX = 'persist:view-';
+// Mock mode renders a View from its mock-data.json (internal_packages/views/lib/mock). Its
+// partition is in-memory so nothing it stores outlives the app, and it gets no network.
+export const MOCK_PARTITION_PREFIX = 'view-mock-';
 export const VIEW_ID_REGEXP = /^[a-z0-9][a-z0-9-]{0,63}$/;
 
 const ALWAYS_ALLOWED_PROTOCOLS = ['data:', 'blob:', 'devtools:'];
@@ -28,9 +31,16 @@ const GRANT_REGEXP = /^(\*\.)?([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}
 const NEVER_GRANTABLE_SUFFIXES = ['.localhost', '.local', '.internal', '.home.arpa', '.test'];
 
 export function viewIdForPartition(partition: string | undefined): string | null {
-  if (!partition || !partition.startsWith(PARTITION_PREFIX)) return null;
-  const viewId = partition.substr(PARTITION_PREFIX.length);
+  const prefix = [PARTITION_PREFIX, MOCK_PARTITION_PREFIX].find((p) =>
+    (partition || '').startsWith(p)
+  );
+  if (!prefix) return null;
+  const viewId = partition.substr(prefix.length);
   return VIEW_ID_REGEXP.test(viewId) ? viewId : null;
+}
+
+export function isMockPartition(partition: string | undefined): boolean {
+  return (partition || '').startsWith(MOCK_PARTITION_PREFIX);
 }
 
 // Node's URL reports `null` as the origin of custom schemes, so compare the parts.

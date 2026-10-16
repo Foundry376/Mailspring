@@ -8,7 +8,7 @@ import { ViewManifest } from '../lib/view-registry';
 
 const VIEW = 'daily-briefing-abc123';
 const CURRENT = {
-  manifest: { name: 'Daily Briefing', permissions: ['mail.read'] },
+  manifest: { name: 'Daily Briefing', permissions: [] },
   files: { 'View.jsx': 'export default () => null;\n' },
 };
 
@@ -22,7 +22,7 @@ const manifest = (overrides: Partial<ViewManifest> = {}): ViewManifest =>
     id: VIEW,
     name: 'Daily Briefing',
     placement: 'page',
-    permissions: ['mail.read'],
+    permissions: [],
     source: 'draft',
     dir: '/tmp/none',
     json: { name: 'Daily Briefing', starter: { id: 'daily-briefing', version: null } },

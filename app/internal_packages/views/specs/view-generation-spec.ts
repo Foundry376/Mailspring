@@ -226,7 +226,7 @@ describe('View generation (daily briefing)', function viewGenerationSpec() {
     const ctx = { viewId: 'spec-gen', grant: null, emit: () => {} } as any;
 
     it('require mail.bodies', async () => {
-      const handlers = generationHandlers(host(['mail.read']));
+      const handlers = generationHandlers(host([]));
       let error = null;
       try {
         await handlers['ai.generate'](ctx, { jobId: 'j1', task: 'summarize', ids: ['a'] });

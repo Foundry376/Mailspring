@@ -5,7 +5,9 @@ import fs from 'fs';
 import path from 'path';
 import {
   VIEW_SCHEME,
+  MOCK_PARTITION_PREFIX,
   PARTITION_PREFIX,
+  isMockPartition,
   viewIdForPartition,
   isViewOrigin,
   containedFile,
@@ -530,11 +532,19 @@ function handleViewRequest(viewId: string, request: Request): Response {
   return respond(fs.readFileSync(file), file);
 }
 
+// Sessions of Views rendered from mock data. They never get network access, whatever the
+// manifest declares, so a mock render can't reach a server the user hasn't seen it use.
+const mockSessions = new WeakSet<Electron.Session>();
+
+function networkGrantsForSession(viewId: string, ses: Electron.Session): string[] {
+  return mockSessions.has(ses) ? [] : networkGrantsForView(viewId);
+}
+
 // Applied to every response, not just the shell: a View can frame its own files, and a
 // same-origin document served without a CSP would be an unrestricted place to run.
-function securityHeaders(viewId: string) {
+function securityHeaders(viewId: string, ses: Electron.Session) {
   return {
-    'Content-Security-Policy': contentSecurityPolicy(networkGrantsForView(viewId)),
+    'Content-Security-Policy': contentSecurityPolicy(networkGrantsForSession(viewId, ses)),
     'X-DNS-Prefetch-Control': 'off',
     'Referrer-Policy': 'no-referrer',
   };
@@ -542,13 +552,14 @@ function securityHeaders(viewId: string) {
 
 function applyProxy(viewId: string, ses: Electron.Session) {
   return ses
-    .setProxy(proxyConfig(networkGrantsForView(viewId)))
+    .setProxy(proxyConfig(networkGrantsForSession(viewId, ses)))
     .catch((err) => console.error(`View ${viewId}: setProxy failed: ${err}`));
 }
 
-function configureViewSession(viewId: string, ses: Electron.Session) {
+function configureViewSession(viewId: string, ses: Electron.Session, mock: boolean) {
   if (viewIdsBySession.has(ses)) return;
   viewIdsBySession.set(ses, viewId);
+  if (mock) mockSessions.add(ses);
 
   const { runtimeDir } = viewPaths();
   ses.registerPreloadScript({
@@ -561,15 +572,21 @@ function configureViewSession(viewId: string, ses: Electron.Session) {
     try {
       const { host, pathname } = new URL(request.url);
       if (host !== viewId) return notFound();
+      const mock = mockSessions.has(ses);
       if (pathname === '/' || pathname === '/index.html') {
         // Picks up `network` grant changes when the View reloads.
         await applyProxy(viewId, ses);
+        // Each mock render starts from empty storage, so posters don't depend on earlier renders.
+        // The partition is in-memory and reused per View, so nothing accumulates on disk.
+        if (mock) await ses.clearStorageData();
       }
       const resource = /^\/_res\/([0-9a-f]{32})$/.exec(pathname);
-      const response = resource
-        ? await serveResource(viewId, resource[1])
-        : handleViewRequest(viewId, request);
-      for (const [name, value] of Object.entries(securityHeaders(viewId))) {
+      // Resource tokens are registered for the real View's bodies and attachments, and URL
+      // resources are fetched by the main process outside the session's network policy.
+      let response: Response;
+      if (resource) response = mock ? notFound() : await serveResource(viewId, resource[1]);
+      else response = handleViewRequest(viewId, request);
+      for (const [name, value] of Object.entries(securityHeaders(viewId, ses))) {
         response.headers.set(name, value);
       }
       return response;
@@ -582,7 +599,9 @@ function configureViewSession(viewId: string, ses: Electron.Session) {
   // First line of defense for everything that goes through the network stack, independent
   // of the page's CSP (which the View can't loosen, but which doesn't govern every fetch).
   ses.webRequest.onBeforeRequest((details, callback) => {
-    callback({ cancel: !isRequestAllowed(details.url, viewId, networkGrantsForView(viewId)) });
+    callback({
+      cancel: !isRequestAllowed(details.url, viewId, networkGrantsForSession(viewId, ses)),
+    });
   });
 
   // Backstop for traffic webRequest never sees — WebRTC ICE/TURN in particular. Together
@@ -613,13 +632,17 @@ export function prepareViewWebview(
   if (!viewId) {
     // A non-View guest must never load View URLs (it would have no lockdown), and a
     // malformed View partition is refused outright.
-    return !isViewSrc && !(partition || '').startsWith(PARTITION_PREFIX);
+    return (
+      !isViewSrc &&
+      !(partition || '').startsWith(PARTITION_PREFIX) &&
+      !(partition || '').startsWith(MOCK_PARTITION_PREFIX)
+    );
   }
   if (!params.src || !params.src.startsWith(`${VIEW_SCHEME}://${viewId}/`)) {
     return false;
   }
 
-  configureViewSession(viewId, session.fromPartition(partition));
+  configureViewSession(viewId, session.fromPartition(partition), isMockPartition(partition));
   Object.assign(webPreferences, {
     navigateOnDragDrop: false,
     enableWebSQL: false,
