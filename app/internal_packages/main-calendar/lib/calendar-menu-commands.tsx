@@ -30,6 +30,10 @@ export class CalendarMenuCommands extends React.Component<CalendarMenuCommandsPr
 
     if (this.props.hasSelectedEvents) {
       commands['core:delete-item'] = this.props.onDeleteEvent;
+    } else {
+      // The keys that move a selected event step through time when nothing is selected.
+      commands['calendar:move-event-left'] = this.props.onNavigatePrevious;
+      commands['calendar:move-event-right'] = this.props.onNavigateNext;
     }
 
     // No `key` here on purpose: this wraps the whole calendar view, so a key that changes
