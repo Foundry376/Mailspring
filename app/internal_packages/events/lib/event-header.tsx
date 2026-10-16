@@ -802,7 +802,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     if (!write) return;
     Actions.queueTask(
       write.kind === 'update'
-        ? SyncbackEventTask.forUpdating({ event: write.event })
+        ? SyncbackEventTask.forAnswering({ event: write.event, answer: write.answer })
         : SyncbackEventTask.forCreating({
             event: write.event,
             calendarId: write.calendar.id,

@@ -12,8 +12,9 @@ import {
   localized,
   CalendarDateUtils,
 } from 'mailspring-exports';
+import { ShowAsOption, defaultShowAs } from './show-as-selector';
 import { MIN_EVENT_DURATION_SECONDS } from './calendar-constants';
-import { EventOccurrence, isTimed } from './calendar-data-source';
+import { EventOccurrence, coveredDates, isTimed } from './calendar-data-source';
 import { dayFraction } from './week-view-helpers';
 
 // Cache of calendar colors synced from CalDAV servers
@@ -329,6 +330,44 @@ export function clampEnd(startUnix: number, endUnix: number, isAllDay: boolean):
   return Math.max(endUnix, floor);
 }
 
+/** The fields of a new event that the grid draws, as its editor would save them. */
+export interface NewEventDraft {
+  title: string;
+  start: number;
+  end: number;
+  isAllDay: boolean;
+  calendarId: string;
+  accountId: string;
+}
+
+/** An event that does not exist yet, as an occurrence, so the grid draws it like any other. */
+export function newEventOccurrence(id: string, draft: NewEventDraft): EventOccurrence {
+  const { title, start, end, isAllDay, calendarId, accountId } = draft;
+  const shared = {
+    id,
+    accountId,
+    calendarId,
+    title,
+    description: '',
+    location: '',
+    isRecurring: false,
+    isCancelled: false,
+    isPending: false,
+    isMine: true,
+    isException: false,
+    organizer: null,
+    attendees: [],
+  };
+  if (isAllDay) {
+    // The all-day toggle leaves the end at its wall-clock time; the save (createAllDayEndTime)
+    // covers through that instant's day, so step inside the end before reading its date.
+    const startDate = CalendarDateUtils.calendarDateFromUnix(start);
+    const endDate = CalendarDateUtils.calendarDateFromUnix(end - 1);
+    return { ...shared, isAllDay: true, startDate, endDate };
+  }
+  return { ...shared, isAllDay: false, start, end, ...coveredDates(start, end, false) };
+}
+
 /**
  * A time as compact as the locale allows: a 12-hour clock drops ":00" on the hour ("10 AM"),
  * a 24-hour clock keeps LT ("10:00"), where a bare "10" would not read as a time.
@@ -436,6 +475,7 @@ export interface CreateCalendarEventOptions {
   attendees?: Array<{ email: string; name?: string }>;
   recurrenceRule?: string;
   timezone?: string;
+  transparency?: ShowAsOption;
 }
 
 /** The account, as the ORGANIZER the ICS helpers name once an event has guests. */
@@ -464,6 +504,7 @@ export async function createCalendarEvent(options: CreateCalendarEventOptions): 
     organizer: organizerForAccount(options.accountId),
     attendees: options.attendees,
     recurrenceRule: options.recurrenceRule,
+    transparency: options.transparency ?? defaultShowAs(options.isAllDay),
   });
 
   const event = new Event({

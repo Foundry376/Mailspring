@@ -10,7 +10,7 @@ import { EventOccurrence } from './calendar-data-source';
 import { Disposable } from 'rx-core';
 import { MonthViewWeek } from './month-view-week';
 import { WeekBarsLayout, firstVisibleBarIds, layoutWeekBars } from './month-view-helpers';
-import { getEventsWithDragPreview, withCreateDragPreview } from './calendar-drag-utils';
+import { getEventsWithDragPreview, withNewEventPreview } from './calendar-drag-utils';
 
 const DAYS_IN_WEEK = 7;
 const MAX_VISIBLE_EVENTS = 5;
@@ -154,9 +154,9 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
 
   render() {
     const weeks = this._getWeeksInMonth();
-    const events = withCreateDragPreview(
+    const events = withNewEventPreview(
       getEventsWithDragPreview(this.state.events, this.props.dragState),
-      this.props.createDrag
+      this.props.newEventPreview
     );
     const layouts = weeks.map((week) =>
       layoutWeekBars(
