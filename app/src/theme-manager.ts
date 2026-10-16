@@ -271,6 +271,14 @@ export default class ThemeManager {
           this.updateThemePackageAndRecomputeLESS();
         }, 100);
       });
+      // Deleting the watched directory emits EPERM on Windows; unhandled, it
+      // would surface as an uncaught exception in every window.
+      const watcher = this._themeStylesWatcher;
+      watcher.on('error', (err) => {
+        console.warn(`Stopped watching theme stylesheets at ${stylesPath}: ${err.message}`);
+        watcher.close();
+        if (this._themeStylesWatcher === watcher) this._themeStylesWatcher = null;
+      });
     } catch (err) {
       console.warn(`Unable to watch theme stylesheets at ${stylesPath}: ${err.message}`);
     }
