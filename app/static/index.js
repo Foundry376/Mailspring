@@ -21,13 +21,49 @@ function setLoadTime(loadTime) {
   }
 }
 
+// Paints the stack into the window the user is already looking at, so a packaged build with
+// no console still shows what went wrong. Deliberately uses no app modules: window setup has
+// just failed, so anything it might require may be the thing that's broken.
+function showSetupErrorInWindow(stack) {
+  var heading = document.createElement('h1');
+  heading.textContent = 'Mailspring failed to start.';
+  heading.style.cssText = 'margin:0 0 12px;font:600 15px/1.4 system-ui,sans-serif;';
+
+  // This window never loaded the app's menus, so there is no Edit > Copy and the platform
+  // copy shortcut does nothing. The button is the only way out for a bug report.
+  var button = document.createElement('button');
+  button.textContent = 'Copy to Clipboard';
+  button.style.cssText = 'margin:0 0 16px;padding:4px 12px;font:13px system-ui,sans-serif;';
+  button.onclick = function () {
+    require('@electron/remote').clipboard.writeText(stack);
+    button.textContent = 'Copied';
+  };
+
+  var pre = document.createElement('pre');
+  pre.textContent = stack;
+  pre.style.cssText =
+    'margin:0;font:12px/1.5 monospace;white-space:pre-wrap;' +
+    '-webkit-user-select:text;user-select:text;';
+
+  document.body.textContent = '';
+  document.body.style.cssText = 'margin:0;padding:20px;color:#333;background:#fff;';
+  document.body.appendChild(heading);
+  document.body.appendChild(button);
+  document.body.appendChild(pre);
+}
+
 function handleSetupError(error) {
   var currentWindow = require('@electron/remote').getCurrentWindow();
   currentWindow.setSize(800, 600);
   currentWindow.center();
   currentWindow.show();
-  currentWindow.openDevTools();
-  console.error(error.stack || error);
+  var stack = (error && error.stack) || String(error);
+  console.error(stack);
+  if (require('../src/developer-tools').developerToolsAvailable()) {
+    currentWindow.openDevTools();
+  } else {
+    showSetupErrorInWindow(stack);
+  }
 }
 
 function copyEnvFromMainProcess() {

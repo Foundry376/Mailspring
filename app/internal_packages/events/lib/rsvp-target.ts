@@ -4,6 +4,7 @@ import {
   Event,
   ICSEventHelpers,
   ICSParticipantStatus,
+  RSVPAnswer,
   Utils,
 } from 'mailspring-exports';
 import ICAL from 'ical.js';
@@ -143,7 +144,7 @@ export function resolveAddTo({
 }
 
 export type RSVPWrite =
-  | { kind: 'update'; event: Event }
+  | { kind: 'update'; event: Event; answer: RSVPAnswer }
   | { kind: 'create'; event: Event; calendar: Calendar };
 
 /**
@@ -175,13 +176,16 @@ export function planRSVPWrite({
     // An invitation to one occurrence is answered on that occurrence alone. A Google organizer
     // takes the answer from this write and ignores the emailed REPLY (measured on #2924), so
     // writing every VEVENT would accept or decline the whole series.
-    const ics = inviteEvent.component.getFirstPropertyValue('recurrence-id')
-      ? ICSEventHelpers.updateOccurrenceAttendeeStatus(calEvent.ics, inviteIcs, myEmail, status)
+    const occurrenceIcs = inviteEvent.component.getFirstPropertyValue('recurrence-id')
+      ? inviteIcs
+      : undefined;
+    const ics = occurrenceIcs
+      ? ICSEventHelpers.updateOccurrenceAttendeeStatus(calEvent.ics, occurrenceIcs, myEmail, status)
       : ICSEventHelpers.updateAttendeeStatus(calEvent.ics, myEmail, status);
     if (!ics) return null;
     const event = calEvent.clone();
     event.ics = ics;
-    return { kind: 'update', event };
+    return { kind: 'update', event, answer: { email: myEmail, status, occurrenceIcs } };
   }
 
   // Declining leaves the event off our calendar, as Google does.
