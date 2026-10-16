@@ -149,6 +149,17 @@ export function calendarDateFromParts(year: number, month: number, day: number):
   return (Date.UTC(year, month - 1, day) / MS_PER_DAY) as CalendarDate;
 }
 
+/** 0 for Sunday through 6 for Saturday, as `Date.getDay` counts. */
+export function dayOfWeek(date: CalendarDate): number {
+  // Epoch day 0, 1970-01-01, was a Thursday.
+  return (((date + 4) % 7) + 7) % 7;
+}
+
+export function monthStartOf(date: CalendarDate): CalendarDate {
+  const d = new Date(date * MS_PER_DAY);
+  return calendarDateFromParts(d.getUTCFullYear(), d.getUTCMonth() + 1, 1);
+}
+
 /** ISO form, `2026-06-21`. For debugging, specs, and anywhere a human reads the value. */
 export function formatCalendarDate(date: CalendarDate): string {
   const d = new Date(date * MS_PER_DAY);

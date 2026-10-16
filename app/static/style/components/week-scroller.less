@@ -1,0 +1,14 @@
+// The list spans two centuries, so a scrollbar thumb would be a sliver that jumps decades.
+.week-scroller {
+  overflow-y: auto;
+  overflow-anchor: none;
+  scroll-snap-type: y mandatory;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  .week-scroller-row {
+    scroll-snap-align: start;
+  }
+}

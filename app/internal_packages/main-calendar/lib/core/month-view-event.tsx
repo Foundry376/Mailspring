@@ -256,7 +256,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
 
     return (
       <div
-        id={event.id}
+        id={this.props.isFirstBar ? event.id : undefined}
         className={className}
         style={style}
         onClick={this._onClick}
