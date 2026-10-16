@@ -50,7 +50,7 @@ describe('accumulating mailsync stdout', function () {
   const chunks = [bytes.subarray(0, splitAt), bytes.subarray(splitAt)];
 
   it('mangles a character split across chunks when each chunk is decoded alone', function () {
-    const perChunk = chunks.map(c => c.toString('utf-8')).join('');
+    const perChunk = chunks.map((c) => c.toString('utf-8')).join('');
     expect(perChunk).not.toEqual(payload);
     expect(perChunk).toContain('�');
     expect(lastJSONResponse(perChunk).error).not.toEqual('Café serveur');
