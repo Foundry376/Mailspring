@@ -9,7 +9,6 @@ before planning from it, and delete it here when it lands.
 
 - **Reminders.** The event editor's Alert control (`alert-selector.tsx`) is editor state only: no
   VALARM is written and nothing schedules a notification.
-- **Show as busy/free.** `ShowAsSelector` is editor state only: TRANSP is never written.
 
 ## Partial
 
@@ -17,11 +16,13 @@ before planning from it, and delete it here when it lands.
   interval, weekday choice, count or end date, and no custom rule.
 - **Sending invitations.** Attendees and the organizer are written into the event, but neither the app
   nor the sync engine sends an iMIP REQUEST or CANCEL; the engine sends only REPLY and COUNTER
-  (`TaskProcessor.cpp`). Guests hear about a meeting only if the CalDAV server does the scheduling,
-  which is unverified per provider. Whether guests on clients other than Google and Outlook.com apply
-  an update sent at an unchanged SEQUENCE, as undo and redo send, is untested.
+  (`TaskProcessor.cpp`). Guests hear about a meeting only if the CalDAV server does the scheduling.
+  Google does: invitations, updates and cancellations, for a whole series or one occurrence, all
+  reached an Outlook.com guest (checked live 2026-10-05 to 2026-10-15). Other servers are unverified.
+  Whether guests on clients other than Google and Outlook.com apply an update sent at an unchanged
+  SEQUENCE, as undo and redo send, is untested.
 - **Keyboard.** Enter does not open the selected event, and New Event (`core:add-item`) has no default
-  key.
+  key. On hold until the event card moves into a sidebar.
 - **CalDAV server address.** Hosts are discovered through the identity server
   (`DAVWorker.cpp`, `resolve-dav-hosts`); there is no setting to enter one by hand.
 
@@ -34,12 +35,6 @@ before planning from it, and delete it here when it lands.
   icalendarlib doesn't parse DURATION and `Event::endOf` falls back to DTSTART.
 - **Microsoft calendars.** Onboarding requests Graph calendar scopes, but the engine has no Graph
   calendar sync. Whether Outlook/Office 365 accounts get a CalDAV host from discovery is unverified.
-
-## In flight
-
-- Drawing a new event by dragging across empty space: Foundry376/Mailspring#2943.
-- The calendar moving into the main window, which removes the preview notice that still claims the
-  calendar is read-only and Google-only: Foundry376/Mailspring#2946.
 
 ## Not built
 
