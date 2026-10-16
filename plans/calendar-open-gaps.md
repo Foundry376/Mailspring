@@ -5,10 +5,7 @@ and keyboard moves, day/week/month/agenda views, search, RSVP (including propose
 accepting a counter), and Google plus generic CalDAV sync all work. Verify an item against the code
 before planning from it, and delete it here when it lands.
 
-## Before launch
-
-Bugs to fix before the calendar is announced. The last two are borderline: rarer, but each can show
-a meeting at the wrong time.
+## Bugs
 
 - **Deleting a whole series as a guest tells nobody.** `_deleteEntireEvent` queues a
   `DestroyEventTask`, and Google drops a guest's deleted copy without telling the organizer. Deleting
@@ -27,14 +24,14 @@ a meeting at the wrong time.
   take the first writable calendar (`getEditableCalendars(...)[0]`), so with several accounts a
   meeting can go out from the wrong address. It should default to Mail's "Send new messages from"
   account (`core.sending.defaultAccountIdForSend`).
-- **A moved occurrence can be drawn at its old time** (borderline). Every Event row of a series holds
-  the whole resource, and the rows can disagree. When the series' main row is older than an
-  exception's row, `occurrencesForEvents` expands the main row, and its standalone-exception branch
-  reads the exception row's first VEVENT, which is the master. Seen in 2 of 56 exception rows in one
-  real calendar.
-- **A rejected save stays on screen** (borderline). When the server refuses a save, the local row
-  keeps the rejected change, and a resync doesn't correct it because the row's etag already matches
-  the server's.
+- **A moved occurrence can be drawn at its old time.** Every Event row of a series holds the whole
+  resource, and the rows can disagree. When the series' main row is older than an exception's row,
+  `occurrencesForEvents` expands the main row, and its standalone-exception branch reads the
+  exception row's first VEVENT, which is the master. Seen in 2 of 56 exception rows in one real
+  calendar.
+- **A rejected save stays on screen.** When the server refuses a save, the local row keeps the
+  rejected change, and a resync doesn't correct it because the row's etag already matches the
+  server's.
 
 ## Saved nowhere, though the editor shows it
 
