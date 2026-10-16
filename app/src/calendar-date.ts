@@ -149,11 +149,10 @@ export function calendarDateFromParts(year: number, month: number, day: number):
   return (Date.UTC(year, month - 1, day) / MS_PER_DAY) as CalendarDate;
 }
 
-const EPOCH_DAY_OF_WEEK = 4;
-
 /** 0 for Sunday through 6 for Saturday, as `Date.getDay` counts. */
 export function dayOfWeek(date: CalendarDate): number {
-  return (((date + EPOCH_DAY_OF_WEEK) % 7) + 7) % 7;
+  // Epoch day 0, 1970-01-01, was a Thursday.
+  return (((date + 4) % 7) + 7) % 7;
 }
 
 export function monthStartOf(date: CalendarDate): CalendarDate {

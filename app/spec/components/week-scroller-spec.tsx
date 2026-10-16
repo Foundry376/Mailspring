@@ -152,16 +152,15 @@ describe('WeekScroller', function () {
   it('lands a glide on its week when the viewport changes height on the way', async function () {
     mount({ date: calendarDateFromParts(2026, 10, 1), animate: false });
     await nextFrames();
-    const start = scrollerEl().scrollTop;
+    // Holds the glide in flight: how far a real one gets before the resize depends on the machine.
+    const el = scrollerEl();
+    const scrollTo = el.scrollTo.bind(el);
+    spyOn(el, 'scrollTo').andCallFake((options: ScrollToOptions) => {
+      if (options.behavior !== 'smooth') scrollTo(options);
+    });
     mount({ date: calendarDateFromParts(2026, 11, 1), animate: true });
-    const landed = new Promise((resolve) =>
-      scrollerEl().addEventListener('scrollend', resolve, { once: true })
-    );
-    while (scrollerEl().scrollTop - start < 200) {
-      await nextFrames();
-    }
     host.style.height = '900px';
-    await landed;
+    await nextFrames();
 
     expect(rowHeight()).toBe(150);
     expect(topRowStart()).toBe(weekOf(2026, 11, 1));
