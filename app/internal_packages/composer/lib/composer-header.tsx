@@ -13,10 +13,12 @@ import Fields from './fields';
 
 const ScopedFromField = ListensToFluxStore(AccountContactField, {
   stores: [AccountStore],
-  getStateFromStores: (props) => {
-    const savedOrReplyToThread = !!props.draft.threadId;
-    if (savedOrReplyToThread) {
-      return { accounts: [AccountStore.accountForId(props.draft.accountId)] };
+  getStateFromStores: (props: { draft: Message }) => {
+    // Replies stay on the receiving account's SMTP. The From picker only
+    // lists that account and its aliases — not other configured accounts.
+    if (props.draft.threadId) {
+      const account = AccountStore.accountForId(props.draft.accountId);
+      return { accounts: account ? [account] : [] };
     }
     return { accounts: AccountStore.accounts() };
   },
