@@ -4,20 +4,20 @@ import {
   approvedSubset,
   networkGrantsFromManifest,
 } from '../../../src/browser/view-sandbox-policy';
-import { ViewManifest, installedViews } from './view-registry';
+import { ViewManifest, allViews } from './view-registry';
 import { removeAllCredentials } from './credentials/store';
 
 /**
  * Consent for what a View can do beyond reading mail summaries. The user approves a View's
- * permissions and network hosts once per View id, and the approval covers its drafts and its
- * installed copy alike: a draft is an uncommitted revision of a View the user already allowed,
- * not a separate thing to consent to. A View whose manifest declares anything outside its
- * approval doesn't load; the host shows a consent card in its place (view-host.tsx). The bridge
- * (bridge/grant.ts) and the main process (view-sessions.ts) only honor approved entries, so a
- * revision written while the View is on screen can't use a grant before the user sees it.
+ * permissions and network hosts once per View id, and the approval covers every revision of
+ * it: a revision that asks for nothing new loads without asking again. A View whose manifest
+ * declares anything outside its approval doesn't load; the host shows a consent card in its
+ * place (view-host.tsx). The bridge (bridge/grant.ts) and the main process (view-sessions.ts)
+ * only honor approved entries, so a revision written while the View is on screen can't use a
+ * grant before the user sees it.
  *
- * Approvals only grow when the user allows more, and shrink when a draft is discarded, so
- * Allow on a draft never outlives the draft.
+ * Approvals only grow when the user allows more, and shrink when the View is reverted, so
+ * Allow on a revision never outlives the revision.
  */
 
 export type ViewPermission = 'mail.bodies' | 'mail.modify' | 'calendar.read' | 'calendar.write';
@@ -83,7 +83,7 @@ export function unapprovedGrants(view: ViewManifest): ViewGrants | null {
 
 /** Approves everything the View's current manifest declares, on top of earlier approvals. */
 export function approveView(viewId: string) {
-  const view = installedViews().find((v) => v.id === viewId);
+  const view = allViews().find((v) => v.id === viewId);
   if (!view) return;
   const declared = declaredGrants(view.json);
   const previous = approvals()[viewId] || { permissions: [], network: [] };
@@ -99,12 +99,12 @@ export function declineView(viewId: string) {
 }
 
 /**
- * Called after a View's draft is discarded: the approval shrinks to what the copy that remains
- * declares, so a wider grant the user allowed for the draft doesn't carry over to a later one.
- * With no copy left, the approval and any stored credentials are forgotten.
+ * Called after a View is reverted: the approval shrinks to what the restored copy declares, so
+ * a wider grant the user allowed for the replaced code doesn't carry over to a later revision.
+ * With no View left, the approval and any stored credentials are forgotten.
  */
 export function narrowApprovalToCurrent(viewId: string) {
-  const view = installedViews().find((v) => v.id === viewId);
+  const view = allViews().find((v) => v.id === viewId);
   if (!view) {
     forgetView(viewId);
     return;
@@ -133,7 +133,7 @@ export function waitForConsent(
   timeoutMs: number
 ): Promise<'approved' | 'declined' | 'timeout'> {
   const pending = () => {
-    const view = installedViews().find((v) => v.id === viewId);
+    const view = allViews().find((v) => v.id === viewId);
     return !!view && !!unapprovedGrants(view);
   };
   if (!pending()) return Promise.resolve('approved');

@@ -54,7 +54,7 @@ export function shimsFor(version: string, shims: ApiShim[] = SHIMS): string[] {
   return shims.filter((s) => version < s.since).map((s) => s.id);
 }
 
-/** The manifest a draft is written with: unchanged, or stamped with the current version. */
+/** The manifest a revision is written with: unchanged, or stamped with the current version. */
 export function withApiVersion<T extends object>(manifest: T): T {
   if (manifest && (manifest as any).apiVersion) return manifest;
   return { ...(manifest || ({} as T)), apiVersion: CURRENT_API_VERSION };

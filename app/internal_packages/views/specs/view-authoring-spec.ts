@@ -2,13 +2,16 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import {
-  writeDraft,
-  promoteDraft,
-  discardDraft,
-  hasDraft,
+  writeView,
+  createUnbuiltView,
+  readViewBundle,
+  saveCheckpoint,
+  hasCheckpoint,
+  revertView,
+  currentRevisionOf,
   revisionOf,
   validateRevision,
-} from '../lib/authoring/drafts';
+} from '../lib/authoring/revisions';
 import {
   ViewDiagnostics,
   RENDER_OK_QUIET_MS,
@@ -17,7 +20,7 @@ import {
   locationOf,
   reportFromGuest,
 } from '../lib/authoring/diagnostics';
-import { installedViews, ViewRegistryEvents } from '../lib/view-registry';
+import { allViews, ViewRegistryEvents } from '../lib/view-registry';
 import { ViewBridge } from '../lib/view-bridge';
 
 const VIEW = {
@@ -38,38 +41,71 @@ describe('View authoring', function () {
     fs.rmSync(configDir, { recursive: true, force: true });
   });
 
-  describe('drafts', function () {
-    it('previews a draft over the installed copy without touching it', function () {
-      const installed = path.join(configDir, 'views', 'spec-view');
-      fs.mkdirSync(installed, { recursive: true });
-      fs.writeFileSync(path.join(installed, 'manifest.json'), '{"name":"Installed"}');
-      fs.writeFileSync(path.join(installed, 'View.jsx'), 'old');
+  describe('revisions', function () {
+    const v = (source: string) => ({ manifest: { name: source }, files: { 'View.jsx': source } });
+    const viewFile = () =>
+      fs.readFileSync(path.join(configDir, 'views', 'spec-view', 'View.jsx'), 'utf8');
 
-      writeDraft('spec-view', VIEW);
-      const view = installedViews().find((v) => v.id === 'spec-view');
-      expect(view.source).toBe('draft');
+    it('writes a revision as the View itself', function () {
+      const revision = writeView('spec-view', VIEW);
+      const view = allViews().find((x) => x.id === 'spec-view');
+      expect(view.source).toBe('user');
       expect(view.name).toBe('Spec View');
-      expect(fs.readFileSync(path.join(installed, 'View.jsx'), 'utf8')).toBe('old');
-
-      discardDraft('spec-view');
-      const after = installedViews().find((v) => v.id === 'spec-view');
-      expect(after.source).toBe('installed');
-      expect(after.name).toBe('Installed');
+      expect(currentRevisionOf('spec-view')).toBe(revision);
     });
 
-    it('promotes a draft to the installed copy', function () {
-      const revision = writeDraft('spec-view', VIEW);
-      expect(promoteDraft('spec-view')).toBe(revision);
-      expect(hasDraft('spec-view')).toBe(false);
-      const installed = path.join(configDir, 'views', 'spec-view', 'View.jsx');
-      expect(fs.readFileSync(installed, 'utf8')).toBe(VIEW.files['View.jsx']);
+    it('reverts to checkpoints newest first', function () {
+      writeView('spec-view', v('one'));
+      saveCheckpoint('spec-view');
+      writeView('spec-view', v('two'));
+      saveCheckpoint('spec-view');
+      writeView('spec-view', v('three'));
+
+      expect(revertView('spec-view')).toBe(revisionOf('two'));
+      expect(viewFile()).toBe('two');
+      expect(revertView('spec-view')).toBe(revisionOf('one'));
+      expect(viewFile()).toBe('one');
+      expect(hasCheckpoint('spec-view')).toBe(false);
+      expect(() => revertView('spec-view')).toThrow();
     });
 
-    it('reports draft changes as structural so the sidebar re-registers', function () {
+    it('keeps no checkpoint for a View that does not exist yet', function () {
+      expect(saveCheckpoint('spec-view')).toBe(false);
+      expect(hasCheckpoint('spec-view')).toBe(false);
+    });
+
+    it('creates an unbuilt View that has a card but no code to send or checkpoint', function () {
+      createUnbuiltView('spec-view', 'Spec View');
+      const view = allViews().find((x) => x.id === 'spec-view');
+      expect(view.name).toBe('Spec View');
+      expect(view.built).toBe(false);
+      expect(view.permissions).toEqual([]);
+      expect(readViewBundle('spec-view')).toBe(null);
+      expect(currentRevisionOf('spec-view')).toBe(null);
+      expect(saveCheckpoint('spec-view')).toBe(false);
+
+      writeView('spec-view', VIEW);
+      expect(allViews().find((x) => x.id === 'spec-view').built).toBe(true);
+      expect(readViewBundle('spec-view').files['View.jsx']).toBe(VIEW.files['View.jsx']);
+    });
+
+    it('keeps only the newest ten checkpoints', function () {
+      writeView('spec-view', v('0'));
+      for (let i = 1; i <= 12; i++) {
+        saveCheckpoint('spec-view');
+        writeView('spec-view', v(String(i)));
+      }
+      expect(fs.readdirSync(path.join(configDir, 'views-checkpoints', 'spec-view')).length).toBe(
+        10
+      );
+      expect(revertView('spec-view')).toBe(revisionOf('11'));
+    });
+
+    it('reports changes as structural so the sidebar re-registers', function () {
       const changes = [];
       const listener = (c) => changes.push(c);
       ViewRegistryEvents.on('changed', listener);
-      writeDraft('spec-view', VIEW);
+      writeView('spec-view', VIEW);
       ViewRegistryEvents.removeListener('changed', listener);
       expect(changes).toEqual([{ viewIds: ['spec-view'], structural: true }]);
     });
@@ -77,7 +113,7 @@ describe('View authoring', function () {
     it('hashes View.jsx the same way the main process does', function () {
       // view-sessions.ts: sha256 hex, first 12 characters.
       expect(revisionOf('abc')).toBe('ba7816bf8f01');
-      expect(writeDraft('spec-view', VIEW)).toBe(revisionOf(VIEW.files['View.jsx']));
+      expect(writeView('spec-view', VIEW)).toBe(revisionOf(VIEW.files['View.jsx']));
     });
 
     it('refuses bad ids, file names and missing View.jsx', function () {
@@ -128,7 +164,7 @@ describe('View authoring', function () {
 
     it('settles waitForOutcome on the revision it was asked about', async function () {
       const broken = 'export default () => (\n';
-      const revision = writeDraft('diag', {
+      const revision = writeView('diag', {
         manifest: { name: 'Diag' },
         files: { 'View.jsx': broken },
       });
@@ -145,7 +181,7 @@ describe('View authoring', function () {
     });
 
     it('ignores compile errors reported for a View that compiles', function () {
-      writeDraft('diag', VIEW);
+      writeView('diag', VIEW);
       reportFromGuest('diag', { kind: 'compile-error', message: 'Subject: private' });
       expect(ViewDiagnostics.get('diag')).toEqual([]);
     });

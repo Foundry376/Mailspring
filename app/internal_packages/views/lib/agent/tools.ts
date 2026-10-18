@@ -1,6 +1,6 @@
 import { localized } from 'mailspring-exports';
 import { Diagnostic } from '../authoring/diagnostics';
-import { ViewRevision } from '../authoring/drafts';
+import { ViewRevision } from '../authoring/revisions';
 import { checkSignedRevision, SignedRevision } from './signing';
 import { RevisionEntry, ToolContent } from './types';
 
@@ -18,12 +18,12 @@ export interface ToolDeps {
   publicKey: () => Promise<string | null>;
   lastAcceptedRevision: (viewId: string) => number;
   setAcceptedRevision: (viewId: string, revision: number) => void;
-  previewAndWait: (
+  applyAndWait: (
     viewId: string,
     revision: ViewRevision
   ) => Promise<{ status: 'ok' | 'failed' | 'timeout'; diagnostics: Diagnostic[] }>;
   capturePreview: (viewId: string) => Promise<{ png: Buffer; width: number; height: number }>;
-  /** Resolves once the latest revision has finished previewing (or a cap passes). */
+  /** Resolves once the latest revision has finished applying (or a cap passes). */
   waitForLatestRevision: () => Promise<RevisionWait>;
   recordRevision: (entry: RevisionEntry) => void;
   ask: (
@@ -153,18 +153,18 @@ async function previewRevision(deps: ToolDeps, input: SignedRevision, signature?
   deps.setAcceptedRevision(deps.viewId, input.revision);
   deps.recordRevision({
     revision: input.revision,
-    status: 'previewing',
-    summary: 'Previewing…',
+    status: 'applying',
+    summary: 'Applying…',
     ts: Date.now(),
   });
   let outcome: { status: 'ok' | 'failed' | 'timeout'; diagnostics: Diagnostic[] };
   try {
-    outcome = await deps.previewAndWait(deps.viewId, {
+    outcome = await deps.applyAndWait(deps.viewId, {
       manifest: input.manifest,
       files: input.files,
     });
   } catch (err) {
-    // writeDraft validation: bad file names, missing View.jsx, oversized files.
+    // writeView validation: bad file names, missing View.jsx, oversized files.
     deps.recordRevision({
       revision: input.revision,
       status: 'failed',
@@ -192,14 +192,14 @@ export function screenshotPrompt(input: { reason?: string } | null) {
   return (input && input.reason) || 'The agent would like to see the preview.';
 }
 
-export type RevisionWait = 'ok' | 'none' | 'failed' | 'still-previewing';
+export type RevisionWait = 'ok' | 'none' | 'failed' | 'still-applying';
 
 /** The caption for a screenshot taken before the latest revision rendered successfully. */
 export function screenshotNote(wait: RevisionWait) {
   if (wait === 'failed') {
     return localized("The latest revision didn't render, so this shows the View as it is now.");
   }
-  if (wait === 'still-previewing') {
+  if (wait === 'still-applying') {
     return localized('The latest revision is still loading, so this shows the View as it is now.');
   }
   return undefined;

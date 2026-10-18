@@ -2,7 +2,7 @@ import React from 'react';
 import { shell } from 'electron';
 import { Actions, localized } from 'mailspring-exports';
 import { ViewCredential } from '../../../../src/browser/view-credential-policy';
-import { installedViews, notifyViewsChanged } from '../view-registry';
+import { allViews, notifyViewsChanged } from '../view-registry';
 import {
   declaredCredential,
   declaredCredentials,
@@ -44,7 +44,7 @@ export function mismatchedService(credential: ViewCredential): string | null {
 }
 
 function viewName(viewId: string) {
-  const view = installedViews().find((v) => v.id === viewId);
+  const view = allViews().find((v) => v.id === viewId);
   return view ? view.name : viewId;
 }
 

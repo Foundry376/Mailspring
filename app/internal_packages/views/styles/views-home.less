@@ -5,8 +5,6 @@
 // (the system accent), so it's mixed with color-mix() rather than LESS's fade().
 @views-grid-minor: fade(@text-color, 4%);
 @views-grid-major: fade(@text-color, 7%);
-// The thread list's draft composer tint (composer.less), strengthened enough to read as a tag.
-@views-draft-tint: mix(@background-primary, #ffbb00, 82%);
 
 .views-home-grid(@minor-color; @major-color; @minor; @major) {
   background-image:
@@ -197,11 +195,6 @@
     }
   }
 
-  .views-home-create-hint {
-    color: @text-color-very-subtle;
-    font-size: @font-size-small;
-  }
-
   .views-home-create-actions {
     display: flex;
     justify-content: flex-end;
@@ -309,13 +302,15 @@
     background: @background-secondary;
     color: @text-color-subtle;
 
-    &.draft {
-      background: @views-draft-tint;
-      box-shadow: inset 0 0 0 1px mix(@background-primary, #ffbb00, 60%);
-      color: @text-color;
+    &.count {
+      background: @accent-primary;
+      color: @text-color-inverse;
+      font-weight: 600;
     }
+    // The thread list's draft composer tint (composer.less), strengthened enough to read as a tag.
     &.working {
-      background: @background-color-info;
+      background: mix(@background-primary, #ffbb00, 82%);
+      box-shadow: inset 0 0 0 1px mix(@background-primary, #ffbb00, 60%);
       color: @text-color;
     }
   }

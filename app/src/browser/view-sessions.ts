@@ -77,9 +77,8 @@ interface ViewPaths {
 function viewPaths(): ViewPaths {
   const { resourcePath, configDirPath, devMode } = global.application;
   const packageDir = path.join(resourcePath, 'internal_packages', 'views');
-  // Same precedence as viewBundleRoots() in the views package: a draft previews over the
-  // installed copy of the View.
-  const bundleDirs = [path.join(configDirPath, 'views-drafts'), path.join(configDirPath, 'views')];
+  // Same precedence as viewBundleRoots() in the views package.
+  const bundleDirs = [path.join(configDirPath, 'views')];
   if (devMode) {
     bundleDirs.push(path.join(packageDir, 'examples'));
   }
@@ -156,7 +155,7 @@ function shellHTML(vendor: VendorManifest) {
 
 const transpileCache = new Map<string, { revision: string; output: string }>();
 
-// Must match revisionOf() in internal_packages/views/lib/authoring/drafts.ts. The loader
+// Must match revisionOf() in internal_packages/views/lib/authoring/revisions.ts. The loader
 // reports it back so diagnostics name the revision that produced them.
 function revisionOf(source: string) {
   return crypto.createHash('sha256').update(source, 'utf8').digest('hex').slice(0, 12);
@@ -422,7 +421,7 @@ function emailColorsScript() {
   return emailColorsSource;
 }
 
-/** The View's manifest as currently on disk (draft over installed), or null. */
+/** The View's manifest as currently on disk, or null. */
 export function readViewManifestJSON(viewId: string): any {
   const bundleDir = bundleDirForView(viewId, viewPaths());
   const manifestFile = bundleDir && containedFile(bundleDir, 'manifest.json');

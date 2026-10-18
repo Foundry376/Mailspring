@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { VIEW_ID_REGEXP, examplesDir, installDir, notifyViewsChanged } from '../view-registry';
+import { isOwnRecentWrite } from './revisions';
 
 // Editors write a file in several steps (truncate, write, rename); one reload per burst.
 const DEBOUNCE_MS = 150;
@@ -8,8 +9,7 @@ const DEBOUNCE_MS = 150;
 /**
  * Dev mode only: watches installed and example View folders and reports changes, so a new
  * View folder appears in the sidebar and an edited one reloads without relaunching the app.
- * Drafts aren't watched; they change only through the authoring API, which reports its own
- * changes.
+ * Writes made through the authoring API report themselves, so the watcher skips them.
  */
 export function watchViewFolders() {
   const watchers: fs.FSWatcher[] = [];
@@ -32,7 +32,7 @@ export function watchViewFolders() {
           structural = true;
         } else {
           const [id, ...rest] = filename.toString().split(path.sep);
-          if (!VIEW_ID_REGEXP.test(id)) return;
+          if (!VIEW_ID_REGEXP.test(id) || isOwnRecentWrite(id)) return;
           // A new or removed folder, or a manifest edit, can change the sidebar.
           if (rest.length === 0 || rest.join('/') === 'manifest.json') structural = true;
           pending.add(id);

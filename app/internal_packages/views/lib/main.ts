@@ -1,9 +1,10 @@
 import { ComponentRegistry, WorkspaceStore, localized } from 'mailspring-exports';
-import { ViewManifest, ViewRegistryEvents, ViewsChange, installedViews } from './view-registry';
+import { ViewManifest, ViewRegistryEvents, ViewsChange, allViews } from './view-registry';
 import { ViewsNavStore } from './views-nav';
 import { ViewPageRoot, ViewsRoot } from './views-root';
 import { createSidebarViewComponent } from './sidebar-view';
 import { ViewsNavRailSection } from './nav/views-nav-rail';
+import { PinViewButton } from './nav/pin-view-button';
 import { startTrackingBadges, stopTrackingBadges } from './nav/badges';
 import { reloadMountedView, hostsFor } from './authoring/hosts';
 import { watchViewFolders } from './authoring/watcher';
@@ -36,7 +37,7 @@ function registrationSignature(views: ViewManifest[]) {
  * activation and again whenever the set of Views or their manifests change.
  */
 function registerViews() {
-  const views = installedViews();
+  const views = allViews();
   const signature = registrationSignature(views);
   if (signature === registeredSignature) return;
   registeredSignature = signature;
@@ -66,7 +67,7 @@ function reloadFocusedViews() {
   const viewId = ViewsNavStore.focusedPageViewId();
   if (viewId) reloadMountedView(viewId);
   // Sidebar Views are visible alongside any perspective.
-  installedViews()
+  allViews()
     .filter((v) => v.placement === 'thread-sidebar' && hostsFor(v.id).length)
     .forEach((v) => reloadMountedView(v.id));
 }
@@ -74,7 +75,7 @@ function reloadFocusedViews() {
 // Back from a thread a View opened returns to that View, so it's named after the View.
 function viewPageBackTitle() {
   const viewId = ViewsNavStore.viewId();
-  const view = viewId && installedViews().find((v) => v.id === viewId);
+  const view = viewId && allViews().find((v) => v.id === viewId);
   return view ? view.name : localized('Views');
 }
 
@@ -96,6 +97,9 @@ export function activate() {
   );
   ComponentRegistry.register(ViewsRoot, { location: WorkspaceStore.Location.ViewContent });
   ComponentRegistry.register(ViewPageRoot, { location: WorkspaceStore.Location.ViewPageContent });
+  ComponentRegistry.register(PinViewButton, {
+    location: WorkspaceStore.Location.ViewPageContent.Toolbar,
+  });
   registerAuthoringPanel();
   ComponentRegistry.register(ViewsNavRailSection, { role: 'NavRail:Section' });
   stopThumbnails = captureThumbnailsOnRender();
@@ -111,7 +115,7 @@ export function activate() {
 
   if (AppEnv.inDevMode()) {
     unwatch = watchViewFolders();
-    // `$m.ViewAuthoring` in the DevTools console: previewView, reloadView, getDiagnostics…
+    // `$m.ViewAuthoring` in the DevTools console: applyRevision, reloadView, getDiagnostics…
     (window as any).$m.ViewAuthoring = ViewAuthoring;
   }
 }
@@ -130,5 +134,6 @@ export function deactivate() {
   ComponentRegistry.unregister(ViewsNavRailSection);
   ComponentRegistry.unregister(ViewsRoot);
   ComponentRegistry.unregister(ViewPageRoot);
+  ComponentRegistry.unregister(PinViewButton);
   unregisterAuthoringPanel();
 }

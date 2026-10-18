@@ -24,6 +24,10 @@ function onBadge(viewId: string, count: number | null) {
   ViewBadgeEvents.emit('changed');
 }
 
+export function clearBadge(viewId: string) {
+  onBadge(viewId, null);
+}
+
 export function startTrackingBadges() {
   try {
     badges = JSON.parse(window.localStorage.getItem(BADGES_KEY) || '{}') || {};

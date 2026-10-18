@@ -16,6 +16,7 @@ import {
   AttachmentStore,
   MessageBodyProcessor,
   DatabaseStore,
+  Actions,
 } from 'mailspring-exports';
 import { renderableFor } from '../lib/bridge/renderable';
 
@@ -341,6 +342,56 @@ describe('ui.threadMenu', function () {
     const reply = await webview.call({ threadIds: ['t1'] });
     expect(reply.error.code).toBe('not_found');
     expect(ThreadListContextMenu.prototype.displayMenu).not.toHaveBeenCalled();
+    bridge.dispose();
+  });
+});
+
+describe('ui.showThread', function () {
+  function fakeWebview() {
+    const replies = [];
+    let listener = null;
+    return {
+      replies,
+      addEventListener: (name, fn) => (listener = fn),
+      removeEventListener: () => {},
+      send: (channel, payload) => replies.push(payload),
+      blur: jasmine.createSpy('blur'),
+      call: async (params) => {
+        listener({ channel: HELLO_CHANNEL, args: [{ page: 'p1' }] });
+        await listener({
+          channel: CALL_CHANNEL,
+          args: [{ page: 'p1', id: 1, method: 'ui.showThread', params }],
+        });
+        return replies[replies.length - 1];
+      },
+    };
+  }
+
+  beforeEach(() => {
+    spyOn(Actions, 'setFocus');
+  });
+
+  it('focuses the thread and takes keyboard focus out of the View', async () => {
+    const thread = new Thread({ id: 't1', accountId: 'a1' });
+    spyOn(DatabaseStore, 'find').andReturn(Promise.resolve(thread) as any);
+    const webview = fakeWebview();
+    const bridge = new ViewBridge('spec', webview as any);
+    bridge.grant = grantWith([]);
+    const reply = await webview.call({ id: 't1' });
+    expect(reply.error).toBe(undefined);
+    expect(Actions.setFocus).toHaveBeenCalledWith({ collection: 'thread', item: thread });
+    expect(webview.blur).toHaveBeenCalled();
+    bridge.dispose();
+  });
+
+  it('keeps focus in the View when the thread is not shown', async () => {
+    spyOn(DatabaseStore, 'find').andReturn(Promise.resolve(null) as any);
+    const webview = fakeWebview();
+    const bridge = new ViewBridge('spec', webview as any);
+    bridge.grant = grantWith([]);
+    const reply = await webview.call({ id: 'missing' });
+    expect(reply.error.code).toBe('not_found');
+    expect(webview.blur).not.toHaveBeenCalled();
     bridge.dispose();
   });
 });

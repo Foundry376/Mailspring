@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { EventEmitter } from 'events';
-import { installedViews } from '../view-registry';
-import { revisionOf } from './drafts';
+import { allViews } from '../view-registry';
+import { revisionOf } from './revisions';
 
 export type DiagnosticKind =
   | 'compile-error'
@@ -258,7 +258,7 @@ export function reportFromGuest(viewId: string, params: any) {
 
 /** The View's current View.jsx, as the main process would compile it. */
 export function viewSource(viewId: string): string | null {
-  const view = installedViews().find((v) => v.id === viewId);
+  const view = allViews().find((v) => v.id === viewId);
   try {
     return view ? fs.readFileSync(path.join(view.dir, 'View.jsx'), 'utf8') : null;
   } catch {

@@ -221,7 +221,7 @@ function scenario(name: DemoScenario): AgentSessionState {
       afterExamples();
       s.status = 'running';
       s.working = true;
-      addRevision(s, { revision: 1, status: 'previewing', summary: 'Previewing…' });
+      addRevision(s, { revision: 1, status: 'applying', summary: 'Applying…' });
       break;
     case 'fixing':
       afterExamples();
@@ -266,6 +266,7 @@ function scenario(name: DemoScenario): AgentSessionState {
         role: 'agent',
         text: 'Revision 3 is ready: the chart now excludes tips and the table links to each trip.',
       });
+      s.canRevert = true;
       break;
     case 'history':
       // A finished conversation: answered requests stay in place, revisions where they happened.
@@ -550,11 +551,15 @@ const demoActions: SessionActionsLike = {
   async showUpgrade() {
     log('(The upgrade dialog would open here.)');
   },
-  async install() {
-    log('Installed.');
+  async open(viewId) {
+    demoStore.active = viewId;
+    demoStore.update(() => {});
   },
-  async discard() {
-    log('Draft discarded.');
+  async prefill(viewId, text) {
+    log(`(The composer would hold: ${text})`);
+  },
+  async revert() {
+    log('Reverted to the earlier version.');
   },
 };
 

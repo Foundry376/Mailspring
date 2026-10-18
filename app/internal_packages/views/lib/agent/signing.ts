@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { ViewRevision } from '../authoring/drafts';
+import { ViewRevision } from '../authoring/revisions';
 
 /**
  * Verification of `preview_revision` payloads signed by the authoring proxy: Ed25519 over the
@@ -17,8 +17,7 @@ import { ViewRevision } from '../authoring/drafts';
  */
 const AGENT_PUBLIC_KEYS: { [env: string]: string | null } = {
   development: 'MCowBQYDK2VwAyEAcTs62HcmKcJzPQ/qsitN5iOXlzSsNx2o3bf9ngZQ18I=',
-  staging: null,
-  production: null,
+  production: 'MCowBQYDK2VwAyEAAECGnPyYF0qu4BZNQO43sfCLPYbKKjlnoVArHZo5n5k=',
 };
 
 export function agentPublicKey(env: string): string | null {

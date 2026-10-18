@@ -1,7 +1,4 @@
-import fs from 'fs';
-import path from 'path';
-import { ViewManifest, installDir, installedViews } from '../view-registry';
-import { ViewsNavStore } from '../views-nav';
+import { ViewManifest, allViews } from '../view-registry';
 
 /**
  * The Edit buttons that open the panel for a View register their elements here, so the panel
@@ -22,19 +19,6 @@ export function editButtonRect(viewId: string): DOMRect | null {
   return rect.width && rect.height ? rect : null;
 }
 
-export function focusedPageViewId(): string | null {
-  return ViewsNavStore.focusedPageViewId();
-}
-
-/**
- * A starter the user is trying: a draft copied from a starter that was never installed. The
- * panel shows the preview card for it until it's installed or removed.
- */
-export function isTryDraft(view: ViewManifest | null | undefined) {
-  if (!view || view.source !== 'draft' || !view.json || !view.json.starter) return false;
-  return !fs.existsSync(path.join(installDir(), view.id));
-}
-
 export function viewById(viewId: string): ViewManifest | null {
-  return installedViews().find((v) => v.id === viewId) || null;
+  return allViews().find((v) => v.id === viewId) || null;
 }

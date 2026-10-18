@@ -1,10 +1,15 @@
-import fs from 'fs';
-import path from 'path';
 import MailspringStore from 'mailspring-store';
 import { FeatureUsageStore, IdentityStore, localized } from 'mailspring-exports';
 import { ViewAuthoring, openView } from '../authoring';
 import { hostsFor } from '../authoring/hosts';
-import { installedViews } from '../view-registry';
+import { ViewsNavStore } from '../views-nav';
+import {
+  currentRevisionOf,
+  hasCheckpoint,
+  readViewBundle,
+  revertView,
+  saveCheckpoint,
+} from '../authoring/revisions';
 import { AgentClient, AgentTransport } from './client';
 import { agentPublicKey } from './signing';
 import { chipFor, examplesForThreads } from './examples';
@@ -46,6 +51,10 @@ import {
  */
 
 const REVISIONS_CONFIG_KEY = 'core.views.agentRevisions';
+// The hash of View.jsx as the agent last left it (or was seeded with), per View. When the code
+// on disk no longer matches, as after a revert, the next message starts a fresh session seeded
+// with the current code, so the agent never builds on files the View no longer has.
+const AGENT_CODE_CONFIG_KEY = 'core.views.agentCode';
 const SCREENSHOT_MAX_WIDTH = 1280;
 // A View that just mounted is often still loading its data. Before showing the user a
 // screenshot to approve, wait until consecutive captures stop changing (or give up).
@@ -102,28 +111,26 @@ export interface AgentStoreDeps {
   setAcceptedRevision: (viewId: string, revision: number) => void;
   buildExamples: (threadIds: string[]) => Promise<Example[]>;
   currentBundle: (viewId: string) => { manifest: object; files: { [name: string]: string } } | null;
-  previewAndWait: ToolDeps['previewAndWait'];
+  applyAndWait: ToolDeps['applyAndWait'];
   capturePreview: ToolDeps['capturePreview'];
+  /** Brings a page View on screen. */
+  showView: (viewId: string) => void;
+  /** Whether the View is on screen, and a subscription to changes in what is. */
+  onScreen: (viewId: string) => boolean;
+  listenToScreen: (callback: () => void) => () => void;
   /** A capture of the View as it looks now, or null when it isn't on screen. */
   captureNow: (viewId: string) => Promise<Shot | null>;
   /** The capture the user approved, recorded in the View's diagnostics. */
   captureForSend: (viewId: string) => Promise<Shot | null>;
-  promoteDraft: (viewId: string) => void;
-  discardDraft: (viewId: string) => void;
+  /** The hash of the View's View.jsx on disk, or null when it doesn't exist yet. */
+  currentRevision: (viewId: string) => string | null;
+  agentCode: (viewId: string) => string | null;
+  setAgentCode: (viewId: string, hash: string | null) => void;
+  saveCheckpoint: (viewId: string) => boolean;
+  hasCheckpoint: (viewId: string) => boolean;
+  revertView: (viewId: string) => void;
   /** Offers Pro after a free-plan limit (Pro users only get the inline notice). */
   showUpgrade: (notice: LimitNotice) => void;
-}
-
-function readBundle(viewId: string) {
-  const view = installedViews().find((v) => v.id === viewId);
-  if (!view) return null;
-  const files: { [name: string]: string } = {};
-  for (const name of fs.readdirSync(view.dir)) {
-    if (name === 'manifest.json') continue;
-    const file = path.join(view.dir, name);
-    if (fs.statSync(file).isFile()) files[name] = fs.readFileSync(file, 'utf8');
-  }
-  return { manifest: view.json, files };
 }
 
 function defaultDeps(): AgentStoreDeps {
@@ -134,16 +141,19 @@ function defaultDeps(): AgentStoreDeps {
     lastAcceptedRevision: (viewId) => (AppEnv.config.get(REVISIONS_CONFIG_KEY) || {})[viewId] || 0,
     setAcceptedRevision: (viewId, revision) => {
       const all = { ...(AppEnv.config.get(REVISIONS_CONFIG_KEY) || {}) };
-      all[viewId] = revision;
+      if (revision) all[viewId] = revision;
+      else delete all[viewId];
       AppEnv.config.set(REVISIONS_CONFIG_KEY, all);
     },
     buildExamples: examplesForThreads,
-    currentBundle: readBundle,
-    previewAndWait: (viewId, revision) => ViewAuthoring.previewAndWait(viewId, revision),
-    capturePreview: async (viewId) => {
+    currentBundle: readViewBundle,
+    applyAndWait: (viewId, revision) => ViewAuthoring.applyAndWait(viewId, revision),
+    capturePreview: captureSettled,
+    showView: (viewId) => {
       openView(viewId);
-      return captureSettled(viewId);
     },
+    onScreen: (viewId) => ViewsNavStore.viewId() === viewId || hostsFor(viewId).length > 0,
+    listenToScreen: (callback) => ViewsNavStore.listen(callback),
     captureNow: captureQuietly,
     captureForSend: async (viewId) => {
       try {
@@ -152,8 +162,19 @@ function defaultDeps(): AgentStoreDeps {
         return null;
       }
     },
-    promoteDraft: (viewId) => ViewAuthoring.promoteDraft(viewId),
-    discardDraft: (viewId) => ViewAuthoring.discardDraft(viewId),
+    currentRevision: currentRevisionOf,
+    agentCode: (viewId) => (AppEnv.config.get(AGENT_CODE_CONFIG_KEY) || {})[viewId] || null,
+    setAgentCode: (viewId, hash) => {
+      const all = { ...(AppEnv.config.get(AGENT_CODE_CONFIG_KEY) || {}) };
+      if (hash) all[viewId] = hash;
+      else delete all[viewId];
+      AppEnv.config.set(AGENT_CODE_CONFIG_KEY, all);
+    },
+    saveCheckpoint,
+    hasCheckpoint,
+    revertView: (viewId) => {
+      revertView(viewId);
+    },
     showUpgrade: (notice) => {
       const feature = notice.kind === 'build' ? 'view-agent-build' : 'view-agent-spend';
       FeatureUsageStore.displayUpgradeModal(notice.details.feature || feature, {
@@ -223,7 +244,9 @@ interface SessionRuntime {
   /** The message a generic `rate_limited` refused, for Retry to send again. */
   unsent: string | null;
   /** preview_revision calls still running, including signature checks before the preview. */
-  previewsRunning: number;
+  revisionsApplying: number;
+  /** Set by each user message: the next revision applied first saves a checkpoint to revert to. */
+  checkpointDue: boolean;
 }
 
 let localIds = 0;
@@ -233,6 +256,9 @@ class AgentSessionStoreImpl extends MailspringStore {
   private sessions = new Map<string, AgentSessionState>();
   private runtimes = new Map<string, SessionRuntime>();
   private active: string | null = null;
+  // Views removed in this window. A request already in flight for one (a session being
+  // created, a revision arriving) must not write the View back to disk.
+  private removed = new Set<string>();
   private deps: AgentStoreDeps = null;
   private usage: AccountUsage | null = null;
   private usageRequest: Promise<AccountUsage | null> | null = null;
@@ -245,6 +271,7 @@ class AgentSessionStoreImpl extends MailspringStore {
     this.active = null;
     this.usage = null;
     this.usageRequest = null;
+    this.removed.clear();
     this.deps = { ...defaultDeps(), ...deps };
   }
 
@@ -307,7 +334,8 @@ class AgentSessionStoreImpl extends MailspringStore {
         refreshing: false,
         needsSession: null,
         unsent: null,
-        previewsRunning: 0,
+        revisionsApplying: 0,
+        checkpointDue: true,
       };
       this.runtimes.set(viewId, rt);
     }
@@ -329,6 +357,7 @@ class AgentSessionStoreImpl extends MailspringStore {
         usage: null,
         limit: null,
         error: null,
+        canRevert: this.d.hasCheckpoint(viewId),
       };
       this.sessions.set(viewId, s);
     } else if (name && s.name !== name) {
@@ -720,8 +749,11 @@ class AgentSessionStoreImpl extends MailspringStore {
       publicKey: async () => this.d.publicKey(),
       lastAcceptedRevision: this.d.lastAcceptedRevision,
       setAcceptedRevision: this.d.setAcceptedRevision,
-      previewAndWait: this.d.previewAndWait,
-      capturePreview: this.d.capturePreview,
+      applyAndWait: (id, revision) => this.applyAndWait(id, revision),
+      capturePreview: async (id) => {
+        await this.whenPresentable(id);
+        return this.d.capturePreview(id);
+      },
       waitForLatestRevision: () => this.waitForLatestRevision(viewId),
       recordRevision: (entry) => this.recordRevision(viewId, entry, toolUseId),
       ask: (request) =>
@@ -734,20 +766,70 @@ class AgentSessionStoreImpl extends MailspringStore {
     };
   }
 
+  // Revisions go live as soon as they're written, so the first one for each user message
+  // keeps a copy of the View as it was. Whatever ends up on disk is what the agent now knows.
+  private async applyAndWait(viewId: string, revision: Parameters<ToolDeps['applyAndWait']>[1]) {
+    if (this.removed.has(viewId)) throw new Error('The user removed this View.');
+    const rt = this.runtime(viewId);
+    if (rt.checkpointDue) {
+      rt.checkpointDue = false;
+      try {
+        if (this.d.saveCheckpoint(viewId)) this.update(viewId, () => ({ canRevert: true }));
+      } catch (err) {
+        // An unreadable View (e.g. a broken manifest) can't be checkpointed, but the revision
+        // replacing it may be the fix, so it still applies.
+        console.warn(`Views: couldn't checkpoint ${viewId}: ${err.message}`);
+      }
+    }
+    await this.whenPresentable(viewId);
+    try {
+      return await this.d.applyAndWait(viewId, revision);
+    } finally {
+      this.d.setAgentCode(viewId, this.d.currentRevision(viewId));
+    }
+  }
+
+  /**
+   * Resolves once the user is following this View: its chat is open or it's on screen. Until
+   * then the agent's revisions and screenshots wait, so a closed chat never navigates to the
+   * View or puts a consent card in front of the user. With the chat open, a page View is
+   * brought on screen. Rejects if the View is removed meanwhile.
+   */
+  private whenPresentable(viewId: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const unlisteners: (() => void)[] = [];
+      const check = () => {
+        if (this.removed.has(viewId)) {
+          unlisteners.forEach((u) => u());
+          reject(new Error('The user removed this View.'));
+          return true;
+        }
+        const active = this.active === viewId;
+        if (!active && !this.d.onScreen(viewId)) return false;
+        unlisteners.forEach((u) => u());
+        if (active) this.d.showView(viewId);
+        resolve();
+        return true;
+      };
+      if (check()) return;
+      unlisteners.push(this.listen(check), this.d.listenToScreen(check));
+    });
+  }
+
   /** The most recently recorded revision's outcome; recency, not number, since a replaced
    * session numbers its revisions from 1 again. */
   private latestRevisionWait(viewId: string): RevisionWait {
-    if (this.runtime(viewId).previewsRunning > 0) return 'still-previewing';
+    if (this.runtime(viewId).revisionsApplying > 0) return 'still-applying';
     const s = this.session(viewId);
     const latest = s && [...s.revisions].sort((a, b) => b.ts - a.ts)[0];
     if (!latest) return 'none';
-    if (latest.status === 'previewing') return 'still-previewing';
+    if (latest.status === 'applying') return 'still-applying';
     return latest.status === 'ok' ? 'ok' : 'failed';
   }
 
   private waitForLatestRevision(viewId: string): Promise<RevisionWait> {
     const now = this.latestRevisionWait(viewId);
-    if (now !== 'still-previewing') return Promise.resolve(now);
+    if (now !== 'still-applying') return Promise.resolve(now);
     return new Promise((resolve) => {
       let unlisten: () => void = null;
       const finish = (result: RevisionWait) => {
@@ -758,7 +840,7 @@ class AgentSessionStoreImpl extends MailspringStore {
       const timer = setTimeout(() => finish(this.latestRevisionWait(viewId)), REVISION_WAIT_CAP_MS);
       unlisten = this.listen(() => {
         const state = this.latestRevisionWait(viewId);
-        if (state !== 'still-previewing') finish(state);
+        if (state !== 'still-applying') finish(state);
       });
     });
   }
@@ -788,8 +870,8 @@ class AgentSessionStoreImpl extends MailspringStore {
 
   private async runTool(viewId: string, event: Extract<AgentEvent, { type: 'tool_request' }>) {
     const rt = this.runtime(viewId);
-    const isPreview = event.name === 'preview_revision';
-    if (isPreview) rt.previewsRunning += 1;
+    const isRevision = event.name === 'preview_revision';
+    if (isRevision) rt.revisionsApplying += 1;
     let result: ToolResult;
     try {
       result = await runClientTool(
@@ -801,8 +883,8 @@ class AgentSessionStoreImpl extends MailspringStore {
     } catch (err) {
       result = { content: [{ type: 'text', text: `Client error: ${err.message}` }], isError: true };
     } finally {
-      if (isPreview) {
-        rt.previewsRunning -= 1;
+      if (isRevision) {
+        rt.revisionsApplying -= 1;
         this.trigger();
       }
     }
@@ -847,6 +929,7 @@ class AgentSessionStoreImpl extends MailspringStore {
     this.ensure(viewId, name);
     this.setActive(viewId);
     const rt = this.runtime(viewId);
+    rt.checkpointDue = true;
     const entryId = echo ? localId('user') : null;
     this.update(viewId, (s) => ({
       status: 'connecting',
@@ -854,7 +937,7 @@ class AgentSessionStoreImpl extends MailspringStore {
       error: null,
       limit: null,
       notice: null,
-      intro: null,
+      intro: false,
       transcript: entryId
         ? [...s.transcript, { id: entryId, role: 'user', text: request, ts: Date.now() }]
         : s.transcript,
@@ -882,9 +965,11 @@ class AgentSessionStoreImpl extends MailspringStore {
       });
       rt.needsSession = null;
       rt.unsent = null;
+      if (!created.resumed) this.d.setAgentCode(viewId, this.d.currentRevision(viewId));
       // A new session numbers its revisions from 1 again. Replay protection still holds
       // within the session; across sessions the signature already binds identity and View.
       if (!created.resumed) this.d.setAcceptedRevision(viewId, 0);
+      if (this.removed.has(viewId)) return;
       await this.openStream(viewId);
     } catch (err) {
       if (!this.refused(viewId, err, { entryId, text: request, examples: all })) {
@@ -953,29 +1038,21 @@ class AgentSessionStoreImpl extends MailspringStore {
   }
 
   /**
-   * Shows the panel for a View without contacting the backend: the `try` card for a starter
-   * being previewed, or an empty `edit` composer. A session the user already talked to keeps
-   * its transcript. Nothing is created until the first message, which goes through start(),
-   * since the View may never have had a session (the backend resumes one if it does).
+   * Shows the panel for a View: the transcript of a session the user already talked to here,
+   * or a compact composer. Attaches to the View's server session if it has one, which replays
+   * its history; a `no_session` answer leaves the next message to start one. Nothing is
+   * created until that message, which goes through start(), since the View may never have had
+   * a session (the backend resumes one if it does).
    */
-  preview(viewId: string, name: string, intro: 'try' | 'edit') {
+  async open(viewId: string, name: string) {
     const existing = this.session(viewId);
     this.ensure(viewId, name);
     const rt = this.runtime(viewId);
     if (!rt.abort && (!existing || isUntouched(existing))) {
       rt.needsSession = rt.needsSession || 'none';
-      this.update(viewId, () => ({ status: 'idle', working: false, error: null, intro }));
+      this.update(viewId, () => ({ status: 'idle', working: false, error: null, intro: true }));
     }
     this.setActive(viewId);
-  }
-
-  /**
-   * Moves a View from its intro to the composer. Attaches to the View's server session if it
-   * has one, which replays its history; a `no_session` answer leaves the next message to
-   * start one. Reading the stream never creates a session.
-   */
-  async chat(viewId: string) {
-    this.update(viewId, () => ({ intro: 'edit' }));
     try {
       await this.openStream(viewId);
     } catch {
@@ -995,6 +1072,8 @@ class AgentSessionStoreImpl extends MailspringStore {
     const examples = [...rt.staged.values()];
     const trimmed = (text || '').trim();
     if (!trimmed && !examples.length) return;
+    rt.checkpointDue = true;
+    if (!rt.needsSession && this.codeChangedSinceAgent(viewId)) rt.needsSession = 'fresh';
     if (rt.needsSession) {
       const s = this.session(viewId);
       await this.start({
@@ -1215,19 +1294,49 @@ class AgentSessionStoreImpl extends MailspringStore {
     }
   }
 
-  async install(viewId: string) {
-    try {
-      this.d.promoteDraft(viewId);
-    } catch (err) {
-      this.update(viewId, () => ({ error: { code: 'install', message: err.message } }));
-      return;
-    }
-    this.close(viewId);
+  private codeChangedSinceAgent(viewId: string) {
+    const known = this.d.agentCode(viewId);
+    return !!known && known !== this.d.currentRevision(viewId);
   }
 
-  async discard(viewId: string) {
-    this.d.discardDraft(viewId);
+  /** Restores the View as it was before the latest request that changed it. */
+  async revert(viewId: string) {
+    try {
+      this.d.revertView(viewId);
+    } catch (err) {
+      this.update(viewId, () => ({ error: { code: 'revert', message: err.message } }));
+      return;
+    }
+    const fresh = this.codeChangedSinceAgent(viewId);
+    this.update(viewId, (s) => ({
+      canRevert: this.d.hasCheckpoint(viewId),
+      transcript: [
+        ...s.transcript,
+        {
+          id: localId('revert'),
+          role: 'system',
+          text: fresh
+            ? localized(
+                'Reverted to the earlier version. Your next message starts a fresh chat with this code.'
+              )
+            : localized('Reverted to the earlier version.'),
+          ts: Date.now(),
+        },
+      ],
+    }));
+  }
+
+  /**
+   * For a View being removed: stops the agent if it's mid-turn, closes the session and drops
+   * what the store keeps for the View.
+   */
+  forget(viewId: string) {
+    const s = this.session(viewId);
+    if (s && s.working) this.d.transport.interrupt(viewId).catch(() => {});
+    this.removed.add(viewId);
     this.close(viewId);
+    this.d.setAcceptedRevision(viewId, 0);
+    this.d.setAgentCode(viewId, null);
   }
 
   /**
@@ -1270,9 +1379,7 @@ export const AgentActions = {
     AgentSessionStore.start(opts),
   resume: async (viewId: string, name: string) => AgentSessionStore.resume(viewId, name),
   setActive: async (viewId: string | null) => AgentSessionStore.setActive(viewId),
-  preview: async (viewId: string, name: string, intro: 'try' | 'edit') =>
-    AgentSessionStore.preview(viewId, name, intro),
-  chat: async (viewId: string) => AgentSessionStore.chat(viewId),
+  open: async (viewId: string, name: string) => AgentSessionStore.open(viewId, name),
   prefill: async (viewId: string, text: string) => AgentSessionStore.prefill(viewId, text),
   sendMessage: async (viewId: string, text: string) => AgentSessionStore.sendMessage(viewId, text),
   retry: async (viewId: string) => AgentSessionStore.retry(viewId),
@@ -1291,7 +1398,6 @@ export const AgentActions = {
   interrupt: async (viewId: string) => AgentSessionStore.interrupt(viewId),
   raiseBudget: async (viewId: string) => AgentSessionStore.raiseBudget(viewId),
   stopBudget: async (viewId: string) => AgentSessionStore.stopBudget(viewId),
-  install: async (viewId: string) => AgentSessionStore.install(viewId),
-  discard: async (viewId: string) => AgentSessionStore.discard(viewId),
+  revert: async (viewId: string) => AgentSessionStore.revert(viewId),
   close: async (viewId: string) => AgentSessionStore.close(viewId),
 };

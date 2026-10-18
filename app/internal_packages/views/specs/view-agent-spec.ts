@@ -234,8 +234,13 @@ describe('Views agent: diagnostics relay', function () {
 
 describe('Views agent: session store', function () {
   let transport: { [K in keyof AgentTransport]: jasmine.Spy };
-  let previewAndWait: jasmine.Spy;
+  let applyAndWait: jasmine.Spy;
+  let showView: jasmine.Spy;
+  let onScreen: boolean;
+  let screenListeners: (() => void)[];
   let accepted: { [viewId: string]: number };
+  // The View on disk, by its View.jsx text, and the checkpoints saved from it.
+  let disk: { code: string | null; checkpoints: string[]; agentCode: string | null };
   let keys: ReturnType<typeof keypair>;
   const examples: Example[] = [
     {
@@ -254,9 +259,14 @@ describe('Views agent: session store', function () {
   beforeEach(() => {
     keys = keypair();
     accepted = {};
-    previewAndWait = jasmine
-      .createSpy('previewAndWait')
-      .andReturn(Promise.resolve({ status: 'ok', diagnostics: [] }));
+    showView = jasmine.createSpy('showView');
+    onScreen = false;
+    screenListeners = [];
+    disk = { code: 'existing', checkpoints: [], agentCode: null };
+    applyAndWait = jasmine.createSpy('applyAndWait').andCallFake(async (viewId, revision) => {
+      disk.code = revision.files['View.jsx'];
+      return { status: 'ok', diagnostics: [] };
+    });
     transport = {
       createSession: jasmine
         .createSpy('createSession')
@@ -281,12 +291,24 @@ describe('Views agent: session store', function () {
       setAcceptedRevision: (viewId, revision) => (accepted[viewId] = revision),
       buildExamples: async () => examples,
       currentBundle: () => null,
-      previewAndWait,
+      applyAndWait,
       capturePreview: async () => ({ png: Buffer.from('png'), width: 10, height: 20 }),
+      showView,
+      onScreen: () => onScreen,
+      listenToScreen: (callback) => {
+        screenListeners.push(callback);
+        return () => (screenListeners = screenListeners.filter((c) => c !== callback));
+      },
       captureNow: async () => ({ png: Buffer.from('live'), width: 10, height: 20 }),
       captureForSend: async () => ({ png: Buffer.from('fresh'), width: 10, height: 20 }),
-      promoteDraft: jasmine.createSpy('promoteDraft'),
-      discardDraft: jasmine.createSpy('discardDraft'),
+      currentRevision: () => disk.code,
+      agentCode: () => disk.agentCode,
+      setAgentCode: (viewId, hash) => (disk.agentCode = hash),
+      saveCheckpoint: () => !!disk.code && !!disk.checkpoints.push(disk.code),
+      hasCheckpoint: () => disk.checkpoints.length > 0,
+      revertView: () => {
+        disk.code = disk.checkpoints.pop();
+      },
       showUpgrade: jasmine.createSpy('showUpgrade'),
     });
   });
@@ -620,7 +642,7 @@ describe('Views agent: session store', function () {
     AgentSessionStore.onEvent(VIEW, { ...event, id: 'e4', toolUseId: 'tu0', resolved: true });
     await flush();
     await flush();
-    expect(previewAndWait.callCount).toBe(1);
+    expect(applyAndWait.callCount).toBe(1);
     expect(accepted[VIEW]).toBe(1);
     const [, body] = transport.sendToolResult.mostRecentCall.args;
     expect(body.toolUseId).toBe('tu1');
@@ -628,7 +650,7 @@ describe('Views agent: session store', function () {
     expect(AgentSessionStore.session(VIEW).revisions[0].status).toBe('ok');
   });
 
-  it('refuses an unsigned revision without previewing it', async () => {
+  it('refuses an unsigned revision without applying it', async () => {
     await start();
     AgentSessionStore.onEvent(VIEW, {
       id: 'e5',
@@ -639,7 +661,7 @@ describe('Views agent: session store', function () {
     });
     await flush();
     await flush();
-    expect(previewAndWait).not.toHaveBeenCalled();
+    expect(applyAndWait).not.toHaveBeenCalled();
     const [, body] = transport.sendToolResult.mostRecentCall.args;
     expect(body.isError).toBe(true);
     expect(AgentSessionStore.session(VIEW).revisions[0].status).toBe('rejected');
@@ -708,9 +730,9 @@ describe('Views agent: session store', function () {
     expect(last.thumbnail).toContain(Buffer.from('fresh').toString('base64'));
   });
 
-  it('holds a screenshot until the latest revision finishes previewing', async () => {
+  it('holds a screenshot until the latest revision finishes applying', async () => {
     let finishPreview: (r: any) => void = null;
-    previewAndWait.andReturn(new Promise((resolve) => (finishPreview = resolve)));
+    applyAndWait.andReturn(new Promise((resolve) => (finishPreview = resolve)));
     await start();
     AgentSessionStore.onEvent(VIEW, {
       id: 'h1',
@@ -741,7 +763,7 @@ describe('Views agent: session store', function () {
   });
 
   it('captures anyway, with a note, when the latest revision failed', async () => {
-    previewAndWait.andReturn(Promise.resolve({ status: 'failed', diagnostics: [] }));
+    applyAndWait.andReturn(Promise.resolve({ status: 'failed', diagnostics: [] }));
     await start();
     AgentSessionStore.onEvent(VIEW, {
       id: 'f1',
@@ -905,7 +927,7 @@ describe('Views agent: session store', function () {
       input: { reason: 'Check the legend' },
       resolved: true,
     });
-    expect(previewAndWait).not.toHaveBeenCalled();
+    expect(applyAndWait).not.toHaveBeenCalled();
     expect(transport.sendToolResult).not.toHaveBeenCalled();
     const s = AgentSessionStore.session(VIEW);
     expect(s.pendingRequest).toBe(null);
@@ -979,5 +1001,131 @@ describe('Views agent: session store', function () {
     await AgentSessionStore.raiseBudget(VIEW);
     expect(transport.budget).toHaveBeenCalledWith(VIEW, 'raise');
     expect(AgentSessionStore.session(VIEW).usage.maxListCostCents).toBe(400);
+  });
+
+  describe('checkpoints and revert', function () {
+    const revisionEvent = (n: number, code: string) => {
+      const input = { ...REVISION, revision: n, files: { 'View.jsx': code } };
+      return {
+        id: `rev-event-${n}`,
+        type: 'tool_request' as const,
+        toolUseId: `tu-rev-${n}`,
+        name: 'preview_revision',
+        input,
+        signature: keys.sign({ identityId: IDENTITY, viewId: VIEW, ...input }),
+      };
+    };
+    const applyRevision = async (n: number, code: string) => {
+      AgentSessionStore.onEvent(VIEW, revisionEvent(n, code));
+      await flush();
+      await flush();
+    };
+
+    it('saves one checkpoint per request, before its first revision', async () => {
+      await start();
+      expect(AgentSessionStore.session(VIEW).canRevert).toBe(false);
+      await applyRevision(1, 'one');
+      await applyRevision(2, 'two');
+      expect(disk.checkpoints).toEqual(['existing']);
+      expect(AgentSessionStore.session(VIEW).canRevert).toBe(true);
+
+      await AgentSessionStore.sendMessage(VIEW, 'Make it blue');
+      await applyRevision(3, 'three');
+      expect(disk.checkpoints).toEqual(['existing', 'two']);
+      expect(disk.agentCode).toBe('three');
+    });
+
+    it('reverts, and the next message starts a fresh session with the restored code', async () => {
+      await start();
+      await applyRevision(1, 'one');
+      await AgentSessionStore.revert(VIEW);
+      expect(disk.code).toBe('existing');
+      const s = AgentSessionStore.session(VIEW);
+      expect(s.canRevert).toBe(false);
+      expect(s.transcript.slice(-1)[0].text).toContain('fresh chat');
+
+      transport.createSession.reset();
+      await AgentSessionStore.sendMessage(VIEW, 'Try a table instead');
+      expect(transport.sendMessage).not.toHaveBeenCalled();
+      expect(transport.createSession.mostRecentCall.args[0].fresh).toBe(true);
+      expect(disk.agentCode).toBe('existing');
+    });
+
+    it('still applies a revision when the View cannot be checkpointed', async () => {
+      AgentSessionStore.configure({
+        ...AgentSessionStore['deps'],
+        saveCheckpoint: () => {
+          throw new Error('Unexpected token in manifest.json');
+        },
+      });
+      await start();
+      await applyRevision(1, 'fixed');
+      expect(disk.code).toBe('fixed');
+      expect(AgentSessionStore.session(VIEW).revisions[0].status).toBe('ok');
+    });
+
+    it('stops the agent and refuses later revisions once the View is removed', async () => {
+      await start();
+      AgentSessionStore.forget(VIEW);
+      expect(transport.interrupt).toHaveBeenCalledWith(VIEW);
+      expect(disk.agentCode).toBe(null);
+
+      const before = applyAndWait.callCount;
+      await applyRevision(1, 'resurrected');
+      expect(applyAndWait.callCount).toBe(before);
+      expect(disk.code).toBe('existing');
+    });
+
+    it('shows the View when a revision applies with the chat open', async () => {
+      await start();
+      await applyRevision(1, 'one');
+      expect(showView).toHaveBeenCalledWith(VIEW);
+      expect(disk.code).toBe('one');
+    });
+
+    it('holds revisions while the chat is closed and the View is off screen', async () => {
+      await start();
+      AgentSessionStore.setActive(null);
+      await applyRevision(1, 'one');
+      expect(applyAndWait).not.toHaveBeenCalled();
+      expect(showView).not.toHaveBeenCalled();
+      expect(AgentSessionStore.session(VIEW).revisions[0].status).toBe('applying');
+
+      AgentSessionStore.setActive(VIEW);
+      await flush();
+      await flush();
+      expect(showView).toHaveBeenCalledWith(VIEW);
+      expect(disk.code).toBe('one');
+      expect(AgentSessionStore.session(VIEW).revisions[0].status).toBe('ok');
+    });
+
+    it('applies in place, without navigating, when the user is looking at the View', async () => {
+      await start();
+      AgentSessionStore.setActive(null);
+      await applyRevision(1, 'one');
+      onScreen = true;
+      screenListeners.forEach((c) => c());
+      await flush();
+      await flush();
+      expect(disk.code).toBe('one');
+      expect(showView).not.toHaveBeenCalled();
+    });
+
+    it('drops a held revision when the View is removed', async () => {
+      await start();
+      AgentSessionStore.setActive(null);
+      await applyRevision(1, 'one');
+      AgentSessionStore.forget(VIEW);
+      await flush();
+      expect(applyAndWait).not.toHaveBeenCalled();
+      expect(disk.code).toBe('existing');
+    });
+
+    it('keeps the session when the code is what the agent left', async () => {
+      await start();
+      await applyRevision(1, 'one');
+      await AgentSessionStore.sendMessage(VIEW, 'Make it blue');
+      expect(transport.sendMessage).toHaveBeenCalled();
+    });
   });
 });

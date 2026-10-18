@@ -5,15 +5,19 @@ import React from 'react';
 import classnames from 'classnames';
 import { localized } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
-import { ViewManifest, ViewRegistryEvents, installedViews } from '../view-registry';
-import { promoteDraft, discardDraft } from '../authoring/drafts';
+import { ViewManifest, ViewRegistryEvents, allViews } from '../view-registry';
+import { isPinned, onPinsChanged, setPinned } from '../nav/pins';
+import { ViewBadgeEvents, badgeFor } from '../nav/badges';
 import { openView } from '../authoring';
+import { createUnbuiltView } from '../authoring/revisions';
+import { openPanelForView } from '../authoring-panel';
 import { Starter, installStarter, listStarters } from './starters';
 import { ThumbnailEvents, thumbnailPath } from './thumbnails';
 import { removeView } from './view-actions';
 import { ModelBadge } from '../local-model/model-badge';
 import {
   isBuilding,
+  isWaitingForUser,
   listenToSessions,
   newViewId,
   refreshUsage,
@@ -75,12 +79,16 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
 
   componentDidMount() {
     const reload = () => this.setState(this._load());
+    const rerender = () => this.forceUpdate();
     ViewRegistryEvents.on('changed', reload);
     ThumbnailEvents.on('changed', reload);
+    ViewBadgeEvents.on('changed', rerender);
     this._unsubscribers = [
       () => ViewRegistryEvents.removeListener('changed', reload),
       () => ThumbnailEvents.removeListener('changed', reload),
+      () => ViewBadgeEvents.removeListener('changed', rerender),
       listenToSessions(() => this.forceUpdate()),
+      onPinsChanged(() => this.forceUpdate()),
     ];
     refreshUsage();
   }
@@ -90,7 +98,7 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
   }
 
   _load() {
-    const views = installedViews();
+    const views = allViews();
     const thumbnailStamps = {};
     views.forEach((v) => (thumbnailStamps[v.id] = thumbnailStamp(v.id)));
     return { views, starters: listStarters(), thumbnailStamps };
@@ -107,7 +115,9 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
     const request = this.state.request.trim();
     if (!name || !request) return;
     try {
-      startAuthoring({ viewId: newViewId(name), name, request });
+      const viewId = newViewId(name);
+      createUnbuiltView(viewId, name);
+      startAuthoring({ viewId, name, request });
     } catch (err) {
       showError(err);
       return;
@@ -116,14 +126,17 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
     this.setState({ creating: false, name: '', request: '', notice: null });
   };
 
-  _onTryStarter = (starter: Starter) => {
+  _onAddStarter = (starter: Starter) => {
     try {
-      const viewId = installStarter(starter, { asDraft: true });
+      const viewId = installStarter(starter);
       if (starter.placement === 'page') {
         openView(viewId);
       } else {
         this.setState({
-          notice: localized('“%@” appears beside conversations when you open one.', starter.name),
+          notice: localized(
+            'Added “%@”. It appears beside conversations when you open one.',
+            starter.name
+          ),
         });
       }
     } catch (err) {
@@ -236,23 +249,32 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
     );
   }
 
-  _renderBadges(view: { placement: string; source?: string; id?: string }) {
+  _renderBadges(view: { placement: string; id?: string; built?: boolean }) {
+    const waiting = view.id && isWaitingForUser(view.id);
+    const building = !waiting && view.id && isBuilding(view.id);
     return (
       <div className="views-home-badges">
-        <span className="views-home-badge">
-          {view.placement === 'page' ? localized('Page') : localized('Sidebar')}
-        </span>
-        {view.source === 'draft' && (
-          <span className="views-home-badge draft">{localized('Draft')}</span>
+        {view.built !== false && (
+          <span className="views-home-badge">
+            {view.placement === 'page' ? localized('Page') : localized('Sidebar')}
+          </span>
         )}
-        {view.id && isBuilding(view.id) && (
-          <span className="views-home-badge working">{localized('Building…')}</span>
+        {view.id && badgeFor(view.id) && (
+          <span className="views-home-badge count">{badgeFor(view.id)}</span>
+        )}
+        {building && <span className="views-home-badge working">{localized('Building…')}</span>}
+        {waiting && (
+          <span className="views-home-badge working">{localized('Waiting for you')}</span>
+        )}
+        {view.built === false && !building && !waiting && (
+          <span className="views-home-badge">{localized('Not built yet')}</span>
         )}
       </div>
     );
   }
 
   _renderViewCard(view: ViewManifest) {
+    if (!view.built) return this._renderUnbuiltCard(view);
     const removable = view.source !== 'example';
     return (
       <div key={view.id} className="views-home-card">
@@ -274,9 +296,9 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
               {localized('Open')}
             </button>
           )}
-          {view.source === 'draft' && (
-            <button className="btn" onClick={() => this._guard(() => promoteDraft(view.id))}>
-              {localized('Keep')}
+          {view.placement === 'page' && (
+            <button className="btn" onClick={() => setPinned(view.id, !isPinned(view.id))}>
+              {isPinned(view.id) ? localized('Unpin') : localized('Pin')}
             </button>
           )}
           {declaredCredentials(view.id).length > 0 && (
@@ -284,17 +306,38 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
               {localized('Credentials')}
             </button>
           )}
-          {view.source === 'draft' ? (
-            <button className="btn" onClick={() => this._guard(() => discardDraft(view.id))}>
-              {localized('Discard')}
+          {removable && (
+            <button className="btn" onClick={() => this._guard(() => removeView(view))}>
+              {localized('Remove')}
             </button>
-          ) : (
-            removable && (
-              <button className="btn" onClick={() => this._guard(() => removeView(view))}>
-                {localized('Remove')}
-              </button>
-            )
           )}
+        </div>
+      </div>
+    );
+  }
+
+  // Its chat is the only way back to a View the agent hasn't built yet, so the card leads there.
+  _renderUnbuiltCard(view: ViewManifest) {
+    const openChat = () => openPanelForView(view.id).catch(showError);
+    return (
+      <div key={view.id} className="views-home-card">
+        {this._renderThumbnail(view)}
+        <div className="views-home-card-body">
+          <div className="views-home-card-header">
+            <div className="views-home-card-name">{view.name}</div>
+            {this._renderBadges(view)}
+          </div>
+          <div className="views-home-card-description">
+            {localized('Open its chat to see how it’s going or keep building.')}
+          </div>
+        </div>
+        <div className="views-home-card-actions">
+          <button className="btn" onClick={openChat}>
+            {localized('Open Chat')}
+          </button>
+          <button className="btn" onClick={() => this._guard(() => removeView(view))}>
+            {localized('Remove')}
+          </button>
         </div>
       </div>
     );
@@ -320,10 +363,10 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
         <div className="views-home-card-actions">
           <button
             className="btn btn-emphasis"
-            title={localized('Preview it as a draft you can keep or discard')}
-            onClick={() => this._onTryStarter(starter)}
+            title={localized('Add it to your Views')}
+            onClick={() => this._onAddStarter(starter)}
           >
-            {localized('Try')}
+            {localized('Add')}
           </button>
         </div>
       </div>

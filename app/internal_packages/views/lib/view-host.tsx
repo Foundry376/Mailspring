@@ -10,7 +10,7 @@ import {
   compatibility,
   rebuildRequest,
 } from './api-version';
-import { ViewRegistryEvents, ViewsChange, installedViews } from './view-registry';
+import { ViewRegistryEvents, ViewsChange, allViews } from './view-registry';
 import {
   CONSENTED_PERMISSIONS,
   ConsentEvents,
@@ -153,7 +153,7 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
 
   _readConsent() {
     if (this.props.mock) return null;
-    const view = installedViews().find((v) => v.id === this.props.viewId);
+    const view = allViews().find((v) => v.id === this.props.viewId);
     const pending = view && unapprovedGrants(view);
     return pending ? { pending, widening: hasApproval(view.id), declined: false } : null;
   }
@@ -166,7 +166,7 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
 
   /** Reads the View's declared API version from its manifest on disk. */
   _readCompat() {
-    const view = installedViews().find((v) => v.id === this.props.viewId);
+    const view = allViews().find((v) => v.id === this.props.viewId);
     const version = view ? view.apiVersion : CURRENT_API_VERSION;
     return { result: compatibility(version), version };
   }
@@ -452,7 +452,7 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
   _renderConsentCard() {
     const { consent } = this.state;
     if (!consent) return null;
-    const view = installedViews().find((v) => v.id === this.props.viewId);
+    const view = allViews().find((v) => v.id === this.props.viewId);
     const name = view ? view.name : this.props.viewId;
     const { permissions, network } = consent.pending;
     const credentials = credentialsFromManifest(view && view.json);

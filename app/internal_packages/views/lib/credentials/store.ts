@@ -5,7 +5,7 @@ import {
   credentialBinding,
   credentialsFromManifest,
 } from '../../../../src/browser/view-credential-policy';
-import { installedViews } from '../view-registry';
+import { allViews } from '../view-registry';
 
 /**
  * Host-side storage for View credentials. Secrets live in the system keychain through
@@ -30,7 +30,7 @@ const keyName = (viewId: string, credentialId: string) =>
 const cache = new Map<string, StoredCredential | null>();
 
 export function declaredCredentials(viewId: string): ViewCredential[] {
-  const view = installedViews().find((v) => v.id === viewId);
+  const view = allViews().find((v) => v.id === viewId);
   return view ? credentialsFromManifest(view.json) : [];
 }
 

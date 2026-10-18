@@ -83,8 +83,8 @@ export function networkGrantsFromManifest(manifest: any): string[] {
 
 /**
  * What the user has approved for each View, by id: `{ [viewId]: { permissions, network } }`.
- * Written only by the host window's consent card (views/lib/consent.ts). Drafts and installed
- * copies of a View share one record, so a revision can never use more than the user allowed.
+ * Written only by the host window's consent card (views/lib/consent.ts). Every revision of a
+ * View shares one record, so a revision can never use more than the user allowed.
  */
 export const APPROVALS_CONFIG_KEY = 'core.views.approvals';
 

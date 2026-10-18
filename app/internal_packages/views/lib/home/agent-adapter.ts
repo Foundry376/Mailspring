@@ -12,6 +12,16 @@ export function isBuilding(viewId: string) {
   return !!(session && session.working);
 }
 
+/**
+ * Whether the agent is waiting on the user while the View's chat is closed: a revision held
+ * until they come back to it, or a question for them.
+ */
+export function isWaitingForUser(viewId: string) {
+  const session = AgentSessionStore.session(viewId);
+  if (!session || AgentSessionStore.activeViewId() === viewId) return false;
+  return !!session.pendingRequest || session.revisions.some((r) => r.status === 'applying');
+}
+
 export function listenToSessions(callback: () => void): () => void {
   return AgentSessionStore.listen(callback);
 }
@@ -29,6 +39,11 @@ export function upgradeNotice(): LimitNotice | null {
 
 export function showUpgrade(notice: LimitNotice) {
   AgentSessionStore.showUpgradeForNotice(notice);
+}
+
+/** Ends the View's authoring session in this window and drops its agent bookkeeping. */
+export function forgetSession(viewId: string) {
+  AgentSessionStore.forget(viewId);
 }
 
 export function refreshUsage() {

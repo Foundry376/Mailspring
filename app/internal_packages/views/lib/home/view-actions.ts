@@ -1,22 +1,39 @@
-import fs from 'fs';
-import path from 'path';
 import { localized } from 'mailspring-exports';
-import { ViewManifest, installDir, notifyViewsChanged } from '../view-registry';
-import { discardDraft } from '../authoring/drafts';
+import { ViewManifest, notifyViewsChanged } from '../view-registry';
+import { deleteViewFiles } from '../authoring/revisions';
 import { ViewsNavStore } from '../views-nav';
 import { removeThumbnail } from './thumbnails';
 import { forgetView } from '../consent';
+import { setPinned } from '../nav/pins';
+import { clearBadge } from '../nav/badges';
+import { forgetSession } from './agent-adapter';
 
 export function openViewsHome() {
   ViewsNavStore.showHome();
 }
 
 /**
- * Deletes the View's installed copy, draft, thumbnail, approvals and credentials after
- * confirming. Its metadata
- * (`view:<id>`) stays on the user's threads and expires under the server's retention policy,
- * so removing a View never rewrites mail. Bundled examples (dev mode) can't be removed.
+ * Deletes everything this computer keeps for a View: its files and checkpoints, thumbnail,
+ * pin, badge, approvals, credentials, agent bookkeeping and its webview's own storage. Its
+ * metadata (`view:<id>`) stays on the user's threads and expires under the server's retention
+ * policy, so removing a View never rewrites mail.
  */
+export function purgeView(viewId: string) {
+  if (ViewsNavStore.viewId() === viewId) openViewsHome();
+  forgetSession(viewId);
+  deleteViewFiles(viewId);
+  removeThumbnail(viewId);
+  setPinned(viewId, false);
+  clearBadge(viewId);
+  forgetView(viewId);
+  const partition = require('@electron/remote').session.fromPartition(`persist:view-${viewId}`);
+  Promise.all([partition.clearStorageData(), partition.clearCache()]).catch((err: Error) =>
+    console.warn(`Views: clearing ${viewId}'s storage: ${err.message}`)
+  );
+  notifyViewsChanged([viewId], true);
+}
+
+/** Removes a View after confirming. Bundled examples (dev mode) can't be removed. */
 export function removeView(view: ViewManifest) {
   const chosen = require('@electron/remote').dialog.showMessageBoxSync({
     type: 'warning',
@@ -27,12 +44,6 @@ export function removeView(view: ViewManifest) {
     detail: localized('The View is removed from this computer. Your mail is not changed.'),
   });
   if (chosen !== 0) return false;
-
-  if (ViewsNavStore.viewId() === view.id) openViewsHome();
-  discardDraft(view.id);
-  fs.rmSync(path.join(installDir(), view.id), { recursive: true, force: true });
-  removeThumbnail(view.id);
-  forgetView(view.id);
-  notifyViewsChanged([view.id], true);
+  purgeView(view.id);
   return true;
 }

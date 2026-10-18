@@ -113,23 +113,6 @@
     text-overflow: ellipsis;
   }
 
-  .ap-status {
-    color: @ap-muted;
-    font-size: 12px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    &.tone-attention {
-      color: @ap-accent;
-    }
-    &.tone-warning {
-      color: @ap-warning;
-    }
-    &.tone-error {
-      color: @ap-error;
-    }
-  }
-
   .ap-cloud-hint {
     flex-shrink: 1;
     min-width: 0;
@@ -411,10 +394,6 @@
     .ap-ready-spacer {
       flex: 1;
     }
-    .ap-consent {
-      flex: 1;
-      margin-top: 0;
-    }
   }
 
   .ap-revision-line {
@@ -452,27 +431,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-
-  .ap-consent {
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid @ap-border;
-
-    .ap-consent-title {
-      font-weight: 600;
-      margin-bottom: 4px;
-    }
-    ul {
-      margin: 0;
-      padding-left: 18px;
-      color: @ap-muted;
-    }
-    code {
-      font-family: Menlo, Consolas, monospace;
-      font-size: 11.5px;
-      color: @ap-text;
-    }
   }
 
   .ap-banner {
@@ -989,53 +947,12 @@
   }
 }
 
-// ── Starter preview ──────────────────────────────────────────────────────────
+// ── Compact intro ────────────────────────────────────────────────────────────
 
 .views-authoring-panel {
   &.compact .ap-transcript {
     flex: none;
     padding-bottom: 12px;
-  }
-
-  .ap-try {
-    margin: 4px 2px;
-    padding: 14px 14px 12px;
-    border-radius: 10px;
-    background: @ap-bg-raised;
-    border: 1px solid @ap-border;
-
-    .ap-try-text {
-      font-size: 14px;
-      line-height: 1.5;
-      strong {
-        font-weight: 600;
-      }
-    }
-    .ap-try-footer {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 12px;
-    }
-    .ap-ready-spacer {
-      flex: 1;
-    }
-    .ap-consent {
-      margin-top: 12px;
-    }
-  }
-
-  .ap-link {
-    padding: 0;
-    border: 0;
-    background: none;
-    color: @ap-muted;
-    font-size: 12px;
-    cursor: pointer;
-    &:hover {
-      color: @ap-text;
-      text-decoration: underline;
-    }
   }
 }
 

@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { EventEmitter } from 'events';
 import { hostsFor } from '../authoring/hosts';
-import { installedViews } from '../view-registry';
+import { allViews } from '../view-registry';
 import { Diagnostic, ViewDiagnostics } from '../authoring/diagnostics';
 
 // render-ok fires once the View mounts without errors, usually before its subscriptions have
@@ -64,7 +64,7 @@ export function captureThumbnailsOnRender() {
   // A sidebar View's capture is a narrow strip about whichever thread happened to be open;
   // its card shows the placeholder icon instead.
   const isPage = (viewId: string) => {
-    const view = installedViews().find((v) => v.id === viewId);
+    const view = allViews().find((v) => v.id === viewId);
     return !!view && view.placement === 'page';
   };
   const schedule = (viewId: string, delay: number, onlyIfMissing: boolean) => {

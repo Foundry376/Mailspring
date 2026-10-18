@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { installedViews } from '../view-registry';
+import { allViews } from '../view-registry';
 import { ViewHost, ViewPlacement } from '../view-host';
 import { MockSource } from './mock-bridge';
 import { loadMockData } from './mock-data';
@@ -31,7 +31,7 @@ export async function renderMockScreenshot(
   viewId: string,
   { width, height, placement, settleMs = SETTLE_MS }: MockRenderOptions
 ): Promise<Electron.NativeImage> {
-  const view = installedViews().find((v) => v.id === viewId);
+  const view = allViews().find((v) => v.id === viewId);
   if (!view) throw new Error(`No View "${viewId}" is installed.`);
   const source = new MockSource(viewId, view.permissions, loadMockData(view.dir));
 

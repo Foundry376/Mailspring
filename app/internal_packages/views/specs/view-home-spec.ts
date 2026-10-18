@@ -1,12 +1,14 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { installedViews, VIEW_ID_REGEXP } from '../lib/view-registry';
-import { hasDraft } from '../lib/authoring/drafts';
+import { allViews, VIEW_ID_REGEXP } from '../lib/view-registry';
+import { createUnbuiltView, saveCheckpoint } from '../lib/authoring/revisions';
+import { isPinned, setPinned } from '../lib/nav/pins';
 import { listStarters, installStarter, startersDir } from '../lib/home/starters';
 import { newViewId } from '../lib/home/agent-adapter';
 import { removeView } from '../lib/home/view-actions';
 import { thumbnailPath } from '../lib/home/thumbnails';
+import { AgentSessionStore } from '../lib/agent/store';
 
 describe('Views home', function () {
   let configDir: string;
@@ -50,49 +52,74 @@ describe('Views home', function () {
       const viewId = installStarter(board);
 
       expect(viewId).not.toEqual('kanban');
-      const view = installedViews().find((v) => v.id === viewId);
-      expect(view.source).toBe('installed');
+      const view = allViews().find((v) => v.id === viewId);
+      expect(view.source).toBe('user');
       expect(view.name).toBe('Board');
       expect(view.json.id).toBe(viewId);
       expect(view.json.starter).toEqual({ id: 'kanban', version: '1.0.0' });
       expect(fs.readFileSync(path.join(view.dir, 'View.jsx'), 'utf8')).toBe(
         fs.readFileSync(path.join(startersDir(), 'kanban', 'View.jsx'), 'utf8')
       );
-      expect(hasDraft(viewId)).toBe(false);
-    });
-
-    it('can install as a draft to try before keeping', function () {
-      const viewId = installStarter(listStarters()[0], { asDraft: true });
-      expect(hasDraft(viewId)).toBe(true);
-      expect(fs.existsSync(path.join(configDir, 'views', viewId))).toBe(false);
+      expect(isPinned(viewId)).toBe(false);
     });
   });
 
   describe('removeView', function () {
     let dialog;
+    let clearStorageData: jasmine.Spy;
 
     beforeEach(function () {
-      dialog = require('@electron/remote').dialog;
+      const remote = require('@electron/remote');
+      dialog = remote.dialog;
+      clearStorageData = jasmine.createSpy('clearStorageData').andReturn(Promise.resolve());
+      spyOn(remote.session, 'fromPartition').andReturn({
+        clearStorageData,
+        clearCache: () => Promise.resolve(),
+      });
+      const config = {};
+      spyOn(AppEnv.config, 'get').andCallFake((key) => config[key]);
+      spyOn(AppEnv.config, 'set').andCallFake((key, value) => (config[key] = value));
+      // Other specs leave the store configured with fakes.
+      AgentSessionStore.configure({});
     });
 
-    it('removes the installed copy, draft and thumbnail once confirmed', function () {
+    it("removes the View's files, checkpoints, thumbnail, pin and storage once confirmed", function () {
       const viewId = installStarter(listStarters()[0]);
-      installStarter(listStarters()[0], { asDraft: true });
+      saveCheckpoint(viewId);
+      setPinned(viewId, true);
       fs.mkdirSync(path.dirname(thumbnailPath(viewId)), { recursive: true });
       fs.writeFileSync(thumbnailPath(viewId), 'png');
 
+      AppEnv.config.set('core.views.agentCode', { [viewId]: 'abc' });
+      AppEnv.config.set('core.views.agentRevisions', { [viewId]: 4 });
+      AppEnv.config.set('core.views.approvals', { [viewId]: { permissions: [], network: [] } });
+
       spyOn(dialog, 'showMessageBoxSync').andReturn(0);
-      const view = installedViews().find((v) => v.id === viewId);
+      const view = allViews().find((v) => v.id === viewId);
       expect(removeView(view)).toBe(true);
-      expect(installedViews().find((v) => v.id === viewId)).toBeUndefined();
+      expect(AppEnv.config.get('core.views.agentCode')).toEqual({});
+      expect(AppEnv.config.get('core.views.agentRevisions')).toEqual({});
+      expect(AppEnv.config.get('core.views.approvals')).toEqual({});
+      expect(allViews().find((v) => v.id === viewId)).toBeUndefined();
+      expect(fs.existsSync(path.join(configDir, 'views-checkpoints', viewId))).toBe(false);
       expect(fs.existsSync(thumbnailPath(viewId))).toBe(false);
+      expect(isPinned(viewId)).toBe(false);
+      expect(clearStorageData).toHaveBeenCalled();
+    });
+
+    it('removes a View the agent never built', function () {
+      const viewId = newViewId('Board');
+      createUnbuiltView(viewId, 'Board');
+      spyOn(dialog, 'showMessageBoxSync').andReturn(0);
+      expect(removeView(allViews().find((v) => v.id === viewId))).toBe(true);
+      expect(fs.existsSync(path.join(configDir, 'views', viewId))).toBe(false);
     });
 
     it('does nothing when cancelled', function () {
       const viewId = installStarter(listStarters()[0]);
       spyOn(dialog, 'showMessageBoxSync').andReturn(1);
-      expect(removeView(installedViews().find((v) => v.id === viewId))).toBe(false);
-      expect(installedViews().find((v) => v.id === viewId)).toBeDefined();
+      expect(removeView(allViews().find((v) => v.id === viewId))).toBe(false);
+      expect(allViews().find((v) => v.id === viewId)).toBeDefined();
     });
   });
 });

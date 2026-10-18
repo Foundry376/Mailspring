@@ -1,16 +1,16 @@
 import React from 'react';
 import { localized } from 'mailspring-exports';
 import { NavRailItem, NavRailSection } from 'mailspring-component-kit';
-import { ViewManifest, ViewRegistryEvents, installedViews } from '../view-registry';
+import { ViewManifest, ViewRegistryEvents, allViews } from '../view-registry';
 import { ViewsNavStore } from '../views-nav';
 import { badgeFor, ViewBadgeEvents } from './badges';
+import { onPinsChanged, pinnedViewIds } from './pins';
 
-/**
- * The Views that get their own rail item: the user's installed page Views. Drafts stay on the
- * Views home until they're kept, which is what makes "draft" mean something.
- */
-export function railViews(views: ViewManifest[] = installedViews()) {
-  return views.filter((v) => v.placement === 'page' && v.source === 'installed');
+/** The Views that get their own rail item: pinned page Views, in the order they were pinned. */
+export function railViews(views: ViewManifest[] = allViews(), pinned = pinnedViewIds()) {
+  return pinned
+    .map((id) => views.find((v) => v.id === id && v.placement === 'page'))
+    .filter(Boolean);
 }
 
 // A manifest `icon` is a short emoji; anything else falls back to a monogram.
@@ -61,17 +61,20 @@ export class ViewsNavRailSection extends React.Component<Record<string, never>, 
   static displayName = 'ViewsNavRailSection';
 
   _unlisten: () => void;
+  _unlistenPins: () => void;
 
   state: State = this._snapshot();
 
   componentDidMount() {
     this._unlisten = ViewsNavStore.listen(this._refresh);
+    this._unlistenPins = onPinsChanged(this._refresh);
     ViewRegistryEvents.on('changed', this._refresh);
     ViewBadgeEvents.on('changed', this._refresh);
   }
 
   componentWillUnmount() {
     this._unlisten();
+    this._unlistenPins();
     ViewRegistryEvents.removeListener('changed', this._refresh);
     ViewBadgeEvents.removeListener('changed', this._refresh);
   }
@@ -88,7 +91,7 @@ export class ViewsNavRailSection extends React.Component<Record<string, never>, 
 
   render() {
     const { views, showing, viewId } = this.state;
-    // A draft opened from the home has no item of its own, so the Views item stays lit.
+    // An unpinned View opened from the home has no item of its own, so the Views item stays lit.
     const viewHasItem = views.some((v) => v.id === viewId);
     return (
       <NavRailSection label={localized('Views')}>

@@ -128,7 +128,7 @@ export interface PendingRequest {
 export interface RevisionEntry {
   revision: number;
   /** 'unknown' marks a revision rebuilt from replay before its outcome is known. */
-  status: 'previewing' | 'ok' | 'failed' | 'timeout' | 'rejected' | 'unknown';
+  status: 'applying' | 'ok' | 'failed' | 'timeout' | 'rejected' | 'unknown';
   summary: string;
   ts: number;
 }
@@ -149,11 +149,12 @@ export interface AgentSessionState {
   /** Set when the account's allowance stopped a build, message or budget raise. */
   limit?: LimitNotice | null;
   /**
-   * How the panel greets a View the user hasn't talked to the agent about yet: `try` for a
-   * starter being previewed (offers Install or Chat), `edit` for an existing View opened for
-   * changes. Opening either never creates an agent session; the first message does.
+   * Set when the panel opens on a View the user hasn't talked to the agent about yet, so it
+   * shows a compact composer. Opening never creates an agent session; the first message does.
    */
-  intro?: 'try' | 'edit' | null;
+  intro?: boolean;
+  /** The View has a checkpoint from before an earlier request that Revert restores. */
+  canRevert?: boolean;
   /**
    * A refusal the user can recover from, shown as a calm notice rather than an error: the
    * backend's generic `rate_limited` (deliberately without a reason) and `session_busy` (a

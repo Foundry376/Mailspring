@@ -30,7 +30,7 @@ describe('View API versions', function () {
     expect(shimsFor('2026-11-01', shims)).toEqual([]);
   });
 
-  it('stamps drafts without a version and leaves declared ones alone', () => {
+  it('stamps revisions without a version and leaves declared ones alone', () => {
     expect(withApiVersion({ name: 'x' } as any).apiVersion).toBe(CURRENT_API_VERSION);
     expect(withApiVersion({ name: 'x', apiVersion: '2026-10-01' } as any).apiVersion).toBe(
       '2026-10-01'

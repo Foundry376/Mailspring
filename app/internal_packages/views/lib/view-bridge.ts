@@ -484,6 +484,15 @@ export class ViewBridge {
         return {};
       },
 
+      // Keystrokes go to whichever WebContents has focus, so while the guest keeps it the
+      // keymaps never see Escape or other shortcuts aimed at the thread. Only the root sheet
+      // goes inert (and drops focus) when a sheet is pushed, and a page View is not the root.
+      'ui.showThread': async (ctx, params) => {
+        const result = await HANDLERS['ui.showThread'](ctx, params);
+        this.webview.blur();
+        return result;
+      },
+
       'ui.threadMenu': async (ctx, params) => {
         const { threadIds, anchor } = parse(
           z.object({

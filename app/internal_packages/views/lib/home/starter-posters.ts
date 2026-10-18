@@ -2,7 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import { nativeImage } from 'electron';
 import { currentThemeTokens } from '../theme-tokens';
-import { discardDraft } from '../authoring/drafts';
+import { notifyViewsChanged } from '../view-registry';
+import { deleteViewFiles } from '../authoring/revisions';
 import { renderMockScreenshot } from '../mock/mock-render';
 import { STARTER_POSTER_FILE, installStarter, listStarters } from './starters';
 
@@ -42,15 +43,15 @@ async function frameSidebar(image: Electron.NativeImage) {
 }
 
 /**
- * Regenerates the poster (`poster.png`) for every starter from its mock-data.json. Development only: the
- * images ship with the app. Each starter is installed as a draft so its files are served,
- * rendered from mock data, and discarded. `$m.ViewAuthoring.regenerateStarterPosters()`.
+ * Regenerates the poster (`poster.png`) for every starter from its mock-data.json. Development
+ * only: the images ship with the app. Each starter is copied to a temporary View so its files
+ * are served, rendered from mock data, and deleted. `$m.ViewAuthoring.regenerateStarterPosters()`.
  */
 export async function regenerateStarterPosters(only?: string[]) {
   const results: { [starterId: string]: string } = {};
   for (const starter of listStarters()) {
     if (only && !only.includes(starter.id)) continue;
-    const viewId = installStarter(starter, { asDraft: true });
+    const viewId = installStarter(starter);
     try {
       const page = starter.placement === 'page';
       let image = await renderMockScreenshot(viewId, page ? PAGE_RENDER : SIDEBAR_RENDER);
@@ -61,7 +62,8 @@ export async function regenerateStarterPosters(only?: string[]) {
     } catch (err) {
       results[starter.id] = err.message;
     } finally {
-      discardDraft(viewId);
+      deleteViewFiles(viewId);
+      notifyViewsChanged([viewId], true);
     }
   }
   return results;

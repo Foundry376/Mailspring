@@ -20,8 +20,8 @@ import {
   SessionActionsLike,
   TranscriptEntry,
 } from './types';
-import { openViewsHome } from '../home/view-actions';
-import { editButtonRect, focusedPageViewId } from './launch';
+import { editButtonRect } from './launch';
+import { ViewsNavStore } from '../views-nav';
 
 const GEOMETRY_KEY = 'views-authoring-panel-geometry';
 const EDGE = 12;
@@ -142,7 +142,7 @@ function turnStartedAt(session: AgentSessionState) {
 }
 
 // Long agent turns cycle through these so a multi-minute build doesn't look stalled. They're
-// flavor, not progress: concrete phases (previewing, fixing) always take precedence.
+// flavor, not progress: concrete phases (applying, fixing) always take precedence.
 const BUSY_LINES = [
   'Thinking about layout…',
   'Testing your view…',
@@ -171,7 +171,7 @@ function shuffledLineOrder(session: AgentSessionState) {
 function busyLabel(session: AgentSessionState, elapsedMs: number, lines: string[]) {
   if (session.status === 'connecting') return 'Connecting…';
   const rev = latestRevision(session);
-  if (rev && rev.status === 'previewing') return `Previewing revision ${rev.revision}…`;
+  if (rev && rev.status === 'applying') return `Applying revision ${rev.revision}…`;
   if (rev && rev.status !== 'ok') return 'Fixing errors…';
   const anchor = rev ? 'Updating the view…' : 'Building your view…';
   const slot = Math.floor(elapsedMs / BUSY_LINE_MS);
@@ -200,11 +200,11 @@ function anchorCorner(g: Geometry) {
 
 // The panel morphs to and from the Edit button only while the button's View is on screen.
 function morphFor(viewId: string, g: Geometry): Morph | null {
-  if (focusedPageViewId() !== viewId) return null;
+  if (ViewsNavStore.focusedPageViewId() !== viewId) return null;
   const rect = editButtonRect(viewId);
   if (!rect || g.collapsed) return null;
-  // Measured from the panel's bottom-right corner, which stays put whatever its height (the
-  // preview card makes the panel shorter than its saved geometry).
+  // Measured from the panel's bottom-right corner, which stays put whatever its height (a
+  // compact intro makes the panel shorter than its saved geometry).
   return {
     x: window.innerWidth - g.right - (rect.left + rect.width / 2),
     y: window.innerHeight - g.bottom - (rect.top + rect.height / 2),
@@ -217,35 +217,30 @@ function isUntouched(session: AgentSessionState) {
   return session.transcript.length === 0 && !session.working && !session.pendingRequest;
 }
 
-// The starter preview card shows until the user chats or installs.
-function showsTryCard(session: AgentSessionState) {
-  return session.intro === 'try' && isUntouched(session);
-}
-
 // An intro holds one card or one prompt, so the panel hugs it until the conversation starts.
 function isCompactIntro(session: AgentSessionState) {
   return !!session.intro && isUntouched(session) && !session.error;
 }
 
-// Header status when the agent isn't busy; busy phases come from busyLabel.
-function statusLine(session: AgentSessionState): { text: string; tone: string } {
-  if (showsTryCard(session)) return { text: 'Preview', tone: 'attention' };
-  if (isCompactIntro(session)) return { text: 'Ask for a change', tone: 'muted' };
-  const rev = latestRevision(session);
+// The header dot's color. The panel body says what's going on, so the header doesn't repeat it.
+function statusTone(session: AgentSessionState) {
+  if (isBusy(session)) return 'working';
+  if (isCompactIntro(session)) return 'muted';
   switch (session.status) {
     case 'budget_reached':
-      return { text: 'Paused', tone: 'warning' };
+      return 'warning';
     case 'terminated':
-      return { text: 'Session ended', tone: 'muted' };
+      return 'muted';
     case 'error':
-      return { text: 'Error', tone: 'error' };
+      return 'error';
     default:
       break;
   }
-  if (session.pendingRequest) return { text: 'Waiting for you', tone: 'attention' };
-  if (rev && rev.status === 'ok') return { text: `Ready — revision ${rev.revision}`, tone: 'ok' };
-  if (rev && rev.status === 'rejected') return { text: 'Revision rejected', tone: 'error' };
-  return { text: 'Idle', tone: 'muted' };
+  const rev = latestRevision(session);
+  if (session.pendingRequest) return 'attention';
+  if (rev && rev.status === 'ok') return 'ok';
+  if (rev && rev.status === 'rejected') return 'error';
+  return 'muted';
 }
 
 function Chip({ chip, onRemove }: { chip: ExampleChip; onRemove?: () => void }) {
@@ -356,7 +351,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
         const current = this.state.session;
         // Ages the "Live" badge if captures stop arriving (the View went off screen).
         this.setState({ now: Date.now() });
-        if (actions && actions.refreshScreenshot && current) {
+        if (actions && current) {
           actions.refreshScreenshot(current.viewId).catch(() => {});
         }
       }, SCREENSHOT_REFRESH_MS);
@@ -424,7 +419,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
   _onStoreChange = () => {
     const source = panelSource();
     const session = source ? source.store.activeSession() : null;
-    const accountUsage = source && source.store.accountUsage ? source.store.accountUsage() : null;
+    const accountUsage = source ? source.store.accountUsage() : null;
     if (accountUsage !== this.state.accountUsage) this.setState({ accountUsage });
 
     if (!session) {
@@ -631,17 +626,13 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
   };
 
   _renderHeader(session: AgentSessionState) {
-    // While busy, the header names the phase; the rotating flavor lines stay on the busy card.
-    const status = isBusy(session)
-      ? { text: busyLabel(session, 0, []), tone: 'working' }
-      : statusLine(session);
+    const tone = statusTone(session);
     const working = session.working || session.status === 'running';
     return (
       <div className="ap-header" onMouseDown={this._onHeaderMouseDown}>
-        <span className={classnames('ap-dot', `tone-${status.tone}`, { pulsing: working })} />
+        <span className={classnames('ap-dot', `tone-${tone}`, { pulsing: working })} />
         <div className="ap-title">
           <span className="ap-name">{session.name || 'New View'}</span>
-          <span className={classnames('ap-status', `tone-${status.tone}`)}>{status.text}</span>
         </div>
         {!this.state.geometry.collapsed && (
           <span
@@ -697,10 +688,9 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
   _renderTranscript(session: AgentSessionState) {
     return (
       <div className="ap-transcript" ref={(el) => (this._transcriptEl = el)}>
-        {showsTryCard(session) && this._renderTryCard(session)}
-        {session.transcript.length === 0 && !showsTryCard(session) && (
+        {session.transcript.length === 0 && (
           <div className="ap-empty">
-            {session.intro === 'edit'
+            {session.intro
               ? 'What would you like to change? Describe it, and drag in example emails if it helps.'
               : 'Describe the View you want, then drag a few example emails onto this panel.'}
           </div>
@@ -767,45 +757,6 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
       (t) => t.kind === 'request' && t.toolUseId === pending.toolUseId
     );
   }
-
-  // A starter being tried: nothing has been sent to the agent, and nothing will be until the
-  // user chats and sends a message.
-  _renderTryCard(session: AgentSessionState) {
-    return (
-      <div className="ap-try">
-        <div className="ap-try-text">
-          You're previewing the <strong>{session.name}</strong> view. Install it, or chat to
-          customize it.
-        </div>
-        <div className="ap-try-footer">
-          <button className="ap-link" onClick={this._onRemovePreview}>
-            Remove preview
-          </button>
-          <span className="ap-ready-spacer" />
-          <button
-            className="ap-btn"
-            onClick={() => this._run((a, v) => (a.chat ? a.chat(v) : Promise.resolve()))}
-          >
-            Chat
-          </button>
-          <button
-            className="ap-btn ap-btn-primary"
-            onClick={() => this._run((a, v) => a.install(v))}
-          >
-            Install
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  _onRemovePreview = () => {
-    const session = this.state.session;
-    if (!session) return;
-    // The draft is the View, so the page it was showing goes away with it.
-    if (focusedPageViewId() === session.viewId) openViewsHome();
-    this._run((a, v) => a.discard(v));
-  };
 
   _renderRevisionCard(key: string, rev: RevisionEntry) {
     return (
@@ -962,24 +913,25 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     );
   }
 
-  // Install and Discard live in the footer, shown only once the agent is done and the latest
-  // revision rendered; the revision cards in the chat are history.
-  _renderReadyBar(session: AgentSessionState) {
+  // Every revision is live as soon as it's applied, so the footer's only action is stepping back
+  // through the checkpoints saved before each request. It appears once the conversation has
+  // revisions, not on every View that was ever edited, and hides while the agent is mid-turn.
+  _renderRevertBar(session: AgentSessionState) {
     const rev = latestRevision(session);
-    if (!rev || (rev.status !== 'ok' && rev.status !== 'unknown')) return null;
-    if (isBusy(session) || session.pendingRequest) return null;
-    if (session.status === 'terminated' || session.status === 'budget_reached') return null;
+    if (!rev || !session.canRevert || isBusy(session) || session.pendingRequest) return null;
+    const failed = rev.status === 'failed' || rev.status === 'timeout';
     return (
       <div className="ap-ready">
         <span className="ap-ready-label">
-          Revision {rev.revision} {rev.status === 'ok' ? 'ready' : ''}
+          {failed ? `Revision ${rev.revision} didn't render` : `Revision ${rev.revision} is live`}
         </span>
         <span className="ap-ready-spacer" />
-        <button className="ap-btn ap-btn-primary" onClick={() => this._run((a, v) => a.install(v))}>
-          Install View
-        </button>
-        <button className="ap-btn ap-btn-ghost" onClick={() => this._run((a, v) => a.discard(v))}>
-          Discard
+        <button
+          className="ap-btn ap-btn-ghost"
+          title="Restore the version from before the agent's previous set of changes"
+          onClick={() => this._run((a, v) => a.revert(v))}
+        >
+          Revert
         </button>
       </div>
     );
@@ -1022,16 +974,14 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
             {notice.action === 'retry' ? (
               <button
                 className="ap-btn ap-btn-primary"
-                onClick={() => this._run((a, v) => (a.retry ? a.retry(v) : Promise.resolve()))}
+                onClick={() => this._run((a, v) => a.retry(v))}
               >
                 Retry
               </button>
             ) : (
               <button
                 className="ap-btn ap-btn-primary"
-                onClick={() =>
-                  this._run((a, v) => (a.startFresh ? a.startFresh(v) : Promise.resolve()))
-                }
+                onClick={() => this._run((a, v) => a.startFresh(v))}
               >
                 Start fresh
               </button>
@@ -1048,9 +998,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
             <div className="ap-actions ap-actions-end">
               <button
                 className="ap-btn ap-btn-primary"
-                onClick={() =>
-                  this._run((a, v) => (a.showUpgrade ? a.showUpgrade(v) : Promise.resolve()))
-                }
+                onClick={() => this._run((a, v) => a.showUpgrade(v))}
               >
                 Upgrade to Pro
               </button>
@@ -1155,8 +1103,6 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
   // While the agent is asking for something, the request's own controls are the only actions,
   // so the free-text composer steps aside and the transcript gets the room.
   _renderComposer(session: AgentSessionState) {
-    // The preview card carries its own actions until the user chooses Chat.
-    if (showsTryCard(session)) return null;
     const pending = session.pendingRequest;
     if (pending) {
       return pending.kind === 'examples' ? (
@@ -1171,7 +1117,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     const hint = messageLengthHint(this.state.draft.trim().length, this._messageLimit(session));
     return (
       <div className="ap-footer">
-        {this._renderReadyBar(session)}
+        {this._renderRevertBar(session)}
         {this._renderStaged(session)}
         <div className="ap-composer">
           <textarea
@@ -1209,7 +1155,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     const { session, geometry, dragDepth, anim, animFlip, leaving } = this.state;
     if (!session) return null;
 
-    // The preview card is short, so the panel hugs it instead of opening at chat height.
+    // A compact intro is one prompt, so the panel hugs it instead of opening at chat height.
     const compact = !geometry.collapsed && isCompactIntro(session);
     const style = {
       right: geometry.right,

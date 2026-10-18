@@ -42,14 +42,14 @@ describe('View credentials', () => {
 
   beforeEach(() => {
     keys = {};
-    spyOn(registry, 'installedViews').andCallFake(() =>
+    spyOn(registry, 'allViews').andCallFake(() =>
       Object.keys(manifests).map((id) => ({
         id,
         name: id,
         placement: 'page',
         permissions: [],
         dir: `/views/${id}`,
-        source: 'installed',
+        source: 'user',
         json: manifests[id],
       }))
     );

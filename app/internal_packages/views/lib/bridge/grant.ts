@@ -1,5 +1,5 @@
 import { Grant, FULL_GRANT } from '../../../mcp-server/lib/capabilities/grant';
-import { installedViews } from '../view-registry';
+import { allViews } from '../view-registry';
 import { CONSENTED_PERMISSIONS, ViewPermission, approvedPermissions } from '../consent';
 import { ViewError } from './errors';
 
@@ -19,7 +19,7 @@ export interface ViewGrant {
 }
 
 export function grantForView(viewId: string): ViewGrant {
-  const manifest = installedViews().find((v) => v.id === viewId);
+  const manifest = allViews().find((v) => v.id === viewId);
   const declared = manifest ? manifest.permissions : [];
   const permitted = approvedPermissions(
     viewId,

@@ -25,7 +25,7 @@ export type RequestKind = 'examples' | 'screenshot' | 'question';
 
 export interface RevisionEntry {
   revision: number;
-  status: 'previewing' | 'ok' | 'failed' | 'timeout' | 'rejected' | 'unknown';
+  status: 'applying' | 'ok' | 'failed' | 'timeout' | 'rejected' | 'unknown';
   summary?: string;
   ts?: number;
 }
@@ -71,7 +71,9 @@ export interface AgentSessionState {
   error: { code: string; message: string } | null;
   /** The account's allowance stopped a build, message or budget raise. */
   limit?: LimitNotice | null;
-  intro?: 'try' | 'edit' | null;
+  /** Opened on a View with no conversation yet: the panel shows a compact composer. */
+  intro?: boolean;
+  canRevert?: boolean;
   /** A recoverable refusal shown as a calm notice: Retry, or a fresh chat for the View. */
   notice?: {
     code: 'rate_limited' | 'session_busy' | 'session_turn_limit';
@@ -88,41 +90,38 @@ export interface SessionStoreLike {
   session(viewId: string): AgentSessionState | null;
   activeViewId(): string | null;
   activeSession(): AgentSessionState | null;
-  /** The account's View-building allowance, when known. Optional for older stores. */
-  accountUsage?(): AccountUsage | null;
+  /** The account's View-building allowance, when known. */
+  accountUsage(): AccountUsage | null;
   listen(callback: () => void): () => void;
 }
 
 export interface SessionActionsLike {
   setActive(viewId: string | null): Promise<void>;
   sendMessage(viewId: string, text: string): Promise<void>;
-  /** Re-sends the message a `rate_limited` refused. Optional for older stores. */
-  retry?(viewId: string): Promise<void>;
-  /** Makes the next message start a fresh chat for the View. Optional for older stores. */
-  startFresh?(viewId: string): Promise<void>;
+  /** Re-sends the message a `rate_limited` refused. */
+  retry(viewId: string): Promise<void>;
+  /** Makes the next message start a fresh chat for the View. */
+  startFresh(viewId: string): Promise<void>;
   attachThreads(viewId: string, threadIds: string[]): Promise<void>;
   removeAttachment(viewId: string, messageId: string): Promise<void>;
   submitExamples(viewId: string): Promise<void>;
   skipExamples(viewId: string): Promise<void>;
   answerQuestion(viewId: string, answer: string): Promise<void>;
   approveScreenshot(viewId: string): Promise<void>;
-  /** Recaptures the View for an open screenshot request. Optional for older stores. */
-  refreshScreenshot?(viewId: string): Promise<void>;
+  /** Recaptures the View for an open screenshot request. */
+  refreshScreenshot(viewId: string): Promise<void>;
   declineScreenshot(viewId: string): Promise<void>;
   interrupt(viewId: string): Promise<void>;
   raiseBudget(viewId: string): Promise<void>;
-  /** Re-fetches the account's allowance. Optional for older stores. */
-  refreshUsage?(): Promise<void>;
-  /** Reopens the upgrade prompt for the View's limit notice. Optional for older stores. */
-  showUpgrade?(viewId: string): Promise<void>;
+  /** Re-fetches the account's allowance. */
+  refreshUsage(): Promise<void>;
+  /** Reopens the upgrade prompt for the View's limit notice. */
+  showUpgrade(viewId: string): Promise<void>;
   stopBudget(viewId: string): Promise<void>;
-  install(viewId: string): Promise<void>;
-  discard(viewId: string): Promise<void>;
-  /** Leaves a View's intro for the composer, attaching to its server session if it has one. */
-  chat?(viewId: string): Promise<void>;
-  /** Suggests composer text the user can edit before sending. Optional for older stores. */
-  prefill?(viewId: string, text: string): Promise<void>;
-  /** Shows the panel's intro for a View without contacting the backend. */
-  preview?(viewId: string, name: string, intro: 'try' | 'edit'): Promise<void>;
-  resume?(viewId: string, name: string): Promise<void>;
+  /** Restores the View as it was before the latest request that changed it. */
+  revert(viewId: string): Promise<void>;
+  /** Shows the panel for a View, attaching to its server session if it has one. */
+  open(viewId: string, name: string): Promise<void>;
+  /** Suggests composer text the user can edit before sending. */
+  prefill(viewId: string, text: string): Promise<void>;
 }

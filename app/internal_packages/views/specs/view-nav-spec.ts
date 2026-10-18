@@ -10,21 +10,23 @@ const manifest = (over: Partial<ViewManifest>): ViewManifest => ({
   permissions: [],
   apiVersion: '2026-10-05',
   dir: '/tmp/board',
-  source: 'installed',
+  source: 'user',
+  built: true,
   json: {},
   ...over,
 });
 
 describe('Views in the nav rail', function () {
   describe('railViews', function () {
-    it("lists the user's installed page Views, but not drafts, dev examples or sidebar Views", function () {
+    it('lists pinned page Views in pin order, skipping sidebar Views and missing ids', function () {
       const views = [
         manifest({ id: 'board' }),
-        manifest({ id: 'trying', source: 'draft' }),
+        manifest({ id: 'unpinned' }),
         manifest({ id: 'hello', source: 'example' }),
         manifest({ id: 'history', placement: 'thread-sidebar' }),
       ];
-      expect(railViews(views).map((v) => v.id)).toEqual(['board']);
+      const pinned = ['hello', 'history', 'removed', 'board'];
+      expect(railViews(views, pinned).map((v) => v.id)).toEqual(['hello', 'board']);
     });
   });
 

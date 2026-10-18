@@ -204,3 +204,24 @@
   border: none;
   background: none;
 }
+
+.view-pin-button {
+  color: fade(@text-color-heading, 80%);
+  svg {
+    width: 14px;
+    height: 14px;
+    vertical-align: text-bottom;
+  }
+}
+
+.views-root.unbuilt {
+  align-items: center;
+  justify-content: center;
+  .views-unbuilt-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: @text-color-subtle;
+  }
+}

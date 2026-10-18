@@ -1,12 +1,12 @@
 import fs from 'fs';
 import path from 'path';
 import { ViewManifest, readManifest } from '../view-registry';
-import { ViewRevision, promoteDraft, writeDraft } from '../authoring/drafts';
+import { ViewRevision, writeView } from '../authoring/revisions';
 import { newViewId } from './agent-adapter';
 
 /**
  * Starters are Views that ship with the app. They're templates rather than Views: a starter
- * is never loaded from where it ships, it's copied to a new id so each install has its own
+ * is never loaded from where it ships, it's copied to a new id so each copy has its own
  * metadata namespace (`view:<id>`) and can be remixed without touching the original.
  */
 export function startersDir() {
@@ -33,7 +33,7 @@ export function listStarters(): Starter[] {
   for (const id of entries) {
     const dir = path.join(startersDir(), id);
     try {
-      const manifest = readManifest(dir, id, 'installed');
+      const manifest = readManifest(dir, id, 'user');
       const poster = path.join(dir, STARTER_POSTER_FILE);
       starters.push({
         ...manifest,
@@ -62,13 +62,9 @@ export function readStarterRevision(starter: ViewManifest, viewId: string): View
   return { manifest, files };
 }
 
-/**
- * Copies a starter to a new View. `asDraft` previews it without installing: it shows in the
- * sidebar until the user keeps it (promoteDraft) or discards it.
- */
-export function installStarter(starter: ViewManifest, { asDraft = false } = {}) {
+/** Copies a starter to a new View and returns its id. */
+export function installStarter(starter: ViewManifest) {
   const viewId = newViewId(starter.name);
-  writeDraft(viewId, readStarterRevision(starter, viewId));
-  if (!asDraft) promoteDraft(viewId);
+  writeView(viewId, readStarterRevision(starter, viewId));
   return viewId;
 }
