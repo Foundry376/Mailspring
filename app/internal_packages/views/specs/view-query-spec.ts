@@ -183,5 +183,27 @@ describe('View queries', function () {
         expect(rows[1].isMe).toEqual({ sender: true });
       });
     });
+
+    it('leaves out every thread in an excluded folder, so its category never appears', function () {
+      spyOn(AccountStore, 'accounts').andReturn([{ id: 'a1' }, { id: 'a2' }] as any);
+      spyOn(AccountStore, 'emailAddresses').andReturn([]);
+      let countSQL = '';
+      (DatabaseStore._query as any).andCallFake((sql) => {
+        if (sql.includes('COUNT(DISTINCT')) countSQL = sql;
+        return Promise.resolve([]);
+      });
+      const excluding: ViewGrant = {
+        ...grant,
+        scope: { accountIds: null, excludedFolderIds: { a1: ["private'1"], a2: [] } },
+      };
+      waitsForPromise(async () => {
+        await countMessages(excluding, mailQuery(excluding, 'messages', {}), ['category']);
+        expect(countSQL).toContain(
+          "`Message`.`threadId` NOT IN (SELECT `id` FROM `ThreadCategory` WHERE `value` IN ('private''1'))"
+        );
+        await countMessages(grant, mailQuery(grant, 'messages', {}), ['category']);
+        expect(countSQL).not.toContain('NOT IN');
+      });
+    });
   });
 });

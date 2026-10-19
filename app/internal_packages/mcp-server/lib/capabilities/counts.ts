@@ -63,6 +63,20 @@ const DIM_SQL: { [dim in Dim]: { expr: string; join?: string; name?: string } } 
   hour: { expr: `CAST(${localTime('%H')} AS INTEGER)` },
 };
 
+// Counts never pass through the serializers that drop excluded mail, so folder exclusion is
+// applied in SQL. It works per thread, like isThreadAllowed: a message in an allowed folder still
+// joins the `category` dimension to every category on its thread, so excluding by message alone
+// would leak the excluded folders' names and counts.
+function excludedThreadsSQL(grant: Grant): string | null {
+  const excluded = Object.values(grant.excludedFolderIds).flat();
+  if (excluded.length === 0) return null;
+  const ids = excluded.map((id) => `'${id.replace(/'/g, "''")}'`).join(', ');
+  return (
+    `\`Message\`.\`threadId\` NOT IN ` +
+    `(SELECT \`id\` FROM \`ThreadCategory\` WHERE \`value\` IN (${ids}))`
+  );
+}
+
 /**
  * Message counts grouped by one or two dimensions, aggregated in SQL so callers don't pull
  * thousands of rows to count them. The WHERE clause comes from the same query builder as
@@ -71,7 +85,9 @@ const DIM_SQL: { [dim in Dim]: { expr: string; join?: string; name?: string } } 
 export async function countMessages(grant: Grant, q: MailQuery, dims: Dim[]) {
   await identityReady();
   const query = messageQuery(grant, { ...q, limit: undefined, offset: undefined });
-  const where = (query as any)._whereClause();
+  const exclusion = excludedThreadsSQL(grant);
+  // messageQuery always scopes by account, so the clause is never empty.
+  const where = (query as any)._whereClause() + (exclusion ? ` AND ${exclusion}` : '');
   const joins = dims.map((d) => DIM_SQL[d].join).filter(Boolean);
   const selects = dims.map((d, i) => `${DIM_SQL[d].expr} AS k${i}`);
   dims.forEach((d, i) => {

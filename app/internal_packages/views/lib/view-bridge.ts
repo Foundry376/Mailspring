@@ -69,6 +69,9 @@ const SUBSCRIPTION_THROTTLE_MS = 250;
 // After a print dialog closes, a View can't open another for this long, so a View that calls
 // ui.print in a loop can't trap the user in back-to-back system dialogs.
 const PRINT_COOLDOWN_MS = 1000;
+// Each ui.compose or ui.reply opens a composer window and saves a draft that syncs to the
+// server, so a View that calls them in a loop could bury the user in windows and drafts.
+const COMPOSE_COOLDOWN_MS = 2000;
 // Counts re-run a GROUP BY over every matching message, so they wait for a burst of sync
 // changes to settle before refreshing.
 const COUNTS_DEBOUNCE_MS = 2000;
@@ -135,6 +138,7 @@ export class ViewBridge {
   private unlistenTheme: () => void;
   private printing = false;
   private printedAt = 0;
+  private composedAt = 0;
 
   constructor(viewId: string, webview: Electron.WebviewTag, options: ViewBridgeOptions = {}) {
     this.webview = webview;
@@ -487,6 +491,11 @@ export class ViewBridge {
         return {};
       },
 
+      'ui.compose': (ctx, params) =>
+        this.composeAfterCooldown(() => HANDLERS['ui.compose'](ctx, params)),
+      'ui.reply': (ctx, params) =>
+        this.composeAfterCooldown(() => HANDLERS['ui.reply'](ctx, params)),
+
       // Keystrokes go to whichever WebContents has focus, so while the guest keeps it the
       // keymaps never see Escape or other shortcuts aimed at the thread. Only the root sheet
       // goes inert (and drops focus) when a sheet is pushed, and a page View is not the root.
@@ -515,6 +524,14 @@ export class ViewBridge {
         return {};
       },
     };
+  }
+
+  private async composeAfterCooldown(open: () => any) {
+    if (Date.now() - this.composedAt < COMPOSE_COOLDOWN_MS) {
+      throw new ViewError('limit', 'A composer was just opened. Try again in a moment.');
+    }
+    this.composedAt = Date.now();
+    return open();
   }
 
   private async startEventExtract(

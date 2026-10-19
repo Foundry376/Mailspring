@@ -17,6 +17,8 @@ import {
   MessageBodyProcessor,
   DatabaseStore,
   Actions,
+  DraftFactory,
+  DraftStore,
 } from 'mailspring-exports';
 import { renderableFor } from '../lib/bridge/renderable';
 
@@ -235,6 +237,42 @@ describe('ui.print', function () {
     expect(replies.find((r) => r.id === 1).result).toEqual({});
     expect(webview.print).toHaveBeenCalledWith({ landscape: true, printBackground: true });
     expect(webview.print.calls.length).toBe(1);
+    bridge.dispose();
+  });
+});
+
+describe('ui.compose', function () {
+  it('opens one composer, then refuses compose and reply until the cooldown passes', async () => {
+    const replies = [];
+    let listener = null;
+    const webview = {
+      addEventListener: (name, fn) => (listener = fn),
+      removeEventListener: () => {},
+      send: (channel, payload) => replies.push(payload),
+    };
+    const createDraft = spyOn(DraftFactory, 'createDraftForMailto').andReturn(
+      Promise.resolve({} as any)
+    );
+    spyOn(DraftStore as any, '_finalizeAndPersistNewMessage').andReturn(Promise.resolve({}));
+    spyOn(Actions, 'composeReply');
+    let now = 10000;
+    spyOn(Date, 'now').andCallFake(() => now);
+    const bridge = new ViewBridge('spec', webview as any);
+    listener({ channel: HELLO_CHANNEL, args: [{ page: 'p1' }] });
+    const call = async (id, method, params) => {
+      await listener({ channel: CALL_CHANNEL, args: [{ page: 'p1', id, method, params }] });
+      return replies.find((r) => r.id === id);
+    };
+
+    expect((await call(1, 'ui.compose', { to: ['a@example.com'] })).result).toEqual({});
+    expect((await call(2, 'ui.compose', {})).error.code).toBe('limit');
+    expect((await call(3, 'ui.reply', { messageId: 'm1' })).error.code).toBe('limit');
+    expect(createDraft.calls.length).toBe(1);
+    expect(Actions.composeReply).not.toHaveBeenCalled();
+
+    now += 2000;
+    expect((await call(4, 'ui.compose', {})).result).toEqual({});
+    expect(createDraft.calls.length).toBe(2);
     bridge.dispose();
   });
 });
