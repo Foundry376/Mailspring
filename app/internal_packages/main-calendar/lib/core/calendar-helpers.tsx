@@ -1,5 +1,6 @@
-import moment from 'moment';
+import moment, { Moment } from 'moment';
 import {
+  CalendarDate,
   Utils,
   AccountStore,
   Calendar,
@@ -16,6 +17,14 @@ import { ShowAsOption, defaultShowAs } from './show-as-selector';
 import { MIN_EVENT_DURATION_SECONDS } from './calendar-constants';
 import { EventOccurrence, coveredDates, isTimed } from './calendar-data-source';
 import { dayFraction } from './week-view-helpers';
+
+export function dateOf(m: Moment): CalendarDate {
+  return CalendarDateUtils.calendarDateFromUnix(m.unix());
+}
+
+export function momentOf(date: CalendarDate): Moment {
+  return moment.unix(CalendarDateUtils.dayStartUnix(date));
+}
 
 // Cache of calendar colors synced from CalDAV servers
 const calendarColorCache: Map<string, string> = new Map();

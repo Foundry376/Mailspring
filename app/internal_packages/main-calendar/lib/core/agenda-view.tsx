@@ -8,13 +8,13 @@ import { HeaderControls } from './header-controls';
 import { CalendarEventPopover } from './calendar-event-popover';
 import {
   EventOccurrence,
+  EventRangeSubscription,
   eventCoversDate,
   isTimed,
   occurrenceStartUnix,
   isEventSelected,
 } from './calendar-data-source';
-import { Disposable } from 'rx-core';
-import { calcEventColors, extractMeetingDomain } from './calendar-helpers';
+import { calcEventColors, dateOf, extractMeetingDomain, momentOf } from './calendar-helpers';
 
 const DAYS_IN_VIEW = 14;
 
@@ -30,69 +30,47 @@ interface AgendaViewState {
 export class AgendaView extends React.Component<MailspringCalendarViewProps, AgendaViewState> {
   static displayName = 'AgendaView';
 
-  _mounted = false;
-  _sub?: Disposable;
+  _sub: EventRangeSubscription;
 
   constructor(props: MailspringCalendarViewProps) {
     super(props);
     this.state = {
       events: [],
     };
+    this._sub = new EventRangeSubscription(props.dataSource, 0, (events) =>
+      this.setState({ events })
+    );
   }
 
   componentDidMount() {
-    this._mounted = true;
-    this.updateSubscription();
+    this._subscribe();
   }
 
-  componentDidUpdate(prevProps: MailspringCalendarViewProps) {
-    if (
-      prevProps.focusedMoment !== this.props.focusedMoment ||
-      prevProps.disabledCalendars !== this.props.disabledCalendars
-    ) {
-      this.updateSubscription();
-    }
+  componentDidUpdate() {
+    this._subscribe();
   }
 
   componentWillUnmount() {
-    this._mounted = false;
-    this._sub && this._sub.dispose();
+    this._sub.dispose();
   }
 
-  updateSubscription() {
-    const { rangeStart, rangeEnd } = this._calculateRange();
-
-    this._sub && this._sub.dispose();
-    this._sub = this.props.dataSource
-      .buildObservable({
-        disabledCalendars: this.props.disabledCalendars,
-        startUnix: rangeStart.unix(),
-        endUnix: rangeEnd.unix(),
-      })
-      .subscribe((state) => {
-        if (this._mounted) {
-          this.setState(state);
-        }
-      });
+  _subscribe() {
+    this._sub.cover(this._calculateRange(), this.props.disabledCalendars);
   }
 
+  /** The days shown, from the focused day, `end` exclusive. */
   _calculateRange() {
-    const { focusedMoment } = this.props;
-    const rangeStart = moment(focusedMoment).startOf('day');
-    const rangeEnd = moment(focusedMoment)
-      .startOf('day')
-      .add(DAYS_IN_VIEW, 'days')
-      .subtract(1, 'second');
-    return { rangeStart, rangeEnd };
+    const first = dateOf(this.props.focusedMoment);
+    return { first, end: CalendarDateUtils.addCalendarDays(first, DAYS_IN_VIEW) };
   }
 
   _getEventsByDay(): DayEvents[] {
-    const { focusedMoment } = this.props;
+    const { first } = this._calculateRange();
     const days: DayEvents[] = [];
 
     for (let i = 0; i < DAYS_IN_VIEW; i++) {
-      const day = moment(focusedMoment).startOf('day').add(i, 'days');
-      const date = CalendarDateUtils.calendarDateFromUnix(day.unix());
+      const date = CalendarDateUtils.addCalendarDays(first, i);
+      const day = momentOf(date);
 
       const events = this.state.events
         .filter((event) => eventCoversDate(event, date))
@@ -237,9 +215,9 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
 
   render() {
     const days = this._getEventsByDay();
-    const { rangeStart, rangeEnd } = this._calculateRange();
-
-    const headerText = `${rangeStart.format('MMM D')} – ${rangeEnd.format('MMM D, YYYY')}`;
+    const { first, end } = this._calculateRange();
+    const lastDay = momentOf(CalendarDateUtils.addCalendarDays(end, -1));
+    const headerText = `${momentOf(first).format('MMM D')} – ${lastDay.format('MMM D, YYYY')}`;
 
     return (
       <div className="calendar-view agenda-view">

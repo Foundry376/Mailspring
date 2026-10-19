@@ -44,7 +44,7 @@ describe('MiniMonthView orientation', () => {
 
   it('pages a month at a time unless asked to scroll', () => {
     ReactDOM.render(<MiniMonthView value={moment([2026, 9, 16])} onChange={() => {}} />, host);
-    expect(host.querySelector('.week-scroller')).toBe(null);
+    expect(host.querySelector('.snap-scroller')).toBe(null);
     (host.querySelectorAll('.header .btn')[1] as HTMLElement).click();
     expect(title()).toBe('November 2026');
   });
@@ -93,6 +93,26 @@ describe('MiniMonthView orientation', () => {
     // December's first week starts Sun 29 Nov, nine weeks on from Sun 27 Sep.
     const { top } = (grid.scrollTo as jasmine.Spy).mostRecentCall.args[0];
     expect(top).toBe(octoberTop + 9 * (grid.clientHeight / 6));
+  });
+
+  it('steps from the month a new value heads back to, while an earlier glide is on its way', () => {
+    const renderWith = (value) =>
+      ReactDOM.render(
+        <MiniMonthView orientation="vertical" value={value} onChange={() => {}} />,
+        host
+      );
+    renderWith(moment([2026, 9, 16]));
+    const grid = host.querySelector('.day-grid') as HTMLElement;
+    const octoberTop = grid.scrollTop;
+    spyOn(grid, 'scrollTo').andCallThrough();
+    const down = host.querySelectorAll('.header .btn')[1] as HTMLElement;
+    down.click();
+    renderWith(moment([2026, 9, 20]));
+    down.click();
+
+    // November's first week starts Sun 1 Nov, five weeks on from Sun 27 Sep.
+    const { top } = (grid.scrollTo as jasmine.Spy).mostRecentCall.args[0];
+    expect(top).toBe(octoberTop + 5 * (grid.clientHeight / 6));
   });
 
   it('moves the today marker when its value changes', () => {
