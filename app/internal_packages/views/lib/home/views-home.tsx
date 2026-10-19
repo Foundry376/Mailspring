@@ -15,6 +15,7 @@ import { Starter, installStarter, listStarters } from './starters';
 import { ThumbnailEvents, thumbnailPath } from './thumbnails';
 import { removeView } from './view-actions';
 import { ModelBadge } from '../local-model/model-badge';
+import { canShare, openShareSheet } from '../sharing';
 import {
   isBuilding,
   isWaitingForUser,
@@ -54,6 +55,11 @@ function thumbnailStamp(viewId: string) {
   } catch {
     return 0;
   }
+}
+
+function manifestDescription(view: ViewManifest): string {
+  const { description } = view.json || {};
+  return typeof description === 'string' ? description.trim() : '';
 }
 
 function showError(err: Error) {
@@ -284,10 +290,14 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
             <div className="views-home-card-name">{view.name}</div>
             {this._renderBadges(view)}
           </div>
-          {view.placement === 'thread-sidebar' && (
-            <div className="views-home-card-description">
-              {localized('Shows beside conversations when you open one.')}
-            </div>
+          {manifestDescription(view) ? (
+            <div className="views-home-card-description clamped">{manifestDescription(view)}</div>
+          ) : (
+            view.placement === 'thread-sidebar' && (
+              <div className="views-home-card-description">
+                {localized('Shows beside conversations when you open one.')}
+              </div>
+            )
           )}
         </div>
         <div className="views-home-card-actions">
@@ -299,6 +309,11 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
           {view.placement === 'page' && (
             <button className="btn" onClick={() => setPinned(view.id, !isPinned(view.id))}>
               {isPinned(view.id) ? localized('Unpin') : localized('Pin')}
+            </button>
+          )}
+          {canShare(view.id) && (
+            <button className="btn" onClick={() => openShareSheet(view.id)}>
+              {localized('Share')}
             </button>
           )}
           {declaredCredentials(view.id).length > 0 && (

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { nativeImage } from 'electron';
-import { currentThemeTokens } from '../theme-tokens';
+import { ViewTheme, currentThemeTokens } from '../theme-tokens';
 import { notifyViewsChanged } from '../view-registry';
 import { deleteViewFiles } from '../authoring/revisions';
 import { renderMockScreenshot } from '../mock/mock-render';
@@ -13,16 +13,23 @@ const POSTER = { width: 640, height: 272 };
 // Page Views render at a desktop width and are scaled down to the poster. Sidebar Views
 // render at sidebar width and are framed as a card in the middle of a page-sized image, so
 // they appear at the same scale as page Views.
-const PAGE_RENDER = { width: 960, height: 408 };
-const SIDEBAR_RENDER = { width: 300, height: 408 };
+export const PAGE_RENDER = { width: 960, height: 408 };
+export const SIDEBAR_RENDER = { width: 300, height: 408 };
 
-/** Draws a sidebar View's capture as a bordered card centered on a page-sized background. */
-async function frameSidebar(image: Electron.NativeImage) {
-  const { colors } = currentThemeTokens();
+/**
+ * Draws a sidebar View's capture (rendered SIDEBAR_RENDER.width wide) as a bordered card
+ * centered on a `page`-sized background, in CSS px. The card runs off the bottom edge.
+ */
+export async function frameSidebar(
+  image: Electron.NativeImage,
+  theme: ViewTheme = currentThemeTokens(),
+  page: { width: number; height: number } = PAGE_RENDER
+) {
+  const { colors } = theme;
   const scale = image.getSize().width / SIDEBAR_RENDER.width;
   const canvas = document.createElement('canvas');
-  canvas.width = PAGE_RENDER.width * scale;
-  canvas.height = PAGE_RENDER.height * scale;
+  canvas.width = page.width * scale;
+  canvas.height = page.height * scale;
   const ctx = canvas.getContext('2d');
   ctx.fillStyle = colors.bg;
   ctx.fillRect(0, 0, canvas.width, canvas.height);

@@ -93,30 +93,45 @@ async function errorFrom(resp: Response, desc: string) {
   return new AgentAPIError(message, { statusCode: resp.status, code, details });
 }
 
+/**
+ * One JSON request to the identity server's Views API. `auth: false` is for the public routes
+ * (a shared View's install sheet), which must work before the user signs in.
+ */
+export async function requestJSON(
+  root: string,
+  method: 'GET' | 'POST' | 'DELETE',
+  path: string,
+  body?: object,
+  { auth = true } = {}
+) {
+  const desc = `${method} ${path}`;
+  const headers = new Headers({ Accept: 'application/json' });
+  if (auth) headers.set('Authorization', authorization());
+  if (body) headers.set('Content-Type', 'application/json');
+  let resp: Response;
+  try {
+    resp = await fetch(`${root}${path}`, {
+      method,
+      headers,
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch (err) {
+    throw new AgentAPIError(`Couldn't reach the Mailspring servers (${desc}).`, {
+      code: 'offline',
+    });
+  }
+  if (!resp.ok) throw await errorFrom(resp, desc);
+  return resp.json();
+}
+
 /** The authoring proxy on id.getmailspring.com (localhost:5101 when env is development). */
 export class AgentClient implements AgentTransport {
   constructor(
     private root: () => string = () => MailspringAPIRequest.rootURLForServer('identity')
   ) {}
 
-  private async request(method: 'GET' | 'POST', path: string, body?: object) {
-    const desc = `${method} ${path}`;
-    const headers = new Headers({ Accept: 'application/json', Authorization: authorization() });
-    if (body) headers.set('Content-Type', 'application/json');
-    let resp: Response;
-    try {
-      resp = await fetch(`${this.root()}${path}`, {
-        method,
-        headers,
-        body: body ? JSON.stringify(body) : undefined,
-      });
-    } catch (err) {
-      throw new AgentAPIError(`Couldn't reach the Mailspring servers (${desc}).`, {
-        code: 'offline',
-      });
-    }
-    if (!resp.ok) throw await errorFrom(resp, desc);
-    return resp.json();
+  private request(method: 'GET' | 'POST', path: string, body?: object) {
+    return requestJSON(this.root(), method, path, body);
   }
 
   private sessionPath(viewId: string, rest = '') {

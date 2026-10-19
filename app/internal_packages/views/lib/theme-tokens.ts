@@ -47,6 +47,30 @@ const CHART_COLORS = {
   dark: ['#6f9bf0', '#f29a5c', '#5cc49a', '#e07ab3', '#a68cf8', '#e0c050', '#5ccbe0', '#c49a73'],
 };
 
+/**
+ * The default light theme's tokens (static/style/base/ui-variables.less) as computed styles
+ * report them, with the stock blue accent in place of the system accent. Share posters always
+ * use these, so a public image looks the same whatever theme the sharer runs.
+ */
+export const LIGHT_THEME_TOKENS: ViewTheme = {
+  mode: 'light',
+  colors: {
+    bg: 'rgb(255, 255, 255)',
+    panel: 'rgb(246, 246, 246)',
+    text: 'rgb(35, 31, 32)',
+    muted: 'rgba(35, 31, 32, 0.8)',
+    border: 'rgb(230, 230, 230)',
+    accent: 'rgb(65, 155, 249)',
+    danger: 'rgb(217, 83, 79)',
+    success: 'rgb(92, 179, 70)',
+    warning: 'rgb(240, 173, 78)',
+    link: 'rgb(65, 155, 249)',
+    heading: 'rgb(67, 70, 72)',
+  },
+  chart: CHART_COLORS.light,
+  font: { family: '"Nylas-Pro", Helvetica, sans-serif', size: '14px' },
+};
+
 // The theme is defined in LESS variables, which don't exist at runtime. views.less assigns
 // each one to a hidden probe element, so the resolved values (including the system accent
 // and the active theme's overrides) can be read back from computed styles.

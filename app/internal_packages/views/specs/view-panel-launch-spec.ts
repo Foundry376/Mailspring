@@ -51,7 +51,6 @@ describe('Opening the authoring panel for a View', function () {
     };
     AgentSessionStore.configure({
       transport: transport as any,
-      identityId: () => 'identity-1',
       publicKey: () => '',
       lastAcceptedRevision: () => 0,
       setAcceptedRevision: () => {},

@@ -160,7 +160,10 @@ export class ViewBridge {
           ...(options.handlers || {}),
         };
     webview.addEventListener('ipc-message', this.onIPCMessage);
-    this.unlistenTheme = onThemeChange(() => this.emit('theme', currentThemeTokens()));
+    this.unlistenTheme =
+      options.mock && options.mock.theme
+        ? () => {}
+        : onThemeChange(() => this.emit('theme', currentThemeTokens()));
   }
 
   private mockHandlers(mock: MockSource) {

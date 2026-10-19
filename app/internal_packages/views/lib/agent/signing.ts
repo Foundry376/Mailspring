@@ -2,10 +2,11 @@ import crypto from 'crypto';
 import { ViewRevision } from '../authoring/revisions';
 
 /**
- * Verification of `preview_revision` payloads signed by the authoring proxy: Ed25519 over the
- * canonical JSON of { identityId, viewId, revision, manifest, files }. The signature proves a
- * revision came from Mailspring's backend for this account and View; the sandbox and the
- * consent card remain the security boundary for what the code can do.
+ * Verification of the Views the backend sends: an agent's preview revisions and shared Views'
+ * install bundles. Both are signed with Ed25519 over the canonical JSON of { manifest, files },
+ * which proves the code came out of Mailspring's authoring pipeline. Nothing about the account
+ * or View is bound: anyone can install a share, so any signed View can reach any account
+ * anyway. The sandbox and the consent card are the security boundary for what the code can do.
  */
 
 /**
@@ -41,67 +42,26 @@ export function canonicalJSON(value: any): string {
   return `{${keys.map((k) => `${JSON.stringify(k)}:${canonicalJSON(value[k])}`).join(',')}}`;
 }
 
-export interface SignedRevision extends ViewRevision {
-  revision: number;
-}
+export type SignatureCheck = { ok: true } | { ok: false; reason: string };
 
-export type RevisionCheck = { ok: true } | { ok: false; reason: string };
-
-/**
- * Checks one revision against the pinned key, this account and View, and the last revision
- * accepted for the View (replays and rollbacks are refused).
- */
-export function checkSignedRevision({
-  input,
-  signature,
-  publicKey,
-  identityId,
-  viewId,
-  lastAcceptedRevision,
-}: {
-  input: SignedRevision;
-  signature: string | undefined;
-  publicKey: string | null;
-  identityId: string;
-  viewId: string;
-  lastAcceptedRevision: number;
-}): RevisionCheck {
+export function checkSignature(
+  { manifest, files }: ViewRevision,
+  signature: string | undefined,
+  publicKey: string | null
+): SignatureCheck {
   if (!publicKey) return { ok: false, reason: 'No agent public key is configured.' };
-  if (!signature) return { ok: false, reason: 'The revision is not signed.' };
-  if (!input || !Number.isInteger(input.revision) || input.revision < 1) {
-    return { ok: false, reason: 'The revision number is missing or invalid.' };
-  }
-  const payload = canonicalJSON({
-    identityId,
-    viewId,
-    revision: input.revision,
-    manifest: input.manifest,
-    files: input.files,
-  });
-  let valid = false;
+  if (!signature) return { ok: false, reason: 'The View is not signed.' };
+  if (!manifest || !files) return { ok: false, reason: 'The View is incomplete.' };
   try {
     const key = crypto.createPublicKey({
       key: Buffer.from(publicKey, 'base64'),
       format: 'der',
       type: 'spki',
     });
-    valid = crypto.verify(
-      null,
-      Buffer.from(payload, 'utf8'),
-      key,
-      Buffer.from(signature, 'base64')
-    );
+    const payload = Buffer.from(canonicalJSON({ manifest, files }), 'utf8');
+    if (crypto.verify(null, payload, key, Buffer.from(signature, 'base64'))) return { ok: true };
   } catch (err) {
     return { ok: false, reason: `The signature could not be checked: ${err.message}` };
   }
-  // Binding identityId and viewId into the signed payload means a valid signature for another
-  // account or View fails here rather than needing a separate comparison.
-  if (!valid) return { ok: false, reason: 'The signature does not match this account and View.' };
-  if (input.revision <= lastAcceptedRevision) {
-    return {
-      ok: false,
-      reason: `Revision ${input.revision} is not newer than revision ${lastAcceptedRevision}.`,
-    };
-  }
-  return { ok: true };
+  return { ok: false, reason: 'The signature does not match the View.' };
 }

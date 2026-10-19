@@ -1,7 +1,7 @@
 import { localized } from 'mailspring-exports';
 import { Diagnostic } from '../authoring/diagnostics';
 import { ViewRevision } from '../authoring/revisions';
-import { checkSignedRevision, SignedRevision } from './signing';
+import { checkSignature, SignatureCheck } from './signing';
 import { RevisionEntry, ToolContent } from './types';
 
 /**
@@ -14,7 +14,6 @@ export type ToolResult = { content: ToolContent[]; isError?: boolean };
 
 export interface ToolDeps {
   viewId: string;
-  identityId: () => string;
   publicKey: () => Promise<string | null>;
   lastAcceptedRevision: (viewId: string) => number;
   setAcceptedRevision: (viewId: string, revision: number) => void;
@@ -132,15 +131,38 @@ const text = (value: string | object): ToolResult => ({
 });
 const failure = (message: string): ToolResult => ({ ...text(message), isError: true });
 
-async function previewRevision(deps: ToolDeps, input: SignedRevision, signature?: string) {
-  const check = checkSignedRevision({
+export interface PreviewRevisionInput extends ViewRevision {
+  revision: number;
+}
+
+/** The signature, then the order: a revision no newer than the last one applied is refused. */
+export function checkPreviewRevision(
+  input: PreviewRevisionInput,
+  signature: string | undefined,
+  publicKey: string | null,
+  lastAcceptedRevision: number
+): SignatureCheck {
+  if (!input || !Number.isInteger(input.revision) || input.revision < 1) {
+    return { ok: false, reason: 'The revision number is missing or invalid.' };
+  }
+  const signed = checkSignature(input, signature, publicKey);
+  if (signed.ok === false) return signed;
+  if (input.revision <= lastAcceptedRevision) {
+    return {
+      ok: false,
+      reason: `Revision ${input.revision} is not newer than revision ${lastAcceptedRevision}.`,
+    };
+  }
+  return { ok: true };
+}
+
+async function previewRevision(deps: ToolDeps, input: PreviewRevisionInput, signature?: string) {
+  const check = checkPreviewRevision(
     input,
     signature,
-    publicKey: await deps.publicKey(),
-    identityId: deps.identityId(),
-    viewId: deps.viewId,
-    lastAcceptedRevision: deps.lastAcceptedRevision(deps.viewId),
-  });
+    await deps.publicKey(),
+    deps.lastAcceptedRevision(deps.viewId)
+  );
   if (check.ok === false) {
     deps.recordRevision({
       revision: (input && input.revision) || 0,

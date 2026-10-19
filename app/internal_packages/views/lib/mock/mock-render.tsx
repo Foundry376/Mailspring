@@ -4,6 +4,7 @@ import { allViews } from '../view-registry';
 import { ViewHost, ViewPlacement } from '../view-host';
 import { MockSource } from './mock-bridge';
 import { loadMockData } from './mock-data';
+import { ViewTheme } from '../theme-tokens';
 
 // The page has mounted by now; this leaves time for subscription snapshots, AI results and
 // chart animations to arrive before the capture.
@@ -16,6 +17,8 @@ export interface MockRenderOptions {
   height: number;
   placement?: ViewPlacement;
   settleMs?: number;
+  /** Renders with these tokens instead of the app's current theme. */
+  theme?: ViewTheme;
 }
 
 /**
@@ -29,11 +32,11 @@ export interface MockRenderOptions {
  */
 export async function renderMockScreenshot(
   viewId: string,
-  { width, height, placement, settleMs = SETTLE_MS }: MockRenderOptions
+  { width, height, placement, settleMs = SETTLE_MS, theme }: MockRenderOptions
 ): Promise<Electron.NativeImage> {
   const view = allViews().find((v) => v.id === viewId);
   if (!view) throw new Error(`No View "${viewId}" is installed.`);
-  const source = new MockSource(viewId, view.permissions, loadMockData(view.dir));
+  const source = new MockSource(viewId, view.permissions, loadMockData(view.dir), theme || null);
 
   const container = document.createElement('div');
   Object.assign(container.style, {

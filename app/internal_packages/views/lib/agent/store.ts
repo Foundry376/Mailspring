@@ -1,5 +1,5 @@
 import MailspringStore from 'mailspring-store';
-import { FeatureUsageStore, IdentityStore, localized } from 'mailspring-exports';
+import { FeatureUsageStore, localized } from 'mailspring-exports';
 import { ViewAuthoring, openView } from '../authoring';
 import { hostsFor } from '../authoring/hosts';
 import { ViewsNavStore } from '../views-nav';
@@ -50,7 +50,12 @@ import {
  * the user has staged but not yet sent.
  */
 
-const REVISIONS_CONFIG_KEY = 'core.views.agentRevisions';
+export const REVISIONS_CONFIG_KEY = 'core.views.agentRevisions';
+
+/** The last agent revision accepted for the View, or 0 when the agent never built it here. */
+export function acceptedAgentRevision(viewId: string): number {
+  return (AppEnv.config.get(REVISIONS_CONFIG_KEY) || {})[viewId] || 0;
+}
 // The hash of View.jsx as the agent last left it (or was seeded with), per View. When the code
 // on disk no longer matches, as after a revert, the next message starts a fresh session seeded
 // with the current code, so the agent never builds on files the View no longer has.
@@ -105,7 +110,6 @@ const UPGRADE_ICON = 'mailspring://composer-grammar-check/assets/ic-modal-image@
 
 export interface AgentStoreDeps {
   transport: AgentTransport;
-  identityId: () => string;
   publicKey: () => string | null;
   lastAcceptedRevision: (viewId: string) => number;
   setAcceptedRevision: (viewId: string, revision: number) => void;
@@ -136,9 +140,8 @@ export interface AgentStoreDeps {
 function defaultDeps(): AgentStoreDeps {
   return {
     transport: new AgentClient(),
-    identityId: () => (IdentityStore.identity() || { id: '' }).id,
     publicKey: () => agentPublicKey(AppEnv.config.get('env')),
-    lastAcceptedRevision: (viewId) => (AppEnv.config.get(REVISIONS_CONFIG_KEY) || {})[viewId] || 0,
+    lastAcceptedRevision: acceptedAgentRevision,
     setAcceptedRevision: (viewId, revision) => {
       const all = { ...(AppEnv.config.get(REVISIONS_CONFIG_KEY) || {}) };
       if (revision) all[viewId] = revision;
@@ -745,7 +748,6 @@ class AgentSessionStoreImpl extends MailspringStore {
   private toolDeps(viewId: string, toolUseId: string): ToolDeps {
     return {
       viewId,
-      identityId: this.d.identityId,
       publicKey: async () => this.d.publicKey(),
       lastAcceptedRevision: this.d.lastAcceptedRevision,
       setAcceptedRevision: this.d.setAcceptedRevision,

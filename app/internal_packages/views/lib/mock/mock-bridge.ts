@@ -3,7 +3,7 @@ import { ViewError } from '../bridge/errors';
 import { ViewGrant, requirePermission } from '../bridge/grant';
 import { BridgeContext, Handler, LIMITS, mailQuery, parse, parseGroupBy } from '../bridge/handlers';
 import { freeBusy, parseRange, EventRange } from '../bridge/events';
-import { currentThemeTokens } from '../theme-tokens';
+import { ViewTheme, currentThemeTokens } from '../theme-tokens';
 import { CONSENTED_PERMISSIONS, ViewPermission } from '../consent';
 import { FULL_GRANT } from '../../../mcp-server/lib/capabilities/grant';
 import { MockData, MockMessage, threadSummary } from './mock-data';
@@ -26,11 +26,19 @@ export const HOST_HANDLERS_IN_MOCK = ['ui.setHeight', 'view.diagnostic'];
 export class MockSource {
   data: MockData;
   grant: ViewGrant;
+  /** A fixed theme for the render; null follows the app's theme. */
+  theme: ViewTheme | null;
   private subscriptions = new Map<string, { kind: string; params: any; ctx: BridgeContext }>();
   private timers = new Set<NodeJS.Timeout>();
 
-  constructor(viewId: string, declaredPermissions: string[], data: MockData) {
+  constructor(
+    viewId: string,
+    declaredPermissions: string[],
+    data: MockData,
+    theme: ViewTheme | null = null
+  ) {
     this.data = data;
+    this.theme = theme;
     this.grant = {
       viewId,
       namespace: `view:${viewId}`,
@@ -379,7 +387,7 @@ export class MockSource {
         throw new ViewError('not_connected', 'Credentials are not available in mock data.');
       },
 
-      'theme.get': () => currentThemeTokens(),
+      'theme.get': () => this.theme || currentThemeTokens(),
       'context.get': () => {
         const thread = data.threads.find((t) => t.id === data.selectedThreadId);
         return thread

@@ -1,10 +1,18 @@
-export { AgentSessionStore, AgentActions, isUntouched, newViewId } from './store';
-export { AgentClient } from './client';
+export {
+  AgentSessionStore,
+  AgentActions,
+  REVISIONS_CONFIG_KEY,
+  acceptedAgentRevision,
+  isUntouched,
+  newViewId,
+} from './store';
+export { AgentClient, requestJSON } from './client';
 export {
   AccountUsage,
   LimitNotice,
   continueLabel,
   homeUsageLine,
+  limitNotice,
   meterText,
   raiseStepCents,
 } from './quota';

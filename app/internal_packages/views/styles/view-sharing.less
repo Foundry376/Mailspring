@@ -1,0 +1,172 @@
+@import 'ui-variables';
+
+// The share and install sheets, laid out like the credential sheet. The modal has a fixed
+// height, so the sheet scrolls.
+.view-share-sheet {
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  color: @text-color;
+
+  &.loading {
+    justify-content: center;
+    align-items: center;
+    color: @text-color-subtle;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 1.3em;
+    font-weight: 600;
+  }
+  p {
+    margin: 0;
+  }
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: @text-color-subtle;
+    font-size: @font-size-small;
+  }
+  input[type='text'],
+  textarea {
+    font-size: @font-size;
+    color: @text-color;
+    background: @input-bg;
+    border: 1px solid @input-border-color;
+    border-radius: 4px;
+    padding: 7px 9px;
+    font-family: inherit;
+  }
+  textarea {
+    resize: vertical;
+    min-height: 64px;
+  }
+}
+
+.view-share-intro,
+.view-share-description {
+  color: @text-color-subtle;
+}
+.view-share-description {
+  white-space: pre-wrap;
+}
+
+.view-share-fineprint {
+  font-size: 0.9em;
+  color: @text-color-very-subtle;
+}
+
+.view-share-section-title {
+  font-size: @font-size-small;
+  font-weight: @font-weight-semi-bold;
+  color: @text-color-subtle;
+}
+
+// The card poster is 640×272, so its box keeps that shape while it renders.
+.view-share-poster {
+  flex-shrink: 0;
+  aspect-ratio: 640 / 272;
+  border: 1px solid @border-color-primary;
+  border-radius: 6px;
+  overflow: hidden;
+  background: @background-secondary;
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  &.empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    box-sizing: border-box;
+    text-align: center;
+    color: @text-color-subtle;
+    font-size: @font-size-small;
+  }
+}
+
+.view-share-grants {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  li {
+    position: relative;
+    padding: 3px 0;
+    padding-inline-start: 22px;
+    &::before {
+      content: '✓';
+      position: absolute;
+      inset-inline-start: 0;
+      width: 16px;
+      text-align: center;
+      font-weight: @font-weight-semi-bold;
+      color: @color-success;
+    }
+  }
+  .view-share-grants-network {
+    font-weight: @font-weight-semi-bold;
+  }
+}
+
+.view-share-warning,
+.view-share-notice {
+  padding: 8px 10px;
+  border-radius: 6px;
+  color: @text-color;
+  background: fade(@color-info, 10%);
+}
+.view-share-warning {
+  background: fade(@color-warning, 16%);
+}
+
+.view-share-error {
+  padding: 8px 10px;
+  border-radius: 6px;
+  color: @color-error;
+  background: fade(@color-error, 10%);
+}
+
+.view-share-link {
+  display: flex;
+  gap: 8px;
+  input[type='text'] {
+    flex: 1;
+    min-width: 0;
+    font-family: @font-family-monospace;
+  }
+}
+
+.view-share-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 4px;
+}
+
+.view-share-button {
+  color: fade(@text-color-heading, 80%);
+  svg {
+    width: 14px;
+    height: 14px;
+    vertical-align: text-bottom;
+  }
+}
+
+.views-home-card-description.clamped {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

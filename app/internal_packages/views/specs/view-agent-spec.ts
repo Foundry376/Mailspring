@@ -1,23 +1,14 @@
 import crypto from 'crypto';
 import { Contact, Message } from 'mailspring-exports';
-import { canonicalJSON, checkSignedRevision } from '../lib/agent/signing';
+import { canonicalJSON } from '../lib/agent/signing';
+import { keypair } from './view-signing-helpers';
 import { SSEParser, AgentTransport } from '../lib/agent/client';
 import { buildExample, chipFor } from '../lib/agent/examples';
-import { relayableDiagnostics } from '../lib/agent/tools';
+import { checkPreviewRevision, relayableDiagnostics } from '../lib/agent/tools';
 import { AgentSessionStore, responseText } from '../lib/agent/store';
 import { AgentAPIError, Example } from '../lib/agent/types';
 
-const IDENTITY = 'identity-1';
 const VIEW = 'receipts-abc123';
-
-function keypair() {
-  const { publicKey, privateKey } = crypto.generateKeyPairSync('ed25519');
-  return {
-    publicKey: publicKey.export({ format: 'der', type: 'spki' }).toString('base64'),
-    sign: (payload: object) =>
-      crypto.sign(null, Buffer.from(canonicalJSON(payload), 'utf8'), privateKey).toString('base64'),
-  };
-}
 
 const REVISION = {
   revision: 1,
@@ -37,39 +28,20 @@ describe('Views agent: signing', function () {
     );
   });
 
-  it('accepts a revision signed for this account and View', () => {
+  it('accepts a signed revision newer than the last one applied', () => {
     const k = keypair();
-    const signature = k.sign({ identityId: IDENTITY, viewId: VIEW, ...REVISION });
-    const result = checkSignedRevision({
-      input: REVISION,
-      signature,
-      publicKey: k.publicKey,
-      identityId: IDENTITY,
-      viewId: VIEW,
-      lastAcceptedRevision: 0,
-    });
-    expect(result.ok).toBe(true);
+    expect(checkPreviewRevision(REVISION, k.sign(REVISION), k.publicKey, 0).ok).toBe(true);
   });
 
-  it('rejects tampered code, another View or account, unsigned and replayed revisions', () => {
+  it('rejects tampered code, unsigned and replayed revisions', () => {
     const k = keypair();
-    const signature = k.sign({ identityId: IDENTITY, viewId: VIEW, ...REVISION });
-    const base = {
-      input: REVISION,
-      signature,
-      publicKey: k.publicKey,
-      identityId: IDENTITY,
-      viewId: VIEW,
-      lastAcceptedRevision: 0,
-    };
+    const signature = k.sign(REVISION);
     const tampered = { ...REVISION, files: { 'View.jsx': 'fetch("https://evil")' } };
-    expect(checkSignedRevision({ ...base, input: tampered }).ok).toBe(false);
-    expect(checkSignedRevision({ ...base, viewId: 'other-view' }).ok).toBe(false);
-    expect(checkSignedRevision({ ...base, identityId: 'someone-else' }).ok).toBe(false);
-    expect(checkSignedRevision({ ...base, signature: undefined }).ok).toBe(false);
-    expect(checkSignedRevision({ ...base, publicKey: keypair().publicKey }).ok).toBe(false);
-    expect(checkSignedRevision({ ...base, publicKey: null }).ok).toBe(false);
-    const replay = checkSignedRevision({ ...base, lastAcceptedRevision: 1 });
+    expect(checkPreviewRevision(tampered, signature, k.publicKey, 0).ok).toBe(false);
+    expect(checkPreviewRevision(REVISION, undefined, k.publicKey, 0).ok).toBe(false);
+    expect(checkPreviewRevision(REVISION, signature, keypair().publicKey, 0).ok).toBe(false);
+    expect(checkPreviewRevision(REVISION, signature, null, 0).ok).toBe(false);
+    const replay = checkPreviewRevision(REVISION, signature, k.publicKey, 1);
     expect(replay.ok).toBe(false);
     expect((replay as any).reason).toContain('not newer');
   });
@@ -285,7 +257,6 @@ describe('Views agent: session store', function () {
     };
     AgentSessionStore.configure({
       transport: transport as any,
-      identityId: () => IDENTITY,
       publicKey: () => keys.publicKey,
       lastAcceptedRevision: (viewId) => accepted[viewId] || 0,
       setAcceptedRevision: (viewId, revision) => (accepted[viewId] = revision),
@@ -635,7 +606,7 @@ describe('Views agent: session store', function () {
       toolUseId: 'tu1',
       name: 'preview_revision',
       input: REVISION,
-      signature: keys.sign({ identityId: IDENTITY, viewId: VIEW, ...REVISION }),
+      signature: keys.sign(REVISION),
     };
     AgentSessionStore.onEvent(VIEW, event);
     AgentSessionStore.onEvent(VIEW, { ...event, id: 'e3-replayed' });
@@ -740,7 +711,7 @@ describe('Views agent: session store', function () {
       toolUseId: 'th1',
       name: 'preview_revision',
       input: REVISION,
-      signature: keys.sign({ identityId: IDENTITY, viewId: VIEW, ...REVISION }),
+      signature: keys.sign(REVISION),
     });
     AgentSessionStore.onEvent(VIEW, {
       id: 'h2',
@@ -771,7 +742,7 @@ describe('Views agent: session store', function () {
       toolUseId: 'tf1',
       name: 'preview_revision',
       input: REVISION,
-      signature: keys.sign({ identityId: IDENTITY, viewId: VIEW, ...REVISION }),
+      signature: keys.sign(REVISION),
     });
     await flush();
     await flush();
@@ -818,7 +789,7 @@ describe('Views agent: session store', function () {
       toolUseId: 'tp1',
       name: 'preview_revision',
       input: REVISION,
-      signature: keys.sign({ identityId: IDENTITY, viewId: VIEW, ...REVISION }),
+      signature: keys.sign(REVISION),
     });
     await flush();
     await flush();
@@ -839,7 +810,7 @@ describe('Views agent: session store', function () {
       toolUseId: 'tp2',
       name: 'preview_revision',
       input: rev2,
-      signature: keys.sign({ identityId: IDENTITY, viewId: VIEW, ...rev2 }),
+      signature: keys.sign(rev2),
     });
     await flush();
     await flush();
@@ -1012,7 +983,7 @@ describe('Views agent: session store', function () {
         toolUseId: `tu-rev-${n}`,
         name: 'preview_revision',
         input,
-        signature: keys.sign({ identityId: IDENTITY, viewId: VIEW, ...input }),
+        signature: keys.sign(input),
       };
     };
     const applyRevision = async (n: number, code: string) => {

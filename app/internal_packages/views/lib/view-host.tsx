@@ -58,7 +58,7 @@ interface ViewHostState {
 
 // Plain-language consent copy. Every View can read message envelopes without consent, so the
 // card lists that first to show what a View sees before it asks for anything.
-function permissionCopy(permission: string) {
+export function permissionCopy(permission: string) {
   return {
     'mail.bodies': localized('View the full text of your messages'),
     'mail.modify': localized('Label, move or archive your mail'),

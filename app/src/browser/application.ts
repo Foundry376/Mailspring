@@ -1071,6 +1071,11 @@ export default class Application extends EventEmitter {
         main.sendMessage('open-preferences');
       } else if (parts.host === 'plugins') {
         main.sendMessage('changePluginStateFromUrl', urlToOpen);
+      } else if (parts.host === 'install-view') {
+        // A shared View's landing page (getmailspring.com/v/<shareId>) links here.
+        main.show();
+        main.focus();
+        main.sendMessage('install-view', urlToOpen);
       } else {
         main.sendMessage('openThreadFromWeb', urlToOpen);
       }
