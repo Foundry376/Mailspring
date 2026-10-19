@@ -12,6 +12,8 @@
   }
 
   &.horizontal {
+    // Without it the spacers' widths size every ancestor, which widens the days, and so on.
+    contain: inline-size;
     display: flex;
     overflow-x: auto;
     overflow-y: hidden;

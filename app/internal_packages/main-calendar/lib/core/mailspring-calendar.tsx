@@ -174,6 +174,7 @@ export class MailspringCalendar extends React.Component<
   _suppressNextCalendarClick = false;
   /** Selected occurrences moved here but not yet synced back, by the id they will be drawn under. */
   _pendingMoves = new Map<string, { start: number; staleIcs: string }>();
+  _timeGrid = React.createRef<TimeGridView>();
 
   constructor(props: MailspringCalendarProps) {
     super(props);
@@ -1158,11 +1159,9 @@ export class MailspringCalendar extends React.Component<
     let newMoment: Moment;
     switch (view) {
       case CalendarView.DAY:
-        newMoment = moment(focusedMoment).add(1, 'day');
-        break;
       case CalendarView.WEEK:
-        newMoment = moment(focusedMoment).add(1, 'week');
-        break;
+        this._timeGrid.current?.navigate(1);
+        return;
       case CalendarView.MONTH:
         newMoment = moment(focusedMoment).add(1, 'month');
         break;
@@ -1183,11 +1182,9 @@ export class MailspringCalendar extends React.Component<
     let newMoment: Moment;
     switch (view) {
       case CalendarView.DAY:
-        newMoment = moment(focusedMoment).subtract(1, 'day');
-        break;
       case CalendarView.WEEK:
-        newMoment = moment(focusedMoment).subtract(1, 'week');
-        break;
+        this._timeGrid.current?.navigate(-1);
+        return;
       case CalendarView.MONTH:
         newMoment = moment(focusedMoment).subtract(1, 'month');
         break;
@@ -1245,7 +1242,7 @@ export class MailspringCalendar extends React.Component<
     if (view === CalendarView.AGENDA) {
       return <AgendaView {...viewProps} />;
     }
-    return <TimeGridView key={view} {...viewProps} days={DAYS_SHOWN[view]} />;
+    return <TimeGridView ref={this._timeGrid} key={view} {...viewProps} days={DAYS_SHOWN[view]} />;
   }
 
   render() {
