@@ -44,7 +44,7 @@ describe('MiniMonthView orientation', () => {
 
   it('pages a month at a time unless asked to scroll', () => {
     ReactDOM.render(<MiniMonthView value={moment([2026, 9, 16])} onChange={() => {}} />, host);
-    expect(host.querySelector('.week-scroller')).toBe(null);
+    expect(host.querySelector('.snap-scroller')).toBe(null);
     (host.querySelectorAll('.header .btn')[1] as HTMLElement).click();
     expect(title()).toBe('November 2026');
   });

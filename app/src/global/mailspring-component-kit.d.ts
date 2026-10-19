@@ -43,7 +43,7 @@ export const OutlineViewItem: typeof import('../components/outline-view-item').d
 export * from '../components/outline-view';
 export const DateInput: typeof import('../components/date-input').default;
 export * from '../components/mini-month-view';
-export * from '../components/week-scroller';
+export * from '../components/snap-scroller';
 export * from '../components/date-picker';
 export const TimePicker: typeof import('../components/time-picker').default;
 export const ProposeTimePopover: typeof import('../components/propose-time-popover').ProposeTimePopover;

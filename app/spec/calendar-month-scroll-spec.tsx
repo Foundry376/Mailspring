@@ -149,7 +149,7 @@ describe('MonthView scrolling', function () {
     events = [allDay('trip', '2026-09-20', '2026-10-03')];
     render(moment([2026, 9, 16]));
 
-    const anchorRow = document.getElementById('trip').closest('.week-scroller-row');
+    const anchorRow = document.getElementById('trip').closest('.month-view-week');
     expect(anchorRow.getBoundingClientRect().top).not.toBeLessThan(
       grid().getBoundingClientRect().top - 1
     );

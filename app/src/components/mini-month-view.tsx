@@ -2,7 +2,7 @@ import React from 'react';
 import moment, { Moment } from 'moment';
 import classnames from 'classnames';
 import { CalendarDate, calendarDateFromParts, dayStartUnix } from '../calendar-date';
-import { WeekScroller, WeekScrollTarget } from './week-scroller';
+import { SnapScroller, SnapScrollTarget } from './snap-scroller';
 
 const VISIBLE_WEEKS = 6;
 
@@ -22,7 +22,7 @@ interface MiniMonthViewState {
   shownYear: number;
   shownMonth: number;
   today: Moment;
-  scrollTarget: WeekScrollTarget;
+  scrollTarget: SnapScrollTarget;
 }
 
 function monthStartDate(m: Moment): CalendarDate {
@@ -111,7 +111,7 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
   };
 
   _onTopWeekChange = (topWeek: CalendarDate) => {
-    const month = moment.unix(dayStartUnix(WeekScroller.monthShownFrom(topWeek, VISIBLE_WEEKS)));
+    const month = moment.unix(dayStartUnix(SnapScroller.monthShownFrom(topWeek, VISIBLE_WEEKS)));
     if (month.year() !== this.state.shownYear || month.month() !== this.state.shownMonth) {
       this.setState({ shownYear: month.year(), shownMonth: month.month() });
     }
@@ -186,16 +186,18 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
 
   _renderScrollingDays(month: Moment) {
     return (
-      <WeekScroller
+      <SnapScroller
         className="day-grid"
-        visibleWeeks={VISIBLE_WEEKS}
+        axis="vertical"
+        unit="week"
+        visibleUnits={VISIBLE_WEEKS}
         scrollTarget={this.state.scrollTarget}
-        renderWeeks={(weekStarts) =>
+        renderUnits={(weekStarts) =>
           weekStarts.map((start) =>
             this._renderWeek(moment.unix(dayStartUnix(start)), month.month(), start)
           )
         }
-        onTopWeekChange={this._onTopWeekChange}
+        onFirstVisibleChange={this._onTopWeekChange}
         onScrollEnd={this._onScrollEnd}
         onClick={this._onClickDay}
       />
