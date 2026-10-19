@@ -1,11 +1,11 @@
 import React from 'react';
-import { clipboard, shell } from 'electron';
+import { shell } from 'electron';
 import { Actions, localized } from 'mailspring-exports';
+import { CopyButton } from 'mailspring-component-kit';
 import { allViews } from '../view-registry';
 import { acceptedAgentRevision } from '../agent/store';
 import { openPanelWithMessage } from '../authoring-panel';
 import { ShareClient, ShareRecord, ShareTransport } from './client';
-import { GrantSummary } from './grant-summary';
 import { renderSharePosters } from './posters';
 import {
   MAX_DESCRIPTION_CHARS,
@@ -47,9 +47,21 @@ interface ShareSheetState {
   share: Share | null;
   error: string | null;
   notice: string | null;
-  copied: boolean;
   busy: boolean;
 }
+
+const OpenPageIcon = () => (
+  <svg viewBox="0 0 20 20" aria-hidden="true">
+    <path
+      d="M11 4h5v5M16 4l-7 7M14 12v3.5a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 3 15.5v-8A1.5 1.5 0 0 1 4.5 6H8"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
 
 function viewOf(viewId: string) {
   return allViews().find((v) => v.id === viewId) || null;
@@ -86,7 +98,6 @@ export class ShareSheet extends React.Component<ShareSheetProps, ShareSheetState
       share: null,
       error: null,
       notice: null,
-      copied: false,
       busy: false,
     };
   }
@@ -152,7 +163,6 @@ export class ShareSheet extends React.Component<ShareSheetProps, ShareSheetState
       this.setState({
         phase: 'shared',
         share: { shareId: published.shareId, url: published.url, revision: this.revision },
-        copied: false,
       });
     } catch (err) {
       if (!this.mounted) return;
@@ -165,11 +175,6 @@ export class ShareSheet extends React.Component<ShareSheetProps, ShareSheetState
     openPanelWithMessage(this.props.viewId, message).catch((err) =>
       AppEnv.showErrorDialog({ title: localized('Views'), message: err.message })
     );
-  };
-
-  _onCopy = () => {
-    clipboard.writeText(this.state.share.url);
-    this.setState({ copied: true });
   };
 
   _onOpenPage = () => {
@@ -249,15 +254,10 @@ export class ShareSheet extends React.Component<ShareSheetProps, ShareSheetState
         <h2>{localized('Share “%@”', view ? view.name : this.props.viewId)}</h2>
         <p className="view-share-intro">
           {localized(
-            'Anyone with the link can see this page and add the View to their copy of Mailspring.'
+            'Anyone with the link can preview and install this View. The View will run on their email, not yours. Example emails you provided the agent are not shared.'
           )}
         </p>
         {notice && <div className="view-share-notice">{notice}</div>}
-        <div className="view-share-warning">
-          {localized(
-            'Example emails you gave the agent, or other details from your conversation with it, might appear in this View. Here’s what will be public.'
-          )}
-        </div>
         {this._renderPoster()}
         <label>
           {localized('Name')}
@@ -280,12 +280,8 @@ export class ShareSheet extends React.Component<ShareSheetProps, ShareSheetState
             onChange={(e) => this.setState({ description: e.target.value })}
           />
         </label>
-        <div className="view-share-section-title">{localized('What it can do')}</div>
-        <GrantSummary manifest={view && view.json} />
         <p className="view-share-fineprint">
-          {localized(
-            'People who add it are asked to allow this before it runs. Its code, not your mail, is shared. Later changes aren’t shared unless you share again.'
-          )}
+          {localized('Later changes aren’t shared unless you share again.')}
         </p>
         {error && <div className="view-share-error">{error}</div>}
         {name.trim() && problem && <div className="view-share-error">{problem}</div>}
@@ -312,7 +308,7 @@ export class ShareSheet extends React.Component<ShareSheetProps, ShareSheetState
   }
 
   _renderShared() {
-    const { share, copied, busy, error, posters } = this.state;
+    const { share, busy, error, posters } = this.state;
     const outdated = share.revision > 0 && share.revision !== this.revision;
     return (
       <div className="view-share-sheet">
@@ -320,11 +316,15 @@ export class ShareSheet extends React.Component<ShareSheetProps, ShareSheetState
         {posters.status === 'ready' && this._renderPoster()}
         <div className="view-share-link">
           <input type="text" readOnly value={share.url} onFocus={(e) => e.target.select()} />
-          <button type="button" className="btn" onClick={this._onCopy}>
-            {copied ? localized('Copied') : localized('Copy')}
-          </button>
-          <button type="button" className="btn" onClick={this._onOpenPage}>
-            {localized('Open Page')}
+          <CopyButton text={share.url} title={localized('Copy Link')} />
+          <button
+            type="button"
+            className="btn btn-small btn-icon view-share-open"
+            title={localized('Open Page')}
+            aria-label={localized('Open Page')}
+            onClick={this._onOpenPage}
+          >
+            <OpenPageIcon />
           </button>
         </div>
         <p className="view-share-fineprint">
@@ -395,6 +395,5 @@ export function openShareSheet(viewId: string) {
   Actions.openModal({
     component: <ShareSheet viewId={viewId} />,
     width: 520,
-    height: 680,
   });
 }

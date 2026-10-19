@@ -1,18 +1,17 @@
 @import 'ui-variables';
 
-// The share and install sheets, laid out like the credential sheet. The modal has a fixed
-// height, so the sheet scrolls.
+// The share and install sheets, laid out like the credential sheet. The modal sizes to the
+// sheet and scrolls once it reaches the window's height.
 .view-share-sheet {
-  padding: 24px 28px;
+  padding: 8px 28px 24px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  height: 100%;
   box-sizing: border-box;
-  overflow-y: auto;
   color: @text-color;
 
   &.loading {
+    min-height: 160px;
     justify-content: center;
     align-items: center;
     color: @text-color-subtle;
@@ -119,15 +118,11 @@
   }
 }
 
-.view-share-warning,
 .view-share-notice {
   padding: 8px 10px;
   border-radius: 6px;
   color: @text-color;
   background: fade(@color-info, 10%);
-}
-.view-share-warning {
-  background: fade(@color-warning, 16%);
 }
 
 .view-share-error {
@@ -140,6 +135,7 @@
 .view-share-link {
   display: flex;
   gap: 8px;
+  align-items: center;
   input[type='text'] {
     flex: 1;
     min-width: 0;
@@ -147,21 +143,21 @@
   }
 }
 
+.btn.view-share-open {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  svg {
+    width: 17px;
+    height: 17px;
+  }
+}
+
 .view-share-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  margin-top: auto;
-  padding-top: 4px;
-}
-
-.view-share-button {
-  color: fade(@text-color-heading, 80%);
-  svg {
-    width: 14px;
-    height: 14px;
-    vertical-align: text-bottom;
-  }
+  padding-top: 8px;
 }
 
 .views-home-card-description.clamped {

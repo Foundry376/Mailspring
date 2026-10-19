@@ -167,6 +167,5 @@ export function openInstallSheet(shareId: string) {
   Actions.openModal({
     component: <InstallSheet shareId={shareId} />,
     width: 520,
-    height: 640,
   });
 }

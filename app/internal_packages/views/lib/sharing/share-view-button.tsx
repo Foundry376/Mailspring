@@ -1,30 +1,11 @@
 import React from 'react';
 import { localized } from 'mailspring-exports';
+import { RetinaImg } from 'mailspring-component-kit';
 import { ViewsNavStore } from '../views-nav';
 import { ViewRegistryEvents, allViews } from '../view-registry';
 import { REVISIONS_CONFIG_KEY, acceptedAgentRevision } from '../agent/store';
 import { shareableRevision } from './publish';
 import { openShareSheet } from './share-sheet';
-
-const ShareIcon = () => (
-  <svg viewBox="0 0 20 20" aria-hidden="true">
-    <path
-      d="M10 12.5V3m0 0L6.5 6.5M10 3l3.5 3.5"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M6 9.5H5a1.5 1.5 0 0 0-1.5 1.5v4.5A1.5 1.5 0 0 0 5 17h10a1.5 1.5 0 0 0 1.5-1.5V11A1.5 1.5 0 0 0 15 9.5h-1"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.4"
-      strokeLinecap="round"
-    />
-  </svg>
-);
 
 /** Whether the View has an agent revision that can be shared (see shareableRevision). */
 export function canShare(viewId: string | null) {
@@ -69,13 +50,13 @@ export class ShareViewButton extends React.Component<
     return (
       <button
         tabIndex={-1}
-        className="btn btn-toolbar view-share-button"
+        className="btn btn-toolbar"
         style={{ order: 99 }}
         title={label}
         aria-label={label}
         onClick={() => openShareSheet(viewId)}
       >
-        <ShareIcon />
+        <RetinaImg name="ic-toolbar-native-share.png" mode={RetinaImg.Mode.ContentIsMask} />
       </button>
     );
   }
