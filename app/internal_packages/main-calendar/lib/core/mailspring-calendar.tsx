@@ -17,8 +17,7 @@ import {
 } from 'mailspring-exports';
 import { KeyCommandsRegion } from 'mailspring-component-kit';
 import { CalendarMenuCommands } from '../calendar-menu-commands';
-import { DayView } from './day-view';
-import { WeekView } from './week-view';
+import { TimeGridView } from './time-grid-view';
 import { MonthView } from './month-view';
 import { AgendaView } from './agenda-view';
 import FocusedMomentStore from './focused-moment-store';
@@ -76,11 +75,9 @@ import { modifyEventWithRecurringSupport, EventTimeChangeOptions } from './recur
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 const CALENDAR_VIEW = 'mailspring.calendarView';
 
-const VIEWS = {
-  [CalendarView.DAY]: DayView,
-  [CalendarView.WEEK]: WeekView,
-  [CalendarView.MONTH]: MonthView,
-  [CalendarView.AGENDA]: AgendaView,
+const DAYS_SHOWN = {
+  [CalendarView.DAY]: 1,
+  [CalendarView.WEEK]: 7,
 };
 
 export interface EventRendererProps {
@@ -157,9 +154,6 @@ export class MailspringCalendar extends React.Component<
   /** Distinguishes the editors of events that do not exist yet, so a closing one clears only its own. */
   _newEventSerial = 0;
   static displayName = 'MailspringCalendar';
-
-  static DayView = DayView;
-  static WeekView = WeekView;
 
   static containerStyles = {
     height: '100%',
@@ -1219,34 +1213,39 @@ export class MailspringCalendar extends React.Component<
       return <CalendarEmptyState />;
     }
 
-    const CurrentView = VIEWS[this.state.view];
-    return (
-      <CurrentView
-        paintVersion={`${getColorCacheVersion()}-${this.state.themeVersion}`}
-        dataSource={this._dataSource}
-        focusedMoment={this.state.focusedMoment}
-        focusedEvent={this.state.focusedEvent}
-        selectedEvents={this.state.selectedEvents}
-        disabledCalendars={this.state.disabledCalendars}
-        onChangeView={this.onChangeView}
-        onChangeFocusedMoment={this.onChangeFocusedMoment}
-        onCalendarMouseUp={this._onCalendarMouseUp}
-        onCalendarMouseDown={this._onCalendarMouseDown}
-        onCalendarMouseMove={this._onCalendarMouseMove}
-        onCalendarClick={this._onCalendarClick}
-        onCalendarDoubleClick={this._onCalendarDoubleClick}
-        onCalendarContextMenu={this._onCalendarContextMenu}
-        onEventClick={this._onEventClick}
-        onEventDoubleClick={this._onEventDoubleClick}
-        onEventContextMenu={this._onEventContextMenu}
-        onEventFocused={this._onEventFocused}
-        dragState={this.state.dragState}
-        newEventPreview={this._newEventPreview()}
-        onEventDragStart={this._onEventDragStart}
-        readOnlyCalendarIds={this.state.readOnlyCalendarIds}
-        isCalendarReadOnly={this._isCalendarReadOnly}
-      />
-    );
+    const viewProps: MailspringCalendarViewProps = {
+      paintVersion: `${getColorCacheVersion()}-${this.state.themeVersion}`,
+      dataSource: this._dataSource,
+      focusedMoment: this.state.focusedMoment,
+      focusedEvent: this.state.focusedEvent,
+      selectedEvents: this.state.selectedEvents,
+      disabledCalendars: this.state.disabledCalendars,
+      onChangeView: this.onChangeView,
+      onChangeFocusedMoment: this.onChangeFocusedMoment,
+      onCalendarMouseUp: this._onCalendarMouseUp,
+      onCalendarMouseDown: this._onCalendarMouseDown,
+      onCalendarMouseMove: this._onCalendarMouseMove,
+      onCalendarClick: this._onCalendarClick,
+      onCalendarDoubleClick: this._onCalendarDoubleClick,
+      onCalendarContextMenu: this._onCalendarContextMenu,
+      onEventClick: this._onEventClick,
+      onEventDoubleClick: this._onEventDoubleClick,
+      onEventContextMenu: this._onEventContextMenu,
+      onEventFocused: this._onEventFocused,
+      dragState: this.state.dragState,
+      newEventPreview: this._newEventPreview(),
+      onEventDragStart: this._onEventDragStart,
+      readOnlyCalendarIds: this.state.readOnlyCalendarIds,
+      isCalendarReadOnly: this._isCalendarReadOnly,
+    };
+    const { view } = this.state;
+    if (view === CalendarView.MONTH) {
+      return <MonthView {...viewProps} />;
+    }
+    if (view === CalendarView.AGENDA) {
+      return <AgendaView {...viewProps} />;
+    }
+    return <TimeGridView key={view} {...viewProps} days={DAYS_SHOWN[view]} />;
   }
 
   render() {

@@ -11,8 +11,7 @@ import Rx from 'rx-lite';
 import * as CalendarDateUtils from '../src/calendar-date';
 import { Calendar } from '../src/flux/models/calendar';
 import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
-import { WeekView } from '../internal_packages/main-calendar/lib/core/week-view';
-import { DayView } from '../internal_packages/main-calendar/lib/core/day-view';
+import { TimeGridView } from '../internal_packages/main-calendar/lib/core/time-grid-view';
 import { DEFAULT_TIMED_EVENT_DURATION_SECONDS } from '../internal_packages/main-calendar/lib/core/calendar-constants';
 import { MonthView } from '../internal_packages/main-calendar/lib/core/month-view';
 
@@ -490,19 +489,19 @@ describe('the views draw the range being dragged', function () {
     host.remove();
   });
 
-  const cases: Array<[any, boolean, string]> = [
-    [WeekView, false, '.calendar-event.drag-preview'],
-    [DayView, false, '.calendar-event.drag-preview'],
-    [MonthView, true, '.month-view-event.drag-preview'],
+  const cases: Array<[string, any, object, boolean, string]> = [
+    ['Week view', TimeGridView, { days: 7 }, false, '.calendar-event.drag-preview'],
+    ['Day view', TimeGridView, { days: 1 }, false, '.calendar-event.drag-preview'],
+    ['Month view', MonthView, {}, true, '.month-view-event.drag-preview'],
   ];
-  for (const [View, isAllDay, selector] of cases) {
-    it(`${View.displayName || View.name} draws the new event it is given, and none without one`, function () {
+  for (const [name, View, viewOptions, isAllDay, selector] of cases) {
+    it(`${name} draws the new event it is given, and none without one`, function () {
       const preview = createNewEventPreview(
         drag({ anchorTime: anchor, currentTime: anchor + 3600, isAllDay })
       );
-      ReactDOM.render(React.createElement(View, viewProps(null)), host);
+      ReactDOM.render(React.createElement(View, { ...viewProps(null), ...viewOptions }), host);
       expect(host.querySelector(selector)).toBe(null);
-      ReactDOM.render(React.createElement(View, viewProps(preview)), host);
+      ReactDOM.render(React.createElement(View, { ...viewProps(preview), ...viewOptions }), host);
       expect(host.querySelector(selector)).not.toBe(null);
     });
   }

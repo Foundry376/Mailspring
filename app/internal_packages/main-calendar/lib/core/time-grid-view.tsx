@@ -24,16 +24,20 @@ import {
 import { MailspringCalendarViewProps } from './mailspring-calendar';
 import { getEventsWithDragPreview, withNewEventPreview } from './calendar-drag-utils';
 
-const BUFFER_DAYS = 7; // in each direction
-const DAYS_IN_VIEW = 7;
 const MIN_INTERVAL_HEIGHT = 21;
 const DAY_PORTION_SHOWN_VERTICALLY = 11 / 24;
 
-export class WeekView extends React.Component<
-  MailspringCalendarViewProps,
+interface TimeGridViewProps extends MailspringCalendarViewProps {
+  /** 7 starts on the week's first day; any other count starts on the focused day. */
+  days: number;
+}
+
+/** The hour grid behind Week view (7 days) and Day view (1). */
+export class TimeGridView extends React.Component<
+  TimeGridViewProps,
   { intervalHeight: number; events: EventOccurrence[] }
 > {
-  static displayName = 'WeekView';
+  static displayName = 'TimeGridView';
 
   _waitingForShift = 0;
   _mounted = false;
@@ -59,7 +63,7 @@ export class WeekView extends React.Component<
     // uses a too-short scrollHeight and pushes edge-of-day events off-screen.
     this._pendingInitialCenter = true;
 
-    // Shift ourselves right by a week because we preload 7 days on either side
+    // Shift right past the buffer, which is a screen's worth of days on either side
     const wrap = this._calendarWrapEl.current;
     wrap.scrollLeft += wrap.clientWidth;
 
@@ -107,7 +111,7 @@ export class WeekView extends React.Component<
   }
 
   _calculateMomentRange() {
-    const { focusedMoment } = this.props;
+    const { focusedMoment, days } = this.props;
 
     // NOTE: Since we initialize a new time from one of the properties of
     // the props.focusedMoment, we need to check for the timezone!
@@ -115,18 +119,23 @@ export class WeekView extends React.Component<
     // Other relative operations (like adding or subtracting time) are
     // independent of a timezone.
     const tz = focusedMoment.tz();
-    const start = (tz ? moment.tz([focusedMoment.year()], tz) : moment([focusedMoment.year()]))
-      .weekday(0)
-      .week(focusedMoment.week());
+    const start =
+      days === 7
+        ? (tz ? moment.tz([focusedMoment.year()], tz) : moment([focusedMoment.year()]))
+            .weekday(0)
+            .week(focusedMoment.week())
+        : tz
+          ? moment.tz([focusedMoment.year(), focusedMoment.month(), focusedMoment.date()], tz)
+          : moment([focusedMoment.year(), focusedMoment.month(), focusedMoment.date()]);
 
-    const end = start.clone().add(DAYS_IN_VIEW, 'days').subtract(1, 'millisecond');
+    const end = start.clone().add(days, 'days').subtract(1, 'millisecond');
 
     return {
       visibleStart: start,
       visibleEnd: end,
 
-      bufferedStart: start.clone().subtract(BUFFER_DAYS, 'days'),
-      bufferedEnd: moment(end).add(BUFFER_DAYS, 'days').subtract(1, 'millisecond'),
+      bufferedStart: start.clone().subtract(days, 'days'),
+      bufferedEnd: moment(end).add(days, 'days').subtract(1, 'millisecond'),
     };
   }
 
@@ -154,10 +163,8 @@ export class WeekView extends React.Component<
   _daysInView() {
     const { bufferedStart } = this._calculateMomentRange();
     const days: Moment[] = [];
-    for (let i = 0; i < DAYS_IN_VIEW + BUFFER_DAYS * 2; i++) {
-      // moment::weekday is locale aware since some weeks start on diff
-      // days. See http://momentjs.com/docs/#/get-set/weekday/
-      days.push(moment(bufferedStart).weekday(i));
+    for (let i = 0; i < this.props.days * 3; i++) {
+      days.push(moment(bufferedStart).add(i, 'days'));
     }
     return days;
   }
@@ -166,13 +173,13 @@ export class WeekView extends React.Component<
     this.props.onChangeFocusedMoment(this._now());
   };
 
-  _onClickNextWeek = () => {
-    const newMoment = moment(this.props.focusedMoment).add(1, 'week');
+  _onClickNext = () => {
+    const newMoment = moment(this.props.focusedMoment).add(this.props.days, 'days');
     this.props.onChangeFocusedMoment(newMoment);
   };
 
-  _onClickPrevWeek = () => {
-    const newMoment = moment(this.props.focusedMoment).subtract(1, 'week');
+  _onClickPrev = () => {
+    const newMoment = moment(this.props.focusedMoment).subtract(this.props.days, 'days');
     this.props.onChangeFocusedMoment(newMoment);
   };
 
@@ -221,7 +228,7 @@ export class WeekView extends React.Component<
   }
 
   _bufferRatio() {
-    return (BUFFER_DAYS * 2 + DAYS_IN_VIEW) / DAYS_IN_VIEW;
+    return 3;
   }
 
   render() {
@@ -237,10 +244,12 @@ export class WeekView extends React.Component<
 
     const range = this._calculateMomentRange();
 
-    const headerText = [
-      range.visibleStart.format('MMMM D'),
-      range.visibleEnd.format('MMMM D YYYY'),
-    ].join(' - ');
+    const { days: dayCount } = this.props;
+    const view = dayCount === 1 ? CalendarView.DAY : CalendarView.WEEK;
+    const headerText =
+      dayCount === 1
+        ? range.visibleStart.format('dddd, MMMM D, YYYY')
+        : [range.visibleStart.format('MMMM D'), range.visibleEnd.format('MMMM D YYYY')].join(' - ');
 
     const allDayOverlap = overlapForEvents(eventsByDay.allDay);
     const allDayBarHeight = eventsByDay.allDay.length
@@ -248,7 +257,7 @@ export class WeekView extends React.Component<
       : 0;
 
     return (
-      <div className="calendar-view week-view">
+      <div className={classnames('calendar-view', 'week-view', { 'day-view': dayCount === 1 })}>
         <CalendarEventContainer
           onCalendarMouseUp={this.props.onCalendarMouseUp}
           onCalendarMouseDown={this.props.onCalendarMouseDown}
@@ -258,15 +267,15 @@ export class WeekView extends React.Component<
           onCalendarContextMenu={this.props.onCalendarContextMenu}
         >
           <div className="top-banner">
-            <InjectedComponentSet matching={{ role: 'Calendar:Week:Banner' }} direction="row" />
+            <InjectedComponentSet matching={{ role: `Calendar:${view}:Banner` }} direction="row" />
           </div>
 
           <HeaderControls
             title={headerText}
-            nextAction={this._onClickNextWeek}
-            prevAction={this._onClickPrevWeek}
+            nextAction={this._onClickNext}
+            prevAction={this._onClickPrev}
             onChangeView={this.props.onChangeView}
-            disabledViewButton={CalendarView.WEEK}
+            disabledViewButton={view}
           >
             <button key="today" className="btn" onClick={this._onClickToday}>
               Today
@@ -342,17 +351,15 @@ export class WeekView extends React.Component<
                     />
                   ))}
                   <CurrentTimeIndicator
-                    visible={
-                      todayColumnIdx > BUFFER_DAYS && todayColumnIdx <= BUFFER_DAYS + DAYS_IN_VIEW
-                    }
+                    visible={todayColumnIdx >= dayCount && todayColumnIdx < dayCount * 2}
                     gridHeight={totalHeight}
-                    numColumns={BUFFER_DAYS * 2 + DAYS_IN_VIEW}
+                    numColumns={dayCount * 3}
                     todayColumnIdx={todayColumnIdx}
                   />
                   <EventGridBackground
                     height={totalHeight}
                     intervalHeight={this.state.intervalHeight}
-                    numColumns={BUFFER_DAYS * 2 + DAYS_IN_VIEW}
+                    numColumns={dayCount * 3}
                     paintVersion={this.props.paintVersion}
                   />
                 </div>
