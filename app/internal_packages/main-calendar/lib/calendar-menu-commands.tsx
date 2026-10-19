@@ -1,6 +1,7 @@
 import React from 'react';
 import moment from 'moment';
 import { BindGlobalCommands } from 'mailspring-component-kit';
+import { PopoverStore } from 'mailspring-exports';
 import { CalendarView } from './core/calendar-constants';
 
 interface CalendarMenuCommandsProps {
@@ -30,6 +31,14 @@ export class CalendarMenuCommands extends React.Component<CalendarMenuCommandsPr
 
     if (this.props.hasSelectedEvents) {
       commands['core:delete-item'] = this.props.onDeleteEvent;
+    } else {
+      // With nothing selected, the keys that move an event step through time instead.
+      commands['calendar:move-event-left'] = () => {
+        if (!PopoverStore.isOpen) this.props.onNavigatePrevious();
+      };
+      commands['calendar:move-event-right'] = () => {
+        if (!PopoverStore.isOpen) this.props.onNavigateNext();
+      };
     }
 
     // No `key` here on purpose: this wraps the whole calendar view, so a key that changes

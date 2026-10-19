@@ -5,6 +5,8 @@ import {
   nextDayStartUnix,
   addCalendarDays,
   calendarDaysBetween,
+  dayOfWeek,
+  monthStartOf,
   formatCalendarDate,
   parseCalendarDate,
   secondsIntoDay,
@@ -288,6 +290,24 @@ describe('calendarDaysBetween', function () {
       const from = d('2026-03-07');
       expect(calendarDaysBetween(from, addCalendarDays(from, days))).toBe(days);
     });
+  });
+});
+
+describe('dayOfWeek', function () {
+  it('counts from Sunday, including before the epoch', function () {
+    expect(dayOfWeek(d('2026-10-18'))).toBe(0);
+    expect(dayOfWeek(d('2026-10-16'))).toBe(5);
+    expect(dayOfWeek(d('1969-12-31'))).toBe(3);
+    expect(dayOfWeek(d('1900-01-01'))).toBe(1);
+  });
+});
+
+describe('monthStartOf', function () {
+  it('goes back to the 1st, including before the epoch', function () {
+    expect(formatCalendarDate(monthStartOf(d('2026-10-16')))).toBe('2026-10-01');
+    expect(formatCalendarDate(monthStartOf(d('2026-10-01')))).toBe('2026-10-01');
+    expect(formatCalendarDate(monthStartOf(d('2028-02-29')))).toBe('2028-02-01');
+    expect(formatCalendarDate(monthStartOf(d('1969-12-31')))).toBe('1969-12-01');
   });
 });
 

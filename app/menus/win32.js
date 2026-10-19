@@ -1,4 +1,5 @@
 const { localized } = require('../src/intl');
+const { developerToolsAvailable } = require('../src/developer-tools');
 
 module.exports = {
   menu: [
@@ -163,17 +164,23 @@ module.exports = {
       id: 'Developer',
       label: localized('Developer'),
       submenu: [
-        {
-          label: localized('Run with Debug Flags'),
-          type: 'checkbox',
-          command: 'application:toggle-dev',
-        },
-        { type: 'separator' },
+        ...(developerToolsAvailable()
+          ? [
+              {
+                label: localized('Run with Debug Flags'),
+                type: 'checkbox',
+                command: 'application:toggle-dev',
+              },
+              { type: 'separator' },
+            ]
+          : []),
         { label: localized('Create a Plugin') + '...', command: 'window:create-package' },
         { label: localized('Install a Plugin') + '...', command: 'window:install-package' },
         { type: 'separator' },
         { label: localized('Reload'), command: 'window:reload' },
-        { label: localized('Toggle Developer Tools'), command: 'window:toggle-dev-tools' },
+        ...(developerToolsAvailable()
+          ? [{ label: localized('Toggle Developer Tools'), command: 'window:toggle-dev-tools' }]
+          : []),
         {
           label: localized('Toggle Component Regions'),
           command: 'window:toggle-component-regions',

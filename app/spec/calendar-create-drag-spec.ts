@@ -1,7 +1,7 @@
 import {
   createDragRange,
   createNewEventPreview,
-  withCreateDragPreview,
+  withNewEventPreview,
   CREATE_DRAG_SNAP_SECONDS,
 } from '../internal_packages/main-calendar/lib/core/calendar-drag-utils';
 import React from 'react';
@@ -97,22 +97,16 @@ describe('createNewEventPreview', function () {
   });
 });
 
-describe('withCreateDragPreview', function () {
+describe('withNewEventPreview', function () {
   const existing = [{ id: 'a' }, { id: 'b' }] as any[];
 
-  it('adds nothing when no drag is in progress', function () {
-    expect(withCreateDragPreview(existing, null)).toBe(existing);
+  it('adds nothing when no new event is being drawn or edited', function () {
+    expect(withNewEventPreview(existing, null)).toBe(existing);
   });
 
-  it('adds nothing until the drag passes the threshold', function () {
-    expect(withCreateDragPreview(existing, drag({ isDragging: false }))).toBe(existing);
-  });
-
-  it('appends the preview once dragging, leaving the real events alone', function () {
-    const result = withCreateDragPreview(existing, drag());
-    expect(result.length).toBe(3);
-    expect(result.slice(0, 2)).toEqual(existing);
-    expect((result[2] as any).isDragPreview).toBe(true);
+  it('appends the preview, leaving the real events alone', function () {
+    const preview = createNewEventPreview(drag());
+    expect(withNewEventPreview(existing, preview)).toEqual([...existing, preview]);
   });
 });
 
@@ -305,7 +299,9 @@ describe('drawing a new event on empty grid space', function () {
   it('hands the view the range being drawn', function () {
     cal._onCalendarMouseDown(at(BASE));
     cal._onCalendarMouseMove(at(BASE + 3600));
-    expect(cal._renderMainContent().props.createDrag).toBe(cal.state.createDrag);
+    expect(cal._renderMainContent().props.newEventPreview).toEqual(
+      createNewEventPreview(cal.state.createDrag)
+    );
   });
 });
 
@@ -321,8 +317,15 @@ describe('opening the editor for a new event', function () {
       calendars: [new Calendar({ id: 'cal-1', accountId: 'acct-1', name: 'Mine' } as any)],
       disabledCalendars: [],
     };
+    cal.setState = (next: any) =>
+      Object.assign(cal.state, typeof next === 'function' ? next(cal.state) : next);
     spyOn(Actions, 'openPopover');
   });
+
+  const shown = () => cal._renderMainContent().props.newEventPreview;
+  const editor = () => Actions.openPopover.mostRecentCall.args[0];
+  const mountEditor = (): any => ReactDOM.render(editor(), document.createElement('div'));
+  const dateOf = (unix: number) => CalendarDateUtils.calendarDateFromUnix(unix);
 
   const range = {
     startUnix: BASE,
@@ -352,6 +355,93 @@ describe('opening the editor for a new event', function () {
     expect(originRect.top).toBe(199);
   });
 
+  it('keeps the new event on the grid while its editor is open, and drops it when it closes', function () {
+    cal._openNewEventPopover(range);
+    expect(shown().start).toBe(BASE);
+    expect(shown().end).toBe(BASE + 3600);
+    expect(shown().startDate).toEqual(dateOf(BASE));
+    expect(shown().calendarId).toBe('cal-1');
+    expect(shown().isDragPreview).toBe(true);
+
+    const host = document.createElement('div');
+    ReactDOM.render(editor(), host);
+    expect(shown()).not.toBe(null);
+    ReactDOM.unmountComponentAtNode(host);
+    expect(shown()).toBe(null);
+  });
+
+  it("keeps the second editor's event when the first editor closes after it opened", function () {
+    cal._openNewEventPopover(range);
+    const first = editor();
+    cal._openNewEventPopover({ ...range, startUnix: BASE + 7200, endUnix: BASE + 10800 });
+    first.props.onClosed();
+    expect(shown().start).toBe(BASE + 7200);
+  });
+
+  it('draws an all-day event opened from the grid as the one day its range covers', function () {
+    const dayStart = CalendarDateUtils.dayStartUnix(dateOf(BASE));
+    const nextDayStart = CalendarDateUtils.nextDayStartUnix(dateOf(BASE));
+    cal._openNewEventPopover({
+      ...range,
+      startUnix: dayStart,
+      endUnix: nextDayStart,
+      isAllDay: true,
+    });
+    expect(shown().isAllDay).toBe(true);
+    expect(shown().endDate).toEqual(dateOf(BASE));
+  });
+
+  it('redraws the new event with the title typed in its editor', function () {
+    cal._openNewEventPopover(range);
+    mountEditor().updateField('title', 'Standup');
+    expect(shown().title).toBe('Standup');
+  });
+
+  it('moves the new event when its editor changes the start, keeping its length', function () {
+    cal._openNewEventPopover(range);
+    mountEditor().updateStart(BASE + 1800);
+    expect(shown().start).toBe(BASE + 1800);
+    expect(shown().end).toBe(BASE + 5400);
+  });
+
+  it('resizes the new event when its editor changes the end', function () {
+    cal._openNewEventPopover(range);
+    mountEditor().updateEnd(BASE + 7200);
+    expect(shown().start).toBe(BASE);
+    expect(shown().end).toBe(BASE + 7200);
+  });
+
+  it('turns the new event all-day when its editor does, over the days its times spanned', function () {
+    cal._openNewEventPopover(range);
+    const opened = mountEditor();
+    opened.updateEnd(BASE + 86400);
+    opened.updateAllDay(true);
+    expect(shown().isAllDay).toBe(true);
+    expect(shown().startDate).toEqual(dateOf(BASE));
+    expect(shown().endDate).toEqual(dateOf(BASE + 86400));
+  });
+
+  it('recolours the new event when its editor picks another calendar', function () {
+    cal._openNewEventPopover(range);
+    mountEditor().updateCalendar('cal-2', 'acct-2');
+    expect(shown().calendarId).toBe('cal-2');
+    expect(shown().accountId).toBe('acct-2');
+  });
+
+  it('leaves the grid alone when the editor changes a field the grid does not draw', function () {
+    cal._openNewEventPopover(range);
+    const opened = mountEditor();
+    spyOn(cal, 'setState');
+    opened.updateField('description', 'Bring the slides');
+    expect(cal.setState).not.toHaveBeenCalled();
+  });
+
+  it("shows the range being drawn over an open editor's event", function () {
+    cal._openNewEventPopover(range);
+    cal.state.createDrag = drag({ anchorTime: BASE + 7200, currentTime: BASE + 10800 });
+    expect(shown().start).toBe(BASE + 7200);
+  });
+
   it('opens nothing when no calendar can be written to', function () {
     const helpers = require('../internal_packages/main-calendar/lib/core/calendar-helpers');
     spyOn(helpers, 'showNoEditableCalendarsError');
@@ -366,7 +456,7 @@ describe('the views draw the range being dragged', function () {
   const dataSource = { buildObservable: () => Rx.Observable.just({ events: [] }) };
   const now = moment();
   const anchor = now.clone().startOf('day').add(10, 'hours').unix();
-  const viewProps = (createDrag: any): any => ({
+  const viewProps = (newEventPreview: any): any => ({
     dataSource,
     disabledCalendars: [],
     focusedMoment: now,
@@ -385,7 +475,7 @@ describe('the views draw the range being dragged', function () {
     onEventFocused: () => {},
     onEventDragStart: () => {},
     dragState: null,
-    createDrag,
+    newEventPreview,
     readOnlyCalendarIds: new Set(),
     isCalendarReadOnly: () => false,
   });
@@ -406,16 +496,13 @@ describe('the views draw the range being dragged', function () {
     [MonthView, true, '.month-view-event.drag-preview'],
   ];
   for (const [View, isAllDay, selector] of cases) {
-    it(`${View.displayName || View.name} shows the preview once the drag has begun, and not before`, function () {
-      const pending = drag({
-        anchorTime: anchor,
-        currentTime: anchor + 3600,
-        isAllDay,
-        isDragging: false,
-      });
-      ReactDOM.render(React.createElement(View, viewProps(pending)), host);
+    it(`${View.displayName || View.name} draws the new event it is given, and none without one`, function () {
+      const preview = createNewEventPreview(
+        drag({ anchorTime: anchor, currentTime: anchor + 3600, isAllDay })
+      );
+      ReactDOM.render(React.createElement(View, viewProps(null)), host);
       expect(host.querySelector(selector)).toBe(null);
-      ReactDOM.render(React.createElement(View, viewProps({ ...pending, isDragging: true })), host);
+      ReactDOM.render(React.createElement(View, viewProps(preview)), host);
       expect(host.querySelector(selector)).not.toBe(null);
     });
   }

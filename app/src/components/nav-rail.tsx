@@ -25,6 +25,8 @@ interface NavRailItemProps {
   command?: string;
   /** For items with no application: command. */
   onClick?: () => void;
+  /** Pops up a menu instead of running a command. */
+  menuTemplate?: () => Electron.MenuItemConstructorOptions[];
   /** Re-evaluated whenever WorkspaceStore triggers. Ignored when `active` is passed. */
   isActive?: () => boolean;
   /** For items whose active state depends on more than the sheet stack. */
@@ -90,8 +92,14 @@ export class NavRailItem extends React.Component<NavRailItemProps, NavRailItemSt
 
   _onClick = () => {
     this._hideTooltip();
-    if (this.props.onClick) this.props.onClick();
-    else if (this.props.command) ipcRenderer.send('command', this.props.command);
+    if (this.props.onClick) {
+      this.props.onClick();
+    } else if (this.props.menuTemplate) {
+      const { Menu } = require('@electron/remote');
+      Menu.buildFromTemplate(this.props.menuTemplate()).popup({});
+    } else if (this.props.command) {
+      ipcRenderer.send('command', this.props.command);
+    }
   };
 
   _renderTooltip(tooltip: NavRailTooltipContent) {
@@ -130,6 +138,7 @@ export class NavRailItem extends React.Component<NavRailItemProps, NavRailItemSt
         onMouseLeave={this._hideTooltip}
         onFocus={this._showTooltipSoon}
         onBlur={this._hideTooltip}
+        aria-haspopup={this.props.menuTemplate ? 'menu' : undefined}
       >
         {iconName ? (
           <RetinaImg name={iconName} mode={RetinaImg.Mode.ContentIsMask} />
@@ -162,7 +171,8 @@ NavRailSection.displayName = 'NavRailSection';
 
 /**
  * Plugins add a section with the `NavRail:Item` role, or a group of items after a divider
- * with the `NavRail:Section` role (see NavRailSection). The rail scrolls when it overflows.
+ * with the `NavRail:Section` role (see NavRailSection), or `NavRail:FooterItem` to pin it to
+ * the bottom. The rail scrolls when it overflows.
  */
 export class NavRail extends React.Component {
   static displayName = 'NavRail';
@@ -180,6 +190,13 @@ export class NavRail extends React.Component {
           matching={{ role: 'NavRail:Section' }}
           direction="column"
           height="auto"
+          style={{ flex: 1 }}
+          containersRequired={false}
+        />
+        <InjectedComponentSet
+          matching={{ role: 'NavRail:FooterItem' }}
+          direction="column"
+          height="auto"
           containersRequired={false}
         />
       </nav>
@@ -192,10 +209,7 @@ const MailNavRailItem = () => (
     label={localized('Mail')}
     iconName="inbox.png"
     command="application:show-mail"
-    isActive={() =>
-      FocusedPerspectiveStore.isShowingMail() &&
-      WorkspaceStore.topSheet() !== WorkspaceStore.Sheet.Preferences
-    }
+    isActive={() => FocusedPerspectiveStore.isShowingMail()}
   />
 );
 MailNavRailItem.displayName = 'MailNavRailItem';

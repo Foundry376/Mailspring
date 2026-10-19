@@ -73,6 +73,7 @@ export class CalendarSidebar extends React.Component<
         </ScrollRegion>
         <div style={{ width: '100%' }}>
           <MiniMonthView
+            orientation="vertical"
             value={this.state.focusedMoment}
             onChange={(m) => FocusedMomentStore.setFocusedMoment(m)}
           />

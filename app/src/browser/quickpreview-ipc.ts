@@ -1,6 +1,7 @@
 import { IpcMain, IpcMainInvokeEvent } from 'electron/main';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
+import { handleFromMailspringWindows } from './trusted-ipc';
 
 const fs = require('fs');
 const path = require('path');
@@ -151,10 +152,11 @@ export function registerQuickpreviewIPCHandlers(ipcMain: IpcMain) {
   ipcMain.handle('quickpreview:previewFileAsSnarkdownHTML', previewFileAsSnarkdownHTML);
   ipcMain.handle('quickpreview:finishWithData', finishWithData);
   ipcMain.handle('quickpreview:finishCapture', finishCapture);
-  ipcMain.handle('quickpreview:generateToken', (_, previewPath: string) => {
+  // Tokens are requested by the window opening the preview, not by the preview renderer.
+  handleFromMailspringWindows(ipcMain, 'quickpreview:generateToken', (_, previewPath: string) => {
     return generatePreviewToken(previewPath);
   });
-  ipcMain.handle('quickpreview:cleanupToken', (_, token: string) => {
+  handleFromMailspringWindows(ipcMain, 'quickpreview:cleanupToken', (_, token: string) => {
     cleanupPreviewToken(token);
   });
 }

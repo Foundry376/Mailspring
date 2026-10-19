@@ -134,7 +134,12 @@ export async function recordAndSendRSVP({
     if (ics) {
       const updated = event.clone();
       updated.ics = ics;
-      Actions.queueTask(SyncbackEventTask.forUpdating({ event: updated }));
+      const answer = {
+        email: myEmail,
+        status,
+        occurrenceIcs: recurrenceId ? answered : undefined,
+      };
+      Actions.queueTask(SyncbackEventTask.forAnswering({ event: updated, answer }));
     }
   }
 

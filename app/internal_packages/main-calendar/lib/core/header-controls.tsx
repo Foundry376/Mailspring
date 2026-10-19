@@ -9,6 +9,7 @@ export class HeaderControls extends React.Component<{
   prevAction: () => void;
   onChangeView: (view: CalendarView) => void;
   disabledViewButton: string;
+  arrows?: 'horizontal' | 'vertical';
 }> {
   static displayName = 'HeaderControls';
 
@@ -28,7 +29,11 @@ export class HeaderControls extends React.Component<{
         onClick={this.props.nextAction}
       >
         <RetinaImg
-          name="ic-calendar-right-arrow.png"
+          name={
+            this.props.arrows === 'vertical'
+              ? 'ic-calendar-down-arrow.png'
+              : 'ic-calendar-right-arrow.png'
+          }
           mode={RetinaImg.Mode.ContentIsMask}
           aria-hidden="true"
         />
@@ -48,7 +53,11 @@ export class HeaderControls extends React.Component<{
         onClick={this.props.prevAction}
       >
         <RetinaImg
-          name="ic-calendar-left-arrow.png"
+          name={
+            this.props.arrows === 'vertical'
+              ? 'ic-calendar-up-arrow.png'
+              : 'ic-calendar-left-arrow.png'
+          }
           mode={RetinaImg.Mode.ContentIsMask}
           aria-hidden="true"
         />
