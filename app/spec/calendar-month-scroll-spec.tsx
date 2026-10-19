@@ -4,32 +4,9 @@ import moment, { Moment } from 'moment';
 import Rx from 'rx-lite';
 
 import { MonthView } from '../internal_packages/main-calendar/lib/core/month-view';
-import {
-  EventOccurrence,
-  coveredDates,
-} from '../internal_packages/main-calendar/lib/core/calendar-data-source';
+import { EventOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 import { calendarDateFromUnix, calendarDaysBetween } from '../src/calendar-date';
-
-function allDay(id: string, iso: string, lastIso = iso): EventOccurrence {
-  const start = moment(iso).unix();
-  return {
-    id,
-    accountId: 'acct-1',
-    calendarId: 'cal-1',
-    title: id,
-    location: '',
-    description: '',
-    isCancelled: false,
-    isPending: false,
-    isMine: true,
-    isException: false,
-    isRecurring: false,
-    organizer: null,
-    attendees: [],
-    ...coveredDates(start, moment(lastIso).add(1, 'day').unix(), true),
-    isAllDay: true,
-  } as EventOccurrence;
-}
+import { allDayOccurrence, calendarViewProps } from './fixtures/calendar-view-props';
 
 const NO_CALENDARS: string[] = [];
 
@@ -42,31 +19,13 @@ describe('MonthView scrolling', function () {
   const render = (focusedMoment: Moment, focusedEvent = null, disabledCalendars = NO_CALENDARS) => {
     ReactDOM.render(
       <MonthView
-        {...({
-          dataSource,
+        {...calendarViewProps({
+          dataSource: dataSource as any,
           disabledCalendars,
           focusedMoment,
           focusedEvent,
-          selectedEvents: [],
-          onChangeView: () => {},
           onChangeFocusedMoment,
-          onCalendarMouseUp: () => {},
-          onCalendarMouseDown: () => {},
-          onCalendarMouseMove: () => {},
-          onCalendarClick: () => {},
-          onCalendarDoubleClick: () => {},
-          onCalendarContextMenu: () => {},
-          onEventClick: () => {},
-          onEventDoubleClick: () => {},
-          onEventContextMenu: () => {},
-          onEventFocused: () => {},
-          onEventDragStart: () => {},
-          dragState: null,
-          newEventPreview: null,
-          readOnlyCalendarIds: new Set(),
-          isCalendarReadOnly: () => false,
-          paintVersion: '',
-        } as any)}
+        })}
       />,
       host
     );
@@ -137,7 +96,7 @@ describe('MonthView scrolling', function () {
 
   it('gives Tab only to events in the rows in view', function () {
     // October 2026 shows from Sun 27 Sep; the rows drawn above it start Sun 16 Aug.
-    events = [allDay('above', '2026-08-20'), allDay('shown', '2026-10-14')];
+    events = [allDayOccurrence('above', '2026-08-20'), allDayOccurrence('shown', '2026-10-14')];
     render(moment([2026, 9, 16]));
 
     expect(barOf('above').tabIndex).toBe(-1);
@@ -146,7 +105,7 @@ describe('MonthView scrolling', function () {
 
   it('finds an event by id at its first bar in view, which a card opens beside', function () {
     // From Sun 20 Sep, the event's first bar is in a row drawn above October's first week.
-    events = [allDay('trip', '2026-09-20', '2026-10-03')];
+    events = [allDayOccurrence('trip', '2026-09-20', '2026-10-03')];
     render(moment([2026, 9, 16]));
 
     const anchorRow = document.getElementById('trip').closest('.month-view-week');

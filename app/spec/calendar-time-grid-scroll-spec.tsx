@@ -6,46 +6,27 @@ import Rx from 'rx-lite';
 import { TimeGridView } from '../internal_packages/main-calendar/lib/core/time-grid-view';
 import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
 import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
-
-const NO_CALENDARS: string[] = [];
+import { calendarDateFromUnix, calendarDaysBetween } from '../src/calendar-date';
+import { allDayOccurrence, calendarViewProps } from './fixtures/calendar-view-props';
 
 describe('TimeGridView scrolling', function () {
-  const dataSource = { buildObservable: () => Rx.Observable.just({ events: [] }) };
+  let dataSource: { buildObservable: jasmine.Spy };
   let host: HTMLDivElement;
   let onChangeFocusedMoment: jasmine.Spy;
   let view: TimeGridView;
-  let days: number;
+  let visibleDays: 1 | 7;
 
-  const render = (focusedMoment: Moment) => {
+  const render = (focusedMoment: Moment, focusedEvent = null) => {
     ReactDOM.render(
       <TimeGridView
         ref={(v) => (view = v)}
-        days={days}
-        {...({
-          dataSource,
-          disabledCalendars: NO_CALENDARS,
+        visibleDays={visibleDays}
+        {...calendarViewProps({
+          dataSource: dataSource as any,
           focusedMoment,
-          focusedEvent: null,
-          selectedEvents: [],
-          onChangeView: () => {},
+          focusedEvent,
           onChangeFocusedMoment,
-          onCalendarMouseUp: () => {},
-          onCalendarMouseDown: () => {},
-          onCalendarMouseMove: () => {},
-          onCalendarClick: () => {},
-          onCalendarDoubleClick: () => {},
-          onCalendarContextMenu: () => {},
-          onEventClick: () => {},
-          onEventDoubleClick: () => {},
-          onEventContextMenu: () => {},
-          onEventFocused: () => {},
-          onEventDragStart: () => {},
-          dragState: null,
-          newEventPreview: null,
-          readOnlyCalendarIds: new Set(),
-          isCalendarReadOnly: () => false,
-          paintVersion: '',
-        } as any)}
+        })}
       />,
       host
     );
@@ -66,11 +47,25 @@ describe('TimeGridView scrolling', function () {
   const lastFocus = () =>
     (onChangeFocusedMoment.mostRecentCall.args[0] as Moment).format('ddd YYYY-MM-DD');
   const lastScroll = () => (strip().scrollTo as jasmine.Spy).mostRecentCall.args[0];
+  // Holds every glide in flight, so the first day in view stays where the presses began.
+  const holdGlides = () => {
+    const scrollTo = strip().scrollTo.bind(strip());
+    spyOn(strip(), 'scrollTo').andCallFake((options: ScrollToOptions) => {
+      if (options.behavior !== 'smooth') scrollTo(options);
+    });
+  };
 
   beforeEach(function () {
-    days = 7;
+    visibleDays = 7;
+    dataSource = {
+      buildObservable: jasmine
+        .createSpy('buildObservable')
+        .andCallFake(() => Rx.Observable.just({ events: [] })),
+    };
     // Re-renders inside the call, as FocusedMomentStore's synchronous trigger does in the app.
-    onChangeFocusedMoment = jasmine.createSpy('onChangeFocusedMoment').andCallFake(render);
+    onChangeFocusedMoment = jasmine
+      .createSpy('onChangeFocusedMoment')
+      .andCallFake((m: Moment) => render(m));
     host = document.createElement('div');
     document.body.appendChild(host);
     // Specs load core styles but not the calendar package's, which size the strip in the app.
@@ -108,24 +103,56 @@ describe('TimeGridView scrolling', function () {
     expect(strip().scrollTo).not.toHaveBeenCalled();
   });
 
-  it('goes to the nearest week start behind or ahead of the first day in view', function () {
-    render(moment([2026, 9, 19]));
-    scrollDays(3);
-    strip().dispatchEvent(new Event('scrollend'));
-    spyOn(strip(), 'scrollTo').andCallThrough();
-    const wednesday = strip().scrollLeft;
+  describe('going to the nearest week start', function () {
+    it('from mid-week, goes ahead to the next week start', function () {
+      render(moment([2026, 9, 19]));
+      scrollDays(3);
+      strip().dispatchEvent(new Event('scrollend'));
+      const wednesday = strip().scrollLeft;
+      holdGlides();
 
-    view.navigate(-1);
-    expect(lastFocus()).toBe('Mon 2026-10-19');
-    expect(lastScroll().left).toBe(wednesday - 3 * 100);
+      view.navigate(1);
+      expect(lastScroll().left).toBe(wednesday + 4 * 100);
+    });
 
-    view.navigate(1);
-    expect(lastScroll().left).toBe(wednesday + 4 * 100);
+    it('from mid-week, goes back to the start of that week', function () {
+      render(moment([2026, 9, 19]));
+      scrollDays(3);
+      strip().dispatchEvent(new Event('scrollend'));
+      const wednesday = strip().scrollLeft;
+      holdGlides();
+
+      view.navigate(-1);
+      expect(lastFocus()).toBe('Mon 2026-10-19');
+      expect(lastScroll().left).toBe(wednesday - 3 * 100);
+    });
+
+    it('from a lined-up week, moves a whole week either way', function () {
+      render(moment([2026, 9, 19]));
+      const sunday = strip().scrollLeft;
+      holdGlides();
+
+      view.navigate(-1);
+      expect(lastFocus()).toBe('Mon 2026-10-12');
+      expect(lastScroll().left).toBe(sunday - 7 * 100);
+    });
+
+    it('counts every press made while the glide is still on its way', function () {
+      render(moment([2026, 9, 19]));
+      const sunday = strip().scrollLeft;
+      holdGlides();
+
+      view.navigate(1);
+      view.navigate(1);
+      expect(lastFocus()).toBe('Mon 2026-11-02');
+      expect(lastScroll().left).toBe(sunday + 14 * 100);
+    });
   });
 
-  it('steps a day at a time in Day view', function () {
-    days = 1;
-    style('.calendar-area-wrap { width: 100px; }');
+  it('steps a day at a time in Day view, keeping the time', function () {
+    visibleDays = 1;
+    document.getElementById('time-grid-scroll-spec').textContent +=
+      '.calendar-area-wrap { width: 100px; }';
     render(moment([2026, 9, 21, 9, 30]));
     expect(title()).toBe('Wednesday, October 21, 2026');
 
@@ -134,9 +161,37 @@ describe('TimeGridView scrolling', function () {
     expect((onChangeFocusedMoment.mostRecentCall.args[0] as Moment).format('HH:mm')).toBe('09:30');
   });
 
-  function style(css: string) {
-    document.getElementById('time-grid-scroll-spec').textContent += css;
-  }
+  it('jumps rather than glides to the week of an event it reveals', function () {
+    render(moment([2026, 9, 21]));
+    spyOn(strip(), 'scrollTo').andCallThrough();
+
+    render(moment([2026, 9, 27]), { id: 'evt', start: moment([2026, 9, 27]).unix() });
+    expect(lastScroll().behavior).toBe('instant');
+    expect(firstInView()).toBe('25Sun');
+  });
+
+  it('sizes the All Day row for the days drawn, not every event loaded', function () {
+    // Four weeks on: loaded, but well past the three weeks drawn around Oct 18-24.
+    const farOff = allDayOccurrence('far-off', '2026-11-16');
+    dataSource.buildObservable.andCallFake(() => Rx.Observable.just({ events: [farOff] }));
+    render(moment([2026, 9, 19]));
+
+    const legend = host.querySelector('.date-label-legend') as HTMLElement;
+    expect(legend.style.height).toBe('76px');
+  });
+
+  it('requeries once scrolling draws days outside the last query', function () {
+    render(moment([2026, 9, 21]));
+    const queriedFrom = () =>
+      calendarDateFromUnix(dataSource.buildObservable.mostRecentCall.args[0].startUnix);
+    const firstQueried = queriedFrom();
+
+    for (let week = 0; week < 5; week++) {
+      scrollDays(7);
+    }
+    expect(dataSource.buildObservable.callCount).toBeGreaterThan(1);
+    expect(calendarDaysBetween(firstQueried, queriedFrom())).toBeGreaterThan(0);
+  });
 });
 
 describe('MailspringCalendar navigating Day and Week', function () {
@@ -150,5 +205,13 @@ describe('MailspringCalendar navigating Day and Week', function () {
       cal._onNavigatePrevious();
     }
     expect(navigate.calls.map((c) => c.args[0])).toEqual([1, -1, 1, -1]);
+  });
+
+  it('holds the grid it asks', function () {
+    const cal: any = new MailspringCalendar({} as any);
+    for (const view of [CalendarView.DAY, CalendarView.WEEK]) {
+      cal.state = { ...cal.state, view };
+      expect(cal._renderMainContent().ref).toBe(cal._timeGrid);
+    }
   });
 });

@@ -1,37 +1,24 @@
 import React from 'react';
 import moment from 'moment';
 import classnames from 'classnames';
-import {
-  CalendarDate,
-  addCalendarDays,
-  calendarDaysBetween,
-  dayOfWeek,
-  monthStartOf,
-} from '../calendar-date';
+import { CalendarDate, addCalendarDays, calendarDaysBetween, weekStartOf } from '../calendar-date';
 
 type Axis = 'vertical' | 'horizontal';
 type Unit = 'week' | 'day';
 
-// Chromium caps a scroller at about 33.5M px, and a Day view column can be 2,000+ px wide, so the
-// range runs 15 years each side of where it was last aimed rather than across all dates.
-const RANGE_DAYS = 15 * 365;
+// Chromium caps a scroller at 2^24 px (16,777,216, measured in Electron 44), and a Day view column
+// can be several thousand px wide, so a day strip spans a year each side of where it was aimed.
+const RANGE_UNITS: Record<Unit, number> = { week: 783, day: 366 };
 
 const unitDays = (unit: Unit) => (unit === 'week' ? 7 : 1);
-const rangeUnits = (unit: Unit) => Math.round(RANGE_DAYS / unitDays(unit));
-const unitCount = (unit: Unit) => 2 * rangeUnits(unit) + 1;
-
-/** The first day of the locale's week holding `date`, matching `moment().startOf('week')`. */
-function weekStartOf(date: CalendarDate): CalendarDate {
-  const firstDay = moment.localeData().firstDayOfWeek();
-  return addCalendarDays(date, -((dayOfWeek(date) - firstDay + 7) % 7));
-}
+const unitCount = (unit: Unit) => 2 * RANGE_UNITS[unit] + 1;
 
 function unitStartOf(date: CalendarDate, unit: Unit) {
-  return unit === 'week' ? weekStartOf(date) : date;
+  return unit === 'week' ? weekStartOf(date, moment.localeData().firstDayOfWeek()) : date;
 }
 
 function rangeAround(date: CalendarDate, unit: Unit) {
-  return addCalendarDays(unitStartOf(date, unit), -rangeUnits(unit) * unitDays(unit));
+  return addCalendarDays(unitStartOf(date, unit), -RANGE_UNITS[unit] * unitDays(unit));
 }
 
 function indexIn(rangeStart: CalendarDate, date: CalendarDate, unit: Unit) {
@@ -54,7 +41,7 @@ interface SnapScrollerProps {
   visibleUnits: number;
   /** The unit holding `date` becomes the first in view on mount, and whenever a new target is passed. */
   scrollTarget: SnapScrollTarget;
-  /** Laid out evenly along the axis, one share per unit start; children land on snap points. */
+  /** Children share the strip evenly; a single child marks its own unit edges as snap points. */
   renderUnits: (unitStarts: CalendarDate[], firstVisible: CalendarDate) => React.ReactNode;
   onFirstVisibleChange: (firstVisible: CalendarDate) => void;
   onScrollEnd?: (firstVisible: CalendarDate) => void;
@@ -64,7 +51,7 @@ interface SnapScrollerProps {
 interface SnapScrollerState {
   prevScrollTarget: SnapScrollTarget;
   rangeStart: CalendarDate;
-  topIndex: number;
+  firstVisibleIndex: number;
   unitSize: number;
   pendingScroll: { index: number; smooth: boolean } | null;
 }
@@ -94,17 +81,13 @@ class LeadSpacer extends React.Component<{ style: React.CSSProperties; onCommit:
 export class SnapScroller extends React.Component<SnapScrollerProps, SnapScrollerState> {
   static displayName = 'SnapScroller';
 
-  static monthShownFrom(topWeek: CalendarDate, visibleWeeks: number): CalendarDate {
-    const middleDay = addCalendarDays(topWeek, Math.floor((visibleWeeks * 7) / 2));
-    return monthStartOf(middleDay);
-  }
-
+  /** The dates drawn for a first unit in view, `end` exclusive. */
   static drawnFrom(firstVisible: CalendarDate, visibleUnits: number, unit: Unit) {
     // A one-day screen needs more than its own width each side to keep up with a fling.
     const overscan = Math.max(visibleUnits, 3);
     return {
       first: addCalendarDays(firstVisible, -overscan * unitDays(unit)),
-      days: (visibleUnits + 2 * overscan) * unitDays(unit),
+      end: addCalendarDays(firstVisible, (visibleUnits + overscan) * unitDays(unit)),
     };
   }
 
@@ -117,21 +100,29 @@ export class SnapScroller extends React.Component<SnapScrollerProps, SnapScrolle
     const { unit, visibleUnits } = props;
     const index = indexIn(state.rangeStart, target.date, unit);
     if (index < 0 || index > unitCount(unit) - visibleUnits) {
-      const centered = rangeUnits(unit);
       return {
         prevScrollTarget: target,
-        rangeStart: rangeAround(target.date, unit),
-        topIndex: centered,
-        pendingScroll: { index: centered, smooth: false },
+        ...SnapScroller.recentredOn(target.date, unit),
       };
     }
     const smooth =
-      target.animate && state.unitSize > 0 && Math.abs(index - state.topIndex) <= 2 * visibleUnits;
+      target.animate &&
+      state.unitSize > 0 &&
+      Math.abs(index - state.firstVisibleIndex) <= 2 * visibleUnits;
     return {
       prevScrollTarget: target,
       pendingScroll: { index, smooth },
       // A jump draws the destination's units now, so it doesn't paint an empty viewport.
-      topIndex: smooth ? state.topIndex : index,
+      firstVisibleIndex: smooth ? state.firstVisibleIndex : index,
+    };
+  }
+
+  static recentredOn(date: CalendarDate, unit: Unit) {
+    const centered = RANGE_UNITS[unit];
+    return {
+      rangeStart: rangeAround(date, unit),
+      firstVisibleIndex: centered,
+      pendingScroll: { index: centered, smooth: false },
     };
   }
 
@@ -143,16 +134,13 @@ export class SnapScroller extends React.Component<SnapScrollerProps, SnapScrolle
 
   constructor(props: SnapScrollerProps) {
     super(props);
-    const rangeStart = rangeAround(props.scrollTarget.date, props.unit);
-    const topIndex = rangeUnits(props.unit);
-    this.state = {
-      prevScrollTarget: props.scrollTarget,
-      rangeStart,
-      topIndex,
-      unitSize: 0,
-      pendingScroll: { index: topIndex, smooth: false },
-    };
-    this._reportedFirst = unitStartAt(rangeStart, topIndex, props.unit);
+    const recentred = SnapScroller.recentredOn(props.scrollTarget.date, props.unit);
+    this.state = { prevScrollTarget: props.scrollTarget, unitSize: 0, ...recentred };
+    this._reportedFirst = unitStartAt(
+      recentred.rangeStart,
+      recentred.firstVisibleIndex,
+      props.unit
+    );
   }
 
   componentDidMount() {
@@ -186,8 +174,8 @@ export class SnapScroller extends React.Component<SnapScrollerProps, SnapScrolle
   }
 
   _scrolledIndex() {
-    const { unitSize, topIndex } = this.state;
-    return unitSize ? Math.round(this._scrollPosition() / unitSize) : topIndex;
+    const { unitSize, firstVisibleIndex } = this.state;
+    return unitSize ? Math.round(this._scrollPosition() / unitSize) : firstVisibleIndex;
   }
 
   _firstVisible(index: number) {
@@ -218,7 +206,7 @@ export class SnapScroller extends React.Component<SnapScrollerProps, SnapScrolle
   };
 
   _onCommit = () => {
-    this._reportFirst(this.state.topIndex);
+    this._reportFirst(this.state.firstVisibleIndex);
     const { pendingScroll, unitSize } = this.state;
     if (!this._el.current || !unitSize || pendingScroll === this._appliedScroll) return;
     this._appliedScroll = pendingScroll;
@@ -229,24 +217,44 @@ export class SnapScroller extends React.Component<SnapScrollerProps, SnapScrolle
 
   _onScroll = () => {
     const index = this._scrolledIndex();
-    if (index !== this.state.topIndex) {
-      this.setState({ topIndex: index });
+    if (index !== this.state.firstVisibleIndex) {
+      this.setState({ firstVisibleIndex: index });
     }
   };
 
-  _onScrollEnd = () => {
+  _onWheel = () => {
     this._glideIndex = null;
-    this.props.onScrollEnd?.(this._firstVisible(this._scrolledIndex()));
+  };
+
+  _onScrollEnd = () => {
+    const index = this._scrolledIndex();
+    // An earlier scroll can end after a glide has set off, and acting on it would stop the glide.
+    if (this._glideIndex !== null && index !== this._glideIndex) return;
+    this._glideIndex = null;
+    // A jump made while a glide is still running can stop between unit edges, and snapping only
+    // follows the user's scrolls. The correction ends with its own scrollend.
+    const { unitSize } = this.state;
+    if (unitSize && Math.abs(this._scrollPosition() - index * unitSize) > 1) {
+      this._scrollTo(index * unitSize, false);
+      return;
+    }
+    const firstVisible = this._firstVisible(index);
+    this.props.onScrollEnd?.(firstVisible);
+    // Recentred at rest, where it's invisible, so scrolling never meets the end of the range.
+    const { unit, visibleUnits } = this.props;
+    const margin = 3 * visibleUnits;
+    if (index < margin || index > unitCount(unit) - visibleUnits - margin) {
+      this.setState(SnapScroller.recentredOn(firstVisible, unit));
+    }
   };
 
   render() {
     const { className, axis, unit, visibleUnits, renderUnits, onClick } = this.props;
-    const { rangeStart, topIndex, unitSize } = this.state;
-    const firstVisible = this._firstVisible(topIndex);
+    const { rangeStart, firstVisibleIndex, unitSize } = this.state;
+    const firstVisible = this._firstVisible(firstVisibleIndex);
     const drawn = SnapScroller.drawnFrom(firstVisible, visibleUnits, unit);
-    const drawnIndex = indexIn(rangeStart, drawn.first, unit);
-    const firstIndex = Math.max(0, drawnIndex);
-    const lastIndex = Math.min(unitCount(unit), drawnIndex + drawn.days / unitDays(unit));
+    const firstIndex = Math.max(0, indexIn(rangeStart, drawn.first, unit));
+    const lastIndex = Math.min(unitCount(unit), indexIn(rangeStart, drawn.end, unit));
 
     const unitStarts: CalendarDate[] = [];
     for (let i = firstIndex; i < lastIndex; i++) {
@@ -259,6 +267,7 @@ export class SnapScroller extends React.Component<SnapScrollerProps, SnapScrolle
         ref={this._el}
         className={classnames('snap-scroller', axis, className)}
         onScroll={this._onScroll}
+        onWheel={this._onWheel}
         onClick={onClick}
       >
         <LeadSpacer style={{ [length]: firstIndex * unitSize }} onCommit={this._onCommit} />

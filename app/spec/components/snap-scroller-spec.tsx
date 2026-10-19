@@ -107,15 +107,6 @@ describe('SnapScroller', function () {
     document.getElementById('snap-scroller-spec').remove();
   });
 
-  it('names the month holding the middle of six rows', function () {
-    // Sun 27 Sep 2026 to Sat 7 Nov: the 22nd day is 18 Oct.
-    const fromSep27 = SnapScroller.monthShownFrom(calendarDateFromParts(2026, 9, 27), 6);
-    expect(formatCalendarDate(fromSep27)).toBe('2026-10-01');
-    // From 11 Oct, three rows are October's and three November's: the 22nd day is 1 Nov.
-    const fromOct11 = SnapScroller.monthShownFrom(calendarDateFromParts(2026, 10, 11), 6);
-    expect(formatCalendarDate(fromOct11)).toBe('2026-11-01');
-  });
-
   it('opens with the week holding its target at the top', function () {
     mount({ date: calendarDateFromParts(2026, 10, 1), animate: false });
     expect(firstUnitStart()).toBe(weekOf(2026, 10, 1));
@@ -145,6 +136,10 @@ describe('SnapScroller', function () {
 
   it('jumps to a target outside the range it was drawn around', function () {
     mount({ date: calendarDateFromParts(2026, 10, 1), animate: false });
+    const el = scrollerEl();
+    el.scrollTop += 10 * (el.clientHeight / 6);
+    el.dispatchEvent(new Event('scroll'));
+    el.dispatchEvent(new Event('scrollend'));
     mount({ date: calendarDateFromParts(2071, 6, 10), animate: true });
     expect(firstUnitStart()).toBe(weekOf(2071, 6, 10));
     mount({ date: calendarDateFromParts(1950, 2, 1), animate: true });
@@ -163,6 +158,38 @@ describe('SnapScroller', function () {
       .unix();
     expect(onFirstVisibleChange.mostRecentCall.args[0]).toBe(calendarDateFromUnix(threeWeeksOn));
     expect(onScrollEnd.mostRecentCall.args[0]).toBe(calendarDateFromUnix(threeWeeksOn));
+  });
+
+  it('lines up on a unit edge when a scroll comes to rest between two', function () {
+    mount({ date: calendarDateFromParts(2026, 10, 1), animate: false });
+    const el = scrollerEl();
+    const start = el.scrollTop;
+    // Off, so the browser's own snapping can't do the lining up this checks.
+    el.style.scrollSnapType = 'none';
+    el.scrollTop = start + 3.4 * (el.clientHeight / 6);
+    el.dispatchEvent(new Event('scrollend'));
+
+    expect(el.scrollTop).toBe(start + 3 * (el.clientHeight / 6));
+  });
+
+  it('leaves a glide alone when an earlier scroll ends on its way, until a wheel takes over', function () {
+    mount({ date: calendarDateFromParts(2026, 10, 1), animate: false });
+    const el = scrollerEl();
+    const start = el.scrollTop;
+    const scrollTo = el.scrollTo.bind(el);
+    spyOn(el, 'scrollTo').andCallFake((options: ScrollToOptions) => {
+      if (options.behavior !== 'smooth') scrollTo(options);
+    });
+    mount({ date: calendarDateFromParts(2026, 11, 1), animate: true });
+    el.style.scrollSnapType = 'none';
+    el.scrollTop = start + 0.4 * (el.clientHeight / 6);
+    el.dispatchEvent(new Event('scrollend'));
+    expect(el.scrollTop).toBe(start + 0.4 * (el.clientHeight / 6));
+    expect(onScrollEnd).not.toHaveBeenCalled();
+
+    el.dispatchEvent(new WheelEvent('wheel', { bubbles: true }));
+    el.dispatchEvent(new Event('scrollend'));
+    expect(el.scrollTop).toBe(start);
   });
 
   it('glides to a nearby target', function () {
@@ -214,6 +241,26 @@ describe('SnapScroller', function () {
       el.scrollLeft += 3 * 100;
       el.dispatchEvent(new Event('scroll'));
       expect(formatCalendarDate(onFirstVisibleChange.mostRecentCall.args[0])).toBe('2026-10-17');
+    });
+
+    it('stays inside the scroll size Chromium allows when a day is very wide', function () {
+      host.style.width = '3200px';
+      mount(
+        { date: calendarDateFromParts(2026, 10, 14), animate: false },
+        { ...across, visibleUnits: 1 }
+      );
+      expect(scrollerEl().scrollWidth).toBeLessThan(2 ** 24);
+      expect(firstUnitStart('horizontal')).toBe('2026-10-14');
+    });
+
+    it('recentres where it comes to rest near an end, keeping the same day in view', function () {
+      mount({ date: calendarDateFromParts(2026, 10, 14), animate: false }, across);
+      mount({ date: calendarDateFromParts(2027, 10, 8), animate: false }, across);
+      const nearTheEnd = scrollerEl().scrollLeft;
+      scrollerEl().dispatchEvent(new Event('scrollend'));
+
+      expect(firstUnitStart('horizontal')).toBe('2027-10-08');
+      expect(scrollerEl().scrollLeft).toBeLessThan(nearTheEnd);
     });
 
     it('starts from the right in a right-to-left layout', function () {

@@ -10,14 +10,13 @@ import {
 } from 'mailspring-component-kit';
 import { CalendarDate, CalendarDateUtils } from 'mailspring-exports';
 import { HeaderControls } from './header-controls';
-import { EventOccurrence } from './calendar-data-source';
+import { EventOccurrence, EventRangeSubscription } from './calendar-data-source';
 import { centerGridScroll } from './calendar-helpers';
 import { EventGridBackground } from './event-grid-background';
 import { WeekViewEventColumn } from './week-view-event-column';
 import { WeekViewAllDayEvents } from './week-view-all-day-events';
 import { CalendarEventContainer } from './calendar-event-container';
 import { CurrentTimeIndicator } from './current-time-indicator';
-import { Disposable } from 'rx-core';
 import { CalendarView } from './calendar-constants';
 import {
   overlapForEvents,
@@ -32,6 +31,7 @@ import { getEventsWithDragPreview, withNewEventPreview } from './calendar-drag-u
 
 const MIN_INTERVAL_HEIGHT = 21;
 const DAY_PORTION_SHOWN_VERTICALLY = 11 / 24;
+const QUERY_MARGIN_DAYS = 21;
 
 function dateOf(m: Moment): CalendarDate {
   return CalendarDateUtils.calendarDateFromUnix(m.unix());
@@ -42,17 +42,27 @@ function momentOf(date: CalendarDate): Moment {
 }
 
 function weekStartOf(date: CalendarDate): CalendarDate {
-  return dateOf(momentOf(date).startOf('week'));
+  return CalendarDateUtils.weekStartOf(date, moment.localeData().firstDayOfWeek());
 }
 
-/** Where a view of `days` lines up for `date`: a week's first day, or the date itself. */
-function alignedStart(date: CalendarDate, days: number): CalendarDate {
-  return days === 7 ? weekStartOf(date) : date;
+function alignedStart(date: CalendarDate, visibleDays: number): CalendarDate {
+  return visibleDays === 7 ? weekStartOf(date) : date;
+}
+
+/** The focused moment moved into the span starting `start`, onto its weekday and keeping its time. */
+function moveFocusInto(focusedMoment: Moment, start: CalendarDate, visibleDays: number): Moment {
+  const focused = dateOf(focusedMoment);
+  const offset = CalendarDateUtils.calendarDaysBetween(start, focused);
+  const inSpan = CalendarDateUtils.addCalendarDays(
+    start,
+    ((offset % visibleDays) + visibleDays) % visibleDays
+  );
+  return moment(focusedMoment).add(CalendarDateUtils.calendarDaysBetween(focused, inSpan), 'days');
 }
 
 interface TimeGridViewProps extends MailspringCalendarViewProps {
-  /** 7 lines up on the week's first day; any other count on the focused day. */
-  days: number;
+  /** 7 lines up on the week's first day; 1 on the focused day. */
+  visibleDays: 1 | 7;
 }
 
 interface TimeGridViewState {
@@ -64,7 +74,7 @@ interface TimeGridViewState {
   adjustedFocus: Moment | null;
 }
 
-/** The hour grid behind Week view (7 days) and Day view (1), scrolling sideways through days. */
+/** The hour grid behind Week view (7 days) and Day view (1). */
 export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridViewState> {
   static displayName = 'TimeGridView';
 
@@ -78,7 +88,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     return {
       prevFocusedMoment: focusedMoment,
       scrollTarget: {
-        date: alignedStart(dateOf(focusedMoment), props.days),
+        date: alignedStart(dateOf(focusedMoment), props.visibleDays),
         animate: !props.focusedEvent,
       },
     };
@@ -87,15 +97,15 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
   _mounted = false;
   _pendingInitialCenter = false;
   _scrollbar = React.createRef<any>();
-  _sub?: Disposable;
-  _subscribedDays: { first: CalendarDate; end: CalendarDate } | null = null;
+  _events: EventRangeSubscription;
+  _navigatedTo: CalendarDate | null = null;
 
   _legendWrapEl = React.createRef<HTMLDivElement>();
   _gridScrollRegion = React.createRef<ScrollRegion>();
 
   constructor(props: TimeGridViewProps) {
     super(props);
-    const start = alignedStart(dateOf(props.focusedMoment), props.days);
+    const start = alignedStart(dateOf(props.focusedMoment), props.visibleDays);
     this.state = {
       events: [],
       intervalHeight: MIN_INTERVAL_HEIGHT,
@@ -104,6 +114,9 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
       prevFocusedMoment: props.focusedMoment,
       adjustedFocus: null,
     };
+    this._events = new EventRangeSubscription(props.dataSource, QUERY_MARGIN_DAYS, (events) =>
+      this.setState({ events })
+    );
   }
 
   componentDidMount() {
@@ -115,16 +128,13 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     this._setIntervalHeight();
   }
 
-  componentDidUpdate(prevProps: TimeGridViewProps) {
-    if (prevProps.disabledCalendars !== this.props.disabledCalendars) {
-      this._subscribedDays = null;
-      this._subscribe();
-    }
+  componentDidUpdate() {
+    this._subscribe();
   }
 
   componentWillUnmount() {
     this._mounted = false;
-    this._sub && this._sub.dispose();
+    this._events.dispose();
   }
 
   // Indirection for testing purposes
@@ -133,73 +143,38 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
   }
 
   _subscribe() {
-    const drawn = SnapScroller.drawnFrom(this.state.firstVisible, this.props.days, 'day');
-    const drawnEnd = CalendarDateUtils.addCalendarDays(drawn.first, drawn.days);
-    const covered = this._subscribedDays;
-    if (covered && covered.first <= drawn.first && drawnEnd <= covered.end) {
-      return;
-    }
-    const first = CalendarDateUtils.addCalendarDays(drawn.first, -drawn.days);
-    const end = CalendarDateUtils.addCalendarDays(drawnEnd, drawn.days);
-    this._subscribedDays = { first, end };
-
-    this._sub && this._sub.dispose();
-    this._sub = this.props.dataSource
-      .buildObservable({
-        disabledCalendars: this.props.disabledCalendars,
-        startUnix: CalendarDateUtils.dayStartUnix(first),
-        endUnix: CalendarDateUtils.dayStartUnix(end) - 1,
-      })
-      .subscribe((state) => {
-        if (this._mounted) {
-          this.setState(state);
-        }
-      });
+    this._events.cover(
+      SnapScroller.drawnFrom(this.state.firstVisible, this.props.visibleDays, 'day'),
+      this.props.disabledCalendars
+    );
   }
 
   _onFirstVisibleChange = (firstVisible: CalendarDate) => {
-    this.setState({ firstVisible }, () => this._subscribe());
+    this.setState({ firstVisible });
   };
 
   _adjustFocus = (firstVisible: CalendarDate) => {
-    const { focusedMoment, days } = this.props;
-    const focused = dateOf(focusedMoment);
-    const offset = CalendarDateUtils.calendarDaysBetween(firstVisible, focused);
-    if (offset >= 0 && offset < days) {
+    this._navigatedTo = null;
+    const { focusedMoment, visibleDays } = this.props;
+    const offset = CalendarDateUtils.calendarDaysBetween(firstVisible, dateOf(focusedMoment));
+    if (offset >= 0 && offset < visibleDays) {
       return;
     }
-    const sameWeekdayInView = CalendarDateUtils.addCalendarDays(
-      firstVisible,
-      ((offset % days) + days) % days
-    );
-    const adjustedFocus = moment(focusedMoment).add(
-      CalendarDateUtils.calendarDaysBetween(focused, sameWeekdayInView),
-      'days'
-    );
+    const adjustedFocus = moveFocusInto(focusedMoment, firstVisible, visibleDays);
     this.setState({ adjustedFocus });
     this.props.onChangeFocusedMoment(adjustedFocus);
   };
 
   /** Goes to the nearest week start behind or ahead of the first day in view, or a day in Day view. */
   navigate = (direction: 1 | -1) => {
-    const { focusedMoment, days } = this.props;
-    const { firstVisible } = this.state;
+    const { focusedMoment, visibleDays } = this.props;
+    const from = this._navigatedTo ?? this.state.firstVisible;
     const target =
-      days === 7
-        ? weekStartOf(CalendarDateUtils.addCalendarDays(firstVisible, direction > 0 ? 7 : -1))
-        : CalendarDateUtils.addCalendarDays(firstVisible, direction * days);
-    const focused = dateOf(focusedMoment);
-    const offset = CalendarDateUtils.calendarDaysBetween(target, focused);
-    const sameWeekdayThere = CalendarDateUtils.addCalendarDays(
-      target,
-      ((offset % days) + days) % days
-    );
-    this.props.onChangeFocusedMoment(
-      moment(focusedMoment).add(
-        CalendarDateUtils.calendarDaysBetween(focused, sameWeekdayThere),
-        'days'
-      )
-    );
+      visibleDays === 7
+        ? weekStartOf(CalendarDateUtils.addCalendarDays(from, direction > 0 ? 7 : -1))
+        : CalendarDateUtils.addCalendarDays(from, direction);
+    this._navigatedTo = target;
+    this.props.onChangeFocusedMoment(moveFocusInto(focusedMoment, target, visibleDays));
   };
 
   _onClickToday = () => {
@@ -238,18 +213,25 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     );
   };
 
-  _layout(dayStarts: CalendarDate[]) {
-    const events = withNewEventPreview(
+  _eventsWithPreviews() {
+    return withNewEventPreview(
       getEventsWithDragPreview(this.state.events, this.props.dragState),
       this.props.newEventPreview
     );
-    const days = dayStarts.map(momentOf);
-    const eventsByDay = eventsGroupedByDay(events, days);
-    const allDayOverlap = overlapForEvents(eventsByDay.allDay);
-    const allDayBarHeight = eventsByDay.allDay.length
+  }
+
+  /** The all-day lanes for the days drawn around `firstVisible`, which the legend and strip share. */
+  _allDay(events: EventOccurrence[], firstVisible: CalendarDate) {
+    const drawn = SnapScroller.drawnFrom(firstVisible, this.props.visibleDays, 'day');
+    const lastDrawn = CalendarDateUtils.addCalendarDays(drawn.end, -1);
+    const allDayEvents = eventsGroupedByDay(events, []).allDay.filter(
+      (e) => e.startDate <= lastDrawn && e.endDate >= drawn.first
+    );
+    const allDayOverlap = overlapForEvents(allDayEvents);
+    const allDayBarHeight = allDayEvents.length
       ? maxConcurrentEvents(allDayOverlap) * MIN_INTERVAL_HEIGHT + 1
       : 0;
-    return { days, eventsByDay, allDayOverlap, allDayBarHeight };
+    return { allDayEvents, allDayOverlap, allDayBarHeight };
   }
 
   _renderEventGridLabels() {
@@ -278,7 +260,10 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
   };
 
   _renderDays = (dayStarts: CalendarDate[], firstVisible: CalendarDate) => {
-    const { days, eventsByDay, allDayOverlap, allDayBarHeight } = this._layout(dayStarts);
+    const events = this._eventsWithPreviews();
+    const days = dayStarts.map(momentOf);
+    const eventsByDay = eventsGroupedByDay(events, days);
+    const { allDayEvents, allDayOverlap, allDayBarHeight } = this._allDay(events, firstVisible);
     const dayEnds = exclusiveDayEnds(days);
     const todayColumnIdx = days.findIndex((d) => this._isToday(d));
     const firstVisibleIdx = CalendarDateUtils.calendarDaysBetween(dayStarts[0], firstVisible);
@@ -295,7 +280,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
             height={allDayBarHeight}
             start={CalendarDateUtils.dayStartUnix(dayStarts[0])}
             end={CalendarDateUtils.nextDayStartUnix(lastDrawn) - 1}
-            allDayEvents={eventsByDay.allDay}
+            allDayEvents={allDayEvents}
             allDayOverlap={allDayOverlap}
             focusedEvent={this.props.focusedEvent}
             selectedEvents={this.props.selectedEvents}
@@ -338,7 +323,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
             <CurrentTimeIndicator
               visible={
                 todayColumnIdx >= firstVisibleIdx &&
-                todayColumnIdx < firstVisibleIdx + this.props.days
+                todayColumnIdx < firstVisibleIdx + this.props.visibleDays
               }
               gridHeight={totalHeight}
               numColumns={days.length}
@@ -357,29 +342,24 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
   };
 
   render() {
-    const { days } = this.props;
+    const { visibleDays } = this.props;
     const { firstVisible } = this.state;
-    const view = days === 1 ? CalendarView.DAY : CalendarView.WEEK;
+    const view = visibleDays === 1 ? CalendarView.DAY : CalendarView.WEEK;
     const first = momentOf(firstVisible);
     const headerText =
-      days === 1
+      visibleDays === 1
         ? first.format('dddd, MMMM D, YYYY')
         : [
             first.format('MMMM D'),
-            momentOf(CalendarDateUtils.addCalendarDays(firstVisible, days - 1)).format(
+            momentOf(CalendarDateUtils.addCalendarDays(firstVisible, visibleDays - 1)).format(
               'MMMM D YYYY'
             ),
           ].join(' - ');
-
-    const drawn = SnapScroller.drawnFrom(firstVisible, days, 'day');
-    const drawnDays = Array.from({ length: drawn.days }, (_, i) =>
-      CalendarDateUtils.addCalendarDays(drawn.first, i)
-    );
-    const { allDayBarHeight } = this._layout(drawnDays);
+    const { allDayBarHeight } = this._allDay(this._eventsWithPreviews(), firstVisible);
     const totalHeight = TICKS_PER_DAY * this.state.intervalHeight;
 
     return (
-      <div className={classnames('calendar-view', 'week-view', { 'day-view': days === 1 })}>
+      <div className={classnames('calendar-view', 'week-view', { 'day-view': visibleDays === 1 })}>
         <CalendarEventContainer
           onCalendarMouseUp={this.props.onCalendarMouseUp}
           onCalendarMouseDown={this.props.onCalendarMouseDown}
@@ -420,7 +400,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
               className="calendar-area-wrap"
               axis="horizontal"
               unit="day"
-              visibleUnits={days}
+              visibleUnits={visibleDays}
               scrollTarget={this.state.scrollTarget}
               renderUnits={this._renderDays}
               onFirstVisibleChange={this._onFirstVisibleChange}

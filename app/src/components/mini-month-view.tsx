@@ -1,7 +1,12 @@
 import React from 'react';
 import moment, { Moment } from 'moment';
 import classnames from 'classnames';
-import { CalendarDate, calendarDateFromParts, dayStartUnix } from '../calendar-date';
+import {
+  CalendarDate,
+  calendarDateFromParts,
+  dayStartUnix,
+  monthShownFrom,
+} from '../calendar-date';
 import { SnapScroller, SnapScrollTarget } from './snap-scroller';
 
 const VISIBLE_WEEKS = 6;
@@ -111,7 +116,7 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
   };
 
   _onTopWeekChange = (topWeek: CalendarDate) => {
-    const month = moment.unix(dayStartUnix(SnapScroller.monthShownFrom(topWeek, VISIBLE_WEEKS)));
+    const month = moment.unix(dayStartUnix(monthShownFrom(topWeek, VISIBLE_WEEKS)));
     if (month.year() !== this.state.shownYear || month.month() !== this.state.shownMonth) {
       this.setState({ shownYear: month.year(), shownMonth: month.month() });
     }

@@ -266,6 +266,49 @@ export class CalendarDataSource {
 }
 
 /**
+ * One events query for the dates a view draws, reaching `marginDays` further each side. It
+ * requeries only once the drawn dates leave what it covers, or the hidden calendars change.
+ */
+export class EventRangeSubscription {
+  _covered: { first: CalendarDate; end: CalendarDate; disabledCalendars: string[] } | null = null;
+  _sub?: Rx.IDisposable;
+
+  constructor(
+    private dataSource: Pick<CalendarDataSource, 'buildObservable'>,
+    private marginDays: number,
+    private onEvents: (events: EventOccurrence[]) => void
+  ) {}
+
+  cover(drawn: { first: CalendarDate; end: CalendarDate }, disabledCalendars: string[]) {
+    const covered = this._covered;
+    if (
+      covered &&
+      covered.disabledCalendars === disabledCalendars &&
+      covered.first <= drawn.first &&
+      drawn.end <= covered.end
+    ) {
+      return;
+    }
+    const first = CalendarDateUtils.addCalendarDays(drawn.first, -this.marginDays);
+    const end = CalendarDateUtils.addCalendarDays(drawn.end, this.marginDays);
+    this._covered = { first, end, disabledCalendars };
+
+    this._sub?.dispose();
+    this._sub = this.dataSource
+      .buildObservable({
+        disabledCalendars,
+        startUnix: CalendarDateUtils.dayStartUnix(first),
+        endUnix: CalendarDateUtils.dayStartUnix(end) - 1,
+      })
+      .subscribe(({ events }) => this.onEvents(events));
+  }
+
+  dispose() {
+    this._sub?.dispose();
+  }
+}
+
+/**
  * `startTime`/`endTime` are separate from `item` because an expanded occurrence's times differ
  * from the component its properties come from.
  */

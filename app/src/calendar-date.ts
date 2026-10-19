@@ -155,9 +155,22 @@ export function dayOfWeek(date: CalendarDate): number {
   return (((date + 4) % 7) + 7) % 7;
 }
 
+/** The first day of the week holding `date`, for a week starting on `firstDayOfWeek` (0 is Sunday). */
+export function weekStartOf(date: CalendarDate, firstDayOfWeek: number): CalendarDate {
+  return addCalendarDays(date, -((dayOfWeek(date) - firstDayOfWeek + 7) % 7));
+}
+
 export function monthStartOf(date: CalendarDate): CalendarDate {
   const d = new Date(date * MS_PER_DAY);
   return calendarDateFromParts(d.getUTCFullYear(), d.getUTCMonth() + 1, 1);
+}
+
+/**
+ * The month a title over rows of weeks names: the one holding the middle day. Six rows aligned on a
+ * month's first week always put the middle day between its 16th and 22nd.
+ */
+export function monthShownFrom(topWeek: CalendarDate, visibleWeeks: number): CalendarDate {
+  return monthStartOf(addCalendarDays(topWeek, Math.floor((visibleWeeks * 7) / 2)));
 }
 
 /** ISO form, `2026-06-21`. For debugging, specs, and anywhere a human reads the value. */

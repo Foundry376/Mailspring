@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import ReactTestUtils from 'react-dom/test-utils';
 import moment from 'moment';
-import Rx from 'rx-lite';
 import { Calendar } from '../src/flux/models/calendar';
 import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
 import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
@@ -11,6 +10,7 @@ import { WeekViewEventColumn } from '../internal_packages/main-calendar/lib/core
 import { WeekViewAllDayEvents } from '../internal_packages/main-calendar/lib/core/week-view-all-day-events';
 import { EventGridBackground } from '../internal_packages/main-calendar/lib/core/event-grid-background';
 import { setCalendarColors } from '../internal_packages/main-calendar/lib/core/calendar-helpers';
+import { calendarViewProps } from './fixtures/calendar-view-props';
 
 const calendar = (color: string) =>
   new Calendar({ id: 'repaint-cal', accountId: 'a', name: 'Team', color } as any);
@@ -122,29 +122,7 @@ describe('the hour grid', function () {
 });
 
 describe('the week and day views', function () {
-  const dataSource = { buildObservable: () => Rx.Observable.just({ events: [] }) };
-  const viewProps: any = {
-    dataSource,
-    disabledCalendars: [],
-    focusedMoment: moment(),
-    focusedEvent: null,
-    selectedEvents: [],
-    onChangeView: () => {},
-    onChangeFocusedMoment: () => {},
-    onCalendarMouseUp: () => {},
-    onCalendarMouseDown: () => {},
-    onCalendarMouseMove: () => {},
-    onCalendarClick: () => {},
-    onCalendarDoubleClick: () => {},
-    onEventClick: () => {},
-    onEventDoubleClick: () => {},
-    onEventFocused: () => {},
-    onEventDragStart: () => {},
-    dragState: null,
-    readOnlyCalendarIds: new Set(),
-    isCalendarReadOnly: () => false,
-    paintVersion: '7-1',
-  };
+  const viewProps = calendarViewProps({ paintVersion: '7-1' });
   let host: HTMLDivElement;
 
   beforeEach(() => {
@@ -156,10 +134,10 @@ describe('the week and day views', function () {
     host.remove();
   });
 
-  for (const days of [7, 1]) {
-    it(`a ${days}-day grid hands the paint version to every guarded child and the hour grid`, function () {
+  for (const visibleDays of [7, 1] as const) {
+    it(`a ${visibleDays}-day grid hands the paint version to every guarded child and the hour grid`, function () {
       const view = ReactDOM.render(
-        React.createElement(TimeGridView, { ...viewProps, days }),
+        React.createElement(TimeGridView, { ...viewProps, visibleDays }),
         host
       ) as any;
       const columns = ReactTestUtils.scryRenderedComponentsWithType(view, WeekViewEventColumn);
