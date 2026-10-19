@@ -40,7 +40,7 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
   static defaultProps = { orientation: 'horizontal' };
 
   private _todayTimer?: number;
-  private _glideTarget: Moment | null = null;
+  private _scroller = React.createRef<SnapScroller>();
 
   constructor(props) {
     super(props);
@@ -115,15 +115,15 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
     }
   };
 
+  _monthShownFrom(topWeek: CalendarDate) {
+    return moment.unix(dayStartUnix(monthShownFrom(topWeek, VISIBLE_WEEKS)));
+  }
+
   _onTopWeekChange = (topWeek: CalendarDate) => {
-    const month = moment.unix(dayStartUnix(monthShownFrom(topWeek, VISIBLE_WEEKS)));
+    const month = this._monthShownFrom(topWeek);
     if (month.year() !== this.state.shownYear || month.month() !== this.state.shownMonth) {
       this.setState({ shownYear: month.year(), shownMonth: month.month() });
     }
-  };
-
-  _onScrollEnd = () => {
-    this._glideTarget = null;
   };
 
   _renderChevron(direction: 'previous' | 'next') {
@@ -192,6 +192,7 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
   _renderScrollingDays(month: Moment) {
     return (
       <SnapScroller
+        ref={this._scroller}
         className="day-grid"
         axis="vertical"
         unit="week"
@@ -203,7 +204,6 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
           )
         }
         onFirstVisibleChange={this._onTopWeekChange}
-        onScrollEnd={this._onScrollEnd}
         onClick={this._onClickDay}
       />
     );
@@ -216,8 +216,8 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
 
     const onChangeMonth = (delta: number) => {
       if (vertical) {
-        this._glideTarget = (this._glideTarget || month).clone().add(delta, 'months');
-        this.setState({ scrollTarget: { date: monthStartDate(this._glideTarget), animate: true } });
+        const target = this._monthShownFrom(this._scroller.current.headedTo()).add(delta, 'months');
+        this.setState({ scrollTarget: { date: monthStartDate(target), animate: true } });
       } else {
         const next = month.clone().add(delta, 'months');
         this.setState({ shownYear: next.year(), shownMonth: next.month() });

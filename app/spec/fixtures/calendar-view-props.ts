@@ -59,5 +59,18 @@ export function allDayOccurrence(id: string, iso: string, lastIso = iso): EventO
     attendees: [],
     ...coveredDates(start, moment(lastIso).add(1, 'day').unix(), true),
     isAllDay: true,
-  } as EventOccurrence;
+  };
+}
+
+/** A timed occurrence titled with its id, from `startIso` to `endIso`. */
+export function timedOccurrence(id: string, startIso: string, endIso: string): EventOccurrence {
+  const start = moment(startIso).unix();
+  const end = moment(endIso).unix();
+  return {
+    ...allDayOccurrence(id, startIso),
+    ...coveredDates(start, end, false),
+    isAllDay: false,
+    start,
+    end,
+  };
 }

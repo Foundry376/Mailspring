@@ -48,7 +48,7 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
   }
 
   _topWeek: CalendarDate;
-  _events: EventRangeSubscription;
+  _sub: EventRangeSubscription;
 
   constructor(props: MailspringCalendarViewProps) {
     super(props);
@@ -63,7 +63,7 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
       prevFocusedMoment: props.focusedMoment,
       adjustedFocus: null,
     };
-    this._events = new EventRangeSubscription(
+    this._sub = new EventRangeSubscription(
       props.dataSource,
       VISIBLE_WEEKS * DAYS_IN_WEEK,
       (events) => this.setState({ events })
@@ -79,11 +79,11 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
   }
 
   componentWillUnmount() {
-    this._events.dispose();
+    this._sub.dispose();
   }
 
   _subscribe() {
-    this._events.cover(
+    this._sub.cover(
       SnapScroller.drawnFrom(this._topWeek, VISIBLE_WEEKS, 'week'),
       this.props.disabledCalendars
     );

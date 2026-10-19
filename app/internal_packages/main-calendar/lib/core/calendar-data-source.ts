@@ -270,8 +270,8 @@ export class CalendarDataSource {
  * requeries only once the drawn dates leave what it covers, or the hidden calendars change.
  */
 export class EventRangeSubscription {
-  _covered: { first: CalendarDate; end: CalendarDate; disabledCalendars: string[] } | null = null;
-  _sub?: Rx.IDisposable;
+  private covered?: { first: CalendarDate; end: CalendarDate; disabledCalendars: string[] };
+  private subscription?: Rx.IDisposable;
 
   constructor(
     private dataSource: Pick<CalendarDataSource, 'buildObservable'>,
@@ -280,7 +280,7 @@ export class EventRangeSubscription {
   ) {}
 
   cover(drawn: { first: CalendarDate; end: CalendarDate }, disabledCalendars: string[]) {
-    const covered = this._covered;
+    const covered = this.covered;
     if (
       covered &&
       covered.disabledCalendars === disabledCalendars &&
@@ -291,10 +291,10 @@ export class EventRangeSubscription {
     }
     const first = CalendarDateUtils.addCalendarDays(drawn.first, -this.marginDays);
     const end = CalendarDateUtils.addCalendarDays(drawn.end, this.marginDays);
-    this._covered = { first, end, disabledCalendars };
+    this.covered = { first, end, disabledCalendars };
 
-    this._sub?.dispose();
-    this._sub = this.dataSource
+    this.subscription?.dispose();
+    this.subscription = this.dataSource
       .buildObservable({
         disabledCalendars,
         startUnix: CalendarDateUtils.dayStartUnix(first),
@@ -304,7 +304,7 @@ export class EventRangeSubscription {
   }
 
   dispose() {
-    this._sub?.dispose();
+    this.subscription?.dispose();
   }
 }
 

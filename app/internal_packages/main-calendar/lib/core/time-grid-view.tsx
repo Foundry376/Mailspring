@@ -10,7 +10,7 @@ import {
 } from 'mailspring-component-kit';
 import { CalendarDate, CalendarDateUtils } from 'mailspring-exports';
 import { HeaderControls } from './header-controls';
-import { EventOccurrence, EventRangeSubscription } from './calendar-data-source';
+import { EventOccurrence, EventRangeSubscription, isTimed } from './calendar-data-source';
 import { centerGridScroll } from './calendar-helpers';
 import { EventGridBackground } from './event-grid-background';
 import { WeekViewEventColumn } from './week-view-event-column';
@@ -97,8 +97,8 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
   _mounted = false;
   _pendingInitialCenter = false;
   _scrollbar = React.createRef<any>();
-  _events: EventRangeSubscription;
-  _navigatedTo: CalendarDate | null = null;
+  _sub: EventRangeSubscription;
+  _scroller = React.createRef<SnapScroller>();
 
   _legendWrapEl = React.createRef<HTMLDivElement>();
   _gridScrollRegion = React.createRef<ScrollRegion>();
@@ -114,7 +114,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
       prevFocusedMoment: props.focusedMoment,
       adjustedFocus: null,
     };
-    this._events = new EventRangeSubscription(props.dataSource, QUERY_MARGIN_DAYS, (events) =>
+    this._sub = new EventRangeSubscription(props.dataSource, QUERY_MARGIN_DAYS, (events) =>
       this.setState({ events })
     );
   }
@@ -134,7 +134,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
 
   componentWillUnmount() {
     this._mounted = false;
-    this._events.dispose();
+    this._sub.dispose();
   }
 
   // Indirection for testing purposes
@@ -143,7 +143,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
   }
 
   _subscribe() {
-    this._events.cover(
+    this._sub.cover(
       SnapScroller.drawnFrom(this.state.firstVisible, this.props.visibleDays, 'day'),
       this.props.disabledCalendars
     );
@@ -154,7 +154,6 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
   };
 
   _adjustFocus = (firstVisible: CalendarDate) => {
-    this._navigatedTo = null;
     const { focusedMoment, visibleDays } = this.props;
     const offset = CalendarDateUtils.calendarDaysBetween(firstVisible, dateOf(focusedMoment));
     if (offset >= 0 && offset < visibleDays) {
@@ -165,15 +164,14 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     this.props.onChangeFocusedMoment(adjustedFocus);
   };
 
-  /** Goes to the nearest week start behind or ahead of the first day in view, or a day in Day view. */
+  /** Goes to the nearest week start behind or ahead of where the strip is headed, or a day in Day view. */
   navigate = (direction: 1 | -1) => {
     const { focusedMoment, visibleDays } = this.props;
-    const from = this._navigatedTo ?? this.state.firstVisible;
+    const from = this._scroller.current.headedTo();
     const target =
       visibleDays === 7
         ? weekStartOf(CalendarDateUtils.addCalendarDays(from, direction > 0 ? 7 : -1))
         : CalendarDateUtils.addCalendarDays(from, direction);
-    this._navigatedTo = target;
     this.props.onChangeFocusedMoment(moveFocusInto(focusedMoment, target, visibleDays));
   };
 
@@ -223,9 +221,8 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
   /** The all-day lanes for the days drawn around `firstVisible`, which the legend and strip share. */
   _allDay(events: EventOccurrence[], firstVisible: CalendarDate) {
     const drawn = SnapScroller.drawnFrom(firstVisible, this.props.visibleDays, 'day');
-    const lastDrawn = CalendarDateUtils.addCalendarDays(drawn.end, -1);
-    const allDayEvents = eventsGroupedByDay(events, []).allDay.filter(
-      (e) => e.startDate <= lastDrawn && e.endDate >= drawn.first
+    const allDayEvents = events.filter(
+      (e) => !isTimed(e) && e.startDate < drawn.end && e.endDate >= drawn.first
     );
     const allDayOverlap = overlapForEvents(allDayEvents);
     const allDayBarHeight = allDayEvents.length
@@ -397,6 +394,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
             </div>
 
             <SnapScroller
+              ref={this._scroller}
               className="calendar-area-wrap"
               axis="horizontal"
               unit="day"

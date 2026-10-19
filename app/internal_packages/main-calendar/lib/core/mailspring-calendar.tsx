@@ -75,7 +75,7 @@ import { modifyEventWithRecurringSupport, EventTimeChangeOptions } from './recur
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 const CALENDAR_VIEW = 'mailspring.calendarView';
 
-const DAYS_SHOWN: { [view: string]: 1 | 7 } = {
+const VISIBLE_DAYS: { [view: string]: 1 | 7 } = {
   [CalendarView.DAY]: 1,
   [CalendarView.WEEK]: 7,
 };
@@ -1243,7 +1243,12 @@ export class MailspringCalendar extends React.Component<
       return <AgendaView {...viewProps} />;
     }
     return (
-      <TimeGridView ref={this._timeGrid} key={view} {...viewProps} visibleDays={DAYS_SHOWN[view]} />
+      <TimeGridView
+        ref={this._timeGrid}
+        key={view}
+        {...viewProps}
+        visibleDays={VISIBLE_DAYS[view]}
+      />
     );
   }
 

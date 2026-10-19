@@ -95,6 +95,26 @@ describe('MiniMonthView orientation', () => {
     expect(top).toBe(octoberTop + 9 * (grid.clientHeight / 6));
   });
 
+  it('steps from the month a new value heads back to, while an earlier glide is on its way', () => {
+    const renderWith = (value) =>
+      ReactDOM.render(
+        <MiniMonthView orientation="vertical" value={value} onChange={() => {}} />,
+        host
+      );
+    renderWith(moment([2026, 9, 16]));
+    const grid = host.querySelector('.day-grid') as HTMLElement;
+    const octoberTop = grid.scrollTop;
+    spyOn(grid, 'scrollTo').andCallThrough();
+    const down = host.querySelectorAll('.header .btn')[1] as HTMLElement;
+    down.click();
+    renderWith(moment([2026, 9, 20]));
+    down.click();
+
+    // November's first week starts Sun 1 Nov, five weeks on from Sun 27 Sep.
+    const { top } = (grid.scrollTo as jasmine.Spy).mostRecentCall.args[0];
+    expect(top).toBe(octoberTop + 5 * (grid.clientHeight / 6));
+  });
+
   it('moves the today marker when its value changes', () => {
     let view: MiniMonthView = null;
     const renderWith = (value) =>

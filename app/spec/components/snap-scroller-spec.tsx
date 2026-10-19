@@ -9,6 +9,7 @@ import {
   calendarDateFromUnix,
   formatCalendarDate,
 } from '../../src/calendar-date';
+import { holdGlides } from '../fixtures/hold-glides';
 
 // Rows start on the locale's first day of the week, so expectations are built the same way.
 const weekOf = (y: number, m: number, d: number) =>
@@ -176,10 +177,7 @@ describe('SnapScroller', function () {
     mount({ date: calendarDateFromParts(2026, 10, 1), animate: false });
     const el = scrollerEl();
     const start = el.scrollTop;
-    const scrollTo = el.scrollTo.bind(el);
-    spyOn(el, 'scrollTo').andCallFake((options: ScrollToOptions) => {
-      if (options.behavior !== 'smooth') scrollTo(options);
-    });
+    holdGlides(el);
     mount({ date: calendarDateFromParts(2026, 11, 1), animate: true });
     el.style.scrollSnapType = 'none';
     el.scrollTop = start + 0.4 * (el.clientHeight / 6);
@@ -192,6 +190,41 @@ describe('SnapScroller', function () {
     expect(el.scrollTop).toBe(start);
   });
 
+  it("lets go of a glide once it lands, so a later scroll's end gets through", function () {
+    const scroller = mount({ date: calendarDateFromParts(2026, 10, 1), animate: false });
+    const el = scrollerEl();
+    const start = el.scrollTop;
+    const row = el.clientHeight / 6;
+    holdGlides(el);
+    mount({ date: calendarDateFromParts(2026, 11, 1), animate: true });
+    expect(formatCalendarDate(scroller.headedTo())).toBe(weekOf(2026, 11, 1));
+
+    for (const rows of [5, 2]) {
+      el.scrollTop = start + rows * row;
+      el.dispatchEvent(new Event('scroll'));
+      el.dispatchEvent(new Event('scrollend'));
+    }
+    expect(onScrollEnd.calls.map((c) => formatCalendarDate(c.args[0]))).toEqual([
+      weekOf(2026, 11, 1),
+      weekOf(2026, 10, 11),
+    ]);
+    expect(formatCalendarDate(scroller.headedTo())).toBe(weekOf(2026, 10, 11));
+  });
+
+  it('waits on no glide when a new target is where it already rests', function () {
+    mount({ date: calendarDateFromParts(2026, 10, 1), animate: false });
+    const el = scrollerEl();
+    const start = el.scrollTop;
+    mount({ date: calendarDateFromParts(2026, 10, 2), animate: true });
+
+    el.scrollTop = start + 2 * (el.clientHeight / 6);
+    el.dispatchEvent(new Event('scroll'));
+    el.dispatchEvent(new Event('scrollend'));
+    expect(onScrollEnd).toHaveBeenCalledWith(
+      calendarDateFromUnix(moment(weekOf(2026, 10, 11)).unix())
+    );
+  });
+
   it('glides to a nearby target', function () {
     mount({ date: calendarDateFromParts(2026, 10, 1), animate: false });
     const el = scrollerEl();
@@ -201,6 +234,23 @@ describe('SnapScroller', function () {
     const { top, behavior } = (el.scrollTo as jasmine.Spy).mostRecentCall.args[0];
     expect(behavior).toBe('smooth');
     expect(top).toBe(el.scrollTop + 5 * (el.clientHeight / 6));
+  });
+
+  it('jumps to a unit not drawn yet, where a glide would stop at the last one drawn', function () {
+    // From Sun 27 Sep, six weeks are drawn either side of the six in view.
+    const sevenBack = calendarDateFromParts(2026, 8, 9);
+    const twelveOn = calendarDateFromParts(2026, 12, 20);
+    const landings = [sevenBack, twelveOn].map((date) => {
+      ReactDOM.unmountComponentAtNode(host);
+      mount({ date: calendarDateFromParts(2026, 10, 1), animate: false });
+      const scrollTo = spyOn(scrollerEl(), 'scrollTo').andCallThrough();
+      mount({ date, animate: true });
+      return [scrollTo.mostRecentCall.args[0].behavior, firstUnitStart()];
+    });
+    expect(landings).toEqual([
+      ['instant', weekOf(2026, 8, 9)],
+      ['instant', weekOf(2026, 12, 20)],
+    ]);
   });
 
   it('keeps its top week as the viewport changes height', async function () {
@@ -215,12 +265,9 @@ describe('SnapScroller', function () {
   it('lands a glide on its week when the viewport changes height on the way', async function () {
     mount({ date: calendarDateFromParts(2026, 10, 1), animate: false });
     await nextFrames();
-    // Holds the glide in flight: how far a real one gets before the resize depends on the machine.
+    // How far a real glide gets before the resize depends on the machine.
     const el = scrollerEl();
-    const scrollTo = el.scrollTo.bind(el);
-    spyOn(el, 'scrollTo').andCallFake((options: ScrollToOptions) => {
-      if (options.behavior !== 'smooth') scrollTo(options);
-    });
+    holdGlides(el);
     mount({ date: calendarDateFromParts(2026, 11, 1), animate: true });
     host.style.height = '900px';
     await nextFrames();
@@ -253,14 +300,19 @@ describe('SnapScroller', function () {
       expect(firstUnitStart('horizontal')).toBe('2026-10-14');
     });
 
-    it('recentres where it comes to rest near an end, keeping the same day in view', function () {
+    it('recenters where a scroll comes to rest near an end, keeping that day in view', function () {
       mount({ date: calendarDateFromParts(2026, 10, 14), animate: false }, across);
-      mount({ date: calendarDateFromParts(2027, 10, 8), animate: false }, across);
-      const nearTheEnd = scrollerEl().scrollLeft;
-      scrollerEl().dispatchEvent(new Event('scrollend'));
+      const el = scrollerEl();
+      const centered = el.scrollLeft;
+      // Off, or the browser snaps a jump this far back onto the days drawn before it.
+      el.style.scrollSnapType = 'none';
+      // 354 days on, a few weeks from the end of the year either side of the target.
+      el.scrollLeft = centered + 354 * 100;
+      el.dispatchEvent(new Event('scroll'));
+      el.dispatchEvent(new Event('scrollend'));
 
-      expect(firstUnitStart('horizontal')).toBe('2027-10-08');
-      expect(scrollerEl().scrollLeft).toBeLessThan(nearTheEnd);
+      expect(firstUnitStart('horizontal')).toBe('2027-10-03');
+      expect(el.scrollLeft).toBe(centered);
     });
 
     it('starts from the right in a right-to-left layout', function () {

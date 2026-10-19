@@ -8,7 +8,7 @@ type Unit = 'week' | 'day';
 
 // Chromium caps a scroller at 2^24 px (16,777,216, measured in Electron 44), and a Day view column
 // can be several thousand px wide, so a day strip spans a year each side of where it was aimed.
-const RANGE_UNITS: Record<Unit, number> = { week: 783, day: 366 };
+const RANGE_UNITS: Record<Unit, number> = { week: Math.round((15 * 365) / 7), day: 366 };
 
 const unitDays = (unit: Unit) => (unit === 'week' ? 7 : 1);
 const unitCount = (unit: Unit) => 2 * RANGE_UNITS[unit] + 1;
@@ -27,6 +27,20 @@ function indexIn(rangeStart: CalendarDate, date: CalendarDate, unit: Unit) {
 
 function unitStartAt(rangeStart: CalendarDate, index: number, unit: Unit) {
   return addCalendarDays(rangeStart, index * unitDays(unit));
+}
+
+/** Whether `index` can be first in view with `margin` units to spare at either end of the range. */
+function withinRange(index: number, unit: Unit, visibleUnits: number, margin = 0) {
+  return index >= margin && index <= unitCount(unit) - visibleUnits - margin;
+}
+
+function recenteredOn(date: CalendarDate, unit: Unit) {
+  const centered = RANGE_UNITS[unit];
+  return {
+    rangeStart: rangeAround(date, unit),
+    firstVisibleIndex: centered,
+    pendingScroll: { index: centered, smooth: false },
+  };
 }
 
 export interface SnapScrollTarget {
@@ -99,30 +113,22 @@ export class SnapScroller extends React.Component<SnapScrollerProps, SnapScrolle
     if (target === state.prevScrollTarget) return null;
     const { unit, visibleUnits } = props;
     const index = indexIn(state.rangeStart, target.date, unit);
-    if (index < 0 || index > unitCount(unit) - visibleUnits) {
-      return {
-        prevScrollTarget: target,
-        ...SnapScroller.recentredOn(target.date, unit),
-      };
+    if (!withinRange(index, unit, visibleUnits)) {
+      return { prevScrollTarget: target, ...recenteredOn(target.date, unit) };
     }
+    const drawn = SnapScroller.drawnFrom(
+      unitStartAt(state.rangeStart, state.firstVisibleIndex, unit),
+      visibleUnits,
+      unit
+    );
+    // Chromium aims a glide at the nearest unit drawn when it sets off, so one past them jumps.
     const smooth =
-      target.animate &&
-      state.unitSize > 0 &&
-      Math.abs(index - state.firstVisibleIndex) <= 2 * visibleUnits;
+      target.animate && state.unitSize > 0 && target.date >= drawn.first && target.date < drawn.end;
     return {
       prevScrollTarget: target,
       pendingScroll: { index, smooth },
       // A jump draws the destination's units now, so it doesn't paint an empty viewport.
       firstVisibleIndex: smooth ? state.firstVisibleIndex : index,
-    };
-  }
-
-  static recentredOn(date: CalendarDate, unit: Unit) {
-    const centered = RANGE_UNITS[unit];
-    return {
-      rangeStart: rangeAround(date, unit),
-      firstVisibleIndex: centered,
-      pendingScroll: { index: centered, smooth: false },
     };
   }
 
@@ -134,13 +140,12 @@ export class SnapScroller extends React.Component<SnapScrollerProps, SnapScrolle
 
   constructor(props: SnapScrollerProps) {
     super(props);
-    const recentred = SnapScroller.recentredOn(props.scrollTarget.date, props.unit);
-    this.state = { prevScrollTarget: props.scrollTarget, unitSize: 0, ...recentred };
-    this._reportedFirst = unitStartAt(
-      recentred.rangeStart,
-      recentred.firstVisibleIndex,
-      props.unit
-    );
+    this.state = {
+      prevScrollTarget: props.scrollTarget,
+      unitSize: 0,
+      ...recenteredOn(props.scrollTarget.date, props.unit),
+    };
+    this._reportedFirst = this._firstVisible(this.state.firstVisibleIndex);
   }
 
   componentDidMount() {
@@ -173,6 +178,10 @@ export class SnapScroller extends React.Component<SnapScrollerProps, SnapScrolle
     }
   }
 
+  _isAt(index: number) {
+    return Math.abs(this._scrollPosition() - index * this.state.unitSize) <= 1;
+  }
+
   _scrolledIndex() {
     const { unitSize, firstVisibleIndex } = this.state;
     return unitSize ? Math.round(this._scrollPosition() / unitSize) : firstVisibleIndex;
@@ -180,6 +189,11 @@ export class SnapScroller extends React.Component<SnapScrollerProps, SnapScrolle
 
   _firstVisible(index: number) {
     return unitStartAt(this.state.rangeStart, index, this.props.unit);
+  }
+
+  /** The first unit in view once the glide under way lands, or now when there's none. */
+  headedTo() {
+    return this._firstVisible(this._glideIndex ?? this.state.firstVisibleIndex);
   }
 
   _reportFirst(index: number) {
@@ -211,7 +225,8 @@ export class SnapScroller extends React.Component<SnapScrollerProps, SnapScrolle
     if (!this._el.current || !unitSize || pendingScroll === this._appliedScroll) return;
     this._appliedScroll = pendingScroll;
     const { index, smooth } = pendingScroll;
-    this._glideIndex = smooth ? index : null;
+    // A scroll to where the strip already is fires no scrollend to end a glide.
+    this._glideIndex = smooth && !this._isAt(index) ? index : null;
     this._scrollTo(index * unitSize, smooth);
   };
 
@@ -234,17 +249,16 @@ export class SnapScroller extends React.Component<SnapScrollerProps, SnapScrolle
     // A jump made while a glide is still running can stop between unit edges, and snapping only
     // follows the user's scrolls. The correction ends with its own scrollend.
     const { unitSize } = this.state;
-    if (unitSize && Math.abs(this._scrollPosition() - index * unitSize) > 1) {
+    if (unitSize && !this._isAt(index)) {
       this._scrollTo(index * unitSize, false);
       return;
     }
     const firstVisible = this._firstVisible(index);
     this.props.onScrollEnd?.(firstVisible);
-    // Recentred at rest, where it's invisible, so scrolling never meets the end of the range.
+    // Recentered at rest, where it's invisible, so scrolling never meets the end of the range.
     const { unit, visibleUnits } = this.props;
-    const margin = 3 * visibleUnits;
-    if (index < margin || index > unitCount(unit) - visibleUnits - margin) {
-      this.setState(SnapScroller.recentredOn(firstVisible, unit));
+    if (!withinRange(index, unit, visibleUnits, 3 * visibleUnits)) {
+      this.setState(recenteredOn(firstVisible, unit));
     }
   };
 
