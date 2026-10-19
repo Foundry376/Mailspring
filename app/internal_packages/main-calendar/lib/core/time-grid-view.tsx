@@ -11,7 +11,7 @@ import {
 import { CalendarDate, CalendarDateUtils } from 'mailspring-exports';
 import { HeaderControls } from './header-controls';
 import { EventOccurrence, EventRangeSubscription, isTimed } from './calendar-data-source';
-import { centerGridScroll } from './calendar-helpers';
+import { centerGridScroll, dateOf, momentOf } from './calendar-helpers';
 import { EventGridBackground } from './event-grid-background';
 import { WeekViewEventColumn } from './week-view-event-column';
 import { WeekViewAllDayEvents } from './week-view-all-day-events';
@@ -32,14 +32,6 @@ import { getEventsWithDragPreview, withNewEventPreview } from './calendar-drag-u
 const MIN_INTERVAL_HEIGHT = 21;
 const DAY_PORTION_SHOWN_VERTICALLY = 11 / 24;
 const QUERY_MARGIN_DAYS = 21;
-
-function dateOf(m: Moment): CalendarDate {
-  return CalendarDateUtils.calendarDateFromUnix(m.unix());
-}
-
-function momentOf(date: CalendarDate): Moment {
-  return moment.unix(CalendarDateUtils.dayStartUnix(date));
-}
 
 function weekStartOf(date: CalendarDate): CalendarDate {
   return CalendarDateUtils.weekStartOf(date, moment.localeData().firstDayOfWeek());

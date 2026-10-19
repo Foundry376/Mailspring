@@ -237,8 +237,13 @@ export class SnapScroller extends React.Component<SnapScrollerProps, SnapScrolle
     }
   };
 
-  _onWheel = () => {
-    this._glideIndex = null;
+  _onWheel = (event: React.WheelEvent) => {
+    const { deltaX, deltaY } = event;
+    const [along, across] = this.props.axis === 'vertical' ? [deltaY, deltaX] : [deltaX, deltaY];
+    // A wheel across the axis, like the hour grid's inside a day strip, leaves the glide running.
+    if (Math.abs(along) > Math.abs(across)) {
+      this._glideIndex = null;
+    }
   };
 
   _onScrollEnd = () => {

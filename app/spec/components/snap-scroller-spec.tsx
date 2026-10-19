@@ -173,7 +173,7 @@ describe('SnapScroller', function () {
     expect(el.scrollTop).toBe(start + 3 * (el.clientHeight / 6));
   });
 
-  it('leaves a glide alone when an earlier scroll ends on its way, until a wheel takes over', function () {
+  it('leaves a glide alone when an earlier scroll ends on its way, until a wheel along its axis takes over', function () {
     mount({ date: calendarDateFromParts(2026, 10, 1), animate: false });
     const el = scrollerEl();
     const start = el.scrollTop;
@@ -185,7 +185,11 @@ describe('SnapScroller', function () {
     expect(el.scrollTop).toBe(start + 0.4 * (el.clientHeight / 6));
     expect(onScrollEnd).not.toHaveBeenCalled();
 
-    el.dispatchEvent(new WheelEvent('wheel', { bubbles: true }));
+    el.dispatchEvent(new WheelEvent('wheel', { bubbles: true, deltaX: 100 }));
+    el.dispatchEvent(new Event('scrollend'));
+    expect(el.scrollTop).toBe(start + 0.4 * (el.clientHeight / 6));
+
+    el.dispatchEvent(new WheelEvent('wheel', { bubbles: true, deltaY: 100 }));
     el.dispatchEvent(new Event('scrollend'));
     expect(el.scrollTop).toBe(start);
   });
@@ -236,20 +240,29 @@ describe('SnapScroller', function () {
     expect(top).toBe(el.scrollTop + 5 * (el.clientHeight / 6));
   });
 
-  it('jumps to a unit not drawn yet, where a glide would stop at the last one drawn', function () {
-    // From Sun 27 Sep, six weeks are drawn either side of the six in view.
-    const sevenBack = calendarDateFromParts(2026, 8, 9);
-    const twelveOn = calendarDateFromParts(2026, 12, 20);
-    const landings = [sevenBack, twelveOn].map((date) => {
+  it('glides to the units drawn at either end, and jumps past them, where a glide would stop short', function () {
+    // From Sun 27 Sep, six weeks are drawn either side of the six in view: Aug 16 to Dec 13.
+    const targets = [
+      calendarDateFromParts(2026, 8, 16),
+      calendarDateFromParts(2026, 12, 13),
+      calendarDateFromParts(2026, 8, 9),
+      calendarDateFromParts(2026, 12, 20),
+    ];
+    const scrolls = targets.map((date) => {
       ReactDOM.unmountComponentAtNode(host);
       mount({ date: calendarDateFromParts(2026, 10, 1), animate: false });
-      const scrollTo = spyOn(scrollerEl(), 'scrollTo').andCallThrough();
+      const el = scrollerEl();
+      const start = el.scrollTop;
+      const scrollTo = spyOn(el, 'scrollTo').andCallThrough();
       mount({ date, animate: true });
-      return [scrollTo.mostRecentCall.args[0].behavior, firstUnitStart()];
+      const { top, behavior } = scrollTo.mostRecentCall.args[0];
+      return [behavior, (top - start) / (el.clientHeight / 6)];
     });
-    expect(landings).toEqual([
-      ['instant', weekOf(2026, 8, 9)],
-      ['instant', weekOf(2026, 12, 20)],
+    expect(scrolls).toEqual([
+      ['smooth', -6],
+      ['smooth', 11],
+      ['instant', -7],
+      ['instant', 12],
     ]);
   });
 

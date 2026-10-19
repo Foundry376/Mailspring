@@ -10,6 +10,7 @@ import { EventOccurrence, EventRangeSubscription } from './calendar-data-source'
 import { MonthViewWeek } from './month-view-week';
 import { WeekBarsLayout, firstVisibleBarIds, layoutWeekBars } from './month-view-helpers';
 import { getEventsWithDragPreview, withNewEventPreview } from './calendar-drag-utils';
+import { momentOf } from './calendar-helpers';
 
 const DAYS_IN_WEEK = 7;
 const MAX_VISIBLE_EVENTS = 5;
@@ -17,10 +18,6 @@ const VISIBLE_WEEKS = 6;
 
 function monthStartDate(m: Moment): CalendarDate {
   return CalendarDateUtils.calendarDateFromParts(m.year(), m.month() + 1, 1);
-}
-
-function momentOf(date: CalendarDate): Moment {
-  return moment.unix(CalendarDateUtils.dayStartUnix(date));
 }
 
 interface MonthViewState {

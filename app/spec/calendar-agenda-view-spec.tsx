@@ -56,6 +56,16 @@ describe('AgendaView', function () {
     expect(buildObservable.mostRecentCall.args[0].disabledCalendars).toEqual(['cal-1']);
   });
 
+  it('stops listening to its query once unmounted', function () {
+    const query = new Rx.Subject<{ events: [] }>();
+    buildObservable.andCallFake(() => query);
+    render({ focusedMoment: moment([2026, 9, 21]) });
+    expect(query.hasObservers()).toBe(true);
+
+    ReactDOM.unmountComponentAtNode(host);
+    expect(query.hasObservers()).toBe(false);
+  });
+
   it('lists the events the query returns', function () {
     const event = allDayOccurrence('Offsite', '2026-10-22');
     buildObservable.andCallFake(() => Rx.Observable.just({ events: [event] }));

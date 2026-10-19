@@ -127,14 +127,14 @@ describe('TimeGridView scrolling', function () {
       expect(lastScroll().left).toBe(wednesday - 3 * 100);
     });
 
-    it('from a lined-up week, moves a whole week either way', function () {
+    it('from a lined-up week, glides back a whole week, to the first day drawn', function () {
       render(moment([2026, 9, 19]));
       const sunday = strip().scrollLeft;
       holdGlides(strip());
 
       view.navigate(-1);
       expect(lastFocus()).toBe('Mon 2026-10-12');
-      expect(lastScroll().left).toBe(sunday - 7 * 100);
+      expect(lastScroll()).toEqual({ left: sunday - 7 * 100, behavior: 'smooth' });
     });
 
     it('counts every press made while the glide is still on its way', function () {
@@ -145,6 +145,18 @@ describe('TimeGridView scrolling', function () {
       view.navigate(1);
       view.navigate(1);
       expect(lastFocus()).toBe('Mon 2026-11-02');
+      expect(lastScroll().left).toBe(sunday + 14 * 100);
+    });
+
+    it('counts a press made after the hours are scrolled mid-glide', function () {
+      render(moment([2026, 9, 19]));
+      const sunday = strip().scrollLeft;
+      holdGlides(strip());
+
+      view.navigate(1);
+      const hours = host.querySelector('.event-grid-wrap');
+      hours.dispatchEvent(new WheelEvent('wheel', { bubbles: true, deltaY: 100 }));
+      view.navigate(1);
       expect(lastScroll().left).toBe(sunday + 14 * 100);
     });
 
@@ -209,11 +221,13 @@ describe('TimeGridView scrolling', function () {
     expect(firstInView()).toBe('25Sun');
   });
 
+  // Oct 11 to Oct 31 are drawn around Oct 18-24.
   it('sizes the All Day row for the all-day events drawn, not every event loaded', function () {
-    // Four weeks on: loaded, but well past the three weeks drawn around Oct 18-24.
-    const farOff = allDayOccurrence('far-off', '2026-11-16');
+    const dayAfterDrawn = allDayOccurrence('day-after-drawn', '2026-11-01');
     const meeting = timedOccurrence('meeting', '2026-10-20T10:00', '2026-10-20T11:00');
-    dataSource.buildObservable.andCallFake(() => Rx.Observable.just({ events: [farOff, meeting] }));
+    dataSource.buildObservable.andCallFake(() =>
+      Rx.Observable.just({ events: [dayAfterDrawn, meeting] })
+    );
     render(moment([2026, 9, 19]));
 
     expect(height('.date-label-legend')).toBe('76px');
@@ -221,8 +235,8 @@ describe('TimeGridView scrolling', function () {
   });
 
   it('sizes the All Day row for events on days drawn off-screen too', function () {
-    const lastWeek = allDayOccurrence('last-week', '2026-10-12');
-    dataSource.buildObservable.andCallFake(() => Rx.Observable.just({ events: [lastWeek] }));
+    const firstDrawn = allDayOccurrence('first-drawn', '2026-10-11');
+    dataSource.buildObservable.andCallFake(() => Rx.Observable.just({ events: [firstDrawn] }));
     render(moment([2026, 9, 19]));
 
     expect(height('.date-label-legend')).toBe('98px');
