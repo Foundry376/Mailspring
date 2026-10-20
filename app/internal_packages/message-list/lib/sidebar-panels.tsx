@@ -16,7 +16,7 @@ interface SidebarPanelsState {
 }
 
 /**
- * The switcher at the top of the thread sidebar. The default "Contact" panel is everything
+ * The switcher at the top of the thread sidebar. The default "Participants" panel is everything
  * registered at the MessageListSidebar location (participant picker, contact cards, card-mode
  * Views). Anything registered for the `MessageListSidebar:Panel` role with a static
  * `sidebarPanel = { id, title }` becomes another choice that fills the whole sidebar instead.
@@ -65,12 +65,12 @@ export class SidebarPanels extends React.Component<Record<string, unknown>, Side
     const { panels } = this.state;
     if (panels.length === 0) return null;
 
-    // A remembered panel whose provider has since been removed falls back to Contact.
+    // A remembered panel whose provider has since been removed falls back to Participants.
     const activeId = panels.some((p) => p.sidebarPanel.id === this.state.activeId)
       ? this.state.activeId
       : CONTACT_PANEL_ID;
     const choices = [
-      { id: CONTACT_PANEL_ID, title: localized('Contact') },
+      { id: CONTACT_PANEL_ID, title: localized('Participants') },
       ...panels.map((p) => p.sidebarPanel),
     ];
 
