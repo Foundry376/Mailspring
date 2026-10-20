@@ -666,8 +666,6 @@
   border-radius: (@toolbar-btn-height-darwin / 2);
 }
 
-// The agenda in the thread sidebar's Calendar panel (150-300px wide). It shares the sidebar's
-// background, drops the Day/Week/Month switcher, and stacks each event's time over its title.
 .mailspring-calendar.sidebar-agenda-panel {
   flex: 1;
   min-height: 0;
@@ -677,14 +675,14 @@
     flex: 1;
     width: auto;
     border-left: none;
-  }
-
-  .agenda-panel,
-  .agenda-day-header {
     background: @background-secondary;
-  }
 
-  .agenda-event-list {
-    padding: 0 8px 12px;
+    .agenda-day-header {
+      background: @background-secondary;
+    }
+
+    .agenda-event-list {
+      padding: 0 8px 12px;
+    }
   }
 }
