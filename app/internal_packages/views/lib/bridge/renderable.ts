@@ -8,7 +8,7 @@ import {
   MessageBodyProcessor,
   QuotedHTMLTransformer,
 } from 'mailspring-exports';
-import { isMessageAllowed } from '../../../mcp-server/lib/capabilities/grant';
+import { isMessageAllowed } from '../../../../src/services/mail-access/grant';
 import EmailFrameStylesStore from '../../../message-list/lib/email-frame-styles-store';
 import { ViewError } from './errors';
 import type { ViewGrant } from './grant';

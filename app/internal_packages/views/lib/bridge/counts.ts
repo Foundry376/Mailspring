@@ -1,8 +1,8 @@
-import { MailQuery } from '../../../mcp-server/lib/capabilities/queries';
-import { countMessages as countWithGrant, Dim } from '../../../mcp-server/lib/capabilities/counts';
+import { MailQuery } from '../../../../src/services/mail-access/queries';
+import { countMessages as countWithGrant, Dim } from '../../../../src/services/mail-access/counts';
 import type { ViewGrant } from './grant';
 
-export { Dim, DIMS } from '../../../mcp-server/lib/capabilities/counts';
+export { Dim, DIMS } from '../../../../src/services/mail-access/counts';
 
 export function countMessages(grant: ViewGrant, q: MailQuery, dims: Dim[]) {
   return countWithGrant(grant.scope, q, dims);

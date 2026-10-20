@@ -5,7 +5,7 @@ import {
   validateFilter,
   FilterError,
   FILTER_LIMITS,
-} from '../lib/capabilities/filter';
+} from '../../../src/services/mail-access/filter';
 
 // The compiled SQL runs against an in-memory copy of the tables it touches, so these specs
 // check real SQLite semantics (json_each, LIKE escaping, FTS5) rather than string shapes.

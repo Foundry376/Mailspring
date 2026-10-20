@@ -8,8 +8,8 @@ import {
   Message,
   Thread,
 } from 'mailspring-exports';
-import { isMessageAllowed, isThreadAllowed } from '../../../mcp-server/lib/capabilities/grant';
-import { isMyAddress } from '../../../mcp-server/lib/capabilities/identity';
+import { isMessageAllowed, isThreadAllowed } from '../../../../src/services/mail-access/grant';
+import { isMyAddress } from '../../../../src/services/mail-access/identity';
 import type { ViewGrant } from './grant';
 
 // Authorization + output shaping for everything that crosses the View bridge. The thread and message serializers return null when the

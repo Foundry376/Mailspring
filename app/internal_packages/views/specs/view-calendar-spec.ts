@@ -7,7 +7,7 @@ import {
   Event,
   ICSEventHelpers,
 } from 'mailspring-exports';
-import { FULL_GRANT } from '../../mcp-server/lib/capabilities/grant';
+import { FULL_GRANT } from '../../../src/services/mail-access/grant';
 import { ViewGrant, ViewPermission } from '../lib/bridge/grant';
 import { conferenceUrl, eventIdOf, freeBusy, parseRange } from '../lib/bridge/events';
 import {

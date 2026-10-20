@@ -1,5 +1,5 @@
 import { ViewError } from '../bridge/errors';
-import type { MailQuery } from '../../../mcp-server/lib/capabilities/queries';
+import type { MailQuery } from '../../../../src/services/mail-access/queries';
 import type { Dim } from '../bridge/counts';
 import { MockData, MockMessage, MockThread, lastMessageDate, threadSummary } from './mock-data';
 
@@ -7,7 +7,7 @@ import { MockData, MockMessage, MockThread, lastMessageDate, threadSummary } fro
  * Runs the bridge's mail queries over mock data in memory. Queries arrive already validated and
  * normalized by `mailQuery` (bridge/handlers.ts), the same path real queries take, so a filter
  * that is wrong against the user's mail is wrong here too. Matching follows the SQL compiler in
- * mcp-server/lib/capabilities/filter.ts closely enough for posters; full-text matching is plain
+ * src/services/mail-access/filter.ts closely enough for posters; full-text matching is plain
  * word containment rather than stemmed FTS.
  *
  * The authoring agent's checker bundles this file and mock-data.ts (backend

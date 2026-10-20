@@ -17,7 +17,7 @@ import {
 } from '../lib/extraction/normalize';
 import { runExtractJob, runEventExtractJob, cancelJobsForView } from '../lib/bridge/extract';
 import { ViewGrant } from '../lib/bridge/grant';
-import { FULL_GRANT } from '../../mcp-server/lib/capabilities/grant';
+import { FULL_GRANT } from '../../../src/services/mail-access/grant';
 import * as bodies from '../lib/bridge/bodies';
 import { cacheKey, EXTRACTION_MODEL_VERSION } from '../../../src/browser/extraction-model';
 

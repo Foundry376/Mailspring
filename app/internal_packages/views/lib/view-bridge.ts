@@ -8,7 +8,7 @@ import {
   Message,
   Thread,
 } from 'mailspring-exports';
-import { audited } from '../../mcp-server/lib/capabilities/audit';
+import { audited } from '../../../src/services/mail-access/audit';
 import { currentThemeTokens, onThemeChange } from './theme-tokens';
 import { ViewError } from './bridge/errors';
 import { CREDENTIAL_HANDLERS } from './bridge/credentials';

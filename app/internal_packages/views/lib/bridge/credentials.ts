@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { addAuditEntry } from '../../../mcp-server/lib/capabilities/audit';
+import { addAuditEntry } from '../../../../src/services/mail-access/audit';
 import {
   FetchInit,
   credentialedFetch,

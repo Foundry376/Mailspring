@@ -18,7 +18,7 @@ import {
 } from '../lib/generation/briefing';
 import { generationHandlers, runGenerateJob } from '../lib/bridge/generate';
 import { ViewGrant } from '../lib/bridge/grant';
-import { FULL_GRANT } from '../../mcp-server/lib/capabilities/grant';
+import { FULL_GRANT } from '../../../src/services/mail-access/grant';
 import * as bodies from '../lib/bridge/bodies';
 
 const DAY = new Date(2026, 9, 2, 9, 0);

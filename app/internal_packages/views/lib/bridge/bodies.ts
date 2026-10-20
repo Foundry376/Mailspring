@@ -1,5 +1,5 @@
 import { Actions, DatabaseStore, Message } from 'mailspring-exports';
-import { isMessageAllowed } from '../../../mcp-server/lib/capabilities/grant';
+import { isMessageAllowed } from '../../../../src/services/mail-access/grant';
 import type { ViewGrant } from './grant';
 import { bodyText, structuredData } from './content';
 

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { DatabaseStore, Message } from 'mailspring-exports';
-import { isMyAddress, knownAddresses } from '../../../mcp-server/lib/capabilities/identity';
+import { isMyAddress, knownAddresses } from '../../../../src/services/mail-access/identity';
 import { contentFor, messagesWithBodies } from './bodies';
 import { ViewGrant, requirePermission } from './grant';
 import { ViewError } from './errors';

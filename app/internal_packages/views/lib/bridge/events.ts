@@ -1,5 +1,5 @@
 import { CalendarDateUtils, Contact, DatabaseStore, Event, Matcher } from 'mailspring-exports';
-import { isAccountAllowed } from '../../../mcp-server/lib/capabilities/grant';
+import { isAccountAllowed } from '../../../../src/services/mail-access/grant';
 import {
   occurrencesForEvents,
   EventOccurrence,

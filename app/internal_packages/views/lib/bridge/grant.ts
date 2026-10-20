@@ -1,4 +1,4 @@
-import { Grant, FULL_GRANT } from '../../../mcp-server/lib/capabilities/grant';
+import { Grant, FULL_GRANT } from '../../../../src/services/mail-access/grant';
 import { allViews } from '../view-registry';
 import { CONSENTED_PERMISSIONS, ViewPermission, approvedPermissions } from '../consent';
 import { ViewError } from './errors';
@@ -8,7 +8,7 @@ export { ViewPermission, CONSENTED_PERMISSIONS };
 /**
  * What one View may do: the permissions its manifest declares that the user has approved.
  * `scope` is the same account/folder grant MCP uses, so both are enforced by
- * mcp-server/lib/capabilities/grant.ts.
+ * src/services/mail-access/grant.ts.
  */
 export interface ViewGrant {
   viewId: string;

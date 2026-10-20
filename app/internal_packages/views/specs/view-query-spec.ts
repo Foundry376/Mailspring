@@ -4,8 +4,8 @@ import { withTimeout, ViewError } from '../lib/bridge/errors';
 import { serializeContact } from '../lib/bridge/serializers';
 import { countMessages } from '../lib/bridge/counts';
 import { ViewGrant, ViewPermission } from '../lib/bridge/grant';
-import { FULL_GRANT } from '../../mcp-server/lib/capabilities/grant';
-import { refreshIdentity } from '../../mcp-server/lib/capabilities/identity';
+import { FULL_GRANT } from '../../../src/services/mail-access/grant';
+import { refreshIdentity } from '../../../src/services/mail-access/identity';
 
 function grantWith(permissions: ViewPermission[]): ViewGrant {
   return {

@@ -3,7 +3,7 @@ import { ViewBridge, CALL_CHANNEL, HELLO_CHANNEL } from '../lib/view-bridge';
 import { HANDLERS, mailQuery, BridgeContext } from '../lib/bridge/handlers';
 import { ViewGrant, ViewPermission } from '../lib/bridge/grant';
 import { serializeThreadSummary } from '../lib/bridge/serializers';
-import { FULL_GRANT } from '../../mcp-server/lib/capabilities/grant';
+import { FULL_GRANT } from '../../../src/services/mail-access/grant';
 import fs from 'fs';
 import { ipcRenderer, webFrame } from 'electron';
 import ThreadListContextMenu from '../../thread-list/lib/thread-list-context-menu';

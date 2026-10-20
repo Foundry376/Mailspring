@@ -6,7 +6,7 @@ import {
   isFolderAllowed as grantIsFolderAllowed,
   isThreadAllowed as grantIsThreadAllowed,
   isMessageAllowed as grantIsMessageAllowed,
-} from './capabilities/grant';
+} from '../../../src/services/mail-access/grant';
 
 type AccessLevel = 'read-only' | 'read-write' | 'read-write-send';
 
@@ -36,7 +36,7 @@ export function checkAccessLevel(category: 'read' | 'write' | 'send'): string | 
 }
 
 // ── Pure predicates ──────────────────────────────────────────────────────
-// MCP's view of the shared capability grant (capabilities/grant.ts). `mcpGrant()` is the one
+// MCP's view of the shared capability grant (src/services/mail-access/grant.ts). `mcpGrant()` is the one
 // place that interprets `core.mcp.enabledAccounts`; every check below, the batch asserts,
 // and the serializers in mcp-serializers.ts are built on it.
 

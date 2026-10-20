@@ -17,11 +17,11 @@ import {
   Thread,
   localized,
 } from 'mailspring-exports';
-import { isMessageAllowed, isThreadAllowed } from '../../../mcp-server/lib/capabilities/grant';
-import { messageQuery, threadQuery, MailQuery } from '../../../mcp-server/lib/capabilities/queries';
+import { isMessageAllowed, isThreadAllowed } from '../../../../src/services/mail-access/grant';
+import { messageQuery, threadQuery, MailQuery } from '../../../../src/services/mail-access/queries';
 import { ViewError, withTimeout } from './errors';
-import { FilterError, validateFilter } from '../../../mcp-server/lib/capabilities/filter';
-import { currentIdentity } from '../../../mcp-server/lib/capabilities/identity';
+import { FilterError, validateFilter } from '../../../../src/services/mail-access/filter';
+import { currentIdentity } from '../../../../src/services/mail-access/identity';
 import { ViewGrant, requirePermission } from './grant';
 import {
   fillThreadSnippets,

@@ -5,7 +5,7 @@ import { BridgeContext, Handler, LIMITS, mailQuery, parse, parseGroupBy } from '
 import { freeBusy, parseRange, EventRange } from '../bridge/events';
 import { ViewTheme, currentThemeTokens } from '../theme-tokens';
 import { CONSENTED_PERMISSIONS, ViewPermission } from '../consent';
-import { FULL_GRANT } from '../../../mcp-server/lib/capabilities/grant';
+import { FULL_GRANT } from '../../../../src/services/mail-access/grant';
 import { MockData, MockMessage, threadSummary } from './mock-data';
 import { countMockMessages, findMessages, findThreads, matchingMessages } from './mock-query';
 

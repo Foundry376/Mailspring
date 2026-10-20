@@ -47,11 +47,11 @@ import {
   clearAuditLog,
   getAuditLog,
   onAuditLogChanged,
-} from './capabilities/audit';
-import { threadQuery } from './capabilities/queries';
-import { FilterError, validateFilter } from './capabilities/filter';
-import { countMessages, DIMS } from './capabilities/counts';
-import { currentIdentity } from './capabilities/identity';
+} from '../../../src/services/mail-access/audit';
+import { threadQuery } from '../../../src/services/mail-access/queries';
+import { FilterError, validateFilter } from '../../../src/services/mail-access/filter';
+import { countMessages, DIMS } from '../../../src/services/mail-access/counts';
+import { currentIdentity } from '../../../src/services/mail-access/identity';
 
 const FILTER_DESCRIPTION =
   'Structured JSON filter, an alternative to `query` that avoids search-syntax parsing. Each ' +

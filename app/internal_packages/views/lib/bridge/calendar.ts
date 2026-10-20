@@ -14,7 +14,7 @@ import {
   SyncbackEventTask,
   localized,
 } from 'mailspring-exports';
-import { isAccountAllowed } from '../../../mcp-server/lib/capabilities/grant';
+import { isAccountAllowed } from '../../../../src/services/mail-access/grant';
 import type { ViewGrant } from './grant';
 import { requirePermission } from './grant';
 import { ViewError } from './errors';
