@@ -16,9 +16,9 @@ import { chipFor, examplesForThreads } from './examples';
 import {
   AccountUsage,
   LimitNotice,
-  QuotaDetails,
   exhaustedNotice,
   limitNotice,
+  messageLimitFrom,
   parseUsage,
   raiseStepCents,
 } from './quota';
@@ -71,11 +71,7 @@ const REVISION_WAIT_CAP_MS = 10000;
 
 type Shot = { png: Buffer; width: number; height: number };
 
-/**
- * The View's pixels right now, read from its host. This deliberately skips
- * captureViewPreview's `screenshot-taken` diagnostic: settling and the live thumbnail capture
- * repeatedly and keep everything local; only the image the user approves is recorded.
- */
+/** The View's pixels right now, read from its host, or null when it isn't on screen. */
 async function captureQuietly(viewId: string): Promise<Shot | null> {
   const host = hostsFor(viewId)[0];
   let image = host ? await host.capturePage() : null;
@@ -406,7 +402,6 @@ class AgentSessionStoreImpl extends MailspringStore {
       this.d.transport.interrupt(viewId).catch(() => {});
     }
     for (const example of sent.examples) rt.staged.set(example.messageId, example);
-    const details = (err.details as { limit?: number }) || {};
     this.update(viewId, (s) => {
       const transcript = sent.entryId
         ? s.transcript.filter((entry) => entry.id !== sent.entryId)
@@ -437,7 +432,8 @@ class AgentSessionStoreImpl extends MailspringStore {
       } else {
         next.returnedDraft = { text: sent.text, seq: (s.returnedDraft?.seq || 0) + 1 };
         if (code === 'message_too_long') {
-          if (typeof details.limit === 'number') next.messageLimit = details.limit;
+          const limit = messageLimitFrom(err.details);
+          if (limit) next.messageLimit = limit;
         } else {
           next.notice = {
             code,
@@ -475,7 +471,7 @@ class AgentSessionStoreImpl extends MailspringStore {
       this.markNeedsSession(viewId, code === 'no_session' ? 'none' : 'outdated');
       return;
     }
-    const notice = limitNotice(code, (err.details as QuotaDetails) || {});
+    const notice = limitNotice(code, err.details || {});
     if (notice) {
       this.showLimit(viewId, notice);
       this.refreshUsage();

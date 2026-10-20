@@ -13,7 +13,14 @@ import { LIGHT_THEME_TOKENS } from '../lib/theme-tokens';
 import { MockSource } from '../lib/mock/mock-bridge';
 import { expandMockData } from '../lib/mock/mock-data';
 import { isShareId, shareIdFromInstallURL, webURL } from '../lib/sharing/share-link';
-import { ShareClient, ShareTransport, parseBundle, parseSharedInfo } from '../lib/sharing/client';
+import {
+  ShareClient,
+  ShareTransport,
+  parseBundle,
+  parsePublished,
+  parseSharedInfo,
+  parseShares,
+} from '../lib/sharing/client';
 import {
   publishView,
   sha256Hex,
@@ -119,6 +126,30 @@ describe('Views sharing: server replies', function () {
       parseBundle({ shareId: 'zZ3dE5gH7j', manifest: {}, files: {}, signature: 's' }, SHARE_ID)
     ).toThrow();
     expect(() => parseBundle({ shareId: SHARE_ID, manifest: [], files: {} }, SHARE_ID)).toThrow();
+  });
+
+  it('rejects a published share without an id or web link', function () {
+    const url = 'https://getmailspring.com/v/x';
+    expect(parsePublished({ shareId: SHARE_ID, url, extra: 1 })).toEqual({
+      shareId: SHARE_ID,
+      url,
+    });
+    expect(() => parsePublished({ shareId: 'short', url })).toThrow();
+    expect(() => parsePublished({ shareId: SHARE_ID, url: 'javascript:alert(1)' })).toThrow();
+  });
+
+  it('drops malformed entries from the share list', function () {
+    const good = {
+      shareId: SHARE_ID,
+      url: 'https://getmailspring.com/v/x',
+      viewId: 'receipts-1a2b',
+      revision: 3,
+      name: 'Receipts',
+      createdAt: '2026-10-01T00:00:00.000Z',
+    };
+    const shares = parseShares({ shares: [good, { ...good, url: 'file:///x' }, null] });
+    expect(shares).toEqual([good]);
+    expect(() => parseShares({})).toThrow();
   });
 });
 

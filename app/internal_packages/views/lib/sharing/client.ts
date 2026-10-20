@@ -1,8 +1,9 @@
+import { z } from 'zod';
 import { MailspringAPIRequest } from 'mailspring-exports';
-import { requestJSON } from '../agent/client';
+import { parseReply, requestJSON } from '../agent/client';
 import { AgentAPIError } from '../agent/types';
 import { declaredGrants } from '../consent';
-import { isShareId, webURL } from './share-link';
+import { SHARE_ID_REGEXP, isShareId, webURL } from './share-link';
 
 /** `POST /api/views/share`. */
 export interface ShareRequest {
@@ -15,22 +16,40 @@ export interface ShareRequest {
   posters: { og: string; card: string };
 }
 
-export interface PublishedShare {
-  shareId: string;
-  url: string;
-}
+const ShareIdSchema = z.string().regex(SHARE_ID_REGEXP);
+const WebURLSchema = z.string().refine((v) => webURL(v) !== null);
+
+/** The reply to `POST /api/views/share`. */
+const PublishedShareSchema = z.object({ shareId: ShareIdSchema, url: WebURLSchema });
+export type PublishedShare = z.infer<typeof PublishedShareSchema>;
 
 /** One of the caller's live shares (`GET /api/views/shares`). */
-export interface ShareRecord {
-  shareId: string;
-  url: string;
-  viewId: string;
-  revision: number;
-  name: string;
-  createdAt: string | null;
-}
+const ShareRecordSchema = z.object({
+  shareId: ShareIdSchema,
+  url: WebURLSchema,
+  viewId: z.string(),
+  revision: z.number().int(),
+  name: z.string(),
+  createdAt: z.string().nullable(),
+});
+export type ShareRecord = z.infer<typeof ShareRecordSchema>;
 
-/** A share's public metadata (`GET /api/views/shared/<id>`), for the install sheet. */
+// Entries are checked one by one so a malformed share doesn't hide the others.
+const ShareListSchema = z.object({ shares: z.array(z.unknown()) });
+
+/**
+ * A share's public metadata (`GET /api/views/shared/<id>`), for the install sheet. Permissions
+ * and hosts are filtered afterwards (see parseSharedInfo); a poster that isn't a web URL is
+ * dropped rather than failing the sheet.
+ */
+const SharedInfoSchema = z.object({
+  name: z.string(),
+  description: z.string().nullish(),
+  permissions: z.unknown().optional(),
+  network: z.unknown().optional(),
+  posterURL: z.unknown().optional(),
+});
+
 export interface SharedViewInfo {
   shareId: string;
   name: string;
@@ -38,16 +57,16 @@ export interface SharedViewInfo {
   permissions: string[];
   network: string[];
   posterURL: string | null;
-  createdAt: string | null;
 }
 
 /** The install route's bundle, unverified. */
-export interface SharedBundle {
-  shareId: string;
-  manifest: { [key: string]: any };
-  files: { [name: string]: string };
-  signature: string;
-}
+const SharedBundleSchema = z.object({
+  shareId: z.string(),
+  manifest: z.record(z.string(), z.any()),
+  files: z.record(z.string(), z.string()),
+  signature: z.string(),
+});
+export type SharedBundle = z.infer<typeof SharedBundleSchema>;
 
 export interface ShareTransport {
   publish(body: ShareRequest): Promise<PublishedShare>;
@@ -57,32 +76,16 @@ export interface ShareTransport {
   install(shareId: string): Promise<SharedBundle>;
 }
 
-const str = (v: any, fallback = '') => (typeof v === 'string' ? v : fallback);
+export function parsePublished(json: unknown): PublishedShare {
+  return parseReply(PublishedShareSchema, json, 'the share request');
+}
 
-function malformed(desc: string) {
-  return new AgentAPIError(`The Mailspring servers sent an unexpected reply to ${desc}.`, {
-    code: 'malformed_response',
+export function parseShares(json: unknown): ShareRecord[] {
+  const { shares } = parseReply(ShareListSchema, json, 'the shares request');
+  return shares.flatMap((s) => {
+    const parsed = ShareRecordSchema.safeParse(s);
+    return parsed.success ? [parsed.data] : [];
   });
-}
-
-export function parsePublished(json: any): PublishedShare {
-  const url = webURL(json && json.url);
-  if (!json || !isShareId(json.shareId) || !url) throw malformed('the share request');
-  return { shareId: json.shareId, url };
-}
-
-export function parseShares(json: any): ShareRecord[] {
-  const list = json && Array.isArray(json.shares) ? json.shares : [];
-  return list
-    .filter((s: any) => s && isShareId(s.shareId) && webURL(s.url))
-    .map((s: any) => ({
-      shareId: s.shareId,
-      url: s.url,
-      viewId: str(s.viewId),
-      revision: Number.isInteger(s.revision) ? s.revision : 0,
-      name: str(s.name),
-      createdAt: str(s.createdAt) || null,
-    }));
 }
 
 /**
@@ -90,41 +93,23 @@ export function parseShares(json: any): ShareRecord[] {
  * a manifest's (consent.ts declaredGrants), so the sheet never lists anything the consent
  * card wouldn't.
  */
-export function parseSharedInfo(json: any, shareId: string): SharedViewInfo {
-  if (!json || json.shareId !== shareId || typeof json.name !== 'string') {
-    throw malformed('the shared View request');
-  }
-  const grants = declaredGrants({ permissions: json.permissions, network: json.network });
+export function parseSharedInfo(json: unknown, shareId: string): SharedViewInfo {
+  const schema = SharedInfoSchema.extend({ shareId: z.literal(shareId) });
+  const info = parseReply(schema, json, 'the shared View request');
+  const grants = declaredGrants({ permissions: info.permissions, network: info.network });
   return {
     shareId,
-    name: json.name.trim().slice(0, 60) || shareId,
-    description: str(json.description).slice(0, 500),
+    name: info.name.trim().slice(0, 60) || shareId,
+    description: (info.description || '').slice(0, 500),
     permissions: grants.permissions,
     network: grants.network,
-    posterURL: webURL(json.posterURL),
-    createdAt: str(json.createdAt) || null,
+    posterURL: webURL(info.posterURL),
   };
 }
 
-export function parseBundle(json: any, shareId: string): SharedBundle {
-  if (
-    !json ||
-    json.shareId !== shareId ||
-    !json.manifest ||
-    typeof json.manifest !== 'object' ||
-    Array.isArray(json.manifest) ||
-    !json.files ||
-    typeof json.files !== 'object' ||
-    typeof json.signature !== 'string'
-  ) {
-    throw malformed('the install request');
-  }
-  return {
-    shareId,
-    manifest: json.manifest,
-    files: json.files,
-    signature: json.signature,
-  };
+export function parseBundle(json: unknown, shareId: string): SharedBundle {
+  const schema = SharedBundleSchema.extend({ shareId: z.literal(shareId) });
+  return parseReply(schema, json, 'the install request');
 }
 
 function assertShareId(shareId: string) {

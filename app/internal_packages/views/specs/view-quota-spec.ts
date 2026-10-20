@@ -11,14 +11,12 @@ import {
 
 const free = (used: number, usedCents: number) => ({
   plan: 'free' as const,
-  period: 'unlimited',
   builds: { used, limit: 2 },
   spend: { usedCents, limitCents: 500 },
   resetsAt: null,
 });
 const pro = (used: number, usedCents: number) => ({
   plan: 'pro' as const,
-  period: '2026-10',
   builds: { used, limit: 10 },
   spend: { usedCents, limitCents: 800 },
   resetsAt: '2026-11-01T00:00:00.000Z',
@@ -55,13 +53,10 @@ describe('View agent quota', () => {
       );
     });
 
-    it('quotes the Pro build allowance from the payload to free users', () => {
-      const notice = limitNotice('quota', {
-        plan: 'free',
-        limit: 3,
-        proLimits: { builds: 25 },
-      });
-      expect(notice.message).toContain('build 25 new Views every month');
+    it('treats malformed details as missing', () => {
+      const notice = limitNotice('quota', { plan: 'pro', limit: 'ten' });
+      expect(notice.plan).toBe('free');
+      expect(notice.details).toEqual({});
     });
 
     it('only offers an upgrade on the free plan', () => {
@@ -106,6 +101,8 @@ describe('View agent quota', () => {
   describe('usage', () => {
     it('parses the /usage response and rejects malformed ones', () => {
       expect(parseUsage(pro(3, 120))).toEqual(pro(3, 120));
+      expect(parseUsage({ ...pro(3, 120), period: '2026-10', limits: {} })).toEqual(pro(3, 120));
+      expect(parseUsage({ ...pro(3, 120), resetsAt: 7 }).resetsAt).toBe(null);
       expect(parseUsage({ ...free(0, 0), plan: 'enterprise' }).plan).toBe('free');
       expect(parseUsage(null)).toBe(null);
       expect(parseUsage({ builds: { used: 1 } })).toBe(null);

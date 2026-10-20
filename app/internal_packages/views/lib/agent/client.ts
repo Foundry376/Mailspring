@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { IdentityStore, MailspringAPIRequest } from 'mailspring-exports';
 import { AgentAPIError, AgentEvent, Example, ToolContent } from './types';
 
@@ -33,6 +34,19 @@ export class SSEParser {
   }
 }
 
+/** The fields the client reads from `POST /api/views/agent/sessions`. */
+const CreatedSessionSchema = z.object({ resumed: z.boolean() });
+export type CreatedSession = z.infer<typeof CreatedSessionSchema>;
+
+/** The reply to `POST .../budget`. The cap is null when a stopped session never had one. */
+const BudgetChangeSchema = z.object({ maxListCostCents: z.number().nullable() });
+export type BudgetChange = z.infer<typeof BudgetChangeSchema>;
+
+/** The protocol's error body, `{ error: { code, message, ...details } }`. */
+const ErrorReplySchema = z.object({
+  error: z.looseObject({ code: z.string().optional(), message: z.string().optional() }),
+});
+
 export interface AgentTransport {
   createSession(body: {
     viewId: string;
@@ -42,16 +56,16 @@ export interface AgentTransport {
     current?: { manifest: object; files: { [name: string]: string } };
     /** Replace the View's current session instead of resuming it (after `session_turn_limit`). */
     fresh?: boolean;
-  }): Promise<{ viewId: string; sessionId: string; resumed: boolean; replaced?: boolean }>;
+  }): Promise<CreatedSession>;
   sendMessage(viewId: string, body: { text: string; examples?: Example[] }): Promise<void>;
   sendToolResult(
     viewId: string,
     body: { toolUseId: string; content: ToolContent[]; isError?: boolean }
   ): Promise<void>;
   interrupt(viewId: string): Promise<void>;
-  budget(viewId: string, action: 'raise' | 'stop'): Promise<{ maxListCostCents: number }>;
-  /** The account's View-building allowance and what it has used, unvalidated. */
-  usage(): Promise<any>;
+  budget(viewId: string, action: 'raise' | 'stop'): Promise<BudgetChange>;
+  /** The account's View-building allowance and what it has used, unvalidated (see parseUsage). */
+  usage(): Promise<unknown>;
   /**
    * Streams the session's events until `signal` aborts. Reconnects with Last-Event-ID after a
    * dropped connection; events the client has already seen are skipped by id.
@@ -81,16 +95,31 @@ async function errorFrom(resp: Response, desc: string) {
   let message = `${desc} returned ${resp.status}`;
   let details = null;
   try {
-    const json = await resp.json();
-    if (json && json.error) {
-      code = json.error.code || code;
-      message = json.error.message || message;
-      details = json.error;
+    const parsed = ErrorReplySchema.safeParse(await resp.json());
+    if (parsed.success) {
+      code = parsed.data.error.code || code;
+      message = parsed.data.error.message || message;
+      details = parsed.data.error;
     }
   } catch (err) {
     // Not JSON; keep the status-based message.
   }
   return new AgentAPIError(message, { statusCode: resp.status, code, details });
+}
+
+/** `json` as `schema` describes it, or a `malformed_response` error naming the request. */
+export function parseReply<T extends z.ZodType>(
+  schema: T,
+  json: unknown,
+  desc: string
+): z.infer<T> {
+  const parsed = schema.safeParse(json);
+  if (!parsed.success) {
+    throw new AgentAPIError(`The Mailspring servers sent an unexpected reply to ${desc}.`, {
+      code: 'malformed_response',
+    });
+  }
+  return parsed.data;
 }
 
 /**
@@ -138,8 +167,9 @@ export class AgentClient implements AgentTransport {
     return `/api/views/agent/sessions/${encodeURIComponent(viewId)}${rest}`;
   }
 
-  createSession(body) {
-    return this.request('POST', '/api/views/agent/sessions', body);
+  async createSession(body) {
+    const json = await this.request('POST', '/api/views/agent/sessions', body);
+    return parseReply(CreatedSessionSchema, json, 'the new session request');
   }
 
   async sendMessage(viewId: string, body) {
@@ -154,8 +184,9 @@ export class AgentClient implements AgentTransport {
     await this.request('POST', this.sessionPath(viewId, '/interrupt'), {});
   }
 
-  budget(viewId: string, action: 'raise' | 'stop') {
-    return this.request('POST', this.sessionPath(viewId, '/budget'), { action });
+  async budget(viewId: string, action: 'raise' | 'stop') {
+    const json = await this.request('POST', this.sessionPath(viewId, '/budget'), { action });
+    return parseReply(BudgetChangeSchema, json, 'the budget request');
   }
 
   usage() {

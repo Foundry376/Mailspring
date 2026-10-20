@@ -1,39 +1,34 @@
 import moment from 'moment';
+import { z } from 'zod';
 import { localized } from 'mailspring-exports';
 
-// Pro's allowance, quoted to free users in upgrade prompts. The backend only reports the
-// caller's own plan, so these mirror its defaults (VIEWS_AGENT_PRO_MONTHLY_*); a quota payload
-// that carries `proLimits` overrides them.
+// Pro's monthly build allowance, quoted to free users in upgrade prompts. The backend only
+// reports the caller's own plan, so this mirrors its default (VIEWS_AGENT_PRO_MONTHLY_BUILDS).
 const PRO_MONTHLY_BUILDS = 10;
-const PRO_MONTHLY_CENTS = 800;
 
 /** One session's budget step, matching the backend's raise increment. */
 export const BUDGET_STEP_CENTS = 200;
 
-export type Plan = 'pro' | 'free';
+const PlanSchema = z.enum(['pro', 'free']).catch('free');
+export type Plan = z.infer<typeof PlanSchema>;
 
-/** The authoring proxy's `GET /api/views/agent/usage`. */
-export interface AccountUsage {
-  plan: Plan;
-  /** `YYYY-MM` for monthly allowances, `unlimited` for the free plan's all-time one. */
-  period: string;
-  builds: { used: number; limit: number };
-  spend: { usedCents: number; limitCents: number };
-  resetsAt: string | null;
-}
+/** The fields the client reads from the authoring proxy's `GET /api/views/agent/usage`. */
+const AccountUsageSchema = z.object({
+  plan: PlanSchema,
+  builds: z.object({ used: z.number(), limit: z.number() }),
+  spend: z.object({ usedCents: z.number(), limitCents: z.number() }),
+  resetsAt: z.string().nullable().catch(null),
+});
+export type AccountUsage = z.infer<typeof AccountUsageSchema>;
 
-/** The details of a 429 `quota` or `spend_quota` from the backend. */
-export interface QuotaDetails {
-  feature?: string;
-  plan?: Plan;
-  limit?: number;
-  used?: number;
-  limitCents?: number;
-  usedCents?: number;
-  period?: string;
-  resetsAt?: string | null;
-  proLimits?: { builds?: number; cents?: number };
-}
+/** The fields the client reads from the details of a 429 `quota` or `spend_quota`. */
+const QuotaDetailsSchema = z.object({
+  feature: z.string().optional(),
+  plan: PlanSchema.optional(),
+  limit: z.number().optional(),
+  resetsAt: z.string().nullable().optional(),
+});
+export type QuotaDetails = z.infer<typeof QuotaDetailsSchema>;
 
 /** What the panel shows when the account's allowance stops a build, message or budget raise. */
 export interface LimitNotice {
@@ -44,8 +39,6 @@ export interface LimitNotice {
   canUpgrade: boolean;
   details: QuotaDetails;
 }
-
-const isNum = (v: any): v is number => typeof v === 'number' && isFinite(v);
 
 export function formatCents(cents: number) {
   return `$${(cents / 100).toFixed(2)}`;
@@ -59,28 +52,34 @@ function resetDate(resetsAt?: string | null) {
 }
 
 /**
- * The fully formatted message for a quota rejection. Every number comes from the payload,
- * except Pro's allowance when quoting it to a free user (see PRO_MONTHLY_*).
+ * The fully formatted message for a quota rejection, from the error's details as the backend
+ * sent them. Every number comes from the payload, except Pro's allowance when quoting it to a
+ * free user (see PRO_MONTHLY_BUILDS).
  */
-export function limitNotice(code: string, details: QuotaDetails = {}): LimitNotice | null {
+export function limitNotice(code: string, raw: unknown = {}): LimitNotice | null {
   if (code !== 'quota' && code !== 'spend_quota') return null;
+  const parsed = QuotaDetailsSchema.safeParse(raw);
+  const details: QuotaDetails = parsed.success ? parsed.data : {};
   const kind = code === 'quota' ? 'build' : 'spend';
-  const plan: Plan = details.plan === 'pro' ? 'pro' : 'free';
-  const pro = details.proLimits || {};
-  const proBuilds = isNum(pro.builds) ? pro.builds : PRO_MONTHLY_BUILDS;
+  const plan: Plan = details.plan || 'free';
   const resets = resetDate(details.resetsAt);
+  const upgrade = localized(
+    'Upgrade to Mailspring Pro and build %@ new Views every month.',
+    PRO_MONTHLY_BUILDS
+  );
   let message: string;
 
   if (plan === 'free' && kind === 'build') {
     message = localized('Thanks for trying out Views!');
-    message += ` ${localized('Upgrade to Mailspring Pro and build %@ new Views every month.', proBuilds)}`;
+    message += ` ${upgrade}`;
   } else if (plan === 'free') {
     message = localized("You've used the AI tokens included with your trial of this Pro feature.");
-    message += ` ${localized('Upgrade to Mailspring Pro and build %@ new Views every month.', proBuilds)}`;
+    message += ` ${upgrade}`;
   } else if (kind === 'build') {
-    message = isNum(details.limit)
-      ? localized("You've built %@ Views this month.", details.limit)
-      : localized("You've built this month's Views.");
+    message =
+      details.limit !== undefined
+        ? localized("You've built %@ Views this month.", details.limit)
+        : localized("You've built this month's Views.");
     if (resets) message += ` ${localized('Your limit resets on %@.', resets)}`;
   } else {
     message = localized(
@@ -92,19 +91,9 @@ export function limitNotice(code: string, details: QuotaDetails = {}): LimitNoti
 }
 
 /** Validates a `/usage` response, or returns null for anything malformed. */
-export function parseUsage(json: any): AccountUsage | null {
-  if (!json || typeof json !== 'object') return null;
-  const { builds, spend } = json;
-  if (!builds || !spend) return null;
-  if (!isNum(builds.used) || !isNum(builds.limit)) return null;
-  if (!isNum(spend.usedCents) || !isNum(spend.limitCents)) return null;
-  return {
-    plan: json.plan === 'pro' ? 'pro' : 'free',
-    period: typeof json.period === 'string' ? json.period : 'unlimited',
-    builds: { used: builds.used, limit: builds.limit },
-    spend: { usedCents: spend.usedCents, limitCents: spend.limitCents },
-    resetsAt: typeof json.resetsAt === 'string' ? json.resetsAt : null,
-  };
+export function parseUsage(json: unknown): AccountUsage | null {
+  const parsed = AccountUsageSchema.safeParse(json);
+  return parsed.success ? parsed.data : null;
 }
 
 /** Cents the next "Continue" can add: the usual step, or what's left of the allowance. */
@@ -167,26 +156,16 @@ export function homeUsageLine(usage: AccountUsage) {
 /** The allowance the account would hit next, as a notice, or null while there's room. */
 export function exhaustedNotice(usage: AccountUsage | null, kind: 'build' | 'spend') {
   if (!usage) return null;
-  const details: QuotaDetails = {
-    plan: usage.plan,
-    period: usage.plan === 'pro' ? 'monthly' : 'unlimited',
-    resetsAt: usage.resetsAt,
-  };
+  const details: QuotaDetails = { plan: usage.plan, resetsAt: usage.resetsAt };
   if (kind === 'spend') {
     if (usage.spend.usedCents < usage.spend.limitCents) return null;
-    return limitNotice('spend_quota', {
-      ...details,
-      feature: 'view-agent-spend',
-      limitCents: usage.spend.limitCents,
-      usedCents: usage.spend.usedCents,
-    });
+    return limitNotice('spend_quota', { ...details, feature: 'view-agent-spend' });
   }
   if (usage.builds.used < usage.builds.limit) return null;
   return limitNotice('quota', {
     ...details,
     feature: 'view-agent-build',
     limit: usage.builds.limit,
-    used: usage.builds.used,
   });
 }
 
@@ -195,6 +174,14 @@ export function exhaustedNotice(usage: AccountUsage | null, kind: 'build' | 'spe
 /** The backend's cap on one user message (VIEWS_AGENT_MAX_MESSAGE_CHARS); a 400
  * `message_too_long` carrying `{ limit }` overrides it. */
 export const MAX_MESSAGE_CHARS = 4000;
+
+const MessageLimitSchema = z.object({ limit: z.number().int().positive() });
+
+/** The cap a `message_too_long` error's details report, or null if they don't. */
+export function messageLimitFrom(details: unknown): number | null {
+  const parsed = MessageLimitSchema.safeParse(details);
+  return parsed.success ? parsed.data.limit : null;
+}
 
 /** The composer's count appears only from this share of the limit, so short messages stay quiet. */
 const COUNT_FROM_RATIO = 0.9;
