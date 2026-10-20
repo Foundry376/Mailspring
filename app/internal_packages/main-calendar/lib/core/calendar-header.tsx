@@ -4,7 +4,6 @@ import CalendarHeaderStore from './calendar-header-store';
 import { CalendarView } from './calendar-constants';
 import { EventSearchBar } from './event-search-bar';
 
-/** The calendar's header, in the window toolbar above the grid. */
 export class CalendarHeader extends React.Component<Record<string, unknown>> {
   static displayName = 'CalendarHeader';
 

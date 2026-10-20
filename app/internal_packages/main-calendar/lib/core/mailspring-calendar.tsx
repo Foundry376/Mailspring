@@ -95,8 +95,6 @@ export interface MailspringCalendarViewProps extends EventRendererProps {
   disabledCalendars: string[];
   focusedMoment: Moment;
   onChangeView: (view: CalendarView) => void;
-  agendaOpen: boolean;
-  onToggleAgenda: () => void;
   onChangeFocusedMoment: (moment: Moment) => void;
   onCalendarMouseUp: (args: CalendarEventArgs) => void;
   onCalendarMouseDown: (args: CalendarEventArgs) => void;
@@ -1249,8 +1247,6 @@ export class MailspringCalendar extends React.Component<
       selectedEvents: this.state.selectedEvents,
       disabledCalendars: this.state.disabledCalendars,
       onChangeView: this.onChangeView,
-      agendaOpen: this.state.agendaOpen,
-      onToggleAgenda: this.onToggleAgenda,
       onChangeFocusedMoment: this.onChangeFocusedMoment,
       onCalendarMouseUp: this._onCalendarMouseUp,
       onCalendarMouseDown: this._onCalendarMouseDown,

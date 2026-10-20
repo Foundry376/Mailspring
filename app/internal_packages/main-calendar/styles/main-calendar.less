@@ -551,6 +551,11 @@
     flex-shrink: 100;
     display: flex;
     align-items: center;
+    white-space: nowrap;
+
+    > :not(.event-search-bar) {
+      flex-shrink: 0;
+    }
     gap: 8px;
   }
 
@@ -672,10 +677,11 @@
     }
   }
 
+  // Wider than the field, which sits at the toolbar's right edge.
   .suggestions {
-    left: 0;
+    right: 0;
     top: 23px;
-    width: 100%;
+    width: 450px;
     position: absolute;
     background: @input-bg;
     border-bottom-left-radius: @border-radius-base;

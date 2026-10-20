@@ -5,15 +5,30 @@ import { QuickEventButton } from '../internal_packages/main-calendar/lib/quick-e
 
 describe('QuickEventButton', function () {
   let host: HTMLDivElement;
-  let button: QuickEventButton;
+  let observed: { callback: () => void; target: Element }[];
+  let RealResizeObserver: typeof ResizeObserver;
+
+  // A hidden spec window reports resizes irregularly, so this one reports when the spec says so.
+  class FakeResizeObserver {
+    constructor(public callback: () => void) {}
+    observe(target: Element) {
+      observed.push({ callback: this.callback, target });
+    }
+    disconnect() {
+      observed = observed.filter((o) => o.callback !== this.callback);
+    }
+  }
 
   const label = () => host.querySelector('.item-compose .text');
   const resize = (width: number) => {
     host.style.width = `${width}px`;
-    button._fit();
+    for (const o of observed.filter((entry) => entry.target === host)) o.callback();
   };
 
   beforeEach(function () {
+    observed = [];
+    RealResizeObserver = window.ResizeObserver;
+    (window as any).ResizeObserver = FakeResizeObserver;
     host = document.createElement('div');
     host.style.display = 'flex';
     document.body.appendChild(host);
@@ -21,7 +36,7 @@ describe('QuickEventButton', function () {
       <>
         <div style={{ width: 120, flexShrink: 0 }} />
         <div className="item-spacer" style={{ flex: 1 }} />
-        <QuickEventButton ref={(b) => (button = b)} />
+        <QuickEventButton />
       </>,
       host
     );
@@ -30,6 +45,12 @@ describe('QuickEventButton', function () {
   afterEach(function () {
     ReactDOM.unmountComponentAtNode(host);
     host.remove();
+    window.ResizeObserver = RealResizeObserver;
+  });
+
+  it('stops watching the toolbar once unmounted', function () {
+    ReactDOM.unmountComponentAtNode(host);
+    expect(observed.length).toBe(0);
   });
 
   it('drops its label when the toolbar has no room for it, and takes it back once it does', function () {

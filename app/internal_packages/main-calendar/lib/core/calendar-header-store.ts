@@ -1,7 +1,6 @@
 import MailspringStore from 'mailspring-store';
 import { CalendarView } from './calendar-constants';
 
-/** What the view showing puts in the header: its title, and how its arrows and Today move it. */
 export interface ViewHeader {
   title: string;
   arrows: 'horizontal' | 'vertical';
@@ -10,7 +9,6 @@ export interface ViewHeader {
   todayAction: () => void;
 }
 
-/** The header's controls that belong to the calendar rather than to one view. */
 export interface CalendarControls {
   view: CalendarView;
   onChangeView: (view: CalendarView) => void;
@@ -18,11 +16,7 @@ export interface CalendarControls {
   onToggleAgenda: () => void;
 }
 
-/**
- * The header sits in the window's toolbar, outside the calendar, so the calendar and its views
- * hand it what to show here. Triggers only when something drawn changes; the actions are kept
- * current without a redraw.
- */
+/** Triggers only when something drawn changes; the actions are kept current without a redraw. */
 class CalendarHeaderStore extends MailspringStore {
   _viewHeader: ViewHeader | null = null;
   _controls: CalendarControls | null = null;

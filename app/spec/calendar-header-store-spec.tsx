@@ -6,6 +6,9 @@ import CalendarHeaderStore, {
   ViewHeader,
 } from '../internal_packages/main-calendar/lib/core/calendar-header-store';
 import { MonthView } from '../internal_packages/main-calendar/lib/core/month-view';
+import { TimeGridView } from '../internal_packages/main-calendar/lib/core/time-grid-view';
+import { CalendarDataSource } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
+import Rx from 'rx-lite';
 import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
 import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
 import { calendarViewProps } from './fixtures/calendar-view-props';
@@ -46,21 +49,66 @@ describe('CalendarHeaderStore', function () {
     expect(triggered).toBe(3);
   });
 
-  it('takes the header from the month view, and lets go of it on unmount', function () {
+  const mounted = (element: React.ReactElement, check: () => void) => {
     const host = document.createElement('div');
     document.body.appendChild(host);
     try {
-      ReactDOM.render(
-        <MonthView {...calendarViewProps({ focusedMoment: moment([2026, 9, 16]) })} />,
-        host
-      );
-      expect(CalendarHeaderStore.viewHeader().title).toBe('October 2026');
-      expect(CalendarHeaderStore.viewHeader().arrows).toBe('vertical');
+      ReactDOM.render(element, host);
+      check();
       ReactDOM.unmountComponentAtNode(host);
-      expect(CalendarHeaderStore.viewHeader()).toBe(null);
     } finally {
       host.remove();
     }
+  };
+
+  it('takes the header from the month view, and lets go of it on unmount', function () {
+    mounted(<MonthView {...calendarViewProps({ focusedMoment: moment([2026, 9, 16]) })} />, () => {
+      expect(CalendarHeaderStore.viewHeader().title).toBe('October 2026');
+      expect(CalendarHeaderStore.viewHeader().arrows).toBe('vertical');
+    });
+    expect(CalendarHeaderStore.viewHeader()).toBe(null);
+  });
+
+  it('takes the header from the day view, and lets go of it on unmount', function () {
+    const props = calendarViewProps({ focusedMoment: moment([2026, 9, 16]) });
+    mounted(<TimeGridView {...props} visibleDays={1} />, () => {
+      expect(CalendarHeaderStore.viewHeader().title).toBe('Friday, October 16, 2026');
+      expect(CalendarHeaderStore.viewHeader().arrows).toBe('horizontal');
+    });
+    expect(CalendarHeaderStore.viewHeader()).toBe(null);
+  });
+
+  it('redraws when only the view changes', function () {
+    CalendarHeaderStore.setControls({
+      view: CalendarView.WEEK,
+      onChangeView: () => {},
+      agendaOpen: false,
+      onToggleAgenda: () => {},
+    });
+    triggered = 0;
+    CalendarHeaderStore.setControls({
+      view: CalendarView.MONTH,
+      onChangeView: () => {},
+      agendaOpen: false,
+      onToggleAgenda: () => {},
+    });
+    expect(triggered).toBe(1);
+  });
+
+  it("hands over the calendar's controls as it mounts, changes and unmounts", function () {
+    spyOn(AppEnv.config, 'set');
+    spyOn(MailspringCalendar.prototype, '_subscribeToCalendars').andReturn({ dispose() {} });
+    spyOn(CalendarDataSource.prototype, 'buildObservable').andReturn(
+      Rx.Observable.just({ events: [] })
+    );
+    spyOn(AppEnv.mailsyncBridge, 'sendSyncCalendarNow');
+    let calendar: any;
+    mounted(<MailspringCalendar ref={(c) => (calendar = c)} />, () => {
+      expect(CalendarHeaderStore.controls().agendaOpen).toBe(false);
+      calendar.onToggleAgenda();
+      expect(CalendarHeaderStore.controls().agendaOpen).toBe(true);
+    });
+    expect(CalendarHeaderStore.controls()).toBe(null);
   });
 
   it("takes the calendar's view and agenda state, redrawing when they change", function () {

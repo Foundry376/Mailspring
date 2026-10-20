@@ -72,7 +72,6 @@ export class QuickEventButton extends React.Component<
           ref={this._button}
           tabIndex={-1}
           className="btn item-compose quick-event-button"
-          // It overflows rather than shrinking or wrapping, so _fit can tell the label doesn't fit.
           style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
           title={compact ? label : undefined}
           aria-label={compact ? label : undefined}
