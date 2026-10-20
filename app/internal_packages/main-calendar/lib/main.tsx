@@ -45,7 +45,7 @@ const calendarMenu: MenuItem = {
     },
     {
       label: localized('Agenda'),
-      command: 'calendar:view-agenda',
+      command: 'calendar:toggle-agenda',
     },
     { type: 'separator' },
     {

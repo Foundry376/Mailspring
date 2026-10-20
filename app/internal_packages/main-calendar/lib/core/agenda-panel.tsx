@@ -1,10 +1,8 @@
 import React from 'react';
 import moment, { Moment } from 'moment-timezone';
-import { ScrollRegion, InjectedComponentSet } from 'mailspring-component-kit';
-import { localized, Actions, CalendarDateUtils } from 'mailspring-exports';
+import { ScrollRegion } from 'mailspring-component-kit';
+import { localized, Actions, CalendarDateUtils, DateUtils } from 'mailspring-exports';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
-import { CalendarView } from './calendar-constants';
-import { HeaderControls } from './header-controls';
 import { CalendarEventPopover } from './calendar-event-popover';
 import {
   EventOccurrence,
@@ -14,25 +12,36 @@ import {
   occurrenceStartUnix,
   isEventSelected,
 } from './calendar-data-source';
-import { calcEventColors, dateOf, extractMeetingDomain, momentOf } from './calendar-helpers';
+import { calcEventColors, dateOf, formatShortTimeRange, momentOf } from './calendar-helpers';
 
 const DAYS_IN_VIEW = 14;
+
+export type AgendaPanelProps = Pick<
+  MailspringCalendarViewProps,
+  | 'dataSource'
+  | 'disabledCalendars'
+  | 'selectedEvents'
+  | 'onEventClick'
+  | 'isCalendarReadOnly'
+  | 'paintVersion'
+>;
 
 interface DayEvents {
   day: Moment;
   events: EventOccurrence[];
 }
 
-interface AgendaViewState {
+interface AgendaPanelState {
   events: EventOccurrence[];
 }
 
-export class AgendaView extends React.Component<MailspringCalendarViewProps, AgendaViewState> {
-  static displayName = 'AgendaView';
+/** What's on in the two weeks from today, beside whichever view is showing. */
+export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelState> {
+  static displayName = 'AgendaPanel';
 
   _sub: EventRangeSubscription;
 
-  constructor(props: MailspringCalendarViewProps) {
+  constructor(props: AgendaPanelProps) {
     super(props);
     this.state = {
       events: [],
@@ -58,12 +67,13 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
     this._sub.cover(this._calculateRange(), this.props.disabledCalendars);
   }
 
-  /** The days shown, from the focused day, `end` exclusive. */
+  /** The days shown, from today, `end` exclusive. */
   _calculateRange() {
-    const first = dateOf(this.props.focusedMoment);
+    const first = dateOf(moment());
     return { first, end: CalendarDateUtils.addCalendarDays(first, DAYS_IN_VIEW) };
   }
 
+  /** Only the days with something on, as Notion Calendar lists them. */
   _getEventsByDay(): DayEvents[] {
     const { first } = this._calculateRange();
     const days: DayEvents[] = [];
@@ -81,47 +91,31 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
           return occurrenceStartUnix(a) - occurrenceStartUnix(b);
         });
 
-      days.push({ day, events });
+      if (events.length > 0) days.push({ day, events });
     }
 
     return days;
   }
 
-  _isToday(day: Moment): boolean {
-    return day.isSame(moment(), 'day');
-  }
-
-  _onClickToday = () => {
-    this.props.onChangeFocusedMoment(moment());
-  };
-
-  _onClickNext = () => {
-    const newMoment = moment(this.props.focusedMoment).add(DAYS_IN_VIEW, 'days');
-    this.props.onChangeFocusedMoment(newMoment);
-  };
-
-  _onClickPrev = () => {
-    const newMoment = moment(this.props.focusedMoment).subtract(DAYS_IN_VIEW, 'days');
-    this.props.onChangeFocusedMoment(newMoment);
-  };
-
-  _formatEventTime(event: EventOccurrence): string {
-    if (isTimed(event)) {
-      const start = moment.unix(event.start);
-      const end = moment.unix(event.end);
-      return `${start.format('LT')} – ${end.format('LT')}`;
+  _renderEventTime(event: EventOccurrence) {
+    if (!isTimed(event)) {
+      return <div className="agenda-event-time">{localized('All day')}</div>;
     }
-    return localized('All day');
+    return (
+      <div className="agenda-event-time">
+        {formatShortTimeRange(event.start, event.end)}{' '}
+        <span className="agenda-event-duration">
+          {DateUtils.formatDuration(event.end - event.start)}
+        </span>
+      </div>
+    );
   }
 
   _renderDayHeader(day: Moment) {
-    const isToday = this._isToday(day);
-    const className = `agenda-day-header${isToday ? ' is-today' : ''}`;
+    const isToday = day.isSame(moment(), 'day');
     return (
-      <div className={className}>
-        <span className="agenda-day-name">{day.format('dddd')}</span>
-        <span className="agenda-day-date">{day.format('MMMM D')}</span>
-        {isToday && <span className="agenda-today-badge">{localized('Today')}</span>}
+      <div className={`agenda-day-header${isToday ? ' is-today' : ''}`}>
+        {day.format('ddd MMM D')}
       </div>
     );
   }
@@ -140,8 +134,8 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
       />,
       {
         originRect: eventEl.getBoundingClientRect(),
-        direction: 'right',
-        fallbackDirection: 'left',
+        direction: 'left',
+        fallbackDirection: 'right',
         closeOnAppBlur: false,
       }
     );
@@ -149,7 +143,6 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
 
   _renderEvent(event: EventOccurrence, dayKey: string) {
     const colors = calcEventColors(event.calendarId);
-    const meetingDomain = extractMeetingDomain(event.location, event.description);
     const isSelected = isEventSelected(this.props.selectedEvents, event);
 
     // Use a day-unique id/key so multi-day events don't produce duplicate DOM ids
@@ -174,7 +167,6 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
         tabIndex={0}
       >
         <div className="agenda-event-color-bar" style={{ backgroundColor: colors.band }} />
-        <div className="agenda-event-time">{this._formatEventTime(event)}</div>
         <div className="agenda-event-details">
           <div
             className="agenda-event-title"
@@ -186,11 +178,7 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
               event.title || localized('(No title)')
             )}
           </div>
-          {event.location && (
-            <div className="agenda-event-location">
-              {meetingDomain ? `${meetingDomain} - ${event.location}` : event.location}
-            </div>
-          )}
+          {this._renderEventTime(event)}
         </div>
       </div>
     );
@@ -202,45 +190,25 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
     return (
       <div className="agenda-day" key={day.valueOf()}>
         {this._renderDayHeader(day)}
-        <div className="agenda-day-events">
-          {events.length > 0 ? (
-            events.map((event) => this._renderEvent(event, dayKey))
-          ) : (
-            <div className="agenda-no-events">{localized('No events')}</div>
-          )}
-        </div>
+        {events.map((event) => this._renderEvent(event, dayKey))}
       </div>
     );
   };
 
   render() {
     const days = this._getEventsByDay();
-    const { first, end } = this._calculateRange();
-    const lastDay = momentOf(CalendarDateUtils.addCalendarDays(end, -1));
-    const headerText = `${momentOf(first).format('MMM D')} – ${lastDay.format('MMM D, YYYY')}`;
-
     return (
-      <div className="calendar-view agenda-view">
-        <div className="top-banner">
-          <InjectedComponentSet matching={{ role: 'Calendar:Week:Banner' }} direction="row" />
-        </div>
-
-        <HeaderControls
-          title={headerText}
-          nextAction={this._onClickNext}
-          prevAction={this._onClickPrev}
-          onChangeView={this.props.onChangeView}
-          disabledViewButton={CalendarView.AGENDA}
-        >
-          <button key="today" className="btn" onClick={this._onClickToday}>
-            {localized('Today')}
-          </button>
-        </HeaderControls>
-
+      <aside className="agenda-panel" aria-label={localized('Agenda')}>
         <ScrollRegion className="agenda-scroll-region">
-          <div className="agenda-event-list">{days.map(this._renderDay)}</div>
+          <div className="agenda-event-list">
+            {days.length > 0 ? (
+              days.map(this._renderDay)
+            ) : (
+              <div className="agenda-no-events">{localized('No events')}</div>
+            )}
+          </div>
         </ScrollRegion>
-      </div>
+      </aside>
     );
   }
 }

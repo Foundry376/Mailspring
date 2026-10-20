@@ -363,15 +363,14 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
 
           <HeaderControls
             title={headerText}
+            view={view}
             nextAction={() => this.navigate(1)}
             prevAction={() => this.navigate(-1)}
+            todayAction={this._onClickToday}
             onChangeView={this.props.onChangeView}
-            disabledViewButton={view}
-          >
-            <button key="today" className="btn" onClick={this._onClickToday}>
-              Today
-            </button>
-          </HeaderControls>
+            agendaOpen={this.props.agendaOpen}
+            onToggleAgenda={this.props.onToggleAgenda}
+          />
 
           <div className="calendar-body-wrap">
             <div className="calendar-legend">
