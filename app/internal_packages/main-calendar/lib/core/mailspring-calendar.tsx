@@ -22,6 +22,7 @@ import { TimeGridView } from './time-grid-view';
 import { MonthView } from './month-view';
 import { AgendaPanel } from './agenda-panel';
 import FocusedMomentStore from './focused-moment-store';
+import CalendarHeaderStore from './calendar-header-store';
 import {
   CalendarDataSource,
   EventOccurrence,
@@ -219,9 +220,24 @@ export class MailspringCalendar extends React.Component<
       invalidateThemeTextColorCache();
       this.setState((s) => ({ themeVersion: s.themeVersion + 1 }));
     });
+    this._publishControls();
+  }
+
+  componentDidUpdate() {
+    this._publishControls();
+  }
+
+  _publishControls() {
+    CalendarHeaderStore.setControls({
+      view: this.state.view,
+      onChangeView: this.onChangeView,
+      agendaOpen: this.state.agendaOpen,
+      onToggleAgenda: this.onToggleAgenda,
+    });
   }
 
   componentWillUnmount() {
+    CalendarHeaderStore.setControls(null);
     // The component is unmounting, dispose subscriptions
     this._disposable?.dispose();
     this._themeDisposable?.dispose();

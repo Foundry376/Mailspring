@@ -4,6 +4,7 @@ import moment, { Moment } from 'moment';
 import Rx from 'rx-lite';
 
 import { MonthView } from '../internal_packages/main-calendar/lib/core/month-view';
+import CalendarHeaderStore from '../internal_packages/main-calendar/lib/core/calendar-header-store';
 import { EventOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 import { calendarDateFromUnix, calendarDaysBetween } from '../src/calendar-date';
 import { allDayOccurrence, calendarViewProps } from './fixtures/calendar-view-props';
@@ -33,7 +34,7 @@ describe('MonthView scrolling', function () {
 
   const grid = () => host.querySelector('.month-view-grid') as HTMLElement;
   const rowHeight = () => grid().clientHeight / 6;
-  const title = () => host.querySelector('.header-controls .title').textContent;
+  const title = () => CalendarHeaderStore.viewHeader().title;
   const barOf = (eventTitle: string) =>
     Array.from(host.querySelectorAll<HTMLElement>('.month-view-event')).find(
       (bar) => bar.textContent === eventTitle

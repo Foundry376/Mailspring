@@ -6,6 +6,7 @@ import { MailspringCalendarViewProps } from './mailspring-calendar';
 import { CalendarEventContainer } from './calendar-event-container';
 import { CalendarView } from './calendar-constants';
 import { HeaderControls } from './header-controls';
+import CalendarHeaderStore from './calendar-header-store';
 import { EventOccurrence, EventRangeSubscription } from './calendar-data-source';
 import { MonthViewWeek } from './month-view-week';
 import { WeekBarsLayout, firstVisibleBarIds, layoutWeekBars } from './month-view-helpers';
@@ -69,14 +70,31 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
 
   componentDidMount() {
     this._subscribe();
+    this._publishHeader();
   }
 
   componentDidUpdate() {
     this._subscribe();
+    this._publishHeader();
   }
 
   componentWillUnmount() {
     this._sub.dispose();
+    CalendarHeaderStore.setViewHeader(null);
+  }
+
+  _publishHeader() {
+    CalendarHeaderStore.setViewHeader({
+      title: this._title(),
+      arrows: 'vertical',
+      prevAction: this._onClickPrevMonth,
+      nextAction: this._onClickNextMonth,
+      todayAction: this._onClickToday,
+    });
+  }
+
+  _title() {
+    return momentOf(this.state.shownMonth).format('MMMM YYYY');
   }
 
   _subscribe() {
@@ -193,8 +211,6 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
   };
 
   render() {
-    const headerText = momentOf(this.state.shownMonth).format('MMMM YYYY');
-
     return (
       <div className="calendar-view month-view">
         <CalendarEventContainer
@@ -210,7 +226,7 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
           </div>
 
           <HeaderControls
-            title={headerText}
+            title={this._title()}
             view={CalendarView.MONTH}
             nextAction={this._onClickNextMonth}
             prevAction={this._onClickPrevMonth}

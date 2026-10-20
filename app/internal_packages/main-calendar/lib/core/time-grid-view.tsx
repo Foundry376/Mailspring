@@ -10,6 +10,7 @@ import {
 } from 'mailspring-component-kit';
 import { CalendarDate, CalendarDateUtils } from 'mailspring-exports';
 import { HeaderControls } from './header-controls';
+import CalendarHeaderStore from './calendar-header-store';
 import { EventOccurrence, EventRangeSubscription, isTimed } from './calendar-data-source';
 import { centerGridScroll, dateOf, momentOf } from './calendar-helpers';
 import { EventGridBackground } from './event-grid-background';
@@ -118,15 +119,43 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     this._pendingInitialCenter = true;
     this._subscribe();
     this._setIntervalHeight();
+    this._publishHeader();
   }
 
   componentDidUpdate() {
     this._subscribe();
+    this._publishHeader();
   }
 
   componentWillUnmount() {
     this._mounted = false;
     this._sub.dispose();
+    CalendarHeaderStore.setViewHeader(null);
+  }
+
+  _publishHeader() {
+    CalendarHeaderStore.setViewHeader({
+      title: this._title(),
+      arrows: 'horizontal',
+      prevAction: this._onClickPrev,
+      nextAction: this._onClickNext,
+      todayAction: this._onClickToday,
+    });
+  }
+
+  _onClickPrev = () => this.navigate(-1);
+  _onClickNext = () => this.navigate(1);
+
+  _title() {
+    const { visibleDays } = this.props;
+    const first = momentOf(this.state.firstVisible);
+    if (visibleDays === 1) {
+      return first.format('dddd, MMMM D, YYYY');
+    }
+    const last = momentOf(
+      CalendarDateUtils.addCalendarDays(this.state.firstVisible, visibleDays - 1)
+    );
+    return `${first.format('MMMM D')} - ${last.format('MMMM D YYYY')}`;
   }
 
   // Indirection for testing purposes
@@ -334,16 +363,6 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     const { visibleDays } = this.props;
     const { firstVisible } = this.state;
     const view = visibleDays === 1 ? CalendarView.DAY : CalendarView.WEEK;
-    const first = momentOf(firstVisible);
-    const headerText =
-      visibleDays === 1
-        ? first.format('dddd, MMMM D, YYYY')
-        : [
-            first.format('MMMM D'),
-            momentOf(CalendarDateUtils.addCalendarDays(firstVisible, visibleDays - 1)).format(
-              'MMMM D YYYY'
-            ),
-          ].join(' - ');
     const { allDayBarHeight } = this._allDay(this._eventsWithPreviews(), firstVisible);
     const totalHeight = TICKS_PER_DAY * this.state.intervalHeight;
 
@@ -362,10 +381,10 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
           </div>
 
           <HeaderControls
-            title={headerText}
+            title={this._title()}
             view={view}
-            nextAction={() => this.navigate(1)}
-            prevAction={() => this.navigate(-1)}
+            nextAction={this._onClickNext}
+            prevAction={this._onClickPrev}
             todayAction={this._onClickToday}
             onChangeView={this.props.onChangeView}
             agendaOpen={this.props.agendaOpen}
