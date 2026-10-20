@@ -1283,7 +1283,6 @@ export class MailspringCalendar extends React.Component<
     return (
       <CalendarMenuCommands
         onChangeView={this.onChangeView}
-        onToggleAgenda={this.onToggleAgenda}
         onChangeFocusedMoment={this.onChangeFocusedMoment}
         onNavigateNext={this._onNavigateNext}
         onNavigatePrevious={this._onNavigatePrevious}

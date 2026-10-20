@@ -43,10 +43,6 @@ const calendarMenu: MenuItem = {
       label: localized('By Month'),
       command: 'calendar:view-month',
     },
-    {
-      label: localized('Agenda'),
-      command: 'calendar:toggle-agenda',
-    },
     { type: 'separator' },
     {
       label: localized('Go to Today'),

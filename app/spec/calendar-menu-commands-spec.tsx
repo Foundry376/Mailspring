@@ -8,13 +8,11 @@ describe('CalendarMenuCommands', function () {
   let host: HTMLDivElement;
   let onNavigatePrevious: jasmine.Spy;
   let onNavigateNext: jasmine.Spy;
-  let onToggleAgenda: jasmine.Spy;
 
   const render = (hasSelectedEvents: boolean) =>
     ReactDOM.render(
       <CalendarMenuCommands
         onChangeView={() => {}}
-        onToggleAgenda={onToggleAgenda}
         onChangeFocusedMoment={() => {}}
         onNavigateNext={onNavigateNext}
         onNavigatePrevious={onNavigatePrevious}
@@ -30,7 +28,6 @@ describe('CalendarMenuCommands', function () {
   beforeEach(function () {
     onNavigatePrevious = jasmine.createSpy('onNavigatePrevious');
     onNavigateNext = jasmine.createSpy('onNavigateNext');
-    onToggleAgenda = jasmine.createSpy('onToggleAgenda');
     host = document.createElement('div');
     document.body.appendChild(host);
     (document.activeElement as HTMLElement)?.blur?.();
@@ -39,12 +36,6 @@ describe('CalendarMenuCommands', function () {
   afterEach(function () {
     ReactDOM.unmountComponentAtNode(host);
     host.remove();
-  });
-
-  it('toggles the agenda panel from the menu', function () {
-    render(false);
-    AppEnv.commands.dispatch('calendar:toggle-agenda');
-    expect(onToggleAgenda.callCount).toBe(1);
   });
 
   it('steps through time on the keys that move an event, when none is selected', function () {
