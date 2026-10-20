@@ -539,8 +539,9 @@
 
   .side-controls {
     -webkit-app-region: no-drag;
+    // Out-shrinks the title, so search narrows to its minimum before the title truncates.
+    flex-shrink: 100;
     display: flex;
-    flex-shrink: 0;
     align-items: center;
     gap: 8px;
   }
@@ -599,16 +600,15 @@
 // Event Search Bar - matches ThreadSearchBar styling
 .event-search-bar {
   position: relative;
-  order: -100;
   overflow: visible;
   z-index: 100;
-  width: 450px;
+  flex: 0 1 180px;
+  min-width: 120px;
   height: 23px;
   font-weight: 400;
   line-height: 23px;
   background: @input-bg;
   color: @text-color;
-  margin-top: 5px;
   padding-left: @padding-xs-horizontal;
   padding-right: @padding-xs-horizontal;
   border-radius: @border-radius-base;
@@ -746,7 +746,6 @@
 :where(body.platform-darwin) .event-search-bar {
   height: @toolbar-btn-height-darwin;
   line-height: @toolbar-btn-height-darwin;
-  margin-top: ((@toolbar-height-darwin - @toolbar-btn-height-darwin) / 2);
   padding-left: @padding-base-horizontal;
   padding-right: @padding-base-horizontal;
   border-radius: (@toolbar-btn-height-darwin / 2);

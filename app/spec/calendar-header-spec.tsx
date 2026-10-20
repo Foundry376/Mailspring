@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ReactTestUtils from 'react-dom/test-utils';
+import { DatabaseStore } from 'mailspring-exports';
 
 import { CalendarHeader } from '../internal_packages/main-calendar/lib/core/calendar-header';
 import CalendarHeaderStore, {
@@ -28,6 +29,7 @@ describe('CalendarHeader', function () {
   const title = () => host.querySelector('.header-controls .title')?.textContent;
 
   beforeEach(function () {
+    spyOn(DatabaseStore, 'findAll').andReturn(Promise.resolve([]));
     CalendarHeaderStore.setViewHeader(null);
     CalendarHeaderStore.setControls(null);
     host = document.createElement('div');
@@ -59,6 +61,15 @@ describe('CalendarHeader', function () {
     expect(title()).toBe('November 2026');
     expect(host.querySelector('select').value).toBe(CalendarView.WEEK);
     expect(host.querySelector('.agenda-toggle').getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('puts search between the arrows and the agenda button', function () {
+    CalendarHeaderStore.setViewHeader(viewHeader());
+    CalendarHeaderStore.setControls(controls());
+    const items = Array.from(host.querySelector('.side-controls').children);
+    const at = (selector: string) => items.indexOf(host.querySelector(selector));
+    expect(at('.event-search-bar')).toBe(at('.nav-arrows') + 1);
+    expect(at('.agenda-toggle')).toBe(at('.event-search-bar') + 1);
   });
 
   it("runs the view's latest actions, handed over without a redraw", function () {

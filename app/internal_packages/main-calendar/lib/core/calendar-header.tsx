@@ -2,6 +2,7 @@ import React from 'react';
 import { HeaderControls } from './header-controls';
 import CalendarHeaderStore from './calendar-header-store';
 import { CalendarView } from './calendar-constants';
+import { EventSearchBar } from './event-search-bar';
 
 /** The calendar's header, in the window toolbar above the grid. */
 export class CalendarHeader extends React.Component<Record<string, unknown>> {
@@ -41,7 +42,9 @@ export class CalendarHeader extends React.Component<Record<string, unknown>> {
         todayAction={this._today}
         onChangeView={this._changeView}
         onToggleAgenda={this._toggleAgenda}
-      />
+      >
+        <EventSearchBar />
+      </HeaderControls>
     );
   }
 }

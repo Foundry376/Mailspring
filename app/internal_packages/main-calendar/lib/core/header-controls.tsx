@@ -24,6 +24,7 @@ export class HeaderControls extends React.Component<{
   agendaOpen: boolean;
   onToggleAgenda: () => void;
   arrows?: 'horizontal' | 'vertical';
+  children?: React.ReactNode;
 }> {
   static displayName = 'HeaderControls';
 
@@ -75,6 +76,7 @@ export class HeaderControls extends React.Component<{
             {this._renderArrow('prev')}
             {this._renderArrow('next')}
           </div>
+          {this.props.children}
           <button
             className={`btn btn-icon agenda-toggle${this.props.agendaOpen ? ' active' : ''}`}
             aria-label={localized('Agenda')}
