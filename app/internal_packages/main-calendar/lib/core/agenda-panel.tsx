@@ -14,7 +14,7 @@ import {
 } from './calendar-data-source';
 import { calcEventColors, dateOf, formatShortTimeRange, momentOf } from './calendar-helpers';
 
-const DAYS_IN_VIEW = 14;
+const DAYS_IN_PANEL = 14;
 
 export type AgendaPanelProps = Pick<
   MailspringCalendarViewProps,
@@ -71,7 +71,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
   /** The days shown, from today, `end` exclusive. */
   _calculateRange() {
     const first = this.state.today;
-    return { first, end: CalendarDateUtils.addCalendarDays(first, DAYS_IN_VIEW) };
+    return { first, end: CalendarDateUtils.addCalendarDays(first, DAYS_IN_PANEL) };
   }
 
   /** Only the days with something on, as Notion Calendar lists them. */
@@ -79,7 +79,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
     const { first } = this._calculateRange();
     const days: DayEvents[] = [];
 
-    for (let i = 0; i < DAYS_IN_VIEW; i++) {
+    for (let i = 0; i < DAYS_IN_PANEL; i++) {
       const date = CalendarDateUtils.addCalendarDays(first, i);
 
       const events = this.state.events
