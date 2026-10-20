@@ -1,7 +1,7 @@
 import React from 'react';
 import classnames from 'classnames';
 import { localized } from 'mailspring-exports';
-import { panelSource, onPanelSourceChanged } from './store';
+import { panelSource } from './store';
 import { registerEditButton } from './launch';
 
 interface Props {
@@ -47,17 +47,14 @@ export class EditViewButton extends React.Component<Props, State> {
   static displayName = 'EditViewButton';
 
   _unlisten: () => void = null;
-  _unlistenSource: () => void = null;
   state: State = readState(this.props.viewId);
 
   componentDidMount() {
     this._subscribe();
-    this._unlistenSource = onPanelSourceChanged(this._subscribe);
   }
 
   componentWillUnmount() {
     if (this._unlisten) this._unlisten();
-    if (this._unlistenSource) this._unlistenSource();
     if (this.props.variant === 'page') registerEditButton(this.props.viewId, null);
   }
 

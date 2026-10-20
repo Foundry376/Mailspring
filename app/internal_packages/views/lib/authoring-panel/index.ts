@@ -1,7 +1,6 @@
 import { ComponentRegistry, WorkspaceStore } from 'mailspring-exports';
 import { AuthoringPanel as AuthoringPanelComponent } from './authoring-panel';
 import { panelSource } from './store';
-import { ViewsAuthoringPanelDemo } from './demo-store';
 import { viewById } from './launch';
 
 export { EditViewButton } from './edit-view-button';
@@ -52,9 +51,6 @@ export function registerAuthoringPanel() {
   ComponentRegistry.register(AuthoringPanelComponent, {
     location: WorkspaceStore.Sheet.Global.Footer,
   });
-  if (AppEnv.inDevMode()) {
-    (window as any).$m.ViewsAuthoringPanelDemo = ViewsAuthoringPanelDemo;
-  }
 }
 
 export function unregisterAuthoringPanel() {

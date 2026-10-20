@@ -398,7 +398,9 @@ let emailColorsSource: string | null = null;
 
 // <MessageView> decides between a transparent and a white page exactly as the reading pane's
 // EmailFrame does, so it runs the same module rather than a copy. It is pure DOM code; in a
-// packaged build it has already been compiled to CommonJS.
+// packaged build it has already been compiled to CommonJS. This reaches into the message-list
+// package by path, and views/runtime/mailspring-view.js reads the result off
+// `window.MailspringEmailColors`; email-color-detection.ts notes both dependents.
 function emailColorsScript() {
   if (emailColorsSource) return emailColorsSource;
   const base = path.join(

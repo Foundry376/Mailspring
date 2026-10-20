@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { ViewManifest, readManifest } from '../view-registry';
 import { ViewRevision, writeView } from '../authoring/revisions';
-import { newViewId } from './agent-adapter';
+import { newViewId } from '../agent/store';
 
 /**
  * Starters are Views that ship with the app. They're templates rather than Views: a starter

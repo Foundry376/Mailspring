@@ -3,7 +3,7 @@ import { isMessageAllowed } from '../../../../src/services/mail-access/grant';
 import type { ViewGrant } from './grant';
 import { bodyText, structuredData } from './content';
 
-const BODY_FETCH_TIMEOUT_MS = 10 * 1000;
+const BODY_FETCH_TIMEOUT_MS = 20 * 1000;
 const BODY_POLL_INTERVAL_MS = 500;
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

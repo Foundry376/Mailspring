@@ -6,7 +6,7 @@ import { removeThumbnail } from './thumbnails';
 import { forgetView } from '../consent';
 import { setPinned } from '../nav/pins';
 import { clearBadge } from '../nav/badges';
-import { forgetSession } from './agent-adapter';
+import { AgentSessionStore } from '../agent/store';
 
 export function openViewsHome() {
   ViewsNavStore.showHome();
@@ -20,7 +20,7 @@ export function openViewsHome() {
  */
 export function purgeView(viewId: string) {
   if (ViewsNavStore.viewId() === viewId) openViewsHome();
-  forgetSession(viewId);
+  AgentSessionStore.forget(viewId);
   deleteViewFiles(viewId);
   removeThumbnail(viewId);
   setPinned(viewId, false);

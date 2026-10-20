@@ -5,7 +5,7 @@ import { ViewsNavStore } from '../views-nav';
 import { agentPublicKey } from '../agent/signing';
 import { limitNotice } from '../agent/quota';
 import { AgentAPIError } from '../agent/types';
-import { refreshUsage, showUpgrade } from '../home/agent-adapter';
+import { AgentActions, AgentSessionStore } from '../agent/store';
 import { ShareClient, SharedViewInfo, ShareTransport } from './client';
 import { GrantSummary } from './grant-summary';
 import { installSharedView, installedFromShare } from './install';
@@ -70,13 +70,13 @@ export class InstallSheet extends React.Component<InstallSheetProps, InstallShee
       });
       Actions.closeModal();
       showInstalled(viewId);
-      refreshUsage();
+      AgentActions.refreshUsage();
     } catch (err) {
       if (!this.mounted) return;
       const notice = err instanceof AgentAPIError ? limitNotice(err.code, err.details || {}) : null;
       if (notice && notice.canUpgrade) {
         Actions.closeModal();
-        setTimeout(() => showUpgrade(notice), MODAL_SWAP_MS);
+        setTimeout(() => AgentSessionStore.showUpgradeForNotice(notice), MODAL_SWAP_MS);
         return;
       }
       this.setState({ installing: false, error: notice ? notice.message : err.message });

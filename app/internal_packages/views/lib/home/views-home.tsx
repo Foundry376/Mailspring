@@ -16,17 +16,8 @@ import { ThumbnailEvents, thumbnailPath } from './thumbnails';
 import { removeView } from './view-actions';
 import { ModelBadge } from '../local-model/model-badge';
 import { canShare, openShareSheet } from '../sharing';
-import {
-  isBuilding,
-  isWaitingForUser,
-  listenToSessions,
-  newViewId,
-  refreshUsage,
-  showUpgrade,
-  startAuthoring,
-  upgradeNotice,
-  usageLine,
-} from './agent-adapter';
+import { AgentActions, AgentSessionStore, newViewId } from '../agent/store';
+import { homeUsageLine } from '../agent/quota';
 
 // The header's grid-paper backdrop. Alternatives are defined in views-home.less:
 // 'grid-major' (24px with stronger lines every 96px) and 'grid-accent' (the same in the
@@ -93,10 +84,10 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
       () => ViewRegistryEvents.removeListener('changed', reload),
       () => ThumbnailEvents.removeListener('changed', reload),
       () => ViewBadgeEvents.removeListener('changed', rerender),
-      listenToSessions(() => this.forceUpdate()),
+      AgentSessionStore.listen(() => this.forceUpdate()),
       onPinsChanged(() => this.forceUpdate()),
     ];
-    refreshUsage();
+    AgentActions.refreshUsage();
   }
 
   componentWillUnmount() {
@@ -112,9 +103,9 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
 
   _onCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    const notice = upgradeNotice();
+    const notice = AgentSessionStore.newBuildUpgradeNotice();
     if (notice) {
-      showUpgrade(notice);
+      AgentSessionStore.showUpgradeForNotice(notice);
       return;
     }
     const name = this.state.name.trim();
@@ -123,7 +114,7 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
     try {
       const viewId = newViewId(name);
       createUnbuiltView(viewId, name);
-      startAuthoring({ viewId, name, request });
+      AgentActions.start({ viewId, name, request });
     } catch (err) {
       showError(err);
       return;
@@ -159,13 +150,14 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
   }
 
   _renderUsage() {
-    const line = usageLine();
+    const usage = AgentSessionStore.accountUsage();
+    const line = usage ? homeUsageLine(usage) : null;
     return line ? <div className="views-home-usage">{line}</div> : null;
   }
 
   _renderCreate() {
     const { creating, name, request } = this.state;
-    const mustUpgrade = !!upgradeNotice();
+    const mustUpgrade = !!AgentSessionStore.newBuildUpgradeNotice();
     const incomplete = !name.trim() || !request.trim();
 
     if (!creating) {
@@ -256,8 +248,13 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
   }
 
   _renderBadges(view: { placement: string; id?: string; built?: boolean }) {
-    const waiting = view.id && isWaitingForUser(view.id);
-    const building = !waiting && view.id && isBuilding(view.id);
+    const session = view.id ? AgentSessionStore.session(view.id) : null;
+    // A revision held until the user returns to the View, or a question for them.
+    const waiting =
+      session &&
+      AgentSessionStore.activeViewId() !== view.id &&
+      (!!session.pendingRequest || session.revisions.some((r) => r.status === 'applying'));
+    const building = !waiting && session && session.working;
     return (
       <div className="views-home-badges">
         {view.built !== false && (

@@ -103,6 +103,10 @@ class KeyManager {
   }
 
   async deletePasswordsWithPrefix(prefix: string) {
+    // An empty prefix matches every key, including every account's passwords.
+    if (typeof prefix !== 'string' || !prefix) {
+      throw new Error('deletePasswordsWithPrefix requires a non-empty prefix.');
+    }
     try {
       const keys = await this._getKeyHash();
       const doomed = Object.keys(keys).filter((k) => k.startsWith(prefix));

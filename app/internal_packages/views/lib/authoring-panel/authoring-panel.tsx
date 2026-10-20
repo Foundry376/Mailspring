@@ -1,7 +1,7 @@
 import React from 'react';
 import classnames from 'classnames';
 import { DragDropTypes, localized } from 'mailspring-exports';
-import { panelSource, onPanelSourceChanged } from './store';
+import { panelSource } from './store';
 import { Markdown } from './markdown';
 import {
   AccountUsage,
@@ -292,7 +292,6 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
   static displayName = 'ViewsAuthoringPanel';
 
   _unlisten: () => void = null;
-  _unlistenSource: () => void = null;
   _transcriptEl: HTMLDivElement = null;
   _pointer: { mode: 'move' | 'resize'; x: number; y: number; start: Geometry } = null;
   _exitTimer: ReturnType<typeof setTimeout> = null;
@@ -321,13 +320,11 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
 
   componentDidMount() {
     this._subscribe();
-    this._unlistenSource = onPanelSourceChanged(this._subscribe);
     window.addEventListener('resize', this._onWindowResize);
   }
 
   componentWillUnmount() {
     if (this._unlisten) this._unlisten();
-    if (this._unlistenSource) this._unlistenSource();
     window.removeEventListener('resize', this._onWindowResize);
     this._endPointer();
     clearTimeout(this._exitTimer);
@@ -403,7 +400,6 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     if (el.scrollHeight - el.scrollTop - el.clientHeight < 160) this._scrollToEnd();
   };
 
-  // Re-subscribes when the store is swapped (the dev demo replaces the real store).
   _subscribe = () => {
     if (this._unlisten) this._unlisten();
     const source = panelSource();

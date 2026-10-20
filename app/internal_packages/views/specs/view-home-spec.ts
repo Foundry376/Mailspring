@@ -5,7 +5,7 @@ import { allViews, VIEW_ID_REGEXP } from '../lib/view-registry';
 import { createUnbuiltView, saveCheckpoint } from '../lib/authoring/revisions';
 import { isPinned, setPinned } from '../lib/nav/pins';
 import { listStarters, installStarter, startersDir } from '../lib/home/starters';
-import { newViewId } from '../lib/home/agent-adapter';
+import { newViewId } from '../lib/agent/store';
 import { removeView } from '../lib/home/view-actions';
 import { thumbnailPath } from '../lib/home/thumbnails';
 import { AgentSessionStore } from '../lib/agent/store';
