@@ -101,6 +101,7 @@ export function threadQuery(grant: Grant, q: MailQuery) {
   if (q.filter) {
     const sql = compileFilter('Thread', q.filter, {
       accountIds: scopedAccountIds(grant, q.accountId),
+      excludedCategoryIds: Object.values(grant.excludedFolderIds).flat(),
       metadataPluginId: q.metadataPluginId,
     });
     query = query.where(new FilterMatcher(sql) as any);
@@ -142,6 +143,7 @@ export function messageQuery(grant: Grant, q: MailQuery) {
   if (q.filter) {
     const sql = compileFilter('Message', q.filter, {
       accountIds: scopedAccountIds(grant, q.accountId),
+      excludedCategoryIds: Object.values(grant.excludedFolderIds).flat(),
       metadataPluginId: q.metadataPluginId,
     });
     query = query.where(new FilterMatcher(sql) as any);

@@ -1,4 +1,4 @@
-import type { Thread, Message } from 'mailspring-exports';
+import { DatabaseStore, Thread, Message } from 'mailspring-exports';
 import {
   Grant,
   allowedAccountIds,
@@ -69,6 +69,28 @@ export function isThreadAllowed(thread: Pick<Thread, 'accountId' | 'categories'>
 
 export function isMessageAllowed(message: Pick<Message, 'accountId' | 'folderIds'>): boolean {
   return grantIsMessageAllowed(mcpGrant(), message);
+}
+
+/**
+ * Messages the grant allows, judged by their own folders and by their thread's categories.
+ * Gmail labels exist only on the thread, so `isMessageAllowed` alone can't see a label
+ * exclusion. A message whose thread isn't stored (some drafts) is judged by its folders.
+ */
+export async function allowedMessages<T extends Message>(messages: T[]): Promise<T[]> {
+  const candidates = messages.filter((m) => isMessageAllowed(m));
+  const grant = mcpGrant();
+  if (!Object.values(grant.excludedFolderIds).some((ids) => ids.length > 0)) return candidates;
+  const threadIds = [...new Set(candidates.map((m) => m.threadId).filter(Boolean))];
+  if (threadIds.length === 0) return candidates;
+  const threads = await DatabaseStore.findAll<Thread>(Thread).where(
+    Thread.attributes.id.in(threadIds)
+  );
+  const blocked = new Set(threads.filter((t) => !isThreadAllowed(t)).map((t) => t.id));
+  return candidates.filter((m) => !blocked.has(m.threadId));
+}
+
+export async function isMessageVisible(message: Message | null): Promise<boolean> {
+  return !!message && (await allowedMessages([message])).length === 1;
 }
 
 // Returns the subset of `allAccountIds` permitted for MCP access. Used to scope DB queries

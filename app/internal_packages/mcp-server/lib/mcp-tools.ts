@@ -30,7 +30,8 @@ import {
   checkFolderAccess,
   isFolderAllowed,
   isThreadAllowed,
-  isMessageAllowed,
+  allowedMessages,
+  isMessageVisible,
   getAllowedAccountIds,
   assertThreadsAllowed,
   mcpGrant,
@@ -331,7 +332,7 @@ export function registerResources(server: McpServer) {
         const fileId = decodeURIComponent(String(variables.fileId));
 
         const message = await DatabaseStore.find<Message>(Message, messageId);
-        if (!message || !isMessageAllowed(message)) {
+        if (!(await isMessageVisible(message))) {
           throw new Error(`Message '${messageId}' not found`);
         }
         const file = (message.files || []).find((f) => f.id === fileId);
@@ -609,7 +610,7 @@ export function registerTools(server: McpServer) {
       const message = await DatabaseStore.find<Message>(Message, messageId).include(
         Message.attributes.body
       );
-      if (!message || !isMessageAllowed(message)) {
+      if (!(await isMessageVisible(message))) {
         return errorResult(`Message '${messageId}' not found`);
       }
 
@@ -721,7 +722,7 @@ export function registerTools(server: McpServer) {
     'read',
     async ({ messageId }) => {
       const message = await DatabaseStore.find<Message>(Message, messageId);
-      if (!message || !isMessageAllowed(message)) {
+      if (!(await isMessageVisible(message))) {
         return errorResult(`Message '${messageId}' not found`);
       }
 
@@ -830,9 +831,10 @@ export function registerTools(server: McpServer) {
       // Metadata contents (open/click timestamps) aren't queryable in SQL,
       // so activity-based filters — and folder-level access filtering — are
       // applied in-memory after the bounded fetch above.
-      let candidates = messages
-        .filter(isMessageAllowed)
-        .map((m) => ({ message: m, tracking: messageTrackingSummary(m) }));
+      let candidates = (await allowedMessages(messages)).map((m) => ({
+        message: m,
+        tracking: messageTrackingSummary(m),
+      }));
 
       candidates = candidates.filter(({ tracking }) => {
         if (minOpens !== undefined && (!tracking.opens || tracking.opens.count < minOpens)) {
@@ -938,8 +940,7 @@ export function registerTools(server: McpServer) {
         accountId: string;
       }[] = [];
 
-      for (const message of messages) {
-        if (!isMessageAllowed(message)) continue;
+      for (const message of await allowedMessages(messages)) {
         const { links } = messageTrackingSummary(message);
         if (!links) continue;
         for (const link of links.links) {
@@ -1123,9 +1124,13 @@ export function registerTools(server: McpServer) {
         if (!folder) return null;
         return new ChangeFolderTask({ folder, threads: accountThreads, source: 'MCP' });
       });
+      if (tasks.length === 0) {
+        return errorResult(`Folder '${folderId}' not found in these threads' accounts`);
+      }
       for (const task of tasks) Actions.queueTask(task);
 
-      return textResult({ moved: threadIds.length, folderId });
+      const moved = tasks.reduce((n, t) => n + (t as ChangeFolderTask).threadIds.length, 0);
+      return textResult({ moved, folderId });
     }
   );
 
@@ -1236,7 +1241,7 @@ export function registerTools(server: McpServer) {
         draft: true,
       }).include(Message.attributes.body);
 
-      if (!draft || !isMessageAllowed(draft)) {
+      if (!(await isMessageVisible(draft))) {
         return errorResult(`Draft with headerMessageId '${headerMessageId}' not found`);
       }
 
@@ -1277,7 +1282,7 @@ export function registerTools(server: McpServer) {
         headerMessageId,
         draft: true,
       });
-      if (!draft || !isMessageAllowed(draft)) {
+      if (!(await isMessageVisible(draft))) {
         return errorResult(`Draft with headerMessageId '${headerMessageId}' not found`);
       }
 
@@ -1307,7 +1312,7 @@ export function registerTools(server: McpServer) {
         headerMessageId,
         draft: true,
       });
-      if (!draft || !isMessageAllowed(draft)) {
+      if (!(await isMessageVisible(draft))) {
         return errorResult(`Draft with headerMessageId '${headerMessageId}' not found`);
       }
 
@@ -1354,8 +1359,7 @@ export function registerTools(server: McpServer) {
       const drafts = await dbQuery;
       const now = new Date();
 
-      const results = drafts
-        .filter(isMessageAllowed)
+      const results = (await allowedMessages(drafts))
         .map((d) => ({
           draft: d,
           metadata: d.metadataForPluginId(SEND_LATER_ID) as SendLaterMetadata | null,

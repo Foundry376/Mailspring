@@ -192,11 +192,13 @@ const ROLES = [
 ];
 
 /** Category ids for a role ("inbox"), a category id, or a folder/label name. */
-function categoryIdsFor(value: string, accountIds: string[]): string[] {
-  const categories = accountIds
+function categoryIdsFor(value: string, ctx: CompileContext): string[] {
+  const excluded = ctx.excludedCategoryIds || [];
+  const categories = ctx.accountIds
     .map((id) => AccountStore.accountForId(id))
     .filter(Boolean)
-    .flatMap((a) => CategoryStore.categories(a));
+    .flatMap((a) => CategoryStore.categories(a))
+    .filter((c) => !excluded.includes(c.id));
   const lower = value.toLowerCase();
   if (ROLES.includes(lower)) {
     return categories.filter((c) => c.role === lower).map((c) => c.id);
@@ -222,6 +224,8 @@ export type FilterTarget = 'Thread' | 'Message';
 export interface CompileContext {
   /** Accounts the query is already scoped to; folder names and roles resolve within them. */
   accountIds: string[];
+  /** Folders the grant hides. They resolve like folders that don't exist, so `in` can't probe for them. */
+  excludedCategoryIds?: string[];
   /** Plugin id that `{ tagged: true }` refers to. */
   metadataPluginId?: string;
 }
@@ -300,7 +304,7 @@ function sharedLeafSQL(target: FilterTarget, key: string, value: any, ctx: Compi
 function threadLeafSQL(key: string, value: any, ctx: CompileContext): string {
   switch (key) {
     case 'in': {
-      const ids = [...new Set(list(value).flatMap((v) => categoryIdsFor(v, ctx.accountIds)))];
+      const ids = [...new Set(list(value).flatMap((v) => categoryIdsFor(v, ctx)))];
       if (ids.length === 0) return '(0)';
       return `(\`Thread\`.\`id\` IN (SELECT \`id\` FROM \`ThreadCategory\` WHERE \`value\` IN (${ids
         .map(sqlString)

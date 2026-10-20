@@ -209,6 +209,17 @@ describe('JSON mail filters', function () {
       expect(() => threads({ in: 'No Such Folder' })).toThrow();
     });
 
+    it('in treats an excluded folder like one that does not exist', function () {
+      const sql = (filter) =>
+        compileFilter('Thread', validateFilter(filter), {
+          ...ctx,
+          excludedCategoryIds: ['cat-receipts'],
+        });
+      expect(() => sql({ in: 'receipts' })).toThrow();
+      expect(() => sql({ in: 'cat-receipts' })).toThrow();
+      expect(() => sql({ in: 'inbox' })).not.toThrow();
+    });
+
     it('text is stemmed full-text where every word must appear', function () {
       // Porter stemming: "riding" and "rides" both index as "ride".
       expect(threads({ text: 'riding' })).toEqual(['t-lyft', 't-uber']);
