@@ -103,6 +103,23 @@ describe('Views agent: examples', function () {
     expect(example.date).toBe('2026-09-01T12:00:00.000Z');
   });
 
+  it('drops CSS that could still load an image after url() is removed', () => {
+    const example = buildExample(
+      message(
+        `<style>.a{background-image:image-set("https://t.example/s.png" 1x)} .b{color:red}</style>
+         <p style="background:-webkit-image-set('https://t.example/w.png' 1x); color: blue">One</p>
+         <p style="background:\\75 rl(https://t.example/e.png)">Two</p>
+         <p style="background:url('https://t.example/q).png')">Three</p>
+         <p style="color: green">Four</p>`
+      )
+    );
+    expect(example.html).not.toContain('t.example');
+    expect(example.html).not.toContain('image-set');
+    expect(example.html).toContain('One');
+    expect(example.html).toContain('Three');
+    expect(example.html).toContain('color: green');
+  });
+
   it('strips quoted replies and summarizes the example as a chip', () => {
     const example = buildExample(
       message(

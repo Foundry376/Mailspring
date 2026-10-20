@@ -28,17 +28,33 @@ const BODY_POLL_INTERVAL_MS = 500;
 const purifier = DOMPurify(window);
 const noURLs = (css: string) => css.replace(/url\(\s*(['"]?)[^'")]*\1\s*\)/gi, 'none');
 
+// What can still load after noURLs: a url() it couldn't parse, image-set() and image(), which
+// take plain strings, src(), imports and fonts. A backslash can spell any of these as a CSS
+// escape (`\75 rl(`), so it counts too.
+const CSS_LOADS = /url\(|image-set\(|\bimage\(|\bsrc\(|@import|@font-face|\\/i;
+
+/** The CSS with its url()s and imports removed, or '' when anything else in it could load. */
+function safeCSS(css: string) {
+  const out = noURLs(css).replace(/@import[^;]*;?/gi, '');
+  return CSS_LOADS.test(out) ? '' : out;
+}
+
 purifier.addHook('uponSanitizeElement', (node, { tagName }) => {
   const el = node as Element;
   if (tagName === 'img') {
     const alt = (el.getAttribute('alt') || '').trim();
     if (alt) el.parentNode?.insertBefore(el.ownerDocument.createTextNode(alt), el);
   } else if (tagName === 'style') {
-    el.textContent = noURLs(el.textContent || '').replace(/@import[^;]*;?/gi, '');
+    el.textContent = safeCSS(el.textContent || '');
   }
 });
 purifier.addHook('uponSanitizeAttribute', (_node, data) => {
-  if (data.attrName !== 'href') data.attrValue = noURLs(data.attrValue);
+  if (data.attrName === 'style') {
+    data.attrValue = safeCSS(data.attrValue);
+    if (!data.attrValue) data.keepAttr = false;
+  } else if (data.attrName !== 'href') {
+    data.attrValue = noURLs(data.attrValue);
+  }
 });
 
 function stripLoadingContent(html: string) {
