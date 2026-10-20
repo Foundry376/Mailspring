@@ -1,17 +1,13 @@
 import React from 'react';
-import moment, { Moment } from 'moment';
 import { Disposable } from 'rx-core';
 import { Rx, DatabaseStore, Calendar, localized } from 'mailspring-exports';
-import { AgendaView } from './core/agenda-view';
+import { AgendaPanel } from './core/agenda-panel';
 import { CalendarDataSource, EventOccurrence } from './core/calendar-data-source';
 import { setCalendarColors, invalidateThemeTextColorCache } from './core/calendar-helpers';
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
-const noop = () => {};
-
 interface SidebarAgendaPanelState {
-  focusedMoment: Moment;
   selectedEvents: EventOccurrence[];
   disabledCalendars: string[];
   calendarsLoaded: boolean;
@@ -19,9 +15,8 @@ interface SidebarAgendaPanelState {
 }
 
 /**
- * The calendar's agenda as a choice in the thread sidebar's panel switcher. It keeps its own
- * date rather than sharing FocusedMomentStore, so paging the sidebar doesn't move the Calendar.
- * Double-clicking an event opens its popover from AgendaView itself.
+ * The calendar's agenda as a choice in the thread sidebar's panel switcher, with its own
+ * selection. Double-clicking an event opens its popover from AgendaPanel itself.
  */
 export class SidebarAgendaPanel extends React.Component<
   { active: boolean },
@@ -35,7 +30,6 @@ export class SidebarAgendaPanel extends React.Component<
   _themeDisposable?: { dispose: () => void };
 
   state: SidebarAgendaPanelState = {
-    focusedMoment: moment(),
     selectedEvents: [],
     disabledCalendars: AppEnv.config.get(DISABLED_CALENDARS) || [],
     calendarsLoaded: false,
@@ -74,10 +68,6 @@ export class SidebarAgendaPanel extends React.Component<
     return !this.state.calendarsLoaded || this.state.readOnlyCalendarIds.has(calendarId);
   };
 
-  _onChangeFocusedMoment = (focusedMoment: Moment) => {
-    this.setState({ focusedMoment });
-  };
-
   _onEventClick = (e: React.MouseEvent, event: EventOccurrence) => {
     this.setState({ selectedEvents: [event] });
   };
@@ -88,29 +78,11 @@ export class SidebarAgendaPanel extends React.Component<
 
     return (
       <div className="mailspring-calendar sidebar-agenda-panel">
-        <AgendaView
+        <AgendaPanel
           dataSource={this._dataSource}
           disabledCalendars={this.state.disabledCalendars}
-          focusedMoment={this.state.focusedMoment}
-          focusedEvent={null}
           selectedEvents={this.state.selectedEvents}
-          onChangeView={noop}
-          onChangeFocusedMoment={this._onChangeFocusedMoment}
           onEventClick={this._onEventClick}
-          onEventDoubleClick={noop}
-          onEventContextMenu={noop}
-          onEventFocused={noop}
-          onCalendarMouseUp={noop}
-          onCalendarMouseDown={noop}
-          onCalendarMouseMove={noop}
-          onCalendarClick={noop}
-          onCalendarDoubleClick={noop}
-          onCalendarContextMenu={noop}
-          paintVersion=""
-          dragState={null}
-          newEventPreview={null}
-          onEventDragStart={noop}
-          readOnlyCalendarIds={this.state.readOnlyCalendarIds}
           isCalendarReadOnly={this._isCalendarReadOnly}
         />
       </div>

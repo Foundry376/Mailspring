@@ -673,51 +673,18 @@
   min-height: 0;
   background: @background-secondary;
 
-  .agenda-view {
-    .top-banner,
-    .header-controls .view-controls {
-      display: none;
-    }
+  .agenda-panel {
+    flex: 1;
+    width: auto;
+    border-left: none;
+  }
 
-    .header-controls {
-      padding: 6px 8px;
-      .title,
-      .btn-icon {
-        font-size: 13px;
-      }
-    }
+  .agenda-panel,
+  .agenda-day-header {
+    background: @background-secondary;
+  }
 
-    .agenda-scroll-region,
-    .agenda-day-header {
-      background: @background-secondary;
-    }
-
-    .agenda-event-list {
-      padding: 0 8px 12px;
-    }
-
-    .agenda-day-header {
-      flex-wrap: wrap;
-      column-gap: 6px;
-      row-gap: 0;
-      padding: 12px 4px 6px;
-    }
-
-    .agenda-event {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
-      padding: 6px 8px;
-
-      .agenda-event-color-bar {
-        grid-row: ~'1 / span 2';
-        min-height: 0;
-        margin-right: 8px;
-      }
-      .agenda-event-time {
-        width: auto;
-        padding-top: 0;
-        font-size: 11px;
-      }
-    }
+  .agenda-event-list {
+    padding: 0 8px 12px;
   }
 }
