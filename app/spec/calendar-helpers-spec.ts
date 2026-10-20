@@ -9,6 +9,7 @@ import {
   clampEnd,
   textColorOnFill,
   formatShortTime,
+  formatShortTimeRange,
   createCalendarEvent,
 } from '../internal_packages/main-calendar/lib/core/calendar-helpers';
 import {
@@ -218,6 +219,32 @@ describe('formatShortTime', function () {
   it('shortens a 12-hour locale whose meridiem comes first', function () {
     moment.locale('ko');
     expect(formatShortTime(at(22, 0))).toBe(moment.unix(at(22, 0)).format('A h'));
+  });
+});
+
+describe('formatShortTimeRange', function () {
+  const at = (hour: number, minute: number) => new Date(2026, 8, 22, hour, minute).getTime() / 1000;
+  afterEach(() => moment.locale('en'));
+
+  it('names the meridiem once when both ends share it', function () {
+    moment.locale('en');
+    expect(formatShortTimeRange(at(19, 30), at(20, 30))).toBe('7:30–8:30 PM');
+  });
+
+  it('names both when the range crosses noon', function () {
+    moment.locale('en');
+    expect(formatShortTimeRange(at(11, 30), at(12, 0))).toBe('11:30 AM–12 PM');
+  });
+
+  it('drops the shared meridiem where the locale puts it first', function () {
+    moment.locale('ko');
+    const end = moment.unix(at(20, 30)).format('A h:mm');
+    expect(formatShortTimeRange(at(19, 0), at(20, 30))).toBe(`7–${end}`);
+  });
+
+  it('writes a 24-hour clock in full at both ends', function () {
+    moment.locale('de');
+    expect(formatShortTimeRange(at(19, 0), at(20, 30))).toBe('19:00–20:30');
   });
 });
 
