@@ -1,5 +1,30 @@
 # Mailspring Changelog
 
+## 1.26.1 (10/20/2026)
+
+This is a security patch release. It updates Electron to 44.9.1, which distrusts eight eMudhra intermediate certificates whose private keys were compromised. An attacker holding one of those keys could impersonate any mail server or website. (https://emudhra.we-have-a-problem.com/)
+
+Security:
+
+- Updated Electron to 44.9.1 to block the compromised eMudhra intermediate certificates.
+- On Linux, tray icons are converted with ImageMagick without going through a shell. (#2934)
+
+Bug Fixes:
+
+- Fixed Mailspring failing to start when the interface language is set to Luxembourgish. (#2954) Thanks @brhellman!
+- Fixed a composer crash when a list item has no list around it. (#2813)
+- Sending a draft now retries the draft lookup once before reporting "draft not found". (#2848)
+- On Wayland, Mailspring now restores the saved window size. (#2961) Thanks @shanelord01!
+- An empty key list in `keymap.json` now unbinds a command. (#2950) Thanks @brhellman!
+
+Localization:
+
+- Updated German translations. (#2976) Thanks @Alintya!
+
+Developer:
+
+- Account-test errors from the sync engine are now reported to Sentry as separate issues. (#2843)
+
 ## 1.26.0 (10/1/2026)
 
 This is a major sync reliability release - The sync engine now tracks every folder a message lives in, rather than forcing each message into a single folder. This permanently fixes mail "flickering" between folders or disappearing from the Inbox when the same message exists in two places — a long-standing issue for iCloud users, self-addressed mail that lands in both Inbox and Sent, Exchange's duplicate Sent copies, and ProtonMail labels. (#2891) This refactor was enabled by a huge new suite of automated mailsync tests that run against real Dovecot, Cyrus in Docker and fake problematic IMAP servers.
