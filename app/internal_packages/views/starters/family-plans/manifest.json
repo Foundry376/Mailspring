@@ -2,7 +2,7 @@
   "id": "family-plans",
   "name": "Family Plans",
   "icon": "🎈",
-  "apiVersion": "2026-10-05",
+  "apiVersion": "2026-10-20",
   "description": "Your month of kids' events and family visits, with the weather. Prints on one page for the fridge.",
   "version": "1.0.0",
   "placement": "page",

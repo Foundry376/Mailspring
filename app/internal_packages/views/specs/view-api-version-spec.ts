@@ -1,5 +1,6 @@
 import {
   CURRENT_API_VERSION,
+  MIN_SUPPORTED_API_VERSION,
   INITIAL_API_VERSION,
   apiVersionOf,
   compatibility,
@@ -22,6 +23,13 @@ describe('View API versions', function () {
     expect(compatibility('2026-10-05', range)).toBe('ok');
     expect(compatibility('2026-09-30', range)).toBe('too-old');
     expect(compatibility('2027-01-01', range)).toBe('too-new');
+  });
+
+  it('offers a rebuild to Views written before the unshimmed 2026-10-20 changes', () => {
+    expect(MIN_SUPPORTED_API_VERSION).toBe(CURRENT_API_VERSION);
+    expect(compatibility('2026-10-05')).toBe('too-old');
+    expect(compatibility(apiVersionOf({}))).toBe('too-old');
+    expect(compatibility(CURRENT_API_VERSION)).toBe('ok');
   });
 
   it('applies a shim to Views older than the change that introduced it', () => {

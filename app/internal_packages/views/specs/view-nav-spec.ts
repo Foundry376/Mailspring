@@ -8,7 +8,7 @@ const manifest = (over: Partial<ViewManifest>): ViewManifest => ({
   name: 'Board',
   placement: 'page',
   permissions: [],
-  apiVersion: '2026-10-05',
+  apiVersion: '2026-10-20',
   dir: '/tmp/board',
   source: 'user',
   built: true,

@@ -2,7 +2,7 @@
   "id": "packages",
   "name": "Packages",
   "icon": "📦",
-  "apiVersion": "2026-10-05",
+  "apiVersion": "2026-10-20",
   "description": "Track shipments from carrier and store emails, arriving and delivered.",
   "version": "1.0.0",
   "placement": "page",

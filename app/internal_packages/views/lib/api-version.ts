@@ -9,10 +9,14 @@
 export const INITIAL_API_VERSION = '2026-10-01';
 
 /** The API this build implements. New and rebuilt Views are stamped with it. */
-export const CURRENT_API_VERSION = '2026-10-05';
+export const CURRENT_API_VERSION = '2026-10-20';
 
-/** The oldest API this build still runs. Raise it only when dropping a shim. */
-export const MIN_SUPPORTED_API_VERSION = INITIAL_API_VERSION;
+/**
+ * The oldest API this build still runs. Raise it only when dropping a shim, or when a change
+ * can't be shimmed: 2026-10-20 changed `ai.generate`'s parameters, the calendar event keys and
+ * the count dimensions, so older Views are offered a rebuild instead of running broken.
+ */
+export const MIN_SUPPORTED_API_VERSION = '2026-10-20';
 
 const VERSION_REGEXP = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -45,8 +49,7 @@ export interface ApiShim {
   description: string;
 }
 
-// Empty so far: 2026-10-05 only removed the ai.* 'quota' status, which older Views simply never
-// see, so nothing needs translating.
+// Empty: every change so far either needed no translation or raised MIN_SUPPORTED_API_VERSION.
 export const SHIMS: ApiShim[] = [];
 
 /** Shim ids that apply to a View declaring `version`. */
