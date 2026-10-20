@@ -113,7 +113,7 @@ export default class PackageManager {
         this.activatePackage(w);
       }
       this.waiting = [];
-    }, 2500);
+    }, 800);
   }
 
   activatePackage(pkg: Package) {

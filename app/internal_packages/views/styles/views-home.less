@@ -1,0 +1,539 @@
+@import 'ui-variables';
+
+// Grid lines are tinted from the theme's text and accent colors, so the same rules read as
+// faint graphite on light themes and faint chalk on dark ones. The accent is a CSS variable
+// (the system accent), so it's mixed with color-mix() rather than LESS's fade().
+@views-grid-minor: fade(@text-color, 4%);
+@views-grid-major: fade(@text-color, 7%);
+
+.views-home-grid(@minor-color; @major-color; @minor; @major) {
+  background-image:
+    linear-gradient(@major-color 1px, transparent 1px),
+    linear-gradient(90deg, @major-color 1px, transparent 1px),
+    linear-gradient(@minor-color 1px, transparent 1px),
+    linear-gradient(90deg, @minor-color 1px, transparent 1px);
+  background-size:
+    @major @major,
+    @major @major,
+    @minor @minor,
+    @minor @minor;
+  background-position: center -1px;
+}
+
+@keyframes views-home-backdrop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(1.015);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.views-home {
+  flex: 1;
+  height: 100%;
+  overflow-y: auto;
+  position: relative;
+  background: @background-off-primary;
+
+  // Decorates only the title and Create card region; the masks fade it out downward and
+  // toward the sides so there is no hard edge. Positioned inside the scroller so it scrolls
+  // away with the header.
+  .views-home-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 340px;
+    pointer-events: none;
+    transform-origin: 50% 0;
+    mask-image:
+      linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.5) 40%, transparent 90%),
+      linear-gradient(to right, transparent 0%, #000 18%, #000 82%, transparent 100%);
+    mask-composite: intersect;
+    animation: views-home-backdrop-in 850ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+    &.grid-major {
+      .views-home-grid(@views-grid-minor; @views-grid-major; 24px; 96px);
+    }
+    &.grid-fine {
+      .views-home-grid(transparent; fade(@text-color, 5%); 16px; 16px);
+    }
+    &.grid-accent {
+      .views-home-grid(
+        color-mix(in srgb, @accent-primary 7%, transparent);
+        color-mix(in srgb, @accent-primary 14%, transparent);
+        24px;
+        96px
+      );
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  .views-home-content {
+    position: relative;
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 36px 40px 60px;
+  }
+
+  h1 {
+    font-size: 26px;
+    font-weight: @font-weight-semi-bold;
+    color: @text-color-heading;
+    margin: 0 0 6px;
+  }
+
+  h2 {
+    font-size: @font-size-large;
+    font-weight: @font-weight-semi-bold;
+    color: @text-color-heading;
+    margin: 32px 0 12px;
+  }
+
+  .views-home-intro {
+    color: @text-color-subtle;
+    margin: 0 0 32px;
+    max-width: 540px;
+  }
+
+  .views-home-create {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+    padding: 18px 20px;
+    text-align: left;
+    background: @background-primary;
+    border: 1px solid @border-color-primary;
+    border-radius: 8px;
+    cursor: pointer;
+    color: @text-color;
+
+    &:hover:not(:disabled) {
+      border-color: @accent-primary;
+    }
+    &:disabled {
+      cursor: default;
+      opacity: 0.6;
+    }
+  }
+
+  .views-home-create-plus {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    background: @accent-primary;
+    color: @white;
+    font-size: 26px;
+    line-height: 38px;
+    text-align: center;
+  }
+
+  .views-home-create-title {
+    font-size: @font-size-large;
+    font-weight: @font-weight-semi-bold;
+    color: @text-color-heading;
+  }
+
+  .views-home-usage {
+    margin: 8px 2px 0;
+    color: @text-color-very-subtle;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .views-home-create-subtitle {
+    color: @text-color-subtle;
+    margin-top: 2px;
+  }
+
+  .views-home-create-note {
+    margin-top: 6px;
+    color: @text-color-subtle;
+    font-size: @font-size-small;
+    line-height: 1.4;
+  }
+
+  .views-home-create-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 18px 20px;
+    background: @background-primary;
+    border: 1px solid @border-color-primary;
+    border-radius: 8px;
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      color: @text-color-subtle;
+      font-size: @font-size-small;
+    }
+
+    input,
+    textarea {
+      font-size: @font-size;
+      color: @text-color;
+      background: @input-bg;
+      border: 1px solid @input-border-color;
+      border-radius: 4px;
+      padding: 7px 9px;
+      font-family: inherit;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+  }
+
+  .views-home-create-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .views-home-notice {
+    margin-top: 12px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    background: @background-color-info;
+    color: @text-color;
+  }
+
+  .views-home-empty {
+    color: @text-color-subtle;
+    padding: 18px 0;
+  }
+
+  .views-home-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .views-home-card {
+    display: flex;
+    flex-direction: column;
+    background: @background-primary;
+    border: 1px solid @border-color-primary;
+    border-radius: 8px;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  .views-home-thumb {
+    height: 136px;
+    border-bottom: 1px solid @border-color-divider;
+    background: @background-secondary;
+    overflow: hidden;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top left;
+    }
+
+    &.empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      img {
+        width: auto;
+        height: auto;
+        background-color: @text-color-very-subtle;
+        transform: scale(2);
+      }
+    }
+  }
+
+  .views-home-card-body {
+    flex: 1;
+    padding: 12px 14px 8px;
+  }
+
+  .views-home-card-name {
+    font-weight: @font-weight-semi-bold;
+    color: @text-color-heading;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .views-home-card-description {
+    margin-top: 6px;
+    color: @text-color-subtle;
+    font-size: @font-size-small;
+    line-height: 1.4;
+  }
+
+  // The name truncates; the badges keep their size at the far right.
+  .views-home-card-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .views-home-card-name {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+
+  .views-home-badges {
+    display: flex;
+    flex-shrink: 0;
+    gap: 4px;
+  }
+
+  .views-home-badge {
+    font-size: @font-size-smaller;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: @background-secondary;
+    color: @text-color-subtle;
+
+    &.count {
+      background: @accent-primary;
+      color: @text-color-inverse;
+      font-weight: 600;
+    }
+    // The thread list's draft composer tint (composer.less), strengthened enough to read as a tag.
+    &.working {
+      background: mix(@background-primary, #ffbb00, 82%);
+      box-shadow: inset 0 0 0 1px mix(@background-primary, #ffbb00, 60%);
+      color: @text-color;
+    }
+  }
+
+  .views-home-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 14px 14px;
+
+    .btn {
+      font-size: @font-size-small;
+    }
+  }
+}
+
+// The on-device AI badge in the header (lib/local-model/model-badge.tsx).
+.views-home .views-home-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+
+  h1 {
+    flex: 1;
+  }
+}
+
+.model-badge {
+  position: relative;
+  margin-top: 4px;
+  flex-shrink: 0;
+
+  .model-badge-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 12px;
+    border-radius: 14px;
+    border: 1px solid @border-color-primary;
+    background: fade(@background-primary, 85%);
+    backdrop-filter: blur(6px);
+    color: @text-color-subtle;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    cursor: default;
+    white-space: nowrap;
+
+    &:hover,
+    &.open {
+      color: @text-color;
+      border-color: fade(@text-color, 25%);
+    }
+  }
+
+  .model-badge-name {
+    color: @text-color;
+    font-weight: @font-weight-medium;
+  }
+
+  .model-badge-sep {
+    opacity: 0.5;
+  }
+
+  .model-badge-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: @text-color-very-subtle;
+  }
+
+  .ready .model-badge-dot,
+  .system .model-badge-dot {
+    background: #3fb950;
+  }
+
+  .downloading .model-badge-dot,
+  .checking .model-badge-dot,
+  .system-preparing .model-badge-dot {
+    background: @accent-primary;
+    animation: model-badge-pulse 1.4s ease-in-out infinite;
+  }
+
+  .error .model-badge-dot,
+  .insufficient-disk .model-badge-dot,
+  .system-disabled .model-badge-dot {
+    background: #d29922;
+  }
+
+  .model-badge-popover {
+    position: absolute;
+    z-index: 10;
+    top: 36px;
+    right: 0;
+    width: 320px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid @border-color-primary;
+    background: @background-primary;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+    font-size: 13px;
+    animation: model-badge-pop 140ms ease-out both;
+  }
+
+  .model-badge-title {
+    font-weight: @font-weight-semi-bold;
+    color: @text-color-heading;
+    margin-bottom: 6px;
+  }
+
+  .model-badge-model {
+    color: @text-color-subtle;
+    font-size: 12px;
+    margin: -4px 0 8px;
+  }
+
+  .model-badge-footnote {
+    margin: 10px 0 0;
+    color: @text-color-very-subtle;
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .model-badge-local {
+    margin: 0 0 10px;
+    color: @text-color-subtle;
+    line-height: 1.45;
+  }
+
+  .model-badge-detail {
+    color: @text-color-very-subtle;
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
+  .model-badge-error {
+    color: @text-color;
+    margin-bottom: 10px;
+    line-height: 1.45;
+  }
+
+  .model-badge-progress {
+    margin-bottom: 10px;
+  }
+
+  .model-badge-progress-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: fade(@text-color, 10%);
+    overflow: hidden;
+  }
+
+  .model-badge-progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: @accent-primary;
+    transition: width 250ms linear;
+  }
+
+  .model-badge-progress-text {
+    margin-top: 4px;
+    font-size: 11px;
+    color: @text-color-very-subtle;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .model-badge-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .model-badge-link {
+    display: block;
+    border: 0;
+    padding: 0;
+    margin: 0 0 10px;
+    background: none;
+    color: @text-color-link;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .model-badge-switch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid @border-color-primary;
+    color: @text-color;
+    font-weight: normal;
+
+    input {
+      margin: 0;
+    }
+  }
+}
+
+@keyframes model-badge-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes model-badge-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .model-badge .model-badge-dot,
+  .model-badge .model-badge-popover {
+    animation: none !important;
+  }
+}

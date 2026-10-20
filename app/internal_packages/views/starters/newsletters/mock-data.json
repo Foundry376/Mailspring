@@ -1,0 +1,2388 @@
+{
+ "me": {
+  "name": "Sam Carter",
+  "email": "sam@example.com"
+ },
+ "threads": [
+  {
+   "subject": "Five ideas for calmer mornings",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "The Weekly Bearing <hello@weeklybearing.example>",
+     "date": "@today-3d 10:50",
+     "body": "Small rituals that make the first hour of the day feel less rushed, from a ten-minute walk to writing tomorrow's list tonight.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@weeklybearing.example>, <https://weeklybearing.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The case for a boring calendar",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "The Weekly Bearing <hello@weeklybearing.example>",
+     "date": "@today-10d 10:20",
+     "body": "Why the most productive people we interviewed protect empty afternoons and treat meetings as the exception.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@weeklybearing.example>, <https://weeklybearing.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "What a year of journaling taught me",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "The Weekly Bearing <hello@weeklybearing.example>",
+     "date": "@today-17d 10:50",
+     "body": "One reader's notebook, 365 entries later: what stuck, what didn't, and the prompt that changed everything.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@weeklybearing.example>, <https://weeklybearing.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Five ideas for calmer mornings",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "The Weekly Bearing <hello@weeklybearing.example>",
+     "date": "@today-24d 07:05",
+     "body": "Small rituals that make the first hour of the day feel less rushed, from a ten-minute walk to writing tomorrow's list tonight.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@weeklybearing.example>, <https://weeklybearing.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The case for a boring calendar",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "The Weekly Bearing <hello@weeklybearing.example>",
+     "date": "@today-31d 07:05",
+     "body": "Why the most productive people we interviewed protect empty afternoons and treat meetings as the exception.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@weeklybearing.example>, <https://weeklybearing.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "What a year of journaling taught me",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "The Weekly Bearing <hello@weeklybearing.example>",
+     "date": "@today-38d 11:05",
+     "body": "One reader's notebook, 365 entries later: what stuck, what didn't, and the prompt that changed everything.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@weeklybearing.example>, <https://weeklybearing.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Five ideas for calmer mornings",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "The Weekly Bearing <hello@weeklybearing.example>",
+     "date": "@today-45d 09:50",
+     "body": "Small rituals that make the first hour of the day feel less rushed, from a ten-minute walk to writing tomorrow's list tonight.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@weeklybearing.example>, <https://weeklybearing.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The case for a boring calendar",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "The Weekly Bearing <hello@weeklybearing.example>",
+     "date": "@today-52d 10:20",
+     "body": "Why the most productive people we interviewed protect empty afternoons and treat meetings as the exception.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@weeklybearing.example>, <https://weeklybearing.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "What a year of journaling taught me",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "The Weekly Bearing <hello@weeklybearing.example>",
+     "date": "@today-59d 10:05",
+     "body": "One reader's notebook, 365 entries later: what stuck, what didn't, and the prompt that changed everything.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@weeklybearing.example>, <https://weeklybearing.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Five ideas for calmer mornings",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "The Weekly Bearing <hello@weeklybearing.example>",
+     "date": "@today-66d 07:20",
+     "body": "Small rituals that make the first hour of the day feel less rushed, from a ten-minute walk to writing tomorrow's list tonight.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@weeklybearing.example>, <https://weeklybearing.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The case for a boring calendar",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "The Weekly Bearing <hello@weeklybearing.example>",
+     "date": "@today-73d 09:35",
+     "body": "Why the most productive people we interviewed protect empty afternoons and treat meetings as the exception.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@weeklybearing.example>, <https://weeklybearing.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "What a year of journaling taught me",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "The Weekly Bearing <hello@weeklybearing.example>",
+     "date": "@today-80d 07:20",
+     "body": "One reader's notebook, 365 entries later: what stuck, what didn't, and the prompt that changed everything.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@weeklybearing.example>, <https://weeklybearing.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Five ideas for calmer mornings",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "The Weekly Bearing <hello@weeklybearing.example>",
+     "date": "@today-87d 09:05",
+     "body": "Small rituals that make the first hour of the day feel less rushed, from a ten-minute walk to writing tomorrow's list tonight.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@weeklybearing.example>, <https://weeklybearing.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The quiet return of the RSS reader",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@today-3d 11:35",
+     "body": "Feeds never really went away. This week: the apps bringing them back and why publishers are paying attention.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@signalnoise.example>, <https://signalnoise.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "What we learned shipping weekly",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@today-7d 10:05",
+     "body": "A small team's notes on releasing every Friday for two years without burning out.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@signalnoise.example>, <https://signalnoise.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Interfaces that respect your time",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@today-11d 08:20",
+     "body": "Defaults, undo and the art of not asking the user questions they can't answer.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@signalnoise.example>, <https://signalnoise.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The quiet return of the RSS reader",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@today-15d 06:05",
+     "body": "Feeds never really went away. This week: the apps bringing them back and why publishers are paying attention.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@signalnoise.example>, <https://signalnoise.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "What we learned shipping weekly",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@today-19d 06:50",
+     "body": "A small team's notes on releasing every Friday for two years without burning out.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@signalnoise.example>, <https://signalnoise.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Interfaces that respect your time",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@today-23d 08:50",
+     "body": "Defaults, undo and the art of not asking the user questions they can't answer.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@signalnoise.example>, <https://signalnoise.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The quiet return of the RSS reader",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@today-27d 06:05",
+     "body": "Feeds never really went away. This week: the apps bringing them back and why publishers are paying attention.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@signalnoise.example>, <https://signalnoise.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "What we learned shipping weekly",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@today-31d 06:50",
+     "body": "A small team's notes on releasing every Friday for two years without burning out.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@signalnoise.example>, <https://signalnoise.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Interfaces that respect your time",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@today-35d 11:50",
+     "body": "Defaults, undo and the art of not asking the user questions they can't answer.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@signalnoise.example>, <https://signalnoise.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The quiet return of the RSS reader",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@today-39d 10:20",
+     "body": "Feeds never really went away. This week: the apps bringing them back and why publishers are paying attention.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@signalnoise.example>, <https://signalnoise.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "What we learned shipping weekly",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@today-43d 08:35",
+     "body": "A small team's notes on releasing every Friday for two years without burning out.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@signalnoise.example>, <https://signalnoise.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Interfaces that respect your time",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@today-47d 08:05",
+     "body": "Defaults, undo and the art of not asking the user questions they can't answer.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@signalnoise.example>, <https://signalnoise.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The quiet return of the RSS reader",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@today-51d 06:20",
+     "body": "Feeds never really went away. This week: the apps bringing them back and why publishers are paying attention.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@signalnoise.example>, <https://signalnoise.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "What we learned shipping weekly",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@today-55d 06:05",
+     "body": "A small team's notes on releasing every Friday for two years without burning out.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@signalnoise.example>, <https://signalnoise.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Interfaces that respect your time",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@today-59d 09:20",
+     "body": "Defaults, undo and the art of not asking the user questions they can't answer.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@signalnoise.example>, <https://signalnoise.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The quiet return of the RSS reader",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@today-63d 07:50",
+     "body": "Feeds never really went away. This week: the apps bringing them back and why publishers are paying attention.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@signalnoise.example>, <https://signalnoise.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "What we learned shipping weekly",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@today-67d 11:20",
+     "body": "A small team's notes on releasing every Friday for two years without burning out.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@signalnoise.example>, <https://signalnoise.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Interfaces that respect your time",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@today-71d 09:05",
+     "body": "Defaults, undo and the art of not asking the user questions they can't answer.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@signalnoise.example>, <https://signalnoise.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The quiet return of the RSS reader",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@today-75d 07:05",
+     "body": "Feeds never really went away. This week: the apps bringing them back and why publishers are paying attention.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@signalnoise.example>, <https://signalnoise.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "What we learned shipping weekly",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@today-79d 10:35",
+     "body": "A small team's notes on releasing every Friday for two years without burning out.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@signalnoise.example>, <https://signalnoise.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Interfaces that respect your time",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@today-83d 06:20",
+     "body": "Defaults, undo and the art of not asking the user questions they can't answer.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@signalnoise.example>, <https://signalnoise.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The quiet return of the RSS reader",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Signal & Noise <editor@signalnoise.example>",
+     "date": "@today-87d 10:05",
+     "body": "Feeds never really went away. This week: the apps bringing them back and why publishers are paying attention.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@signalnoise.example>, <https://signalnoise.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Autumn hikes worth the drive",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Fieldnotes <news@fieldnotes.example>",
+     "date": "@today-1d 07:50",
+     "body": "Six trails within two hours of the city, with the best overlooks timed for peak color.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@fieldnotes.example>, <https://fieldnotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Packing light for a long weekend",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Fieldnotes <news@fieldnotes.example>",
+     "date": "@today-8d 10:35",
+     "body": "A one-bag list for three days outdoors, tested on a rainy coastal trip.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@fieldnotes.example>, <https://fieldnotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Autumn hikes worth the drive",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Fieldnotes <news@fieldnotes.example>",
+     "date": "@today-15d 09:05",
+     "body": "Six trails within two hours of the city, with the best overlooks timed for peak color.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@fieldnotes.example>, <https://fieldnotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Packing light for a long weekend",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Fieldnotes <news@fieldnotes.example>",
+     "date": "@today-22d 07:20",
+     "body": "A one-bag list for three days outdoors, tested on a rainy coastal trip.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@fieldnotes.example>, <https://fieldnotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Autumn hikes worth the drive",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Fieldnotes <news@fieldnotes.example>",
+     "date": "@today-29d 08:35",
+     "body": "Six trails within two hours of the city, with the best overlooks timed for peak color.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@fieldnotes.example>, <https://fieldnotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Packing light for a long weekend",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Fieldnotes <news@fieldnotes.example>",
+     "date": "@today-36d 07:50",
+     "body": "A one-bag list for three days outdoors, tested on a rainy coastal trip.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@fieldnotes.example>, <https://fieldnotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Autumn hikes worth the drive",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Fieldnotes <news@fieldnotes.example>",
+     "date": "@today-43d 07:50",
+     "body": "Six trails within two hours of the city, with the best overlooks timed for peak color.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@fieldnotes.example>, <https://fieldnotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Packing light for a long weekend",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Fieldnotes <news@fieldnotes.example>",
+     "date": "@today-50d 07:35",
+     "body": "A one-bag list for three days outdoors, tested on a rainy coastal trip.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@fieldnotes.example>, <https://fieldnotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Autumn hikes worth the drive",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Fieldnotes <news@fieldnotes.example>",
+     "date": "@today-57d 10:20",
+     "body": "Six trails within two hours of the city, with the best overlooks timed for peak color.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@fieldnotes.example>, <https://fieldnotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Packing light for a long weekend",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Fieldnotes <news@fieldnotes.example>",
+     "date": "@today-64d 07:20",
+     "body": "A one-bag list for three days outdoors, tested on a rainy coastal trip.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@fieldnotes.example>, <https://fieldnotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Autumn hikes worth the drive",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Fieldnotes <news@fieldnotes.example>",
+     "date": "@today-71d 09:50",
+     "body": "Six trails within two hours of the city, with the best overlooks timed for peak color.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@fieldnotes.example>, <https://fieldnotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Packing light for a long weekend",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Fieldnotes <news@fieldnotes.example>",
+     "date": "@today-78d 09:05",
+     "body": "A one-bag list for three days outdoors, tested on a rainy coastal trip.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@fieldnotes.example>, <https://fieldnotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Autumn hikes worth the drive",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Fieldnotes <news@fieldnotes.example>",
+     "date": "@today-85d 06:35",
+     "body": "Six trails within two hours of the city, with the best overlooks timed for peak color.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@fieldnotes.example>, <https://fieldnotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Sheet-pan dinners for busy weeks",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-2d 09:35",
+     "body": "Four recipes, one pan, forty minutes. Plus a make-ahead sauce that works on everything.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The soup issue",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-5d 10:50",
+     "body": "Our readers' favorite fall soups, from roasted squash to a twenty-minute tomato bisque.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Sheet-pan dinners for busy weeks",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-8d 07:05",
+     "body": "Four recipes, one pan, forty minutes. Plus a make-ahead sauce that works on everything.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The soup issue",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-11d 09:05",
+     "body": "Our readers' favorite fall soups, from roasted squash to a twenty-minute tomato bisque.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Sheet-pan dinners for busy weeks",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-14d 07:05",
+     "body": "Four recipes, one pan, forty minutes. Plus a make-ahead sauce that works on everything.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The soup issue",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-17d 09:50",
+     "body": "Our readers' favorite fall soups, from roasted squash to a twenty-minute tomato bisque.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Sheet-pan dinners for busy weeks",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-20d 06:20",
+     "body": "Four recipes, one pan, forty minutes. Plus a make-ahead sauce that works on everything.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The soup issue",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-23d 10:20",
+     "body": "Our readers' favorite fall soups, from roasted squash to a twenty-minute tomato bisque.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Sheet-pan dinners for busy weeks",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-26d 07:50",
+     "body": "Four recipes, one pan, forty minutes. Plus a make-ahead sauce that works on everything.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The soup issue",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-29d 11:20",
+     "body": "Our readers' favorite fall soups, from roasted squash to a twenty-minute tomato bisque.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Sheet-pan dinners for busy weeks",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-32d 06:50",
+     "body": "Four recipes, one pan, forty minutes. Plus a make-ahead sauce that works on everything.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The soup issue",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-35d 11:35",
+     "body": "Our readers' favorite fall soups, from roasted squash to a twenty-minute tomato bisque.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Sheet-pan dinners for busy weeks",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-38d 06:05",
+     "body": "Four recipes, one pan, forty minutes. Plus a make-ahead sauce that works on everything.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The soup issue",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-41d 11:35",
+     "body": "Our readers' favorite fall soups, from roasted squash to a twenty-minute tomato bisque.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Sheet-pan dinners for busy weeks",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-44d 06:05",
+     "body": "Four recipes, one pan, forty minutes. Plus a make-ahead sauce that works on everything.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The soup issue",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-47d 08:05",
+     "body": "Our readers' favorite fall soups, from roasted squash to a twenty-minute tomato bisque.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Sheet-pan dinners for busy weeks",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-50d 11:20",
+     "body": "Four recipes, one pan, forty minutes. Plus a make-ahead sauce that works on everything.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The soup issue",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-53d 08:35",
+     "body": "Our readers' favorite fall soups, from roasted squash to a twenty-minute tomato bisque.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Sheet-pan dinners for busy weeks",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-56d 09:05",
+     "body": "Four recipes, one pan, forty minutes. Plus a make-ahead sauce that works on everything.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The soup issue",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-59d 09:05",
+     "body": "Our readers' favorite fall soups, from roasted squash to a twenty-minute tomato bisque.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Sheet-pan dinners for busy weeks",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-62d 10:05",
+     "body": "Four recipes, one pan, forty minutes. Plus a make-ahead sauce that works on everything.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The soup issue",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-65d 09:50",
+     "body": "Our readers' favorite fall soups, from roasted squash to a twenty-minute tomato bisque.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Sheet-pan dinners for busy weeks",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-68d 10:05",
+     "body": "Four recipes, one pan, forty minutes. Plus a make-ahead sauce that works on everything.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The soup issue",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-71d 11:05",
+     "body": "Our readers' favorite fall soups, from roasted squash to a twenty-minute tomato bisque.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Sheet-pan dinners for busy weeks",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-74d 09:35",
+     "body": "Four recipes, one pan, forty minutes. Plus a make-ahead sauce that works on everything.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The soup issue",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-77d 11:50",
+     "body": "Our readers' favorite fall soups, from roasted squash to a twenty-minute tomato bisque.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Sheet-pan dinners for busy weeks",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-80d 10:05",
+     "body": "Four recipes, one pan, forty minutes. Plus a make-ahead sauce that works on everything.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The soup issue",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-83d 10:05",
+     "body": "Our readers' favorite fall soups, from roasted squash to a twenty-minute tomato bisque.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Sheet-pan dinners for busy weeks",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Pantry Notes <recipes@pantrynotes.example>",
+     "date": "@today-86d 06:50",
+     "body": "Four recipes, one pan, forty minutes. Plus a make-ahead sauce that works on everything.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@pantrynotes.example>, <https://pantrynotes.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Rates hold steady; tech leads gains",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-2d 06:50",
+     "body": "Markets opened higher as investors digested the latest jobs report and earnings from chipmakers.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Oil slips as supply rises",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-5d 11:50",
+     "body": "Crude fell for a third day while retailers reported a stronger-than-expected quarter.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Rates hold steady; tech leads gains",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-8d 06:35",
+     "body": "Markets opened higher as investors digested the latest jobs report and earnings from chipmakers.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Oil slips as supply rises",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-11d 11:20",
+     "body": "Crude fell for a third day while retailers reported a stronger-than-expected quarter.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Rates hold steady; tech leads gains",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-14d 08:50",
+     "body": "Markets opened higher as investors digested the latest jobs report and earnings from chipmakers.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Oil slips as supply rises",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-17d 07:35",
+     "body": "Crude fell for a third day while retailers reported a stronger-than-expected quarter.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Rates hold steady; tech leads gains",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-20d 08:20",
+     "body": "Markets opened higher as investors digested the latest jobs report and earnings from chipmakers.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Oil slips as supply rises",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-23d 07:20",
+     "body": "Crude fell for a third day while retailers reported a stronger-than-expected quarter.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Rates hold steady; tech leads gains",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-26d 10:35",
+     "body": "Markets opened higher as investors digested the latest jobs report and earnings from chipmakers.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Oil slips as supply rises",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-29d 07:50",
+     "body": "Crude fell for a third day while retailers reported a stronger-than-expected quarter.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Rates hold steady; tech leads gains",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-32d 06:05",
+     "body": "Markets opened higher as investors digested the latest jobs report and earnings from chipmakers.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Oil slips as supply rises",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-35d 08:20",
+     "body": "Crude fell for a third day while retailers reported a stronger-than-expected quarter.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Rates hold steady; tech leads gains",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-38d 09:35",
+     "body": "Markets opened higher as investors digested the latest jobs report and earnings from chipmakers.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Oil slips as supply rises",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-41d 09:50",
+     "body": "Crude fell for a third day while retailers reported a stronger-than-expected quarter.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Rates hold steady; tech leads gains",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-44d 09:35",
+     "body": "Markets opened higher as investors digested the latest jobs report and earnings from chipmakers.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Oil slips as supply rises",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-47d 10:50",
+     "body": "Crude fell for a third day while retailers reported a stronger-than-expected quarter.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Rates hold steady; tech leads gains",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-50d 06:35",
+     "body": "Markets opened higher as investors digested the latest jobs report and earnings from chipmakers.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Oil slips as supply rises",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-53d 06:35",
+     "body": "Crude fell for a third day while retailers reported a stronger-than-expected quarter.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Rates hold steady; tech leads gains",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-56d 08:05",
+     "body": "Markets opened higher as investors digested the latest jobs report and earnings from chipmakers.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Oil slips as supply rises",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-59d 09:50",
+     "body": "Crude fell for a third day while retailers reported a stronger-than-expected quarter.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Rates hold steady; tech leads gains",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-62d 08:20",
+     "body": "Markets opened higher as investors digested the latest jobs report and earnings from chipmakers.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Oil slips as supply rises",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-65d 06:05",
+     "body": "Crude fell for a third day while retailers reported a stronger-than-expected quarter.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Rates hold steady; tech leads gains",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-68d 11:35",
+     "body": "Markets opened higher as investors digested the latest jobs report and earnings from chipmakers.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Oil slips as supply rises",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-71d 11:20",
+     "body": "Crude fell for a third day while retailers reported a stronger-than-expected quarter.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Rates hold steady; tech leads gains",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-74d 09:35",
+     "body": "Markets opened higher as investors digested the latest jobs report and earnings from chipmakers.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Oil slips as supply rises",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-77d 06:50",
+     "body": "Crude fell for a third day while retailers reported a stronger-than-expected quarter.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Rates hold steady; tech leads gains",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-80d 06:20",
+     "body": "Markets opened higher as investors digested the latest jobs report and earnings from chipmakers.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Oil slips as supply rises",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-83d 08:20",
+     "body": "Crude fell for a third day while retailers reported a stronger-than-expected quarter.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Rates hold steady; tech leads gains",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Market Morning <brief@marketmorning.example>",
+     "date": "@today-86d 11:20",
+     "body": "Markets opened higher as investors digested the latest jobs report and earnings from chipmakers.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@marketmorning.example>, <https://marketmorning.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Maple pecan cookies are back!",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Brightside Bakeshop <hello@brightsidebakeshop.example>",
+     "date": "@today-6d 07:50",
+     "body": "Our fall favorite returns this weekend, plus a sneak peek at the holiday menu.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@brightsidebakeshop.example>, <https://brightsidebakeshop.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "October specials",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Brightside Bakeshop <hello@brightsidebakeshop.example>",
+     "date": "@today-16d 11:05",
+     "body": "Apple cider donuts, pumpkin loaf and a new sourdough with toasted seeds.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@brightsidebakeshop.example>, <https://brightsidebakeshop.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Maple pecan cookies are back!",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Brightside Bakeshop <hello@brightsidebakeshop.example>",
+     "date": "@today-26d 10:35",
+     "body": "Our fall favorite returns this weekend, plus a sneak peek at the holiday menu.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@brightsidebakeshop.example>, <https://brightsidebakeshop.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "October specials",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Brightside Bakeshop <hello@brightsidebakeshop.example>",
+     "date": "@today-36d 11:20",
+     "body": "Apple cider donuts, pumpkin loaf and a new sourdough with toasted seeds.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@brightsidebakeshop.example>, <https://brightsidebakeshop.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Maple pecan cookies are back!",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Brightside Bakeshop <hello@brightsidebakeshop.example>",
+     "date": "@today-46d 11:05",
+     "body": "Our fall favorite returns this weekend, plus a sneak peek at the holiday menu.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@brightsidebakeshop.example>, <https://brightsidebakeshop.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "October specials",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Brightside Bakeshop <hello@brightsidebakeshop.example>",
+     "date": "@today-56d 09:05",
+     "body": "Apple cider donuts, pumpkin loaf and a new sourdough with toasted seeds.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@brightsidebakeshop.example>, <https://brightsidebakeshop.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Maple pecan cookies are back!",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Brightside Bakeshop <hello@brightsidebakeshop.example>",
+     "date": "@today-66d 10:35",
+     "body": "Our fall favorite returns this weekend, plus a sneak peek at the holiday menu.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@brightsidebakeshop.example>, <https://brightsidebakeshop.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "October specials",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Brightside Bakeshop <hello@brightsidebakeshop.example>",
+     "date": "@today-76d 11:05",
+     "body": "Apple cider donuts, pumpkin loaf and a new sourdough with toasted seeds.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@brightsidebakeshop.example>, <https://brightsidebakeshop.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Maple pecan cookies are back!",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Brightside Bakeshop <hello@brightsidebakeshop.example>",
+     "date": "@today-86d 06:05",
+     "body": "Our fall favorite returns this weekend, plus a sneak peek at the holiday menu.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@brightsidebakeshop.example>, <https://brightsidebakeshop.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Color systems that scale",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Design Digest <digest@designdigest.example>",
+     "date": "@today-4d 09:35",
+     "body": "How three product teams built palettes that survive dark mode, charts and a rebrand.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@designdigest.example>, <https://designdigest.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The typography issue",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Design Digest <digest@designdigest.example>",
+     "date": "@today-11d 06:20",
+     "body": "Variable fonts, optical sizes and the return of the serif in product UI.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@designdigest.example>, <https://designdigest.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Color systems that scale",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Design Digest <digest@designdigest.example>",
+     "date": "@today-18d 06:50",
+     "body": "How three product teams built palettes that survive dark mode, charts and a rebrand.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@designdigest.example>, <https://designdigest.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The typography issue",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Design Digest <digest@designdigest.example>",
+     "date": "@today-25d 07:35",
+     "body": "Variable fonts, optical sizes and the return of the serif in product UI.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@designdigest.example>, <https://designdigest.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Color systems that scale",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Design Digest <digest@designdigest.example>",
+     "date": "@today-32d 07:50",
+     "body": "How three product teams built palettes that survive dark mode, charts and a rebrand.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@designdigest.example>, <https://designdigest.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The typography issue",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Design Digest <digest@designdigest.example>",
+     "date": "@today-39d 10:50",
+     "body": "Variable fonts, optical sizes and the return of the serif in product UI.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@designdigest.example>, <https://designdigest.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Color systems that scale",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Design Digest <digest@designdigest.example>",
+     "date": "@today-46d 09:05",
+     "body": "How three product teams built palettes that survive dark mode, charts and a rebrand.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@designdigest.example>, <https://designdigest.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The typography issue",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Design Digest <digest@designdigest.example>",
+     "date": "@today-53d 09:35",
+     "body": "Variable fonts, optical sizes and the return of the serif in product UI.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@designdigest.example>, <https://designdigest.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Color systems that scale",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Design Digest <digest@designdigest.example>",
+     "date": "@today-60d 10:20",
+     "body": "How three product teams built palettes that survive dark mode, charts and a rebrand.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@designdigest.example>, <https://designdigest.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The typography issue",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Design Digest <digest@designdigest.example>",
+     "date": "@today-67d 10:35",
+     "body": "Variable fonts, optical sizes and the return of the serif in product UI.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@designdigest.example>, <https://designdigest.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Color systems that scale",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Design Digest <digest@designdigest.example>",
+     "date": "@today-74d 09:20",
+     "body": "How three product teams built palettes that survive dark mode, charts and a rebrand.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@designdigest.example>, <https://designdigest.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "The typography issue",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Design Digest <digest@designdigest.example>",
+     "date": "@today-81d 07:35",
+     "body": "Variable fonts, optical sizes and the return of the serif in product UI.\n\nRead the full issue on our site.",
+     "unread": false,
+     "listUnsubscribe": "<mailto:unsubscribe@designdigest.example>, <https://designdigest.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "This weekend: art crawl and night market",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "City Events <events@cityevents.example>",
+     "date": "@today-1d 09:05",
+     "body": "Forty galleries open late downtown, and the riverfront night market returns for its final weekend.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@cityevents.example>, <https://cityevents.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "This weekend: art crawl and night market",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "City Events <events@cityevents.example>",
+     "date": "@today-8d 10:50",
+     "body": "Forty galleries open late downtown, and the riverfront night market returns for its final weekend.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@cityevents.example>, <https://cityevents.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "This weekend: art crawl and night market",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "City Events <events@cityevents.example>",
+     "date": "@today-15d 06:50",
+     "body": "Forty galleries open late downtown, and the riverfront night market returns for its final weekend.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@cityevents.example>, <https://cityevents.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "This weekend: art crawl and night market",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "City Events <events@cityevents.example>",
+     "date": "@today-22d 10:05",
+     "body": "Forty galleries open late downtown, and the riverfront night market returns for its final weekend.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@cityevents.example>, <https://cityevents.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "This weekend: art crawl and night market",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "City Events <events@cityevents.example>",
+     "date": "@today-29d 11:20",
+     "body": "Forty galleries open late downtown, and the riverfront night market returns for its final weekend.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@cityevents.example>, <https://cityevents.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "This weekend: art crawl and night market",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "City Events <events@cityevents.example>",
+     "date": "@today-36d 10:50",
+     "body": "Forty galleries open late downtown, and the riverfront night market returns for its final weekend.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@cityevents.example>, <https://cityevents.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "This weekend: art crawl and night market",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "City Events <events@cityevents.example>",
+     "date": "@today-43d 09:35",
+     "body": "Forty galleries open late downtown, and the riverfront night market returns for its final weekend.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@cityevents.example>, <https://cityevents.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "This weekend: art crawl and night market",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "City Events <events@cityevents.example>",
+     "date": "@today-50d 09:20",
+     "body": "Forty galleries open late downtown, and the riverfront night market returns for its final weekend.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@cityevents.example>, <https://cityevents.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "This weekend: art crawl and night market",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "City Events <events@cityevents.example>",
+     "date": "@today-57d 09:35",
+     "body": "Forty galleries open late downtown, and the riverfront night market returns for its final weekend.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@cityevents.example>, <https://cityevents.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "This weekend: art crawl and night market",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "City Events <events@cityevents.example>",
+     "date": "@today-64d 09:05",
+     "body": "Forty galleries open late downtown, and the riverfront night market returns for its final weekend.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@cityevents.example>, <https://cityevents.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "This weekend: art crawl and night market",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "City Events <events@cityevents.example>",
+     "date": "@today-71d 07:05",
+     "body": "Forty galleries open late downtown, and the riverfront night market returns for its final weekend.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@cityevents.example>, <https://cityevents.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "This weekend: art crawl and night market",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "City Events <events@cityevents.example>",
+     "date": "@today-78d 07:20",
+     "body": "Forty galleries open late downtown, and the riverfront night market returns for its final weekend.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@cityevents.example>, <https://cityevents.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "This weekend: art crawl and night market",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "City Events <events@cityevents.example>",
+     "date": "@today-85d 08:35",
+     "body": "Forty galleries open late downtown, and the riverfront night market returns for its final weekend.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@cityevents.example>, <https://cityevents.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Morning edition",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Courier Daily <news@courierdaily.example>",
+     "date": "@today-1d 10:50",
+     "body": "Today's top stories: transit expansion approved, a new park opens, and the forecast for the week.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@courierdaily.example>, <https://courierdaily.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Morning edition",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Courier Daily <news@courierdaily.example>",
+     "date": "@today-6d 11:05",
+     "body": "Today's top stories: transit expansion approved, a new park opens, and the forecast for the week.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@courierdaily.example>, <https://courierdaily.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Morning edition",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Courier Daily <news@courierdaily.example>",
+     "date": "@today-11d 10:35",
+     "body": "Today's top stories: transit expansion approved, a new park opens, and the forecast for the week.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@courierdaily.example>, <https://courierdaily.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Morning edition",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Courier Daily <news@courierdaily.example>",
+     "date": "@today-16d 11:50",
+     "body": "Today's top stories: transit expansion approved, a new park opens, and the forecast for the week.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@courierdaily.example>, <https://courierdaily.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Morning edition",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Courier Daily <news@courierdaily.example>",
+     "date": "@today-21d 11:50",
+     "body": "Today's top stories: transit expansion approved, a new park opens, and the forecast for the week.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@courierdaily.example>, <https://courierdaily.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Morning edition",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Courier Daily <news@courierdaily.example>",
+     "date": "@today-26d 10:20",
+     "body": "Today's top stories: transit expansion approved, a new park opens, and the forecast for the week.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@courierdaily.example>, <https://courierdaily.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Morning edition",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Courier Daily <news@courierdaily.example>",
+     "date": "@today-31d 11:20",
+     "body": "Today's top stories: transit expansion approved, a new park opens, and the forecast for the week.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@courierdaily.example>, <https://courierdaily.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Morning edition",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Courier Daily <news@courierdaily.example>",
+     "date": "@today-36d 10:20",
+     "body": "Today's top stories: transit expansion approved, a new park opens, and the forecast for the week.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@courierdaily.example>, <https://courierdaily.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Morning edition",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Courier Daily <news@courierdaily.example>",
+     "date": "@today-41d 11:35",
+     "body": "Today's top stories: transit expansion approved, a new park opens, and the forecast for the week.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@courierdaily.example>, <https://courierdaily.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Morning edition",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Courier Daily <news@courierdaily.example>",
+     "date": "@today-46d 08:35",
+     "body": "Today's top stories: transit expansion approved, a new park opens, and the forecast for the week.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@courierdaily.example>, <https://courierdaily.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Morning edition",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Courier Daily <news@courierdaily.example>",
+     "date": "@today-51d 07:20",
+     "body": "Today's top stories: transit expansion approved, a new park opens, and the forecast for the week.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@courierdaily.example>, <https://courierdaily.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Morning edition",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Courier Daily <news@courierdaily.example>",
+     "date": "@today-56d 07:05",
+     "body": "Today's top stories: transit expansion approved, a new park opens, and the forecast for the week.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@courierdaily.example>, <https://courierdaily.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Morning edition",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Courier Daily <news@courierdaily.example>",
+     "date": "@today-61d 07:20",
+     "body": "Today's top stories: transit expansion approved, a new park opens, and the forecast for the week.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@courierdaily.example>, <https://courierdaily.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Morning edition",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Courier Daily <news@courierdaily.example>",
+     "date": "@today-66d 08:50",
+     "body": "Today's top stories: transit expansion approved, a new park opens, and the forecast for the week.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@courierdaily.example>, <https://courierdaily.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Morning edition",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Courier Daily <news@courierdaily.example>",
+     "date": "@today-71d 09:20",
+     "body": "Today's top stories: transit expansion approved, a new park opens, and the forecast for the week.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@courierdaily.example>, <https://courierdaily.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Morning edition",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Courier Daily <news@courierdaily.example>",
+     "date": "@today-76d 11:05",
+     "body": "Today's top stories: transit expansion approved, a new park opens, and the forecast for the week.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@courierdaily.example>, <https://courierdaily.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Morning edition",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Courier Daily <news@courierdaily.example>",
+     "date": "@today-81d 10:35",
+     "body": "Today's top stories: transit expansion approved, a new park opens, and the forecast for the week.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@courierdaily.example>, <https://courierdaily.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Morning edition",
+   "in": [
+    "inbox"
+   ],
+   "messages": [
+    {
+     "from": "Courier Daily <news@courierdaily.example>",
+     "date": "@today-86d 08:05",
+     "body": "Today's top stories: transit expansion approved, a new park opens, and the forecast for the week.\n\nRead the full issue on our site.",
+     "unread": true,
+     "listUnsubscribe": "<mailto:unsubscribe@courierdaily.example>, <https://courierdaily.example/unsubscribe>"
+    }
+   ]
+  },
+  {
+   "subject": "Lunch next week?",
+   "messages": [
+    {
+     "from": "Chris Wong <chris@example.com>",
+     "date": "@now-2h",
+     "body": "Free Tuesday?"
+    }
+   ]
+  }
+ ]
+}

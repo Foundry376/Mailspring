@@ -1,0 +1,1109 @@
+import crypto from 'crypto';
+import { Contact, Message } from 'mailspring-exports';
+import { canonicalJSON } from '../lib/agent/signing';
+import { keypair } from './view-signing-helpers';
+import { SSEParser, AgentTransport } from '../lib/agent/client';
+import { buildExample, chipFor } from '../lib/agent/examples';
+import { checkPreviewRevision, relayableDiagnostics } from '../lib/agent/tools';
+import { AgentSessionStore, responseText } from '../lib/agent/store';
+import { AgentAPIError, Example } from '../lib/agent/types';
+
+const VIEW = 'receipts-abc123';
+
+const REVISION = {
+  revision: 1,
+  manifest: { name: 'Receipts', permissions: [] },
+  files: { 'View.jsx': 'export default () => null;\n' },
+};
+
+// The spec runner fakes setTimeout, so drain the microtask queue instead.
+const flush = async () => {
+  for (let i = 0; i < 20; i++) await Promise.resolve();
+};
+
+describe('Views agent: signing', function () {
+  it('serializes canonical JSON with sorted keys and no whitespace', () => {
+    expect(canonicalJSON({ b: 1, a: { d: [3, { z: 1, y: 'é' }], c: null } })).toBe(
+      '{"a":{"c":null,"d":[3,{"y":"é","z":1}]},"b":1}'
+    );
+  });
+
+  it('accepts a signed revision newer than the last one applied', () => {
+    const k = keypair();
+    expect(checkPreviewRevision(REVISION, k.sign(REVISION), k.publicKey, 0).ok).toBe(true);
+  });
+
+  it('rejects tampered code, unsigned and replayed revisions', () => {
+    const k = keypair();
+    const signature = k.sign(REVISION);
+    const tampered = { ...REVISION, files: { 'View.jsx': 'fetch("https://evil")' } };
+    expect(checkPreviewRevision(tampered, signature, k.publicKey, 0).ok).toBe(false);
+    expect(checkPreviewRevision(REVISION, undefined, k.publicKey, 0).ok).toBe(false);
+    expect(checkPreviewRevision(REVISION, signature, keypair().publicKey, 0).ok).toBe(false);
+    expect(checkPreviewRevision(REVISION, signature, null, 0).ok).toBe(false);
+    const replay = checkPreviewRevision(REVISION, signature, k.publicKey, 1);
+    expect(replay.ok).toBe(false);
+    expect((replay as any).reason).toContain('not newer');
+  });
+});
+
+describe('Views agent: SSE parsing', function () {
+  it('parses events split across chunks and skips comments', () => {
+    const parser = new SSEParser();
+    expect(parser.push(': keepalive\n\nid: 1\ndata: {"a"')).toEqual([]);
+    const events = parser.push(':1}\n\nid: 2\nevent: x\ndata: line1\r\ndata: line2\n\n');
+    expect(events).toEqual([
+      { id: '1', event: null, data: '{"a":1}' },
+      { id: '2', event: 'x', data: 'line1\nline2' },
+    ]);
+  });
+});
+
+describe('Views agent: examples', function () {
+  const message = (body: string, extra = {}) =>
+    new Message({
+      id: 'm1',
+      threadId: 't1',
+      accountId: 'acc',
+      subject: 'Your order shipped',
+      date: new Date('2026-09-01T12:00:00Z'),
+      from: [new Contact({ name: 'Shop', email: 'orders@shop.example' })],
+      to: [new Contact({ name: 'Me', email: 'me@example.com' })],
+      body,
+      ...extra,
+    });
+
+  it('keeps text and links but drops anything that loads or runs', () => {
+    const example = buildExample(
+      message(
+        `<style>.h{background:url(https://t.example/bg.png)} @import url(https://x/y.css);</style>
+         <p style="background-image:url('https://t.example/a.png')">Tracking 1Z999AA10123456784</p>
+         <img src="https://t.example/open.gif" width="1" height="1">
+         <img src="cid:logo123" alt="Shop logo">
+         <img srcset="https://t.example/a.png 2x" src="https://t.example/b.png">
+         <a href="https://shop.example/track/1Z999">Track</a>
+         <table background="https://t.example/tb.png"><tr><td>Cell</td></tr></table>
+         <form action="https://t.example/submit"><button>Rate us</button></form>
+         <script>alert(1)</script><iframe src="https://evil.example"></iframe>`
+      )
+    );
+    expect(example.text).toContain('Tracking 1Z999AA10123456784');
+    expect(example.html).toContain('href="https://shop.example/track/1Z999"');
+    expect(example.html).toContain('Shop logo');
+    expect(example.html).toContain('Rate us');
+    expect(example.html).toContain('background: none');
+    expect(example.html).not.toContain('t.example');
+    expect(example.html).not.toContain('<form');
+    expect(example.html).not.toContain('cid:');
+    expect(example.html).not.toContain('<img');
+    expect(example.html).not.toContain('<script');
+    expect(example.html).not.toContain('evil.example');
+    expect(example.html).not.toContain('@import');
+    expect(example.from).toEqual([{ name: 'Shop', email: 'orders@shop.example' }]);
+    expect(example.date).toBe('2026-09-01T12:00:00.000Z');
+  });
+
+  it('drops CSS that could still load an image after url() is removed', () => {
+    const example = buildExample(
+      message(
+        `<style>.a{background-image:image-set("https://t.example/s.png" 1x)} .b{color:red}</style>
+         <p style="background:-webkit-image-set('https://t.example/w.png' 1x); color: blue">One</p>
+         <p style="background:\\75 rl(https://t.example/e.png)">Two</p>
+         <p style="background:url('https://t.example/q).png')">Three</p>
+         <p style="color: green">Four</p>`
+      )
+    );
+    expect(example.html).not.toContain('t.example');
+    expect(example.html).not.toContain('image-set');
+    expect(example.html).toContain('One');
+    expect(example.html).toContain('Three');
+    expect(example.html).toContain('color: green');
+  });
+
+  it('strips quoted replies and summarizes the example as a chip', () => {
+    const example = buildExample(
+      message(
+        `<p>Thanks, see below.</p><blockquote class="gmail_quote">On Monday you wrote: secret</blockquote>`
+      )
+    );
+    expect(example.text).toContain('Thanks, see below.');
+    expect(example.text).not.toContain('secret');
+    const chip = chipFor(example);
+    expect(chip.from).toBe('Shop');
+    expect(chip.snippet).toBe('Thanks, see below.');
+    expect(chip.bytes).toBeGreaterThan(0);
+  });
+
+  it('sends empty content for a body that is not downloaded', () => {
+    const example = buildExample(message(null));
+    expect(example.text).toBe('');
+    expect(example.html).toBe('');
+  });
+});
+
+describe('Views agent: diagnostics relay', function () {
+  const SOURCE = [
+    'import React from "react";',
+    '',
+    'export default function View() {',
+    '  return thread.subject;',
+    '}',
+  ].join('\n');
+
+  it('reduces runtime errors to the error type and the line of View.jsx', () => {
+    const [out]: any[] = relayableDiagnostics(
+      [
+        {
+          ts: 2,
+          viewId: VIEW,
+          revision: 'r',
+          kind: 'runtime-error',
+          message: 'Subject: private',
+          stack: 'TypeError: Subject: private\n    at View (View.jsx:4:16)',
+        },
+      ],
+      SOURCE
+    );
+    expect(out).toEqual({
+      kind: 'runtime-error',
+      error: 'TypeError',
+      location: { line: 4, column: 16 },
+      source: 'return thread.subject;',
+    });
+  });
+
+  it('never relays error types or lines the View made up', () => {
+    const [out]: any[] = relayableDiagnostics(
+      [
+        {
+          ts: 2,
+          viewId: VIEW,
+          revision: 'r',
+          kind: 'unhandled-rejection',
+          message: 'x',
+          stack: 'PrivateSubjectError: x\n    at View.jsx:9999:1',
+        },
+      ],
+      SOURCE
+    );
+    expect(out).toEqual({ kind: 'unhandled-rejection', error: 'Error' });
+  });
+
+  it('relays bridge errors without their message', () => {
+    const [out]: any[] = relayableDiagnostics([
+      {
+        ts: 2,
+        viewId: VIEW,
+        revision: 'r',
+        kind: 'bridge-error',
+        message: 'No message with id Subject: private.',
+        method: 'messages.content',
+        code: 'permission',
+        permission: 'mail.bodies',
+      },
+    ]);
+    expect(out).toEqual({
+      kind: 'bridge-error',
+      method: 'messages.content',
+      code: 'permission',
+      permission: 'mail.bodies',
+    });
+  });
+});
+
+describe('Views agent: session store', function () {
+  let transport: { [K in keyof AgentTransport]: jasmine.Spy };
+  let applyAndWait: jasmine.Spy;
+  let showView: jasmine.Spy;
+  let onScreen: boolean;
+  let screenListeners: (() => void)[];
+  let accepted: { [viewId: string]: number };
+  // The View on disk, by its View.jsx text, and the checkpoints saved from it.
+  let disk: { code: string | null; checkpoints: string[]; agentCode: string | null };
+  let keys: ReturnType<typeof keypair>;
+  const examples: Example[] = [
+    {
+      messageId: 'm1',
+      threadId: 't1',
+      from: [{ name: 'Shop', email: 'orders@shop.example' }],
+      to: [],
+      cc: [],
+      subject: 'Shipped',
+      date: '2026-09-01T12:00:00.000Z',
+      text: 'Your package shipped',
+      html: '<p>Your package shipped</p>',
+    },
+  ];
+
+  beforeEach(() => {
+    keys = keypair();
+    accepted = {};
+    showView = jasmine.createSpy('showView');
+    onScreen = false;
+    screenListeners = [];
+    disk = { code: 'existing', checkpoints: [], agentCode: null };
+    applyAndWait = jasmine.createSpy('applyAndWait').andCallFake(async (viewId, revision) => {
+      disk.code = revision.files['View.jsx'];
+      return { status: 'ok', diagnostics: [] };
+    });
+    transport = {
+      createSession: jasmine
+        .createSpy('createSession')
+        .andReturn(Promise.resolve({ viewId: VIEW, sessionId: 's', resumed: false })),
+      sendMessage: jasmine.createSpy('sendMessage').andReturn(Promise.resolve()),
+      sendToolResult: jasmine.createSpy('sendToolResult').andReturn(Promise.resolve()),
+      interrupt: jasmine.createSpy('interrupt').andReturn(Promise.resolve()),
+      budget: jasmine.createSpy('budget').andReturn(Promise.resolve({ maxListCostCents: 400 })),
+      usage: jasmine.createSpy('usage').andCallFake(() => Promise.reject(new Error('offline'))),
+      streamEvents: jasmine
+        .createSpy('streamEvents')
+        .andCallFake((viewId, onEvent, signal, onOpen) => {
+          if (onOpen) onOpen();
+          return new Promise(() => {});
+        }),
+    };
+    AgentSessionStore.configure({
+      transport: transport as any,
+      publicKey: () => keys.publicKey,
+      lastAcceptedRevision: (viewId) => accepted[viewId] || 0,
+      setAcceptedRevision: (viewId, revision) => (accepted[viewId] = revision),
+      buildExamples: async () => examples,
+      currentBundle: () => null,
+      applyAndWait,
+      capturePreview: async () => ({ png: Buffer.from('png'), width: 10, height: 20 }),
+      showView,
+      onScreen: () => onScreen,
+      listenToScreen: (callback) => {
+        screenListeners.push(callback);
+        return () => (screenListeners = screenListeners.filter((c) => c !== callback));
+      },
+      captureNow: async () => ({ png: Buffer.from('live'), width: 10, height: 20 }),
+      captureForSend: async () => ({ png: Buffer.from('fresh'), width: 10, height: 20 }),
+      currentRevision: () => disk.code,
+      agentCode: () => disk.agentCode,
+      setAgentCode: (viewId, hash) => (disk.agentCode = hash),
+      saveCheckpoint: () => !!disk.code && !!disk.checkpoints.push(disk.code),
+      hasCheckpoint: () => disk.checkpoints.length > 0,
+      revertView: () => {
+        disk.code = disk.checkpoints.pop();
+      },
+      showUpgrade: jasmine.createSpy('showUpgrade'),
+    });
+  });
+
+  const start = async () => {
+    await AgentSessionStore.start({ viewId: VIEW, name: 'Receipts', request: 'Chart my receipts' });
+  };
+
+  it('creates the session, opens the stream and records the request', async () => {
+    await start();
+    expect(transport.createSession).toHaveBeenCalled();
+    expect(transport.streamEvents).toHaveBeenCalled();
+    const s = AgentSessionStore.session(VIEW);
+    expect(AgentSessionStore.activeViewId()).toBe(VIEW);
+    expect(s.transcript[0].role).toBe('user');
+    expect(s.transcript[0].text).toBe('Chart my receipts');
+  });
+
+  it('turns a free build quota into an inline notice and the upgrade prompt', async () => {
+    transport.createSession.andReturn(
+      Promise.reject(
+        new AgentAPIError('Over quota', {
+          statusCode: 429,
+          code: 'quota',
+          details: {
+            feature: 'view-agent-build',
+            plan: 'free',
+            limit: 2,
+            used: 2,
+            period: 'unlimited',
+            resetsAt: null,
+          },
+        })
+      )
+    );
+    await start();
+    const s = AgentSessionStore.session(VIEW);
+    expect(s.error).toBe(null);
+    expect(s.limit.kind).toBe('build');
+    expect(s.limit.message).toContain('Thanks for trying out Views!');
+    const notice = (AgentSessionStore as any).d.showUpgrade.mostRecentCall.args[0];
+    expect(notice.details.feature).toBe('view-agent-build');
+    expect(notice.canUpgrade).toBe(true);
+  });
+
+  it('shows a Pro spend limit inline without offering an upgrade', async () => {
+    transport.createSession.andReturn(
+      Promise.reject(
+        new AgentAPIError('Over', {
+          statusCode: 429,
+          code: 'spend_quota',
+          details: {
+            feature: 'view-agent-spend',
+            plan: 'pro',
+            limitCents: 800,
+            usedCents: 812,
+            period: 'monthly',
+            resetsAt: '2026-11-01T00:00:00.000Z',
+          },
+        })
+      )
+    );
+    await start();
+    const s = AgentSessionStore.session(VIEW);
+    expect(s.limit.message).toBe(
+      "You've used up the AI tokens included in your Pro subscription this month. Tokens reset on November 1."
+    );
+    expect((AgentSessionStore as any).d.showUpgrade).not.toHaveBeenCalled();
+  });
+
+  const refuse = (code: string, message: string, statusCode: number, details: any = null) =>
+    Promise.reject(new AgentAPIError(message, { statusCode, code, details }));
+
+  it('shows a generic rate limit as a calm notice and retries the refused message', async () => {
+    await start();
+    transport.sendMessage.andReturn(
+      refuse('rate_limited', 'Too many requests. Please try again later.', 429)
+    );
+    await AgentSessionStore.sendMessage(VIEW, 'Add a weekly view');
+    let s = AgentSessionStore.session(VIEW);
+    expect(s.error).toBe(null);
+    expect(s.notice).toEqual({
+      code: 'rate_limited',
+      action: 'retry',
+      message: 'Too many requests. Please try again later.',
+    });
+    expect(s.transcript.some((e) => e.text === 'Add a weekly view')).toBe(false);
+    expect((AgentSessionStore as any).d.showUpgrade).not.toHaveBeenCalled();
+
+    transport.sendMessage.andReturn(Promise.resolve());
+    await AgentSessionStore.retry(VIEW);
+    s = AgentSessionStore.session(VIEW);
+    expect(transport.sendMessage.mostRecentCall.args[1].text).toBe('Add a weekly view');
+    expect(s.notice).toBe(null);
+    expect(s.transcript[s.transcript.length - 1].text).toBe('Add a weekly view');
+  });
+
+  it('keeps a session start that was rate limited ready to retry', async () => {
+    transport.createSession.andReturn(
+      refuse('rate_limited', 'Too many requests. Please try again later.', 429)
+    );
+    await start();
+    let s = AgentSessionStore.session(VIEW);
+    expect(s.status).toBe('idle');
+    expect(s.notice.action).toBe('retry');
+    expect(s.transcript.length).toBe(0);
+    expect(s.attachedExamples.length).toBe(0);
+
+    transport.createSession.andReturn(
+      Promise.resolve({ viewId: VIEW, sessionId: 's', resumed: false })
+    );
+    (AgentSessionStore as any).runtime(VIEW).needsSession = 'none';
+    await AgentSessionStore.retry(VIEW);
+    s = AgentSessionStore.session(VIEW);
+    expect(transport.createSession.mostRecentCall.args[0].request).toBe('Chart my receipts');
+    expect(s.notice).toBe(null);
+  });
+
+  it('hands a too-long message back to the composer instead of losing it', async () => {
+    await start();
+    const long = 'x'.repeat(5210);
+    transport.sendMessage.andReturn(
+      refuse('message_too_long', 'Messages can be up to 4,000 characters.', 400, { limit: 4000 })
+    );
+    await AgentSessionStore.sendMessage(VIEW, long);
+    const s = AgentSessionStore.session(VIEW);
+    expect(s.error).toBe(null);
+    expect(s.notice || null).toBe(null);
+    expect(s.returnedDraft.text).toBe(long);
+    expect(s.messageLimit).toBe(4000);
+    expect(s.transcript.some((e) => e.text === long)).toBe(false);
+  });
+
+  it('offers a fresh chat at the turn limit and starts one on the next message', async () => {
+    await start();
+    transport.sendMessage.andReturn(
+      refuse(
+        'session_turn_limit',
+        "This View's chat has reached its 40-message limit. Start a fresh chat to keep improving it.",
+        409,
+        { limit: 40 }
+      )
+    );
+    await AgentSessionStore.sendMessage(VIEW, 'One more tweak');
+    let s = AgentSessionStore.session(VIEW);
+    expect(s.notice.action).toBe('start_fresh');
+    expect(s.returnedDraft.text).toBe('One more tweak');
+
+    await AgentSessionStore.startFresh(VIEW);
+    s = AgentSessionStore.session(VIEW);
+    expect(s.notice).toBe(null);
+    expect(s.transcript[s.transcript.length - 1].role).toBe('system');
+
+    transport.createSession.reset();
+    transport.createSession.andReturn(
+      Promise.resolve({ viewId: VIEW, sessionId: 's2', resumed: false, replaced: true })
+    );
+    await AgentSessionStore.sendMessage(VIEW, 'One more tweak');
+    const body = transport.createSession.mostRecentCall.args[0];
+    expect(body.fresh).toBe(true);
+    expect(body.request).toBe('One more tweak');
+    expect((AgentSessionStore as any).runtime(VIEW).needsSession).toBe(null);
+  });
+
+  it('stops a session that is still working when a fresh chat is refused, then retries', async () => {
+    await start();
+    await AgentSessionStore.startFresh(VIEW);
+    transport.createSession.reset();
+    transport.createSession.andReturn(
+      refuse(
+        'session_busy',
+        'The assistant is still working on View v. Stop it before starting over.',
+        409
+      )
+    );
+    await AgentSessionStore.sendMessage(VIEW, 'Start over with a table');
+    let s = AgentSessionStore.session(VIEW);
+    expect(transport.interrupt).toHaveBeenCalledWith(VIEW);
+    expect(s.error).toBe(null);
+    expect(s.notice.code).toBe('session_busy');
+    expect(s.notice.action).toBe('retry');
+    expect(s.transcript.some((e) => e.text === 'Start over with a table')).toBe(false);
+
+    transport.createSession.andReturn(
+      Promise.resolve({ viewId: VIEW, sessionId: 's2', resumed: false, replaced: true })
+    );
+    await AgentSessionStore.retry(VIEW);
+    s = AgentSessionStore.session(VIEW);
+    const body = transport.createSession.mostRecentCall.args[0];
+    expect(body.fresh).toBe(true);
+    expect(body.request).toBe('Start over with a table');
+    expect(s.notice).toBe(null);
+  });
+
+  it('clears a limit notice when a later message goes through', async () => {
+    await start();
+    transport.sendMessage.andReturn(
+      Promise.reject(
+        new AgentAPIError('Over', {
+          statusCode: 429,
+          code: 'spend_quota',
+          details: { plan: 'free', limitCents: 500, usedCents: 500, period: 'unlimited' },
+        })
+      )
+    );
+    await AgentSessionStore.sendMessage(VIEW, 'More');
+    expect(AgentSessionStore.session(VIEW).limit.kind).toBe('spend');
+    transport.sendMessage.andReturn(Promise.resolve());
+    await AgentSessionStore.sendMessage(VIEW, 'Again');
+    expect(AgentSessionStore.session(VIEW).limit).toBe(null);
+  });
+
+  it('refuses a budget raise locally when the allowance is used up', async () => {
+    await start();
+    transport.usage.andReturn(
+      Promise.resolve({
+        plan: 'free',
+        period: 'unlimited',
+        builds: { used: 1, limit: 2 },
+        spend: { usedCents: 500, limitCents: 500 },
+        resetsAt: null,
+      })
+    );
+    await AgentSessionStore.refreshUsage();
+    await AgentSessionStore.raiseBudget(VIEW);
+    expect(transport.budget).not.toHaveBeenCalled();
+    expect(AgentSessionStore.session(VIEW).limit.kind).toBe('spend');
+  });
+
+  it('caches the account usage and keeps it when a refresh fails', async () => {
+    transport.usage.andReturn(
+      Promise.resolve({
+        plan: 'pro',
+        period: '2026-10',
+        builds: { used: 3, limit: 10 },
+        spend: { usedCents: 120, limitCents: 800 },
+        resetsAt: '2026-11-01T00:00:00.000Z',
+      })
+    );
+    await AgentSessionStore.refreshUsage();
+    expect(AgentSessionStore.accountUsage().spend.usedCents).toBe(120);
+    transport.usage.andCallFake(() => Promise.reject(new Error('offline')));
+    await AgentSessionStore.refreshUsage();
+    expect(AgentSessionStore.accountUsage().builds.used).toBe(3);
+  });
+
+  it('surfaces no_session from resume, then starts a session on the first message', async () => {
+    transport.streamEvents.andReturn(
+      Promise.reject(new AgentAPIError('No session', { statusCode: 404, code: 'no_session' }))
+    );
+    let error = null;
+    try {
+      await AgentSessionStore.resume(VIEW, 'Receipts');
+    } catch (err) {
+      error = err;
+    }
+    expect(error && error.code).toBe('no_session');
+    expect(AgentSessionStore.session(VIEW).error).toBe(null);
+
+    transport.streamEvents.andCallFake((viewId, onEvent, signal, onOpen) => {
+      if (onOpen) onOpen();
+      return new Promise(() => {});
+    });
+    await AgentSessionStore.sendMessage(VIEW, 'Make it blue');
+    expect(transport.sendMessage).not.toHaveBeenCalled();
+    expect(transport.createSession.mostRecentCall.args[0].request).toBe('Make it blue');
+  });
+
+  it('replaces an outdated session on the next message without reporting an error', async () => {
+    accepted[VIEW] = 4;
+    transport.streamEvents.andReturn(
+      Promise.reject(new AgentAPIError('Outdated', { statusCode: 409, code: 'session_outdated' }))
+    );
+    await AgentSessionStore.resume(VIEW, 'Flights');
+    let s = AgentSessionStore.session(VIEW);
+    expect(s.error).toBe(null);
+    expect(s.status).toBe('idle');
+    expect(s.transcript.map((e) => e.role)).toEqual(['system']);
+
+    transport.streamEvents.andCallFake((viewId, onEvent, signal, onOpen) => {
+      if (onOpen) onOpen();
+      return new Promise(() => {});
+    });
+    transport.createSession.andReturn(
+      Promise.resolve({ viewId: VIEW, sessionId: 's2', resumed: false, replaced: true })
+    );
+    await AgentSessionStore.sendMessage(VIEW, '');
+    expect(transport.createSession).not.toHaveBeenCalled();
+    await AgentSessionStore.sendMessage(VIEW, 'Show the airline logo');
+    expect(transport.sendMessage).not.toHaveBeenCalled();
+    expect(transport.createSession.mostRecentCall.args[0].request).toBe('Show the airline logo');
+    // The new session numbers revisions from 1.
+    expect(accepted[VIEW]).toBe(0);
+    s = AgentSessionStore.session(VIEW);
+    expect(s.transcript.filter((e) => e.role === 'user').length).toBe(1);
+  });
+
+  it('starts over with the same turn when a message hits an outdated session', async () => {
+    await start();
+    transport.sendMessage.andReturn(
+      Promise.reject(new AgentAPIError('Outdated', { statusCode: 409, code: 'session_outdated' }))
+    );
+    await AgentSessionStore.sendMessage(VIEW, 'Add a legend');
+    expect(transport.createSession.callCount).toBe(2);
+    expect(transport.createSession.mostRecentCall.args[0].request).toBe('Add a legend');
+    const users = AgentSessionStore.session(VIEW).transcript.filter((e) => e.role === 'user');
+    expect(users.map((e) => e.text)).toEqual(['Chart my receipts', 'Add a legend']);
+  });
+
+  it('applies messages once, and replaces optimistic user turns with their echoes', async () => {
+    await start();
+    AgentSessionStore.onEvent(VIEW, { id: 'e1', type: 'user_message', text: 'Chart my receipts' });
+    AgentSessionStore.onEvent(VIEW, { id: 'e2', type: 'message', text: 'Sure.' });
+    AgentSessionStore.onEvent(VIEW, { id: 'e2', type: 'message', text: 'Sure.' });
+    const t = AgentSessionStore.session(VIEW).transcript;
+    expect(t.map((e) => e.id)).toEqual(['e1', 'e2']);
+  });
+
+  it('previews a signed revision once and reports the outcome', async () => {
+    await start();
+    const event = {
+      id: 'e3',
+      type: 'tool_request' as const,
+      toolUseId: 'tu1',
+      name: 'preview_revision',
+      input: REVISION,
+      signature: keys.sign(REVISION),
+    };
+    AgentSessionStore.onEvent(VIEW, event);
+    AgentSessionStore.onEvent(VIEW, { ...event, id: 'e3-replayed' });
+    AgentSessionStore.onEvent(VIEW, { ...event, id: 'e4', toolUseId: 'tu0', resolved: true });
+    await flush();
+    await flush();
+    expect(applyAndWait.callCount).toBe(1);
+    expect(accepted[VIEW]).toBe(1);
+    const [, body] = transport.sendToolResult.mostRecentCall.args;
+    expect(body.toolUseId).toBe('tu1');
+    expect(JSON.parse(body.content[0].text).status).toBe('ok');
+    expect(AgentSessionStore.session(VIEW).revisions[0].status).toBe('ok');
+  });
+
+  it('refuses an unsigned revision without applying it', async () => {
+    await start();
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'e5',
+      type: 'tool_request',
+      toolUseId: 'tu2',
+      name: 'preview_revision',
+      input: REVISION,
+    });
+    await flush();
+    await flush();
+    expect(applyAndWait).not.toHaveBeenCalled();
+    const [, body] = transport.sendToolResult.mostRecentCall.args;
+    expect(body.isError).toBe(true);
+    expect(AgentSessionStore.session(VIEW).revisions[0].status).toBe('rejected');
+  });
+
+  it('asks for examples and returns the staged ones', async () => {
+    await start();
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'e6',
+      type: 'tool_request',
+      toolUseId: 'tu3',
+      name: 'request_examples',
+      input: { prompt: 'Drop a delivered package email' },
+    });
+    await flush();
+    let s = AgentSessionStore.session(VIEW);
+    expect(s.pendingRequest.kind).toBe('examples');
+    expect(s.pendingRequest.prompt).toBe('Drop a delivered package email');
+    await AgentSessionStore.attachThreads(VIEW, ['t1']);
+    expect(AgentSessionStore.session(VIEW).attachedExamples.length).toBe(1);
+    AgentSessionStore.submitExamples(VIEW);
+    await flush();
+    s = AgentSessionStore.session(VIEW);
+    expect(s.pendingRequest).toBe(null);
+    expect(s.attachedExamples).toEqual([]);
+    const [, body] = transport.sendToolResult.mostRecentCall.args;
+    expect(JSON.parse(body.content[0].text).examples[0].messageId).toBe('m1');
+  });
+
+  it('asks before sending a screenshot', async () => {
+    await start();
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'e7',
+      type: 'tool_request',
+      toolUseId: 'tu4',
+      name: 'request_screenshot',
+      input: { reason: 'Check the chart layout' },
+    });
+    await flush();
+    await flush();
+    const pending = AgentSessionStore.session(VIEW).pendingRequest;
+    expect(pending.kind).toBe('screenshot');
+    expect(pending.screenshot.dataUrl).toBe(
+      `data:image/png;base64,${Buffer.from('png').toString('base64')}`
+    );
+    expect(transport.sendToolResult).not.toHaveBeenCalled();
+
+    // The thumbnail tracks the View while the request is open...
+    await AgentSessionStore.refreshScreenshot(VIEW);
+    expect(AgentSessionStore.session(VIEW).pendingRequest.screenshot.dataUrl).toBe(
+      `data:image/png;base64,${Buffer.from('live').toString('base64')}`
+    );
+
+    // ...and what's sent is captured at the moment the user approves.
+    await AgentSessionStore.approveScreenshot(VIEW);
+    await flush();
+    const [, body] = transport.sendToolResult.mostRecentCall.args;
+    expect(body.content[0]).toEqual({
+      type: 'image',
+      mediaType: 'image/png',
+      dataBase64: Buffer.from('fresh').toString('base64'),
+    });
+    const last = AgentSessionStore.session(VIEW).transcript.slice(-1)[0];
+    expect(last.kind).toBe('response');
+    expect(last.text).toBe('Sent a screenshot');
+    expect(last.thumbnail).toContain(Buffer.from('fresh').toString('base64'));
+  });
+
+  it('holds a screenshot until the latest revision finishes applying', async () => {
+    let finishPreview: (r: any) => void = null;
+    applyAndWait.andReturn(new Promise((resolve) => (finishPreview = resolve)));
+    await start();
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'h1',
+      type: 'tool_request',
+      toolUseId: 'th1',
+      name: 'preview_revision',
+      input: REVISION,
+      signature: keys.sign(REVISION),
+    });
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'h2',
+      type: 'tool_request',
+      toolUseId: 'th2',
+      name: 'request_screenshot',
+      input: {},
+    });
+    await flush();
+    await flush();
+    expect(AgentSessionStore.session(VIEW).pendingRequest).toBe(null);
+
+    finishPreview({ status: 'ok', diagnostics: [] });
+    await flush();
+    await flush();
+    await flush();
+    const pending = AgentSessionStore.session(VIEW).pendingRequest;
+    expect(pending.kind).toBe('screenshot');
+    expect(pending.screenshot.note).toBeUndefined();
+  });
+
+  it('captures anyway, with a note, when the latest revision failed', async () => {
+    applyAndWait.andReturn(Promise.resolve({ status: 'failed', diagnostics: [] }));
+    await start();
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'f1',
+      type: 'tool_request',
+      toolUseId: 'tf1',
+      name: 'preview_revision',
+      input: REVISION,
+      signature: keys.sign(REVISION),
+    });
+    await flush();
+    await flush();
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'f2',
+      type: 'tool_request',
+      toolUseId: 'tf2',
+      name: 'request_screenshot',
+      input: {},
+    });
+    await flush();
+    await flush();
+    const pending = AgentSessionStore.session(VIEW).pendingRequest;
+    expect(pending.kind).toBe('screenshot');
+    expect(pending.screenshot.note).toContain("didn't render");
+  });
+
+  it('falls back to the last thumbnail when the View is off screen at send time', async () => {
+    AgentSessionStore.configure({
+      ...(AgentSessionStore as any).d,
+      captureForSend: async () => null,
+    });
+    await start();
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'e7b',
+      type: 'tool_request',
+      toolUseId: 'tu4b',
+      name: 'request_screenshot',
+      input: {},
+    });
+    await flush();
+    await flush();
+    await AgentSessionStore.approveScreenshot(VIEW);
+    await flush();
+    const [, body] = transport.sendToolResult.mostRecentCall.args;
+    expect(body.content[0].dataBase64).toBe(Buffer.from('png').toString('base64'));
+  });
+
+  it('keeps requests, responses and revisions in the order they happened', async () => {
+    await start();
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'r1',
+      type: 'tool_request',
+      toolUseId: 'tp1',
+      name: 'preview_revision',
+      input: REVISION,
+      signature: keys.sign(REVISION),
+    });
+    await flush();
+    await flush();
+    await AgentSessionStore.sendMessage(VIEW, 'Make the bars blue');
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'r2',
+      type: 'tool_request',
+      toolUseId: 'tq1',
+      name: 'ask_user',
+      input: { question: 'Which blue?' },
+    });
+    await flush();
+    AgentSessionStore.answerQuestion(VIEW, 'Navy');
+    const rev2 = { ...REVISION, revision: 2 };
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'r3',
+      type: 'tool_request',
+      toolUseId: 'tp2',
+      name: 'preview_revision',
+      input: rev2,
+      signature: keys.sign(rev2),
+    });
+    await flush();
+    await flush();
+    const t = AgentSessionStore.session(VIEW).transcript;
+    expect(t.map((e) => e.kind || e.role)).toEqual([
+      'user',
+      'revision',
+      'user',
+      'request',
+      'response',
+      'revision',
+    ]);
+    expect(t[1].revision.status).toBe('ok');
+    expect(t[3].text).toBe('Which blue?');
+    expect(t[4].text).toBe('Navy');
+  });
+
+  it('keeps the agent request in history after examples are shared or skipped', async () => {
+    await start();
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'x1',
+      type: 'tool_request',
+      toolUseId: 'tx1',
+      name: 'request_examples',
+      input: { prompt: 'Drop two flight confirmations' },
+    });
+    await flush();
+    await AgentSessionStore.attachThreads(VIEW, ['t1']);
+    AgentSessionStore.submitExamples(VIEW);
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'x2',
+      type: 'tool_request',
+      toolUseId: 'tx2',
+      name: 'request_examples',
+      input: { prompt: 'Any hotel bookings?' },
+    });
+    await flush();
+    AgentSessionStore.skipExamples(VIEW);
+    const t = AgentSessionStore.session(VIEW).transcript.slice(1);
+    expect(t.map((e) => [e.kind, e.text])).toEqual([
+      ['request', 'Drop two flight confirmations'],
+      ['response', 'Shared 1 example'],
+      ['request', 'Any hotel bookings?'],
+      ['response', 'Skipped'],
+    ]);
+    expect(t[1].attachments.length).toBe(1);
+  });
+
+  it('rebuilds requests, responses and revisions from replayed events', async () => {
+    await AgentSessionStore.resume(VIEW, 'Flights');
+    AgentSessionStore.onEvent(VIEW, { id: 'h1', type: 'user_message', text: 'Track my flights' });
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'h2',
+      type: 'tool_request',
+      toolUseId: 'th1',
+      name: 'request_examples',
+      input: { prompt: 'Drop a confirmation' },
+      resolved: true,
+    });
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'h3',
+      type: 'tool_result',
+      toolUseId: 'th1',
+      summary: { examples: 2 },
+    });
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'h4',
+      type: 'tool_request',
+      toolUseId: 'th2',
+      name: 'preview_revision',
+      input: { revision: 1 },
+      resolved: true,
+    });
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'h5',
+      type: 'tool_result',
+      toolUseId: 'th2',
+      summary: { status: 'ok' },
+    });
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'h6',
+      type: 'tool_request',
+      toolUseId: 'th3',
+      name: 'request_screenshot',
+      input: { reason: 'Check the legend' },
+      resolved: true,
+    });
+    expect(applyAndWait).not.toHaveBeenCalled();
+    expect(transport.sendToolResult).not.toHaveBeenCalled();
+    const s = AgentSessionStore.session(VIEW);
+    expect(s.pendingRequest).toBe(null);
+    expect(s.transcript.map((e) => [e.kind || e.role, e.text])).toEqual([
+      ['user', 'Track my flights'],
+      ['request', 'Drop a confirmation'],
+      ['response', 'Shared 2 examples'],
+      ['revision', ''],
+      ['request', 'Check the legend'],
+    ]);
+    expect(s.transcript[3].revision.status).toBe('ok');
+  });
+
+  it('words single and plural example responses', () => {
+    expect(responseText({ examples: 1 })).toBe('Shared 1 example');
+    expect(responseText({ examples: 3 })).toBe('Shared 3 examples');
+  });
+
+  it('answers questions and declined screenshots as text', async () => {
+    await start();
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'e8',
+      type: 'tool_request',
+      toolUseId: 'tu5',
+      name: 'ask_user',
+      input: { question: 'Group by month?', choices: ['Yes', 'No'] },
+    });
+    await flush();
+    expect(AgentSessionStore.session(VIEW).pendingRequest.choices).toEqual(['Yes', 'No']);
+    AgentSessionStore.answerQuestion(VIEW, 'Yes');
+    await flush();
+    let [, body] = transport.sendToolResult.mostRecentCall.args;
+    expect(body.content).toEqual([{ type: 'text', text: 'Yes' }]);
+
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'e9',
+      type: 'tool_request',
+      toolUseId: 'tu6',
+      name: 'request_screenshot',
+      input: {},
+    });
+    await flush();
+    await flush();
+    AgentSessionStore.declineScreenshot(VIEW);
+    await flush();
+    [, body] = transport.sendToolResult.mostRecentCall.args;
+    expect(body.content).toEqual([{ type: 'text', text: 'declined' }]);
+  });
+
+  it('sends staged examples with the next message', async () => {
+    await start();
+    await AgentSessionStore.attachThreads(VIEW, ['t1']);
+    await AgentSessionStore.sendMessage(VIEW, 'These two are wrong');
+    const [, body] = transport.sendMessage.mostRecentCall.args;
+    expect(body.text).toBe('These two are wrong');
+    expect(body.examples.length).toBe(1);
+    const last = AgentSessionStore.session(VIEW).transcript.slice(-1)[0];
+    expect(last.attachments.length).toBe(1);
+  });
+
+  it('tracks status, usage and budget raises', async () => {
+    await start();
+    AgentSessionStore.onEvent(VIEW, {
+      id: 'u1',
+      type: 'usage',
+      listCostCents: 150,
+      maxListCostCents: 200,
+    });
+    AgentSessionStore.onEvent(VIEW, { id: 's1', type: 'status', status: 'budget_reached' });
+    expect(AgentSessionStore.session(VIEW).status).toBe('budget_reached');
+    await AgentSessionStore.raiseBudget(VIEW);
+    expect(transport.budget).toHaveBeenCalledWith(VIEW, 'raise');
+    expect(AgentSessionStore.session(VIEW).usage.maxListCostCents).toBe(400);
+  });
+
+  describe('checkpoints and revert', function () {
+    const revisionEvent = (n: number, code: string) => {
+      const input = { ...REVISION, revision: n, files: { 'View.jsx': code } };
+      return {
+        id: `rev-event-${n}`,
+        type: 'tool_request' as const,
+        toolUseId: `tu-rev-${n}`,
+        name: 'preview_revision',
+        input,
+        signature: keys.sign(input),
+      };
+    };
+    const applyRevision = async (n: number, code: string) => {
+      AgentSessionStore.onEvent(VIEW, revisionEvent(n, code));
+      await flush();
+      await flush();
+    };
+
+    it('saves one checkpoint per request, before its first revision', async () => {
+      await start();
+      expect(AgentSessionStore.session(VIEW).canRevert).toBe(false);
+      await applyRevision(1, 'one');
+      await applyRevision(2, 'two');
+      expect(disk.checkpoints).toEqual(['existing']);
+      expect(AgentSessionStore.session(VIEW).canRevert).toBe(true);
+
+      await AgentSessionStore.sendMessage(VIEW, 'Make it blue');
+      await applyRevision(3, 'three');
+      expect(disk.checkpoints).toEqual(['existing', 'two']);
+      expect(disk.agentCode).toBe('three');
+    });
+
+    it('reverts, and the next message starts a fresh session with the restored code', async () => {
+      await start();
+      await applyRevision(1, 'one');
+      await AgentSessionStore.revert(VIEW);
+      expect(disk.code).toBe('existing');
+      const s = AgentSessionStore.session(VIEW);
+      expect(s.canRevert).toBe(false);
+      expect(s.transcript.slice(-1)[0].text).toContain('fresh chat');
+
+      transport.createSession.reset();
+      await AgentSessionStore.sendMessage(VIEW, 'Try a table instead');
+      expect(transport.sendMessage).not.toHaveBeenCalled();
+      expect(transport.createSession.mostRecentCall.args[0].fresh).toBe(true);
+      expect(disk.agentCode).toBe('existing');
+    });
+
+    it('still applies a revision when the View cannot be checkpointed', async () => {
+      AgentSessionStore.configure({
+        ...AgentSessionStore['deps'],
+        saveCheckpoint: () => {
+          throw new Error('Unexpected token in manifest.json');
+        },
+      });
+      await start();
+      await applyRevision(1, 'fixed');
+      expect(disk.code).toBe('fixed');
+      expect(AgentSessionStore.session(VIEW).revisions[0].status).toBe('ok');
+    });
+
+    it('stops the agent and refuses later revisions once the View is removed', async () => {
+      await start();
+      AgentSessionStore.forget(VIEW);
+      expect(transport.interrupt).toHaveBeenCalledWith(VIEW);
+      expect(disk.agentCode).toBe(null);
+
+      const before = applyAndWait.callCount;
+      await applyRevision(1, 'resurrected');
+      expect(applyAndWait.callCount).toBe(before);
+      expect(disk.code).toBe('existing');
+    });
+
+    it('shows the View when a revision applies with the chat open', async () => {
+      await start();
+      await applyRevision(1, 'one');
+      expect(showView).toHaveBeenCalledWith(VIEW);
+      expect(disk.code).toBe('one');
+    });
+
+    it('holds revisions while the chat is closed and the View is off screen', async () => {
+      await start();
+      AgentSessionStore.setActive(null);
+      await applyRevision(1, 'one');
+      expect(applyAndWait).not.toHaveBeenCalled();
+      expect(showView).not.toHaveBeenCalled();
+      expect(AgentSessionStore.session(VIEW).revisions[0].status).toBe('applying');
+
+      AgentSessionStore.setActive(VIEW);
+      await flush();
+      await flush();
+      expect(showView).toHaveBeenCalledWith(VIEW);
+      expect(disk.code).toBe('one');
+      expect(AgentSessionStore.session(VIEW).revisions[0].status).toBe('ok');
+    });
+
+    it('applies in place, without navigating, when the user is looking at the View', async () => {
+      await start();
+      AgentSessionStore.setActive(null);
+      await applyRevision(1, 'one');
+      onScreen = true;
+      screenListeners.forEach((c) => c());
+      await flush();
+      await flush();
+      expect(disk.code).toBe('one');
+      expect(showView).not.toHaveBeenCalled();
+    });
+
+    it('drops a held revision when the View is removed', async () => {
+      await start();
+      AgentSessionStore.setActive(null);
+      await applyRevision(1, 'one');
+      AgentSessionStore.forget(VIEW);
+      await flush();
+      expect(applyAndWait).not.toHaveBeenCalled();
+      expect(disk.code).toBe('existing');
+    });
+
+    it('keeps the session when the code is what the agent left', async () => {
+      await start();
+      await applyRevision(1, 'one');
+      await AgentSessionStore.sendMessage(VIEW, 'Make it blue');
+      expect(transport.sendMessage).toHaveBeenCalled();
+    });
+  });
+});

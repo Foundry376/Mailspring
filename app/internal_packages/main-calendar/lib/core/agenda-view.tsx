@@ -1,7 +1,7 @@
 import React from 'react';
 import moment, { Moment } from 'moment-timezone';
 import { ScrollRegion, InjectedComponentSet } from 'mailspring-component-kit';
-import { localized, Actions, CalendarDateUtils } from 'mailspring-exports';
+import { localized, Actions, CalendarDateUtils, CalendarUtils } from 'mailspring-exports';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
 import { CalendarView } from './calendar-constants';
 import { HeaderControls } from './header-controls';
@@ -14,7 +14,7 @@ import {
   occurrenceStartUnix,
   isEventSelected,
 } from './calendar-data-source';
-import { calcEventColors, dateOf, extractMeetingDomain, momentOf } from './calendar-helpers';
+import { calcEventColors, dateOf, momentOf } from './calendar-helpers';
 
 const DAYS_IN_VIEW = 14;
 
@@ -149,7 +149,7 @@ export class AgendaView extends React.Component<MailspringCalendarViewProps, Age
 
   _renderEvent(event: EventOccurrence, dayKey: string) {
     const colors = calcEventColors(event.calendarId);
-    const meetingDomain = extractMeetingDomain(event.location, event.description);
+    const meetingDomain = CalendarUtils.extractMeetingDomain(event.location, event.description);
     const isSelected = isEventSelected(this.props.selectedEvents, event);
 
     // Use a day-unique id/key so multi-day events don't produce duplicate DOM ids

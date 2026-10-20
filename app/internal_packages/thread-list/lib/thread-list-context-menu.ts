@@ -6,7 +6,8 @@ import {
   Message,
   TaskFactory,
   DatabaseStore,
-  FocusedPerspectiveStore,
+  MailboxPerspective,
+  CategoryStore,
   GetMessageRFC2822Task,
   SyncbackDraftTask,
   DraftFactory,
@@ -22,14 +23,36 @@ type TemplateItem =
     }
   | { type: 'separator' };
 
+const isInbox = (thread: Thread) => thread.categories.some((c) => c.role === 'inbox');
+
+/**
+ * The standard menu for one or more threads. `perspective` is the mailbox the threads are
+ * listed in. Without one (Views, which list threads from anywhere), Archive and Trash are
+ * offered from the threads' own folders and their tasks move every placement rather than
+ * scoping the move to a source folder.
+ */
 export default class ThreadListContextMenu {
   threadIds: string[];
   accountIds: string[];
   threads?: Thread[];
+  perspective: MailboxPerspective | null;
+  source: string;
 
-  constructor({ threadIds = [], accountIds = [] }) {
+  constructor({
+    threadIds = [],
+    accountIds = [],
+    perspective = null,
+    source = 'Context Menu: Thread List',
+  }: {
+    threadIds: string[];
+    accountIds: string[];
+    perspective?: MailboxPerspective | null;
+    source?: string;
+  }) {
     this.threadIds = threadIds;
     this.accountIds = accountIds;
+    this.perspective = perspective;
+    this.source = source;
   }
 
   menuItemTemplate() {
@@ -204,8 +227,11 @@ export default class ThreadListContextMenu {
   }
 
   archiveItem(): TemplateItem | null {
-    const perspective = FocusedPerspectiveStore.current();
-    const allowed = perspective.canArchiveThreads(this.threads);
+    const { perspective } = this;
+    const allowed = perspective
+      ? perspective.canArchiveThreads(this.threads)
+      : this.threads.some(isInbox) &&
+        AccountStore.accountsForItems(this.threads).every((acc) => acc.canArchiveThreads());
     if (!allowed) {
       return null;
     }
@@ -213,7 +239,7 @@ export default class ThreadListContextMenu {
       label: localized('Archive'),
       click: () => {
         const tasks = TaskFactory.tasksForArchiving({
-          source: 'Context Menu: Thread List',
+          source: this.source,
           threads: this.threads,
           perspective,
         });
@@ -223,8 +249,13 @@ export default class ThreadListContextMenu {
   }
 
   trashItem(): TemplateItem | null {
-    const perspective = FocusedPerspectiveStore.current();
-    const allowed = perspective.canMoveThreadsTo(this.threads, 'trash');
+    const { perspective } = this;
+    const allowed = perspective
+      ? perspective.canMoveThreadsTo(this.threads, 'trash')
+      : !this.threads.every((t) => t.categories.some((c) => c.role === 'trash')) &&
+        AccountStore.accountsForItems(this.threads).every(
+          (acc) => CategoryStore.getCategoryByRole(acc, 'trash') !== null
+        );
     if (!allowed) {
       return null;
     }
@@ -232,7 +263,7 @@ export default class ThreadListContextMenu {
       label: localized('Trash'),
       click: () => {
         const tasks = TaskFactory.tasksForMovingToTrash({
-          source: 'Context Menu: Thread List',
+          source: this.source,
           threads: this.threads,
         });
         Actions.queueTasks(tasks);
@@ -249,7 +280,7 @@ export default class ThreadListContextMenu {
       click: () => {
         Actions.queueTask(
           TaskFactory.taskForInvertingUnread({
-            source: 'Context Menu: Thread List',
+            source: this.source,
             threads: this.threads,
           })
         );
@@ -267,11 +298,11 @@ export default class ThreadListContextMenu {
         Actions.queueTasks(
           allInSpam
             ? TaskFactory.tasksForMarkingNotSpam({
-                source: 'Context Menu: Thread List',
+                source: this.source,
                 threads: this.threads,
               })
             : TaskFactory.tasksForMarkingAsSpam({
-                source: 'Context Menu: Thread List',
+                source: this.source,
                 threads: this.threads,
               })
         );
@@ -292,7 +323,7 @@ export default class ThreadListContextMenu {
       click: () => {
         Actions.queueTask(
           TaskFactory.taskForInvertingStarred({
-            source: 'Context Menu: Thread List',
+            source: this.source,
             threads: this.threads,
           })
         );
@@ -375,9 +406,12 @@ export default class ThreadListContextMenu {
     };
   }
 
-  displayMenu() {
+  /** Pops the menu at `position` (window coordinates), or at the cursor. */
+  displayMenu(position?: { x: number; y: number }) {
     this.menuItemTemplate().then((template) => {
-      require('@electron/remote').Menu.buildFromTemplate(template).popup({});
+      require('@electron/remote')
+        .Menu.buildFromTemplate(template)
+        .popup(position ? { x: Math.round(position.x), y: Math.round(position.y) } : {});
     });
   }
 }

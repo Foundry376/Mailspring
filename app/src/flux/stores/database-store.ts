@@ -20,7 +20,7 @@ const AGENT_PATH = path.join(path.dirname(__filename), 'database-agent.js');
 const BASE_RETRY_LOCK_DELAY = 50;
 const MAX_RETRY_LOCK_DELAY = 500;
 
-type AgentResponse = { results: any[]; agentTime: number };
+type AgentResponse = { results: any[]; agentTime: number; error?: string };
 type SQLString = string;
 type SQLValue = boolean | string | number;
 
@@ -245,7 +245,11 @@ class DatabaseStore extends MailspringStore {
         }
         resolve(results);
       } else {
-        const { results, agentTime } = await this._executeInBackground(query, values);
+        const { results, agentTime, error } = await this._executeInBackground(query, values);
+        if (error) {
+          reject(new Error(`DatabaseStore: Query ${query} failed in background: ${error}`));
+          return;
+        }
         const msec = Date.now() - start;
         if (debugVerbose.enabled) {
           const q = `🔶 (${msec}ms) Background: ${query}`;
@@ -272,7 +276,7 @@ class DatabaseStore extends MailspringStore {
 
     const schemaChangedStr = 'database schema has changed';
 
-    const retryableRegexp = new RegExp(`(database is locked)||(${schemaChangedStr})`, 'i');
+    const retryableRegexp = new RegExp(`(database is locked)|(${schemaChangedStr})`, 'i');
 
     // Because other processes may be writing to the database and modifying the
     // schema (running ANALYZE, etc.), we may `prepare` a statement and then be
@@ -372,9 +376,9 @@ class DatabaseStore extends MailspringStore {
           this._agent = null;
         });
         this._agent.on('message', (message: Record<string, any>) => {
-          const { type, id, results, agentTime } = message;
-          if (type === 'results' && this._agentOpenQueries[id]) {
-            this._agentOpenQueries[id]({ results, agentTime });
+          const { type, id, results, agentTime, error } = message;
+          if ((type === 'results' || type === 'error') && this._agentOpenQueries[id]) {
+            this._agentOpenQueries[id]({ results, agentTime, error });
             delete this._agentOpenQueries[id];
           }
         });

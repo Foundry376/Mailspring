@@ -9,6 +9,7 @@ import {
   Actions,
   localized,
   CalendarDateUtils,
+  CalendarUtils,
   DestroyEventTask,
   Event,
   SyncbackEventTask,
@@ -26,7 +27,6 @@ import {
   EventOccurrence,
   FocusedEventInfo,
   isEventSelected,
-  occurrenceId,
   occurrencesForEvents,
   ownCalendarAddresses,
   occurrenceStartUnix,
@@ -60,7 +60,6 @@ import {
 import {
   createDragState,
   updateDragState,
-  parseEventIdFromOccurrence,
   snapAllDayTimes,
   canAttemptMove,
   canMoveEvent,
@@ -246,7 +245,10 @@ export class MailspringCalendar extends React.Component<
 
   /** The occurrence as its row draws it now; null once a move landed somewhere unpredicted. */
   async _currentOccurrence(occurrence: EventOccurrence): Promise<EventOccurrence | null> {
-    const event = await DatabaseStore.find<Event>(Event, parseEventIdFromOccurrence(occurrence.id));
+    const event = await DatabaseStore.find<Event>(
+      Event,
+      CalendarUtils.parseOccurrenceId(occurrence.id).eventId
+    );
     if (!event) return occurrence;
     const pending = this._pendingMoves.get(occurrence.id);
     if (pending && event.ics === pending.staleIcs) return occurrence;
@@ -272,7 +274,9 @@ export class MailspringCalendar extends React.Component<
   /** An occurrence's id embeds its start; a series exception stored as its own row keeps its id. */
   _followMove(occurrence: EventOccurrence, event: Event, newStart: number, staleIcs: string) {
     if (!isEventSelected(this.state.selectedEvents, occurrence)) return;
-    const id = event.isRecurrenceException() ? occurrence.id : occurrenceId(event.id, newStart);
+    const id = event.isRecurrenceException()
+      ? occurrence.id
+      : CalendarUtils.occurrenceId(event.id, newStart);
     this._pendingMoves.set(id, { start: newStart, staleIcs });
     this.setState({
       selectedEvents: this.state.selectedEvents.map((o) =>
@@ -618,7 +622,7 @@ export class MailspringCalendar extends React.Component<
   async _deleteEvent(occurrence: EventOccurrence) {
     try {
       // Parse the event ID from the occurrence ID (handles recurring instance IDs)
-      const eventId = parseEventIdFromOccurrence(occurrence.id);
+      const eventId = CalendarUtils.parseOccurrenceId(occurrence.id).eventId;
 
       // Fetch the full event from database to get ICS data
       const event = await DatabaseStore.find<Event>(Event, eventId);
@@ -1008,7 +1012,7 @@ export class MailspringCalendar extends React.Component<
     isResize: boolean
   ) {
     try {
-      const eventId = parseEventIdFromOccurrence(occurrence.id);
+      const eventId = CalendarUtils.parseOccurrenceId(occurrence.id).eventId;
       const event = await DatabaseStore.find<Event>(Event, eventId);
 
       if (!event) {
@@ -1094,7 +1098,7 @@ export class MailspringCalendar extends React.Component<
 
     try {
       // Parse the event ID from the occurrence ID
-      const eventId = parseEventIdFromOccurrence(dragState.event.id);
+      const eventId = CalendarUtils.parseOccurrenceId(dragState.event.id).eventId;
 
       const event = await DatabaseStore.find<Event>(Event, eventId);
       if (!event) {

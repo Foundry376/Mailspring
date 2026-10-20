@@ -36,6 +36,8 @@ import moveToApplications from './move-to-applications';
 import { MailsyncProcess } from '../mailsync-process';
 import Config from '../config';
 import { registerQuickpreviewIPCHandlers } from './quickpreview-ipc';
+import { registerLocalAIIPCHandlers } from './local-ai-service';
+import { registerViewSessionIPCHandlers } from './view-sessions';
 import { guardAuxiliaryWindowNavigation } from './auxiliary-window-guard';
 import { onFromMailspringWindows, handleFromMailspringWindows } from './trusted-ipc';
 import {
@@ -972,6 +974,12 @@ export default class Application extends EventEmitter {
 
     registerQuickpreviewIPCHandlers(ipcMain);
     registerNotificationIPCHandlers(ipcMain);
+    registerViewSessionIPCHandlers(ipcMain);
+    registerLocalAIIPCHandlers(ipcMain, {
+      configDirPath: this.configDirPath,
+      config: this.config,
+      devMode: this.devMode,
+    });
   }
 
   sendCalendarSync(accountId?: string) {
@@ -1108,6 +1116,11 @@ export default class Application extends EventEmitter {
         main.sendMessage('open-preferences');
       } else if (parts.host === 'plugins') {
         main.sendMessage('changePluginStateFromUrl', urlToOpen);
+      } else if (parts.host === 'install-view') {
+        // A shared View's landing page (getmailspring.com/v/<shareId>) links here.
+        main.show();
+        main.focus();
+        main.sendMessage('install-view', urlToOpen);
       } else {
         main.sendMessage('openThreadFromWeb', urlToOpen);
       }
