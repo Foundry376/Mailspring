@@ -55,17 +55,17 @@ describe('QuickEventButton', function () {
 
   it('drops its label when the toolbar has no room for it, and takes it back once it does', function () {
     resize(400);
-    expect(label().textContent).toBe('New event');
+    expect(label().textContent).toBe('New Event');
     const labelled = 120 + (host.querySelector('.item-compose') as HTMLElement).offsetWidth;
 
     resize(labelled - 10);
     expect(label()).toBe(null);
-    expect(host.querySelector('.item-compose').getAttribute('aria-label')).toBe('New event');
+    expect(host.querySelector('.item-compose').getAttribute('aria-label')).toBe('New Event');
 
     resize(labelled - 5);
     expect(label()).toBe(null);
 
     resize(labelled);
-    expect(label().textContent).toBe('New event');
+    expect(label().textContent).toBe('New Event');
   });
 });

@@ -218,15 +218,15 @@ export class MailspringCalendar extends React.Component<
       invalidateThemeTextColorCache();
       this.setState((s) => ({ themeVersion: s.themeVersion + 1 }));
     });
-    this._publishControls();
+    this._publishCalendarOptions();
   }
 
   componentDidUpdate() {
-    this._publishControls();
+    this._publishCalendarOptions();
   }
 
-  _publishControls() {
-    CalendarHeaderStore.setControls({
+  _publishCalendarOptions() {
+    CalendarHeaderStore.setCalendarOptions({
       view: this.state.view,
       onChangeView: this.onChangeView,
       agendaOpen: this.state.agendaOpen,
@@ -235,7 +235,7 @@ export class MailspringCalendar extends React.Component<
   }
 
   componentWillUnmount() {
-    CalendarHeaderStore.setControls(null);
+    CalendarHeaderStore.setCalendarOptions(null);
     // The component is unmounting, dispose subscriptions
     this._disposable?.dispose();
     this._themeDisposable?.dispose();

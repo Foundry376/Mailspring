@@ -5,13 +5,13 @@ import { DatabaseStore } from 'mailspring-exports';
 
 import { CalendarHeader } from '../internal_packages/main-calendar/lib/core/calendar-header';
 import CalendarHeaderStore, {
-  ViewHeader,
+  ViewNavigation,
 } from '../internal_packages/main-calendar/lib/core/calendar-header-store';
 import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
 
 describe('CalendarHeader', function () {
   let host: HTMLDivElement;
-  const viewHeader = (over: Partial<ViewHeader> = {}): ViewHeader => ({
+  const navigation = (over: Partial<ViewNavigation> = {}): ViewNavigation => ({
     title: 'October 2026',
     arrows: 'vertical',
     prevAction: () => {},
@@ -19,7 +19,7 @@ describe('CalendarHeader', function () {
     todayAction: () => {},
     ...over,
   });
-  const controls = (over = {}) => ({
+  const options = (over = {}) => ({
     view: CalendarView.MONTH,
     onChangeView: () => {},
     agendaOpen: false,
@@ -30,8 +30,8 @@ describe('CalendarHeader', function () {
 
   beforeEach(function () {
     spyOn(DatabaseStore, 'findAll').andReturn(Promise.resolve([]));
-    CalendarHeaderStore.setViewHeader(null);
-    CalendarHeaderStore.setControls(null);
+    CalendarHeaderStore.setViewNavigation(null);
+    CalendarHeaderStore.setCalendarOptions(null);
     host = document.createElement('div');
     document.body.appendChild(host);
     ReactDOM.render(<CalendarHeader />, host);
@@ -40,32 +40,32 @@ describe('CalendarHeader', function () {
   afterEach(function () {
     ReactDOM.unmountComponentAtNode(host);
     host.remove();
-    CalendarHeaderStore.setViewHeader(null);
-    CalendarHeaderStore.setControls(null);
+    CalendarHeaderStore.setViewNavigation(null);
+    CalendarHeaderStore.setCalendarOptions(null);
   });
 
   it('shows nothing until a view and the calendar have handed it what to show', function () {
     expect(host.querySelector('.header-controls')).toBe(null);
-    CalendarHeaderStore.setViewHeader(viewHeader());
+    CalendarHeaderStore.setViewNavigation(navigation());
     expect(host.querySelector('.header-controls')).toBe(null);
-    CalendarHeaderStore.setControls(controls());
+    CalendarHeaderStore.setCalendarOptions(options());
     expect(title()).toBe('October 2026');
     expect(host.querySelector('select').value).toBe(CalendarView.MONTH);
   });
 
   it('follows the title, view and agenda as they change', function () {
-    CalendarHeaderStore.setViewHeader(viewHeader());
-    CalendarHeaderStore.setControls(controls());
-    CalendarHeaderStore.setViewHeader(viewHeader({ title: 'November 2026' }));
-    CalendarHeaderStore.setControls(controls({ view: CalendarView.WEEK, agendaOpen: true }));
+    CalendarHeaderStore.setViewNavigation(navigation());
+    CalendarHeaderStore.setCalendarOptions(options());
+    CalendarHeaderStore.setViewNavigation(navigation({ title: 'November 2026' }));
+    CalendarHeaderStore.setCalendarOptions(options({ view: CalendarView.WEEK, agendaOpen: true }));
     expect(title()).toBe('November 2026');
     expect(host.querySelector('select').value).toBe(CalendarView.WEEK);
     expect(host.querySelector('.agenda-toggle').getAttribute('aria-pressed')).toBe('true');
   });
 
   it('puts search between the arrows and the agenda button', function () {
-    CalendarHeaderStore.setViewHeader(viewHeader());
-    CalendarHeaderStore.setControls(controls());
+    CalendarHeaderStore.setViewNavigation(navigation());
+    CalendarHeaderStore.setCalendarOptions(options());
     const items = Array.from(host.querySelector('.side-controls').children);
     const at = (selector: string) => items.indexOf(host.querySelector(selector));
     expect(at('.event-search-bar')).toBe(at('.nav-arrows') + 1);
@@ -75,10 +75,10 @@ describe('CalendarHeader', function () {
   it("runs the view's latest actions, handed over without a redraw", function () {
     const prevAction = jasmine.createSpy('prevAction');
     const onToggleAgenda = jasmine.createSpy('onToggleAgenda');
-    CalendarHeaderStore.setViewHeader(viewHeader());
-    CalendarHeaderStore.setControls(controls());
-    CalendarHeaderStore.setViewHeader(viewHeader({ prevAction }));
-    CalendarHeaderStore.setControls(controls({ onToggleAgenda }));
+    CalendarHeaderStore.setViewNavigation(navigation());
+    CalendarHeaderStore.setCalendarOptions(options());
+    CalendarHeaderStore.setViewNavigation(navigation({ prevAction }));
+    CalendarHeaderStore.setCalendarOptions(options({ onToggleAgenda }));
 
     ReactTestUtils.Simulate.click(host.querySelector('.prev'));
     ReactTestUtils.Simulate.click(host.querySelector('.agenda-toggle'));

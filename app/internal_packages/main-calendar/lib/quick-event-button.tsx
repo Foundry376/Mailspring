@@ -64,7 +64,7 @@ export class QuickEventButton extends React.Component<
   };
 
   render() {
-    const label = localized('New event');
+    const label = localized('New Event');
     const { compact } = this.state;
     return (
       <BindGlobalCommands commands={{ 'core:add-item': this._openPopover }}>

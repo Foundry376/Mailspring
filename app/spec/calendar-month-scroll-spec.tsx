@@ -34,7 +34,7 @@ describe('MonthView scrolling', function () {
 
   const grid = () => host.querySelector('.month-view-grid') as HTMLElement;
   const rowHeight = () => grid().clientHeight / 6;
-  const title = () => CalendarHeaderStore.viewHeader().title;
+  const title = () => CalendarHeaderStore.viewNavigation().title;
   const barOf = (eventTitle: string) =>
     Array.from(host.querySelectorAll<HTMLElement>('.month-view-event')).find(
       (bar) => bar.textContent === eventTitle

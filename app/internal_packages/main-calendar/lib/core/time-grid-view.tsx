@@ -118,22 +118,22 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     this._pendingInitialCenter = true;
     this._subscribe();
     this._setIntervalHeight();
-    this._publishHeader();
+    this._publishNavigation();
   }
 
   componentDidUpdate() {
     this._subscribe();
-    this._publishHeader();
+    this._publishNavigation();
   }
 
   componentWillUnmount() {
     this._mounted = false;
     this._sub.dispose();
-    CalendarHeaderStore.setViewHeader(null);
+    CalendarHeaderStore.setViewNavigation(null);
   }
 
-  _publishHeader() {
-    CalendarHeaderStore.setViewHeader({
+  _publishNavigation() {
+    CalendarHeaderStore.setViewNavigation({
       title: this._title(),
       arrows: 'horizontal',
       prevAction: this._onClickPrev,

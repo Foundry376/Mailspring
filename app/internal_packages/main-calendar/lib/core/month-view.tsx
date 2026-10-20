@@ -69,21 +69,21 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
 
   componentDidMount() {
     this._subscribe();
-    this._publishHeader();
+    this._publishNavigation();
   }
 
   componentDidUpdate() {
     this._subscribe();
-    this._publishHeader();
+    this._publishNavigation();
   }
 
   componentWillUnmount() {
     this._sub.dispose();
-    CalendarHeaderStore.setViewHeader(null);
+    CalendarHeaderStore.setViewNavigation(null);
   }
 
-  _publishHeader() {
-    CalendarHeaderStore.setViewHeader({
+  _publishNavigation() {
+    CalendarHeaderStore.setViewNavigation({
       title: this._title(),
       arrows: 'vertical',
       prevAction: this._onClickPrevMonth,

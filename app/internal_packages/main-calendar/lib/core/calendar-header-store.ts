@@ -1,7 +1,7 @@
 import MailspringStore from 'mailspring-store';
 import { CalendarView } from './calendar-constants';
 
-export interface ViewHeader {
+export interface ViewNavigation {
   title: string;
   arrows: 'horizontal' | 'vertical';
   prevAction: () => void;
@@ -9,7 +9,7 @@ export interface ViewHeader {
   todayAction: () => void;
 }
 
-export interface CalendarControls {
+export interface CalendarOptions {
   view: CalendarView;
   onChangeView: (view: CalendarView) => void;
   agendaOpen: boolean;
@@ -18,29 +18,29 @@ export interface CalendarControls {
 
 /** Triggers only when something drawn changes; the actions are kept current without a redraw. */
 class CalendarHeaderStore extends MailspringStore {
-  _viewHeader: ViewHeader | null = null;
-  _controls: CalendarControls | null = null;
+  _viewNavigation: ViewNavigation | null = null;
+  _calendarOptions: CalendarOptions | null = null;
 
-  viewHeader() {
-    return this._viewHeader;
+  viewNavigation() {
+    return this._viewNavigation;
   }
 
-  controls() {
-    return this._controls;
+  calendarOptions() {
+    return this._calendarOptions;
   }
 
-  setViewHeader(viewHeader: ViewHeader | null) {
-    const shown = this._viewHeader;
-    this._viewHeader = viewHeader;
-    if (shown?.title !== viewHeader?.title || shown?.arrows !== viewHeader?.arrows) {
+  setViewNavigation(navigation: ViewNavigation | null) {
+    const shown = this._viewNavigation;
+    this._viewNavigation = navigation;
+    if (shown?.title !== navigation?.title || shown?.arrows !== navigation?.arrows) {
       this.trigger();
     }
   }
 
-  setControls(controls: CalendarControls | null) {
-    const shown = this._controls;
-    this._controls = controls;
-    if (shown?.view !== controls?.view || shown?.agendaOpen !== controls?.agendaOpen) {
+  setCalendarOptions(options: CalendarOptions | null) {
+    const shown = this._calendarOptions;
+    this._calendarOptions = options;
+    if (shown?.view !== options?.view || shown?.agendaOpen !== options?.agendaOpen) {
       this.trigger();
     }
   }

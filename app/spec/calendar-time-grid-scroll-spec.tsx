@@ -39,7 +39,7 @@ describe('TimeGridView scrolling', function () {
   };
 
   const strip = () => host.querySelector('.calendar-area-wrap') as HTMLElement;
-  const title = () => CalendarHeaderStore.viewHeader().title;
+  const title = () => CalendarHeaderStore.viewNavigation().title;
   const firstInView = () => {
     const left = strip().getBoundingClientRect().left;
     return Array.from(host.querySelectorAll('.day-label-wrap')).find(

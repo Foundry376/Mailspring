@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom';
 import moment from 'moment';
 
 import CalendarHeaderStore, {
-  ViewHeader,
+  ViewNavigation,
 } from '../internal_packages/main-calendar/lib/core/calendar-header-store';
 import { MonthView } from '../internal_packages/main-calendar/lib/core/month-view';
 import { TimeGridView } from '../internal_packages/main-calendar/lib/core/time-grid-view';
@@ -16,7 +16,7 @@ import { calendarViewProps } from './fixtures/calendar-view-props';
 describe('CalendarHeaderStore', function () {
   let triggered: number;
   let unlisten: () => void;
-  const header = (over: Partial<ViewHeader> = {}): ViewHeader => ({
+  const navigation = (over: Partial<ViewNavigation> = {}): ViewNavigation => ({
     title: 'October 2026',
     arrows: 'vertical',
     prevAction: () => {},
@@ -26,8 +26,8 @@ describe('CalendarHeaderStore', function () {
   });
 
   beforeEach(function () {
-    CalendarHeaderStore.setViewHeader(null);
-    CalendarHeaderStore.setControls(null);
+    CalendarHeaderStore.setViewNavigation(null);
+    CalendarHeaderStore.setCalendarOptions(null);
     triggered = 0;
     unlisten = CalendarHeaderStore.listen(() => triggered++);
   });
@@ -35,17 +35,19 @@ describe('CalendarHeaderStore', function () {
   afterEach(() => unlisten());
 
   it('redraws for a new title or arrows, but keeps new actions without one', function () {
-    CalendarHeaderStore.setViewHeader(header());
+    CalendarHeaderStore.setViewNavigation(navigation());
     expect(triggered).toBe(1);
 
     const nextAction = jasmine.createSpy('nextAction');
-    CalendarHeaderStore.setViewHeader(header({ nextAction }));
+    CalendarHeaderStore.setViewNavigation(navigation({ nextAction }));
     expect(triggered).toBe(1);
-    CalendarHeaderStore.viewHeader().nextAction();
+    CalendarHeaderStore.viewNavigation().nextAction();
     expect(nextAction).toHaveBeenCalled();
 
-    CalendarHeaderStore.setViewHeader(header({ title: 'November 2026' }));
-    CalendarHeaderStore.setViewHeader(header({ title: 'November 2026', arrows: 'horizontal' }));
+    CalendarHeaderStore.setViewNavigation(navigation({ title: 'November 2026' }));
+    CalendarHeaderStore.setViewNavigation(
+      navigation({ title: 'November 2026', arrows: 'horizontal' })
+    );
     expect(triggered).toBe(3);
   });
 
@@ -63,30 +65,30 @@ describe('CalendarHeaderStore', function () {
 
   it('takes the header from the month view, and lets go of it on unmount', function () {
     mounted(<MonthView {...calendarViewProps({ focusedMoment: moment([2026, 9, 16]) })} />, () => {
-      expect(CalendarHeaderStore.viewHeader().title).toBe('October 2026');
-      expect(CalendarHeaderStore.viewHeader().arrows).toBe('vertical');
+      expect(CalendarHeaderStore.viewNavigation().title).toBe('October 2026');
+      expect(CalendarHeaderStore.viewNavigation().arrows).toBe('vertical');
     });
-    expect(CalendarHeaderStore.viewHeader()).toBe(null);
+    expect(CalendarHeaderStore.viewNavigation()).toBe(null);
   });
 
   it('takes the header from the day view, and lets go of it on unmount', function () {
     const props = calendarViewProps({ focusedMoment: moment([2026, 9, 16]) });
     mounted(<TimeGridView {...props} visibleDays={1} />, () => {
-      expect(CalendarHeaderStore.viewHeader().title).toBe('Friday, October 16, 2026');
-      expect(CalendarHeaderStore.viewHeader().arrows).toBe('horizontal');
+      expect(CalendarHeaderStore.viewNavigation().title).toBe('Friday, October 16, 2026');
+      expect(CalendarHeaderStore.viewNavigation().arrows).toBe('horizontal');
     });
-    expect(CalendarHeaderStore.viewHeader()).toBe(null);
+    expect(CalendarHeaderStore.viewNavigation()).toBe(null);
   });
 
   it('redraws when only the view changes', function () {
-    CalendarHeaderStore.setControls({
+    CalendarHeaderStore.setCalendarOptions({
       view: CalendarView.WEEK,
       onChangeView: () => {},
       agendaOpen: false,
       onToggleAgenda: () => {},
     });
     triggered = 0;
-    CalendarHeaderStore.setControls({
+    CalendarHeaderStore.setCalendarOptions({
       view: CalendarView.MONTH,
       onChangeView: () => {},
       agendaOpen: false,
@@ -104,11 +106,11 @@ describe('CalendarHeaderStore', function () {
     spyOn(AppEnv.mailsyncBridge, 'sendSyncCalendarNow');
     let calendar: any;
     mounted(<MailspringCalendar ref={(c) => (calendar = c)} />, () => {
-      expect(CalendarHeaderStore.controls().agendaOpen).toBe(false);
+      expect(CalendarHeaderStore.calendarOptions().agendaOpen).toBe(false);
       calendar.onToggleAgenda();
-      expect(CalendarHeaderStore.controls().agendaOpen).toBe(true);
+      expect(CalendarHeaderStore.calendarOptions().agendaOpen).toBe(true);
     });
-    expect(CalendarHeaderStore.controls()).toBe(null);
+    expect(CalendarHeaderStore.calendarOptions()).toBe(null);
   });
 
   it("takes the calendar's view and agenda state, redrawing when they change", function () {
@@ -116,13 +118,13 @@ describe('CalendarHeaderStore', function () {
     const calendar: any = new MailspringCalendar({} as any);
     calendar.setState = (update: object) => Object.assign(calendar.state, update);
     calendar.state.view = CalendarView.WEEK;
-    calendar._publishControls();
-    expect(CalendarHeaderStore.controls().view).toBe(CalendarView.WEEK);
-    expect(CalendarHeaderStore.controls().agendaOpen).toBe(false);
+    calendar._publishCalendarOptions();
+    expect(CalendarHeaderStore.calendarOptions().view).toBe(CalendarView.WEEK);
+    expect(CalendarHeaderStore.calendarOptions().agendaOpen).toBe(false);
 
     calendar.onToggleAgenda();
-    calendar._publishControls();
-    expect(CalendarHeaderStore.controls().agendaOpen).toBe(true);
+    calendar._publishCalendarOptions();
+    expect(CalendarHeaderStore.calendarOptions().agendaOpen).toBe(true);
     expect(triggered).toBe(2);
   });
 });

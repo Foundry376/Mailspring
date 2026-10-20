@@ -18,24 +18,24 @@ export class CalendarHeader extends React.Component<Record<string, unknown>> {
   }
 
   // The store keeps actions current without a redraw, so read them when they're used.
-  _prev = () => CalendarHeaderStore.viewHeader()?.prevAction();
-  _next = () => CalendarHeaderStore.viewHeader()?.nextAction();
-  _today = () => CalendarHeaderStore.viewHeader()?.todayAction();
-  _changeView = (view: CalendarView) => CalendarHeaderStore.controls()?.onChangeView(view);
-  _toggleAgenda = () => CalendarHeaderStore.controls()?.onToggleAgenda();
+  _prev = () => CalendarHeaderStore.viewNavigation()?.prevAction();
+  _next = () => CalendarHeaderStore.viewNavigation()?.nextAction();
+  _today = () => CalendarHeaderStore.viewNavigation()?.todayAction();
+  _changeView = (view: CalendarView) => CalendarHeaderStore.calendarOptions()?.onChangeView(view);
+  _toggleAgenda = () => CalendarHeaderStore.calendarOptions()?.onToggleAgenda();
 
   render() {
-    const viewHeader = CalendarHeaderStore.viewHeader();
-    const controls = CalendarHeaderStore.controls();
-    if (!viewHeader || !controls) {
+    const navigation = CalendarHeaderStore.viewNavigation();
+    const options = CalendarHeaderStore.calendarOptions();
+    if (!navigation || !options) {
       return null;
     }
     return (
       <HeaderControls
-        title={viewHeader.title}
-        arrows={viewHeader.arrows}
-        view={controls.view}
-        agendaOpen={controls.agendaOpen}
+        title={navigation.title}
+        arrows={navigation.arrows}
+        view={options.view}
+        agendaOpen={options.agendaOpen}
         prevAction={this._prev}
         nextAction={this._next}
         todayAction={this._today}
