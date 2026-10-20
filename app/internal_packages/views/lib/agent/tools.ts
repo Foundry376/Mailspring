@@ -1,5 +1,5 @@
 import { localized } from 'mailspring-exports';
-import { Diagnostic } from '../authoring/diagnostics';
+import { Diagnostic, isFailure } from '../authoring/diagnostics';
 import { ViewRevision } from '../authoring/revisions';
 import { checkSignature, SignatureCheck } from './signing';
 import { RevisionEntry, ToolContent } from './types';
@@ -37,8 +37,7 @@ export interface ToolDeps {
   ) => Promise<ToolResult>;
 }
 
-// Kinds that tell the agent whether a revision works. Console output is left out because a
-// View's own logging is where mail content would show up.
+// Kinds that tell the agent whether a revision works.
 const RELAYED_KINDS = [
   'compile-error',
   'runtime-error',
@@ -89,9 +88,9 @@ function runtimeErrorSummary(d: Diagnostic, sourceLines: string[]) {
 
 /**
  * Diagnostics as sent to the agent: failures and the render-ok signal, built only from what
- * the host produced. Text the View controls (runtime error messages, bridge error messages and
- * parameter names, console output) stays on this machine, so a View can't use its own errors
- * to send mail to the agent. `viewSource` is the View.jsx of the revision being reported.
+ * the host produced. Text the View controls (runtime and bridge error messages) stays on this
+ * machine, so a View can't use its own errors to send mail to the agent. `viewSource` is the
+ * View.jsx of the revision being reported.
  */
 export function relayableDiagnostics(diagnostics: Diagnostic[], viewSource = '') {
   const sourceLines = viewSource.split('\n');
@@ -120,7 +119,8 @@ export function relayableDiagnostics(diagnostics: Diagnostic[], viewSource = '')
 export function summarizeOutcome(status: string, diagnostics: Diagnostic[]) {
   if (status === 'ok') return 'Rendered without errors';
   if (status === 'timeout') return 'Did not finish rendering';
-  const failure = diagnostics.find((d) => d.kind !== 'render-ok' && d.kind !== 'console');
+  // A bridge error often precedes the failure it caused, so it never names the outcome.
+  const failure = diagnostics.find(isFailure) || diagnostics.find((d) => d.kind === 'consent');
   if (!failure) return 'Failed';
   const where = failure.location ? ` at View.jsx:${failure.location.line}` : '';
   return `${failure.kind}${where}: ${failure.message.split('\n')[0].slice(0, 120)}`;

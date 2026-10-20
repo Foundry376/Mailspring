@@ -56,7 +56,6 @@ export const ViewAuthoring = {
         viewId,
         revision: hash,
         kind: 'consent',
-        level: 'error',
         message:
           consent === 'declined'
             ? 'The user did not allow the permissions or network hosts this revision asks for.'

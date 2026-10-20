@@ -8,7 +8,7 @@ function Broken() {
 }
 
 export default function ErrorDemo() {
-  const [broken, setBroken] = useState(new URLSearchParams(location.hash.slice(1)).has('throw'));
+  const [broken, setBroken] = useState(false);
   return (
     <div className="p-6 text-ms-text">
       <h1 className="text-xl font-semibold text-ms-heading mb-2">Error Demo</h1>

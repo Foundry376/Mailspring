@@ -8,21 +8,16 @@ export type DiagnosticKind =
   | 'compile-error'
   | 'runtime-error'
   | 'unhandled-rejection'
-  | 'console'
   | 'bridge-error'
   | 'crash'
   | 'hang'
   | 'render-ok'
-  | 'screenshot-taken'
   | 'consent';
 
 /**
  * One thing that happened to a View, shown in the authoring UI and relayed to the agent that
- * wrote it.
- *
- * A View can put anything it can read into the text of its errors, console output and bridge
- * calls, so records built from that text are marked `untrusted`. Untrusted text stays on this
- * machine; the agent relay (agent/tools.ts) sends only fields the host produced itself.
+ * wrote it. A View can put anything it can read into its error messages and stacks, so the
+ * agent relay (agent/tools.ts) sends only fields the host produced itself.
  */
 export interface Diagnostic {
   ts: number;
@@ -31,15 +26,12 @@ export interface Diagnostic {
   revision: string | null;
   kind: DiagnosticKind;
   message: string;
-  level?: 'warning' | 'error';
   stack?: string;
   location?: { line: number; column: number };
   method?: string;
   code?: string;
-  params?: string;
   /** For `permission` bridge errors: the permission the View lacked. */
   permission?: string;
-  untrusted?: boolean;
 }
 
 const BUFFER_SIZE = 200;
@@ -65,14 +57,6 @@ const truncate = (s: any, max: number) => {
   return str.length > max ? `${str.slice(0, max)}…` : str;
 };
 
-// Rewrites guest URLs in stack traces to the author's file. Sucrase preserves line numbers,
-// so view.js:LINE:COL is View.jsx:LINE:COL (see compiledViewSource in view-sessions.ts).
-export function authorStack(stack: string) {
-  return stack
-    .replace(/mailspring-view:\/\/[^/\s]+\/view\.js:(\d+):(\d+)/g, 'View.jsx:$1:$2')
-    .replace(/mailspring-view:\/\/[^/\s]+\/_(runtime|lib)\//g, '<$1>/');
-}
-
 // Sucrase reports syntax errors as "… (LINE:COL)".
 export function locationOf(message: string, stack?: string) {
   const fromMessage = /\((\d+):(\d+)\)/.exec(message || '');
@@ -80,23 +64,6 @@ export function locationOf(message: string, stack?: string) {
   const fromStack = /View\.jsx:(\d+):(\d+)/.exec(stack || '');
   if (fromStack) return { line: Number(fromStack[1]), column: Number(fromStack[2]) };
   return undefined;
-}
-
-/** Parameter names and types only: `{ query: object, limit: number }`. Never values. */
-export function summarizeParams(params: any) {
-  if (!params || typeof params !== 'object') return typeof params;
-  const parts = Object.keys(params)
-    .slice(0, 12)
-    .map((key) => {
-      const value = params[key];
-      const type = Array.isArray(value)
-        ? `array(${value.length})`
-        : value === null
-          ? 'null'
-          : typeof value;
-      return `${key}: ${type}`;
-    });
-  return `{ ${parts.join(', ')} }`;
 }
 
 class DiagnosticsStore extends EventEmitter {
@@ -122,12 +89,10 @@ class DiagnosticsStore extends EventEmitter {
   mounted(viewId: string) {
     this.emit('mounted', viewId);
     this.cancelRenderOk(viewId);
-    const revision = this.revisionFor(viewId);
     this.renderTimers.set(
       viewId,
       setTimeout(() => {
         this.renderTimers.delete(viewId);
-        if (this.revisionFor(viewId) !== revision) return;
         this.add({ viewId, kind: 'render-ok', message: 'Rendered without errors.' });
       }, RENDER_OK_QUIET_MS)
     );
@@ -146,7 +111,7 @@ class DiagnosticsStore extends EventEmitter {
       revision: input.revision !== undefined ? input.revision : this.revisionFor(input.viewId),
       message: truncate(input.message, MAX_MESSAGE),
     };
-    if (input.stack) record.stack = truncate(authorStack(input.stack), MAX_STACK);
+    if (input.stack) record.stack = truncate(input.stack, MAX_STACK);
     if (!record.location && (input.kind === 'compile-error' || input.kind === 'runtime-error')) {
       const location = locationOf(record.message, record.stack);
       if (location) record.location = location;
@@ -157,16 +122,6 @@ class DiagnosticsStore extends EventEmitter {
     if (!buffer) {
       buffer = [];
       this.buffers.set(record.viewId, buffer);
-    }
-    // React logs the errors its boundary catches, so a runtime error usually arrives twice:
-    // first as console text, then as the structured report. Keep the structured one.
-    if (record.kind === 'runtime-error' && record.message) {
-      const recent = record.ts - 2000;
-      for (let i = buffer.length - 1; i >= 0 && buffer[i].ts >= recent; i--) {
-        if (buffer[i].kind === 'console' && buffer[i].message.includes(record.message)) {
-          buffer.splice(i, 1);
-        }
-      }
     }
     buffer.push(record);
     if (buffer.length > BUFFER_SIZE) buffer.splice(0, buffer.length - BUFFER_SIZE);
@@ -241,7 +196,7 @@ export function reportFromGuest(viewId: string, params: any) {
     // record says what Sucrase said rather than whatever the page claims.
     const compiled = compileErrorFor(viewId);
     if (compiled) {
-      ViewDiagnostics.add({ viewId, kind, level: 'error', ...compiled });
+      ViewDiagnostics.add({ viewId, kind, ...compiled });
     }
     return;
   }
@@ -249,10 +204,8 @@ export function reportFromGuest(viewId: string, params: any) {
   ViewDiagnostics.add({
     viewId,
     kind,
-    level: 'error',
     message: params.message,
     stack: typeof params.stack === 'string' ? params.stack : undefined,
-    untrusted: true,
   });
 }
 

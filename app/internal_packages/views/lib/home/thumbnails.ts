@@ -31,12 +31,7 @@ export function removeThumbnail(viewId: string) {
   fs.rmSync(thumbnailPath(viewId), { force: true });
 }
 
-/**
- * The thumbnail on a View's home card: its own pixels shortly after it last rendered cleanly.
- * This reads the host directly rather than through captureViewPreview, which records a
- * `screenshot-taken` diagnostic; these captures are a local cache for the home and must not
- * look, in a View's diagnostics, like something an authoring agent was sent.
- */
+/** The thumbnail on a View's home card: its own pixels shortly after it last rendered cleanly. */
 async function capture(viewId: string) {
   const host = hostsFor(viewId)[0];
   const cssWidth = host ? host.viewportWidth() : 0;

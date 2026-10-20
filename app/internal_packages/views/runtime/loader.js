@@ -74,9 +74,12 @@
   report('page', { revision: window.__mailspringViewRevision || null });
 
   // Sucrase keeps View.jsx's line numbers in view.js (see view-sessions.ts), so stack frames
-  // can name the author's file directly.
+  // can name the author's file directly. Frames in the bundled runtime and libraries are
+  // shortened to <runtime>/ and <lib>/.
   const authorStack = (stack) =>
-    stack.replace(/mailspring-view:\/\/[^/\s]+\/view\.js:(\d+):(\d+)/g, 'View.jsx:$1:$2');
+    stack
+      .replace(/mailspring-view:\/\/[^/\s]+\/view\.js:(\d+):(\d+)/g, 'View.jsx:$1:$2')
+      .replace(/mailspring-view:\/\/[^/\s]+\/_(runtime|lib)\//g, '<$1>/');
 
   // The error card shows the first error of the page rather than whichever one finally broke
   // rendering: a failed call or a throwing handler often leaves state that makes a later render
@@ -89,7 +92,6 @@
     if (!firstError) firstError = error;
     const message = (error && error.message) || String(error);
     const stack = authorStack((error && error.stack) || '');
-    // Prefixed so the host skips the console copy of an error it already has.
     console.error('[mailspring-view]', error);
     report(kind, { message, stack });
   };

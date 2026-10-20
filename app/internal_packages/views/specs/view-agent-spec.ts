@@ -82,13 +82,18 @@ describe('Views agent: examples', function () {
          <img src="cid:logo123" alt="Shop logo">
          <img srcset="https://t.example/a.png 2x" src="https://t.example/b.png">
          <a href="https://shop.example/track/1Z999">Track</a>
+         <table background="https://t.example/tb.png"><tr><td>Cell</td></tr></table>
+         <form action="https://t.example/submit"><button>Rate us</button></form>
          <script>alert(1)</script><iframe src="https://evil.example"></iframe>`
       )
     );
     expect(example.text).toContain('Tracking 1Z999AA10123456784');
     expect(example.html).toContain('href="https://shop.example/track/1Z999"');
     expect(example.html).toContain('Shop logo');
+    expect(example.html).toContain('Rate us');
+    expect(example.html).toContain('background: none');
     expect(example.html).not.toContain('t.example');
+    expect(example.html).not.toContain('<form');
     expect(example.html).not.toContain('cid:');
     expect(example.html).not.toContain('<img');
     expect(example.html).not.toContain('<script');
@@ -128,17 +133,6 @@ describe('Views agent: diagnostics relay', function () {
     '}',
   ].join('\n');
 
-  it('sends failures and render-ok but never console output', () => {
-    const out: any[] = relayableDiagnostics(
-      [
-        { ts: 1, viewId: VIEW, revision: 'r', kind: 'console', message: 'Subject: private' },
-        { ts: 3, viewId: VIEW, revision: 'r', kind: 'render-ok', message: 'ok' },
-      ],
-      SOURCE
-    );
-    expect(out.map((d) => d.kind)).toEqual(['render-ok']);
-  });
-
   it('reduces runtime errors to the error type and the line of View.jsx', () => {
     const [out]: any[] = relayableDiagnostics(
       [
@@ -149,7 +143,6 @@ describe('Views agent: diagnostics relay', function () {
           kind: 'runtime-error',
           message: 'Subject: private',
           stack: 'TypeError: Subject: private\n    at View (View.jsx:4:16)',
-          untrusted: true,
         },
       ],
       SOURCE
@@ -172,7 +165,6 @@ describe('Views agent: diagnostics relay', function () {
           kind: 'unhandled-rejection',
           message: 'x',
           stack: 'PrivateSubjectError: x\n    at View.jsx:9999:1',
-          untrusted: true,
         },
       ],
       SOURCE
@@ -180,7 +172,7 @@ describe('Views agent: diagnostics relay', function () {
     expect(out).toEqual({ kind: 'unhandled-rejection', error: 'Error' });
   });
 
-  it('relays bridge errors without their message or parameters', () => {
+  it('relays bridge errors without their message', () => {
     const [out]: any[] = relayableDiagnostics([
       {
         ts: 2,
@@ -191,8 +183,6 @@ describe('Views agent: diagnostics relay', function () {
         method: 'messages.content',
         code: 'permission',
         permission: 'mail.bodies',
-        params: '{ subjectprivate: number }',
-        untrusted: true,
       },
     ]);
     expect(out).toEqual({

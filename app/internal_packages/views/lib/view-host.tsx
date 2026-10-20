@@ -3,7 +3,7 @@ import { ipcRenderer } from 'electron';
 import { localized } from 'mailspring-exports';
 import { ViewBridge } from './view-bridge';
 import { registerHost } from './authoring/hosts';
-import { ViewDiagnostics, reportFromGuest, summarizeParams } from './authoring/diagnostics';
+import { ViewDiagnostics, isFailure, reportFromGuest } from './authoring/diagnostics';
 import {
   ApiCompatibility,
   CURRENT_API_VERSION,
@@ -67,21 +67,10 @@ export function permissionCopy(permission: string) {
   }[permission];
 }
 
-// The loader prefixes what it logs itself; those errors already arrive as structured
-// `view.diagnostic` reports, so the console copy is skipped.
-const LOADER_LOG_PREFIX = '[mailspring-view]';
-
 // Shared with app/src/browser/view-sessions.ts, whose hang watchdog only judges guests the
 // host reports as on screen.
 const VISIBILITY_CHANNEL = 'mailspring-view:visibility';
 const WATCHDOG_KILL_CHANNEL = 'mailspring-view:watchdog-kill';
-
-// Electron reports console levels as names in recent versions and as numbers before that.
-function consoleLevel(level: any): 'warning' | 'error' | null {
-  if (level === 'error' || level === 3) return 'error';
-  if (level === 'warning' || level === 2) return 'warning';
-  return null;
-}
 
 /**
  * Mounts one View in a `<webview>` on its own `persist:view-<viewId>` partition. The main
@@ -127,7 +116,7 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     const onDiagnostic = (d) => {
       if (d.viewId !== this.props.viewId) return;
       if (d.kind === 'render-ok') this.setState({ issues: 0 });
-      else if (d.level === 'error' || d.kind === 'crash' || d.kind === 'hang') {
+      else if (isFailure(d) || d.kind === 'bridge-error') {
         this.setState({ issues: this.state.issues + 1 });
       }
     };
@@ -201,7 +190,6 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     this._diagnostic({
       viewId: this.props.viewId,
       kind: 'hang',
-      level: 'error',
       message: 'The View stopped answering for 15 seconds while on screen and was stopped.',
     });
   };
@@ -293,25 +281,21 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     webview.setAttribute('src', `mailspring-view://${viewId}/#${fragment.toString()}`);
     webview.addEventListener('did-start-navigation', this._onStartNavigation as any);
     webview.addEventListener('dom-ready', this._onDomReady);
-    webview.addEventListener('console-message', this._onConsoleMessage as any);
     webview.addEventListener('render-process-gone', this._onGone as any);
     webview.addEventListener('unresponsive', this._onUnresponsive);
     webview.addEventListener('responsive', this._onResponsive);
     this._bridge = new ViewBridge(viewId, webview, {
       mock,
       handlers: this._guestHandlers(),
-      onCallError: (method, error, params) =>
+      onCallError: (method, error) =>
         this._diagnostic({
           viewId,
           kind: 'bridge-error',
-          level: 'error',
           method: method || '(unknown method)',
           code: error.code,
           permission: error.permission,
           // Error text can quote what the View passed, so it stays local.
           message: error.message,
-          params: summarizeParams(params),
-          untrusted: true,
         }),
     });
     this._webview = webview;
@@ -343,19 +327,6 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     if (this.props.onReady && this._bridge) this.props.onReady(this._bridge);
   };
 
-  _onConsoleMessage = (event: { level: any; message: string; sourceId: string; line: number }) => {
-    const level = consoleLevel(event.level);
-    if (!level || (event.message || '').startsWith(LOADER_LOG_PREFIX)) return;
-    this._diagnostic({
-      viewId: this.props.viewId,
-      kind: 'console',
-      level,
-      message: event.message,
-      stack: event.sourceId ? `at ${event.sourceId}:${event.line}` : undefined,
-      untrusted: true,
-    });
-  };
-
   _onGone = (event: { reason?: string; details?: { reason?: string } }) => {
     const reason = event.reason || (event.details && event.details.reason) || 'unknown';
     if (this._killedByWatchdog) {
@@ -367,7 +338,6 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     this._diagnostic({
       viewId: this.props.viewId,
       kind: 'crash',
-      level: 'error',
       message: `The View's process exited (${reason}).`,
     });
     this.setState({ status: 'crashed' });
@@ -377,7 +347,6 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     this._diagnostic({
       viewId: this.props.viewId,
       kind: 'hang',
-      level: 'error',
       message: 'The View stopped responding.',
     });
     this.setState({ status: 'unresponsive' });

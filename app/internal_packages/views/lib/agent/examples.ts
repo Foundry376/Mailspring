@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify';
 import {
   Actions,
   DatabaseStore,
@@ -19,33 +20,46 @@ const MAX_HTML_CHARS = 150000;
 const BODY_FETCH_TIMEOUT_MS = 10000;
 const BODY_POLL_INTERVAL_MS = 500;
 
-// Anything that loads content, runs code or submits data. <img> and friends go too: every
-// remote image in mail is either content the agent can't use or a tracking pixel, and cid:
-// images are attachments the user didn't choose to share.
-const REMOVED_SELECTOR =
-  'script, iframe, frame, frameset, object, embed, applet, link, base, meta, form, portal, ' +
-  'img, picture, source, video, audio, track, svg image, input[type=image]';
+// A second pass over SanitizeTransformer's output (which already drops scripts, frames, SVG,
+// <link> and <meta>) for everything else that loads content or submits data. Images
+// go too: every remote image in mail is either content the agent can't use or a tracking
+// pixel, and cid: images are attachments the user didn't choose to share. A private instance
+// keeps these hooks off the shared DOMPurify that renders mail.
+const purifier = DOMPurify(window);
+const noURLs = (css: string) => css.replace(/url\(\s*(['"]?)[^'")]*\1\s*\)/gi, 'none');
 
-function stripLoadingContent(html: string) {
-  const doc = new DOMParser().parseFromString(html, 'text/html');
-  for (const img of Array.from(doc.querySelectorAll('img[alt]'))) {
-    const alt = (img.getAttribute('alt') || '').trim();
-    if (alt) img.replaceWith(doc.createTextNode(alt));
-  }
-  doc.querySelectorAll(REMOVED_SELECTOR).forEach((el) => el.remove());
-  for (const el of Array.from(doc.querySelectorAll('[srcset], [background], [poster]'))) {
-    el.removeAttribute('srcset');
-    el.removeAttribute('background');
-    el.removeAttribute('poster');
-  }
-  const noURLs = (css: string) => css.replace(/url\(\s*(['"]?)[^'")]*\1\s*\)/gi, 'none');
-  for (const el of Array.from(doc.querySelectorAll('[style]'))) {
-    el.setAttribute('style', noURLs(el.getAttribute('style')));
-  }
-  for (const el of Array.from(doc.querySelectorAll('style'))) {
+purifier.addHook('uponSanitizeElement', (node, { tagName }) => {
+  const el = node as Element;
+  if (tagName === 'img') {
+    const alt = (el.getAttribute('alt') || '').trim();
+    if (alt) el.parentNode?.insertBefore(el.ownerDocument.createTextNode(alt), el);
+  } else if (tagName === 'style') {
     el.textContent = noURLs(el.textContent || '').replace(/@import[^;]*;?/gi, '');
   }
-  return doc.body.innerHTML;
+});
+purifier.addHook('uponSanitizeAttribute', (_node, data) => {
+  if (data.attrName !== 'href') data.attrValue = noURLs(data.attrValue);
+});
+
+function stripLoadingContent(html: string) {
+  return purifier.sanitize(html, {
+    FORBID_TAGS: [
+      'img',
+      'picture',
+      'source',
+      'video',
+      'audio',
+      'track',
+      'image',
+      'feImage',
+      'form',
+    ],
+    FORBID_ATTR: ['src', 'srcset', 'background', 'poster', 'action', 'formaction'],
+    ALLOW_DATA_ATTR: false,
+    // SanitizeTransformer's output can open with a <style> that would otherwise parse into
+    // <head> and be dropped.
+    FORCE_BODY: true,
+  });
 }
 
 const cap = (s: string, max: number) => (s.length > max ? `${s.slice(0, max)}\n[truncated]` : s);
