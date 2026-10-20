@@ -587,7 +587,9 @@ export function registerTools(server: McpServer) {
       const message = await DatabaseStore.find<Message>(Message, messageId).include(
         Message.attributes.body
       );
-      if (!message) return errorResult(`Message '${messageId}' not found`);
+      if (!(await isMessageVisible(message))) {
+        return errorResult(`Message '${messageId}' not found`);
+      }
 
       const result = serializeMessageDetail(message);
       if (!result) return errorResult(`Message '${messageId}' not found`);
