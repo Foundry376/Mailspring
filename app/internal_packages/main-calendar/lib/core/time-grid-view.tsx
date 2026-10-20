@@ -9,7 +9,6 @@ import {
   SnapScrollTarget,
 } from 'mailspring-component-kit';
 import { CalendarDate, CalendarDateUtils } from 'mailspring-exports';
-import { HeaderControls } from './header-controls';
 import CalendarHeaderStore from './calendar-header-store';
 import { EventOccurrence, EventRangeSubscription, isTimed } from './calendar-data-source';
 import { centerGridScroll, dateOf, momentOf } from './calendar-helpers';
@@ -379,17 +378,6 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
           <div className="top-banner">
             <InjectedComponentSet matching={{ role: `Calendar:${view}:Banner` }} direction="row" />
           </div>
-
-          <HeaderControls
-            title={this._title()}
-            view={view}
-            nextAction={this._onClickNext}
-            prevAction={this._onClickPrev}
-            todayAction={this._onClickToday}
-            onChangeView={this.props.onChangeView}
-            agendaOpen={this.props.agendaOpen}
-            onToggleAgenda={this.props.onToggleAgenda}
-          />
 
           <div className="calendar-body-wrap">
             <div className="calendar-legend">

@@ -46,7 +46,7 @@ export class HeaderControls extends React.Component<{
 
   render() {
     return (
-      <div className="header-controls" onClick={(e) => e.stopPropagation()}>
+      <div className="header-controls">
         <span className="title">{this.props.title}</span>
         <div className="side-controls">
           <button className="btn" onClick={this.props.todayAction}>

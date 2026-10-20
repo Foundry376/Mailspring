@@ -5,7 +5,6 @@ import { CalendarDate, CalendarDateUtils } from 'mailspring-exports';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
 import { CalendarEventContainer } from './calendar-event-container';
 import { CalendarView } from './calendar-constants';
-import { HeaderControls } from './header-controls';
 import CalendarHeaderStore from './calendar-header-store';
 import { EventOccurrence, EventRangeSubscription } from './calendar-data-source';
 import { MonthViewWeek } from './month-view-week';
@@ -224,18 +223,6 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
           <div className="top-banner">
             <InjectedComponentSet matching={{ role: 'Calendar:Week:Banner' }} direction="row" />
           </div>
-
-          <HeaderControls
-            title={this._title()}
-            view={CalendarView.MONTH}
-            nextAction={this._onClickNextMonth}
-            prevAction={this._onClickPrevMonth}
-            todayAction={this._onClickToday}
-            onChangeView={this.props.onChangeView}
-            agendaOpen={this.props.agendaOpen}
-            onToggleAgenda={this.props.onToggleAgenda}
-            arrows="vertical"
-          />
 
           <div className="month-view-grid-container">
             {this._renderWeekdayHeaders()}

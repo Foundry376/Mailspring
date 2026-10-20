@@ -510,6 +510,92 @@
   width: 250px;
 }
 
+// The toolbar makes every item a no-drag region; the title's empty space still moves the window.
+.sheet-toolbar .item-container > .header-controls {
+  -webkit-app-region: drag;
+}
+
+.header-controls {
+  align-items: center;
+  align-self: stretch;
+  display: flex;
+  // Outgrows the toolbar's two flexible spacers, so the title takes the free space.
+  flex: 1000 1 auto;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 10px;
+  color: @text-color-subtle;
+
+  .title {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 18px;
+    font-weight: @font-weight-semi-bold;
+    color: @text-color;
+  }
+
+  .side-controls {
+    -webkit-app-region: no-drag;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-icon {
+    margin: 0;
+    height: 25px;
+    font-size: 15px;
+    line-height: 25px;
+    img {
+      vertical-align: baseline;
+    }
+  }
+
+  .nav-arrows {
+    display: flex;
+  }
+
+  .view-select {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    // Sized to the view it shows rather than its longest option, so "Day" leaves no gap.
+    select {
+      appearance: none;
+      field-sizing: content;
+      padding-right: 26px;
+    }
+    img.content-mask {
+      position: absolute;
+      right: 9px;
+      pointer-events: none;
+      background-color: @btn-default-text-color;
+    }
+  }
+
+  .agenda-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    padding: 0;
+    border-radius: @border-radius-base;
+    color: inherit;
+    svg {
+      flex-shrink: 0;
+      width: 18px;
+    }
+    &.active {
+      background: color-mix(in srgb, currentColor 12%, transparent);
+    }
+  }
+}
+
 // Event Search Bar - matches ThreadSearchBar styling
 .event-search-bar {
   position: relative;
