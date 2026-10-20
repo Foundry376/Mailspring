@@ -1,7 +1,9 @@
-import { CalendarDateUtils, Contact, DatabaseStore, Event, Matcher } from 'mailspring-exports';
+import { CalendarUtils, Contact, DatabaseStore, Event } from 'mailspring-exports';
 import { isAccountAllowed } from '../../../../src/services/mail-access/grant';
 import {
   occurrencesForEvents,
+  occurrenceStartUnix,
+  occurrenceEndUnix,
   EventOccurrence,
 } from '../../../main-calendar/lib/core/calendar-data-source';
 import type { ViewGrant } from './grant';
@@ -53,16 +55,9 @@ export function parseRange({
   };
 }
 
-// The same overlap query the calendar uses (main-calendar's CalendarDataSource), so
-// recurring masters whose series overlaps the range are expanded into occurrences.
 export function eventQuery({ startUnix, endUnix }: EventRange) {
-  const end = Event.attributes.recurrenceEnd;
-  const start = Event.attributes.recurrenceStart;
   return DatabaseStore.findAll<Event>(Event).where(
-    new Matcher.Or([
-      new Matcher.And([start.lte(endUnix), end.gte(startUnix)]),
-      new Matcher.And([end.gte(endUnix), start.lte(startUnix)]),
-    ])
+    CalendarUtils.eventsInRangeMatcher(startUnix, endUnix)
   );
 }
 
@@ -75,23 +70,7 @@ const ATTENDEE_STATUS = {
 
 const isMe = (email: string) => new Contact({ email }).isMe();
 
-// Video-call links people paste into a location or description. The first match wins.
-const CONFERENCE_URL =
-  /https:\/\/(?:[\w-]+\.)*(?:zoom\.us|meet\.google\.com|teams\.microsoft\.com|teams\.live\.com|webex\.com|gotomeeting\.com|whereby\.com|meet\.jit\.si|chime\.aws|bluejeans\.com|around\.co)\/[^\s<>"')\]]*/i;
-
-export function conferenceUrl(location: string, description: string): string | null {
-  const match = `${location || ''} ${description || ''}`.match(CONFERENCE_URL);
-  return match ? match[0] : null;
-}
-
-/** An occurrence id is `<event id>-e<start>`; mutations act on the stored Event. */
-export function eventIdOf(occurrenceId: string) {
-  return occurrenceId.replace(/-e-?\d+$/, '');
-}
-
 function serializeOccurrence(o: EventOccurrence) {
-  const start = o.isAllDay === false ? o.start : CalendarDateUtils.dayStartUnix(o.startDate);
-  const end = o.isAllDay === false ? o.end : CalendarDateUtils.nextDayStartUnix(o.endDate);
   const attendees = (o.attendees || []).map((a) => ({
     name: a.name || '',
     email: a.email,
@@ -99,20 +78,19 @@ function serializeOccurrence(o: EventOccurrence) {
     status: ATTENDEE_STATUS[(a.partstat || '').toUpperCase()] || null,
   }));
   const me = attendees.find((a) => a.isMe);
-  // ORGANIZER arrives as the raw property value, usually a mailto: URI.
-  const organizerEmail = o.organizer ? o.organizer.email.replace(/^mailto:/i, '') || null : null;
+  const organizerEmail = o.organizer ? o.organizer.email : null;
   const organizerAttendee = organizerEmail
     ? attendees.find((a) => a.email.toLowerCase() === organizerEmail.toLowerCase())
     : null;
   return {
     id: o.id,
-    eventId: eventIdOf(o.id),
+    eventId: CalendarUtils.parseOccurrenceId(o.id).eventId,
     calendarId: o.calendarId,
     accountId: o.accountId,
     title: o.title,
-    start: new Date(start * 1000).toISOString(),
-    end: new Date(end * 1000).toISOString(),
-    allDay: o.isAllDay === true,
+    start: new Date(occurrenceStartUnix(o) * 1000).toISOString(),
+    end: new Date(occurrenceEndUnix(o) * 1000).toISOString(),
+    isAllDay: o.isAllDay === true,
     location: o.location || null,
     description: o.description || null,
     status: o.isCancelled ? 'CANCELLED' : o.isPending ? 'TENTATIVE' : 'CONFIRMED',
@@ -126,9 +104,9 @@ function serializeOccurrence(o: EventOccurrence) {
     attendees,
     // The user's own response; null when they aren't an attendee (e.g. their own event).
     myStatus: me ? me.status : null,
-    conferenceUrl: conferenceUrl(o.location, o.description),
-    recurring: o.isRecurring,
-    exception: o.isException,
+    conferenceUrl: CalendarUtils.extractMeetingUrl(o.location, o.description),
+    isRecurring: o.isRecurring,
+    isException: o.isException,
   };
 }
 
@@ -174,7 +152,7 @@ export interface BusyInterval {
  */
 export function freeBusy(events: SerializedOccurrence[], range: EventRange) {
   const intervals = events
-    .filter((e) => !e.allDay && e.status !== 'CANCELLED' && e.myStatus !== 'declined')
+    .filter((e) => !e.isAllDay && e.status !== 'CANCELLED' && e.myStatus !== 'declined')
     .map((e) => [
       Math.max(Date.parse(e.start) / 1000, range.startUnix),
       Math.min(Date.parse(e.end) / 1000, range.endUnix),
@@ -210,7 +188,7 @@ export async function eventsForExtraction(grant: ViewGrant, range: EventRange) {
       eventId: e.eventId,
       title: e.title || '',
       start: new Date(e.start),
-      allDay: e.allDay,
+      isAllDay: e.isAllDay,
       location: e.location,
       organizer: e.organizer ? e.organizer.name || e.organizer.email : null,
       attendees: e.attendees.filter((a) => !a.isMe).map((a) => a.name || a.email),

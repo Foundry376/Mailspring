@@ -59,13 +59,13 @@
    "title": "Grandma & Grandpa visiting",
    "calendar": "Family",
    "start": "@today-4d",
-   "allDay": true
+   "isAllDay": true
   },
   {
    "title": "Grandma & Grandpa visiting",
    "calendar": "Family",
    "start": "@today-3d",
-   "allDay": true
+   "isAllDay": true
   },
   {
    "title": "Storytime at Oak Street Library",
@@ -131,13 +131,13 @@
    "title": "Aunt Jess in town",
    "calendar": "Family",
    "start": "@today+12d",
-   "allDay": true
+   "isAllDay": true
   },
   {
    "title": "Aunt Jess in town",
    "calendar": "Family",
    "start": "@today+13d",
-   "allDay": true
+   "isAllDay": true
   },
   {
    "title": "Ballet recital",

@@ -2,6 +2,7 @@ import {
   AccountStore,
   Actions,
   Calendar,
+  CalendarUtils,
   Contact,
   DatabaseStore,
   Event,
@@ -9,7 +10,7 @@ import {
 } from 'mailspring-exports';
 import { FULL_GRANT } from '../../../src/services/mail-access/grant';
 import { ViewGrant, ViewPermission } from '../lib/bridge/grant';
-import { conferenceUrl, eventIdOf, freeBusy, parseRange } from '../lib/bridge/events';
+import { freeBusy, parseRange } from '../lib/bridge/events';
 import {
   createEvent,
   deleteEvent,
@@ -62,7 +63,7 @@ const occurrence = (overrides: any = {}) => ({
   calendarId: 'c1',
   start: '2026-10-12T17:00:00.000Z',
   end: '2026-10-12T18:00:00.000Z',
-  allDay: false,
+  isAllDay: false,
   status: 'CONFIRMED',
   myStatus: 'accepted',
   attendees: [],
@@ -115,16 +116,21 @@ describe('Views calendar API', function () {
     });
 
     it('finds video links and the stored event behind an occurrence', () => {
+      const { extractMeetingUrl, parseOccurrenceId } = CalendarUtils;
       expect(
-        conferenceUrl('Room 4', 'Join: https://us02web.zoom.us/j/123?pwd=x for the call')
+        extractMeetingUrl('Room 4', 'Join: https://us02web.zoom.us/j/123?pwd=x for the call')
       ).toBe('https://us02web.zoom.us/j/123?pwd=x');
-      expect(conferenceUrl('https://meet.google.com/abc-defg-hij', '')).toBe(
+      expect(extractMeetingUrl('https://meet.google.com/abc-defg-hij', '')).toBe(
         'https://meet.google.com/abc-defg-hij'
       );
-      expect(conferenceUrl('Cafe', 'no link')).toBe(null);
-      expect(eventIdOf('8f2a-e1792000000')).toBe('8f2a');
-      expect(eventIdOf('8f2a-e0')).toBe('8f2a');
-      expect(eventIdOf('8f2a')).toBe('8f2a');
+      expect(extractMeetingUrl('See https://example.com', 'then https://zoom.us/j/1')).toBe(
+        'https://zoom.us/j/1'
+      );
+      expect(extractMeetingUrl('Cafe', 'no link')).toBe(null);
+      expect(parseOccurrenceId('8f2a-e1792000000')).toEqual({ eventId: '8f2a', start: 1792000000 });
+      expect(parseOccurrenceId('8f2a-e-86400')).toEqual({ eventId: '8f2a', start: -86400 });
+      expect(parseOccurrenceId('8f2a-e0').eventId).toBe('8f2a');
+      expect(parseOccurrenceId('8f2a')).toEqual({ eventId: '8f2a', start: null });
     });
 
     it('merges busy time, ignoring declined, cancelled and all-day events', () => {
@@ -144,7 +150,7 @@ describe('Views calendar API', function () {
             status: 'CANCELLED',
           }),
           occurrence({
-            allDay: true,
+            isAllDay: true,
             start: '2026-10-12T00:00:00.000Z',
             end: '2026-10-13T00:00:00.000Z',
           }),

@@ -71,11 +71,6 @@ export function occurrenceStartUnix(e: EventOccurrence): number {
   return isTimed(e) ? e.start : CalendarDateUtils.dayStartUnix(e.startDate);
 }
 
-/** The id an occurrence expanded from `eventId`'s ICS is drawn under; a move gives it a new one. */
-export function occurrenceId(eventId: string, start: number): string {
-  return `${eventId}-e${Math.round(start)}`;
-}
-
 /**
  * An occurrence's end as an exclusive instant — its real end if timed, the midnight after its
  * last covered day if all-day. For drag hit-testing and time formatting; never stored, and not
@@ -225,16 +220,8 @@ export class CalendarDataSource {
   observable: Rx.Observable<{ events: EventOccurrence[] }>;
 
   buildObservable({ startUnix, endUnix, disabledCalendars }) {
-    const end = Event.attributes.recurrenceEnd;
-    const start = Event.attributes.recurrenceStart;
-
     // Query all events (masters and exceptions) that fall in the date range
-    const dateMatcher = new Matcher.Or([
-      new Matcher.And([start.lte(endUnix), end.gte(startUnix)]),
-      new Matcher.And([start.lte(endUnix), start.gte(startUnix)]),
-      new Matcher.And([end.gte(startUnix), end.lte(endUnix)]),
-      new Matcher.And([end.gte(endUnix), start.lte(startUnix)]),
-    ]);
+    const dateMatcher = CalendarUtils.eventsInRangeMatcher(startUnix, endUnix);
 
     let matcher: AndCompositeMatcher | OrCompositeMatcher = dateMatcher;
 
@@ -411,7 +398,7 @@ export function occurrencesForEvents(
               // Key on the occurrence start, not the expansion index: idx depends on the query
               // range, so the same occurrence got a different id per view — breaking selection
               // (and React keys) when switching views. The start is stable across ranges.
-              id: occurrenceId(master.id, start),
+              id: CalendarUtils.occurrenceId(master.id, start),
               event: master,
               item,
               startTime: e.startDate,

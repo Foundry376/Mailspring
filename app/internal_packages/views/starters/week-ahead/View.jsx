@@ -74,7 +74,7 @@ export default function WeekAhead() {
   const { data: freeBusy } = useFreeBusy(range);
 
   const meetings = useMemo(
-    () => (events || []).filter((e) => !e.allDay && e.status !== 'CANCELLED'),
+    () => (events || []).filter((e) => !e.isAllDay && e.status !== 'CANCELLED'),
     [events]
   );
 

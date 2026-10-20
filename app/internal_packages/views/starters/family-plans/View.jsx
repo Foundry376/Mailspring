@@ -266,7 +266,7 @@ function monthGrid(year, month) {
 }
 
 function timeLabel(e) {
-  if (e.allDay) return '';
+  if (e.isAllDay) return '';
   return new Date(e.start)
     .toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
     .replace(':00', '')
@@ -394,7 +394,7 @@ export default function FamilyPlansView() {
   const byDay = useMemo(() => {
     const out = {};
     for (const e of events.data) {
-      const key = dayKey(new Date(e.allDay ? `${e.start.slice(0, 10)}T12:00:00` : e.start));
+      const key = dayKey(new Date(e.isAllDay ? `${e.start.slice(0, 10)}T12:00:00` : e.start));
       const day = (out[key] ??= { family: [], holidays: [], others: [] });
       const kind = kindOf(e);
       if (holidayCalendars.has(e.calendarId)) {

@@ -18,7 +18,6 @@ import { isAccountAllowed } from '../../../../src/services/mail-access/grant';
 import type { ViewGrant } from './grant';
 import { requirePermission } from './grant';
 import { ViewError } from './errors';
-import { eventIdOf } from './events';
 import moment from 'moment';
 import FocusedMomentStore from '../../../main-calendar/lib/core/focused-moment-store';
 import { recordAndSendRSVP } from '../../../main-calendar/lib/core/calendar-rsvp';
@@ -114,7 +113,7 @@ async function writableCalendar(grant: ViewGrant, calendarId: string) {
 
 /** Loads the stored Event behind an occurrence id (or an event id) for writing. */
 async function writableEvent(grant: ViewGrant, id: string) {
-  const event = await DatabaseStore.find<Event>(Event, eventIdOf(id));
+  const event = await DatabaseStore.find<Event>(Event, CalendarUtils.parseOccurrenceId(id).eventId);
   if (!event || !isAccountAllowed(grant.scope, event.accountId)) {
     throw new ViewError('not_found', `No event with id ${id}.`);
   }
@@ -163,7 +162,7 @@ export const EventInput = z.object({
   title: z.string().min(1).max(500),
   start: DateInput,
   end: DateInput,
-  allDay: z.boolean().optional(),
+  isAllDay: z.boolean().optional(),
   location: z.string().max(2000).optional(),
   description: z.string().max(20000).optional(),
   attendees: z.array(Attendee).max(100).optional(),
@@ -173,7 +172,7 @@ export const EventPatch = z.object({
   title: z.string().min(1).max(500).optional(),
   start: DateInput.optional(),
   end: DateInput.optional(),
-  allDay: z.boolean().optional(),
+  isAllDay: z.boolean().optional(),
   location: z.string().max(2000).optional(),
   description: z.string().max(20000).optional(),
 });
@@ -187,7 +186,7 @@ function checkTimes(start: Date, end: Date) {
 export async function rsvp(viewId: string, grant: ViewGrant, id: string, status: string) {
   requirePermission(grant, 'calendar.write');
   const answer = check(Status, status);
-  const event = await DatabaseStore.find<Event>(Event, eventIdOf(id));
+  const event = await DatabaseStore.find<Event>(Event, CalendarUtils.parseOccurrenceId(id).eventId);
   if (!event || !isAccountAllowed(grant.scope, event.accountId)) {
     throw new ViewError('not_found', `No event with id ${id}.`);
   }
@@ -236,7 +235,7 @@ export async function createEvent(viewId: string, grant: ViewGrant, params: any)
     summary: input.title,
     start: input.start,
     end: input.end,
-    isAllDay: !!input.allDay,
+    isAllDay: !!input.isAllDay,
     timezone: DateUtils.timeZone,
     description: input.description,
     location: input.location,
@@ -285,14 +284,14 @@ export async function updateEvent(viewId: string, grant: ViewGrant, id: string, 
   if (patch.description !== undefined) {
     ics = ICSEventHelpers.updateEventProperty(ics, 'description', patch.description);
   }
-  if (patch.start || patch.end || patch.allDay !== undefined) {
+  if (patch.start || patch.end || patch.isAllDay !== undefined) {
     const start = patch.start || parsed.startDate.toJSDate();
     const end = patch.end || parsed.endDate.toJSDate();
     checkTimes(start, end);
     ics = ICSEventHelpers.updateEventTimes(ics, {
       start: Math.floor(start.getTime() / 1000),
       end: Math.floor(end.getTime() / 1000),
-      isAllDay: patch.allDay !== undefined ? patch.allDay : !!parsed.startDate.isDate,
+      isAllDay: patch.isAllDay !== undefined ? patch.isAllDay : !!parsed.startDate.isDate,
     });
   }
   event.ics = ics;
@@ -335,12 +334,15 @@ export async function deleteEvent(viewId: string, grant: ViewGrant, id: string) 
 /** Switches the main window to the calendar, focused on an occurrence or on a date. */
 export async function showInCalendar(grant: ViewGrant, params: { id?: string; date?: string }) {
   if (params.id) {
-    const event = await DatabaseStore.find<Event>(Event, eventIdOf(params.id));
+    const event = await DatabaseStore.find<Event>(
+      Event,
+      CalendarUtils.parseOccurrenceId(params.id).eventId
+    );
     if (!event || !isAccountAllowed(grant.scope, event.accountId)) {
       throw new ViewError('not_found', `No event with id ${params.id}.`);
     }
-    const m = params.id.match(/-e(-?\d+)$/);
-    const recurrenceIdStart = m && Number(m[1]) > 0 ? Number(m[1]) : undefined;
+    const { start } = CalendarUtils.parseOccurrenceId(params.id);
+    const recurrenceIdStart = start > 0 ? start : undefined;
     ipcRenderer.send('command', 'application:show-calendar', {
       icsuid: event.icsuid,
       accountId: event.accountId,

@@ -15,7 +15,6 @@ import React from 'react';
 import ICAL from 'ical.js';
 import { ProposeTimePopover } from 'mailspring-component-kit';
 import { EventOccurrence, occurrenceStartUnix, occurrenceEndUnix } from './calendar-data-source';
-import { parseEventIdFromOccurrence } from './calendar-drag-utils';
 import { formatCalendarDate } from '../../../../src/calendar-date';
 import { showRecurringEventDialog } from './recurring-event-dialog';
 
@@ -64,7 +63,7 @@ export async function respondToCalendarEvent(
   occurrence: EventOccurrence,
   status: ICSParticipantStatus
 ): Promise<void> {
-  const eventId = parseEventIdFromOccurrence(occurrence.id);
+  const eventId = CalendarUtils.parseOccurrenceId(occurrence.id).eventId;
   const event = await DatabaseStore.find<Event>(Event, eventId);
   if (!event) {
     console.warn(`Calendar RSVP: could not find event ${eventId}`);
@@ -182,7 +181,7 @@ export async function proposeNewTimeForCalendarEvent(
   occurrence: EventOccurrence,
   proposal: { start: Date; end: Date; comment: string }
 ): Promise<void> {
-  const eventId = parseEventIdFromOccurrence(occurrence.id);
+  const eventId = CalendarUtils.parseOccurrenceId(occurrence.id).eventId;
   const event = await DatabaseStore.find<Event>(Event, eventId);
   if (!event) {
     console.warn(`Calendar counter-proposal: could not find event ${eventId}`);

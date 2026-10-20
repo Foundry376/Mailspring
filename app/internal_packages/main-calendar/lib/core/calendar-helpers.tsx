@@ -229,56 +229,6 @@ export function textColorOnFill({ r, g, b }: { r: number; g: number; b: number }
   return contrastWithBlack > contrastWithWhite ? 'black' : 'white';
 }
 
-// Common video meeting URL patterns and their display names
-const MEETING_URL_PATTERNS: { pattern: RegExp; display: string }[] = [
-  { pattern: /zoom\.us/i, display: 'zoom.us' },
-  { pattern: /meet\.google\.com/i, display: 'meet.google.com' },
-  { pattern: /teams\.microsoft\.com/i, display: 'teams.microsoft.com' },
-  { pattern: /webex\.com/i, display: 'webex.com' },
-  { pattern: /gotomeeting\.com/i, display: 'gotomeeting.com' },
-  { pattern: /whereby\.com/i, display: 'whereby.com' },
-  { pattern: /around\.co/i, display: 'around.co' },
-  { pattern: /meet\.jit\.si/i, display: 'meet.jit.si' },
-  { pattern: /discord\.gg/i, display: 'discord.gg' },
-  { pattern: /slack\.com\/calls/i, display: 'slack.com' },
-  { pattern: /chime\.aws/i, display: 'chime.aws' },
-  { pattern: /bluejeans\.com/i, display: 'bluejeans.com' },
-  { pattern: /appear\.in/i, display: 'appear.in' },
-  { pattern: /livestorm\.co/i, display: 'livestorm.co' },
-  { pattern: /hopin\.com/i, display: 'hopin.com' },
-  { pattern: /loom\.com/i, display: 'loom.com' },
-  { pattern: /tuple\.app/i, display: 'tuple.app' },
-  { pattern: /pop\.com/i, display: 'pop.com' },
-  { pattern: /cal\.com/i, display: 'cal.com' },
-  { pattern: /calendly\.com/i, display: 'calendly.com' },
-  { pattern: /facetime:/i, display: 'FaceTime' },
-];
-
-/**
- * Extract a meeting URL domain from location or description text.
- * Returns the friendly domain name (e.g., "zoom.us", "meet.google.com") or null.
- */
-export function extractMeetingDomain(location: string, description: string): string | null {
-  const textToSearch = `${location} ${description}`;
-
-  // First check for known meeting platforms
-  for (const { pattern, display } of MEETING_URL_PATTERNS) {
-    if (pattern.test(textToSearch)) {
-      return display;
-    }
-  }
-
-  // Fall back to extracting domain from any URL in location field
-  const urlMatch = location.match(/https?:\/\/([^/\s]+)/i);
-  if (urlMatch) {
-    const domain = urlMatch[1].toLowerCase();
-    // Remove www. prefix if present
-    return domain.replace(/^www\./, '');
-  }
-
-  return null;
-}
-
 /**
  * All-day events store an exclusive end — midnight after the last day covered — so a
  * date picker showing it raw reads a day later than the event actually runs.
