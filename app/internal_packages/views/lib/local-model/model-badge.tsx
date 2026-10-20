@@ -1,12 +1,14 @@
 import React from 'react';
 import classnames from 'classnames';
 import { shell } from 'electron';
-import { localized } from 'mailspring-exports';
-import { LocalModelStatus, LocalModelStore, formatBytes } from './store';
+import { LocalModelStatus, LocalModelStore, localized } from 'mailspring-exports';
 
 const APPLE_INTELLIGENCE_SETTINGS = 'x-apple.systempreferences:com.apple.Siri-Settings.extension';
-// The downloadable model's name, for states labelled with the system model's name.
-const DOWNLOADABLE_MODEL = 'Qwen 3.5';
+
+function formatBytes(bytes: number) {
+  if (bytes >= 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+  return `${Math.round(bytes / (1024 * 1024))} MB`;
+}
 
 function confirm(message: string, detail: string, action: string) {
   const choice = require('@electron/remote').dialog.showMessageBoxSync({
@@ -82,7 +84,7 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
     this._unlisten = LocalModelStore.listen(() =>
       this.setState({ status: LocalModelStore.status() })
     );
-    LocalModelStore.viewsOpened();
+    LocalModelStore.prepare();
     document.addEventListener('mousedown', this._onDocumentMouseDown);
   }
 
@@ -129,7 +131,7 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
         localized(
           'Views will use %@. Deleting %@ frees %@; you can download it again later.',
           status.system.name,
-          status.state.label,
+          status.downloadable.label,
           formatBytes(status.bytesOnDisk)
         ),
         localized('Delete')
@@ -187,10 +189,9 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
           <>
             <p className="model-badge-local">
               {localized(
-                'Turn on %@ in System Settings to use the model built into macOS, or download %@ (%@) instead. Either way it runs on your Mac.',
+                'Turn on %@ in System Settings to use the model built into macOS, or download %@ instead. Either way it runs on your Mac.',
                 state.label,
-                DOWNLOADABLE_MODEL,
-                formatBytes(state.totalBytes)
+                status.downloadable.label
               )}
             </p>
             <div className="model-badge-actions">
@@ -200,8 +201,11 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
               >
                 {localized('Open System Settings')}
               </button>
-              <button className="btn btn-small" onClick={() => LocalModelStore.start(false)}>
-                {localized('Download Instead')}
+              <button
+                className="btn btn-small"
+                onClick={() => LocalModelStore.startDownload(false)}
+              >
+                {localized('Download Instead (%@)', formatBytes(state.totalBytes))}
               </button>
             </div>
           </>
@@ -223,7 +227,7 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
             {local}
             {this._renderProgress(state.receivedBytes, state.totalBytes)}
             <div className="model-badge-actions">
-              <button className="btn btn-small" onClick={() => LocalModelStore.cancel()}>
+              <button className="btn btn-small" onClick={() => LocalModelStore.cancelDownload()}>
                 {localized('Cancel Download')}
               </button>
             </div>
@@ -235,7 +239,10 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
             {local}
             <div className="model-badge-error">{state.message}</div>
             <div className="model-badge-actions">
-              <button className="btn btn-small" onClick={() => LocalModelStore.start(false)}>
+              <button
+                className="btn btn-small"
+                onClick={() => LocalModelStore.startDownload(false)}
+              >
                 {localized('Resume Download')}
               </button>
             </div>
@@ -253,7 +260,7 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
               )}
             </div>
             <div className="model-badge-actions">
-              <button className="btn btn-small" onClick={() => LocalModelStore.start(true)}>
+              <button className="btn btn-small" onClick={() => LocalModelStore.startDownload(true)}>
                 {localized('Download Anyway')}
               </button>
             </div>
@@ -264,7 +271,10 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
           <>
             {local}
             <div className="model-badge-actions">
-              <button className="btn btn-small" onClick={() => LocalModelStore.start(false)}>
+              <button
+                className="btn btn-small"
+                onClick={() => LocalModelStore.startDownload(false)}
+              >
                 {localized('Download (%@)', formatBytes(state.totalBytes))}
               </button>
             </div>
@@ -292,7 +302,7 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
     }
     return (
       <button className="model-badge-link" onClick={() => LocalModelStore.setProvider('qwen')}>
-        {localized('Use the downloadable model (%@) instead', DOWNLOADABLE_MODEL)}
+        {localized('Use %@ instead', status.downloadable.label)}
       </button>
     );
   }

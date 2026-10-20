@@ -67,7 +67,8 @@ export interface MockData {
   threads: MockThread[];
   events: MockEvent[];
   calendars: any[];
-  briefing: any;
+  /** What `ai.generate` answers, whatever the prompt. */
+  generate: { text?: string | null; value?: any } | null;
   fetch: { url: string; status: number; contentType: string; body: string }[];
   viewState: { [key: string]: any };
   selectedThreadId: string | null;
@@ -319,7 +320,7 @@ export function expandMockData(input: any, now = new Date()): MockData {
     const start = e.start || now.toISOString();
     const end =
       e.end ||
-      new Date(Date.parse(start) + (e.allDay ? 24 * 60 : e.minutes || 60) * 60000).toISOString();
+      new Date(Date.parse(start) + (e.isAllDay ? 24 * 60 : e.minutes || 60) * 60000).toISOString();
     const id = e.id || `e${idx + 1}`;
     const attendees = (e.attendees || []).map((a: any) => ({
       ...contact(a),
@@ -337,7 +338,7 @@ export function expandMockData(input: any, now = new Date()): MockData {
         title: e.title || '',
         start,
         end,
-        allDay: !!e.allDay,
+        isAllDay: !!e.isAllDay,
         location: e.location || null,
         description: e.description || null,
         status: e.status || 'CONFIRMED',
@@ -345,8 +346,8 @@ export function expandMockData(input: any, now = new Date()): MockData {
         attendees,
         myStatus: e.myStatus !== undefined ? e.myStatus : attendees.length ? 'accepted' : null,
         conferenceUrl: conference ? conference[0] : null,
-        recurring: !!e.recurring,
-        exception: false,
+        isRecurring: !!e.isRecurring,
+        isException: false,
       },
       extract: e.extract || null,
     };
@@ -368,7 +369,7 @@ export function expandMockData(input: any, now = new Date()): MockData {
     threads,
     events,
     calendars,
-    briefing: raw.briefing || null,
+    generate: raw.generate || null,
     fetch: fetchEntries,
     viewState: raw.viewState || {},
     selectedThreadId: raw.selectedThread || (threads[0] ? threads[0].id : null),

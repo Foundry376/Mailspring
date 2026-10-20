@@ -19,7 +19,7 @@ import { runExtractJob, runEventExtractJob, cancelJobsForView } from '../lib/bri
 import { ViewGrant } from '../lib/bridge/grant';
 import { FULL_GRANT } from '../../../src/services/mail-access/grant';
 import * as bodies from '../lib/bridge/bodies';
-import { cacheKey, EXTRACTION_MODEL_VERSION } from '../../../src/browser/extraction-model';
+import { cacheKey, DOWNLOADABLE_MODEL_VERSION } from '../../../src/browser/local-ai-model';
 
 const SENT = new Date(2026, 9, 2, 10, 0); // Fri Oct 2 2026, 10:00 local
 
@@ -173,7 +173,7 @@ describe('View extraction', function viewExtractionSpec() {
       const prompt = buildEventPrompt(schema, {
         title: 'Library storytime',
         start: SENT,
-        allDay: false,
+        isAllDay: false,
         location: 'Main library',
         organizer: 'Bellevue Library',
         attendees: ['Grandma'],
@@ -188,10 +188,10 @@ describe('View extraction', function viewExtractionSpec() {
     });
 
     it('keys the answer cache by message, schema and model', () => {
-      const a = cacheKey('m1', 'h1', EXTRACTION_MODEL_VERSION);
-      expect(a).toBe(cacheKey('m1', 'h1', EXTRACTION_MODEL_VERSION));
-      expect(a).not.toBe(cacheKey('m2', 'h1', EXTRACTION_MODEL_VERSION));
-      expect(a).not.toBe(cacheKey('m1', 'h2', EXTRACTION_MODEL_VERSION));
+      const a = cacheKey('m1', 'h1', DOWNLOADABLE_MODEL_VERSION);
+      expect(a).toBe(cacheKey('m1', 'h1', DOWNLOADABLE_MODEL_VERSION));
+      expect(a).not.toBe(cacheKey('m2', 'h1', DOWNLOADABLE_MODEL_VERSION));
+      expect(a).not.toBe(cacheKey('m1', 'h2', DOWNLOADABLE_MODEL_VERSION));
       expect(a).not.toBe(cacheKey('m1', 'h1', 'other-model'));
     });
   });
@@ -222,17 +222,17 @@ describe('View extraction', function viewExtractionSpec() {
         messages.filter((m) => ids.includes(m.id))
       );
       spyOn(ipcRenderer, 'invoke').andCallFake(async (channel, req) => {
-        if (channel === 'extraction:status') return { available: true };
+        if (channel === 'local-ai:status') return { available: true };
+        if (channel === 'local-ai:cancel') return 0;
         // LocalModelStore refreshes its status over IPC; that's not a model request.
-        if (String(channel).startsWith('local-model:')) return null;
-        if (channel === 'extraction:cancel-view') return 0;
+        if (channel !== 'local-ai:run') return null;
         requests.push(req);
         return req.items.map((item) =>
           req.cacheOnly
             ? null
             : {
-                messageId: item.messageId,
-                value: { total: item.messageId === 'a' ? '$11.00' : '$99.00' },
+                id: item.id,
+                value: { total: item.id === 'a' ? '$11.00' : '$99.00' },
                 cached: false,
                 ms: 5,
               }
@@ -246,8 +246,8 @@ describe('View extraction', function viewExtractionSpec() {
         progress.push(p)
       );
       expect(requests.length).toBe(1);
-      expect(requests[0].viewId).toBe('spec-extract');
-      expect(requests[0].items.map((i) => i.messageId)).toEqual(['a', 'b']);
+      expect(requests[0].ownerId).toBe('spec-extract');
+      expect(requests[0].items.map((i) => i.id)).toEqual(['a', 'b']);
       const results = progress.reduce((all, p) => all.concat(p.results), []);
       // "b" says $12.00, so the model's $99.00 for it never reaches the View.
       expect(results.map((r) => r.value)).toEqual([
@@ -283,7 +283,7 @@ describe('View extraction', function viewExtractionSpec() {
       await cancelJobsForView('spec-extract');
       await run;
       expect(job.cancelled).toBe(true);
-      expect(ipcRenderer.invoke).toHaveBeenCalledWith('extraction:cancel-view', 'spec-extract');
+      expect(ipcRenderer.invoke).toHaveBeenCalledWith('local-ai:cancel', 'spec-extract');
     });
   });
   describe('runEventExtractJob', () => {
@@ -297,7 +297,7 @@ describe('View extraction', function viewExtractionSpec() {
       eventId,
       title: 'Saturday plans',
       start: SENT,
-      allDay: true,
+      isAllDay: true,
       location: null,
       organizer: null,
       attendees: [],
@@ -308,13 +308,13 @@ describe('View extraction', function viewExtractionSpec() {
     beforeEach(() => {
       requests = [];
       spyOn(ipcRenderer, 'invoke').andCallFake(async (channel, req) => {
-        if (channel === 'extraction:status') return { available: true, modelVersion: 'spec' };
-        if (String(channel).startsWith('local-model:')) return null;
-        if (channel === 'extraction:cancel-view') return 0;
+        if (channel === 'local-ai:status') return { available: true, modelVersion: 'spec' };
+        if (channel === 'local-ai:cancel') return 0;
+        if (channel !== 'local-ai:run') return null;
         requests.push(req);
         return req.items.map((item) => ({
-          messageId: item.messageId,
-          value: { who: item.messageId === 'event:e1' ? 'Grandma' : 'Santa' },
+          id: item.id,
+          value: { who: item.id === 'event:e1' ? 'Grandma' : 'Santa' },
           cached: false,
           ms: 5,
         }));
@@ -331,7 +331,7 @@ describe('View extraction', function viewExtractionSpec() {
 
     it('keys results by event, grounded in the event text', async () => {
       const results = await run([event('e1', 'Grandma visits'), event('e2', 'Nothing here')]);
-      expect(requests[0].items.map((i) => i.messageId)).toEqual(['event:e1', 'event:e2']);
+      expect(requests[0].items.map((i) => i.id)).toEqual(['event:e1', 'event:e2']);
       expect(results.map((r) => [r.eventId, r.value])).toEqual([
         ['e1', { who: 'Grandma' }],
         // "Santa" isn't in e2's text, so it never reaches the View.

@@ -1,19 +1,19 @@
 import fs from 'fs';
 import path from 'path';
 import {
-  EXTRACTION_MODEL,
+  DOWNLOADABLE_MODEL,
   ModelSpec,
   downloadModel,
   downloadedModelPath,
   modelDir,
   partialModelPath,
-} from './extraction-model';
+} from './local-ai-model';
 
 /**
- * Owns the on-device model Views use for ai.extract / ai.summarize / ai.generate: whether one
- * is available, downloading it the first time someone opens Views, and the user's choice to
- * turn model downloads off entirely. Lives in the main process so a download survives window
- * reloads; renderers read it through the `local-model:*` IPC channels.
+ * Owns the on-device model behind local AI features: whether one is available, downloading it
+ * the first time a feature needs it, and the user's choice to turn model downloads off
+ * entirely. Lives in the main process so a download survives window reloads; renderers read it
+ * through the `local-ai:*` IPC channels (local-ai-service.ts).
  */
 
 export type LocalModelMode = 'auto' | 'off';
@@ -75,13 +75,15 @@ export function onSystemModelChange(cb: () => void): () => void {
   return fm ? fm.onSystemModelChange(cb) : () => {};
 }
 
-/** What renderers receive on `local-model:status`. */
+/** What renderers receive on `local-ai:model-status`. */
 export interface LocalModelStatus {
   state: LocalModelState;
   provider: LocalModelProvider;
   system: SystemModel;
   /** Bytes of downloaded or partially downloaded model files. */
   bytesOnDisk: number;
+  /** The model a download would fetch. */
+  downloadable: { label: string; sizeBytes: number };
 }
 
 /** Free space required before a download starts on its own; the model plus headroom. */
@@ -146,7 +148,7 @@ export class LocalModelController {
 
   constructor(deps: LocalModelDeps) {
     this.d = {
-      spec: EXTRACTION_MODEL,
+      spec: DOWNLOADABLE_MODEL,
       freeBytes: freeBytesOnVolume,
       download: downloadModel,
       detectSystem: detectSystemModel,
@@ -155,7 +157,7 @@ export class LocalModelController {
       ...deps,
     };
     // A caller passing `spec: undefined` (no dev override) must not erase the default.
-    if (!this.d.spec) this.d.spec = EXTRACTION_MODEL;
+    if (!this.d.spec) this.d.spec = DOWNLOADABLE_MODEL;
   }
 
   get spec() {
@@ -176,6 +178,7 @@ export class LocalModelController {
       provider: this.d.getProvider(),
       system: this.d.detectSystem(),
       bytesOnDisk: this.bytesOnDisk(),
+      downloadable: { label: this.d.spec.label, sizeBytes: this.d.spec.size },
     };
   }
 
@@ -204,7 +207,7 @@ export class LocalModelController {
     return { bytesFreed };
   }
 
-  /** The downloadable model file the extraction worker should load, or null. */
+  /** The downloadable model file the worker should load, or null. */
   modelPath(): string | null {
     if (this.d.getMode() === 'off') return null;
     const override = this.d.getOverridePath();
@@ -257,10 +260,11 @@ export class LocalModelController {
   }
 
   /**
-   * Called whenever Views are opened. Starts the download the first time, and resumes one a
-   * previous launch left partway; after the user cancels, it waits for them to ask again.
+   * Called whenever a feature that uses the model is in use. Starts the download the first
+   * time, and resumes one a previous launch left partway; after the user cancels, it waits for
+   * them to ask again.
    */
-  viewsOpened() {
+  prepare() {
     const kind = this.state().kind;
     // While the system model is being checked, a later systemChanged() decides.
     this.awaitingSystemCheck = kind === 'checking';
@@ -273,7 +277,7 @@ export class LocalModelController {
 
   /** The system model's availability changed (e.g. its first probe finished). */
   systemChanged() {
-    if (this.awaitingSystemCheck && this.state().kind !== 'checking') this.viewsOpened();
+    if (this.awaitingSystemCheck && this.state().kind !== 'checking') this.prepare();
     this.emit(true);
   }
 

@@ -36,7 +36,7 @@ import moveToApplications from './move-to-applications';
 import { MailsyncProcess } from '../mailsync-process';
 import Config from '../config';
 import { registerQuickpreviewIPCHandlers } from './quickpreview-ipc';
-import { registerExtractionIPCHandlers } from './extraction-service';
+import { registerLocalAIIPCHandlers } from './local-ai-service';
 import { registerViewSessionIPCHandlers } from './view-sessions';
 import { guardAuxiliaryWindowNavigation } from './auxiliary-window-guard';
 import { onFromMailspringWindows, handleFromMailspringWindows } from './trusted-ipc';
@@ -975,7 +975,7 @@ export default class Application extends EventEmitter {
     registerQuickpreviewIPCHandlers(ipcMain);
     registerNotificationIPCHandlers(ipcMain);
     registerViewSessionIPCHandlers(ipcMain);
-    registerExtractionIPCHandlers(ipcMain, {
+    registerLocalAIIPCHandlers(ipcMain, {
       configDirPath: this.configDirPath,
       config: this.config,
       devMode: this.devMode,

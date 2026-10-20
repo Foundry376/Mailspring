@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { Message } from 'mailspring-exports';
+import { LocalModelStore, Message } from 'mailspring-exports';
 import { contentFor, messagesWithBodies } from './bodies';
 import type { ViewGrant } from './grant';
 import {
@@ -14,15 +14,14 @@ import {
   schemaHash,
 } from '../extraction/prompt';
 import { normalizeAnswer } from '../extraction/normalize';
-import { cancelModelJobsForView, extractionStatus, runModel } from '../extraction/client';
+import { localAIForViews } from '../local-model/view-status';
 
 export type { Schema };
 
 /**
  * `ai.extract`. Each message goes through tier 0 first (schema.org markup embedded in the
  * message, see content.ts), and only messages without matching markup go to the on-device
- * model, which runs in a utility process via
- * app/src/browser/extraction-service.ts.
+ * model through LocalModelStore (app/src/browser/local-ai-service.ts).
  *
  * Model work runs on this device and isn't metered. If the model isn't downloaded, misses come
  * back `value: null` and progress carries `modelAvailable: false`.
@@ -175,7 +174,7 @@ export interface ExtractJob {
 export function cancelJobsForView(viewId: string) {
   for (const job of jobsByView.get(viewId) || []) job.cancelled = true;
   jobsByView.delete(viewId);
-  return cancelModelJobsForView(viewId);
+  return LocalModelStore.cancel(viewId);
 }
 
 /** Hidden Views' prompts queue behind visible Views' prompts. */
@@ -236,7 +235,7 @@ async function run(
   const hash = schemaHash(schema, instructions);
   const jsonSchema = compileJsonSchema(schema);
   const targets = ids.slice(0, MAX_MESSAGES);
-  const { available: modelAvailable, modelVersion } = await extractionStatus();
+  const { available: modelAvailable, modelVersion } = await localAIForViews();
   let processed = 0;
   // Includes the model, so switching between Apple's model and Qwen never reuses answers.
   const key = (id: string) => `${id}:${hash}:${modelVersion}`;
@@ -289,13 +288,13 @@ async function run(
     for (let m = 0; m < misses.length; m += MODEL_BATCH_SIZE) {
       if (job.cancelled) return;
       const chunk = misses.slice(m, m + MODEL_BATCH_SIZE);
-      const answers = await runModel({
-        viewId: grant.viewId,
+      const answers = await LocalModelStore.run({
+        ownerId: grant.viewId,
         priority: hiddenViews.has(grant.viewId) ? 1 : 0,
-        schemaHash: hash,
+        promptKey: hash,
         jsonSchema,
         items: chunk.map(({ message, text }) => ({
-          messageId: message.id,
+          id: message.id,
           prompt: buildPrompt(schema, promptMessage(message, text), instructions),
         })),
       });
@@ -359,7 +358,7 @@ export async function runEventExtractJob(
     const jsonSchema = compileJsonSchema(schema);
     const targets = events.slice(0, MAX_EVENTS);
     const total = targets.length;
-    const { available: modelAvailable, modelVersion } = await extractionStatus();
+    const { available: modelAvailable, modelVersion } = await localAIForViews();
     const key = (e: ExtractEvent) => {
       const text = crypto.createHash('sha256').update(eventBlock(e)).digest('hex').slice(0, 16);
       return `event:${e.eventId}:${text}:${hash}:${modelVersion}`;
@@ -380,13 +379,13 @@ export async function runEventExtractJob(
     for (let m = 0; m < misses.length; m += MODEL_BATCH_SIZE) {
       if (job.cancelled) return;
       const chunk = misses.slice(m, m + MODEL_BATCH_SIZE);
-      const answers = await runModel({
-        viewId: grant.viewId,
+      const answers = await LocalModelStore.run({
+        ownerId: grant.viewId,
         priority: hiddenViews.has(grant.viewId) ? 1 : 0,
-        schemaHash: hash,
+        promptKey: hash,
         jsonSchema,
         items: chunk.map((e) => ({
-          messageId: `event:${e.eventId}`,
+          id: `event:${e.eventId}`,
           prompt: buildEventPrompt(schema, e, instructions),
         })),
       });

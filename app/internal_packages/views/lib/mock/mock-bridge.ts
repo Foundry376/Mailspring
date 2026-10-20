@@ -305,7 +305,7 @@ export class MockSource {
       'ai.summarize': (ctx, params) => {
         requirePermission(this.grant, 'mail.bodies');
         const { jobId, ids, query } = params || ({} as any);
-        const targets = this.targetIds(ids, query, 40);
+        const targets = this.targetIds(ids, query, 200);
         const results = targets.map((id) => {
           const m = this.messageById(id);
           const digest = (m && m.digest) || { gist: null, asks: null, needsAction: false };
@@ -316,21 +316,13 @@ export class MockSource {
       },
       'ai.generate': (ctx, params) => {
         requirePermission(this.grant, 'mail.bodies');
-        const { jobId, ids, query, task, maxMessages } = params || ({} as any);
-        const targets = this.targetIds(ids, query, maxMessages || 40);
-        const briefing = data.briefing || {};
+        const { jobId } = params || ({} as any);
+        const generated = data.generate || {};
         this.emitDone(ctx, jobId, {
-          phase: 'briefing',
-          processed: targets.length,
-          total: targets.length,
-          usedMessages: targets.length,
-          priorities: briefing.priorities || [],
-          groups: briefing.groups || [],
-          headline: briefing.headline || null,
-          text: task === 'prioritize' ? null : briefing.text || null,
-          value: briefing.value || null,
+          text: generated.text || null,
+          value: generated.value || null,
         });
-        return { jobId, total: targets.length };
+        return { jobId };
       },
       'ai.cancel': ok,
 

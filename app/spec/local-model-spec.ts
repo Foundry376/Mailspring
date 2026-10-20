@@ -8,7 +8,7 @@ import {
   MIN_FREE_BYTES_FOR_AUTO_DOWNLOAD,
   SystemModel,
 } from '../src/browser/local-model';
-import { ModelSpec } from '../src/browser/extraction-model';
+import { ModelSpec } from '../src/browser/local-ai-model';
 
 const spec: ModelSpec = {
   id: 'test',
@@ -85,23 +85,23 @@ function setup(
 }
 
 describe('LocalModelController', () => {
-  it('starts the download the first time Views open, and only once', () => {
+  it('starts the download the first time a feature prepares the model, and only once', () => {
     const { controller, download, config } = setup();
     expect(controller.state().kind).toBe('not-downloaded');
-    controller.viewsOpened();
+    controller.prepare();
     expect(download.callCount).toBe(1);
     expect(config.autoStarted).toBe(true);
     const state = controller.state() as any;
     expect(state.kind).toBe('downloading');
     expect(state.receivedBytes).toBe(4);
     expect(state.totalBytes).toBe(spec.size);
-    controller.viewsOpened();
+    controller.prepare();
     expect(download.callCount).toBe(1);
   });
 
   it('becomes ready when the download finishes', async () => {
     const { controller, downloads } = setup();
-    controller.viewsOpened();
+    controller.prepare();
     downloads[0].resolve();
     await Promise.resolve();
     await Promise.resolve();
@@ -111,16 +111,16 @@ describe('LocalModelController', () => {
 
   it("doesn't auto-start again after the user cancels, but resumes a partial download", () => {
     const { controller, download, writePartial } = setup({ autoStarted: true });
-    controller.viewsOpened();
+    controller.prepare();
     expect(download.callCount).toBe(0);
     writePartial();
-    controller.viewsOpened();
+    controller.prepare();
     expect(download.callCount).toBe(1);
   });
 
   it('cancels a download and deletes the partial file', () => {
     const { controller, dir, writePartial } = setup();
-    controller.viewsOpened();
+    controller.prepare();
     writePartial();
     controller.cancel();
     expect(controller.state().kind).toBe('not-downloaded');
@@ -136,7 +136,7 @@ describe('LocalModelController', () => {
     expect(config.mode).toBe('off');
     expect(controller.state().kind).toBe('disabled');
     expect(controller.modelPath()).toBe(null);
-    controller.viewsOpened();
+    controller.prepare();
     controller.start({ force: true });
     expect(download.callCount).toBe(0);
     controller.setEnabled(true);
@@ -146,7 +146,7 @@ describe('LocalModelController', () => {
 
   it("doesn't auto-start with little free disk, but Download Anyway does", () => {
     const { controller, download } = setup({ free: MIN_FREE_BYTES_FOR_AUTO_DOWNLOAD - 1 });
-    controller.viewsOpened();
+    controller.prepare();
     expect(download.callCount).toBe(0);
     expect(controller.state().kind).toBe('insufficient-disk');
     controller.start({ force: true });
@@ -160,7 +160,7 @@ describe('LocalModelController', () => {
     const state = controller.state() as any;
     expect(state.kind).toBe('ready');
     expect(state.source).toBe('dev');
-    controller.viewsOpened();
+    controller.prepare();
     controller.start({ force: true });
     expect(download.callCount).toBe(0);
     expect(controller.modelPath()).toBe(file);
@@ -168,7 +168,7 @@ describe('LocalModelController', () => {
 
   it('reports a failed download and resumes on request', async () => {
     const { controller, downloads, download } = setup();
-    controller.viewsOpened();
+    controller.prepare();
     downloads[0].reject(new Error('HTTP 503'));
     await Promise.resolve();
     const state = controller.state() as any;
@@ -183,7 +183,7 @@ describe('LocalModelController', () => {
       const { controller, download } = setup({
         system: { available: true, name: 'Apple Intelligence' },
       });
-      controller.viewsOpened();
+      controller.prepare();
       expect(controller.state()).toEqual({ kind: 'system', label: 'Apple Intelligence' });
       expect(download.callCount).toBe(0);
     });
@@ -192,7 +192,7 @@ describe('LocalModelController', () => {
       const { controller, download, setSystem } = setup({
         system: { available: false, reason: 'checking', name: 'AI' },
       });
-      controller.viewsOpened();
+      controller.prepare();
       expect(controller.state().kind).toBe('checking');
       expect(download.callCount).toBe(0);
       setSystem({ available: false, reason: 'unsupportedOS', name: 'AI' });
@@ -203,14 +203,14 @@ describe('LocalModelController', () => {
       const preparing = setup({
         system: { available: false, reason: 'modelNotReady', name: 'AI' },
       });
-      preparing.controller.viewsOpened();
+      preparing.controller.prepare();
       expect(preparing.controller.state().kind).toBe('system-preparing');
       expect(preparing.download.callCount).toBe(0);
 
       const off = setup({
         system: { available: false, reason: 'appleIntelligenceNotEnabled', name: 'AI' },
       });
-      off.controller.viewsOpened();
+      off.controller.prepare();
       expect(off.controller.state().kind).toBe('system-disabled');
       expect(off.download.callCount).toBe(0);
       off.controller.start({ force: false });
@@ -237,7 +237,7 @@ describe('LocalModelController', () => {
 
 describe('modelStatusForViews', () => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { modelStatusForViews } = require('../internal_packages/views/lib/local-model/store');
+  const { modelStatusForViews } = require('../internal_packages/views/lib/local-model/view-status');
   const status = (state) => ({
     state,
     provider: 'auto',

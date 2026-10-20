@@ -289,10 +289,10 @@ function buildPackagerOptions() {
           '**/src/tasks/**',
           '**/src/quickpreview/**',
           '**/mcp-stdio-bridge.js',
-          // On-device extraction (src/browser/extraction-service.ts) runs node-llama-cpp in a
+          // Local AI (src/browser/local-ai-service.ts) runs node-llama-cpp in a
           // utility process. It is ESM with native binaries, so the worker, the package and
           // everything it imports live on disk and are imported from app.asar.unpacked.
-          '**/src/browser/extraction-worker.js',
+          '**/src/browser/local-ai-worker.js',
           ...dependencyClosure('node-llama-cpp').map((dir) => `**/node_modules/${dir}/**`),
           '**/static/all_licenses.html',
           '**/static/extensions/**',

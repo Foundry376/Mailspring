@@ -5,8 +5,9 @@ import https from 'https';
 import path from 'path';
 
 /**
- * The downloadable model for on-device extraction (Qwen3.5-0.8B). It is downloaded on demand, never shipped in the installer, and its bytes are pinned:
- * a file whose size or SHA-256 differs is never loaded.
+ * The downloadable on-device model (Qwen3.5-0.8B), used where the system model isn't. It is
+ * downloaded on demand, never shipped in the installer, and its bytes are pinned: a file whose
+ * size or SHA-256 differs is never loaded.
  */
 export interface ModelSpec {
   id: string;
@@ -18,7 +19,7 @@ export interface ModelSpec {
   sha256: string;
 }
 
-export const EXTRACTION_MODEL: ModelSpec = {
+export const DOWNLOADABLE_MODEL: ModelSpec = {
   id: 'qwen3.5-0.8b-q4km',
   label: 'Qwen 3.5 (0.8B)',
   fileName: 'qwen3.5-0.8b-q4km.gguf',
@@ -28,7 +29,7 @@ export const EXTRACTION_MODEL: ModelSpec = {
 };
 
 /** Part of every cache key, so changing the pinned model invalidates old results. */
-export const EXTRACTION_MODEL_VERSION = `${EXTRACTION_MODEL.id}@${EXTRACTION_MODEL.sha256.slice(
+export const DOWNLOADABLE_MODEL_VERSION = `${DOWNLOADABLE_MODEL.id}@${DOWNLOADABLE_MODEL.sha256.slice(
   0,
   12
 )}`;
@@ -45,11 +46,11 @@ export function modelDir(configDirPath: string) {
   return path.join(configDirPath, 'models');
 }
 
-export function downloadedModelPath(configDirPath: string, spec: ModelSpec = EXTRACTION_MODEL) {
+export function downloadedModelPath(configDirPath: string, spec: ModelSpec = DOWNLOADABLE_MODEL) {
   return path.join(modelDir(configDirPath), spec.fileName);
 }
 
-export function partialModelPath(configDirPath: string, spec: ModelSpec = EXTRACTION_MODEL) {
+export function partialModelPath(configDirPath: string, spec: ModelSpec = DOWNLOADABLE_MODEL) {
   return `${downloadedModelPath(configDirPath, spec)}.partial`;
 }
 
@@ -62,7 +63,7 @@ export function resolveModelPath(configDirPath: string, overridePath?: string): 
   for (const candidate of [overridePath, downloadedModelPath(configDirPath)]) {
     if (!candidate) continue;
     try {
-      if (fs.statSync(candidate).size === EXTRACTION_MODEL.size) return candidate;
+      if (fs.statSync(candidate).size === DOWNLOADABLE_MODEL.size) return candidate;
     } catch (err) {
       // missing; try the next candidate
     }
@@ -112,7 +113,7 @@ function get(
 export async function downloadModel(
   configDirPath: string,
   onProgress: (p: { received: number; total: number }) => void,
-  { spec = EXTRACTION_MODEL, signal }: { spec?: ModelSpec; signal?: AbortSignal } = {}
+  { spec = DOWNLOADABLE_MODEL, signal }: { spec?: ModelSpec; signal?: AbortSignal } = {}
 ): Promise<string> {
   const finalPath = downloadedModelPath(configDirPath, spec);
   const partialPath = partialModelPath(configDirPath, spec);

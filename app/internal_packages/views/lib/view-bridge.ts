@@ -5,6 +5,7 @@ import {
   AccountStore,
   CategoryStore,
   DatabaseStore,
+  LocalModelStore,
   Message,
   Thread,
 } from 'mailspring-exports';
@@ -49,7 +50,7 @@ import {
 } from './bridge/extract';
 import { fillThreadSnippets } from './bridge/serializers';
 import { generationHandlers } from './bridge/generate';
-import { LocalModelStore, modelStatusForViews } from './local-model/store';
+import { modelStatusForViews } from './local-model/view-status';
 import { HOST_HANDLERS_IN_MOCK, MockSource } from './mock/mock-bridge';
 
 // Channel names shared with runtime/bridge.preload.js.
@@ -91,8 +92,7 @@ export interface ViewBridgeOptions {
    */
   onCallError?: (
     method: string | null,
-    error: { code: string; message: string; permission?: string },
-    params: any
+    error: { code: string; message: string; permission?: string }
   ) => void;
   /**
    * Renders the View from mock data: every data method answers from `mock` instead of the
@@ -668,7 +668,7 @@ export class ViewBridge {
       if (this.options.onCallError && generation === this.generation) {
         const known =
           typeof method === 'string' && Object.prototype.hasOwnProperty.call(this.handlers, method);
-        this.options.onCallError(known ? method : null, error, params);
+        this.options.onCallError(known ? method : null, error);
       }
       reply({ id, error });
     }

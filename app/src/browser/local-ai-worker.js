@@ -1,18 +1,19 @@
 /* eslint-disable */
 /**
- * Utility-process half of on-device extraction for Views.
+ * Utility-process half of the local AI service (local-ai-service.ts).
  *
- * Holds the one bundled model and runs one prompt at a time. Everything else (queueing,
+ * Holds the one downloadable model and runs one prompt at a time. Everything else (queueing,
  * caching, prompt construction, normalization) lives in the processes that own the data, so
  * this file only turns `{ prompt, jsonSchema }` into JSON constrained to that schema, or into
- * free text when there is no schema (the daily briefing's narrative). Running
- * it here keeps model memory and CPU out of the main process, and a crash in llama.cpp takes
- * down only this process.
+ * free text when there is no schema. Running it here keeps model memory and CPU out of the
+ * main process, and a crash in llama.cpp takes down only this process.
  *
  * Plain CommonJS on purpose: utility processes don't get the app's TypeScript compile cache.
- * node-llama-cpp is ESM-only, so it is loaded with a dynamic import.
+ * node-llama-cpp is ESM-only, so it is loaded with a dynamic import. The bare specifier
+ * resolves the usual way, from this file up to the nearest node_modules: app/node_modules in
+ * development, and app.asar.unpacked/node_modules in a packaged app, where build.js unpacks
+ * this file and node-llama-cpp's whole dependency closure side by side.
  */
-const path = require('path');
 
 let llamaModule = null;
 let llama = null;
@@ -23,9 +24,7 @@ let completion = null;
 const grammars = new Map();
 
 async function load({ modelPath, gpu, threads, contextSize }) {
-  llamaModule = await import(
-    path.join(process.env.MAILSPRING_APP_NODE_MODULES, 'node-llama-cpp', 'dist', 'index.js')
-  );
+  llamaModule = await import('node-llama-cpp');
   // Only the prebuilt binaries that ship with the app: never download or compile llama.cpp on
   // a user's machine.
   llama = await llamaModule.getLlama({

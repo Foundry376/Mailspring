@@ -295,9 +295,9 @@
     return state;
   }
 
-  // ── Generation (daily briefing) ────────────────────────────────────────────
-  // ai.summarize streams one short record per message (phase 1); ai.generate builds a briefing
-  // from those records (phase 2). Both reuse the extraction job channel above.
+  // ── Summaries and generation ───────────────────────────────────────────────
+  // ai.summarize streams one short record per message; ai.generate runs one prompt the View
+  // writes. Both reuse the extraction job channel above.
 
   function startJob(method, params, onProgress) {
     const jobId = uid('j');
@@ -350,6 +350,8 @@
             total: p.total,
             status: p.status,
             modelAvailable: p.modelAvailable,
+            modelStatus: p.modelStatus || s.modelStatus,
+            modelProgress: p.modelProgress ?? s.modelProgress,
             error: p.error ? new ViewError(p.error) : null,
           };
         })
@@ -363,73 +365,81 @@
     return state;
   }
 
-  const IDLE_GENERATE = {
-    status: 'idle',
-    phase: null,
-    processed: 0,
-    total: 0,
-    text: null,
-    value: null,
-    priorities: [],
-    groups: [],
-    headline: null,
-    modelAvailable: true,
-    error: null,
-  };
-
-  function mergeGenerate(s, p) {
-    return {
-      ...s,
-      status: p.status,
-      phase: p.phase || s.phase,
-      processed: p.processed != null ? p.processed : s.processed,
-      total: p.total != null ? p.total : s.total,
-      modelAvailable: p.modelAvailable != null ? p.modelAvailable : s.modelAvailable,
-      usedMessages: p.usedMessages != null ? p.usedMessages : s.usedMessages,
-      priorities: p.priorities || s.priorities,
-      groups: p.groups || s.groups,
-      headline: p.headline || s.headline,
-      text: p.text !== undefined ? p.text : s.text,
-      value: p.value !== undefined ? p.value : s.value,
-      error: p.error ? new ViewError(p.error) : null,
-    };
+  // Throws for options in any other shape, so a View written against a guess fails loudly
+  // instead of sitting idle.
+  function generateParams(opts) {
+    if (
+      !opts ||
+      typeof opts.instructions !== 'string' ||
+      opts.task !== undefined ||
+      opts.ids !== undefined ||
+      opts.query !== undefined
+    ) {
+      throw new ViewError({
+        code: 'invalid',
+        message:
+          'generate takes { instructions, input?, schema?, maxTokens? } and reads no mail itself. Build `input` from data the View already has, such as useSummaries gists.',
+      });
+    }
+    const { instructions, input, schema, maxTokens } = opts;
+    return { instructions, input, schema, maxTokens };
   }
 
-  function generate(opts, onProgress) {
+  function generate(opts) {
     return new Promise((resolve, reject) => {
-      let state = { ...IDLE_GENERATE, status: 'running' };
-      const { started, cancel } = startJob('ai.generate', opts, (p) => {
-        state = mergeGenerate(state, p);
-        if (onProgress) onProgress(state);
+      const { started, cancel } = startJob('ai.generate', generateParams(opts), (p) => {
         if (p.status === 'error') {
           cancel();
-          reject(state.error);
+          reject(new ViewError(p.error || { code: 'internal', message: 'Generation failed' }));
         } else if (p.status === 'done') {
           cancel();
-          resolve(state);
+          resolve({
+            text: p.text ?? null,
+            value: p.value ?? null,
+            modelAvailable: p.modelAvailable,
+          });
         }
       });
       started.catch(reject);
     });
   }
 
+  const IDLE_GENERATE = {
+    status: 'idle',
+    text: null,
+    value: null,
+    modelAvailable: true,
+    error: null,
+  };
+
   function useGenerate(opts) {
-    const enabled = !!(opts && opts.task && (opts.ids ? opts.ids.length : opts.query != null));
-    const key = enabled ? JSON.stringify(opts) : null;
+    const key = opts ? JSON.stringify(opts) : null;
     const [state, setState] = useState(IDLE_GENERATE);
     useEffect(() => {
       if (!key) {
         setState(IDLE_GENERATE);
         return undefined;
       }
+      let params;
+      try {
+        params = generateParams(opts);
+      } catch (error) {
+        setState({ ...IDLE_GENERATE, status: 'error', error });
+        return undefined;
+      }
       setState({ ...IDLE_GENERATE, status: 'running' });
-      const { started, cancel } = startJob('ai.generate', opts, (p) =>
-        setState((s) => mergeGenerate(s, p))
+      const { started, cancel } = startJob('ai.generate', params, (p) =>
+        setState((s) => ({
+          status: p.status,
+          text: p.text ?? null,
+          value: p.value ?? null,
+          modelAvailable: p.modelAvailable ?? s.modelAvailable,
+          modelStatus: p.modelStatus || s.modelStatus,
+          modelProgress: p.modelProgress ?? s.modelProgress,
+          error: p.error ? new ViewError(p.error) : null,
+        }))
       );
-      started.then(
-        ({ total }) => setState((s) => ({ ...s, total })),
-        (error) => setState((s) => ({ ...s, status: 'error', error }))
-      );
+      started.catch((error) => setState((s) => ({ ...s, status: 'error', error })));
       return cancel;
     }, [key]);
     return state;
@@ -889,7 +899,7 @@
     // Extraction
     useExtract,
     extract,
-    // Generation (daily briefing)
+    // Summaries and generation
     useSummaries,
     summarize,
     useGenerate,

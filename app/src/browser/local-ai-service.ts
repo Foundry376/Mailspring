@@ -7,11 +7,12 @@ import {
 } from 'electron';
 import path from 'path';
 import { isMailspringWindowContents } from './mailspring-window';
-import { cacheKey, EXTRACTION_MODEL_VERSION, ModelSpec } from './extraction-model';
+import { cacheKey, DOWNLOADABLE_MODEL_VERSION, ModelSpec } from './local-ai-model';
 import {
   LocalModelController,
   LocalModelMode,
   LocalModelProvider,
+  LocalModelStatus,
   onSystemModelChange,
   freeBytesOnVolume,
 } from './local-model';
@@ -24,75 +25,87 @@ import {
 } from './local-model-provider';
 
 /**
- * Main-process owner of on-device extraction and generation for Views.
+ * Main-process owner of on-device AI: prompts from any renderer feature (Views' ai.extract,
+ * ai.summarize and ai.generate today) run here, one at a time, on Apple's system model or the
+ * downloadable model in a utility process (local-ai-worker.js). The model is memory-bound, and
+ * parallel sequences measured no faster per prompt.
  *
- * The renderer (the views package) builds prompts and normalizes answers; this service decides
- * what runs when, remembers answers, and keeps the model in a utility process
- * (extraction-worker.js). Prompts run one at a time: the model is memory-bound, and parallel
- * sequences measured no faster per message.
+ * Callers build prompts and validate answers; this service decides what runs when and
+ * remembers answers. Answers are cached by (item id, prompt key, model) in their own SQLite
+ * file. The mail database is read-only outside the sync engine, and a message's body never
+ * changes, so an answer is computed once and kept until the model changes.
  *
- * Answers are cached by (message, schema, model) in their own SQLite file. The mail database
- * is read-only outside the sync engine, and a message's body never changes, so an answer is
- * computed once and kept until the pinned model changes.
+ * Nothing starts until a renderer first asks (see registerLocalAIIPCHandlers): people who
+ * never use a local AI feature never probe the system model, download a model or start the
+ * worker.
  */
 
 // Leaves the UI's cores alone; 8 threads measured no faster than 4.
 const CPU_THREADS = 4;
-// Room for a packed briefing digest (≈3k tokens) plus its answer.
+// Room for the longest prompt renderers send (MAX_PROMPT_CHARS, ≈4k tokens) plus its answer.
 const CONTEXT_SIZE = 8192;
 const MAX_OUTPUT_TOKENS = 200;
 const MAX_REQUESTED_OUTPUT_TOKENS = 600;
-// The model holds ~600 MB; release it when no View has asked for a while.
+// The model holds ~600 MB; release it when nothing has asked for a while.
 const IDLE_SHUTDOWN_MS = 5 * 60 * 1000;
+const MAX_ITEMS_PER_REQUEST = 50;
+const MAX_PROMPT_CHARS = 16000;
+// Named for the first feature that used it; renaming it would discard every cached answer.
+const CACHE_FILE = 'extraction-cache.db';
 
-// In a packaged app the worker and node-llama-cpp are unpacked from the asar (build.js), and
-// they must be loaded from there: node-llama-cpp is ESM with native binaries next to it.
+// In a packaged app the worker and node-llama-cpp are unpacked from the asar (build.js). The
+// worker must be forked from there: node-llama-cpp is ESM with native binaries next to it, and
+// Node's ESM loader can't read inside an asar.
 function unpacked(filePath: string) {
   return filePath.replace(
     `${path.sep}app.asar${path.sep}`,
     `${path.sep}app.asar.unpacked${path.sep}`
   );
 }
-const MAX_ITEMS_PER_REQUEST = 50;
-const MAX_PROMPT_CHARS = 16000;
 
-export interface ExtractionItem {
-  messageId: string;
+export interface LocalAIItem {
+  /** Stable id of what the prompt is about (a message id, `event:<id>`, …); part of the cache key. */
+  id: string;
   prompt: string;
 }
 
-export interface ExtractionRequest {
-  viewId: string;
-  /** Lower runs first. Visible Views send 0, background Views 1. */
+export interface LocalAIRequest {
+  /** Who asked, e.g. a View's id. `local-ai:cancel` drops everything an owner has queued. */
+  ownerId: string;
+  /** 0 when someone is waiting on the answer, 1 for background work. Lower runs first. */
   priority: number;
-  schemaHash: string;
+  /**
+   * Identifies the prompt template and schema. It is part of the cache key, so bump it when
+   * either changes, and the worker compiles one grammar per key.
+   */
+  promptKey: string;
   /** Null asks for free text, returned as `{ text }`. */
   jsonSchema: object | null;
-  items: ExtractionItem[];
+  items: LocalAIItem[];
   /** Answer from the cache only; misses come back null instead of being queued. */
   cacheOnly?: boolean;
   maxTokens?: number;
 }
 
-export interface ExtractionAnswer {
-  messageId: string;
+export interface LocalAIAnswer {
+  id: string;
   value: { [field: string]: any } | null;
   cached: boolean;
   ms: number;
 }
 
 interface QueuedItem {
-  viewId: string;
+  ownerId: string;
   priority: number;
   order: number;
-  schemaHash: string;
+  promptKey: string;
   jsonSchema: object | null;
   maxTokens: number;
-  item: ExtractionItem;
-  resolve: (answer: ExtractionAnswer | null) => void;
+  item: LocalAIItem;
+  resolve: (answer: LocalAIAnswer | null) => void;
 }
 
-class ExtractionService {
+class LocalAIService {
   private configDirPath: string;
   private model: LocalModelController;
   private worker: UtilityProcess | null = null;
@@ -117,7 +130,7 @@ class ExtractionService {
 
   /** Part of every cache key, so switching backends or updating macOS never reuses answers. */
   modelVersion(backend = this.backend()) {
-    return backendModelVersion(backend, EXTRACTION_MODEL_VERSION, getSystemModel());
+    return backendModelVersion(backend, DOWNLOADABLE_MODEL_VERSION, getSystemModel());
   }
 
   private appleBackend() {
@@ -153,31 +166,31 @@ class ExtractionService {
 
   /**
    * Resolves with one answer per item, in order. Items answered from the cache cost nothing
-   * and are marked `cached` so the caller doesn't meter them. Items dropped by
-   * cancelJobsForView resolve to null.
+   * and are marked `cached` so the caller doesn't meter them. Items dropped by cancelOwner
+   * resolve to null.
    */
-  async run(req: ExtractionRequest): Promise<(ExtractionAnswer | null)[]> {
+  async run(req: LocalAIRequest): Promise<(LocalAIAnswer | null)[]> {
     const db = this.cache();
     const version = this.modelVersion();
     return Promise.all(
       req.items.map((item) => {
-        const key = cacheKey(item.messageId, req.schemaHash, version);
+        const key = cacheKey(item.id, req.promptKey, version);
         const hit = db.prepare('SELECT value FROM answers WHERE key = ?').get(key);
         if (hit) {
           return Promise.resolve({
-            messageId: item.messageId,
+            id: item.id,
             value: JSON.parse(hit.value),
             cached: true,
             ms: 0,
           });
         }
         if (req.cacheOnly) return Promise.resolve(null);
-        return new Promise<ExtractionAnswer | null>((resolve) => {
+        return new Promise<LocalAIAnswer | null>((resolve) => {
           this.queue.push({
-            viewId: req.viewId,
+            ownerId: req.ownerId,
             priority: req.priority,
             order: this.nextOrder++,
-            schemaHash: req.schemaHash,
+            promptKey: req.promptKey,
             jsonSchema: req.jsonSchema,
             maxTokens: req.maxTokens || MAX_OUTPUT_TOKENS,
             item,
@@ -189,10 +202,10 @@ class ExtractionService {
     );
   }
 
-  /** Drops every queued prompt for a View, e.g. when it reloads or closes. */
-  cancelJobsForView(viewId: string) {
-    const dropped = this.queue.filter((q) => q.viewId === viewId);
-    this.queue = this.queue.filter((q) => q.viewId !== viewId);
+  /** Drops every queued prompt for an owner, e.g. when a View reloads or closes. */
+  cancelOwner(ownerId: string) {
+    const dropped = this.queue.filter((q) => q.ownerId === ownerId);
+    this.queue = this.queue.filter((q) => q.ownerId !== ownerId);
     for (const q of dropped) q.resolve(null);
     return dropped.length;
   }
@@ -200,7 +213,7 @@ class ExtractionService {
   private cache() {
     if (!this.db) {
       const Database = require('better-sqlite3');
-      this.db = new Database(path.join(this.configDirPath, 'extraction-cache.db'));
+      this.db = new Database(path.join(this.configDirPath, CACHE_FILE));
       this.db.pragma('journal_mode = WAL');
       this.db.exec(
         'CREATE TABLE IF NOT EXISTS answers (key TEXT PRIMARY KEY, value TEXT NOT NULL, createdAt INTEGER NOT NULL)'
@@ -216,39 +229,34 @@ class ExtractionService {
       while (this.queue.length) {
         this.queue.sort((a, b) => a.priority - b.priority || a.order - b.order);
         const next = this.queue.shift();
-        let answer: ExtractionAnswer | null = null;
+        let answer: LocalAIAnswer | null = null;
         try {
           const backend = this.backend();
           const result =
             backend === 'apple-fm'
-              ? // A guardrail refusal comes back as `value: null`, the same "no value" the host
-                // already handles for an email that doesn't state a field.
+              ? // A guardrail refusal comes back as `value: null`, the same "no value" callers
+                // already handle for an email that doesn't state a field.
                 await this.appleBackend().run({
                   prompt: next.item.prompt,
                   jsonSchema: next.jsonSchema,
                   maxTokens: next.maxTokens,
                 })
               : await this.runOnWorker(next);
-          answer = {
-            messageId: next.item.messageId,
-            value: result.value,
-            cached: false,
-            ms: result.ms,
-          };
+          answer = { id: next.item.id, value: result.value, cached: false, ms: result.ms };
           if (result.value) {
             this.cache()
               .prepare('INSERT OR REPLACE INTO answers (key, value, createdAt) VALUES (?, ?, ?)')
               .run(
-                cacheKey(next.item.messageId, next.schemaHash, this.modelVersion(backend)),
+                cacheKey(next.item.id, next.promptKey, this.modelVersion(backend)),
                 JSON.stringify(result.value),
                 Date.now()
               );
           }
         } catch (err) {
-          // The renderer treats a failed prompt like an email with no value; the code
-          // (e.g. Apple's `rateLimited`) only shows up here.
-          console.warn(`Extraction failed: ${(err && (err.code || err.message)) || err}`);
-          answer = { messageId: next.item.messageId, value: null, cached: false, ms: 0 };
+          // Callers treat a failed prompt as "no value"; the code (e.g. Apple's `rateLimited`)
+          // only shows up here.
+          console.warn(`Local AI prompt failed: ${(err && (err.code || err.message)) || err}`);
+          answer = { id: next.item.id, value: null, cached: false, ms: 0 };
         }
         next.resolve(answer);
       }
@@ -264,7 +272,7 @@ class ExtractionService {
       type: 'run',
       prompt: next.item.prompt,
       jsonSchema: next.jsonSchema,
-      schemaKey: next.schemaHash,
+      schemaKey: next.promptKey,
       maxTokens: next.maxTokens,
     });
   }
@@ -281,14 +289,10 @@ class ExtractionService {
   private ensureWorker(): Promise<{ gpu: string }> {
     if (this.workerReady) return this.workerReady;
     const modelPath = this.model.modelPath();
-    if (!modelPath) return Promise.reject(new Error('The extraction model is not downloaded.'));
+    if (!modelPath) return Promise.reject(new Error('The local model is not downloaded.'));
 
-    const worker = utilityProcess.fork(unpacked(path.join(__dirname, 'extraction-worker.js')), [], {
-      serviceName: 'Mailspring Extraction',
-      env: {
-        ...process.env,
-        MAILSPRING_APP_NODE_MODULES: unpacked(path.join(__dirname, '..', '..', 'node_modules')),
-      },
+    const worker = utilityProcess.fork(unpacked(path.join(__dirname, 'local-ai-worker.js')), [], {
+      serviceName: 'Mailspring Local AI',
     });
     this.worker = worker;
     worker.on('message', ({ id, result, error }) => {
@@ -299,7 +303,7 @@ class ExtractionService {
       else call.resolve(result);
     });
     worker.on('exit', () => {
-      for (const call of this.workerCalls.values()) call.reject(new Error('Extraction stopped.'));
+      for (const call of this.workerCalls.values()) call.reject(new Error('Local AI stopped.'));
       this.workerCalls.clear();
       if (this.worker === worker) {
         this.worker = null;
@@ -326,35 +330,31 @@ class ExtractionService {
   }
 }
 
-let service: ExtractionService | null = null;
-
-export function cancelJobsForView(viewId: string) {
-  return service ? service.cancelJobsForView(viewId) : 0;
-}
+export type LocalAIStatus = ReturnType<LocalAIService['status']>;
 
 function trusted(event: IpcMainInvokeEvent) {
   if (!isMailspringWindowContents(event.sender)) {
-    throw new Error('Extraction is only available to Mailspring windows.');
+    throw new Error('Local AI is only available to Mailspring windows.');
   }
 }
 
-function validRequest(req: any): ExtractionRequest {
-  if (!req || typeof req.viewId !== 'string' || typeof req.schemaHash !== 'string') {
-    throw new Error('Invalid extraction request.');
+function validRequest(req: any): LocalAIRequest {
+  if (!req || typeof req.ownerId !== 'string' || typeof req.promptKey !== 'string') {
+    throw new Error('Invalid local AI request.');
   }
   if (!Array.isArray(req.items) || req.items.length > MAX_ITEMS_PER_REQUEST) {
-    throw new Error('Invalid extraction request.');
+    throw new Error('Invalid local AI request.');
   }
   for (const item of req.items) {
-    if (typeof item.messageId !== 'string' || typeof item.prompt !== 'string') {
-      throw new Error('Invalid extraction request.');
+    if (typeof item.id !== 'string' || typeof item.prompt !== 'string') {
+      throw new Error('Invalid local AI request.');
     }
     if (item.prompt.length > MAX_PROMPT_CHARS) item.prompt = item.prompt.slice(0, MAX_PROMPT_CHARS);
   }
   return {
-    viewId: req.viewId,
+    ownerId: req.ownerId,
     priority: req.priority === 0 ? 0 : 1,
-    schemaHash: req.schemaHash,
+    promptKey: req.promptKey,
     jsonSchema: req.jsonSchema && typeof req.jsonSchema === 'object' ? req.jsonSchema : null,
     items: req.items,
     cacheOnly: !!req.cacheOnly,
@@ -368,6 +368,12 @@ function validRequest(req: any): ExtractionRequest {
 interface ConfigLike {
   get: (key: string) => any;
   set: (key: string, value: any) => void;
+}
+
+interface LocalAIDeps {
+  configDirPath: string;
+  config: ConfigLike;
+  devMode: boolean;
 }
 
 /**
@@ -387,21 +393,24 @@ function modelSpecOverride(config: ConfigLike, devMode: boolean): ModelSpec | un
   };
 }
 
-export function registerExtractionIPCHandlers(
-  ipcMain: IpcMain,
-  {
-    configDirPath,
-    config,
-    devMode,
-  }: { configDirPath: string; config: ConfigLike; devMode: boolean }
-) {
-  const broadcast = (channel: string, payload: any) => {
-    for (const win of BrowserWindow.getAllWindows()) {
-      if (!win.isDestroyed() && isMailspringWindowContents(win.webContents)) {
-        win.webContents.send(channel, payload);
-      }
+function broadcast(channel: string, payload: any) {
+  for (const win of BrowserWindow.getAllWindows()) {
+    if (!win.isDestroyed() && isMailspringWindowContents(win.webContents)) {
+      win.webContents.send(channel, payload);
     }
-  };
+  }
+}
+
+/**
+ * Builds the model controller and service, and starts the system model's availability probe.
+ * Until that probe answers the system model reads `checking` and no Qwen download starts, so
+ * Macs with Apple Intelligence never fetch a model they don't need.
+ *
+ * The settings live under `core.views.*` because Views were their first user; renaming them
+ * would reset the choice of anyone who turned model downloads off.
+ */
+function startLocalAI({ configDirPath, config, devMode }: LocalAIDeps) {
+  let service: LocalAIService | null = null;
   const model = new LocalModelController({
     configDirPath,
     spec: modelSpecOverride(config, devMode),
@@ -420,65 +429,61 @@ export function registerExtractionIPCHandlers(
     },
     onChange: (status) => {
       if (status.state.kind === 'disabled' && service) service.shutdownWorker();
-      broadcast('local-model:status', status);
+      broadcast('local-ai:model-status', status);
     },
   });
+  service = new LocalAIService(configDirPath, model);
   onSystemModelChange(() => model.systemChanged());
-  service = new ExtractionService(configDirPath, model);
-  // Until this probe answers, the system model reads `checking` and no Qwen download starts,
-  // so Macs with Apple Intelligence never fetch a model they don't need.
   configureAppleFM({
     resourcePath: path.resolve(__dirname, '..', '..'),
     resourcesDir: process.resourcesPath,
   });
   probeSystemModel();
-  ipcMain.handle('extraction:status', (event) => {
-    trusted(event);
-    return service.status();
-  });
-  ipcMain.handle('extraction:download', (event) => {
-    trusted(event);
-    model.start({ force: false });
-    return service.status();
-  });
-  ipcMain.handle('local-model:status', (event) => {
-    trusted(event);
-    return model.status();
-  });
-  ipcMain.handle('local-model:views-opened', (event) => {
-    trusted(event);
-    model.viewsOpened();
+  return { model, service };
+}
+
+/**
+ * Registers the `local-ai:*` channels. Registering is free: the controller, the system-model
+ * probe and the cache are created by the first call, and the model is downloaded only when a
+ * feature calls `local-ai:prepare` or the user asks.
+ */
+export function registerLocalAIIPCHandlers(ipcMain: IpcMain, deps: LocalAIDeps) {
+  let started: ReturnType<typeof startLocalAI> | null = null;
+  const localAI = () => started || (started = startLocalAI(deps));
+
+  const handle = <T>(
+    channel: string,
+    fn: (ai: ReturnType<typeof startLocalAI>, ...args: any[]) => T
+  ) =>
+    ipcMain.handle(channel, (event, ...args) => {
+      trusted(event);
+      return fn(localAI(), ...args);
+    });
+
+  handle('local-ai:status', ({ service }) => service.status());
+  handle('local-ai:model-status', ({ model }) => model.status());
+  handle('local-ai:prepare', ({ model }) => {
+    model.prepare();
     return model.state();
   });
-  ipcMain.handle('local-model:start', (event, force: boolean) => {
-    trusted(event);
+  handle('local-ai:download', ({ model }, force: boolean) => {
     model.start({ force: !!force });
     return model.state();
   });
-  ipcMain.handle('local-model:cancel', (event) => {
-    trusted(event);
+  handle('local-ai:cancel-download', ({ model }) => {
     model.cancel();
     return model.state();
   });
-  ipcMain.handle('local-model:set-enabled', (event, enabled: boolean) => {
-    trusted(event);
-    return model.setEnabled(!!enabled);
-  });
-  ipcMain.handle('local-model:set-provider', (event, provider: string) => {
-    trusted(event);
+  handle('local-ai:set-enabled', ({ model }, enabled: boolean) => model.setEnabled(!!enabled));
+  handle('local-ai:set-provider', ({ model }, provider: string) => {
     model.setProvider(provider === 'qwen' ? 'qwen' : 'auto');
     return model.status();
   });
-  ipcMain.handle('local-model:delete-downloaded', (event) => {
+  handle('local-ai:delete-downloaded', ({ model }) => model.deleteDownloaded());
+  handle('local-ai:run', ({ service }, req) => service.run(validRequest(req)));
+  // Nothing can be queued before the service starts, so cancelling doesn't start it.
+  ipcMain.handle('local-ai:cancel', (event, ownerId: string) => {
     trusted(event);
-    return model.deleteDownloaded();
-  });
-  ipcMain.handle('extraction:run', (event, req) => {
-    trusted(event);
-    return service.run(validRequest(req));
-  });
-  ipcMain.handle('extraction:cancel-view', (event, viewId: string) => {
-    trusted(event);
-    return cancelJobsForView(String(viewId));
+    return started ? started.service.cancelOwner(String(ownerId)) : 0;
   });
 }

@@ -2,16 +2,16 @@ import { AppleFMHelper, HelperError } from './apple-fm';
 import type { SystemModel } from './local-model';
 
 /**
- * The model backends behind ai.extract / ai.summarize / ai.generate. Apple's on-device model is used where
- * it's available; the downloadable Qwen model everywhere else, or when the user picks it with
+ * The model backends behind the local AI service. Apple's on-device model is used where it's
+ * available; the downloadable Qwen model everywhere else, or when the user picks it with
  * `core.views.localModelProvider = 'qwen'` (mostly so Mac developers can test what Windows and
  * Linux users get).
  *
- * The renderer builds one prompt per message in Qwen's chat template (lib/extraction/prompt.ts,
- * lib/generation/briefing.ts). The Apple backend splits that into Instructions and a prompt
- * instead of asking every prompt builder for two shapes. Host-side validation of answers
- * (normalize.ts, thread-id checks) is the same for both: guided generation guarantees an
- * answer's shape, not that its values appear in the email.
+ * Renderers build every prompt in Qwen's chat template (chatPrompt in
+ * flux/stores/local-model-prompt.ts). The Apple backend splits that into Instructions and a
+ * prompt instead of asking every prompt builder for two shapes. Callers' validation of answers
+ * (e.g. Views' normalize.ts) is the same for both: guided generation guarantees an answer's
+ * shape, not that its values appear in the source text.
  */
 
 export type ModelBackendId = 'apple-fm' | 'llama-qwen';

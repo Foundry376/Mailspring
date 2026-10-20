@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { LocalModelPrompt } from 'mailspring-exports';
 
 /**
  * Turns a View's flat extraction schema into the prompt and JSON schema the on-device model
@@ -40,7 +41,7 @@ export function fieldType(t: FieldType): string {
   return typeof t === 'string' ? t : t.type;
 }
 
-function description(t: FieldType): string | undefined {
+export function description(t: FieldType): string | undefined {
   return typeof t === 'string' ? undefined : (t as any).description;
 }
 
@@ -145,7 +146,7 @@ export function emailBlock(m: PromptMessage): string {
 export interface PromptEvent {
   title: string;
   start: Date;
-  allDay: boolean;
+  isAllDay: boolean;
   location: string | null;
   organizer: string | null;
   attendees: string[];
@@ -155,7 +156,7 @@ export interface PromptEvent {
 const MAX_ATTENDEES = 12;
 
 export function eventBlock(e: PromptEvent): string {
-  const when = e.allDay
+  const when = e.isAllDay
     ? e.start.toLocaleDateString('en-US', {
         weekday: 'short',
         month: 'short',
@@ -192,11 +193,11 @@ function promptFor(schema: Schema, kind: SourceKind, block: string, instructions
     const desc = description(schema[f]);
     return `- ${f}: ${desc ? `${desc}; ` : ''}${hint(schema[f])}`;
   });
-  const notes = instructions ? `\nAlso: ${instructions.slice(0, 500)}\n` : '';
+  const notes = instructions
+    ? `\nAlso: ${LocalModelPrompt.untrustedText(instructions).slice(0, 500)}\n`
+    : '';
   const user = `Fill these fields from the ${noun} below. Use null when the ${noun} does not state a value; never invent one, and never put a different kind of value in a field (an address is not an order number).\n${lines.join(
     '\n'
-  )}\n${notes}\n${noun.toUpperCase()}:\n${block}`;
-  // The ChatML markers stay plain text: on the eval set this measured better than encoding
-  // them as special tokens. The empty think block turns off Qwen3.5's reasoning mode.
-  return `<|im_start|>system\n${system(kind)}<|im_end|>\n<|im_start|>user\n${user}<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n`;
+  )}\n${notes}\n${noun.toUpperCase()}:\n${LocalModelPrompt.untrustedText(block)}`;
+  return LocalModelPrompt.chatPrompt(system(kind), user);
 }
