@@ -141,22 +141,6 @@ export function getEventsWithDragPreview(
 }
 
 /**
- * Parse an event occurrence ID to extract the underlying event ID
- * The occurrence ID format is `${eventId}-e${idx}`
- * @param occurrenceId The occurrence ID
- * @returns The extracted event ID (or the original ID if not an occurrence format)
- */
-export function parseEventIdFromOccurrence(occurrenceId: string): string {
-  const match = occurrenceId.match(/^(.+)-e\d+$/);
-  if (match) {
-    return match[1];
-  }
-  // If the pattern doesn't match, return the original ID
-  // (it might be a non-occurrence event ID that can be edited directly)
-  return occurrenceId;
-}
-
-/**
  * Detect which hit zone the mouse is in within an event element
  * @param mouseX Mouse X position (clientX)
  * @param mouseY Mouse Y position (clientY)

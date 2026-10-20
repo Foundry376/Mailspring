@@ -1,0 +1,225 @@
+{
+ "me": {
+  "name": "Sam Carter",
+  "email": "sam@northwind.example"
+ },
+ "calendars": [
+  {
+   "id": "work",
+   "name": "Work",
+   "color": "#3b82f6"
+  }
+ ],
+ "events": [
+  {
+   "title": "Weekly team sync",
+   "start": "@today 09:30",
+   "minutes": 30,
+   "location": "https://meet.google.com/abc-defg-hij",
+   "organizer": "me",
+   "attendees": [
+    "Priya Shah <priya@northwind.example>",
+    "Jun Park <jun@northwind.example>",
+    "Marco Diaz <marco@northwind.example>"
+   ]
+  },
+  {
+   "title": "Brightline contract renewal",
+   "start": "@today 13:00",
+   "minutes": 45,
+   "location": "https://zoom.us/j/5550101",
+   "organizer": "Helen Okafor <helen@brightline.example>",
+   "attendees": [
+    "me"
+   ]
+  },
+  {
+   "title": "1:1 with Priya",
+   "start": "@today 15:30",
+   "minutes": 30,
+   "location": "Room 4B",
+   "organizer": "me",
+   "attendees": [
+    "Priya Shah <priya@northwind.example>"
+   ]
+  },
+  {
+   "title": "Onboarding design review",
+   "start": "@today+1d 10:00",
+   "minutes": 60,
+   "location": "Studio",
+   "organizer": "Jun Park <jun@northwind.example>",
+   "attendees": [
+    "Ana Ruiz <ana@northwind.example>",
+    {
+     "name": "Sam Carter",
+     "email": "sam@northwind.example",
+     "status": "needs-action"
+    }
+   ],
+   "myStatus": "needs-action"
+  },
+  {
+   "title": "Candidate interview — Staff Engineer",
+   "start": "@today+1d 14:00",
+   "minutes": 60,
+   "organizer": "Dana Lee <dana@finchrecruiting.example>",
+   "attendees": [
+    "me"
+   ]
+  },
+  {
+   "title": "Offsite planning",
+   "start": "@today+2d 11:00",
+   "minutes": 45,
+   "location": "https://meet.google.com/off-site-plan",
+   "organizer": "Marco Diaz <marco@northwind.example>",
+   "attendees": [
+    "Priya Shah <priya@northwind.example>",
+    "me"
+   ]
+  },
+  {
+   "title": "Quarterly business review",
+   "start": "@today+2d 11:30",
+   "minutes": 60,
+   "location": "Boardroom",
+   "organizer": "Lena Fischer <lena@northwind.example>",
+   "attendees": [
+    {
+     "name": "Sam Carter",
+     "email": "sam@northwind.example",
+     "status": "tentative"
+    }
+   ],
+   "myStatus": "tentative"
+  },
+  {
+   "title": "Customer call: Harbor & Co",
+   "start": "@today+3d 09:00",
+   "minutes": 30,
+   "location": "https://zoom.us/j/5550199",
+   "organizer": "me",
+   "attendees": [
+    "Owen Hart <owen@harborco.example>"
+   ]
+  },
+  {
+   "title": "Lunch with Chris",
+   "start": "@today+3d 12:30",
+   "minutes": 60,
+   "location": "Juniper Café",
+   "organizer": "Chris Wong <chris@example.com>",
+   "attendees": [
+    "me"
+   ]
+  },
+  {
+   "title": "Roadmap working session",
+   "start": "@today+4d 10:00",
+   "minutes": 120,
+   "organizer": "Priya Shah <priya@northwind.example>",
+   "attendees": [
+    "Jun Park <jun@northwind.example>",
+    "me"
+   ]
+  },
+  {
+   "title": "Demo day",
+   "start": "@today+4d 16:00",
+   "minutes": 60,
+   "location": "All-hands room",
+   "organizer": "Lena Fischer <lena@northwind.example>",
+   "attendees": [
+    "me"
+   ]
+  },
+  {
+   "title": "Weekly team sync",
+   "start": "@today+7d 09:30",
+   "minutes": 30,
+   "location": "https://meet.google.com/abc-defg-hij",
+   "organizer": "me",
+   "attendees": [
+    "Priya Shah <priya@northwind.example>",
+    "Jun Park <jun@northwind.example>"
+   ]
+  }
+ ],
+ "threads": [
+  {
+   "subject": "Re: Contract renewal terms",
+   "messages": [
+    {
+     "from": "Helen Okafor <helen@brightline.example>",
+     "date": "@now-2d",
+     "body": "Sending over the redlines before our call."
+    },
+    {
+     "from": "me",
+     "to": "Helen Okafor <helen@brightline.example>",
+     "date": "@now-1d",
+     "body": "Thanks — reviewing now."
+    },
+    {
+     "from": "Helen Okafor <helen@brightline.example>",
+     "date": "@now-6h",
+     "body": "We can do a two-year term if the support tier stays the same."
+    }
+   ]
+  },
+  {
+   "subject": "Onboarding flow v2",
+   "messages": [
+    {
+     "from": "Jun Park <jun@northwind.example>",
+     "date": "@now-5h",
+     "body": "v2 is up! Changed the copy on step two as well."
+    }
+   ]
+  },
+  {
+   "subject": "Interview packet: Staff Engineer",
+   "messages": [
+    {
+     "from": "Dana Lee <dana@finchrecruiting.example>",
+     "date": "@now-1d",
+     "body": "Resume and scorecard attached.",
+     "attachments": [
+      "candidate-packet.pdf"
+     ]
+    }
+   ]
+  },
+  {
+   "subject": "Offsite venue options",
+   "messages": [
+    {
+     "from": "Marco Diaz <marco@northwind.example>",
+     "date": "@now-2d",
+     "body": "Shortlisted three places near the coast."
+    }
+   ]
+  },
+  {
+   "subject": "Q4 roadmap review — slides attached",
+   "messages": [
+    {
+     "from": "Priya Shah <priya@northwind.example>",
+     "date": "@now-3h",
+     "body": "Here's the draft deck for Thursday."
+    }
+   ]
+  },
+  {
+   "subject": "Harbor & Co pilot results",
+   "messages": [
+    {
+     "from": "Owen Hart <owen@harborco.example>",
+     "date": "@now-4d",
+     "body": "The pilot numbers look great; let's discuss rollout."
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,1047 @@
+// The `@mailspring/view` module: the idiomatic React surface over window.mailspring, the raw
+// bridge exposed by bridge.preload.js. Views import from here rather than calling the bridge.
+(function () {
+  const React = window.React;
+  const { useEffect, useState } = React;
+  const bridge = window.mailspring;
+
+  class ViewError extends Error {
+    constructor({ code, message, feature, permission }) {
+      super(message);
+      this.name = 'ViewError';
+      this.code = code;
+      if (feature) this.feature = feature;
+      if (permission) this.permission = permission;
+    }
+  }
+
+  async function call(method, params) {
+    const { result, error } = await bridge.call(method, params || {});
+    if (error) throw new ViewError(error);
+    return result;
+  }
+
+  const on = (event, callback) => bridge.on(event, callback);
+
+  // ViewHost passes the placement in the URL fragment. Read here rather than from the
+  // dataset loader.js sets, because this module runs before the loader.
+  const isSidebar =
+    new URLSearchParams(window.location.hash.slice(1)).get('placement') === 'thread-sidebar';
+
+  // Ids are unique per page load, so a reloaded View can't collide with subscriptions the host
+  // still holds for the previous page.
+  const pageToken = Math.random().toString(36).slice(2, 8);
+  let nextId = 1;
+  const uid = (prefix) => `${prefix}${pageToken}-${nextId++}`;
+
+  // ── Subscriptions ─────────────────────────────────────────────────────────
+  // Data arrives as `subscription` events tagged with an id the View chose, so a listener is
+  // registered before the host can emit and the first snapshot can't be dropped.
+
+  const subscribers = new Map();
+  on('subscription', ({ subId, data, hasMore }) => {
+    const s = subscribers.get(subId);
+    if (s) s.onData(data, hasMore);
+  });
+  on('subscription.error', ({ subId, error }) => {
+    const s = subscribers.get(subId);
+    if (s) s.onError(new ViewError(error));
+  });
+
+  function subscribe(kind, params, onData, onError) {
+    const subId = uid('s');
+    subscribers.set(subId, { onData, onError });
+    call('subscribe', { subId, kind, params }).catch((err) => {
+      subscribers.delete(subId);
+      onError(err);
+    });
+    return () => {
+      subscribers.delete(subId);
+      call('unsubscribe', { subId }).catch(() => {});
+    };
+  }
+
+  const EMPTY = { data: [], loading: false, error: null, hasMore: false };
+
+  // Keyed by the JSON of the arguments, so inline object literals don't resubscribe on every
+  // render. A null query means "nothing yet" and yields empty data without a subscription.
+  function useLive(kind, params, enabled) {
+    const key = enabled ? JSON.stringify([kind, params]) : null;
+    const [state, setState] = useState(() =>
+      enabled ? { data: [], loading: true, error: null, hasMore: false } : EMPTY
+    );
+    useEffect(() => {
+      if (!key) {
+        setState(EMPTY);
+        return undefined;
+      }
+      setState((s) => ({ ...s, loading: s.data.length === 0, error: null }));
+      return subscribe(
+        kind,
+        params,
+        (data, hasMore) => setState({ data, loading: false, error: null, hasMore: !!hasMore }),
+        (error) => setState((s) => ({ ...s, loading: false, error }))
+      );
+    }, [key]);
+    return state;
+  }
+
+  // `useThreads('in:inbox', { limit: 20 })` is the most natural thing to write, so options
+  // passed beside a search string are merged into the query object the spec defines.
+  function withOptions(query, options) {
+    if (query == null || !options) return query;
+    return { ...(typeof query === 'string' ? { search: query } : query), ...options };
+  }
+
+  const useThreads = (query, options) =>
+    useLive('threads', { query: withOptions(query, options) }, query != null);
+  const useMessages = (query, options) =>
+    useLive('messages', { query: withOptions(query, options) }, query != null);
+  const useCounts = (query, groupBy) => useLive('counts', { query, groupBy }, query != null);
+  const useAccounts = () => useLive('accounts', {}, true);
+  // `range` is { start, end, search?, calendarIds?, attendee?, includeDeclined? }.
+  function rangeParams(range) {
+    return {
+      start: new Date(range.start).toISOString(),
+      end: new Date(range.end).toISOString(),
+      search: range.search,
+      calendarIds: range.calendarIds,
+      attendee: range.attendee,
+      includeDeclined: range.includeDeclined,
+    };
+  }
+  function useEvents(range) {
+    return useLive('events', range && rangeParams(range), !!range);
+  }
+
+  // ── One-shot reads ────────────────────────────────────────────────────────
+
+  function splitQuery(q) {
+    if (q && typeof q === 'object' && 'offset' in q) {
+      const { offset, ...query } = q;
+      return { query, offset };
+    }
+    return { query: q, offset: 0 };
+  }
+  const getThreads = (q, options) => call('threads.find', splitQuery(withOptions(q, options)));
+  const getMessages = (q, options) => call('messages.find', splitQuery(withOptions(q, options)));
+  const getCounts = (query, groupBy) => call('counts.find', { query, groupBy });
+  const getEvents = (range) => call('events.find', rangeParams(range));
+
+  // Bodies never change, so content is cached for the life of the View.
+  const contentCache = new Map();
+  const CONTENT_BATCH = 50;
+
+  async function getContent(ids, opts = {}) {
+    const optsKey = JSON.stringify(opts);
+    const missing = ids.filter((id) => !contentCache.has(`${id}:${optsKey}`));
+    for (let i = 0; i < missing.length; i += CONTENT_BATCH) {
+      const batch = missing.slice(i, i + CONTENT_BATCH);
+      const result = await call('messages.content', { ids: batch, ...opts });
+      for (const id of batch) {
+        const value = result[id] || { text: null, reason: 'not_found' };
+        if (isFinal(value)) contentCache.set(`${id}:${optsKey}`, value);
+        else contentCache.set(`${id}:${optsKey}:pending`, value);
+      }
+    }
+    return readContentCache(ids, opts);
+  }
+
+  function readContentCache(ids, opts) {
+    const optsKey = JSON.stringify(opts);
+    const out = {};
+    for (const id of ids) {
+      const value =
+        contentCache.get(`${id}:${optsKey}`) || contentCache.get(`${id}:${optsKey}:pending`);
+      if (value) out[id] = value;
+    }
+    return out;
+  }
+
+  // Content whose body wasn't downloaded yet is retried on the next request instead of being
+  // cached as missing.
+  const isFinal = (value) => value && value.reason !== 'body_unavailable';
+
+  // Not live: content for new ids is fetched as the id list grows, and partial results render
+  // as each batch arrives.
+  function useContent(ids, opts) {
+    const key = JSON.stringify([ids || [], opts || {}]);
+    const total = ids ? ids.length : 0;
+    const [state, setState] = useState({
+      data: {},
+      loading: total > 0,
+      error: null,
+      loaded: 0,
+      total,
+    });
+    useEffect(() => {
+      let cancelled = false;
+      const list = ids || [];
+      if (list.length === 0) {
+        setState({ data: {}, loading: false, error: null, loaded: 0, total: 0 });
+        return undefined;
+      }
+      setState((s) => ({ ...s, loading: true, error: null, total: list.length }));
+      (async () => {
+        try {
+          for (let i = 0; i < list.length && !cancelled; i += CONTENT_BATCH) {
+            const upto = list.slice(0, i + CONTENT_BATCH);
+            await getContent(list.slice(i, i + CONTENT_BATCH), opts || {});
+            const data = readContentCache(upto, opts || {});
+            if (!cancelled) {
+              setState({
+                data,
+                loading: i + CONTENT_BATCH < list.length,
+                error: null,
+                loaded: Math.min(upto.length, list.length),
+                total: list.length,
+              });
+            }
+          }
+        } catch (error) {
+          if (!cancelled) setState((s) => ({ ...s, loading: false, error }));
+        }
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, [key]);
+    return state;
+  }
+
+  // ── Extraction ────────────────────────────────────────────────────────────
+
+  const jobListeners = new Map();
+  on('ai.progress', (progress) => {
+    const listener = jobListeners.get(progress.jobId);
+    if (listener) listener(progress);
+  });
+
+  // `events` is an event range (as for useEvents), optionally narrowed to `eventIds`; its
+  // results are keyed by eventId.
+  function startExtract({ ids, query, events, schema, instructions }, onProgress) {
+    const jobId = uid('j');
+    jobListeners.set(jobId, onProgress);
+    const started = call('ai.extract', {
+      jobId,
+      ids,
+      query,
+      events: events ? { ...rangeParams(events), eventIds: events.eventIds } : undefined,
+      schema,
+      instructions,
+    });
+    const cancel = () => {
+      jobListeners.delete(jobId);
+      call('ai.cancel', { jobId }).catch(() => {});
+    };
+    return { started, cancel };
+  }
+
+  function extract(opts, onProgress) {
+    return new Promise((resolve, reject) => {
+      const results = {};
+      const { started, cancel } = startExtract(opts, (p) => {
+        for (const r of p.results) results[r.messageId || r.eventId] = r;
+        if (onProgress) onProgress({ ...p, results });
+        if (p.status === 'error') {
+          cancel();
+          reject(new ViewError(p.error || { code: 'internal', message: 'Extraction failed' }));
+        } else if (p.status === 'done') {
+          cancel();
+          resolve(results);
+        }
+      });
+      started.catch(reject);
+    });
+  }
+
+  const IDLE = { results: {}, processed: 0, total: 0, status: 'idle', error: null };
+
+  function useExtract(opts) {
+    const enabled = !!(
+      opts &&
+      opts.schema &&
+      (opts.events ? true : opts.ids ? opts.ids.length : opts.query != null)
+    );
+    const key = enabled ? JSON.stringify(opts) : null;
+    const [state, setState] = useState(IDLE);
+    useEffect(() => {
+      if (!key) {
+        setState(IDLE);
+        return undefined;
+      }
+      setState({ ...IDLE, status: 'running' });
+      const { started, cancel } = startExtract(opts, (p) =>
+        setState((s) => {
+          const results = { ...s.results };
+          for (const r of p.results) results[r.messageId || r.eventId] = r;
+          return {
+            results,
+            processed: p.processed,
+            total: p.total,
+            status: p.status,
+            error: p.error ? new ViewError(p.error) : null,
+            modelStatus: p.modelStatus || s.modelStatus,
+            modelProgress: p.modelProgress ?? s.modelProgress,
+          };
+        })
+      );
+      started.then(
+        ({ total }) => setState((s) => ({ ...s, total })),
+        (error) => setState((s) => ({ ...s, status: 'error', error }))
+      );
+      return cancel;
+    }, [key]);
+    return state;
+  }
+
+  // ── Summaries and generation ───────────────────────────────────────────────
+  // ai.summarize streams one short record per message; ai.generate runs one prompt the View
+  // writes. Both reuse the extraction job channel above.
+
+  function startJob(method, params, onProgress) {
+    const jobId = uid('j');
+    jobListeners.set(jobId, onProgress);
+    const started = call(method, { jobId, ...params });
+    const cancel = () => {
+      jobListeners.delete(jobId);
+      call('ai.cancel', { jobId }).catch(() => {});
+    };
+    return { started, cancel };
+  }
+
+  function summarize(opts, onProgress) {
+    return new Promise((resolve, reject) => {
+      const results = {};
+      const { started, cancel } = startJob('ai.summarize', opts, (p) => {
+        for (const r of p.results || []) results[r.messageId] = r;
+        if (onProgress) onProgress({ ...p, results });
+        if (p.status === 'error') {
+          cancel();
+          reject(new ViewError(p.error || { code: 'internal', message: 'Summarizing failed' }));
+        } else if (p.status === 'done') {
+          cancel();
+          resolve(results);
+        }
+      });
+      started.catch(reject);
+    });
+  }
+
+  const IDLE_SUMMARIES = { results: {}, processed: 0, total: 0, status: 'idle', error: null };
+
+  function useSummaries(opts) {
+    const enabled = !!(opts && (opts.ids ? opts.ids.length : opts.query != null));
+    const key = enabled ? JSON.stringify(opts) : null;
+    const [state, setState] = useState(IDLE_SUMMARIES);
+    useEffect(() => {
+      if (!key) {
+        setState(IDLE_SUMMARIES);
+        return undefined;
+      }
+      setState({ ...IDLE_SUMMARIES, status: 'running' });
+      const { started, cancel } = startJob('ai.summarize', opts, (p) =>
+        setState((s) => {
+          const results = { ...s.results };
+          for (const r of p.results || []) results[r.messageId] = r;
+          return {
+            results,
+            processed: p.processed,
+            total: p.total,
+            status: p.status,
+            modelAvailable: p.modelAvailable,
+            modelStatus: p.modelStatus || s.modelStatus,
+            modelProgress: p.modelProgress ?? s.modelProgress,
+            error: p.error ? new ViewError(p.error) : null,
+          };
+        })
+      );
+      started.then(
+        ({ total }) => setState((s) => ({ ...s, total })),
+        (error) => setState((s) => ({ ...s, status: 'error', error }))
+      );
+      return cancel;
+    }, [key]);
+    return state;
+  }
+
+  // Throws for options in any other shape, so a View written against a guess fails loudly
+  // instead of sitting idle.
+  function generateParams(opts) {
+    if (
+      !opts ||
+      typeof opts.instructions !== 'string' ||
+      opts.task !== undefined ||
+      opts.ids !== undefined ||
+      opts.query !== undefined
+    ) {
+      throw new ViewError({
+        code: 'invalid',
+        message:
+          'generate takes { instructions, input?, schema?, maxTokens? } and reads no mail itself. Build `input` from data the View already has, such as useSummaries gists.',
+      });
+    }
+    const { instructions, input, schema, maxTokens } = opts;
+    return { instructions, input, schema, maxTokens };
+  }
+
+  function generate(opts) {
+    return new Promise((resolve, reject) => {
+      const { started, cancel } = startJob('ai.generate', generateParams(opts), (p) => {
+        if (p.status === 'error') {
+          cancel();
+          reject(new ViewError(p.error || { code: 'internal', message: 'Generation failed' }));
+        } else if (p.status === 'done') {
+          cancel();
+          resolve({
+            text: p.text ?? null,
+            value: p.value ?? null,
+            modelAvailable: p.modelAvailable,
+          });
+        }
+      });
+      started.catch(reject);
+    });
+  }
+
+  const IDLE_GENERATE = {
+    status: 'idle',
+    text: null,
+    value: null,
+    modelAvailable: true,
+    error: null,
+  };
+
+  function useGenerate(opts) {
+    const key = opts ? JSON.stringify(opts) : null;
+    const [state, setState] = useState(IDLE_GENERATE);
+    useEffect(() => {
+      if (!key) {
+        setState(IDLE_GENERATE);
+        return undefined;
+      }
+      let params;
+      try {
+        params = generateParams(opts);
+      } catch (error) {
+        setState({ ...IDLE_GENERATE, status: 'error', error });
+        return undefined;
+      }
+      setState({ ...IDLE_GENERATE, status: 'running' });
+      const { started, cancel } = startJob('ai.generate', params, (p) =>
+        setState((s) => ({
+          status: p.status,
+          text: p.text ?? null,
+          value: p.value ?? null,
+          modelAvailable: p.modelAvailable ?? s.modelAvailable,
+          modelStatus: p.modelStatus || s.modelStatus,
+          modelProgress: p.modelProgress ?? s.modelProgress,
+          error: p.error ? new ViewError(p.error) : null,
+        }))
+      );
+      started.catch((error) => setState((s) => ({ ...s, status: 'error', error })));
+      return cancel;
+    }, [key]);
+    return state;
+  }
+
+  // ── Identity ──────────────────────────────────────────────────────────────
+
+  let identityPromise = null;
+  const getIdentity = () => {
+    if (!identityPromise) {
+      identityPromise = call('identity.get').catch((err) => {
+        identityPromise = null;
+        throw err;
+      });
+    }
+    return identityPromise;
+  };
+
+  function useIdentity() {
+    const [value, setValue] = useState(null);
+    useEffect(() => {
+      let cancelled = false;
+      getIdentity().then(
+        (identity) => !cancelled && setValue(identity),
+        () => {}
+      );
+      return () => {
+        cancelled = true;
+      };
+    }, []);
+    return value;
+  }
+
+  // ── Writes ────────────────────────────────────────────────────────────────
+
+  function setMetadata(target, value) {
+    if (typeof target === 'string') {
+      return call('metadata.set', { kind: 'thread', id: target, value });
+    }
+    const kind = 'threadId' in target ? 'message' : 'thread';
+    return call('metadata.set', { kind, id: target.id, value });
+  }
+
+  function modify(threads, change) {
+    const threadIds = threads.map((t) => (typeof t === 'string' ? t : t.id));
+    return call('mail.modify', { threadIds, change });
+  }
+
+  const threadIdsOf = (threads) =>
+    (Array.isArray(threads) ? threads : [threads]).map((t) => (typeof t === 'string' ? t : t.id));
+
+  // Right-clicks open the menu at the pointer; buttons open it below themselves. Read
+  // synchronously, while React's event still has its currentTarget.
+  function menuAnchor(event) {
+    if (!event) return undefined;
+    if (event.type === 'contextmenu') return { x: event.clientX, y: event.clientY };
+    const target = event.currentTarget;
+    if (!target || !target.getBoundingClientRect) return undefined;
+    const rect = target.getBoundingClientRect();
+    return { x: rect.left, y: rect.bottom };
+  }
+
+  const ui = {
+    showThread: (id) => call('ui.showThread', { id }),
+    showThreadMenu: (threads, event) => {
+      if (event && event.preventDefault) event.preventDefault();
+      return call('ui.threadMenu', { threadIds: threadIdsOf(threads), anchor: menuAnchor(event) });
+    },
+    search: (search) => call('ui.search', { search }),
+    compose: (draft) => call('ui.compose', draft || {}),
+    reply: (messageId, opts = {}) => call('ui.reply', { messageId, ...opts }),
+    openExternal: (url) => call('ui.openExternal', { url }),
+    setBadge: (count) => call('ui.setBadge', { count }),
+    print: (opts = {}) => call('ui.print', { landscape: !!opts.landscape }),
+  };
+
+  async function attachmentUrl(id) {
+    const fileId = typeof id === 'string' ? id : id && id.id;
+    const { url } = await call('attachments.url', { fileId });
+    return url;
+  }
+
+  // ── Sidebar context ───────────────────────────────────────────────────────
+  // The host pushes `context` when the sidebar View loads and whenever the focused thread
+  // changes; `context.get` covers a hook that mounts after the first push.
+
+  let selected = null;
+  const selectedListeners = new Set();
+  const setSelected = (payload) => {
+    selected = payload || null;
+    for (const fn of selectedListeners) fn(selected);
+  };
+  on('context', setSelected);
+  if (isSidebar) {
+    call('context.get').then(setSelected, () => {});
+  }
+
+  function useSelectedThread() {
+    const [value, setValue] = useState(selected);
+    useEffect(() => {
+      selectedListeners.add(setValue);
+      setValue(selected);
+      return () => selectedListeners.delete(setValue);
+    }, []);
+    return value;
+  }
+
+  // ── Theme ─────────────────────────────────────────────────────────────────
+  // The loader applies the theme to CSS variables and Tailwind; this only exposes the payload
+  // ({ mode, colors, chart, font }) to components, e.g. for recharts series colors.
+
+  let theme = null;
+  const themeListeners = new Set();
+  const setTheme = (next) => {
+    theme = next;
+    for (const fn of themeListeners) fn(theme);
+  };
+  on('theme', setTheme);
+  call('theme.get').then(setTheme, () => {});
+
+  const FALLBACK_THEME = {
+    mode: 'light',
+    colors: {},
+    chart: ['#3b82f6', '#f97316', '#10b981', '#a855f7', '#ef4444', '#14b8a6', '#eab308', '#ec4899'],
+    font: {},
+  };
+
+  function useTheme() {
+    const [value, setValue] = useState(theme);
+    useEffect(() => {
+      themeListeners.add(setValue);
+      setValue(theme);
+      return () => themeListeners.delete(setValue);
+    }, []);
+    return value || FALLBACK_THEME;
+  }
+
+  // ── View state ────────────────────────────────────────────────────────────
+
+  function useViewState(key, initial) {
+    const storageKey = `mailspring-view-state:${key}`;
+    const [value, setValue] = useState(() => {
+      try {
+        const raw = window.localStorage.getItem(storageKey);
+        return raw === null ? initial : JSON.parse(raw);
+      } catch {
+        return initial;
+      }
+    });
+    const set = (next) => {
+      setValue(next);
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify(next));
+      } catch {
+        // Storage can be unavailable or full; the value still lives for this session.
+      }
+    };
+    return [value, set];
+  }
+
+  // ── <MessageView> ─────────────────────────────────────────────────────────
+  // The standard message frame: headers, the body as the reading pane renders it, attachments
+  // and Reply. The body is host-sanitized HTML (messages.renderable) shown in a frame with no
+  // scripts; it is same-origin only so the View can size it and route its link clicks.
+
+  const h = React.createElement;
+
+  function initials(contact) {
+    const label = (contact && (contact.name || contact.email)) || '?';
+    const words = label
+      .replace(/[^\p{L}\p{N} ]/gu, ' ')
+      .trim()
+      .split(/\s+/);
+    return (
+      (words[0] || '?')[0] + (words.length > 1 ? words[words.length - 1][0] : '')
+    ).toUpperCase();
+  }
+
+  function formatSize(bytes) {
+    if (!bytes && bytes !== 0) return '';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  }
+
+  function onFrameClick(event) {
+    const link = event.target.closest && event.target.closest('a[href]');
+    if (!link) return;
+    event.preventDefault();
+    const href = link.getAttribute('href');
+    if (/^mailto:/i.test(href)) {
+      const to = decodeURIComponent(href.slice(7).split('?')[0]);
+      ui.compose({ to: to ? to.split(',') : [] }).catch(() => {});
+    } else if (/^https?:\/\//i.test(href)) {
+      ui.openExternal(href).catch(() => {});
+    }
+  }
+
+  function MessageFrame({ html }) {
+    const ref = React.useRef(null);
+    const [height, setHeight] = useState(0);
+    useEffect(() => {
+      const iframe = ref.current;
+      if (!iframe) return undefined;
+      let observer = null;
+      const attach = () => {
+        const doc = iframe.contentDocument;
+        if (!doc || !doc.documentElement) return;
+        const measure = () => setHeight(doc.documentElement.scrollHeight);
+        // Same decision as the reading pane: transparent over the theme, or a white page for
+        // emails that paint their own backgrounds or would be illegible.
+        const wrapper = doc.getElementById('inbox-html-wrapper');
+        const colors = window.MailspringEmailColors;
+        if (wrapper && colors && !wrapper.dataset.colorsPrepared) {
+          wrapper.dataset.colorsPrepared = 'true';
+          wrapper.classList.toggle(
+            'has-background',
+            colors.prepareEmailColors(wrapper, colors.backgroundColorBehind(iframe))
+          );
+        }
+        if (observer) observer.disconnect();
+        observer = new ResizeObserver(measure);
+        observer.observe(doc.documentElement);
+        doc.addEventListener('click', onFrameClick);
+        measure();
+      };
+      iframe.addEventListener('load', attach);
+      attach();
+      return () => {
+        iframe.removeEventListener('load', attach);
+        if (observer) observer.disconnect();
+      };
+    }, [html]);
+    return h('iframe', {
+      ref,
+      className: 'ms-message-frame',
+      sandbox: 'allow-same-origin',
+      srcDoc: html,
+      title: 'Message',
+      style: { height },
+    });
+  }
+
+  function MessageView({ messageId, compact, includeQuoted }) {
+    const messages = useMessages(messageId ? { ids: [messageId] } : null);
+    const message = messages.data[0];
+    const [expanded, setExpanded] = useState(!compact);
+    useEffect(() => setExpanded(!compact), [compact]);
+    const [renderable, setRenderable] = useState(null);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+      setRenderable(null);
+      setError(null);
+      if (!messageId || !expanded) return undefined;
+      let cancelled = false;
+      call('messages.renderable', { ids: [messageId], includeQuoted: !!includeQuoted }).then(
+        (result) => !cancelled && setRenderable(result[messageId] || { html: null }),
+        (err) => !cancelled && setError(err)
+      );
+      return () => {
+        cancelled = true;
+      };
+    }, [messageId, expanded, !!includeQuoted]);
+
+    if (!message) return null;
+    const from = message.from || {};
+    const recipients = [...(message.to || []), ...(message.cc || [])]
+      .map((c) => (c.isMe ? 'me' : c.name || c.email))
+      .join(', ');
+    const files = (message.attachments || []).filter((f) => !f.isInline);
+
+    let body;
+    if (!expanded) {
+      body = h('div', { className: 'ms-message-snippet' }, message.snippet);
+    } else if (error) {
+      body = h('div', { className: 'ms-message-snippet' }, error.message);
+    } else if (renderable && renderable.html) {
+      body = h(MessageFrame, { html: renderable.html });
+    } else {
+      body = h(
+        'div',
+        { className: 'ms-message-snippet' },
+        renderable ? message.snippet : 'Loading…'
+      );
+    }
+
+    return h(
+      'div',
+      { className: `ms-message${expanded ? ' expanded' : ''}` },
+      h(
+        'div',
+        {
+          className: 'ms-message-header',
+          onClick: compact ? () => setExpanded(!expanded) : undefined,
+        },
+        h('div', { className: 'ms-message-avatar' }, initials(from)),
+        h(
+          'div',
+          { className: 'ms-message-participants' },
+          h(
+            'div',
+            { className: 'ms-message-from' },
+            h('span', { className: 'ms-message-from-name' }, from.name || from.email || ''),
+            from.name && from.email
+              ? h('span', { className: 'ms-message-from-email' }, from.email)
+              : null
+          ),
+          recipients ? h('div', { className: 'ms-message-to' }, `To: ${recipients}`) : null
+        ),
+        h(
+          'div',
+          { className: 'ms-message-date' },
+          new Date(message.date).toLocaleString([], {
+            month: 'short',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+          })
+        ),
+        h(
+          'button',
+          {
+            className: 'ms-message-reply',
+            title: 'Reply',
+            onClick: (e) => {
+              e.stopPropagation();
+              ui.reply(message.id).catch(() => {});
+            },
+          },
+          'Reply'
+        )
+      ),
+      h('div', { className: 'ms-message-body' }, body),
+      expanded && files.length
+        ? h(
+            'div',
+            { className: 'ms-message-attachments' },
+            files.map((f) =>
+              h(
+                'span',
+                { key: f.id, className: 'ms-message-attachment', title: f.filename },
+                h('span', { className: 'ms-message-attachment-name' }, f.filename),
+                h('span', { className: 'ms-message-attachment-size' }, formatSize(f.size))
+              )
+            )
+          )
+        : null
+    );
+  }
+
+  // ── Thread actions ────────────────────────────────────────────────────────
+  // The app's own thread menu (reply, archive, trash, star, spam, …) for threads a View renders.
+  // threadProps gives an element right-click and marks it as a thread; <ThreadActions> is the
+  // visible ⋯ button, because many people never think to right-click.
+
+  // `thread` may be several threads (a group). The menu covers the View's selection when the
+  // clicked thread is part of it, like the thread list.
+  function menuTargets(thread, selection) {
+    const ids = threadIdsOf(thread);
+    const selected = selection ? threadIdsOf(selection) : [];
+    return selected.includes(ids[0]) ? selected : ids;
+  }
+
+  function threadProps(thread, { selection } = {}) {
+    return {
+      'data-ms-thread': threadIdsOf(thread)[0],
+      onContextMenu: (event) => {
+        event.stopPropagation();
+        ui.showThreadMenu(menuTargets(thread, selection), event).catch(() => {});
+      },
+    };
+  }
+
+  const DOTS = h(
+    'svg',
+    { width: 16, height: 16, viewBox: '0 0 16 16', fill: 'currentColor', 'aria-hidden': true },
+    h('circle', { cx: 3, cy: 8, r: 1.5 }),
+    h('circle', { cx: 8, cy: 8, r: 1.5 }),
+    h('circle', { cx: 13, cy: 8, r: 1.5 })
+  );
+
+  // Clicks and presses stop here so the card underneath doesn't open the thread, change the
+  // View's selection, or start a drag.
+  function ThreadActions({ thread, selection, className, title = 'Actions' }) {
+    return h(
+      'button',
+      {
+        type: 'button',
+        className: `ms-thread-actions${className ? ` ${className}` : ''}`,
+        title,
+        'aria-label': title,
+        'aria-haspopup': 'menu',
+        draggable: false,
+        onMouseDown: (event) => event.stopPropagation(),
+        onPointerDown: (event) => event.stopPropagation(),
+        onClick: (event) => {
+          event.stopPropagation();
+          ui.showThreadMenu(menuTargets(thread, selection), event).catch(() => {});
+        },
+      },
+      DOTS
+    );
+  }
+
+  // ── Height reporting ──────────────────────────────────────────────────────
+  // Sidebar hosts size the webview to its content. view.css makes <html> height:auto for
+  // sidebar Views, so its box is exactly the content, including margins that collapse out of
+  // the last child (which children's own rects miss). scrollHeight can't be used: it never
+  // reports less than the current viewport, so a View could grow but never shrink.
+
+  let lastHeight = 0;
+  let frame = null;
+  function reportHeight() {
+    frame = null;
+    const px = Math.ceil(document.documentElement.getBoundingClientRect().height);
+    if (px !== lastHeight) {
+      lastHeight = px;
+      call('ui.setHeight', { px }).catch(() => {});
+    }
+  }
+  const scheduleHeight = () => {
+    if (frame === null) frame = window.requestAnimationFrame(reportHeight);
+  };
+  function startHeightReporting() {
+    if (!isSidebar) return;
+    const observer = new ResizeObserver(scheduleHeight);
+    observer.observe(document.documentElement);
+    observer.observe(document.body);
+    scheduleHeight();
+  }
+  if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', startHeightReporting);
+  } else {
+    startHeightReporting();
+  }
+
+  window.MailspringView = {
+    // Live reads
+    useThreads,
+    useMessages,
+    useCounts,
+    useEvents,
+    useAccounts,
+    useContent,
+    useSelectedThread,
+    useTheme,
+    useViewState,
+    useIdentity,
+    // One-shot reads
+    getThreads,
+    getMessages,
+    getCounts,
+    getEvents,
+    getContent,
+    getIdentity,
+    // Extraction
+    useExtract,
+    extract,
+    // Summaries and generation
+    useSummaries,
+    summarize,
+    useGenerate,
+    generate,
+    // Writes and host actions
+    setMetadata,
+    modify,
+    ui,
+    attachmentUrl,
+    // Components
+    MessageView,
+    ThreadActions,
+    threadProps,
+    ViewError,
+    // Escape hatches for API smoke tests and debugging.
+    call,
+    on,
+  };
+
+  // ── Credentials ───────────────────────────────────────────────────────────
+  // API keys the user stored for this View. The View never sees a key:
+  // credentialFetch asks the host to send the request with it attached, and gets back the
+  // response with any echo of the key redacted.
+
+  function decodeBody(body, encoding) {
+    if (encoding !== 'base64') return body;
+    const bytes = Uint8Array.from(atob(body), (c) => c.charCodeAt(0));
+    return new TextDecoder().decode(bytes);
+  }
+
+  async function credentialFetch(credentialId, url, init = {}) {
+    if (init.body != null && typeof init.body !== 'string') {
+      throw new ViewError({
+        code: 'invalid',
+        message: 'credentialFetch bodies must be strings. Use JSON.stringify for JSON.',
+      });
+    }
+    const r = await call('credentials.fetch', {
+      credentialId,
+      url: String(url),
+      init: { method: init.method, headers: init.headers, body: init.body },
+    });
+    const lowerHeaders = r.headers || {};
+    return {
+      ok: r.status >= 200 && r.status < 300,
+      status: r.status,
+      statusText: r.statusText,
+      url: r.url,
+      redirected: r.redirected,
+      redacted: r.redacted,
+      blockedRedirect: r.blockedRedirect || null,
+      headers: {
+        get: (name) => lowerHeaders[String(name).toLowerCase()] || null,
+        has: (name) => String(name).toLowerCase() in lowerHeaders,
+        entries: () => Object.entries(lowerHeaders),
+      },
+      text: async () => decodeBody(r.body, r.bodyEncoding),
+      json: async () => JSON.parse(decodeBody(r.body, r.bodyEncoding)),
+      arrayBuffer: async () =>
+        r.bodyEncoding === 'base64'
+          ? Uint8Array.from(atob(r.body), (c) => c.charCodeAt(0)).buffer
+          : new TextEncoder().encode(r.body).buffer,
+    };
+  }
+
+  ui.requestCredential = (credentialId) => call('ui.requestCredential', { credentialId });
+
+  function useCredentialStatus(credentialId) {
+    const [state, setState] = useState({ connected: false, loading: true, error: null });
+    useEffect(() => {
+      let live = true;
+      call('credentials.status', { credentialId })
+        .then(({ connected }) => live && setState({ connected, loading: false, error: null }))
+        .catch((error) => live && setState({ connected: false, loading: false, error }));
+      return () => {
+        live = false;
+      };
+    }, [credentialId]);
+    const connect = async () => {
+      const { connected } = await ui.requestCredential(credentialId);
+      setState({ connected, loading: false, error: null });
+      return connected;
+    };
+    return { ...state, connect };
+  }
+
+  Object.assign(window.MailspringView, { credentialFetch, useCredentialStatus });
+
+  // ── Calendars ─────────────────────────────────────────────────────────────
+  // Calendar reads and writes. Writes that would email other people
+  // (invitations, updates, cancellations, RSVPs) are confirmed by the user in a host dialog,
+  // and reject with code 'cancelled' if they decline.
+
+  const useCalendars = () => useLive('calendars', {}, true);
+  const getCalendars = () => call('calendars.find', {});
+  // Free/busy is one object, not a list: `data` is null until the first result arrives.
+  function useFreeBusy(range) {
+    const state = useLive('freeBusy', range && rangeParams(range), !!range);
+    return Array.isArray(state.data) ? { ...state, data: null } : state;
+  }
+  const getFreeBusy = (range) => call('events.freeBusy', rangeParams(range));
+
+  const toISO = (d) => (d === undefined ? undefined : new Date(d).toISOString());
+
+  const rsvp = (eventId, status) => call('calendar.rsvp', { id: eventId, status });
+  const createEvent = (event) =>
+    call('calendar.createEvent', { ...event, start: toISO(event.start), end: toISO(event.end) });
+  const updateEvent = (eventId, patch) =>
+    call('calendar.updateEvent', {
+      id: eventId,
+      patch: { ...patch, start: toISO(patch.start), end: toISO(patch.end) },
+    });
+  const deleteEvent = (eventId) => call('calendar.deleteEvent', { id: eventId });
+
+  /**
+   * Mail threads with an event's other attendees (or organizer) from the last `days` days,
+   * newest first. Built from the ordinary thread query, so Views can adapt it.
+   */
+  async function getRelatedThreads(event, { days = 60, limit = 10 } = {}) {
+    const people = [...(event.attendees || []), event.organizer]
+      .filter((p) => p && p.email && !p.isMe)
+      .map((p) => p.email);
+    if (!people.length) return { items: [], hasMore: false };
+    const after = new Date(Date.now() - days * 86400000).toISOString();
+    return getThreads({
+      where: { and: [{ participant: [...new Set(people)].slice(0, 50) }, { date: { after } }] },
+      limit,
+    });
+  }
+
+  ui.showEvent = (eventId) => call('ui.showEvent', { id: eventId });
+  ui.showDate = (date) => call('ui.showDate', { date: new Date(date).toISOString() });
+
+  Object.assign(window.MailspringView, {
+    useCalendars,
+    getCalendars,
+    useFreeBusy,
+    getFreeBusy,
+    getRelatedThreads,
+    rsvp,
+    createEvent,
+    updateEvent,
+    deleteEvent,
+  });
+})();

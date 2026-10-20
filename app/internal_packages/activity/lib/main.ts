@@ -54,9 +54,12 @@ export function activate() {
     Actions.selectRootSheet(WorkspaceStore.Sheet.Activity);
   }
 
-  // list view in top left
+  // list view in the mail and calendar toolbars, beside compose / new event
   ComponentRegistry.register(ActivityListButtonWithTutorialTip, {
-    location: WorkspaceStore.Location.RootSidebar.Toolbar,
+    locations: [
+      WorkspaceStore.Location.RootSidebar.Toolbar,
+      WorkspaceStore.defineLocation('CalendarSidebar').Toolbar,
+    ],
   });
   ActivityEventStore.activate();
 }
