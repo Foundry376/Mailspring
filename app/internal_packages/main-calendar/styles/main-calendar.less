@@ -758,3 +758,24 @@
   padding-right: @padding-base-horizontal;
   border-radius: (@toolbar-btn-height-darwin / 2);
 }
+
+.mailspring-calendar.sidebar-agenda-panel {
+  flex: 1;
+  min-height: 0;
+  background: @background-secondary;
+
+  .agenda-panel {
+    flex: 1;
+    width: auto;
+    border-left: none;
+    background: @background-secondary;
+
+    .agenda-day-header {
+      background: @background-secondary;
+    }
+
+    .agenda-event-list {
+      padding: 0 8px 12px;
+    }
+  }
+}

@@ -63,7 +63,7 @@ export default class ModeToggle extends React.Component<
         onClick={this._onToggleMode}
       >
         <RetinaImg
-          name="toolbar-person-sidebar.png"
+          name="toolbar-sidebar-right.png"
           mode={RetinaImg.Mode.ContentIsMask}
           aria-hidden="true"
         />
