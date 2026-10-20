@@ -1,5 +1,5 @@
 import React from 'react';
-import moment, { Moment } from 'moment-timezone';
+import moment from 'moment-timezone';
 import { ScrollRegion } from 'mailspring-component-kit';
 import { localized, Actions, CalendarDate, CalendarDateUtils, DateUtils } from 'mailspring-exports';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
@@ -18,16 +18,11 @@ const DAYS_IN_VIEW = 14;
 
 export type AgendaPanelProps = Pick<
   MailspringCalendarViewProps,
-  | 'dataSource'
-  | 'disabledCalendars'
-  | 'selectedEvents'
-  | 'onEventClick'
-  | 'isCalendarReadOnly'
-  | 'paintVersion'
+  'dataSource' | 'disabledCalendars' | 'selectedEvents' | 'onEventClick' | 'isCalendarReadOnly'
 >;
 
 interface DayEvents {
-  day: Moment;
+  date: CalendarDate;
   events: EventOccurrence[];
 }
 
@@ -36,7 +31,6 @@ interface AgendaPanelState {
   today: CalendarDate;
 }
 
-/** What's on in the two weeks from today, beside whichever view is showing. */
 export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelState> {
   static displayName = 'AgendaPanel';
 
@@ -55,7 +49,9 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
   }
 
   componentDidMount() {
-    this._dayChange = CalendarDateUtils.onDayChange((today) => this.setState({ today }));
+    this._dayChange = CalendarDateUtils.onDayChange(this.state.today, (today) =>
+      this.setState({ today })
+    );
     this._subscribe();
   }
 
@@ -85,7 +81,6 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
 
     for (let i = 0; i < DAYS_IN_VIEW; i++) {
       const date = CalendarDateUtils.addCalendarDays(first, i);
-      const day = momentOf(date);
 
       const events = this.state.events
         .filter((event) => eventCoversDate(event, date))
@@ -96,7 +91,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
           return occurrenceStartUnix(a) - occurrenceStartUnix(b);
         });
 
-      if (events.length > 0) days.push({ day, events });
+      if (events.length > 0) days.push({ date, events });
     }
 
     return days;
@@ -116,11 +111,10 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
     );
   }
 
-  _renderDayHeader(day: Moment) {
-    const isToday = dateOf(day) === this.state.today;
+  _renderDayHeader(date: CalendarDate) {
     return (
-      <div className={`agenda-day-header${isToday ? ' is-today' : ''}`}>
-        {day.format('ddd MMM D')}
+      <div className={`agenda-day-header${date === this.state.today ? ' is-today' : ''}`}>
+        {momentOf(date).format('ddd MMM D')}
       </div>
     );
   }
@@ -190,11 +184,11 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
   }
 
   _renderDay = (dayEvents: DayEvents) => {
-    const { day, events } = dayEvents;
-    const dayKey = day.format('YYYY-MM-DD');
+    const { date, events } = dayEvents;
+    const dayKey = CalendarDateUtils.formatCalendarDate(date);
     return (
-      <div className="agenda-day" key={day.valueOf()}>
-        {this._renderDayHeader(day)}
+      <div className="agenda-day" key={date}>
+        {this._renderDayHeader(date)}
         {events.map((event) => this._renderEvent(event, dayKey))}
       </div>
     );

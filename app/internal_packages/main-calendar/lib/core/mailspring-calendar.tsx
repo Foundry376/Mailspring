@@ -127,7 +127,7 @@ export interface MailspringCalendarViewProps extends EventRendererProps {
   isCalendarReadOnly: (calendarId: string) => boolean;
 }
 
-/** Agenda was a view until it became a panel, so a saved 'Agenda' opens the default view. */
+/** A view an older version saved may no longer exist: 'Agenda' is now a panel. */
 function savedView(): CalendarView {
   const saved = AppEnv.config.get(CALENDAR_VIEW);
   return Object.values(CalendarView).includes(saved) ? saved : CalendarView.WEEK;
@@ -962,7 +962,11 @@ export class MailspringCalendar extends React.Component<
    * Handle keyboard shortcuts for moving/resizing events
    */
   _onMoveSelectedEvent = (direction: 'up' | 'down' | 'left' | 'right', isResize: boolean) => {
-    if (this.state.selectedEvents.length === 0) {
+    // An event selected from the agenda panel may be off the grid, so the keys don't move it.
+    if (
+      this.state.selectedEvents.length === 0 ||
+      document.activeElement?.closest('.agenda-panel')
+    ) {
       return;
     }
 

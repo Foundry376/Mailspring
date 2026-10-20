@@ -72,14 +72,14 @@ export function nextDayStartUnix(date: CalendarDate): number {
 }
 
 /**
- * Calls `onChange` with the new local date shortly after each midnight, and when the window shows
- * again, since a timer set before the machine slept fires late. Dispose to stop.
+ * Calls `onChange` once the local date moves past `today`: shortly after each midnight, and when
+ * the window shows again, since a timer set before the machine slept fires late. Dispose to stop.
  */
 export function onDayChange(
+  today: CalendarDate,
   onChange: (today: CalendarDate) => void,
   nowUnix: () => number = () => Date.now() / 1000
 ): { dispose(): void } {
-  let today = calendarDateFromUnix(nowUnix());
   let timer: number | undefined;
 
   const check = () => {

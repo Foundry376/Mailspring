@@ -2,6 +2,8 @@ import moment from 'moment';
 import { AccountStore, Actions, SyncbackEventTask, TaskQueue } from 'mailspring-exports';
 import 'moment/locale/de';
 import 'moment/locale/ko';
+import 'moment/locale/lb';
+import 'moment/locale/ne';
 // Import directly from the source file; the plugin isn't registered in mailspring-exports.
 import {
   inclusiveAllDayEnd,
@@ -245,6 +247,15 @@ describe('formatShortTimeRange', function () {
   it('writes a 24-hour clock in full at both ends', function () {
     moment.locale('de');
     expect(formatShortTimeRange(at(19, 0), at(20, 30))).toBe('19:00–20:30');
+  });
+
+  it("leaves a locale's literal text and a meridiem joined to a word alone", function () {
+    moment.locale('lb');
+    expect(formatShortTimeRange(at(9, 0), at(10, 30))).toBe('9:00 Auer–10:30 Auer');
+    moment.locale('ne');
+    expect(formatShortTimeRange(at(9, 0), at(10, 30))).toBe(
+      `${formatShortTime(at(9, 0))}–${formatShortTime(at(10, 30))}`
+    );
   });
 });
 

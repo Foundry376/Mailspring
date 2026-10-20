@@ -11,13 +11,17 @@ describe('HeaderControls', function () {
   let onToggleAgenda: jasmine.Spy;
   let todayAction: jasmine.Spy;
 
-  const render = (agendaOpen = false) =>
+  let prevAction: jasmine.Spy;
+  let nextAction: jasmine.Spy;
+
+  const render = (agendaOpen = false, arrows?: 'vertical') =>
     ReactDOM.render(
       <HeaderControls
         title="September 2026"
         view={CalendarView.MONTH}
-        nextAction={() => {}}
-        prevAction={() => {}}
+        nextAction={nextAction}
+        prevAction={prevAction}
+        arrows={arrows}
         todayAction={todayAction}
         onChangeView={onChangeView}
         agendaOpen={agendaOpen}
@@ -32,6 +36,8 @@ describe('HeaderControls', function () {
     onChangeView = jasmine.createSpy('onChangeView');
     onToggleAgenda = jasmine.createSpy('onToggleAgenda');
     todayAction = jasmine.createSpy('todayAction');
+    prevAction = jasmine.createSpy('prevAction');
+    nextAction = jasmine.createSpy('nextAction');
     host = document.createElement('div');
     document.body.appendChild(host);
   });
@@ -67,6 +73,22 @@ describe('HeaderControls', function () {
 
     ReactTestUtils.Simulate.click(controls[0]);
     expect(todayAction).toHaveBeenCalled();
+  });
+
+  it('steps back and forward, pointing its arrows the way the view scrolls', function () {
+    const image = (selector: string) =>
+      (host.querySelector(`${selector} img`) as HTMLElement).style.webkitMaskImage;
+    render(false, 'vertical');
+    ReactTestUtils.Simulate.click(host.querySelector('.prev'));
+    expect(prevAction).toHaveBeenCalled();
+    expect(nextAction).not.toHaveBeenCalled();
+    ReactTestUtils.Simulate.click(host.querySelector('.next'));
+    expect(nextAction).toHaveBeenCalled();
+    expect(image('.prev')).toContain('ic-calendar-up-arrow');
+    expect(image('.next')).toContain('ic-calendar-down-arrow');
+
+    render(false);
+    expect(image('.prev')).toContain('ic-calendar-left-arrow');
   });
 
   it('toggles the agenda panel, showing whether it is open', function () {

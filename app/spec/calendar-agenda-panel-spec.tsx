@@ -93,7 +93,7 @@ describe('AgendaPanel', function () {
 
   it('moves on a day at midnight, while open', function () {
     let dayChanged: (today: CalendarDate) => void;
-    spyOn(CalendarDateUtils, 'onDayChange').andCallFake((onChange) => {
+    spyOn(CalendarDateUtils, 'onDayChange').andCallFake((_today, onChange) => {
       dayChanged = onChange;
       return { dispose() {} };
     });
@@ -104,6 +104,14 @@ describe('AgendaPanel', function () {
 
     expect(host.querySelector('.is-today').textContent).toBe(day(1).format('ddd MMM D'));
     expect(queried()).toEqual([day(1).format('YYYY-MM-DD'), day(14).format('YYYY-MM-DD')]);
+  });
+
+  it('stops watching for midnight once closed', function () {
+    const dispose = jasmine.createSpy('dispose');
+    spyOn(CalendarDateUtils, 'onDayChange').andReturn({ dispose });
+    render();
+    ReactDOM.unmountComponentAtNode(host);
+    expect(dispose).toHaveBeenCalled();
   });
 
   it('says so once when the two weeks are empty', function () {
@@ -145,17 +153,33 @@ describe('MailspringCalendar agenda panel', function () {
     expect(calendar.state.agendaOpen).toBe(true);
   });
 
+  const panelsIn = (element: React.ReactNode): React.ReactElement[] => {
+    if (!React.isValidElement(element)) return [];
+    const props = element.props as { children?: React.ReactNode };
+    const nested = React.Children.toArray(props.children).flatMap(panelsIn);
+    return element.type === AgendaPanel ? [element, ...nested] : nested;
+  };
+
   it('shows the panel beside the view once toggled, and remembers it', function () {
     const set = spyOn(AppEnv.config, 'set');
     const calendar: any = new MailspringCalendar({} as any);
     calendar.setState = (update: object) => Object.assign(calendar.state, update);
     calendar.state.calendarsLoaded = true;
     calendar.state.calendars = [{ id: 'cal-1' }];
-    expect(calendar._renderAgendaPanel()).toBe(null);
+    expect(panelsIn(calendar.render()).length).toBe(0);
 
     calendar.onToggleAgenda();
 
-    expect(calendar._renderAgendaPanel().type).toBe(AgendaPanel);
+    expect(panelsIn(calendar.render()).length).toBe(1);
     expect(set).toHaveBeenCalledWith('mailspring.calendarAgendaOpen', true);
+  });
+
+  it('leaves the panel out while there are no calendars to show', function () {
+    spyOn(AppEnv.config, 'set');
+    const calendar: any = new MailspringCalendar({} as any);
+    calendar.setState = (update: object) => Object.assign(calendar.state, update);
+    calendar.state.calendarsLoaded = true;
+    calendar.onToggleAgenda();
+    expect(panelsIn(calendar.render()).length).toBe(0);
   });
 });

@@ -353,10 +353,12 @@ export function formatShortTimeRange(startUnix: number, endUnix: number): string
   const start = moment.unix(startUnix);
   const end = moment.unix(endUnix);
   let startFormat = shortTimeFormat(start);
-  if (/[aA]/.test(startFormat) && start.format('A') === end.format('A')) {
-    startFormat = startFormat.replace(/\s*[aA]\s*/, '');
+  // Only a meridiem set apart at either end; lb's "[Auer]" literal and ne's "Aको" stay whole.
+  const separateMeridiem = /^[aA]\s+|\s+[aA]$/;
+  if (/h/.test(startFormat) && start.format('A') === end.format('A')) {
+    startFormat = startFormat.replace(separateMeridiem, '');
   }
-  return `${start.format(startFormat)}–${formatShortTime(endUnix)}`;
+  return `${start.format(startFormat)}–${end.format(shortTimeFormat(end))}`;
 }
 
 /**

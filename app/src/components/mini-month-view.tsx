@@ -4,6 +4,7 @@ import classnames from 'classnames';
 import {
   CalendarDate,
   calendarDateFromParts,
+  calendarDateFromUnix,
   dayStartUnix,
   monthShownFrom,
   onDayChange,
@@ -52,8 +53,7 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
   }
 
   componentDidMount() {
-    // Moves the `today` highlight at midnight without a remount.
-    this._dayChange = onDayChange((today) =>
+    this._dayChange = onDayChange(calendarDateFromUnix(this.state.today.unix()), (today) =>
       this.setState({ today: moment.unix(dayStartUnix(today)) })
     );
   }

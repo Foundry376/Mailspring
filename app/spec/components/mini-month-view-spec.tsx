@@ -11,7 +11,7 @@ describe('MiniMonthView', () => {
 
   it('moves the today marker across midnight while mounted', () => {
     let dayChanged: (today: CalendarDates.CalendarDate) => void;
-    spyOn(CalendarDates, 'onDayChange').andCallFake((onChange) => {
+    spyOn(CalendarDates, 'onDayChange').andCallFake((_today, onChange) => {
       dayChanged = onChange;
       return { dispose() {} };
     });

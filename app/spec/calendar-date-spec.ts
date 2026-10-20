@@ -349,13 +349,17 @@ describe('onDayChange', function () {
   let changes: string[];
   let watch: { dispose(): void };
 
-  beforeEach(function () {
-    now = at('2026-10-20T23:59:00');
-    changes = [];
-    watch = onDayChange(
+  const watchFrom = (iso: string) =>
+    onDayChange(
+      parseCalendarDate(iso),
       (today) => changes.push(formatCalendarDate(today)),
       () => now
     );
+
+  beforeEach(function () {
+    now = at('2026-10-20T23:59:00');
+    changes = [];
+    watch = watchFrom('2026-10-20');
   });
 
   afterEach(() => watch.dispose());
@@ -377,6 +381,26 @@ describe('onDayChange', function () {
     now = at('2026-10-23T08:00:00');
     document.dispatchEvent(new Event('visibilitychange'));
     expect(changes).toEqual(['2026-10-23']);
+  });
+
+  it('waits the 25 hours of the day the clocks go back', function () {
+    watch.dispose();
+    now = at('2026-11-01T00:00:01');
+    watch = watchFrom('2026-11-01');
+
+    now = at('2026-11-02T00:00:01');
+    advanceClock(24 * 3600 * 1000);
+    expect(changes).toEqual([]);
+    advanceClock(3600 * 1000);
+    expect(changes).toEqual(['2026-11-02']);
+  });
+
+  it('reports at once a day that passed before it started watching', function () {
+    watch.dispose();
+    now = at('2026-10-21T00:00:01');
+    watch = watchFrom('2026-10-20');
+    advanceClock(1000);
+    expect(changes).toEqual(['2026-10-21']);
   });
 
   it('stays quiet once disposed', function () {
