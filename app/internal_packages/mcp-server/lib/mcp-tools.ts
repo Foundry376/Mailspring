@@ -464,8 +464,8 @@ export function registerTools(server: McpServer) {
     server,
     'count_mail',
     'Count messages grouped by one or two dimensions, computed in SQL (fast over large mailboxes). ' +
-      'Use it for top senders/recipients, volume over time, per-folder breakdowns and activity ' +
-      'heatmaps instead of paging through search results. Rows are sorted by count, descending, and ' +
+      'Use it for top senders/recipients, volume over time and per-folder breakdowns instead of ' +
+      'paging through search results. Rows are sorted by count, descending, and ' +
       'carry `first`/`last` message dates. Person dimensions (sender, recipient) include a display ' +
       'name in `labels` and an `isMe` flag; category and account rows include readable names.',
     {
@@ -474,7 +474,7 @@ export function registerTools(server: McpServer) {
         .min(1)
         .max(2)
         .describe(
-          'Dimensions: sender, recipient, category, account, thread, year, month, week, day, weekday (0=Sunday), hour (local)'
+          'Dimensions: sender, recipient, category, account, thread, day (local YYYY-MM-DD; sum days for weeks or months)'
         ),
       query: z.string().optional().describe('Search query string, as in search_mail'),
       filter: z.record(z.string(), z.any()).optional().describe(FILTER_DESCRIPTION),
@@ -510,22 +510,11 @@ export function registerTools(server: McpServer) {
   defineTool(
     server,
     'get_identity',
-    "The user's own accounts and every address they send from, including aliases and addresses " +
-      'found in Sent mail. Use it to tell the user apart from the people they correspond with.',
+    "The user's own accounts and their addresses, including configured aliases. Use it to tell " +
+      'the user apart from the people they correspond with.',
     {},
     'read',
-    async () => {
-      const identity = await currentIdentity();
-      const allowed = new Set(getAllowedAccountIds(identity.accounts.map((a) => a.id)));
-      const accounts = identity.accounts.filter((a) => allowed.has(a.id));
-      // Aliases and Sent-folder addresses aren't attributed to an account, so they're only
-      // returned when no account is excluded from MCP access.
-      const addresses =
-        accounts.length === identity.accounts.length
-          ? identity.addresses
-          : accounts.map((a) => a.email.toLowerCase());
-      return textResult({ accounts, addresses });
-    }
+    async () => textResult(currentIdentity(mcpGrant()))
   );
 
   defineTool(

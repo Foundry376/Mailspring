@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from 'react';
 import { Users, Folder, Tag, Clock, Flame, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
-import { useAccounts, useCounts, useTheme, useViewState, ui } from '@mailspring/view';
+import { useAccounts, useCounts, useMessages, useTheme, useViewState, ui } from '@mailspring/view';
 
 const HIDDEN_ROLES = new Set(['all', 'sent', 'drafts', 'spam', 'trash', 'important', 'snoozed']);
 const ROBOT = /(^|[._+-])(no-?reply|do-?not-?reply|notifications?|notify|mailer-daemon|postmaster|bounce[s]?|alerts?|updates?|news|newsletter|info|support|hello|team|marketing)([._+-]|@)/i;
@@ -9,6 +9,7 @@ const RANGES = { '3m': 90, '12m': 365, '3y': 3 * 365 };
 // Day precision keeps the query identical across renders, so hooks don't resubscribe.
 const daysAgo = (days) => new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
 const LOST_AFTER_DAYS = 180;
+const HEATMAP_MESSAGES = 2000;
 
 function prettyFromEmail(email) {
   const local = email.split('@')[0] || email;
@@ -101,12 +102,16 @@ function Person({ person, name, max, accent, muted }) {
   );
 }
 
-function Heatmap({ rows, accent }) {
+// Hour of day isn't a count dimension, so the grid bins the newest messages by their own dates.
+function Heatmap({ messages, accent }) {
   const grid = useMemo(() => {
     const g = Array.from({ length: 7 }, () => new Array(24).fill(0));
-    for (const r of rows) g[Number(r.key.weekday)][Number(r.key.hour)] += r.count;
+    for (const m of messages) {
+      const d = new Date(m.date);
+      g[d.getDay()][d.getHours()] += 1;
+    }
     return g;
-  }, [rows]);
+  }, [messages]);
   const max = Math.max(1, ...grid.flat());
   const busiest = useMemo(() => {
     let best = { d: 0, h: 0, c: -1 };
@@ -183,10 +188,10 @@ export default function PeopleView() {
   const senders = useCachedCounts(`senders:${range}`, since, 'sender');
   const pairs = useCachedCounts(`pairs:${range}`, since, ['sender', 'recipient']);
   const byFolder = useCachedCounts(`byFolder:${range}`, since, ['sender', 'category']);
-  const heat = useCachedCounts(`heat:${range}`, since, ['weekday', 'hour']);
+  const heat = useMessages({ ...since, limit: HEATMAP_MESSAGES });
   const allSenders = useCachedCounts('allSenders', {}, 'sender');
   const allPairs = useCachedCounts('allPairs', {}, ['sender', 'recipient']);
-  const refreshing = [senders, pairs, byFolder, heat, allSenders, allPairs].some((c) => c.stale);
+  const refreshing = [senders, pairs, byFolder, allSenders, allPairs].some((c) => c.stale);
 
   const roleOf = useMemo(() => {
     const m = {};
@@ -249,7 +254,6 @@ export default function PeopleView() {
   const error = senders.error || pairs.error || byFolder.error || heat.error || allSenders.error || allPairs.error;
   const maxTotal = Math.max(1, ...top.map((p) => p.total));
   const displayName = (e) => names[e] || prettyFromEmail(e);
-  const heatTotal = heat.data.reduce((s, r) => s + r.count, 0);
 
   return (
     <div className="h-screen overflow-y-auto bg-ms-bg text-ms-text">
@@ -294,8 +298,8 @@ export default function PeopleView() {
           </Section>
 
           <div className="space-y-5 min-w-0">
-            <Section icon={Flame} title="When mail arrives" right={heat.loading ? 'Loading…' : `${heatTotal.toLocaleString()} messages`}>
-              <Heatmap rows={heat.data} accent={theme.colors.accent} />
+            <Section icon={Flame} title="When mail arrives" right={heat.loading ? 'Loading…' : `latest ${heat.data.length.toLocaleString()} messages`}>
+              <Heatmap messages={heat.data} accent={theme.colors.accent} />
             </Section>
 
             <Section icon={Clock} title="Lost touch" right={`quiet for ${LOST_AFTER_DAYS / 30}+ months`}>

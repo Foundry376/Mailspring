@@ -306,7 +306,7 @@ export const HANDLERS: { [method: string]: Handler } = {
   },
 
   'identity.get': ({ grant }) => {
-    return currentIdentity();
+    return currentIdentity(grant.scope);
   },
 
   'events.find': async ({ grant }, params) => {

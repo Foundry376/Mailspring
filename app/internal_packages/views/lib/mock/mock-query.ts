@@ -234,16 +234,6 @@ export function findMessages(data: MockData, q: MailQuery) {
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
-// Matches SQLite's strftime('%W'): the Monday-based week of the year, 00–53.
-function sqliteWeek(d: Date) {
-  const yday = Math.round(
-    (new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() -
-      new Date(d.getFullYear(), 0, 1).getTime()) /
-      864e5
-  );
-  return pad(Math.floor((yday + 7 - ((d.getDay() + 6) % 7)) / 7));
-}
-
 function dimValues(dim: Dim, m: MockMessage): { key: any; label?: string; isMe?: boolean }[] {
   const s = m.summary;
   const d = new Date(s.date);
@@ -258,18 +248,8 @@ function dimValues(dim: Dim, m: MockMessage): { key: any; label?: string; isMe?:
       return [{ key: s.accountId }];
     case 'thread':
       return [{ key: m.thread.id }];
-    case 'year':
-      return [{ key: `${d.getFullYear()}` }];
-    case 'month':
-      return [{ key: `${d.getFullYear()}-${pad(d.getMonth() + 1)}` }];
-    case 'week':
-      return [{ key: `${d.getFullYear()}-W${sqliteWeek(d)}` }];
     case 'day':
       return [{ key: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` }];
-    case 'weekday':
-      return [{ key: d.getDay() }];
-    case 'hour':
-      return [{ key: d.getHours() }];
     default:
       return [];
   }

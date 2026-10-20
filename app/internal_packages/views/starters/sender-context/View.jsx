@@ -91,9 +91,9 @@ export default function SenderContext() {
   const totals = useCounts(withThem && { where: withThem }, 'sender');
   const lastContact = totals.data.reduce((d, r) => (!d || r.last > d ? r.last : d), null);
   const span = useMemo(() => twelveMonthsEnding(lastContact ? new Date(lastContact) : new Date()), [lastContact?.slice(0, 7)]);
-  const monthly = useCounts(
+  const daily = useCounts(
     withThem && lastContact ? { where: { and: [withThem, { date: span.range }] } } : null,
-    ['month', 'sender']
+    ['day', 'sender']
   );
   const recent = useThreads(withThem && { where: withThem, limit: 6 });
   const history = useMessages(withThem && { where: withThem, limit: 300 });
@@ -119,14 +119,14 @@ export default function SenderContext() {
   const series = useMemo(() => {
     const months = span.months;
     const rows = Object.fromEntries(months.map((m) => [m, { month: m, them: 0, me: 0 }]));
-    for (const r of monthly.data) {
-      const row = rows[r.key.month];
+    for (const r of daily.data) {
+      const row = rows[r.key.day.slice(0, 7)];
       if (!row) continue;
       if (isThem(r.key.sender)) row.them += r.count;
       else if (r.isMe.sender) row.me += r.count;
     }
     return months.map((m) => rows[m]);
-  }, [monthly.data, span, email]);
+  }, [daily.data, span, email]);
 
   const latency = useMemo(() => replyTimes(history.data, email), [history.data, email]);
   const myMedian = median(latency.mine);

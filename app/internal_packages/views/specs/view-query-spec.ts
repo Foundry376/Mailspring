@@ -5,7 +5,6 @@ import { serializeContact } from '../lib/bridge/serializers';
 import { countMessages } from '../lib/bridge/counts';
 import { ViewGrant, ViewPermission } from '../lib/bridge/grant';
 import { FULL_GRANT } from '../../../src/services/mail-access/grant';
-import { refreshIdentity } from '../../../src/services/mail-access/identity';
 
 function grantWith(permissions: ViewPermission[]): ViewGrant {
   return {
@@ -95,67 +94,54 @@ describe('View queries', function () {
 
   describe('identity', function () {
     beforeEach(function () {
-      spyOn(AccountStore, 'accounts').andReturn([
-        { id: 'a1', emailAddress: 'me@example.com', name: 'Me' } as any,
+      const accounts = [
+        { id: 'a1', emailAddress: 'me@example.com', name: 'Me' },
+        { id: 'a2', emailAddress: 'work@example.org', name: 'Me' },
+      ];
+      spyOn(AccountStore, 'accounts').andReturn(accounts as any);
+      spyOn(AccountStore, 'accountForId').andCallFake((id) => accounts.find((a) => a.id === id));
+      spyOn(AccountStore, 'aliases').andReturn([
+        new Contact({ accountId: 'a1', email: 'me@example.com' }),
+        new Contact({ accountId: 'a1', email: 'Alias@Example.com' }),
+        new Contact({ accountId: 'a2', email: 'work@example.org' }),
+      ] as any);
+      spyOn(AccountStore, 'emailAddresses').andReturn([
+        'me@example.com',
+        'Alias@Example.com',
+        'work@example.org',
       ]);
-      spyOn(AccountStore, 'emailAddresses').andReturn(['me@example.com']);
-      // master-before-each already spies on _query.
-      (DatabaseStore._query as any).andReturn(
-        Promise.resolve([{ email: 'old-alias@example.org' }, { email: null }])
-      );
     });
 
-    it('identity.get returns accounts plus addresses found in Sent mail', function () {
+    it('identity.get returns the granted accounts with their addresses and aliases', function () {
       waitsForPromise(async () => {
-        await refreshIdentity();
         const identity = await HANDLERS['identity.get'](
           { viewId: 'spec', grant, emit: () => {} },
           {}
         );
-        expect(identity.accounts).toEqual([{ id: 'a1', email: 'me@example.com', name: 'Me' }]);
-        expect(identity.addresses).toEqual(['me@example.com', 'old-alias@example.org']);
-      });
-    });
-
-    it('marks contacts at discovered addresses as me', function () {
-      waitsForPromise(async () => {
-        await refreshIdentity();
-        const alias = serializeContact(new Contact({ email: 'Old-Alias@example.org', name: 'Me' }));
-        const other = serializeContact(new Contact({ email: 'bob@example.net' }));
-        expect(alias.isMe).toBe(true);
-        expect(other.isMe).toBe(false);
-      });
-    });
-
-    it('adds addresses that send under one of my account names', function () {
-      (AccountStore.accounts as any).andReturn([
-        { id: 'a1', emailAddress: 'me@example.com', name: 'Pat Example' } as any,
-      ]);
-      (DatabaseStore._query as any).andCallFake((sql) =>
-        Promise.resolve(
-          sql.includes('trim(')
-            ? [
-                { email: 'pat@oldjob.com', name: 'pat example' },
-                { email: 'pat.side@example.org', name: 'pat example (side project)' },
-                { email: 'notifications@social.com', name: 'pat example' },
-                { email: 'other@example.com', name: 'pat examples' },
-                { email: 'someone@example.com', name: 'pat example on social' },
-              ]
-            : []
-        )
-      );
-      waitsForPromise(async () => {
-        await refreshIdentity();
-        const identity = await HANDLERS['identity.get'](
-          { viewId: 'spec', grant, emit: () => {} },
-          {}
-        );
+        expect(identity.accounts.map((a) => a.id)).toEqual(['a1', 'a2']);
         expect(identity.addresses).toEqual([
+          'alias@example.com',
           'me@example.com',
-          'pat.side@example.org',
-          'pat@oldjob.com',
+          'work@example.org',
         ]);
+
+        const scoped = { ...grant, scope: { accountIds: ['a2'], excludedFolderIds: {} } };
+        const one = await HANDLERS['identity.get'](
+          { viewId: 'spec', grant: scoped, emit: () => {} },
+          {}
+        );
+        expect(one).toEqual({
+          accounts: [{ id: 'a2', email: 'work@example.org', name: 'Me' }],
+          addresses: ['work@example.org'],
+        });
       });
+    });
+
+    it('marks contacts at configured aliases as me', function () {
+      const alias = serializeContact(new Contact({ email: 'alias@example.com', name: 'Me' }));
+      const other = serializeContact(new Contact({ email: 'bob@example.net' }));
+      expect(alias.isMe).toBe(true);
+      expect(other.isMe).toBe(false);
     });
   });
 

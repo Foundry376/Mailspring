@@ -1,44 +1,18 @@
 import { AccountStore, CategoryStore, DatabaseStore } from 'mailspring-exports';
 import { messageQuery, MailQuery } from './queries';
 import { Grant } from './grant';
-import { identityReady, isMyAddress } from './identity';
+import { isMyAddress } from './identity';
 
-export type Dim =
-  | 'sender'
-  | 'recipient'
-  | 'category'
-  | 'account'
-  | 'thread'
-  | 'year'
-  | 'month'
-  | 'week'
-  | 'day'
-  | 'weekday'
-  | 'hour';
+export type Dim = 'sender' | 'recipient' | 'category' | 'account' | 'thread' | 'day';
 
-export const DIMS: Dim[] = [
-  'sender',
-  'recipient',
-  'category',
-  'account',
-  'thread',
-  'year',
-  'month',
-  'week',
-  'day',
-  'weekday',
-  'hour',
-];
+export const DIMS: Dim[] = ['sender', 'recipient', 'category', 'account', 'thread', 'day'];
 
 const MAX_ROWS = 5000;
 
-const localTime = (format: string) =>
-  `strftime('${format}', \`Message\`.\`date\`, 'unixepoch', 'localtime')`;
-
 // Each dimension is a SQL expression over the Message row, plus a join for the ones that fan
 // out (a message with three recipients counts once per recipient). Person dimensions also
-// carry a display name. `week` is SQLite's %W (Monday-based week of year), not a strict ISO
-// 8601 week.
+// carry a display name. `day` is the only time bucket: callers sum days into weeks, months or
+// weekdays themselves, since the local date is all those need.
 const DIM_SQL: { [dim in Dim]: { expr: string; join?: string; name?: string } } = {
   sender: {
     expr: `lower(json_extract(\`Message\`.\`data\`, '$.from[0].email'))`,
@@ -55,12 +29,7 @@ const DIM_SQL: { [dim in Dim]: { expr: string; join?: string; name?: string } } 
   },
   account: { expr: `\`Message\`.\`accountId\`` },
   thread: { expr: `\`Message\`.\`threadId\`` },
-  year: { expr: localTime('%Y') },
-  month: { expr: localTime('%Y-%m') },
-  week: { expr: localTime('%Y-W%W') },
-  day: { expr: localTime('%Y-%m-%d') },
-  weekday: { expr: `CAST(${localTime('%w')} AS INTEGER)` },
-  hour: { expr: `CAST(${localTime('%H')} AS INTEGER)` },
+  day: { expr: `strftime('%Y-%m-%d', \`Message\`.\`date\`, 'unixepoch', 'localtime')` },
 };
 
 // Counts never pass through the serializers that drop excluded mail, so folder exclusion is
@@ -83,7 +52,6 @@ function excludedThreadsSQL(grant: Grant): string | null {
  * message finds, so grants, filters and search behave identically.
  */
 export async function countMessages(grant: Grant, q: MailQuery, dims: Dim[]) {
-  await identityReady();
   const query = messageQuery(grant, { ...q, limit: undefined, offset: undefined });
   const exclusion = excludedThreadsSQL(grant);
   // messageQuery always scopes by account, so the clause is never empty.

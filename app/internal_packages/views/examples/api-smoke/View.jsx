@@ -70,7 +70,7 @@ export default function ApiSmoke() {
   const inbox = useThreads({ search: 'in:inbox', limit: 5 });
   const tagged = useThreads({ tagged: true, limit: 50 });
   const linkedin = useMessages({ search: 'from:linkedin.com', limit: 5 });
-  const heatmap = useCounts('since:"30 days ago"', ['weekday', 'hour']);
+  const daily = useCounts('since:"30 days ago"', ['day', 'sender']);
   const events = useEvents({ start: new Date(), end: new Date(Date.now() + 30 * 86400000) });
   const content = useContent(linkedin.data.slice(0, 2).map((m) => m.id));
   const live = useExtract(
@@ -107,11 +107,11 @@ export default function ApiSmoke() {
     }
   }, [linkedin]);
   useEffect(() => {
-    if (!heatmap.loading && heatmap.data.length) {
-      const top = heatmap.data[0];
-      record('useCounts', true, `${heatmap.data.length} cells; busiest weekday ${top.key.weekday} hour ${top.key.hour} (${top.count})`);
+    if (!daily.loading && daily.data.length) {
+      const top = daily.data[0];
+      record('useCounts', true, `${daily.data.length} rows; busiest ${top.key.sender} on ${top.key.day} (${top.count})`);
     }
-  }, [heatmap]);
+  }, [daily]);
   useEffect(() => {
     if (!events.loading) {
       record('useEvents', !events.error, events.error ? events.error.message : `${events.data.length} events in the next 30 days${events.data[0] ? `; first "${events.data[0].title}"` : ''}`);

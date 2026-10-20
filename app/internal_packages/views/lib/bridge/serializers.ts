@@ -9,7 +9,6 @@ import {
   Thread,
 } from 'mailspring-exports';
 import { isMessageAllowed, isThreadAllowed } from '../../../../src/services/mail-access/grant';
-import { isMyAddress } from '../../../../src/services/mail-access/identity';
 import type { ViewGrant } from './grant';
 
 // Authorization + output shaping for everything that crosses the View bridge. The thread and message serializers return null when the
@@ -21,10 +20,8 @@ function iso(date: Date | null | undefined): string | null {
   return date && !isNaN(date.getTime()) ? date.toISOString() : null;
 }
 
-// `Contact.isMe` only knows configured accounts and aliases; the identity also includes
-// addresses the user has sent from, so old aliases don't show up as other people.
 export function serializeContact(c: Contact) {
-  return { name: c.name || '', email: c.email, isMe: c.isMe() || isMyAddress(c.email) };
+  return { name: c.name || '', email: c.email, isMe: c.isMe() };
 }
 
 export function serializeCategory(c: Category) {
@@ -103,7 +100,7 @@ export function serializeMessageSummary(grant: ViewGrant, message: Message) {
     to: (message.to || []).map(serializeContact),
     cc: (message.cc || []).map(serializeContact),
     bcc: (message.bcc || []).map(serializeContact),
-    isSent: message.isFromMe() || !!(from && isMyAddress(from.email)),
+    isSent: message.isFromMe(),
     unread: !!message.unread,
     starred: !!message.starred,
     draft: !!message.draft,
