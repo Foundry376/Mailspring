@@ -69,6 +69,7 @@ export class HeaderControls extends React.Component<{
             <RetinaImg
               name="ic-calendar-down-arrow.png"
               mode={RetinaImg.Mode.ContentIsMask}
+              style={{ width: 8, height: 5, WebkitMaskSize: 'contain' }}
               aria-hidden="true"
             />
           </div>
