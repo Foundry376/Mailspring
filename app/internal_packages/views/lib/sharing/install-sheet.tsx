@@ -8,7 +8,7 @@ import { AgentAPIError } from '../agent/types';
 import { AgentActions, AgentSessionStore } from '../agent/store';
 import { ShareClient, SharedViewInfo, ShareTransport } from './client';
 import { GrantSummary } from './grant-summary';
-import { installSharedView, installedFromShare } from './install';
+import { installSharedView, installedFromShare, shareVersionProblem } from './install';
 
 interface InstallSheetProps {
   shareId: string;
@@ -85,6 +85,7 @@ export class InstallSheet extends React.Component<InstallSheetProps, InstallShee
 
   _renderBody(info: SharedViewInfo) {
     const existing = installedFromShare(info.shareId)[0];
+    const versionProblem = shareVersionProblem(info.apiVersion);
     const { installing, error } = this.state;
     return (
       <div className="view-share-sheet">
@@ -107,6 +108,7 @@ export class InstallSheet extends React.Component<InstallSheetProps, InstallShee
             {localized('You’ve already installed this View.')}
           </div>
         )}
+        {versionProblem && <div className="view-share-error">{versionProblem}</div>}
         {error && <div className="view-share-error">{error}</div>}
         <div className="view-share-actions">
           <button type="button" className="btn" onClick={() => Actions.closeModal()}>
@@ -127,7 +129,7 @@ export class InstallSheet extends React.Component<InstallSheetProps, InstallShee
           <button
             type="button"
             className="btn btn-emphasis"
-            disabled={installing}
+            disabled={installing || !!versionProblem}
             onClick={this._onInstall}
           >
             {installing

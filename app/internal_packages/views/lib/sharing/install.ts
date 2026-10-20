@@ -1,5 +1,6 @@
 import { localized } from 'mailspring-exports';
 import { ViewManifest, allViews } from '../view-registry';
+import { apiVersionOf, compatibility } from '../api-version';
 import { writeView } from '../authoring/revisions';
 import { checkSignature } from '../agent/signing';
 import { newViewId } from '../agent/store';
@@ -15,6 +16,25 @@ export function installedFromShare(shareId: string): ViewManifest[] {
   return allViews().filter(
     (v) => v.source === 'user' && v.json && v.json.shared && v.json.shared.shareId === shareId
   );
+}
+
+/**
+ * Why this build can't install a share written against `apiVersion`, or null when it can. The
+ * install sheet asks before the backend charges a build; installSharedView checks again.
+ */
+export function shareVersionProblem(apiVersion: string): string | null {
+  switch (compatibility(apiVersion)) {
+    case 'too-old':
+      return localized(
+        'This View was built for an older version of Mailspring, so it can’t be installed. Ask whoever shared it to update it and share it again.'
+      );
+    case 'too-new':
+      return localized(
+        'This View needs a newer version of Mailspring. Update Mailspring to install it.'
+      );
+    default:
+      return null;
+  }
 }
 
 /**
@@ -47,6 +67,10 @@ export async function installSharedView({
       ),
       { code: 'bad_signature' }
     );
+  }
+  const versionProblem = shareVersionProblem(apiVersionOf(bundle.manifest));
+  if (versionProblem) {
+    throw new AgentAPIError(versionProblem, { code: 'incompatible_version' });
   }
 
   const manifest = { ...bundle.manifest };

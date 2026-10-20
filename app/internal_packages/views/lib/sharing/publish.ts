@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { localized } from 'mailspring-exports';
 import { ViewManifest } from '../view-registry';
+import { compatibility } from '../api-version';
 import { readViewBundle, writeView } from '../authoring/revisions';
 import { MOCK_DATA_FILE } from '../mock/mock-data';
 import { AgentAPIError } from '../agent/types';
@@ -14,11 +15,13 @@ const HASHED_FILES = ['View.jsx', MOCK_DATA_FILE];
 
 /**
  * The agent revision a View would be shared as, or 0 when it can't be shared: dev examples,
- * Views with no code yet, and anything the agent didn't build here (starters, Views installed
- * from a share, hand-written ones) until the agent edits them.
+ * Views with no code yet, Views this build won't run (no one else could either), and anything
+ * the agent didn't build here (starters, Views installed from a share, hand-written ones) until
+ * the agent edits them.
  */
 export function shareableRevision(view: ViewManifest | null, agentRevision: number) {
   if (!view || view.source !== 'user' || !view.built) return 0;
+  if (compatibility(view.apiVersion) !== 'ok') return 0;
   return agentRevision > 0 ? agentRevision : 0;
 }
 

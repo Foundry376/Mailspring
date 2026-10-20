@@ -3,6 +3,7 @@ import { MailspringAPIRequest } from 'mailspring-exports';
 import { parseReply, requestJSON } from '../agent/client';
 import { AgentAPIError } from '../agent/types';
 import { declaredGrants } from '../consent';
+import { apiVersionOf } from '../api-version';
 import { SHARE_ID_REGEXP, isShareId, webURL } from './share-link';
 
 /** `POST /api/views/share`. */
@@ -48,6 +49,7 @@ const SharedInfoSchema = z.object({
   permissions: z.unknown().optional(),
   network: z.unknown().optional(),
   posterURL: z.unknown().optional(),
+  apiVersion: z.unknown().optional(),
 });
 
 export interface SharedViewInfo {
@@ -57,6 +59,8 @@ export interface SharedViewInfo {
   permissions: string[];
   network: string[];
   posterURL: string | null;
+  /** The shared manifest's View API version, read like any manifest's (see apiVersionOf). */
+  apiVersion: string;
 }
 
 /** The install route's bundle, unverified. */
@@ -104,6 +108,7 @@ export function parseSharedInfo(json: unknown, shareId: string): SharedViewInfo 
     permissions: grants.permissions,
     network: grants.network,
     posterURL: webURL(info.posterURL),
+    apiVersion: apiVersionOf({ apiVersion: info.apiVersion }),
   };
 }
 

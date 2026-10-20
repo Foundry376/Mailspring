@@ -28,7 +28,8 @@ import {
   shareTextProblem,
   shareableRevision,
 } from '../lib/sharing/publish';
-import { installSharedView, installedFromShare } from '../lib/sharing/install';
+import { installSharedView, installedFromShare, shareVersionProblem } from '../lib/sharing/install';
+import { CURRENT_API_VERSION, INITIAL_API_VERSION } from '../lib/api-version';
 import { POSTER_SIZES, cropToPoster, posterPlan } from '../lib/sharing/posters';
 import { currentShare } from '../lib/sharing/share-sheet';
 
@@ -37,7 +38,12 @@ const VIEW_CODE = 'export default () => null;\n';
 const MOCK = '{"threads":[]}\n';
 
 const BUNDLE = {
-  manifest: { name: 'Payroll runs', placement: 'page', permissions: ['mail.bodies'] },
+  manifest: {
+    name: 'Payroll runs',
+    placement: 'page',
+    permissions: ['mail.bodies'],
+    apiVersion: CURRENT_API_VERSION,
+  },
   files: { 'View.jsx': VIEW_CODE, 'mock-data.json': MOCK },
 };
 
@@ -118,6 +124,17 @@ describe('Views sharing: server replies', function () {
     expect(info.permissions).toEqual(['mail.bodies']);
     expect(info.network).toEqual(['api.example.com']);
     expect(info.posterURL).toBe(null);
+    expect(info.apiVersion).toBe(INITIAL_API_VERSION);
+    expect(
+      parseSharedInfo({ shareId: SHARE_ID, name: 'x', apiVersion: '2026-10-20' }, SHARE_ID)
+        .apiVersion
+    ).toBe('2026-10-20');
+  });
+
+  it('explains why a share from another API version can’t be installed', function () {
+    expect(shareVersionProblem(CURRENT_API_VERSION)).toBe(null);
+    expect(shareVersionProblem('2026-10-05')).toContain('older version');
+    expect(shareVersionProblem('2999-01-01')).toContain('newer version');
   });
 
   it('rejects metadata or bundles for a different share', function () {
@@ -243,6 +260,7 @@ describe('Views sharing: publish and install', function () {
       expect(shareableRevision({ ...view, source: 'example' }, 7)).toBe(0);
       expect(shareableRevision({ ...view, built: false }, 7)).toBe(0);
       expect(shareableRevision(null, 7)).toBe(0);
+      expect(shareableRevision({ ...view, apiVersion: '2026-10-05' }, 7)).toBe(0);
     });
   });
 
@@ -409,6 +427,27 @@ describe('Views sharing: publish and install', function () {
         unpinned = err;
       }
       expect(unpinned.code).toBe('bad_signature');
+      expect(allViews().length).toBe(0);
+    });
+
+    it('refuses a verified share this build won’t run, and writes nothing', async function () {
+      const k = keypair();
+      for (const apiVersion of ['2026-10-05', '2999-01-01', undefined]) {
+        const manifest = { ...BUNDLE.manifest, apiVersion };
+        let error: any = null;
+        try {
+          await installSharedView({
+            shareId: SHARE_ID,
+            transport: stubTransport({
+              install: async () => signedBundle(k, { ...BUNDLE, manifest }),
+            }),
+            publicKey: k.publicKey,
+          });
+        } catch (err) {
+          error = err;
+        }
+        expect(error && error.code).toBe('incompatible_version');
+      }
       expect(allViews().length).toBe(0);
     });
 
