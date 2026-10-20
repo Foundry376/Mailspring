@@ -4,20 +4,25 @@ import moment from 'moment';
 import { act, cleanup, render } from '@testing-library/react';
 
 import { MiniMonthView } from '../../src/components/mini-month-view';
+import * as CalendarDates from '../../src/calendar-date';
 
 describe('MiniMonthView', () => {
   afterEach(cleanup);
 
   it('moves the today marker across midnight while mounted', () => {
-    let view: MiniMonthView | null = null;
-    const { container } = render(
-      <MiniMonthView ref={(instance) => (view = instance)} value={moment()} onChange={() => {}} />
-    );
-    const initialToday = view.state.today.clone();
+    let dayChanged: (today: CalendarDates.CalendarDate) => void;
+    spyOn(CalendarDates, 'onDayChange').andCallFake((onChange) => {
+      dayChanged = onChange;
+      return { dispose() {} };
+    });
+    const { container } = render(<MiniMonthView value={moment()} onChange={() => {}} />);
+    const initialToday = moment().startOf('day');
 
     expect(container.querySelector('.day.today')?.textContent).toBe(initialToday.format('D'));
 
-    act(() => view._refreshToday(initialToday.clone().add(1, 'day')));
+    act(() =>
+      dayChanged(CalendarDates.calendarDateFromUnix(initialToday.clone().add(1, 'day').unix()))
+    );
 
     expect(container.querySelector('.day.today')?.textContent).toBe(
       initialToday.clone().add(1, 'day').format('D')

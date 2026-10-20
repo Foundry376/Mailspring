@@ -1,7 +1,7 @@
 import React from 'react';
 import moment, { Moment } from 'moment-timezone';
 import { ScrollRegion } from 'mailspring-component-kit';
-import { localized, Actions, CalendarDateUtils, DateUtils } from 'mailspring-exports';
+import { localized, Actions, CalendarDate, CalendarDateUtils, DateUtils } from 'mailspring-exports';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
 import { CalendarEventPopover } from './calendar-event-popover';
 import {
@@ -33,6 +33,7 @@ interface DayEvents {
 
 interface AgendaPanelState {
   events: EventOccurrence[];
+  today: CalendarDate;
 }
 
 /** What's on in the two weeks from today, beside whichever view is showing. */
@@ -40,11 +41,13 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
   static displayName = 'AgendaPanel';
 
   _sub: EventRangeSubscription;
+  _dayChange?: { dispose(): void };
 
   constructor(props: AgendaPanelProps) {
     super(props);
     this.state = {
       events: [],
+      today: dateOf(moment()),
     };
     this._sub = new EventRangeSubscription(props.dataSource, 0, (events) =>
       this.setState({ events })
@@ -52,6 +55,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
   }
 
   componentDidMount() {
+    this._dayChange = CalendarDateUtils.onDayChange((today) => this.setState({ today }));
     this._subscribe();
   }
 
@@ -60,6 +64,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
   }
 
   componentWillUnmount() {
+    this._dayChange?.dispose();
     this._sub.dispose();
   }
 
@@ -69,7 +74,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
 
   /** The days shown, from today, `end` exclusive. */
   _calculateRange() {
-    const first = dateOf(moment());
+    const first = this.state.today;
     return { first, end: CalendarDateUtils.addCalendarDays(first, DAYS_IN_VIEW) };
   }
 
@@ -112,7 +117,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
   }
 
   _renderDayHeader(day: Moment) {
-    const isToday = day.isSame(moment(), 'day');
+    const isToday = dateOf(day) === this.state.today;
     return (
       <div className={`agenda-day-header${isToday ? ' is-today' : ''}`}>
         {day.format('ddd MMM D')}

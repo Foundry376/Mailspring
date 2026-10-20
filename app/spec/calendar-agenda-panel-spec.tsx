@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import moment from 'moment';
 import Rx from 'rx-lite';
+import { CalendarDate, CalendarDateUtils } from 'mailspring-exports';
 
 import { AgendaPanel } from '../internal_packages/main-calendar/lib/core/agenda-panel';
 import {
@@ -88,6 +89,21 @@ describe('AgendaPanel', function () {
     ]);
     expect(days()[0].querySelector('.is-today')).not.toBe(null);
     expect(days()[1].querySelector('.is-today')).toBe(null);
+  });
+
+  it('moves on a day at midnight, while open', function () {
+    let dayChanged: (today: CalendarDate) => void;
+    spyOn(CalendarDateUtils, 'onDayChange').andCallFake((onChange) => {
+      dayChanged = onChange;
+      return { dispose() {} };
+    });
+    listing([timedOn('Standup', 0, 9, 30), timedOn('Review', 1, 14, 60)]);
+    expect(host.querySelector('.is-today').textContent).toBe(day(0).format('ddd MMM D'));
+
+    dayChanged(CalendarDateUtils.calendarDateFromUnix(day(1).unix()));
+
+    expect(host.querySelector('.is-today').textContent).toBe(day(1).format('ddd MMM D'));
+    expect(queried()).toEqual([day(1).format('YYYY-MM-DD'), day(14).format('YYYY-MM-DD')]);
   });
 
   it('says so once when the two weeks are empty', function () {
