@@ -321,16 +321,14 @@ body.platform-win32 {
       min-height: 0;
 
       .calendar-area-wrap {
-        &::-webkit-scrollbar {
-          display: none;
-        }
         flex: 1;
+        min-width: 0;
+        position: relative;
+      }
+
+      .time-grid-days {
         display: flex;
         flex-direction: column;
-        overflow-x: auto;
-        overflow-y: hidden;
-        position: relative;
-        scroll-snap-type: x mandatory;
       }
 
       .calendar-legend {
@@ -396,9 +394,6 @@ body.platform-win32 {
       flex: 1;
       box-shadow: inset 1px 0 0 rgba(177, 177, 177, 0.15);
       scroll-snap-align: start;
-      &.is-hard-stop {
-        scroll-snap-stop: always;
-      }
       &.is-today {
         .date-label {
           color: @accent-primary;
@@ -529,7 +524,6 @@ body.platform-win32 {
     }
 
     .month-view-week {
-      height: 100%;
       box-sizing: border-box;
       display: flex;
       position: relative;

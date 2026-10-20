@@ -7,6 +7,8 @@ import {
   calendarDaysBetween,
   dayOfWeek,
   monthStartOf,
+  monthShownFrom,
+  weekStartOf,
   formatCalendarDate,
   parseCalendarDate,
   secondsIntoDay,
@@ -308,6 +310,24 @@ describe('monthStartOf', function () {
     expect(formatCalendarDate(monthStartOf(d('2026-10-01')))).toBe('2026-10-01');
     expect(formatCalendarDate(monthStartOf(d('2028-02-29')))).toBe('2028-02-01');
     expect(formatCalendarDate(monthStartOf(d('1969-12-31')))).toBe('1969-12-01');
+  });
+});
+
+describe('weekStartOf', function () {
+  it('goes back to the first day of its week, whether that is Sunday or Monday', function () {
+    expect(formatCalendarDate(weekStartOf(d('2026-10-21'), 0))).toBe('2026-10-18');
+    expect(formatCalendarDate(weekStartOf(d('2026-10-21'), 1))).toBe('2026-10-19');
+    expect(formatCalendarDate(weekStartOf(d('2026-10-18'), 1))).toBe('2026-10-12');
+    expect(formatCalendarDate(weekStartOf(d('2026-10-18'), 0))).toBe('2026-10-18');
+  });
+});
+
+describe('monthShownFrom', function () {
+  it('names the month holding the middle of six rows', function () {
+    // Sun 27 Sep 2026 to Sat 7 Nov: the 22nd day is 18 Oct.
+    expect(formatCalendarDate(monthShownFrom(d('2026-09-27'), 6))).toBe('2026-10-01');
+    // From 11 Oct, three rows are October's and three November's: the 22nd day is 1 Nov.
+    expect(formatCalendarDate(monthShownFrom(d('2026-10-11'), 6))).toBe('2026-11-01');
   });
 });
 
