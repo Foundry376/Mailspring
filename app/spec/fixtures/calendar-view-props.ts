@@ -19,6 +19,8 @@ export function calendarViewProps(
     focusedEvent: null,
     selectedEvents: [],
     onChangeView: () => {},
+    agendaOpen: false,
+    onToggleAgenda: () => {},
     onChangeFocusedMoment: () => {},
     onCalendarMouseUp: () => {},
     onCalendarMouseDown: () => {},

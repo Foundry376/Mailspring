@@ -1,0 +1,185 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
+import moment from 'moment';
+import Rx from 'rx-lite';
+import { CalendarDate, CalendarDateUtils } from 'mailspring-exports';
+
+import { AgendaPanel } from '../internal_packages/main-calendar/lib/core/agenda-panel';
+import {
+  MailspringCalendar,
+  MailspringCalendarViewProps,
+} from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
+import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
+import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
+import { calendarDateFromUnix, formatCalendarDate } from '../src/calendar-date';
+import { allDayOccurrence, calendarViewProps } from './fixtures/calendar-view-props';
+
+describe('AgendaPanel', function () {
+  let host: HTMLDivElement;
+  let buildObservable: jasmine.Spy;
+
+  const render = (overrides: Partial<MailspringCalendarViewProps> = {}) =>
+    ReactDOM.render(
+      <AgendaPanel
+        {...calendarViewProps({ dataSource: { buildObservable } as any, ...overrides })}
+      />,
+      host
+    );
+  const queried = () => {
+    const { startUnix, endUnix } = buildObservable.mostRecentCall.args[0];
+    return [startUnix, endUnix].map((unix) => formatCalendarDate(calendarDateFromUnix(unix)));
+  };
+  const day = (offset: number) => moment().startOf('day').add(offset, 'days');
+  const days = () => Array.from(host.querySelectorAll('.agenda-day'));
+
+  beforeEach(function () {
+    buildObservable = jasmine
+      .createSpy('buildObservable')
+      .andCallFake(() => Rx.Observable.just({ events: [] }));
+    host = document.createElement('div');
+    document.body.appendChild(host);
+  });
+
+  afterEach(function () {
+    ReactDOM.unmountComponentAtNode(host);
+    host.remove();
+  });
+
+  it('queries the two weeks from today, wherever the calendar is focused', function () {
+    render({ focusedMoment: moment([2020, 0, 1]) });
+    expect(queried()).toEqual([day(0).format('YYYY-MM-DD'), day(13).format('YYYY-MM-DD')]);
+  });
+
+  it('requeries without the calendars hidden', function () {
+    render();
+    render({ disabledCalendars: ['cal-1'] });
+    expect(buildObservable.callCount).toBe(2);
+    expect(buildObservable.mostRecentCall.args[0].disabledCalendars).toEqual(['cal-1']);
+  });
+
+  it('stops listening to its query once unmounted', function () {
+    const query = new Rx.Subject<{ events: [] }>();
+    buildObservable.andCallFake(() => query);
+    render();
+    expect(query.hasObservers()).toBe(true);
+
+    ReactDOM.unmountComponentAtNode(host);
+    expect(query.hasObservers()).toBe(false);
+  });
+
+  const timedOn = (title: string, offset: number, hour: number, minutes: number) => {
+    const start = day(offset).hour(hour).unix();
+    return {
+      ...allDayOccurrence(title, day(offset).format('YYYY-MM-DD')),
+      isAllDay: false,
+      start,
+      end: start + minutes * 60,
+    } as TimedOccurrence;
+  };
+  const listing = (events: object[]) => {
+    buildObservable.andCallFake(() => Rx.Observable.just({ events }));
+    render();
+  };
+
+  it('lists only the days with something on, today in blue', function () {
+    listing([timedOn('Standup', 0, 9, 30), timedOn('Review', 3, 14, 60)]);
+    expect(days().map((d) => d.querySelector('.agenda-day-header').textContent)).toEqual([
+      day(0).format('ddd MMM D'),
+      day(3).format('ddd MMM D'),
+    ]);
+    expect(days()[0].querySelector('.is-today')).not.toBe(null);
+    expect(days()[1].querySelector('.is-today')).toBe(null);
+  });
+
+  it('moves on a day at midnight, while open', function () {
+    let dayChanged: (today: CalendarDate) => void;
+    spyOn(CalendarDateUtils, 'onDayChange').andCallFake((_today, onChange) => {
+      dayChanged = onChange;
+      return { dispose() {} };
+    });
+    listing([timedOn('Standup', 0, 9, 30), timedOn('Review', 1, 14, 60)]);
+    expect(host.querySelector('.is-today').textContent).toBe(day(0).format('ddd MMM D'));
+
+    dayChanged(CalendarDateUtils.calendarDateFromUnix(day(1).unix()));
+
+    expect(host.querySelector('.is-today').textContent).toBe(day(1).format('ddd MMM D'));
+    expect(queried()).toEqual([day(1).format('YYYY-MM-DD'), day(14).format('YYYY-MM-DD')]);
+  });
+
+  it('stops watching for midnight once closed', function () {
+    const dispose = jasmine.createSpy('dispose');
+    spyOn(CalendarDateUtils, 'onDayChange').andReturn({ dispose });
+    render();
+    ReactDOM.unmountComponentAtNode(host);
+    expect(dispose).toHaveBeenCalled();
+  });
+
+  it('says so once when the two weeks are empty', function () {
+    listing([]);
+    expect(days().length).toBe(0);
+    expect(host.querySelector('.agenda-no-events').textContent).toBe('No events');
+  });
+
+  it('lists all-day events first, each title above its times and length', function () {
+    const timed = timedOn('Standup', 1, 9, 30);
+    listing([timed, allDayOccurrence('Offsite', day(1).format('YYYY-MM-DD'))]);
+
+    const rows = Array.from(days()[0].querySelectorAll('.agenda-event-details')).map((row) =>
+      Array.from(row.children).map((line) => line.textContent)
+    );
+    const range = `${moment.unix(timed.start).format('h')}–${moment.unix(timed.end).format('h:mm A')}`;
+    expect(rows).toEqual([
+      ['Offsite', 'All day'],
+      ['Standup', `${range} 30m`],
+    ]);
+  });
+});
+
+describe('MailspringCalendar agenda panel', function () {
+  const savedConfig = (values: { [key: string]: unknown }) =>
+    spyOn(AppEnv.config, 'get').andCallFake((key: string) => values[key]);
+
+  it('opens the default view, panel closed, for a view saved as Agenda', function () {
+    savedConfig({ 'mailspring.calendarView': 'Agenda' });
+    const calendar: any = new MailspringCalendar({} as any);
+    expect(calendar.state.view).toBe(CalendarView.WEEK);
+    expect(calendar.state.agendaOpen).toBe(false);
+  });
+
+  it('keeps a saved view that still exists, and the panel as it was left', function () {
+    savedConfig({ 'mailspring.calendarView': 'Month', 'mailspring.calendarAgendaOpen': true });
+    const calendar: any = new MailspringCalendar({} as any);
+    expect(calendar.state.view).toBe(CalendarView.MONTH);
+    expect(calendar.state.agendaOpen).toBe(true);
+  });
+
+  const panelsIn = (element: React.ReactNode): React.ReactElement[] => {
+    if (!React.isValidElement(element)) return [];
+    const props = element.props as { children?: React.ReactNode };
+    const nested = React.Children.toArray(props.children).flatMap(panelsIn);
+    return element.type === AgendaPanel ? [element, ...nested] : nested;
+  };
+
+  it('shows the panel beside the view once toggled, and remembers it', function () {
+    const set = spyOn(AppEnv.config, 'set');
+    const calendar: any = new MailspringCalendar({} as any);
+    calendar.setState = (update: object) => Object.assign(calendar.state, update);
+    calendar.state.calendarsLoaded = true;
+    calendar.state.calendars = [{ id: 'cal-1' }];
+    expect(panelsIn(calendar.render()).length).toBe(0);
+
+    calendar.onToggleAgenda();
+
+    expect(panelsIn(calendar.render()).length).toBe(1);
+    expect(set).toHaveBeenCalledWith('mailspring.calendarAgendaOpen', true);
+  });
+
+  it('leaves the panel out while there are no calendars to show', function () {
+    spyOn(AppEnv.config, 'set');
+    const calendar: any = new MailspringCalendar({} as any);
+    calendar.setState = (update: object) => Object.assign(calendar.state, update);
+    calendar.state.calendarsLoaded = true;
+    calendar.onToggleAgenda();
+    expect(panelsIn(calendar.render()).length).toBe(0);
+  });
+});

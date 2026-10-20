@@ -3,12 +3,26 @@ import { Utils, localized } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import { CalendarView } from './calendar-constants';
 
+const VIEW_LABELS: { [view in CalendarView]: string } = {
+  [CalendarView.DAY]: localized('Day'),
+  [CalendarView.WEEK]: localized('Week'),
+  [CalendarView.MONTH]: localized('Month'),
+};
+
+const ARROW_IMAGES = {
+  horizontal: { prev: 'ic-calendar-left-arrow.png', next: 'ic-calendar-right-arrow.png' },
+  vertical: { prev: 'ic-calendar-up-arrow.png', next: 'ic-calendar-down-arrow.png' },
+};
+
 export class HeaderControls extends React.Component<{
   title: string;
+  view: CalendarView;
   nextAction: () => void;
   prevAction: () => void;
+  todayAction: () => void;
   onChangeView: (view: CalendarView) => void;
-  disabledViewButton: string;
+  agendaOpen: boolean;
+  onToggleAgenda: () => void;
   arrows?: 'horizontal' | 'vertical';
 }> {
   static displayName = 'HeaderControls';
@@ -17,97 +31,62 @@ export class HeaderControls extends React.Component<{
     return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
   }
 
-  _renderNextAction() {
-    if (!this.props.nextAction) {
-      return false;
-    }
+  _renderArrow(direction: 'prev' | 'next') {
+    const image = ARROW_IMAGES[this.props.arrows ?? 'horizontal'][direction];
     return (
       <button
-        className="btn btn-icon next"
-        ref="onNextAction"
-        aria-label={localized('Next')}
-        onClick={this.props.nextAction}
+        className={`btn btn-icon ${direction}`}
+        aria-label={direction === 'prev' ? localized('Previous') : localized('Next')}
+        onClick={direction === 'prev' ? this.props.prevAction : this.props.nextAction}
       >
-        <RetinaImg
-          name={
-            this.props.arrows === 'vertical'
-              ? 'ic-calendar-down-arrow.png'
-              : 'ic-calendar-right-arrow.png'
-          }
-          mode={RetinaImg.Mode.ContentIsMask}
-          aria-hidden="true"
-        />
+        <RetinaImg name={image} mode={RetinaImg.Mode.ContentIsMask} aria-hidden="true" />
       </button>
     );
   }
-
-  _renderPrevAction() {
-    if (!this.props.prevAction) {
-      return false;
-    }
-    return (
-      <button
-        className="btn btn-icon prev"
-        ref="onPreviousAction"
-        aria-label={localized('Previous')}
-        onClick={this.props.prevAction}
-      >
-        <RetinaImg
-          name={
-            this.props.arrows === 'vertical'
-              ? 'ic-calendar-up-arrow.png'
-              : 'ic-calendar-left-arrow.png'
-          }
-          mode={RetinaImg.Mode.ContentIsMask}
-          aria-hidden="true"
-        />
-      </button>
-    );
-  }
-
-  _changeView = (newView: CalendarView) => {
-    this.props.onChangeView(newView);
-  };
 
   render() {
     return (
       <div className="header-controls" onClick={(e) => e.stopPropagation()}>
-        <div className="side-controls">{this.props.children}</div>
-        <div className="center-controls">
-          {this._renderPrevAction()}
-          <span className="title">{this.props.title}</span>
-          {this._renderNextAction()}
-        </div>
+        <span className="title">{this.props.title}</span>
         <div className="side-controls">
-          <div className="view-controls">
-            {[
-              {
-                view: CalendarView.DAY,
-                isDisabled: CalendarView.DAY === this.props.disabledViewButton,
-              },
-              {
-                view: CalendarView.WEEK,
-                isDisabled: CalendarView.WEEK === this.props.disabledViewButton,
-              },
-              {
-                view: CalendarView.MONTH,
-                isDisabled: CalendarView.MONTH === this.props.disabledViewButton,
-              },
-              {
-                view: CalendarView.AGENDA,
-                isDisabled: CalendarView.AGENDA === this.props.disabledViewButton,
-              },
-            ].map((buttonOptions) => (
-              <button
-                key={buttonOptions.view}
-                className={buttonOptions.isDisabled ? 'cur-view-btn' : 'view-btn'}
-                onClick={() => this._changeView(buttonOptions.view)}
-                disabled={buttonOptions.isDisabled}
-              >
-                {buttonOptions.view}
-              </button>
-            ))}
+          <button className="btn" onClick={this.props.todayAction}>
+            {localized('Today')}
+          </button>
+          <div className="view-select">
+            <select
+              className="btn"
+              aria-label={localized('View')}
+              value={this.props.view}
+              onChange={(e) => this.props.onChangeView(e.target.value as CalendarView)}
+            >
+              {Object.values(CalendarView).map((view) => (
+                <option key={view} value={view}>
+                  {VIEW_LABELS[view]}
+                </option>
+              ))}
+            </select>
+            <RetinaImg
+              name="ic-calendar-down-arrow.png"
+              mode={RetinaImg.Mode.ContentIsMask}
+              aria-hidden="true"
+            />
           </div>
+          <div className="nav-arrows">
+            {this._renderArrow('prev')}
+            {this._renderArrow('next')}
+          </div>
+          <button
+            className={`btn btn-icon agenda-toggle${this.props.agendaOpen ? ' active' : ''}`}
+            aria-label={localized('Agenda')}
+            aria-pressed={this.props.agendaOpen}
+            title={localized('Agenda')}
+            onClick={this.props.onToggleAgenda}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="3.5" y="5" width="17" height="14" rx="2" stroke="currentColor" />
+              <path d="M14.5 5v14" stroke="currentColor" />
+            </svg>
+          </button>
         </div>
       </div>
     );

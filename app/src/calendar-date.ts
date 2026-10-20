@@ -72,6 +72,46 @@ export function nextDayStartUnix(date: CalendarDate): number {
 }
 
 /**
+ * Calls `onChange` once the local date moves past `today`: shortly after each midnight, and when
+ * the window shows again, since a timer set before the machine slept fires late. Dispose to stop.
+ */
+export function onDayChange(
+  today: CalendarDate,
+  onChange: (today: CalendarDate) => void,
+  nowUnix: () => number = () => Date.now() / 1000
+): { dispose(): void } {
+  let timer: number | undefined;
+
+  const check = () => {
+    const now = nowUnix();
+    const date = calendarDateFromUnix(now);
+    if (date !== today) {
+      today = date;
+      onChange(date);
+    }
+    schedule(now);
+  };
+  // The extra second keeps a timer that fires slightly early from landing on the same day and
+  // scheduling a second near-zero wait.
+  const schedule = (now: number) => {
+    window.clearTimeout(timer);
+    timer = window.setTimeout(check, Math.max(1, nextDayStartUnix(today) - now + 1) * 1000);
+  };
+  const onVisibilityChange = () => {
+    if (!document.hidden) check();
+  };
+
+  document.addEventListener('visibilitychange', onVisibilityChange);
+  schedule(nowUnix());
+  return {
+    dispose() {
+      window.clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    },
+  };
+}
+
+/**
  * Wall-clock seconds since the local midnight of the date an instant falls on: 10:30 is 37800
  * on a 23- or 25-hour day too. Not `unix - dayStartUnix(date)`, which is elapsed time and sits
  * an hour off the clock after a DST transition.

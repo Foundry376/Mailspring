@@ -15,6 +15,7 @@ import {
   secondsIntoDayUnix,
   firstOccurrenceUnix,
   sameOffsetOccurrenceUnix,
+  onDayChange,
 } from '../src/calendar-date';
 
 /** Fixtures read as dates, not epoch-day integers — a failure says 2026-06-21, not 20627 */
@@ -338,5 +339,75 @@ describe('the readable form', function () {
     ['2026-06-21', '2026-01-05', '2026-12-31', '2028-02-29'].forEach((iso) => {
       expect(formatCalendarDate(parseCalendarDate(iso))).toBe(iso);
     });
+  });
+});
+
+describe('onDayChange', function () {
+  // The spec clock fakes setTimeout but not Date, so the helper is handed its own clock.
+  const at = (iso: string) => new Date(iso).getTime() / 1000;
+  let now: number;
+  let changes: string[];
+  let watch: { dispose(): void };
+
+  const watchFrom = (iso: string) =>
+    onDayChange(
+      parseCalendarDate(iso),
+      (today) => changes.push(formatCalendarDate(today)),
+      () => now
+    );
+
+  beforeEach(function () {
+    now = at('2026-10-20T23:59:00');
+    changes = [];
+    watch = watchFrom('2026-10-20');
+  });
+
+  afterEach(() => watch.dispose());
+
+  it('reports the new date once midnight passes, and again the next night', function () {
+    advanceClock(59 * 1000);
+    expect(changes).toEqual([]);
+
+    now = at('2026-10-21T00:00:01');
+    advanceClock(2 * 1000);
+    expect(changes).toEqual(['2026-10-21']);
+
+    now = at('2026-10-22T00:00:01');
+    advanceClock(24 * 3600 * 1000);
+    expect(changes).toEqual(['2026-10-21', '2026-10-22']);
+  });
+
+  it('checks when the window shows again, after a sleep that held up the timer', function () {
+    now = at('2026-10-23T08:00:00');
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(changes).toEqual(['2026-10-23']);
+  });
+
+  it('waits the 25 hours of the day the clocks go back', function () {
+    watch.dispose();
+    now = at('2026-11-01T00:00:01');
+    watch = watchFrom('2026-11-01');
+
+    now = at('2026-11-02T00:00:01');
+    advanceClock(24 * 3600 * 1000);
+    expect(changes).toEqual([]);
+    advanceClock(3600 * 1000);
+    expect(changes).toEqual(['2026-11-02']);
+  });
+
+  it('reports at once a day that passed before it started watching', function () {
+    watch.dispose();
+    now = at('2026-10-21T00:00:01');
+    watch = watchFrom('2026-10-20');
+    advanceClock(1000);
+    expect(changes).toEqual(['2026-10-21']);
+  });
+
+  it('stays quiet once disposed', function () {
+    watch.dispose();
+    now = at('2026-10-21T00:00:01');
+    advanceClock(2 * 60 * 1000);
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(changes).toEqual([]);
   });
 });

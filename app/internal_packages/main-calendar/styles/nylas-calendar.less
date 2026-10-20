@@ -747,90 +747,83 @@ body.platform-win32 {
     box-shadow: inset 0 -1px 1px rgba(0, 0, 0, 0.07);
   }
 
-  // Three in-flow columns: Today, the date, the view switcher. The equal outer columns keep the
-  // date at the toolbar's centre; absolutely positioned layers reserved no width and overlapped it.
   .header-controls {
     align-items: center;
-    container-type: inline-size;
-    display: grid;
+    display: flex;
+    flex-wrap: wrap;
     gap: 8px;
-    grid-template-columns: 1fr auto 1fr;
     padding: 10px;
     color: @text-color-subtle;
     border-bottom: 1px solid @border-color-divider;
     box-shadow: inset 0 -1px 1px rgba(191, 191, 191, 0.12);
     flex-shrink: 0;
 
-    .side-controls {
-      display: flex;
-      &:last-child {
-        justify-content: flex-end;
-      }
-    }
-
     .title {
-      display: inline-block;
+      flex: 1 1 auto;
       min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-    }
-    .title,
-    .btn-icon {
       font-size: 15px;
       line-height: 25px;
     }
 
+    .side-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: auto;
+    }
+
     .btn-icon {
       margin: 0;
-      height: auto;
+      height: 25px;
+      font-size: 15px;
+      line-height: 25px;
       img {
         vertical-align: baseline;
       }
     }
 
-    .view-controls {
-      flex-shrink: 0;
-      white-space: nowrap;
-      border-radius: @border-radius-base;
-      box-shadow:
-        0 0.5px 0 @btn-border-color,
-        0 -0.5px 0 @btn-border-color,
-        0.5px 0 0 @btn-border-color,
-        -0.5px 0 0 @btn-border-color,
-        0 0.5px 1px @btn-border-color;
-      overflow: hidden;
+    .nav-arrows {
+      display: flex;
+    }
 
-      .view-btn {
-        width: 60px;
-        border: 0;
-        cursor: default;
-        display: inline-block;
-        color: @btn-default-text-color;
-        background: @background-primary;
+    .view-select {
+      position: relative;
+      display: flex;
+      align-items: center;
 
-        &:hover {
-          background: darken(@background-primary, 5%);
-        }
+      // Sized to the view it shows rather than its longest option, so "Day" leaves no gap.
+      select {
+        appearance: none;
+        field-sizing: content;
+        padding-right: 26px;
       }
-
-      .cur-view-btn {
-        width: 60px;
-        border: 0;
-        cursor: default;
-        display: inline-block;
-        color: @text-color-inverse;
-        background: @accent-primary;
+      img.content-mask {
+        position: absolute;
+        right: 9px;
+        pointer-events: none;
+        background-color: @btn-default-text-color;
       }
     }
-  }
 
-  .center-controls {
-    align-items: center;
-    display: flex;
-    justify-content: center;
-    min-width: 0;
-    text-align: center;
+    .agenda-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      padding: 0;
+      border-radius: @border-radius-base;
+      color: inherit;
+      svg {
+        flex-shrink: 0;
+        width: 18px;
+      }
+      &.active {
+        background: color-mix(in srgb, currentColor 12%, transparent);
+      }
+    }
   }
 
   .calendar-empty-state {
@@ -864,82 +857,48 @@ body.platform-win32 {
     margin: 0 0 24px;
   }
 
-  .agenda-view {
+  .agenda-panel {
+    width: 240px;
+    flex-shrink: 0;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    border-left: 1px solid @border-color-divider;
+    background: @background-primary;
 
     .agenda-scroll-region {
       flex: 1;
-      background: @background-primary;
     }
 
     .agenda-event-list {
-      padding: 0 20px 20px;
-      max-width: 800px;
-      margin: 0 auto;
-      width: 100%;
+      padding: 0 14px 14px;
     }
 
     .agenda-day {
-      &:first-child {
-        .agenda-day-header {
-          border-top: none;
-        }
-      }
+      padding: 16px 0 2px;
     }
 
     .agenda-day-header {
-      display: flex;
-      align-items: baseline;
-      gap: 8px;
-      padding: 16px 0 8px;
-      border-top: 1px solid @border-color-divider;
+      padding-bottom: 6px;
       position: sticky;
       top: 0;
       background: @background-primary;
       z-index: 1;
-
-      .agenda-day-name {
-        font-size: 14px;
-        font-weight: @font-weight-semi-bold;
-        color: @text-color;
-      }
-
-      .agenda-day-date {
-        font-size: 13px;
-        color: @text-color-subtle;
-      }
-
-      .agenda-today-badge {
-        font-size: 11px;
-        font-weight: @font-weight-semi-bold;
-        color: @accent-primary;
-        text-transform: uppercase;
-        letter-spacing: 0.3px;
-      }
+      font-size: 12px;
+      font-weight: @font-weight-medium;
+      color: @text-color-subtle;
 
       &.is-today {
-        .agenda-day-name,
-        .agenda-day-date {
-          color: @accent-primary;
-        }
+        color: @accent-primary;
       }
-    }
-
-    .agenda-day-events {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
     }
 
     .agenda-event {
       display: flex;
-      align-items: flex-start;
-      padding: 8px 12px;
+      gap: 10px;
+      padding: 4px 4px 4px 0;
       border-radius: 4px;
+      white-space: nowrap;
       cursor: default;
-      position: relative;
 
       &:hover {
         background: rgba(0, 0, 0, 0.04);
@@ -956,8 +915,8 @@ body.platform-win32 {
         -webkit-font-smoothing: antialiased;
 
         .agenda-event-time,
-        .agenda-event-title,
-        .agenda-event-location {
+        .agenda-event-duration,
+        .agenda-event-title {
           color: @text-color-inverse;
         }
 
@@ -983,48 +942,44 @@ body.platform-win32 {
 
     .agenda-event-color-bar {
       width: 4px;
-      min-height: 32px;
-      align-self: stretch;
+      flex-shrink: 0;
       border-radius: 2px;
-      margin-right: 12px;
-      flex-shrink: 0;
-    }
-
-    .agenda-event-time {
-      width: 130px;
-      flex-shrink: 0;
-      font-size: 12px;
-      color: @text-color-subtle;
-      padding-top: 2px;
     }
 
     .agenda-event-details {
       flex: 1;
       min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .agenda-event-title,
+    .agenda-event-time {
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .agenda-event-title {
       font-size: 13px;
-      font-weight: 500;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      line-height: 17px;
     }
 
-    .agenda-event-location {
+    .agenda-event-time {
       font-size: 12px;
+      line-height: 16px;
       color: @text-color-subtle;
-      margin-top: 2px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+    }
+
+    .agenda-event-duration {
+      color: @text-color-very-subtle;
     }
 
     .agenda-no-events {
-      padding: 8px 12px;
-      font-size: 13px;
+      padding: 16px 0;
+      font-size: 12px;
+      line-height: 16px;
       color: @text-color-very-subtle;
-      font-style: italic;
     }
   }
 }
@@ -1032,14 +987,4 @@ body.platform-win32 {
 // Same specificity as `.calendar-source-list`, so a theme's own colour still wins.
 :where(.nav-rail-content) .calendar-source-list {
   background-color: @source-list-inset-bg;
-}
-
-// Below this width Today, the date and the view switcher cannot share a row, so each takes one.
-// Top level because LESS does not nest parent selectors into @container the way it does @media.
-@container (max-width: 640px) {
-  .mailspring-calendar .header-controls .side-controls,
-  .mailspring-calendar .header-controls .center-controls {
-    grid-column: ~'1 / -1';
-    justify-content: center;
-  }
 }

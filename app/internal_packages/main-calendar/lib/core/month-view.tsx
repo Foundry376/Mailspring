@@ -211,16 +211,15 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
 
           <HeaderControls
             title={headerText}
+            view={CalendarView.MONTH}
             nextAction={this._onClickNextMonth}
             prevAction={this._onClickPrevMonth}
+            todayAction={this._onClickToday}
             onChangeView={this.props.onChangeView}
-            disabledViewButton={CalendarView.MONTH}
+            agendaOpen={this.props.agendaOpen}
+            onToggleAgenda={this.props.onToggleAgenda}
             arrows="vertical"
-          >
-            <button key="today" className="btn" onClick={this._onClickToday}>
-              Today
-            </button>
-          </HeaderControls>
+          />
 
           <div className="month-view-grid-container">
             {this._renderWeekdayHeaders()}

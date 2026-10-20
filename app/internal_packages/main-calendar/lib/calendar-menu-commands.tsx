@@ -22,7 +22,6 @@ export class CalendarMenuCommands extends React.Component<CalendarMenuCommandsPr
       'calendar:view-day': () => this.props.onChangeView(CalendarView.DAY),
       'calendar:view-week': () => this.props.onChangeView(CalendarView.WEEK),
       'calendar:view-month': () => this.props.onChangeView(CalendarView.MONTH),
-      'calendar:view-agenda': () => this.props.onChangeView(CalendarView.AGENDA),
       'calendar:go-to-today': () => this.props.onChangeFocusedMoment(moment()),
       'calendar:navigate-next': this.props.onNavigateNext,
       'calendar:navigate-previous': this.props.onNavigatePrevious,

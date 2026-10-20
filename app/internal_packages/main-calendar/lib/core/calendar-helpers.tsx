@@ -333,12 +333,32 @@ export function newEventOccurrence(id: string, draft: NewEventDraft): EventOccur
  */
 export function formatShortTime(unix: number): string {
   const time = moment.unix(unix);
+  return time.format(shortTimeFormat(time));
+}
+
+function shortTimeFormat(time: moment.Moment): string {
   const lt = moment.localeData().longDateFormat('LT');
   // moment's LT uses h for a 12-hour clock and H for a 24-hour one, as in time-picker.tsx
   if (!/h/.test(lt) || time.minutes() !== 0) {
-    return time.format('LT');
+    return lt;
   }
-  return time.format(lt.replace(/[:.]mm/, ''));
+  return lt.replace(/[:.]mm/, '');
+}
+
+/**
+ * A range in formatShortTime's terms, naming the meridiem once when both ends share it, as Notion
+ * Calendar does: "7:30–8:30 PM", "11:30 AM–12 PM".
+ */
+export function formatShortTimeRange(startUnix: number, endUnix: number): string {
+  const start = moment.unix(startUnix);
+  const end = moment.unix(endUnix);
+  let startFormat = shortTimeFormat(start);
+  // Only a meridiem set apart at either end; lb's "[Auer]" literal and ne's "Aको" stay whole.
+  const separateMeridiem = /^[aA]\s+|\s+[aA]$/;
+  if (/h/.test(startFormat) && start.format('A') === end.format('A')) {
+    startFormat = startFormat.replace(separateMeridiem, '');
+  }
+  return `${start.format(startFormat)}–${end.format(shortTimeFormat(end))}`;
 }
 
 /**
