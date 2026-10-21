@@ -1,7 +1,7 @@
-import React, { CSSProperties, useRef } from 'react';
+import React, { useRef } from 'react';
 import ReactDOM from 'react-dom';
 import { webUtils } from 'electron';
-import { Contact, localized, CanvasUtils, AccountStore } from 'mailspring-exports';
+import { Contact, localized, CanvasUtils, AccountStore, Utils } from 'mailspring-exports';
 import {
   FocusContainer,
   MultiselectList,
@@ -18,23 +18,19 @@ const ContactColumn = new ListTabular.Column({
   name: 'Item',
   flex: 1,
   resolver: (contact: Contact) => {
-    // until we revisit the UI to accommodate more icons
     const account = AccountStore.accountForId(contact.accountId);
-    let style: CSSProperties = {};
-    if (account && account.color) {
-      style = {
-        height: '50%',
-        paddingLeft: '4px',
-        borderLeftWidth: '4px',
-        borderLeftColor: account.color,
-        borderLeftStyle: 'solid',
-      };
-    }
+    const hue = Utils.hueForString(contact.email);
     return (
-      <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-        <div style={style} className="subject" dir="auto">
-          {contact.name}
+      <div className="contact-list-row">
+        <div className="contact-list-avatar" style={{ backgroundColor: `hsl(${hue}, 50%, 45%)` }}>
+          {contact.nameAbbreviation()}
         </div>
+        <div className="contact-list-name" dir="auto">
+          {contact.name || contact.email}
+        </div>
+        {account && account.color && (
+          <div className="contact-list-account-color" style={{ backgroundColor: account.color }} />
+        )}
       </div>
     );
   },
@@ -42,7 +38,13 @@ const ContactColumn = new ListTabular.Column({
 
 class ContactsListEmpty extends React.Component<{ visible: boolean }> {
   render() {
-    return this.props.visible ? <div>No contacts to display</div> : <span />;
+    return this.props.visible ? (
+      <div className="contacts-empty-state">
+        <div className="message">{localized('No contacts to display')}</div>
+      </div>
+    ) : (
+      <span />
+    );
   }
 }
 
@@ -187,7 +189,7 @@ class ContactListWithData extends React.Component<ContactListProps, ContactListS
             columns={[ContactColumn]}
             dataSource={this.props.listSource}
             itemPropsProvider={() => ({})}
-            itemHeight={32}
+            itemHeight={44}
             EmptyComponent={ContactsListEmpty}
             onDragItems={this._onDragItems}
             onDragEnd={() => null}

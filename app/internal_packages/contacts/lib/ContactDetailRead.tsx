@@ -1,9 +1,59 @@
 import React from 'react';
-import { Account, Contact, AccountStore, ContactGroup } from 'mailspring-exports';
-import { ContactProfilePhoto, RetinaImg } from 'mailspring-component-kit';
+import { Contact, AccountStore, ContactGroup, localized } from 'mailspring-exports';
+import { ContactProfilePhoto } from 'mailspring-component-kit';
 import * as Icons from './SVGIcons';
 import { Store } from './Store';
 import { ContactBase, ContactInteractorMetadata } from './ContactInfoMapping';
+
+function formatBirthday(date: ContactBase['birthdays'][0]['date'] | undefined) {
+  if (!date || !date.month || !date.day) return '';
+  if (date.year) {
+    return new Date(date.year, date.month - 1, date.day).toLocaleDateString(undefined, {
+      dateStyle: 'long',
+    });
+  }
+  return new Date(2000, date.month - 1, date.day).toLocaleDateString(undefined, {
+    month: 'long',
+    day: 'numeric',
+  });
+}
+
+const DetailRow = ({
+  icon,
+  type,
+  children,
+}: {
+  icon: React.ReactNode;
+  type?: string;
+  children: React.ReactNode;
+}) => (
+  <div className="contact-detail-row">
+    <span className="contact-detail-row-icon" aria-hidden="true">
+      {icon}
+    </span>
+    <div className="contact-detail-row-value">
+      {children}
+      {type && <span className="type">{type}</span>}
+    </div>
+  </div>
+);
+
+const QuickAction = ({
+  href,
+  icon,
+  label,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  label: string;
+}) => (
+  <a className="contact-quick-action" href={href} title={label}>
+    <span className="contact-quick-action-icon" aria-hidden="true">
+      {icon}
+    </span>
+    {label}
+  </a>
+);
 
 export const ContactDetailRead = ({
   data,
@@ -16,201 +66,139 @@ export const ContactDetailRead = ({
   contact: Contact;
   metadata: ContactInteractorMetadata;
 }) => {
+  const account = AccountStore.accountForId(contact.accountId);
+  const emails = (data.emailAddresses || []).filter((e) => e.value);
+  const phones = (data.phoneNumbers || []).filter((p) => p.value);
+  const urls = (data.urls || []).filter((u) => u.value);
+  const addresses = (data.addresses || []).filter((a) => a.formattedValue);
+  const birthdays = (data.birthdays || []).map((b) => formatBirthday(b.date)).filter(Boolean);
+  const relations = (data.relations || []).filter((r) => r.person);
+  const nicknames = (data.nicknames || []).filter((n) => n.value);
+  const subtitle = [data.title, data.company].filter(Boolean).join(' · ');
+  const hasDetails =
+    emails.length + phones.length + urls.length + addresses.length + birthdays.length > 0 ||
+    relations.length > 0;
+
   return (
     <div className="contact-detail-content-wrap">
       <div className="contact-hero">
         <ContactProfilePhoto contact={contact} loading={false} avatar={data.photoURL} />
-        <h3>{data.name.displayName}</h3>
-      </div>
-      <div className="contact-group-memberships">
-        {contact.contactGroups.map((gid) => {
-          const group = groups.find((g) => g.id === gid);
-          const label = group ? group.name : gid;
-          return (
-            <div
-              key={gid}
-              className="group-membership"
-              onClick={() => {
-                Store.setPerspective({
-                  label,
-                  accountId: contact.accountId,
-                  groupId: gid,
-                  type: 'group',
-                });
-              }}
-            >
-              <RetinaImg
-                name="label.png"
-                style={{ marginRight: 5 }}
-                mode={RetinaImg.Mode.ContentDark}
-              />
-              {label}
+        <div className="contact-hero-text">
+          <h1>{data.name.displayName || contact.name || contact.email}</h1>
+          {subtitle && <div className="contact-hero-subtitle">{subtitle}</div>}
+          {nicknames.length > 0 && (
+            <div className="contact-hero-nicknames">
+              {nicknames.map((n) => `“${n.value}”`).join(', ')}
             </div>
-          );
-        })}
+          )}
+        </div>
       </div>
-      {
-        <ContactAttributes
-          data={data}
-          origin={metadata.origin}
-          account={AccountStore.accountForId(contact.accountId)}
-        />
-      }
+
+      {(emails.length > 0 || phones.length > 0 || urls.length > 0) && (
+        <div className="contact-quick-actions">
+          {emails.length > 0 && (
+            <QuickAction
+              href={`mailto:${emails[0].value}`}
+              icon={<Icons.Envelope />}
+              label={localized('Email')}
+            />
+          )}
+          {phones.length > 0 && (
+            <QuickAction
+              href={`tel:${phones[0].value}`}
+              icon={<Icons.Phone />}
+              label={localized('Call')}
+            />
+          )}
+          {urls.length > 0 && (
+            <QuickAction href={urls[0].value} icon={<Icons.Link />} label={localized('Website')} />
+          )}
+        </div>
+      )}
+
+      {contact.contactGroups.length > 0 && (
+        <div className="contact-group-memberships">
+          {contact.contactGroups.map((gid) => {
+            const group = groups.find((g) => g.id === gid);
+            const label = group ? group.name : gid;
+            return (
+              <button
+                key={gid}
+                className="group-membership"
+                onClick={() => {
+                  Store.setPerspective({
+                    label,
+                    accountId: contact.accountId,
+                    groupId: gid,
+                    type: 'group',
+                  });
+                }}
+              >
+                <Icons.Tag />
+                {label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {hasDetails && (
+        <section className="contact-card">
+          <h2>{localized('Contact Details')}</h2>
+          {emails.map((item, idx) => (
+            <DetailRow key={`e${idx}`} icon={<Icons.Envelope />} type={item.type}>
+              <a href={`mailto:${item.value}`} title={localized('Send email...')}>
+                {item.value}
+              </a>
+            </DetailRow>
+          ))}
+          {phones.map((item, idx) => (
+            <DetailRow key={`p${idx}`} icon={<Icons.Phone />} type={item.type}>
+              <a href={`tel:${item.value}`} title={localized('Call...')}>
+                {item.value}
+              </a>
+            </DetailRow>
+          ))}
+          {addresses.map((item, idx) => (
+            <DetailRow key={`a${idx}`} icon={<Icons.Map />} type={item.type}>
+              <a
+                className="address"
+                href={`https://maps.google.com/?q=${encodeURIComponent(item.formattedValue)}`}
+              >
+                {item.formattedValue}
+              </a>
+            </DetailRow>
+          ))}
+          {birthdays.map((text, idx) => (
+            <DetailRow key={`b${idx}`} icon={<Icons.Crown />} type={localized('Birthday')}>
+              {text}
+            </DetailRow>
+          ))}
+          {relations.map((item, idx) => (
+            <DetailRow key={`r${idx}`} icon={<Icons.People />} type={item.type}>
+              {item.person}
+            </DetailRow>
+          ))}
+          {urls.map((item, idx) => (
+            <DetailRow key={`u${idx}`} icon={<Icons.Link />} type={item.type}>
+              <a href={item.value} title={localized('Visit website...')}>
+                {item.value}
+              </a>
+            </DetailRow>
+          ))}
+        </section>
+      )}
+
+      {data.notes && (
+        <section className="contact-card">
+          <h2>{localized('Notes')}</h2>
+          <div className="contact-notes">{data.notes}</div>
+        </section>
+      )}
+
+      <div className="contact-origin">
+        {`${metadata.origin} · ${account ? account.label : localized('Unknown Account')}`}
+      </div>
     </div>
   );
 };
-
-const ContactAttributes = ({
-  data,
-  origin,
-  account,
-}: {
-  data: ContactBase;
-  origin: string;
-  account: Account;
-}) => (
-  <div className="contact-attributes">
-    {data.nicknames && (
-      <div className="contact-attributes-section">
-        {data.nicknames.map((item, idx) => (
-          <div className="contact-attribute" key={idx}>
-            <span aria-hidden="true"></span>
-            <div>{`”${item.value}”`}</div>
-          </div>
-        ))}
-      </div>
-    )}
-    {(data.title || data.company) && (
-      <div className="contact-attributes-section">
-        <div className="contact-attribute">
-          <span aria-hidden="true">
-            <Icons.Briefcase />
-          </span>
-          <div>{`${data.title ? `${data.title}, ` : ''}${data.company}`}</div>
-        </div>
-      </div>
-    )}
-    {data.emailAddresses && (
-      <div className="contact-attributes-section">
-        {data.emailAddresses.map((item, idx) => (
-          <div className="contact-attribute" key={idx}>
-            <span aria-hidden="true">
-              <Icons.Envelope />
-            </span>
-            <div>
-              <a href={`mailto:${item.value}`} title="Send email...">
-                {item.value}
-              </a>
-              {item.type && <div className="type">{item.type}</div>}
-            </div>
-          </div>
-        ))}
-      </div>
-    )}
-    {data.phoneNumbers && (
-      <div className="contact-attributes-section">
-        {data.phoneNumbers.map((item, idx) => (
-          <div className="contact-attribute" key={idx}>
-            <span aria-hidden="true">
-              <Icons.Phone />
-            </span>
-            <div>
-              <a href={`tel:${item.value}`} title="Call...">
-                {item.value}
-              </a>
-              {item.type && <div className="type">{item.type}</div>}
-            </div>
-          </div>
-        ))}
-      </div>
-    )}
-    {data.addresses && (
-      <div className="contact-attributes-section">
-        {data.addresses.map((item, idx) => (
-          <div className="contact-attribute" key={idx}>
-            <span aria-hidden="true">
-              <Icons.Map />
-            </span>
-            <div>
-              <a href={`https://maps.google.com/?q=${encodeURIComponent(item.formattedValue)}`}>
-                {item.formattedValue}
-              </a>
-              {item.type && <div className="type">{item.type}</div>}
-            </div>
-          </div>
-        ))}
-      </div>
-    )}
-    {data.birthdays && (
-      <div className="contact-attributes-section">
-        {data.birthdays.map((item, idx) => (
-          <div className="contact-attribute" key={idx}>
-            <span aria-hidden="true">
-              <Icons.Crown />
-            </span>
-            <div>
-              {item.date
-                ? item.date.year
-                  ? new Date(
-                      item.date.year,
-                      item.date.month - 1,
-                      item.date.day
-                    ).toLocaleDateString()
-                  : new Date(
-                      new Date().getFullYear(),
-                      item.date.month - 1,
-                      item.date.day
-                    ).toLocaleDateString(undefined, { month: 'numeric', day: 'numeric' })
-                : ''}
-            </div>
-          </div>
-        ))}
-      </div>
-    )}
-    {data.relations && (
-      <div className="contact-attributes-section">
-        {data.relations.map((item, idx) => (
-          <div className="contact-attribute" key={idx}>
-            <span aria-hidden="true">
-              <Icons.People />
-            </span>
-            <div>
-              {item.person}
-              {item.type && <div className="type">{item.type}</div>}
-            </div>
-          </div>
-        ))}
-      </div>
-    )}
-    {data.urls && (
-      <div className="contact-attributes-section">
-        {data.urls.map((item, idx) => (
-          <div className="contact-attribute" key={idx}>
-            <span aria-hidden="true">
-              <Icons.Link />
-            </span>
-            <div>
-              <a href={`${item.value}`} title="Visit website...">
-                {item.value}
-              </a>
-              {item.type && <div className="type">{item.type}</div>}
-            </div>
-          </div>
-        ))}
-      </div>
-    )}
-    {data.notes && (
-      <div className="contact-attributes-section">
-        <div className="contact-attribute">
-          <span aria-hidden="true">
-            <Icons.Note />
-          </span>
-          <div style={{ whiteSpace: 'pre-wrap' }}>{data.notes}</div>
-        </div>
-      </div>
-    )}
-    <div className="contact-origin">
-      <div>{`${origin} (${account ? account.label : 'Unknown Account'})`}</div>
-    </div>
-  </div>
-);

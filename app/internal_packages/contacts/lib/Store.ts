@@ -5,6 +5,7 @@ import {
   ContactGroup,
   ContactBook,
   MutableQuerySubscription,
+  localized,
 } from 'mailspring-exports';
 import MailspringStore from 'mailspring-store';
 import { ListTabular } from 'mailspring-component-kit';
@@ -43,6 +44,7 @@ class ContactsWindowStore extends MailspringStore {
       Rx.Observable.fromQuery(DatabaseStore.findAll<ContactGroup>(ContactGroup)).subscribe(
         (groups) => {
           this._groups = groups;
+          this._syncGroupPerspective();
           this.trigger();
         }
       );
@@ -106,6 +108,24 @@ class ContactsWindowStore extends MailspringStore {
       this._contactsSubscription.replaceQuery(q);
     }
     this.repopulate();
+  }
+
+  /** Keeps the selected group's label current after a rename and leaves the group
+  once it's been deleted, since the perspective holds a copy of the group's name. */
+  _syncGroupPerspective() {
+    const perspective = this._perspective;
+    if (perspective.type !== 'group') return;
+
+    const group = this._groups.find((g) => g.id === perspective.groupId);
+    if (!group) {
+      this.setPerspective({
+        type: 'all',
+        accountId: perspective.accountId,
+        label: localized('All Contacts'),
+      });
+    } else if (group.name !== perspective.label) {
+      this._perspective = { ...perspective, label: group.name };
+    }
   }
 
   search() {
