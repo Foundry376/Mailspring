@@ -73,12 +73,15 @@ describe('CalendarMenuCommands', function () {
     expect(onNavigatePrevious).not.toHaveBeenCalled();
     expect(onNavigateNext).not.toHaveBeenCalled();
   });
+
   it('leaves those keys alone while a card or editor is open', function () {
-    render(false);
+    render(false, CalendarView.MONTH);
     PopoverStore.isOpen = true;
     try {
       AppEnv.commands.dispatch('calendar:move-event-left');
       AppEnv.commands.dispatch('calendar:move-event-right');
+      AppEnv.commands.dispatch('calendar:move-event-up');
+      AppEnv.commands.dispatch('calendar:move-event-down');
     } finally {
       PopoverStore.isOpen = false;
     }

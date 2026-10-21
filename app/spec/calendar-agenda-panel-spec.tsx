@@ -185,6 +185,11 @@ describe('MailspringCalendar agenda panel', function () {
 
     expect(panelsIn(calendar.render()).length).toBe(0);
     expect(set).toHaveBeenCalledWith('mailspring.calendarAgendaOpen', false);
+
+    calendar.onToggleAgenda();
+
+    expect(panelsIn(calendar.render()).length).toBe(1);
+    expect(set).toHaveBeenCalledWith('mailspring.calendarAgendaOpen', true);
   });
 
   it('lets the panel be dragged between 200 and 300px wide, starting at 240', function () {

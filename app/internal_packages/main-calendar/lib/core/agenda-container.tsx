@@ -1,4 +1,5 @@
 import React from 'react';
+import classnames from 'classnames';
 import { Disposable } from 'rx-core';
 import { Rx, DatabaseStore, Calendar } from 'mailspring-exports';
 import { AgendaPanel } from './agenda-panel';
@@ -78,7 +79,7 @@ export class AgendaContainer extends React.Component<AgendaContainerProps, Agend
 
   render() {
     return (
-      <div className={['mailspring-calendar', this.props.className].filter(Boolean).join(' ')}>
+      <div className={classnames('mailspring-calendar', this.props.className)}>
         <AgendaPanel
           dataSource={this._dataSource}
           disabledCalendars={this.state.disabledCalendars}
