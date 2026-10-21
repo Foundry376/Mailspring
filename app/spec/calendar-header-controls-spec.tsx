@@ -17,7 +17,6 @@ describe('HeaderControls', function () {
   const render = (agendaOpen = false, arrows?: 'vertical') =>
     ReactDOM.render(
       <HeaderControls
-        title="September 2026"
         view={CalendarView.MONTH}
         nextAction={nextAction}
         prevAction={prevAction}

@@ -12,7 +12,6 @@ import { CalendarView } from '../internal_packages/main-calendar/lib/core/calend
 describe('CalendarHeader', function () {
   let host: HTMLDivElement;
   const navigation = (over: Partial<ViewNavigation> = {}): ViewNavigation => ({
-    title: 'October 2026',
     arrows: 'vertical',
     prevAction: () => {},
     nextAction: () => {},
@@ -26,7 +25,6 @@ describe('CalendarHeader', function () {
     onToggleAgenda: () => {},
     ...over,
   });
-  const title = () => host.querySelector('.header-controls .title')?.textContent;
 
   beforeEach(function () {
     spyOn(DatabaseStore, 'findAll').andReturn(Promise.resolve([]));
@@ -49,16 +47,13 @@ describe('CalendarHeader', function () {
     CalendarHeaderStore.setViewNavigation(navigation());
     expect(host.querySelector('.header-controls')).toBe(null);
     CalendarHeaderStore.setCalendarOptions(options());
-    expect(title()).toBe('October 2026');
     expect(host.querySelector('select').value).toBe(CalendarView.MONTH);
   });
 
-  it('follows the title, view and agenda as they change', function () {
+  it('follows the view and agenda as they change', function () {
     CalendarHeaderStore.setViewNavigation(navigation());
     CalendarHeaderStore.setCalendarOptions(options());
-    CalendarHeaderStore.setViewNavigation(navigation({ title: 'November 2026' }));
     CalendarHeaderStore.setCalendarOptions(options({ view: CalendarView.WEEK, agendaOpen: true }));
-    expect(title()).toBe('November 2026');
     expect(host.querySelector('select').value).toBe(CalendarView.WEEK);
     expect(host.querySelector('.agenda-toggle').getAttribute('aria-pressed')).toBe('true');
   });

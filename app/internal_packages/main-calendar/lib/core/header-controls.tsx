@@ -15,7 +15,6 @@ const ARROW_IMAGES = {
 };
 
 export class HeaderControls extends React.Component<{
-  title: string;
   view: CalendarView;
   nextAction: () => void;
   prevAction: () => void;
@@ -53,7 +52,6 @@ export class HeaderControls extends React.Component<{
   render() {
     return (
       <div className="header-controls">
-        <span className="title">{this.props.title}</span>
         <div className="side-controls">
           <button className="btn btn-toolbar" onClick={this.props.todayAction}>
             {localized('Today')}

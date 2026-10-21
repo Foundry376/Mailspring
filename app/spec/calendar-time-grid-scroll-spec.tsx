@@ -4,7 +4,6 @@ import moment, { Moment } from 'moment';
 import Rx from 'rx-lite';
 
 import { TimeGridView } from '../internal_packages/main-calendar/lib/core/time-grid-view';
-import CalendarHeaderStore from '../internal_packages/main-calendar/lib/core/calendar-header-store';
 import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
 import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
 import { calendarDateFromUnix, calendarDaysBetween } from '../src/calendar-date';
@@ -39,7 +38,7 @@ describe('TimeGridView scrolling', function () {
   };
 
   const strip = () => host.querySelector('.calendar-area-wrap') as HTMLElement;
-  const title = () => CalendarHeaderStore.viewNavigation().title;
+  const title = () => host.querySelector('.calendar-title').textContent;
   const firstInView = () => {
     const left = strip().getBoundingClientRect().left;
     return Array.from(host.querySelectorAll('.day-label-wrap')).find(
@@ -84,13 +83,20 @@ describe('TimeGridView scrolling', function () {
     document.getElementById('time-grid-scroll-spec').remove();
   });
 
-  it('lines up on the week of its focused date, and titles the days in view', function () {
+  it('lines up on the week of its focused date', function () {
     render(moment([2026, 9, 21]));
     expect(firstInView()).toBe('18Sun');
-    expect(title()).toBe('October 18 - October 24 2026');
+    expect(title()).toBe('October 2026');
+  });
 
-    scrollDays(3);
-    expect(title()).toBe('October 21 - October 27 2026');
+  it('titles a week split across months with the month holding more of the days in view', function () {
+    render(moment([2026, 11, 30]));
+    // Sun Dec 27 to Sat Jan 2: five days in December.
+    expect(title()).toBe('December 2026');
+
+    // Tue Dec 29 to Mon Jan 4: four days in January.
+    scrollDays(2);
+    expect(title()).toBe('January 2027');
   });
 
   it('moves the focused date into view on its weekday when a scroll stops, and stays put', function () {
@@ -197,7 +203,7 @@ describe('TimeGridView scrolling', function () {
     document.getElementById('time-grid-scroll-spec').textContent +=
       '.calendar-area-wrap { width: 100px; }';
     render(moment([2026, 9, 21, 9, 30]));
-    expect(title()).toBe('Wednesday, October 21, 2026');
+    expect(title()).toBe('October 2026');
 
     view.navigate(1);
     expect(lastFocus()).toBe('Thu 2026-10-22');

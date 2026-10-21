@@ -84,7 +84,6 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
 
   _publishNavigation() {
     CalendarHeaderStore.setViewNavigation({
-      title: this._title(),
       arrows: 'vertical',
       prevAction: this._onClickPrevMonth,
       nextAction: this._onClickNextMonth,
@@ -224,6 +223,7 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
             <InjectedComponentSet matching={{ role: 'Calendar:Week:Banner' }} direction="row" />
           </div>
 
+          <div className="calendar-title">{this._title()}</div>
           <div className="month-view-grid-container">
             {this._renderWeekdayHeaders()}
             <SnapScroller

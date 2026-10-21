@@ -32,7 +32,6 @@ export class CalendarHeader extends React.Component<Record<string, unknown>> {
     }
     return (
       <HeaderControls
-        title={navigation.title}
         arrows={navigation.arrows}
         view={options.view}
         agendaOpen={options.agendaOpen}
