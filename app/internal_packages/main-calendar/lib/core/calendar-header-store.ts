@@ -2,7 +2,6 @@ import MailspringStore from 'mailspring-store';
 import { CalendarView } from './calendar-constants';
 
 export interface ViewNavigation {
-  title: string;
   arrows: 'horizontal' | 'vertical';
   prevAction: () => void;
   nextAction: () => void;
@@ -32,7 +31,7 @@ class CalendarHeaderStore extends MailspringStore {
   setViewNavigation(navigation: ViewNavigation | null) {
     const shown = this._viewNavigation;
     this._viewNavigation = navigation;
-    if (shown?.title !== navigation?.title || shown?.arrows !== navigation?.arrows) {
+    if (shown?.arrows !== navigation?.arrows) {
       this.trigger();
     }
   }

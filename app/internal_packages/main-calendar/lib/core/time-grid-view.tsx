@@ -134,7 +134,6 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
 
   _publishNavigation() {
     CalendarHeaderStore.setViewNavigation({
-      title: this._title(),
       arrows: 'horizontal',
       prevAction: this._onClickPrev,
       nextAction: this._onClickNext,
@@ -377,6 +376,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
             <InjectedComponentSet matching={{ role: `Calendar:${view}:Banner` }} direction="row" />
           </div>
 
+          <div className="calendar-title">{this._title()}</div>
           <div className="calendar-body-wrap">
             <div className="calendar-legend">
               <div className="date-label-legend" style={{ height: allDayBarHeight + 75 + 1 }}>

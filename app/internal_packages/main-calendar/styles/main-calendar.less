@@ -510,7 +510,7 @@
   width: 250px;
 }
 
-// The toolbar makes every item a no-drag region; the title's empty space still moves the window.
+// The toolbar makes every item a no-drag region; the empty space beside the controls still moves the window.
 .sheet-toolbar .item-container > .header-controls {
   -webkit-app-region: drag;
 }
@@ -519,28 +519,15 @@
   align-items: center;
   align-self: stretch;
   display: flex;
-  // Outgrows the toolbar's two flexible spacers, so the title takes the free space.
+  justify-content: flex-end;
+  // Outgrows the toolbar's two flexible spacers, so the controls sit at the far end.
   flex: 1000 1 auto;
-  gap: 8px;
   min-width: 0;
   padding: 0 10px;
   color: @text-color-subtle;
 
-  .title {
-    flex: 1 1 auto;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: 18px;
-    font-weight: @font-weight-semi-bold;
-    color: @text-color;
-  }
-
   .side-controls {
     -webkit-app-region: no-drag;
-    // Out-shrinks the title, so search narrows to its minimum before the title truncates.
-    flex-shrink: 100;
     display: flex;
     align-items: center;
     white-space: nowrap;

@@ -4,7 +4,6 @@ import moment, { Moment } from 'moment';
 import Rx from 'rx-lite';
 
 import { TimeGridView } from '../internal_packages/main-calendar/lib/core/time-grid-view';
-import CalendarHeaderStore from '../internal_packages/main-calendar/lib/core/calendar-header-store';
 import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
 import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
 import { calendarDateFromUnix, calendarDaysBetween } from '../src/calendar-date';
@@ -39,7 +38,7 @@ describe('TimeGridView scrolling', function () {
   };
 
   const strip = () => host.querySelector('.calendar-area-wrap') as HTMLElement;
-  const title = () => CalendarHeaderStore.viewNavigation().title;
+  const title = () => host.querySelector('.calendar-title').textContent;
   const firstInView = () => {
     const left = strip().getBoundingClientRect().left;
     return Array.from(host.querySelectorAll('.day-label-wrap')).find(
