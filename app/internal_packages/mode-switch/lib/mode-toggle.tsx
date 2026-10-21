@@ -56,10 +56,11 @@ export default class ModeToggle extends React.Component<
   render() {
     return (
       <button
-        className={`btn btn-toolbar mode-toggle mode-${this.state.hidden}`}
+        className={`btn-ghost mode-toggle mode-${this.state.hidden}`}
         style={{ order: 500 }}
         title={this.state.hidden ? localized('Show Sidebar') : localized('Hide Sidebar')}
         aria-label={this.state.hidden ? localized('Show Sidebar') : localized('Hide Sidebar')}
+        aria-pressed={!this.state.hidden}
         onClick={this._onToggleMode}
       >
         <RetinaImg

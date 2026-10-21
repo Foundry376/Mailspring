@@ -16,11 +16,11 @@ import {
   ICSEventHelpers,
   DatabaseChangeRecord,
 } from 'mailspring-exports';
-import { KeyCommandsRegion } from 'mailspring-component-kit';
+import { KeyCommandsRegion, ResizableRegion } from 'mailspring-component-kit';
 import { CalendarMenuCommands } from '../calendar-menu-commands';
 import { TimeGridView } from './time-grid-view';
 import { MonthView } from './month-view';
-import { AgendaPanel } from './agenda-panel';
+import { AgendaContainer } from './agenda-container';
 import FocusedMomentStore from './focused-moment-store';
 import CalendarHeaderStore from './calendar-header-store';
 import {
@@ -75,6 +75,9 @@ import { modifyEventWithRecurringSupport, EventTimeChangeOptions } from './recur
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 const CALENDAR_VIEW = 'mailspring.calendarView';
 const AGENDA_OPEN = 'mailspring.calendarAgendaOpen';
+const AGENDA_WIDTH = 'CalendarAgenda';
+// Below 200px the longer time ranges ("11:30 AM–12:30 PM 1h 30m") no longer fit whole.
+const AGENDA_WIDTHS = { min: 200, initial: 240, max: 300 };
 
 const VISIBLE_DAYS: { [view: string]: 1 | 7 } = {
   [CalendarView.DAY]: 1,
@@ -192,7 +195,7 @@ export class MailspringCalendar extends React.Component<
       focusedEvent: null,
       selectedEvents: [],
       view: savedView(),
-      agendaOpen: AppEnv.config.get(AGENDA_OPEN) || false,
+      agendaOpen: AppEnv.config.get(AGENDA_OPEN) ?? true,
       focusedMoment: FocusedMomentStore.focusedMoment(),
       disabledCalendars: AppEnv.config.get(DISABLED_CALENDARS) || [],
       dragState: null,
@@ -1284,11 +1287,30 @@ export class MailspringCalendar extends React.Component<
     );
   }
 
+  _onAgendaEventClick = (e: React.MouseEvent, occurrence: EventOccurrence) => {
+    this._onEventClick(e, occurrence);
+    Actions.focusCalendarEvent({ id: occurrence.id, start: occurrenceStartUnix(occurrence) });
+  };
+
   _renderAgendaPanel() {
     if (!this.state.agendaOpen || this._shouldShowEmptyState()) {
       return null;
     }
-    return <AgendaPanel {...this._viewProps()} />;
+    return (
+      <ResizableRegion
+        handle={ResizableRegion.Handle.Left}
+        style={{ height: '100%', flexShrink: 0 }}
+        initialWidth={AppEnv.getColumnWidth(AGENDA_WIDTH) || AGENDA_WIDTHS.initial}
+        minWidth={AGENDA_WIDTHS.min}
+        maxWidth={AGENDA_WIDTHS.max}
+        onResize={(width) => AppEnv.storeColumnWidth({ id: AGENDA_WIDTH, width })}
+      >
+        <AgendaContainer
+          selectedEvents={this.state.selectedEvents}
+          onEventClick={this._onAgendaEventClick}
+        />
+      </ResizableRegion>
+    );
   }
 
   render() {
@@ -1301,6 +1323,7 @@ export class MailspringCalendar extends React.Component<
         onDeleteEvent={this._onDeleteSelectedEvents}
         onRefreshCalendars={this._onRefreshCalendars}
         hasSelectedEvents={this.state.selectedEvents.length > 0}
+        view={this.state.view}
       >
         <KeyCommandsRegion
           className="mailspring-calendar"

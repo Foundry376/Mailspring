@@ -22,7 +22,7 @@ body.platform-win32 {
       &:hover {
         background: @background-secondary;
       }
-      &.btn-icon:hover {
+      &.btn-bare:hover {
         color: @text-color;
         img.content-mask {
           background: rgba(35, 31, 32, 0.8);
@@ -33,7 +33,7 @@ body.platform-win32 {
       margin: 0 0 0 1px;
       padding: 0 5px;
       .windows-btn-bg;
-      &.btn-icon:hover {
+      &.btn-bare:hover {
         color: @text-color;
         img.content-mask {
           background: rgba(35, 31, 32, 0.8);
@@ -88,6 +88,7 @@ body.platform-win32 {
   }
   .message-toolbar-arrow.up {
     order: 202;
+    margin-left: 2px;
     // <1 because of hit region padding on the button
     margin-right: @spacing-standard * 0.75;
   }

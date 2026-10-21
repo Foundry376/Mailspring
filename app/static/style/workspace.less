@@ -214,6 +214,44 @@ body.is-blurred {
     margin-right: 6px;
   }
 
+  // Toolbar buttons with no fill: a ghost gets one on hover, a bare one only turns its icon blue.
+  .btn-ghost,
+  .btn-bare {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    min-width: 1.75em;
+    height: 1.75em;
+    margin-top: 5px;
+    padding: 0;
+    border: 0;
+    border-radius: @border-radius-base;
+    background: transparent;
+    img.content-mask {
+      background-color: fade(@text-color-heading, 80%);
+    }
+  }
+  .btn-ghost {
+    &:hover,
+    &:focus-visible {
+      outline: none;
+      background: color-mix(in srgb, currentColor 12%, transparent);
+    }
+    &[aria-pressed='true'] img.content-mask {
+      background-color: @component-active-color;
+    }
+  }
+  .btn-bare:not(.disabled) {
+    &:hover,
+    &:focus-visible {
+      outline: none;
+      img.content-mask {
+        background-color: @component-active-color;
+      }
+    }
+  }
+
   .button-group {
     display: flex;
     margin-left: @spacing-three-quarters;
@@ -493,6 +531,14 @@ body.is-blurred {
       &.btn-disabled:hover {
         background: @toolbar-btn-fill-darwin;
       }
+    }
+
+    .btn-ghost,
+    .btn-bare {
+      height: @toolbar-btn-height-darwin;
+      min-width: @toolbar-btn-height-darwin;
+      margin-top: ((@toolbar-height-darwin - @toolbar-btn-height-darwin) / 2);
+      border-radius: @toolbar-btn-radius-darwin;
     }
 
     .button-group {

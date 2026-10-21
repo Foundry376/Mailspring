@@ -71,7 +71,7 @@ export class QuickEventButton extends React.Component<
         <button
           ref={this._button}
           tabIndex={-1}
-          className="btn item-compose quick-event-button"
+          className="btn btn-toolbar item-compose"
           style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
           title={compact ? label : undefined}
           aria-label={compact ? label : undefined}

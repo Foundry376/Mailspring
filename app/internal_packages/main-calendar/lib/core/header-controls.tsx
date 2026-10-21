@@ -36,11 +36,16 @@ export class HeaderControls extends React.Component<{
     const image = ARROW_IMAGES[this.props.arrows ?? 'horizontal'][direction];
     return (
       <button
-        className={`btn btn-icon ${direction}`}
+        className={`btn-bare ${direction}`}
         aria-label={direction === 'prev' ? localized('Previous') : localized('Next')}
         onClick={direction === 'prev' ? this.props.prevAction : this.props.nextAction}
       >
-        <RetinaImg name={image} mode={RetinaImg.Mode.ContentIsMask} aria-hidden="true" />
+        <RetinaImg
+          name={image}
+          mode={RetinaImg.Mode.ContentIsMask}
+          style={{ width: 14, height: 14, WebkitMaskSize: 'contain', WebkitMaskPosition: 'center' }}
+          aria-hidden="true"
+        />
       </button>
     );
   }
@@ -50,12 +55,12 @@ export class HeaderControls extends React.Component<{
       <div className="header-controls">
         <span className="title">{this.props.title}</span>
         <div className="side-controls">
-          <button className="btn" onClick={this.props.todayAction}>
+          <button className="btn btn-toolbar" onClick={this.props.todayAction}>
             {localized('Today')}
           </button>
           <div className="view-select">
             <select
-              className="btn"
+              className="btn btn-toolbar"
               aria-label={localized('View')}
               value={this.props.view}
               onChange={(e) => this.props.onChangeView(e.target.value as CalendarView)}
@@ -69,7 +74,7 @@ export class HeaderControls extends React.Component<{
             <RetinaImg
               name="ic-calendar-down-arrow.png"
               mode={RetinaImg.Mode.ContentIsMask}
-              style={{ width: 8, height: 5, WebkitMaskSize: 'contain' }}
+              style={{ width: 8, height: 5, right: 12, WebkitMaskSize: 'contain' }}
               aria-hidden="true"
             />
           </div>
@@ -79,16 +84,17 @@ export class HeaderControls extends React.Component<{
           </div>
           {this.props.children}
           <button
-            className={`btn btn-icon agenda-toggle${this.props.agendaOpen ? ' active' : ''}`}
+            className="btn-ghost agenda-toggle"
             aria-label={localized('Agenda')}
             aria-pressed={this.props.agendaOpen}
             title={localized('Agenda')}
             onClick={this.props.onToggleAgenda}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <rect x="3.5" y="5" width="17" height="14" rx="2" stroke="currentColor" />
-              <path d="M14.5 5v14" stroke="currentColor" />
-            </svg>
+            <RetinaImg
+              name="toolbar-sidebar-right.png"
+              mode={RetinaImg.Mode.ContentIsMask}
+              aria-hidden="true"
+            />
           </button>
         </div>
       </div>

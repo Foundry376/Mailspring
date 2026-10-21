@@ -510,14 +510,6 @@
   width: 250px;
 }
 
-// Styled like the header's Today button rather than as a toolbar button.
-.sheet-toolbar .quick-event-button {
-  align-self: center;
-  display: inline-flex;
-  align-items: center;
-  margin: 0 8px 0 6px;
-}
-
 // The toolbar makes every item a no-drag region; the title's empty space still moves the window.
 .sheet-toolbar .item-container > .header-controls {
   -webkit-app-region: drag;
@@ -559,18 +551,21 @@
     gap: 8px;
   }
 
-  .btn-icon {
+  // The header centres its controls itself, so drop the toolbar's per-button offsets.
+  .btn-toolbar,
+  .btn-toolbar:only-of-type,
+  .btn-ghost,
+  .btn-bare {
     margin: 0;
-    height: 25px;
-    font-size: 15px;
-    line-height: 25px;
-    img {
-      vertical-align: baseline;
-    }
+  }
+
+  .btn-toolbar:focus-visible {
+    outline-width: 1px;
   }
 
   .nav-arrows {
     display: flex;
+    gap: 2px;
   }
 
   .view-select {
@@ -582,30 +577,12 @@
     select {
       appearance: none;
       field-sizing: content;
-      padding-right: 22px;
+      padding-right: 25px;
     }
     img.content-mask {
       position: absolute;
-      right: 9px;
       pointer-events: none;
       background-color: @btn-default-text-color;
-    }
-  }
-
-  .agenda-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    padding: 0;
-    border-radius: @border-radius-base;
-    color: inherit;
-    svg {
-      flex-shrink: 0;
-      width: 18px;
-    }
-    &.active {
-      background: color-mix(in srgb, currentColor 12%, transparent);
     }
   }
 }
@@ -630,7 +607,7 @@
   align-items: center;
 
   &.focused {
-    box-shadow: 0 0 0 2px @accent-primary;
+    box-shadow: 0 0 0 1px @accent-primary;
   }
 
   .search-accessory {
