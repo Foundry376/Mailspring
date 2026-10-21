@@ -13,6 +13,7 @@ import {
 import { ContactsPerspective, Store } from './Store';
 import { writeContactsToTempVCF, importContactsFromPaths } from './VCFImportExport';
 import { ContactListContextMenu } from './ContactListContextMenu';
+import { displayNameForContact, initialsForContact } from './ContactDisplayName';
 
 const ContactColumn = new ListTabular.Column({
   name: 'Item',
@@ -23,10 +24,10 @@ const ContactColumn = new ListTabular.Column({
     return (
       <div className="contact-list-row">
         <div className="contact-list-avatar" style={{ backgroundColor: `hsl(${hue}, 50%, 45%)` }}>
-          {contact.nameAbbreviation()}
+          {initialsForContact(contact)}
         </div>
         <div className="contact-list-name" dir="auto">
-          {contact.name || contact.email}
+          {displayNameForContact(contact)}
         </div>
         {account && account.color && (
           <div className="contact-list-account-color" style={{ backgroundColor: account.color }} />

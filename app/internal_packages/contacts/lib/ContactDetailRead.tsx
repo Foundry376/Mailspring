@@ -4,6 +4,7 @@ import { ContactProfilePhoto } from 'mailspring-component-kit';
 import * as Icons from './SVGIcons';
 import { Store } from './Store';
 import { ContactBase, ContactInteractorMetadata } from './ContactInfoMapping';
+import { displayNameForContact } from './ContactDisplayName';
 
 function formatBirthday(date: ContactBase['birthdays'][0]['date'] | undefined) {
   if (!date || !date.month || !date.day) return '';
@@ -84,7 +85,7 @@ export const ContactDetailRead = ({
       <div className="contact-hero">
         <ContactProfilePhoto contact={contact} loading={false} avatar={data.photoURL} />
         <div className="contact-hero-text">
-          <h1>{data.name.displayName || contact.name || contact.email}</h1>
+          <h1>{data.name.displayName || displayNameForContact(contact)}</h1>
           {subtitle && <div className="contact-hero-subtitle">{subtitle}</div>}
           {nicknames.length > 0 && (
             <div className="contact-hero-nicknames">

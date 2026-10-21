@@ -1,6 +1,7 @@
 import vCard from 'vcf';
 import { ContactInfoGoogle, ContactInfoVCF, Contact, Utils } from 'mailspring-exports';
 import * as VCFHelpers from './VCFHelpers';
+import { displayNameForContact } from './ContactDisplayName';
 
 /**
 This file contains business logic that maps two separate "contact.info" formats onto
@@ -63,7 +64,10 @@ function safeParseVCard(vcard: string) {
 }
 
 /** Parse a Contact with no `info` into the shared details format. */
-export function fromContact({ name, email }: Contact): ContactParseResult {
+export function fromContact(contact: Contact): ContactParseResult {
+  const { email } = contact;
+  const displayName = displayNameForContact(contact);
+  const name = displayName === email ? '' : displayName;
   const nameParts = name.split(' ');
 
   return {
