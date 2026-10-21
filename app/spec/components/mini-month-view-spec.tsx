@@ -141,6 +141,9 @@ describe('MiniMonthView orientation', () => {
 
 describe('MiniMonthView header', () => {
   let host: HTMLDivElement;
+  let view: MiniMonthView = null;
+
+  const title = () => host.querySelector('.month-title').textContent;
 
   beforeEach(() => {
     host = document.createElement('div');
@@ -157,5 +160,27 @@ describe('MiniMonthView header', () => {
     const header = host.querySelector('.header');
     expect(header.firstElementChild.className).toBe('month-title');
     expect(header.querySelectorAll('.month-title ~ .btn').length).toBe(2);
+  });
+
+  it('shortens the month name while the full title would not fit, rechecking as months change', () => {
+    ReactDOM.render(
+      <MiniMonthView ref={(v) => (view = v)} value={moment([2026, 8, 16])} onChange={() => {}} />,
+      host
+    );
+    // 10px a character, in a 100px title.
+    Object.defineProperty(host.querySelector('.month-title'), 'clientWidth', { value: 100 });
+    Object.defineProperty(host.querySelector('.month-title-measure'), 'offsetWidth', {
+      get() {
+        return this.textContent.length * 10;
+      },
+    });
+    view._fitTitle();
+    expect(title()).toBe('Sep 2026');
+
+    const previous = host.querySelectorAll('.header .btn')[0] as HTMLElement;
+    previous.click();
+    expect(title()).toBe('Aug 2026');
+    previous.click();
+    expect(title()).toBe('July 2026');
   });
 });

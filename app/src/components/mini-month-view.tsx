@@ -30,6 +30,8 @@ interface MiniMonthViewState {
   shownMonth: number;
   today: Moment;
   scrollTarget: SnapScrollTarget;
+  /** "Sep 2026", when the full month name doesn't fit beside the arrows. */
+  shortTitle: boolean;
 }
 
 function monthStartDate(m: Moment): CalendarDate {
@@ -43,12 +45,16 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
 
   private _dayChange?: { dispose(): void };
   private _scroller = React.createRef<SnapScroller>();
+  private _title = React.createRef<HTMLSpanElement>();
+  private _fullTitle = React.createRef<HTMLSpanElement>();
+  private _titleObserver?: ResizeObserver;
 
   constructor(props) {
     super(props);
     this.state = {
       ...this._stateFromProps(props),
       scrollTarget: { date: monthStartDate(props.value), animate: false },
+      shortTitle: false,
     };
   }
 
@@ -56,9 +62,17 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
     this._dayChange = onDayChange(calendarDateFromUnix(this.state.today.unix()), (today) =>
       this.setState({ today: moment.unix(dayStartUnix(today)) })
     );
+    this._titleObserver = new ResizeObserver(this._fitTitle);
+    this._titleObserver.observe(this._title.current);
   }
 
-  componentDidUpdate(prevProps: MiniMonthViewProps) {
+  componentDidUpdate(prevProps: MiniMonthViewProps, prevState: MiniMonthViewState) {
+    if (
+      prevState.shownMonth !== this.state.shownMonth ||
+      prevState.shownYear !== this.state.shownYear
+    ) {
+      this._fitTitle();
+    }
     if (prevProps.value.isSame(this.props.value)) {
       return;
     }
@@ -75,6 +89,7 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
 
   componentWillUnmount() {
     this._dayChange?.dispose();
+    this._titleObserver?.disconnect();
   }
 
   _stateFromProps(props: MiniMonthViewProps) {
@@ -88,6 +103,15 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
   _isSameDay(m1: Moment, m2: Moment) {
     return m1.dayOfYear() === m2.dayOfYear() && m1.year() === m2.year();
   }
+
+  // Measured, since month names vary in length by month and by language.
+  _fitTitle = () => {
+    const title = this._title.current;
+    const fullTitle = this._fullTitle.current;
+    if (!title || !fullTitle) return;
+    const shortTitle = fullTitle.offsetWidth > title.clientWidth;
+    if (shortTitle !== this.state.shortTitle) this.setState({ shortTitle });
+  };
 
   _onClickDay = (event: React.MouseEvent) => {
     if (event.target instanceof HTMLElement && event.target.dataset.unix) {
@@ -207,7 +231,12 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
     return (
       <div className={classnames('mini-month-view', { vertical })}>
         <div className="header">
-          <span className="month-title">{month.format('MMMM YYYY')}</span>
+          <span className="month-title" ref={this._title}>
+            {month.format(this.state.shortTitle ? 'MMM YYYY' : 'MMMM YYYY')}
+          </span>
+          <span className="month-title-measure" ref={this._fullTitle} aria-hidden="true">
+            {month.format('MMMM YYYY')}
+          </span>
           <div className="btn btn-icon" onClick={() => onChangeMonth(-1)}>
             {this._renderChevron('previous')}
           </div>
