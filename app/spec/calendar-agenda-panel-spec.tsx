@@ -5,6 +5,7 @@ import Rx from 'rx-lite';
 import { CalendarDate, CalendarDateUtils } from 'mailspring-exports';
 
 import { AgendaPanel } from '../internal_packages/main-calendar/lib/core/agenda-panel';
+import { ResizableRegion } from '../src/components/resizable-region';
 import {
   MailspringCalendar,
   MailspringCalendarViewProps,
@@ -139,10 +140,16 @@ describe('MailspringCalendar agenda panel', function () {
   const savedConfig = (values: { [key: string]: unknown }) =>
     spyOn(AppEnv.config, 'get').andCallFake((key: string) => values[key]);
 
-  it('opens the default view, panel closed, for a view saved as Agenda', function () {
+  it('opens the default view, with the panel open, for a view saved as Agenda', function () {
     savedConfig({ 'mailspring.calendarView': 'Agenda' });
     const calendar: any = new MailspringCalendar({} as any);
     expect(calendar.state.view).toBe(CalendarView.WEEK);
+    expect(calendar.state.agendaOpen).toBe(true);
+  });
+
+  it('keeps the panel closed for someone who closed it', function () {
+    savedConfig({ 'mailspring.calendarAgendaOpen': false });
+    const calendar: any = new MailspringCalendar({} as any);
     expect(calendar.state.agendaOpen).toBe(false);
   });
 
@@ -160,26 +167,45 @@ describe('MailspringCalendar agenda panel', function () {
     return element.type === AgendaPanel ? [element, ...nested] : nested;
   };
 
-  it('shows the panel beside the view once toggled, and remembers it', function () {
-    const set = spyOn(AppEnv.config, 'set');
+  const shownCalendar = () => {
     const calendar: any = new MailspringCalendar({} as any);
     calendar.setState = (update: object) => Object.assign(calendar.state, update);
     calendar.state.calendarsLoaded = true;
     calendar.state.calendars = [{ id: 'cal-1' }];
-    expect(panelsIn(calendar.render()).length).toBe(0);
+    return calendar;
+  };
+
+  it('hides and shows the panel beside the view, and remembers it', function () {
+    const set = spyOn(AppEnv.config, 'set');
+    const calendar = shownCalendar();
+    expect(panelsIn(calendar.render()).length).toBe(1);
 
     calendar.onToggleAgenda();
 
-    expect(panelsIn(calendar.render()).length).toBe(1);
-    expect(set).toHaveBeenCalledWith('mailspring.calendarAgendaOpen', true);
+    expect(panelsIn(calendar.render()).length).toBe(0);
+    expect(set).toHaveBeenCalledWith('mailspring.calendarAgendaOpen', false);
+  });
+
+  it('lets the panel be dragged between 200 and 300px wide, starting at 240', function () {
+    const store = spyOn(AppEnv, 'storeColumnWidth');
+    const region = () => shownCalendar()._renderAgendaPanel();
+    expect(region().type).toBe(ResizableRegion);
+    expect(region().props.minWidth).toBe(200);
+    expect(region().props.maxWidth).toBe(300);
+    expect(region().props.initialWidth).toBe(240);
+
+    region().props.onResize(280);
+    expect(store).toHaveBeenCalledWith({ id: 'CalendarAgenda', width: 280 });
+    spyOn(AppEnv, 'getColumnWidth').andCallFake((id) =>
+      id === 'CalendarAgenda' ? 280 : undefined
+    );
+    expect(region().props.initialWidth).toBe(280);
   });
 
   it('leaves the panel out while there are no calendars to show', function () {
-    spyOn(AppEnv.config, 'set');
     const calendar: any = new MailspringCalendar({} as any);
-    calendar.setState = (update: object) => Object.assign(calendar.state, update);
     calendar.state.calendarsLoaded = true;
-    calendar.onToggleAgenda();
+    expect(calendar.state.agendaOpen).toBe(true);
     expect(panelsIn(calendar.render()).length).toBe(0);
   });
 });

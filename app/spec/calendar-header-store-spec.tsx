@@ -106,9 +106,9 @@ describe('CalendarHeaderStore', function () {
     spyOn(AppEnv.mailsyncBridge, 'sendSyncCalendarNow');
     let calendar: any;
     mounted(<MailspringCalendar ref={(c) => (calendar = c)} />, () => {
-      expect(CalendarHeaderStore.calendarOptions().agendaOpen).toBe(false);
-      calendar.onToggleAgenda();
       expect(CalendarHeaderStore.calendarOptions().agendaOpen).toBe(true);
+      calendar.onToggleAgenda();
+      expect(CalendarHeaderStore.calendarOptions().agendaOpen).toBe(false);
     });
     expect(CalendarHeaderStore.calendarOptions()).toBe(null);
   });
@@ -120,11 +120,11 @@ describe('CalendarHeaderStore', function () {
     calendar.state.view = CalendarView.WEEK;
     calendar._publishCalendarOptions();
     expect(CalendarHeaderStore.calendarOptions().view).toBe(CalendarView.WEEK);
-    expect(CalendarHeaderStore.calendarOptions().agendaOpen).toBe(false);
+    expect(CalendarHeaderStore.calendarOptions().agendaOpen).toBe(true);
 
     calendar.onToggleAgenda();
     calendar._publishCalendarOptions();
-    expect(CalendarHeaderStore.calendarOptions().agendaOpen).toBe(true);
+    expect(CalendarHeaderStore.calendarOptions().agendaOpen).toBe(false);
     expect(triggered).toBe(2);
   });
 });

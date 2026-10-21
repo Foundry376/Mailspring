@@ -16,7 +16,7 @@ import {
   ICSEventHelpers,
   DatabaseChangeRecord,
 } from 'mailspring-exports';
-import { KeyCommandsRegion } from 'mailspring-component-kit';
+import { KeyCommandsRegion, ResizableRegion } from 'mailspring-component-kit';
 import { CalendarMenuCommands } from '../calendar-menu-commands';
 import { TimeGridView } from './time-grid-view';
 import { MonthView } from './month-view';
@@ -75,6 +75,9 @@ import { modifyEventWithRecurringSupport, EventTimeChangeOptions } from './recur
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 const CALENDAR_VIEW = 'mailspring.calendarView';
 const AGENDA_OPEN = 'mailspring.calendarAgendaOpen';
+const AGENDA_WIDTH = 'CalendarAgenda';
+// Below 200px the longer time ranges ("11:30 AM–12:30 PM 1h 30m") no longer fit whole.
+const AGENDA_WIDTHS = { min: 200, initial: 240, max: 300 };
 
 const VISIBLE_DAYS: { [view: string]: 1 | 7 } = {
   [CalendarView.DAY]: 1,
@@ -192,7 +195,7 @@ export class MailspringCalendar extends React.Component<
       focusedEvent: null,
       selectedEvents: [],
       view: savedView(),
-      agendaOpen: AppEnv.config.get(AGENDA_OPEN) || false,
+      agendaOpen: AppEnv.config.get(AGENDA_OPEN) ?? true,
       focusedMoment: FocusedMomentStore.focusedMoment(),
       disabledCalendars: AppEnv.config.get(DISABLED_CALENDARS) || [],
       dragState: null,
@@ -1288,7 +1291,18 @@ export class MailspringCalendar extends React.Component<
     if (!this.state.agendaOpen || this._shouldShowEmptyState()) {
       return null;
     }
-    return <AgendaPanel {...this._viewProps()} />;
+    return (
+      <ResizableRegion
+        handle={ResizableRegion.Handle.Left}
+        style={{ height: '100%', flexShrink: 0 }}
+        initialWidth={AppEnv.getColumnWidth(AGENDA_WIDTH) || AGENDA_WIDTHS.initial}
+        minWidth={AGENDA_WIDTHS.min}
+        maxWidth={AGENDA_WIDTHS.max}
+        onResize={(width) => AppEnv.storeColumnWidth({ id: AGENDA_WIDTH, width })}
+      >
+        <AgendaPanel {...this._viewProps()} />
+      </ResizableRegion>
+    );
   }
 
   render() {
