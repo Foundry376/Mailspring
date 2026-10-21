@@ -214,33 +214,27 @@ body.is-blurred {
     margin-right: 6px;
   }
 
-  // Toolbar buttons with no fill: a ghost gets one on hover, a bare one only turns its icon blue.
-  .btn-ghost,
+  // Toolbar buttons with no fill: a ghost (buttons.less) gets one on hover, a bare one only turns
+  // its icon blue.
   .btn-bare {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    min-width: 1.75em;
-    height: 1.75em;
-    margin-top: 5px;
     padding: 0;
     border: 0;
     border-radius: @border-radius-base;
     background: transparent;
-    img.content-mask {
-      background-color: fade(@text-color-heading, 80%);
-    }
   }
-  .btn-ghost {
-    &:hover,
-    &:focus-visible {
-      outline: none;
-      background: color-mix(in srgb, currentColor 12%, transparent);
-    }
-    &[aria-pressed='true'] img.content-mask {
-      background-color: @component-active-color;
-    }
+  .btn-ghost,
+  .btn-bare {
+    min-width: 1.75em;
+    height: 1.75em;
+    margin-top: 5px;
+  }
+  .btn-ghost:not([aria-pressed='true']) img.content-mask,
+  .btn-bare img.content-mask {
+    background-color: fade(@text-color-heading, 80%);
   }
   .btn-bare:not(.disabled) {
     &:hover,

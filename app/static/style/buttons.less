@@ -246,3 +246,23 @@ body.platform-win32 {
     box-shadow: none;
   }
 }
+
+// No fill until it's hovered or focused. Toolbars size it in workspace.less.
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: @border-radius-base;
+  background: transparent;
+  &:hover,
+  &:focus-visible {
+    outline: none;
+    background: color-mix(in srgb, currentColor 12%, transparent);
+  }
+  &[aria-pressed='true'] img.content-mask {
+    background-color: @component-active-color;
+  }
+}

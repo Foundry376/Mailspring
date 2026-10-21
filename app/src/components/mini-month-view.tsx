@@ -2,12 +2,13 @@ import React from 'react';
 import moment, { Moment } from 'moment';
 import classnames from 'classnames';
 import { calendarDateFromUnix, dayStartUnix, onDayChange } from '../calendar-date';
+import { localized } from '../intl';
 
 const VISIBLE_WEEKS = 6;
 
 const CHEVRONS = {
-  horizontal: { width: 8, height: 12, previous: 'M7 1L2 6l5 5', next: 'M1 1l5 5-5 5' },
-  vertical: { width: 12, height: 8, previous: 'M1 7l5-5 5 5', next: 'M1 1l5 5 5-5' },
+  horizontal: { width: 6, height: 10, previous: 'M5 1L1 5l4 4', next: 'M1 1l4 4-4 4' },
+  vertical: { width: 10, height: 6, previous: 'M1 5l4-4 4 4', next: 'M1 1l4 4 4-4' },
 };
 
 interface MiniMonthViewProps {
@@ -99,6 +100,7 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
     const chevron = CHEVRONS[this.props.arrows];
     return (
       <svg
+        aria-hidden="true"
         width={chevron.width}
         height={chevron.height}
         viewBox={`0 0 ${chevron.width} ${chevron.height}`}
@@ -176,12 +178,22 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
           <span className="month-title-measure" ref={this._fullTitle} aria-hidden="true">
             {month.format('MMMM YYYY')}
           </span>
-          <div className="btn btn-icon" onClick={() => onChangeMonth(-1)}>
+          <button
+            type="button"
+            className="btn-ghost"
+            aria-label={localized('Previous')}
+            onClick={() => onChangeMonth(-1)}
+          >
             {this._renderChevron('previous')}
-          </div>
-          <div className="btn btn-icon" onClick={() => onChangeMonth(1)}>
+          </button>
+          <button
+            type="button"
+            className="btn-ghost"
+            aria-label={localized('Next')}
+            onClick={() => onChangeMonth(1)}
+          >
             {this._renderChevron('next')}
-          </div>
+          </button>
         </div>
         <div className="legend">
           {[0, 1, 2, 3, 4, 5, 6].map((i) => (
