@@ -8,7 +8,7 @@ import { setCalendarColors, invalidateThemeTextColorCache } from './calendar-hel
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
 interface AgendaContainerProps {
-  className: string;
+  className?: string;
   onEventClick?: (event: EventOccurrence) => void;
 }
 
@@ -76,7 +76,7 @@ export class AgendaContainer extends React.Component<AgendaContainerProps, Agend
 
   render() {
     return (
-      <div className={`mailspring-calendar ${this.props.className}`}>
+      <div className={['mailspring-calendar', this.props.className].filter(Boolean).join(' ')}>
         <AgendaPanel
           dataSource={this._dataSource}
           disabledCalendars={this.state.disabledCalendars}

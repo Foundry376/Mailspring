@@ -2,10 +2,11 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import moment from 'moment';
 import Rx from 'rx-lite';
-import { CalendarDate, CalendarDateUtils } from 'mailspring-exports';
+import { Actions, CalendarDate, CalendarDateUtils } from 'mailspring-exports';
 
 import { AgendaPanel } from '../internal_packages/main-calendar/lib/core/agenda-panel';
 import { ResizableRegion } from '../src/components/resizable-region';
+import { AgendaContainer } from '../internal_packages/main-calendar/lib/core/agenda-container';
 import {
   MailspringCalendar,
   MailspringCalendarViewProps,
@@ -164,7 +165,7 @@ describe('MailspringCalendar agenda panel', function () {
     if (!React.isValidElement(element)) return [];
     const props = element.props as { children?: React.ReactNode };
     const nested = React.Children.toArray(props.children).flatMap(panelsIn);
-    return element.type === AgendaPanel ? [element, ...nested] : nested;
+    return element.type === AgendaContainer ? [element, ...nested] : nested;
   };
 
   const shownCalendar = () => {
@@ -200,6 +201,23 @@ describe('MailspringCalendar agenda panel', function () {
       id === 'CalendarAgenda' ? 280 : undefined
     );
     expect(region().props.initialWidth).toBe(280);
+  });
+
+  it("shows the clicked event in the grid, leaving the grid's selection alone", function () {
+    const focus = spyOn(Actions, 'focusCalendarEvent');
+    const calendar = shownCalendar();
+    const [agenda] = panelsIn(calendar.render());
+    const start = moment([2026, 9, 22, 9]).unix();
+
+    agenda.props.onEventClick({
+      id: `standup-e${start}`,
+      isAllDay: false,
+      start,
+      end: start + 1800,
+    });
+
+    expect(focus).toHaveBeenCalledWith({ id: `standup-e${start}`, start });
+    expect(calendar.state.selectedEvents).toEqual([]);
   });
 
   it('leaves the panel out while there are no calendars to show', function () {

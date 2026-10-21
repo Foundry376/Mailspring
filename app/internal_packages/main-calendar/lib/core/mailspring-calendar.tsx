@@ -20,7 +20,7 @@ import { KeyCommandsRegion, ResizableRegion } from 'mailspring-component-kit';
 import { CalendarMenuCommands } from '../calendar-menu-commands';
 import { TimeGridView } from './time-grid-view';
 import { MonthView } from './month-view';
-import { AgendaPanel } from './agenda-panel';
+import { AgendaContainer } from './agenda-container';
 import FocusedMomentStore from './focused-moment-store';
 import CalendarHeaderStore from './calendar-header-store';
 import {
@@ -1287,6 +1287,10 @@ export class MailspringCalendar extends React.Component<
     );
   }
 
+  _showInGrid = (occurrence: EventOccurrence) => {
+    Actions.focusCalendarEvent({ id: occurrence.id, start: occurrenceStartUnix(occurrence) });
+  };
+
   _renderAgendaPanel() {
     if (!this.state.agendaOpen || this._shouldShowEmptyState()) {
       return null;
@@ -1300,7 +1304,7 @@ export class MailspringCalendar extends React.Component<
         maxWidth={AGENDA_WIDTHS.max}
         onResize={(width) => AppEnv.storeColumnWidth({ id: AGENDA_WIDTH, width })}
       >
-        <AgendaPanel {...this._viewProps()} />
+        <AgendaContainer onEventClick={this._showInGrid} />
       </ResizableRegion>
     );
   }
