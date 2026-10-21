@@ -64,7 +64,7 @@ export class CalendarSidebar extends React.Component<
   render() {
     return (
       <div className="calendar-source-list">
-        <div style={{ width: '100%' }}>
+        <div className="mini-month-view-wrap">
           <MiniMonthView
             orientation="vertical"
             value={this.state.focusedMoment}

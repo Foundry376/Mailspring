@@ -48,9 +48,11 @@ body.platform-win32 {
   background-color: @source-list-bg;
   border-right: 1px solid @border-color-divider;
   color: @text-color-subtle;
+  .mini-month-view-wrap {
+    padding: 14px 10px 18px;
+  }
   .calendar-source-list-wrap {
-    padding: 12px;
-    padding-top: 0;
+    padding: 0 10px 12px;
   }
   .colored-checkbox {
     position: relative;
@@ -103,6 +105,9 @@ body.platform-win32 {
     border: none;
     color: inherit;
 
+    .header {
+      padding: 0 0 8px 4px;
+    }
     .header .month-title {
       color: inherit;
     }
