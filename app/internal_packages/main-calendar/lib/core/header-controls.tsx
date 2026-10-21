@@ -79,16 +79,17 @@ export class HeaderControls extends React.Component<{
           </div>
           {this.props.children}
           <button
-            className={`btn btn-icon agenda-toggle${this.props.agendaOpen ? ' active' : ''}`}
+            className="btn btn-icon agenda-toggle"
             aria-label={localized('Agenda')}
             aria-pressed={this.props.agendaOpen}
             title={localized('Agenda')}
             onClick={this.props.onToggleAgenda}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <rect x="3.5" y="5" width="17" height="14" rx="2" stroke="currentColor" />
-              <path d="M14.5 5v14" stroke="currentColor" />
-            </svg>
+            <RetinaImg
+              name="toolbar-sidebar-right.png"
+              mode={RetinaImg.Mode.ContentIsMask}
+              aria-hidden="true"
+            />
           </button>
         </div>
       </div>
