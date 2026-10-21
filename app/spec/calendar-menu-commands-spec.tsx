@@ -3,13 +3,14 @@ import ReactDOM from 'react-dom';
 
 import { CalendarMenuCommands } from '../internal_packages/main-calendar/lib/calendar-menu-commands';
 import PopoverStore from '../src/flux/stores/popover-store';
+import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
 
 describe('CalendarMenuCommands', function () {
   let host: HTMLDivElement;
   let onNavigatePrevious: jasmine.Spy;
   let onNavigateNext: jasmine.Spy;
 
-  const render = (hasSelectedEvents: boolean) =>
+  const render = (hasSelectedEvents: boolean, view = CalendarView.WEEK) =>
     ReactDOM.render(
       <CalendarMenuCommands
         onChangeView={() => {}}
@@ -19,6 +20,7 @@ describe('CalendarMenuCommands', function () {
         onDeleteEvent={() => {}}
         onRefreshCalendars={() => {}}
         hasSelectedEvents={hasSelectedEvents}
+        view={view}
       >
         <div />
       </CalendarMenuCommands>,
@@ -44,6 +46,24 @@ describe('CalendarMenuCommands', function () {
     AppEnv.commands.dispatch('calendar:move-event-right');
     expect(onNavigatePrevious.callCount).toBe(1);
     expect(onNavigateNext.callCount).toBe(1);
+  });
+
+  it('steps through months on up and down in Month view only', function () {
+    render(false, CalendarView.MONTH);
+    AppEnv.commands.dispatch('calendar:move-event-up');
+    AppEnv.commands.dispatch('calendar:move-event-down');
+    expect(onNavigatePrevious.callCount).toBe(1);
+    expect(onNavigateNext.callCount).toBe(1);
+
+    render(false, CalendarView.WEEK);
+    AppEnv.commands.dispatch('calendar:move-event-up');
+    AppEnv.commands.dispatch('calendar:move-event-down');
+    expect(onNavigatePrevious.callCount).toBe(1);
+    expect(onNavigateNext.callCount).toBe(1);
+
+    render(true, CalendarView.MONTH);
+    AppEnv.commands.dispatch('calendar:move-event-up');
+    expect(onNavigatePrevious.callCount).toBe(1);
   });
 
   it('leaves those keys to the selected event', function () {

@@ -12,6 +12,7 @@ interface CalendarMenuCommandsProps {
   onDeleteEvent: () => void;
   onRefreshCalendars: () => void;
   hasSelectedEvents: boolean;
+  view: CalendarView;
 }
 
 export class CalendarMenuCommands extends React.Component<CalendarMenuCommandsProps> {
@@ -38,6 +39,15 @@ export class CalendarMenuCommands extends React.Component<CalendarMenuCommandsPr
       commands['calendar:move-event-right'] = () => {
         if (!PopoverStore.isOpen) this.props.onNavigateNext();
       };
+      // Month view steps vertically; Day and Week leave up/down to scroll the hours.
+      if (this.props.view === CalendarView.MONTH) {
+        commands['calendar:move-event-up'] = () => {
+          if (!PopoverStore.isOpen) this.props.onNavigatePrevious();
+        };
+        commands['calendar:move-event-down'] = () => {
+          if (!PopoverStore.isOpen) this.props.onNavigateNext();
+        };
+      }
     }
 
     // No `key` here on purpose: this wraps the whole calendar view, so a key that changes
