@@ -145,16 +145,14 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
   _onClickPrev = () => this.navigate(-1);
   _onClickNext = () => this.navigate(1);
 
+  /** Names the month holding the middle day, as Month view does, so a split week takes the one with more days. */
   _title() {
     const { visibleDays } = this.props;
-    const first = momentOf(this.state.firstVisible);
-    if (visibleDays === 1) {
-      return first.format('dddd, MMMM D, YYYY');
-    }
-    const last = momentOf(
-      CalendarDateUtils.addCalendarDays(this.state.firstVisible, visibleDays - 1)
+    const middle = CalendarDateUtils.addCalendarDays(
+      this.state.firstVisible,
+      Math.floor(visibleDays / 2)
     );
-    return `${first.format('MMMM D')} - ${last.format('MMMM D YYYY')}`;
+    return momentOf(middle).format('MMMM YYYY');
   }
 
   // Indirection for testing purposes

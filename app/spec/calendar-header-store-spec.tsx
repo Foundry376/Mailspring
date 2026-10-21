@@ -74,7 +74,7 @@ describe('CalendarHeaderStore', function () {
   it('takes the header from the day view, and lets go of it on unmount', function () {
     const props = calendarViewProps({ focusedMoment: moment([2026, 9, 16]) });
     mounted(<TimeGridView {...props} visibleDays={1} />, () => {
-      expect(CalendarHeaderStore.viewNavigation().title).toBe('Friday, October 16, 2026');
+      expect(CalendarHeaderStore.viewNavigation().title).toBe('October 2026');
       expect(CalendarHeaderStore.viewNavigation().arrows).toBe('horizontal');
     });
     expect(CalendarHeaderStore.viewNavigation()).toBe(null);
