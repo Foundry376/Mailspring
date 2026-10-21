@@ -510,19 +510,118 @@
   width: 250px;
 }
 
+// Styled like the header's Today button rather than as a toolbar button.
+.sheet-toolbar .quick-event-button {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  margin: 0 8px 0 6px;
+}
+
+// The toolbar makes every item a no-drag region; the title's empty space still moves the window.
+.sheet-toolbar .item-container > .header-controls {
+  -webkit-app-region: drag;
+}
+
+.header-controls {
+  align-items: center;
+  align-self: stretch;
+  display: flex;
+  // Outgrows the toolbar's two flexible spacers, so the title takes the free space.
+  flex: 1000 1 auto;
+  gap: 8px;
+  min-width: 0;
+  padding: 0 10px;
+  color: @text-color-subtle;
+
+  .title {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 18px;
+    font-weight: @font-weight-semi-bold;
+    color: @text-color;
+  }
+
+  .side-controls {
+    -webkit-app-region: no-drag;
+    // Out-shrinks the title, so search narrows to its minimum before the title truncates.
+    flex-shrink: 100;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+
+    > :not(.event-search-bar) {
+      flex-shrink: 0;
+    }
+    gap: 8px;
+  }
+
+  .btn-icon {
+    margin: 0;
+    height: 25px;
+    font-size: 15px;
+    line-height: 25px;
+    img {
+      vertical-align: baseline;
+    }
+  }
+
+  .nav-arrows {
+    display: flex;
+  }
+
+  .view-select {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    // Sized to the view it shows rather than its longest option, so "Day" leaves no gap.
+    select {
+      appearance: none;
+      field-sizing: content;
+      padding-right: 22px;
+    }
+    img.content-mask {
+      position: absolute;
+      right: 9px;
+      pointer-events: none;
+      background-color: @btn-default-text-color;
+    }
+  }
+
+  .agenda-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    padding: 0;
+    border-radius: @border-radius-base;
+    color: inherit;
+    svg {
+      flex-shrink: 0;
+      width: 18px;
+    }
+    &.active {
+      background: color-mix(in srgb, currentColor 12%, transparent);
+    }
+  }
+}
+
 // Event Search Bar - matches ThreadSearchBar styling
 .event-search-bar {
   position: relative;
-  order: -100;
   overflow: visible;
   z-index: 100;
-  width: 450px;
+  flex: 0 1 180px;
+  min-width: 120px;
   height: 23px;
   font-weight: 400;
   line-height: 23px;
   background: @input-bg;
   color: @text-color;
-  margin-top: 5px;
   padding-left: @padding-xs-horizontal;
   padding-right: @padding-xs-horizontal;
   border-radius: @border-radius-base;
@@ -578,10 +677,11 @@
     }
   }
 
+  // Wider than the field, which sits at the toolbar's right edge.
   .suggestions {
-    left: 0;
+    right: 0;
     top: 23px;
-    width: 100%;
+    width: 450px;
     position: absolute;
     background: @input-bg;
     border-bottom-left-radius: @border-radius-base;
@@ -660,7 +760,6 @@
 :where(body.platform-darwin) .event-search-bar {
   height: @toolbar-btn-height-darwin;
   line-height: @toolbar-btn-height-darwin;
-  margin-top: ((@toolbar-height-darwin - @toolbar-btn-height-darwin) / 2);
   padding-left: @padding-base-horizontal;
   padding-right: @padding-base-horizontal;
   border-radius: (@toolbar-btn-height-darwin / 2);

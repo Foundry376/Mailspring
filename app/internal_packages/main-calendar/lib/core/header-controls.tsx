@@ -24,6 +24,7 @@ export class HeaderControls extends React.Component<{
   agendaOpen: boolean;
   onToggleAgenda: () => void;
   arrows?: 'horizontal' | 'vertical';
+  children?: React.ReactNode;
 }> {
   static displayName = 'HeaderControls';
 
@@ -46,7 +47,7 @@ export class HeaderControls extends React.Component<{
 
   render() {
     return (
-      <div className="header-controls" onClick={(e) => e.stopPropagation()}>
+      <div className="header-controls">
         <span className="title">{this.props.title}</span>
         <div className="side-controls">
           <button className="btn" onClick={this.props.todayAction}>
@@ -68,6 +69,7 @@ export class HeaderControls extends React.Component<{
             <RetinaImg
               name="ic-calendar-down-arrow.png"
               mode={RetinaImg.Mode.ContentIsMask}
+              style={{ width: 8, height: 5, WebkitMaskSize: 'contain' }}
               aria-hidden="true"
             />
           </div>
@@ -75,6 +77,7 @@ export class HeaderControls extends React.Component<{
             {this._renderArrow('prev')}
             {this._renderArrow('next')}
           </div>
+          {this.props.children}
           <button
             className={`btn btn-icon agenda-toggle${this.props.agendaOpen ? ' active' : ''}`}
             aria-label={localized('Agenda')}

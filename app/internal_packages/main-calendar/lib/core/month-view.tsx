@@ -5,7 +5,7 @@ import { CalendarDate, CalendarDateUtils } from 'mailspring-exports';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
 import { CalendarEventContainer } from './calendar-event-container';
 import { CalendarView } from './calendar-constants';
-import { HeaderControls } from './header-controls';
+import CalendarHeaderStore from './calendar-header-store';
 import { EventOccurrence, EventRangeSubscription } from './calendar-data-source';
 import { MonthViewWeek } from './month-view-week';
 import { WeekBarsLayout, firstVisibleBarIds, layoutWeekBars } from './month-view-helpers';
@@ -69,14 +69,31 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
 
   componentDidMount() {
     this._subscribe();
+    this._publishNavigation();
   }
 
   componentDidUpdate() {
     this._subscribe();
+    this._publishNavigation();
   }
 
   componentWillUnmount() {
     this._sub.dispose();
+    CalendarHeaderStore.setViewNavigation(null);
+  }
+
+  _publishNavigation() {
+    CalendarHeaderStore.setViewNavigation({
+      title: this._title(),
+      arrows: 'vertical',
+      prevAction: this._onClickPrevMonth,
+      nextAction: this._onClickNextMonth,
+      todayAction: this._onClickToday,
+    });
+  }
+
+  _title() {
+    return momentOf(this.state.shownMonth).format('MMMM YYYY');
   }
 
   _subscribe() {
@@ -193,8 +210,6 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
   };
 
   render() {
-    const headerText = momentOf(this.state.shownMonth).format('MMMM YYYY');
-
     return (
       <div className="calendar-view month-view">
         <CalendarEventContainer
@@ -208,18 +223,6 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
           <div className="top-banner">
             <InjectedComponentSet matching={{ role: 'Calendar:Week:Banner' }} direction="row" />
           </div>
-
-          <HeaderControls
-            title={headerText}
-            view={CalendarView.MONTH}
-            nextAction={this._onClickNextMonth}
-            prevAction={this._onClickPrevMonth}
-            todayAction={this._onClickToday}
-            onChangeView={this.props.onChangeView}
-            agendaOpen={this.props.agendaOpen}
-            onToggleAgenda={this.props.onToggleAgenda}
-            arrows="vertical"
-          />
 
           <div className="month-view-grid-container">
             {this._renderWeekdayHeaders()}

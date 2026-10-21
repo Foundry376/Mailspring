@@ -22,6 +22,7 @@ import { TimeGridView } from './time-grid-view';
 import { MonthView } from './month-view';
 import { AgendaPanel } from './agenda-panel';
 import FocusedMomentStore from './focused-moment-store';
+import CalendarHeaderStore from './calendar-header-store';
 import {
   CalendarDataSource,
   EventOccurrence,
@@ -94,8 +95,6 @@ export interface MailspringCalendarViewProps extends EventRendererProps {
   disabledCalendars: string[];
   focusedMoment: Moment;
   onChangeView: (view: CalendarView) => void;
-  agendaOpen: boolean;
-  onToggleAgenda: () => void;
   onChangeFocusedMoment: (moment: Moment) => void;
   onCalendarMouseUp: (args: CalendarEventArgs) => void;
   onCalendarMouseDown: (args: CalendarEventArgs) => void;
@@ -219,9 +218,24 @@ export class MailspringCalendar extends React.Component<
       invalidateThemeTextColorCache();
       this.setState((s) => ({ themeVersion: s.themeVersion + 1 }));
     });
+    this._publishCalendarOptions();
+  }
+
+  componentDidUpdate() {
+    this._publishCalendarOptions();
+  }
+
+  _publishCalendarOptions() {
+    CalendarHeaderStore.setCalendarOptions({
+      view: this.state.view,
+      onChangeView: this.onChangeView,
+      agendaOpen: this.state.agendaOpen,
+      onToggleAgenda: this.onToggleAgenda,
+    });
   }
 
   componentWillUnmount() {
+    CalendarHeaderStore.setCalendarOptions(null);
     // The component is unmounting, dispose subscriptions
     this._disposable?.dispose();
     this._themeDisposable?.dispose();
@@ -1233,8 +1247,6 @@ export class MailspringCalendar extends React.Component<
       selectedEvents: this.state.selectedEvents,
       disabledCalendars: this.state.disabledCalendars,
       onChangeView: this.onChangeView,
-      agendaOpen: this.state.agendaOpen,
-      onToggleAgenda: this.onToggleAgenda,
       onChangeFocusedMoment: this.onChangeFocusedMoment,
       onCalendarMouseUp: this._onCalendarMouseUp,
       onCalendarMouseDown: this._onCalendarMouseDown,

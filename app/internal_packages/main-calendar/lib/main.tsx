@@ -12,7 +12,7 @@ import { NavRailItem } from 'mailspring-component-kit';
 import { QuickEventButton } from './quick-event-button';
 import { MailspringCalendar } from './core/mailspring-calendar';
 import { CalendarSidebar } from './core/calendar-sidebar';
-import { EventSearchBar } from './core/event-search-bar';
+import { CalendarHeader } from './core/calendar-header';
 import { focusedEventInfoForEvents } from './core/calendar-data-source';
 import { SidebarAgendaPanel } from './sidebar-agenda-panel';
 
@@ -141,7 +141,7 @@ export function activate() {
   ComponentRegistry.register(QuickEventButton, {
     location: WorkspaceStore.Location.CalendarSidebar.Toolbar,
   });
-  ComponentRegistry.register(EventSearchBar, {
+  ComponentRegistry.register(CalendarHeader, {
     location: WorkspaceStore.Location.CalendarContent.Toolbar,
   });
   ComponentRegistry.register(CalendarNavRailItem, { role: 'NavRail:Item' });
@@ -155,7 +155,7 @@ export function deactivate() {
   ComponentRegistry.unregister(CalendarSidebar);
   ComponentRegistry.unregister(MailspringCalendar);
   ComponentRegistry.unregister(QuickEventButton);
-  ComponentRegistry.unregister(EventSearchBar);
+  ComponentRegistry.unregister(CalendarHeader);
   ComponentRegistry.unregister(CalendarNavRailItem);
   ComponentRegistry.unregister(SidebarAgendaPanel);
 
