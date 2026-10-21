@@ -50,12 +50,12 @@ export class HeaderControls extends React.Component<{
       <div className="header-controls">
         <span className="title">{this.props.title}</span>
         <div className="side-controls">
-          <button className="btn" onClick={this.props.todayAction}>
+          <button className="btn btn-toolbar" onClick={this.props.todayAction}>
             {localized('Today')}
           </button>
           <div className="view-select">
             <select
-              className="btn"
+              className="btn btn-toolbar"
               aria-label={localized('View')}
               value={this.props.view}
               onChange={(e) => this.props.onChangeView(e.target.value as CalendarView)}
@@ -69,7 +69,7 @@ export class HeaderControls extends React.Component<{
             <RetinaImg
               name="ic-calendar-down-arrow.png"
               mode={RetinaImg.Mode.ContentIsMask}
-              style={{ width: 8, height: 5, WebkitMaskSize: 'contain' }}
+              style={{ width: 8, height: 5, right: 12, WebkitMaskSize: 'contain' }}
               aria-hidden="true"
             />
           </div>
