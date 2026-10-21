@@ -101,9 +101,20 @@ body.platform-win32 {
 // specificity: this wins over core by load order, and a theme's .mini-month-view rules still win.
 :where(.calendar-source-list) {
   .mini-month-view {
+    min-height: 0;
     background: transparent;
     border: none;
     color: inherit;
+
+    // Height follows the sidebar's width, keeping each day a little wider than tall.
+    .day-grid {
+      flex: none;
+      aspect-ratio: 7 / (6 * 0.9);
+      .week,
+      .day {
+        min-height: 0;
+      }
+    }
 
     .header {
       padding: 0 0 8px 4px;

@@ -1,15 +1,7 @@
 import React from 'react';
 import moment, { Moment } from 'moment';
 import classnames from 'classnames';
-import {
-  CalendarDate,
-  calendarDateFromParts,
-  calendarDateFromUnix,
-  dayStartUnix,
-  monthShownFrom,
-  onDayChange,
-} from '../calendar-date';
-import { SnapScroller, SnapScrollTarget } from './snap-scroller';
+import { calendarDateFromUnix, dayStartUnix, onDayChange } from '../calendar-date';
 
 const VISIBLE_WEEKS = 6;
 
@@ -21,30 +13,24 @@ const CHEVRONS = {
 interface MiniMonthViewProps {
   value: Moment;
   onChange: (moment: Moment) => void;
-  /** Horizontal pages a month at a time; vertical scrolls through weeks continuously. */
-  orientation?: 'horizontal' | 'vertical';
+  /** Which way the month arrows point. Either way, they page a month at a time. */
+  arrows?: 'horizontal' | 'vertical';
 }
 
 interface MiniMonthViewState {
   shownYear: number;
   shownMonth: number;
   today: Moment;
-  scrollTarget: SnapScrollTarget;
   /** "Sep 2026", when the full month name doesn't fit beside the arrows. */
   shortTitle: boolean;
-}
-
-function monthStartDate(m: Moment): CalendarDate {
-  return calendarDateFromParts(m.year(), m.month() + 1, 1);
 }
 
 export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonthViewState> {
   static displayName = 'MiniMonthView';
 
-  static defaultProps = { orientation: 'horizontal' };
+  static defaultProps = { arrows: 'horizontal' };
 
   private _dayChange?: { dispose(): void };
-  private _scroller = React.createRef<SnapScroller>();
   private _title = React.createRef<HTMLSpanElement>();
   private _fullTitle = React.createRef<HTMLSpanElement>();
   private _titleObserver?: ResizeObserver;
@@ -53,7 +39,6 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
     super(props);
     this.state = {
       ...this._stateFromProps(props),
-      scrollTarget: { date: monthStartDate(props.value), animate: false },
       shortTitle: false,
     };
   }
@@ -73,16 +58,7 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
     ) {
       this._fitTitle();
     }
-    if (prevProps.value.isSame(this.props.value)) {
-      return;
-    }
-    if (this.props.orientation === 'vertical') {
-      // The title follows the scroll there; setting it now would flash the destination first.
-      this.setState({
-        scrollTarget: { date: monthStartDate(this.props.value), animate: true },
-        today: moment().startOf('day'),
-      });
-    } else {
+    if (!prevProps.value.isSame(this.props.value)) {
       this.setState(this._stateFromProps(this.props));
     }
   }
@@ -119,19 +95,8 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
     }
   };
 
-  _monthShownFrom(topWeek: CalendarDate) {
-    return moment.unix(dayStartUnix(monthShownFrom(topWeek, VISIBLE_WEEKS)));
-  }
-
-  _onTopWeekChange = (topWeek: CalendarDate) => {
-    const month = this._monthShownFrom(topWeek);
-    if (month.year() !== this.state.shownYear || month.month() !== this.state.shownMonth) {
-      this.setState({ shownYear: month.year(), shownMonth: month.month() });
-    }
-  };
-
   _renderChevron(direction: 'previous' | 'next') {
-    const chevron = CHEVRONS[this.props.orientation];
+    const chevron = CHEVRONS[this.props.arrows];
     return (
       <svg
         width={chevron.width}
@@ -193,43 +158,17 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
     );
   }
 
-  _renderScrollingDays(month: Moment) {
-    return (
-      <SnapScroller
-        ref={this._scroller}
-        className="day-grid"
-        axis="vertical"
-        unit="week"
-        visibleUnits={VISIBLE_WEEKS}
-        scrollTarget={this.state.scrollTarget}
-        renderUnits={(weekStarts) =>
-          weekStarts.map((start) =>
-            this._renderWeek(moment.unix(dayStartUnix(start)), month.month(), start)
-          )
-        }
-        onFirstVisibleChange={this._onTopWeekChange}
-        onClick={this._onClickDay}
-      />
-    );
-  }
-
   render() {
-    const vertical = this.props.orientation === 'vertical';
     const weekdayGen = moment(this.state.shownYear);
     const month = moment([this.state.shownYear, this.state.shownMonth]);
 
     const onChangeMonth = (delta: number) => {
-      if (vertical) {
-        const target = this._monthShownFrom(this._scroller.current.headedTo()).add(delta, 'months');
-        this.setState({ scrollTarget: { date: monthStartDate(target), animate: true } });
-      } else {
-        const next = month.clone().add(delta, 'months');
-        this.setState({ shownYear: next.year(), shownMonth: next.month() });
-      }
+      const next = month.clone().add(delta, 'months');
+      this.setState({ shownYear: next.year(), shownMonth: next.month() });
     };
 
     return (
-      <div className={classnames('mini-month-view', { vertical })}>
+      <div className="mini-month-view">
         <div className="header">
           <span className="month-title" ref={this._title}>
             {month.format(this.state.shortTitle ? 'MMM YYYY' : 'MMMM YYYY')}
@@ -251,7 +190,7 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
             </span>
           ))}
         </div>
-        {vertical ? this._renderScrollingDays(month) : this._renderDays(month)}
+        {this._renderDays(month)}
       </div>
     );
   }

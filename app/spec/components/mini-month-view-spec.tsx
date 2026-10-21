@@ -31,7 +31,7 @@ describe('MiniMonthView', () => {
   });
 });
 
-describe('MiniMonthView orientation', () => {
+describe('MiniMonthView paging', () => {
   let host: HTMLDivElement;
 
   const title = () => host.querySelector('.month-title').textContent;
@@ -47,89 +47,35 @@ describe('MiniMonthView orientation', () => {
     host.remove();
   });
 
-  it('pages a month at a time unless asked to scroll', () => {
-    ReactDOM.render(<MiniMonthView value={moment([2026, 9, 16])} onChange={() => {}} />, host);
-    expect(host.querySelector('.snap-scroller')).toBe(null);
-    (host.querySelectorAll('.header .btn')[1] as HTMLElement).click();
-    expect(title()).toBe('November 2026');
-  });
-
-  it('scrolls vertically, naming the month in the middle of its rows', () => {
-    ReactDOM.render(
-      <MiniMonthView orientation="vertical" value={moment([2026, 9, 16])} onChange={() => {}} />,
-      host
-    );
-    const grid = host.querySelector('.day-grid') as HTMLElement;
-    expect(grid.clientHeight).toBeGreaterThan(0);
-    expect(title()).toBe('October 2026');
-
-    // Rows from Sun 27 Sep: three weeks on, the middle day is 8 Nov.
-    grid.scrollTop += 3 * (grid.clientHeight / 6);
-    grid.dispatchEvent(new Event('scroll'));
-    expect(title()).toBe('November 2026');
-  });
-
-  it('scrolls to the month of a new value', () => {
-    const onChange = () => {};
-    ReactDOM.render(
-      <MiniMonthView orientation="vertical" value={moment([2026, 9, 16])} onChange={onChange} />,
-      host
-    );
-    ReactDOM.render(
-      <MiniMonthView orientation="vertical" value={moment([2028, 2, 10])} onChange={onChange} />,
-      host
-    );
-    expect(title()).toBe('March 2028');
-    expect(host.querySelector('.cur-day').textContent).toBe('10');
-  });
-
-  it('steps from where a glide is headed when its arrow is clicked again on the way', () => {
-    ReactDOM.render(
-      <MiniMonthView orientation="vertical" value={moment([2026, 9, 16])} onChange={() => {}} />,
-      host
-    );
-    const grid = host.querySelector('.day-grid') as HTMLElement;
-    const octoberTop = grid.scrollTop;
-    spyOn(grid, 'scrollTo').andCallThrough();
-    const down = host.querySelectorAll('.header .btn')[1] as HTMLElement;
-    down.click();
-    down.click();
-
-    // December's first week starts Sun 29 Nov, nine weeks on from Sun 27 Sep.
-    const { top } = (grid.scrollTo as jasmine.Spy).mostRecentCall.args[0];
-    expect(top).toBe(octoberTop + 9 * (grid.clientHeight / 6));
-  });
-
-  it('steps from the month a new value heads back to, while an earlier glide is on its way', () => {
-    const renderWith = (value) =>
+  it('pages a month at a time, whichever way its arrows point', () => {
+    for (const arrows of ['horizontal', 'vertical'] as const) {
       ReactDOM.render(
-        <MiniMonthView orientation="vertical" value={value} onChange={() => {}} />,
+        <MiniMonthView arrows={arrows} value={moment([2026, 9, 16])} onChange={() => {}} />,
         host
       );
-    renderWith(moment([2026, 9, 16]));
-    const grid = host.querySelector('.day-grid') as HTMLElement;
-    const octoberTop = grid.scrollTop;
-    spyOn(grid, 'scrollTo').andCallThrough();
-    const down = host.querySelectorAll('.header .btn')[1] as HTMLElement;
-    down.click();
-    renderWith(moment([2026, 9, 20]));
-    down.click();
+      const [previous, next] = Array.from(host.querySelectorAll('.header .btn'));
+      (next as HTMLElement).click();
+      expect(title()).toBe('November 2026');
+      (previous as HTMLElement).click();
+      (previous as HTMLElement).click();
+      expect(title()).toBe('September 2026');
+      ReactDOM.unmountComponentAtNode(host);
+    }
+  });
 
-    // November's first week starts Sun 1 Nov, five weeks on from Sun 27 Sep.
-    const { top } = (grid.scrollTo as jasmine.Spy).mostRecentCall.args[0];
-    expect(top).toBe(octoberTop + 5 * (grid.clientHeight / 6));
+  it('shows the month of a new value', () => {
+    const onChange = () => {};
+    ReactDOM.render(<MiniMonthView value={moment([2026, 9, 16])} onChange={onChange} />, host);
+    ReactDOM.render(<MiniMonthView value={moment([2028, 2, 10])} onChange={onChange} />, host);
+    expect(title()).toBe('March 2028');
+    expect(host.querySelector('.cur-day').textContent).toBe('10');
   });
 
   it('moves the today marker when its value changes', () => {
     let view: MiniMonthView = null;
     const renderWith = (value) =>
       ReactDOM.render(
-        <MiniMonthView
-          ref={(v) => (view = v)}
-          orientation="vertical"
-          value={value}
-          onChange={() => {}}
-        />,
+        <MiniMonthView ref={(v) => (view = v)} value={value} onChange={() => {}} />,
         host
       );
     renderWith(moment([2026, 9, 16]));
