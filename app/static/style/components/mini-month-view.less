@@ -64,18 +64,15 @@
         color: @text-color;
       }
       &:hover {
-        background: rgba(0, 0, 0, 0.05);
+        background: color-mix(in srgb, currentColor 6%, transparent);
         cursor: pointer;
       }
       &.today {
-        border: 1px solid @accent-primary;
+        color: @accent-primary;
+        font-weight: bold;
       }
       &.cur-day {
-        background: @accent-primary;
-        color: @text-color-inverse;
-        &:hover {
-          background: color-mix(in srgb, @accent-primary, black 5%);
-        }
+        background: color-mix(in srgb, currentColor 12%, transparent);
       }
     }
   }

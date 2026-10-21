@@ -121,14 +121,11 @@ body.platform-win32 {
         color: inherit;
         opacity: 1;
       }
+      &.today {
+        color: @accent-primary;
+      }
       &.cur-day {
         opacity: 1;
-      }
-      &:hover {
-        background: color-mix(in srgb, currentColor 10%, transparent);
-      }
-      &.cur-day {
-        color: @text-color-inverse;
       }
     }
   }
