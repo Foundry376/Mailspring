@@ -376,7 +376,8 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
 
   _onRemove = () => {
     const { removeView } = require('./home/view-actions');
-    removeView(this.props.viewId);
+    const view = allViews().find((v) => v.id === this.props.viewId);
+    if (view) removeView(view);
   };
 
   _renderVersionCard() {

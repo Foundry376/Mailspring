@@ -133,7 +133,7 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
             onClick={actionSet.length > 0 ? () => exportContactsToFile(actionSet) : undefined}
           >
             <RetinaImg
-              name="toolbar-export-contact.png"
+              name="toolbar-download.png"
               mode={RetinaImg.Mode.ContentIsMask}
               aria-hidden="true"
             />
