@@ -34,7 +34,7 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
   private _dayChange?: { dispose(): void };
   private _title = React.createRef<HTMLSpanElement>();
   private _fullTitle = React.createRef<HTMLSpanElement>();
-  private _titleObserver?: ResizeObserver;
+  private _titleObserver: ResizeObserver;
 
   constructor(props) {
     super(props);
@@ -66,7 +66,7 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
 
   componentWillUnmount() {
     this._dayChange?.dispose();
-    this._titleObserver?.disconnect();
+    this._titleObserver.disconnect();
   }
 
   _stateFromProps(props: MiniMonthViewProps) {
@@ -83,10 +83,7 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
 
   // Measured, since month names vary in length by month and by language.
   _fitTitle = () => {
-    const title = this._title.current;
-    const fullTitle = this._fullTitle.current;
-    if (!title || !fullTitle) return;
-    const shortTitle = fullTitle.offsetWidth > title.clientWidth;
+    const shortTitle = this._fullTitle.current.offsetWidth > this._title.current.clientWidth;
     if (shortTitle !== this.state.shortTitle) this.setState({ shortTitle });
   };
 
@@ -123,7 +120,7 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
     );
   }
 
-  _renderWeek(weekStart: Moment, curMonthNumber: number, key: React.Key) {
+  _renderWeek(weekStart: Moment, curMonthNumber: number, weekIndex: number) {
     const dayIter = weekStart.clone();
     const dayEls = [];
     for (let weekday = 0; weekday < 7; weekday++) {
@@ -142,7 +139,7 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
       dayIter.add(1, 'day');
     }
     return (
-      <div className="week" key={key}>
+      <div className="week" key={weekIndex}>
         {dayEls}
       </div>
     );

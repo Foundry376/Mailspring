@@ -106,26 +106,24 @@ body.platform-win32 {
     border: none;
     color: inherit;
 
+    .header {
+      padding: 0 0 8px 4px;
+      .month-title,
+      .btn-ghost {
+        color: inherit;
+      }
+    }
+
     // Height follows the sidebar's width, keeping each day a little wider than tall.
     .day-grid {
       flex: none;
       aspect-ratio: 7 / (6 * 0.9);
-      .week,
-      .day {
-        min-height: 0;
-      }
     }
-
-    .header {
-      padding: 0 0 8px 4px;
-    }
-    .header .month-title {
-      color: inherit;
-    }
-    .header .btn-ghost {
-      color: inherit;
+    .day-grid .week {
+      min-height: 0;
     }
     .day-grid .day {
+      min-height: 0;
       color: inherit;
       opacity: 0.5;
       &.cur-month {

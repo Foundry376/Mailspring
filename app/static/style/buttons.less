@@ -247,8 +247,10 @@ body.platform-win32 {
   }
 }
 
-// No fill until it's hovered or focused. Toolbars size it in workspace.less.
-.btn-ghost {
+// Buttons with no fill: a ghost gets one when hovered or focused, a bare one only turns its icon
+// blue (in workspace.less, the toolbar's). Toolbars size both there.
+.btn-ghost,
+.btn-bare {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -257,6 +259,8 @@ body.platform-win32 {
   border: 0;
   border-radius: @border-radius-base;
   background: transparent;
+}
+.btn-ghost {
   &:hover,
   &:focus-visible {
     outline: none;

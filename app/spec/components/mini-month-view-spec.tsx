@@ -31,12 +31,29 @@ describe('MiniMonthView', () => {
   });
 });
 
-describe('MiniMonthView paging', () => {
+describe('MiniMonthView header', () => {
   let host: HTMLDivElement;
+  let observed: { callback: () => void; target: Element }[];
+  let RealResizeObserver: typeof ResizeObserver;
+
+  // A hidden spec window reports resizes irregularly, so this one reports when the spec says so.
+  class FakeResizeObserver {
+    constructor(public callback: () => void) {}
+    observe(target: Element) {
+      observed.push({ callback: this.callback, target });
+    }
+    disconnect() {
+      observed = observed.filter((o) => o.callback !== this.callback);
+    }
+  }
 
   const title = () => host.querySelector('.month-title').textContent;
+  const arrowsIn = () => Array.from(host.querySelectorAll<HTMLElement>('.header button'));
 
   beforeEach(() => {
+    observed = [];
+    RealResizeObserver = window.ResizeObserver;
+    (window as any).ResizeObserver = FakeResizeObserver;
     host = document.createElement('div');
     host.style.width = '250px';
     document.body.appendChild(host);
@@ -45,20 +62,35 @@ describe('MiniMonthView paging', () => {
   afterEach(() => {
     ReactDOM.unmountComponentAtNode(host);
     host.remove();
+    window.ResizeObserver = RealResizeObserver;
   });
 
-  it('pages a month at a time with its labelled arrows, whichever way they point', () => {
+  it('puts the title before both arrows', () => {
+    ReactDOM.render(<MiniMonthView value={moment([2026, 9, 16])} onChange={() => {}} />, host);
+    const header = host.querySelector('.header');
+    expect(header.firstElementChild.className).toBe('month-title');
+    expect(header.querySelectorAll('.month-title ~ button').length).toBe(2);
+  });
+
+  it('pages a month at a time with labelled arrows that point the way they are asked to', () => {
     for (const arrows of ['horizontal', 'vertical'] as const) {
       ReactDOM.render(
         <MiniMonthView arrows={arrows} value={moment([2026, 9, 16])} onChange={() => {}} />,
         host
       );
-      const [previous, next] = Array.from(host.querySelectorAll('.header button'));
-      expect(previous.getAttribute('aria-label')).toBe('Previous');
-      (next as HTMLElement).click();
+      const [previous, next] = arrowsIn();
+      expect([previous, next].map((a) => a.getAttribute('aria-label'))).toEqual([
+        'Previous',
+        'Next',
+      ]);
+      const chevron = next.querySelector('svg');
+      const wide = Number(chevron.getAttribute('width')) > Number(chevron.getAttribute('height'));
+      expect(wide).toBe(arrows === 'vertical');
+
+      next.click();
       expect(title()).toBe('November 2026');
-      (previous as HTMLElement).click();
-      (previous as HTMLElement).click();
+      previous.click();
+      previous.click();
       expect(title()).toBe('September 2026');
       ReactDOM.unmountComponentAtNode(host);
     }
@@ -67,7 +99,7 @@ describe('MiniMonthView paging', () => {
   // The date picker shows the month only while it holds focus, so an arrow taking focus closes it.
   it('never takes focus from a click or Tab', () => {
     ReactDOM.render(<MiniMonthView value={moment([2026, 9, 16])} onChange={() => {}} />, host);
-    for (const arrow of Array.from(host.querySelectorAll<HTMLElement>('.header button'))) {
+    for (const arrow of arrowsIn()) {
       expect(arrow.tabIndex).toBe(-1);
       expect(fireEvent.mouseDown(arrow)).toBe(false);
     }
@@ -93,47 +125,21 @@ describe('MiniMonthView paging', () => {
     renderWith(moment([2026, 9, 20]));
     expect(view.state.today.isSame(moment(), 'day')).toBe(true);
   });
-});
 
-describe('MiniMonthView header', () => {
-  let host: HTMLDivElement;
-  let view: MiniMonthView = null;
-
-  const title = () => host.querySelector('.month-title').textContent;
-
-  beforeEach(() => {
-    host = document.createElement('div');
-    document.body.appendChild(host);
-  });
-
-  afterEach(() => {
-    ReactDOM.unmountComponentAtNode(host);
-    host.remove();
-  });
-
-  it('puts the title before both arrows', () => {
-    ReactDOM.render(<MiniMonthView value={moment([2026, 9, 16])} onChange={() => {}} />, host);
-    const header = host.querySelector('.header');
-    expect(header.firstElementChild.className).toBe('month-title');
-    expect(header.querySelectorAll('.month-title ~ button').length).toBe(2);
-  });
-
-  it('shortens the month name while the full title would not fit, rechecking as months change', () => {
-    ReactDOM.render(
-      <MiniMonthView ref={(v) => (view = v)} value={moment([2026, 8, 16])} onChange={() => {}} />,
-      host
-    );
+  it('shortens the month name while the full title would not fit, as it resizes or pages', () => {
+    ReactDOM.render(<MiniMonthView value={moment([2026, 8, 16])} onChange={() => {}} />, host);
+    const titleEl = host.querySelector('.month-title');
     // 10px a character, in a 100px title.
-    Object.defineProperty(host.querySelector('.month-title'), 'clientWidth', { value: 100 });
+    Object.defineProperty(titleEl, 'clientWidth', { value: 100 });
     Object.defineProperty(host.querySelector('.month-title-measure'), 'offsetWidth', {
       get() {
         return this.textContent.length * 10;
       },
     });
-    view._fitTitle();
+    for (const o of observed.filter((entry) => entry.target === titleEl)) o.callback();
     expect(title()).toBe('Sep 2026');
 
-    const previous = host.querySelectorAll('.header button')[0] as HTMLElement;
+    const [previous] = arrowsIn();
     previous.click();
     expect(title()).toBe('Aug 2026');
     previous.click();
