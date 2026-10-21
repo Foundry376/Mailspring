@@ -203,21 +203,18 @@ describe('MailspringCalendar agenda panel', function () {
     expect(region().props.initialWidth).toBe(280);
   });
 
-  it("shows the clicked event in the grid, leaving the grid's selection alone", function () {
+  it('selects the clicked event in the grid too, and shows it there', function () {
     const focus = spyOn(Actions, 'focusCalendarEvent');
     const calendar = shownCalendar();
-    const [agenda] = panelsIn(calendar.render());
     const start = moment([2026, 9, 22, 9]).unix();
+    const standup = { id: `standup-e${start}`, isAllDay: false, start, end: start + 1800 };
+    calendar.state.selectedEvents = [{ id: 'earlier-pick' }];
 
-    agenda.props.onEventClick({
-      id: `standup-e${start}`,
-      isAllDay: false,
-      start,
-      end: start + 1800,
-    });
+    panelsIn(calendar.render())[0].props.onEventClick({}, standup);
 
-    expect(focus).toHaveBeenCalledWith({ id: `standup-e${start}`, start });
-    expect(calendar.state.selectedEvents).toEqual([]);
+    expect(focus).toHaveBeenCalledWith({ id: standup.id, start });
+    expect(calendar.state.selectedEvents).toEqual([standup]);
+    expect(panelsIn(calendar.render())[0].props.selectedEvents).toEqual([standup]);
   });
 
   it('leaves the panel out while there are no calendars to show', function () {

@@ -1287,7 +1287,8 @@ export class MailspringCalendar extends React.Component<
     );
   }
 
-  _showInGrid = (occurrence: EventOccurrence) => {
+  _onAgendaEventClick = (e: React.MouseEvent, occurrence: EventOccurrence) => {
+    this._onEventClick(e, occurrence);
     Actions.focusCalendarEvent({ id: occurrence.id, start: occurrenceStartUnix(occurrence) });
   };
 
@@ -1304,7 +1305,10 @@ export class MailspringCalendar extends React.Component<
         maxWidth={AGENDA_WIDTHS.max}
         onResize={(width) => AppEnv.storeColumnWidth({ id: AGENDA_WIDTH, width })}
       >
-        <AgendaContainer onEventClick={this._showInGrid} />
+        <AgendaContainer
+          selectedEvents={this.state.selectedEvents}
+          onEventClick={this._onAgendaEventClick}
+        />
       </ResizableRegion>
     );
   }

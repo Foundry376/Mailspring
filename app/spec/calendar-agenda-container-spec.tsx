@@ -3,8 +3,8 @@ import { AgendaContainer } from '../internal_packages/main-calendar/lib/core/age
 import { AgendaPanel } from '../internal_packages/main-calendar/lib/core/agenda-panel';
 
 describe('AgendaContainer', function () {
-  const container = (onEventClick?: jasmine.Spy) => {
-    const c = new AgendaContainer({ className: 'somewhere', onEventClick });
+  const container = (props: { onEventClick?: jasmine.Spy; selectedEvents?: any[] } = {}) => {
+    const c = new AgendaContainer({ className: 'somewhere', ...props });
     c.setState = (update: object) => Object.assign(c.state, update);
     return c;
   };
@@ -18,13 +18,19 @@ describe('AgendaContainer', function () {
 
   it('selects the event clicked and tells its owner, fail-closed on writes until calendars load', function () {
     const onEventClick = jasmine.createSpy('onEventClick');
-    const c = container(onEventClick);
+    const c = container({ onEventClick });
     const agenda = c.render().props.children;
 
     agenda.props.onEventClick({}, { id: 'e1' });
-    expect(c.state.selectedEvents.map((e) => e.id)).toEqual(['e1']);
-    expect(onEventClick).toHaveBeenCalledWith({ id: 'e1' });
+    expect(c.render().props.children.props.selectedEvents.map((e) => e.id)).toEqual(['e1']);
+    expect(onEventClick).toHaveBeenCalledWith({}, { id: 'e1' });
     expect(agenda.props.isCalendarReadOnly('cal-1')).toBe(true);
+  });
+
+  it('shows the selection it is given instead of its own', function () {
+    const c = container({ selectedEvents: [{ id: 'e2' }] });
+    c.render().props.children.props.onEventClick({}, { id: 'e1' });
+    expect(c.render().props.children.props.selectedEvents.map((e) => e.id)).toEqual(['e2']);
   });
 });
 

@@ -9,7 +9,9 @@ const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
 interface AgendaContainerProps {
   className?: string;
-  onEventClick?: (event: EventOccurrence) => void;
+  // Given by the calendar, whose grid shares the selection; the mail sidebar's agenda keeps its own.
+  selectedEvents?: EventOccurrence[];
+  onEventClick?: (e: React.MouseEvent, event: EventOccurrence) => void;
 }
 
 interface AgendaContainerState {
@@ -71,7 +73,7 @@ export class AgendaContainer extends React.Component<AgendaContainerProps, Agend
 
   _onEventClick = (e: React.MouseEvent, event: EventOccurrence) => {
     this.setState({ selectedEvents: [event] });
-    this.props.onEventClick?.(event);
+    this.props.onEventClick?.(e, event);
   };
 
   render() {
@@ -80,7 +82,7 @@ export class AgendaContainer extends React.Component<AgendaContainerProps, Agend
         <AgendaPanel
           dataSource={this._dataSource}
           disabledCalendars={this.state.disabledCalendars}
-          selectedEvents={this.state.selectedEvents}
+          selectedEvents={this.props.selectedEvents ?? this.state.selectedEvents}
           onEventClick={this._onEventClick}
           isCalendarReadOnly={this._isCalendarReadOnly}
         />
