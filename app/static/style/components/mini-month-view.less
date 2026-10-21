@@ -14,21 +14,30 @@
 
   .header {
     display: flex;
-    background: @background-secondary;
-    padding: 4px 0 3px 0;
+    align-items: center;
+    padding: 4px 0 3px 8px;
     .month-title {
-      padding-top: 3px;
-      color: @text-color;
       flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      text-align: left;
+      color: @text-color;
+      font-weight: 600;
     }
-    border-bottom: 1px solid @border-color-divider;
     .btn.btn-icon {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      height: 27px;
-      margin-top: -1px;
-      margin-right: 0;
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      padding: 0;
+      margin: 0;
+      & + .btn-icon {
+        margin-left: 2px;
+      }
       &:active {
         background: transparent;
       }
@@ -41,7 +50,6 @@
       flex: 1;
     }
     padding: 3px 0;
-    border-bottom: 1px solid @border-color-divider;
   }
 
   .day-grid {

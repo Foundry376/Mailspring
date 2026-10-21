@@ -138,3 +138,24 @@ describe('MiniMonthView orientation', () => {
     expect(view.state.today.isSame(moment(), 'day')).toBe(true);
   });
 });
+
+describe('MiniMonthView header', () => {
+  let host: HTMLDivElement;
+
+  beforeEach(() => {
+    host = document.createElement('div');
+    document.body.appendChild(host);
+  });
+
+  afterEach(() => {
+    ReactDOM.unmountComponentAtNode(host);
+    host.remove();
+  });
+
+  it('puts the title before both arrows', () => {
+    ReactDOM.render(<MiniMonthView value={moment([2026, 9, 16])} onChange={() => {}} />, host);
+    const header = host.querySelector('.header');
+    expect(header.firstElementChild.className).toBe('month-title');
+    expect(header.querySelectorAll('.month-title ~ .btn').length).toBe(2);
+  });
+});

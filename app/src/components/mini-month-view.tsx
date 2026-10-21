@@ -207,10 +207,10 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
     return (
       <div className={classnames('mini-month-view', { vertical })}>
         <div className="header">
+          <span className="month-title">{month.format('MMMM YYYY')}</span>
           <div className="btn btn-icon" onClick={() => onChangeMonth(-1)}>
             {this._renderChevron('previous')}
           </div>
-          <span className="month-title">{month.format('MMMM YYYY')}</span>
           <div className="btn btn-icon" onClick={() => onChangeMonth(1)}>
             {this._renderChevron('next')}
           </div>
