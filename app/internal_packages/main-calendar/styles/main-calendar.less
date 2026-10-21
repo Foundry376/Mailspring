@@ -553,22 +553,14 @@
 
   // The header centres its controls itself, so drop the toolbar's per-button offsets.
   .btn-toolbar,
-  .btn-toolbar:only-of-type {
+  .btn-toolbar:only-of-type,
+  .btn-ghost,
+  .btn-bare {
     margin: 0;
   }
 
-  .btn-icon {
-    height: 1.75em;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 30px;
-    margin: 0;
-    padding: 0;
-    border-radius: 15px;
-    &:hover {
-      background: color-mix(in srgb, currentColor 12%, transparent);
-    }
+  .btn-toolbar:focus-visible {
+    outline-width: 1px;
   }
 
   .nav-arrows {
@@ -616,7 +608,7 @@
   align-items: center;
 
   &.focused {
-    box-shadow: 0 0 0 2px @accent-primary;
+    box-shadow: 0 0 0 1px @accent-primary;
   }
 
   .search-accessory {
@@ -743,10 +735,6 @@
 }
 
 // The macOS 26+ toolbar is taller and uses a capsule-shaped search field.
-:where(body.platform-darwin) .header-controls .btn-icon {
-  height: @toolbar-btn-height-darwin;
-}
-
 :where(body.platform-darwin) .event-search-bar {
   height: @toolbar-btn-height-darwin;
   line-height: @toolbar-btn-height-darwin;

@@ -36,11 +36,16 @@ export class HeaderControls extends React.Component<{
     const image = ARROW_IMAGES[this.props.arrows ?? 'horizontal'][direction];
     return (
       <button
-        className={`btn btn-icon ${direction}`}
+        className={`btn-bare ${direction}`}
         aria-label={direction === 'prev' ? localized('Previous') : localized('Next')}
         onClick={direction === 'prev' ? this.props.prevAction : this.props.nextAction}
       >
-        <RetinaImg name={image} mode={RetinaImg.Mode.ContentIsMask} aria-hidden="true" />
+        <RetinaImg
+          name={image}
+          mode={RetinaImg.Mode.ContentIsMask}
+          style={{ width: 14, height: 14, WebkitMaskSize: 'contain', WebkitMaskPosition: 'center' }}
+          aria-hidden="true"
+        />
       </button>
     );
   }
@@ -79,7 +84,7 @@ export class HeaderControls extends React.Component<{
           </div>
           {this.props.children}
           <button
-            className="btn btn-icon agenda-toggle"
+            className="btn-ghost agenda-toggle"
             aria-label={localized('Agenda')}
             aria-pressed={this.props.agendaOpen}
             title={localized('Agenda')}
