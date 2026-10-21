@@ -90,6 +90,12 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
     if (shortTitle !== this.state.shortTitle) this.setState({ shortTitle });
   };
 
+  // The arrows never take focus, as a click on a day doesn't: the date picker shows this month only
+  // while it holds focus itself.
+  _keepFocus = (event: React.MouseEvent) => {
+    event.preventDefault();
+  };
+
   _onClickDay = (event: React.MouseEvent) => {
     if (event.target instanceof HTMLElement && event.target.dataset.unix) {
       this.props.onChange(moment(Number(event.target.dataset.unix)));
@@ -181,7 +187,9 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
           <button
             type="button"
             className="btn-ghost"
+            tabIndex={-1}
             aria-label={localized('Previous')}
+            onMouseDown={this._keepFocus}
             onClick={() => onChangeMonth(-1)}
           >
             {this._renderChevron('previous')}
@@ -189,7 +197,9 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
           <button
             type="button"
             className="btn-ghost"
+            tabIndex={-1}
             aria-label={localized('Next')}
+            onMouseDown={this._keepFocus}
             onClick={() => onChangeMonth(1)}
           >
             {this._renderChevron('next')}

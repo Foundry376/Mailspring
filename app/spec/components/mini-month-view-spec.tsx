@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import moment from 'moment';
-import { act, cleanup, render } from '@testing-library/react';
+import { act, cleanup, fireEvent, render } from '@testing-library/react';
 
 import { MiniMonthView } from '../../src/components/mini-month-view';
 import * as CalendarDates from '../../src/calendar-date';
@@ -61,6 +61,15 @@ describe('MiniMonthView paging', () => {
       (previous as HTMLElement).click();
       expect(title()).toBe('September 2026');
       ReactDOM.unmountComponentAtNode(host);
+    }
+  });
+
+  // The date picker shows the month only while it holds focus, so an arrow taking focus closes it.
+  it('never takes focus from a click or Tab', () => {
+    ReactDOM.render(<MiniMonthView value={moment([2026, 9, 16])} onChange={() => {}} />, host);
+    for (const arrow of Array.from(host.querySelectorAll<HTMLElement>('.header button'))) {
+      expect(arrow.tabIndex).toBe(-1);
+      expect(fireEvent.mouseDown(arrow)).toBe(false);
     }
   });
 
