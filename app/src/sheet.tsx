@@ -68,9 +68,8 @@ export default class Sheet extends React.Component<SheetProps, SheetState> {
   }
 
   // Not Utils.isEqualReact: it ignores `id` keys, and SheetDeclarations differ from each
-  // other almost entirely by ids. Drafts and Activity are structurally identical apart from
-  // ids, so isEqualReact treats switching between them as a no-op and the root sheet keeps
-  // rendering the previous sheet's columns.
+  // other almost entirely by ids, so switching between two sheets with the same columns
+  // would be a no-op and the root sheet would keep rendering the previous sheet's columns.
   shouldComponentUpdate(nextProps: SheetProps, nextState: SheetState) {
     return (
       !Utils.isEqual(nextProps, this.props, { functionsAreEqual: true }) ||
