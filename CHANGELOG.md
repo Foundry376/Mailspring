@@ -1,5 +1,14 @@
 # Mailspring Changelog
 
+## 1.26.2 (10/22/2026)
+
+Bug Fixes:
+
+- Fixed emails that declare a dark color scheme turning the message background black. (#2988)
+- Fixed the Back and Close buttons in account setup not responding to clicks.
+- The MCP server's `reply_to_thread` tool now loads the message body before quoting it.
+- On macOS, fixed the Darkside theme's window controls sticking to the top of the window. (#2984) Thanks @AlexandreAgrn!
+
 ## 1.26.1 (10/21/2026)
 
 This is a security patch release. Eight eMudhra intermediate certificates had their private keys compromised, so an attacker holding one could impersonate any mail server or website. (https://emudhra.we-have-a-problem.com/) Operating system vendors have blocked them, and Mailspring now relies on your operating system's trust decisions everywhere it makes a secure connection.
