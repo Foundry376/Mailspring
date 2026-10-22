@@ -66,13 +66,26 @@ describe('CalendarSourceList', function () {
     ]);
     expect(AppEnv.savedState.calendarAccountsCollapsed).toEqual({ work: true });
 
+    fireEvent.click(carets[1]);
+    expect(rowsUnder(container)).toEqual([
+      ['Work', []],
+      ['Home', []],
+    ]);
+    expect(AppEnv.savedState.calendarAccountsCollapsed).toEqual({ work: true, home: true });
+
     cleanup();
     const reopened = render(
       <CalendarSourceList accounts={[work, home]} calendars={calendars} disabledCalendars={[]} />
     );
-    expect(rowsUnder(reopened.container)[0]).toEqual(['Work', []]);
+    expect(rowsUnder(reopened.container)).toEqual([
+      ['Work', []],
+      ['Home', []],
+    ]);
 
     fireEvent.click(reopened.container.querySelectorAll('.collapse-button')[0]);
-    expect(rowsUnder(reopened.container)[0]).toEqual(['Work', ['team', 'holidays']]);
+    expect(rowsUnder(reopened.container)).toEqual([
+      ['Work', ['team', 'holidays']],
+      ['Home', []],
+    ]);
   });
 });

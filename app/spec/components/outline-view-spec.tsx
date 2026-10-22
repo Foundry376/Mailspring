@@ -29,13 +29,24 @@ describe('OutlineView', () => {
     expect(container.querySelector('.row')).toBe(null);
   });
 
-  it('puts a caret right after the title only when it can collapse', () => {
+  it('puts a caret right after the title, before the add button, only when it can collapse', () => {
     const onCollapseToggled = jasmine.createSpy('onCollapseToggled');
-    const { container, rerender } = render(<OutlineView title="Work" items={[]} />);
+    const onItemCreated = () => {};
+    const { container, rerender } = render(
+      <OutlineView title="Work" items={[]} onItemCreated={onItemCreated} />
+    );
     expect(container.querySelector('.heading .collapse-button')).toBe(null);
 
-    rerender(<OutlineView title="Work" items={[]} onCollapseToggled={onCollapseToggled} />);
+    rerender(
+      <OutlineView
+        title="Work"
+        items={[]}
+        onItemCreated={onItemCreated}
+        onCollapseToggled={onCollapseToggled}
+      />
+    );
     const caret = container.querySelector('.heading .text + .collapse-button');
+    expect(caret.nextElementSibling.className).toBe('add-item-button');
     expect(caret.querySelector('.disclosure-triangle')).not.toBe(null);
     expect(caret.textContent).toBe('');
     expect(caret.getAttribute('aria-expanded')).toBe('true');

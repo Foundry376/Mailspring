@@ -9,9 +9,6 @@ import { OutlineView } from 'mailspring-component-kit';
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
-// Kept apart from mail's sidebarKeysCollapsed, so hiding an account's folders leaves its calendars.
-const COLLAPSED_ACCOUNTS = 'calendarAccountsCollapsed';
-
 function renderCalendarToggles(calendars: Calendar[], disabledCalendars: string[]) {
   return calendars.map((calendar) => {
     const calendarId = calendar.id;
@@ -53,12 +50,13 @@ interface CalendarSourceListProps {
   disabledCalendars: string[];
 }
 export function CalendarSourceList(props: CalendarSourceListProps) {
+  // Kept apart from mail's sidebarKeysCollapsed, so hiding an account's folders leaves its calendars.
   const [collapsedAccounts, setCollapsedAccounts] = React.useState<{
     [accountId: string]: boolean;
-  }>(() => AppEnv.savedState[COLLAPSED_ACCOUNTS] || {});
+  }>(() => AppEnv.savedState.calendarAccountsCollapsed || {});
   const onCollapseToggled = (accountId: string) => {
     const next = { ...collapsedAccounts, [accountId]: !collapsedAccounts[accountId] };
-    AppEnv.savedState[COLLAPSED_ACCOUNTS] = next;
+    AppEnv.savedState.calendarAccountsCollapsed = next;
     setCollapsedAccounts(next);
   };
 
@@ -67,13 +65,12 @@ export function CalendarSourceList(props: CalendarSourceListProps) {
   for (const accountId of Object.keys(calsByAccountId)) {
     const calendars = calsByAccountId[accountId];
     const account = props.accounts.find((a) => a.id === accountId);
-    if (!account || !calendars || calendars.length === 0) {
+    if (!account) {
       continue;
     }
     accountSections.push({ account, calendars });
   }
 
-  // Like mail's sidebar, accounts only fold away once there's more than one.
   const collapsible = accountSections.length > 1;
   return (
     <div className="calendar-source-list-wrap">
