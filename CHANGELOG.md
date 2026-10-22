@@ -8,6 +8,7 @@ Bug Fixes:
 - Fixed the Back and Close buttons in account setup not responding to clicks.
 - The MCP server's `reply_to_thread` tool now loads the message body before quoting it.
 - On macOS, fixed the Darkside theme's window controls sticking to the top of the window. (#2984) Thanks @AlexandreAgrn!
+- Fixed calendar and contacts sync leaving a network connection open after every request, which piled up hundreds of open sockets per account over time. Thanks @Alintya!
 
 ## 1.26.1 (10/21/2026)
 
