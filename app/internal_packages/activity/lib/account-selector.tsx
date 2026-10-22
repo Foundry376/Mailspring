@@ -19,25 +19,21 @@ export default class AccountSelector extends React.Component<{
       { id: null, name: localized('All Accounts') },
       ...accounts.map((account) => ({ id: account.id, name: account.label })),
     ];
-    const itemIdx = Math.max(
-      0,
-      options.findIndex((item) => item.id === accountId)
-    );
+    const itemIdx = options.findIndex((item) => item.id === accountId);
 
     return (
-      <div className="account-selector hidden-on-web">
-        <DropdownMenu
-          attachment={DropdownMenu.Attachment.RightEdge}
-          intitialSelectionItem={options[itemIdx]}
-          defaultSelectedIndex={itemIdx}
-          headerComponents={[]}
-          footerComponents={[]}
-          items={options}
-          itemKey={(item: AccountOption) => item.id || 'all'}
-          itemContent={(item: AccountOption) => item.name}
-          onSelect={(item: AccountOption) => this.props.onChange(item.id)}
-        />
-      </div>
+      <DropdownMenu
+        className="hidden-on-web"
+        attachment={DropdownMenu.Attachment.RightEdge}
+        intitialSelectionItem={options[itemIdx]}
+        defaultSelectedIndex={itemIdx}
+        headerComponents={[]}
+        footerComponents={[]}
+        items={options}
+        itemKey={(item: AccountOption) => item.id || 'all'}
+        itemContent={(item: AccountOption) => item.name}
+        onSelect={(item: AccountOption) => this.props.onChange(item.id)}
+      />
     );
   }
 }

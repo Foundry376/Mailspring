@@ -8,7 +8,7 @@ import ActivityReports from './dashboard/root';
 import EngagementBoard from './engagement/engagement-board';
 import TimespanSelector from './timespan-selector';
 import AccountSelector from './account-selector';
-import { DEFAULT_TIMESPAN_ID, Timespan, timespanForId, timespanRangeLabel } from './timespan';
+import { DEFAULT_TIMESPAN_ID, Timespan, timespanForId } from './timespan';
 import * as ActivityActions from './activity-actions';
 
 export type ActivityTabId = 'feed' | 'engagement' | 'reports';
@@ -104,12 +104,13 @@ class Root extends React.Component<
     // Falls back to all accounts once the picked one is removed.
     const picked = accounts.find((a) => a.id === this.state.accountId);
     const accountIds = picked ? [picked.id] : accounts.map((a) => a.id);
+    const shown = picked || (accounts.length === 1 ? accounts[0] : null);
 
     return (
       <div className="activity-dashboard">
         <div className="header">
           <h2>{localized('Activity')}</h2>
-          <div className="timespan-text">{timespanRangeLabel(timespan)}</div>
+          <TimespanSelector timespan={timespan} onChange={this._onChangeTimespan} />
           {accounts.length > 1 && (
             <AccountSelector
               accounts={accounts}
@@ -117,7 +118,9 @@ class Root extends React.Component<
               onChange={this._onSelectAccount}
             />
           )}
-          <TimespanSelector timespan={timespan} onChange={this._onChangeTimespan} />
+          <div className="accounts visible-on-web">
+            · {shown ? shown.label : localized('All Accounts')}
+          </div>
         </div>
         <ActivityTabs selected={tab} onSelect={this._onSelectTab} />
         <div className="activity-tab-panel hidden-on-web" hidden={tab !== 'feed'}>

@@ -47,6 +47,11 @@
     min-height: 0;
   }
 
+  // Shown only in a report shared to the web (see share-button.tsx).
+  .visible-on-web {
+    display: none;
+  }
+
   .header {
     margin: 20px;
     margin-bottom: 6px;
@@ -57,8 +62,13 @@
       margin: 0;
       flex: 1;
     }
-    .timespan-text {
-      margin-right: 4px;
+    .timespan-selector {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .timespan-text,
+    .accounts {
       color: @text-color-very-subtle;
     }
     .dropdown-menu .menu {
