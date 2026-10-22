@@ -1,6 +1,6 @@
 import React from 'react';
 import { localized, Actions } from 'mailspring-exports';
-import { LabelledToolbarButton } from 'mailspring-component-kit';
+import { NewItemButton } from 'mailspring-component-kit';
 
 export default class ComposeButton extends React.Component {
   static displayName = 'ComposeButton';
@@ -11,9 +11,7 @@ export default class ComposeButton extends React.Component {
 
   render() {
     return (
-      <LabelledToolbarButton
-        className="item-compose"
-        iconName="toolbar-compose.png"
+      <NewItemButton
         label={localized('Compose')}
         title={localized('Compose new message')}
         onClick={this._onNewCompose}

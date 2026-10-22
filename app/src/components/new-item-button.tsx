@@ -1,11 +1,8 @@
 import React from 'react';
-import classnames from 'classnames';
 import { RetinaImg } from './retina-img';
 
-interface LabelledToolbarButtonProps {
+interface NewItemButtonProps {
   label: string;
-  iconName: string;
-  className?: string;
   /** Tooltip and accessible name at every width; otherwise the label, once only the icon shows. */
   title?: string;
   tabIndex?: number;
@@ -14,24 +11,21 @@ interface LabelledToolbarButtonProps {
   buttonRef?: React.RefObject<HTMLButtonElement>;
 }
 
-interface LabelledToolbarButtonState {
+interface NewItemButtonState {
   /** Icon only, when the toolbar has no room for the label. */
   compact: boolean;
 }
 
 /*
-Public: A toolbar button with an icon and a label, which shows only the icon when its toolbar
-row runs out of room.
+Public: The toolbar button that starts a new item, such as Compose or New Event: the compose
+icon and a label, or only the icon when its toolbar row runs out of room.
 
 Section: Component Kit
 */
-export default class LabelledToolbarButton extends React.Component<
-  LabelledToolbarButtonProps,
-  LabelledToolbarButtonState
-> {
-  static displayName = 'LabelledToolbarButton';
+export default class NewItemButton extends React.Component<NewItemButtonProps, NewItemButtonState> {
+  static displayName = 'NewItemButton';
 
-  state: LabelledToolbarButtonState = { compact: false };
+  state: NewItemButtonState = { compact: false };
 
   _button = this.props.buttonRef || React.createRef<HTMLButtonElement>();
   _labelledWidth = 0;
@@ -67,20 +61,24 @@ export default class LabelledToolbarButton extends React.Component<
   };
 
   render() {
-    const { label, iconName, className, tabIndex, onClick } = this.props;
+    const { label, tabIndex, onClick } = this.props;
     const { compact } = this.state;
     const title = this.props.title || (compact ? label : undefined);
     return (
       <button
         ref={this._button}
         tabIndex={tabIndex}
-        className={classnames('btn btn-toolbar', className)}
+        className="btn btn-toolbar item-compose"
         style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
         title={title}
         aria-label={title}
         onClick={onClick}
       >
-        <RetinaImg name={iconName} mode={RetinaImg.Mode.ContentIsMask} aria-hidden="true" />
+        <RetinaImg
+          name="toolbar-compose.png"
+          mode={RetinaImg.Mode.ContentIsMask}
+          aria-hidden="true"
+        />
         {!compact && <span className="text">{label}</span>}
       </button>
     );

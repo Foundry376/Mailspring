@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import LabelledToolbarButton from '../../src/components/labelled-toolbar-button';
+import NewItemButton from '../../src/components/new-item-button';
 
-describe('LabelledToolbarButton', function () {
+describe('NewItemButton', function () {
   let host: HTMLDivElement;
   let observed: { callback: () => void; target: Element }[];
   let RealResizeObserver: typeof ResizeObserver;
@@ -36,12 +36,7 @@ describe('LabelledToolbarButton', function () {
       <>
         <div style={{ width: 120, flexShrink: 0 }} />
         <div className="item-spacer" style={{ flex: 1 }} />
-        <LabelledToolbarButton
-          className="item-compose"
-          iconName="toolbar-compose.png"
-          label="New Event"
-          onClick={() => {}}
-        />
+        <NewItemButton label="New Event" onClick={() => {}} />
       </>,
       host
     );

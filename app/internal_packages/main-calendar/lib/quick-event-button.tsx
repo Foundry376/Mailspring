@@ -1,6 +1,6 @@
 import React from 'react';
 import { Actions, localized } from 'mailspring-exports';
-import { LabelledToolbarButton, BindGlobalCommands } from 'mailspring-component-kit';
+import { NewItemButton, BindGlobalCommands } from 'mailspring-component-kit';
 import { QuickEventPopover } from './quick-event-popover';
 
 export class QuickEventButton extends React.Component<Record<string, unknown>> {
@@ -25,11 +25,9 @@ export class QuickEventButton extends React.Component<Record<string, unknown>> {
   render() {
     return (
       <BindGlobalCommands commands={{ 'core:add-item': this._openPopover }}>
-        <LabelledToolbarButton
+        <NewItemButton
           buttonRef={this._button}
           tabIndex={-1}
-          className="item-compose"
-          iconName="toolbar-compose.png"
           label={localized('New Event')}
           onClick={this.onClick}
         />
