@@ -248,7 +248,7 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
   componentDidUpdate(prevProps: RootProps) {
     if (
       prevProps.timespan !== this.props.timespan ||
-      prevProps.accountIds !== this.props.accountIds
+      prevProps.accountIds.join(',') !== this.props.accountIds.join(',')
     ) {
       this.setState(this.getLoadingState(this.props), () => this._onComputeMetrics());
     }

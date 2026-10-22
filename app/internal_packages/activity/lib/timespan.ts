@@ -62,3 +62,13 @@ export function timespanForId(id: string): Timespan {
 export function timespanEndsNow(timespan: Timespan) {
   return !timespan.id.startsWith('month-') || timespan.id === 'month-0';
 }
+
+/** The dates a timespan covers, e.g. "Friday October 9th, 12:01AM - Now". */
+export function timespanRangeLabel({ id, startDate, endDate }: Timespan) {
+  const longFormat = id.startsWith('month')
+    ? localized('MMMM Do, h:mmA')
+    : localized('dddd MMMM Do, h:mmA');
+  const endFormat =
+    endDate.diff(moment(), 'days') === 0 ? localized('Now') : endDate.format(longFormat);
+  return `${startDate.format(longFormat)} - ${endFormat}`;
+}

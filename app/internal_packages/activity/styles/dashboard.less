@@ -51,22 +51,15 @@
     margin: 20px;
     margin-bottom: 6px;
     display: flex;
-    .accounts {
-      font-size: @font-size-base;
-      color: @text-color-very-subtle;
-    }
+    align-items: center;
+    gap: 8px;
     h2 {
       margin: 0;
+      flex: 1;
     }
-    .timespan-selector {
-      display: flex;
-      align-items: baseline;
-      .timespan-text {
-        color: @text-color-very-subtle;
-      }
-      .dropdown-menu {
-        margin-left: @padding-base-horizontal * 2;
-      }
+    .timespan-text {
+      margin-right: 4px;
+      color: @text-color-very-subtle;
     }
     .dropdown-menu .menu {
       width: 160px;

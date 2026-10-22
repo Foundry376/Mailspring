@@ -1,13 +1,14 @@
 import React from 'react';
 import classnames from 'classnames';
 import { ScrollRegion, ListensToFluxStore } from 'mailspring-component-kit';
-import { localized, AccountStore, FocusedPerspectiveStore } from 'mailspring-exports';
+import { localized, Account, AccountStore } from 'mailspring-exports';
 
 import ActivityFeed from './feed/activity-feed';
 import ActivityReports from './dashboard/root';
 import EngagementBoard from './engagement/engagement-board';
 import TimespanSelector from './timespan-selector';
-import { DEFAULT_TIMESPAN_ID, Timespan, timespanForId } from './timespan';
+import AccountSelector from './account-selector';
+import { DEFAULT_TIMESPAN_ID, Timespan, timespanForId, timespanRangeLabel } from './timespan';
 import * as ActivityActions from './activity-actions';
 
 export type ActivityTabId = 'feed' | 'engagement' | 'reports';
@@ -56,8 +57,8 @@ function ActivityTabs({
 }
 
 class Root extends React.Component<
-  { accountIds: string[] },
-  { tab: ActivityTabId; timespan: Timespan }
+  { accounts: Account[] },
+  { tab: ActivityTabId; timespan: Timespan; accountId: string | null }
 > {
   static displayName = 'ActivityRoot';
 
@@ -69,6 +70,7 @@ class Root extends React.Component<
     this.state = {
       tab: TABS.some((t) => t.id === saved) ? saved : 'feed',
       timespan: timespanForId(DEFAULT_TIMESPAN_ID),
+      accountId: AppEnv.savedState.activityAccountId || null,
     };
   }
 
@@ -90,20 +92,31 @@ class Root extends React.Component<
     this.setState({ timespan: timespanForId(timespanId) });
   };
 
+  _onSelectAccount = (accountId: string | null) => {
+    AppEnv.savedState.activityAccountId = accountId;
+    AppEnv.saveWindowState();
+    this.setState({ accountId });
+  };
+
   render() {
-    const { accountIds } = this.props;
+    const { accounts } = this.props;
     const { tab, timespan } = this.state;
-    const account = AccountStore.accountForId(accountIds[0]);
+    // Falls back to all accounts once the picked one is removed.
+    const picked = accounts.find((a) => a.id === this.state.accountId);
+    const accountIds = picked ? [picked.id] : accounts.map((a) => a.id);
 
     return (
       <div className="activity-dashboard">
         <div className="header">
-          <div style={{ flex: 1 }}>
-            <h2>{localized('Activity')}</h2>
-            <div className="accounts">
-              {accountIds.length > 1 ? localized('All Accounts') : account && account.label}
-            </div>
-          </div>
+          <h2>{localized('Activity')}</h2>
+          <div className="timespan-text">{timespanRangeLabel(timespan)}</div>
+          {accounts.length > 1 && (
+            <AccountSelector
+              accounts={accounts}
+              accountId={picked ? picked.id : null}
+              onChange={this._onSelectAccount}
+            />
+          )}
           <TimespanSelector timespan={timespan} onChange={this._onChangeTimespan} />
         </div>
         <ActivityTabs selected={tab} onSelect={this._onSelectTab} />
@@ -124,11 +137,11 @@ class Root extends React.Component<
 }
 
 export default ListensToFluxStore(Root, {
-  stores: [FocusedPerspectiveStore],
+  stores: [AccountStore],
   getStateFromStores: (props) => {
     return {
       ...props,
-      accountIds: FocusedPerspectiveStore.current().accountIds,
+      accounts: AccountStore.accounts(),
     };
   },
 });
