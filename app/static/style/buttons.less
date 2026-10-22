@@ -246,3 +246,27 @@ body.platform-win32 {
     box-shadow: none;
   }
 }
+
+// Buttons with no fill: a ghost gets one when hovered or focused, a bare one only turns its icon
+// blue (in workspace.less, the toolbar's). Toolbars size both there.
+.btn-ghost,
+.btn-bare {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: @border-radius-base;
+  background: transparent;
+}
+.btn-ghost {
+  &:hover,
+  &:focus-visible {
+    outline: none;
+    background: color-mix(in srgb, currentColor 12%, transparent);
+  }
+  &[aria-pressed='true'] img.content-mask {
+    background-color: @component-active-color;
+  }
+}

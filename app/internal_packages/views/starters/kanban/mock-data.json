@@ -1,0 +1,107 @@
+{
+  "me": { "name": "Sam Carter", "email": "sam@northwind.example" },
+  "viewState": { "addPanelOpen": false },
+  "threads": [
+    {
+      "subject": "Q4 roadmap review — slides attached",
+      "meta": { "column": "todo", "movedAt": "@now-2d" },
+      "messages": [
+        {
+          "from": "Priya Shah <priya@northwind.example>",
+          "date": "@now-3h",
+          "body": "Here's the draft deck for Thursday. Can you take a pass at the hiring slide?",
+          "attachments": ["Q4-roadmap-v3.pdf"]
+        }
+      ]
+    },
+    {
+      "subject": "Invoice #2291 from Lumen Studio",
+      "meta": { "column": "todo", "movedAt": "@now-1d" },
+      "messages": [
+        {
+          "from": "Lumen Studio Billing <billing@lumenstudio.example>",
+          "date": "@now-1d",
+          "body": "Your invoice for October brand work is ready. Payment is due in 14 days.",
+          "attachments": ["invoice-2291.pdf"]
+        }
+      ]
+    },
+    {
+      "subject": "Offsite venue options",
+      "meta": { "column": "todo", "movedAt": "@now-4d" },
+      "messages": [
+        {
+          "from": "Marco Diaz <marco@northwind.example>",
+          "date": "@now-2d",
+          "body": "Shortlisted three places near the coast. The lodge has the best meeting room."
+        }
+      ]
+    },
+    {
+      "subject": "Re: Contract renewal terms",
+      "meta": { "column": "todo", "movedAt": "@now-5d" },
+      "messages": [
+        {
+          "from": "Helen Okafor <helen@brightline.example>",
+          "date": "@now-6h",
+          "body": "We can do a two-year term if the support tier stays the same."
+        }
+      ]
+    },
+    {
+      "subject": "Design review: onboarding flow",
+      "meta": { "column": "waiting", "movedAt": "@now-3d" },
+      "messages": [
+        { "from": "me", "to": "Jun Park <jun@northwind.example>", "date": "@now-3d", "body": "Left comments on the second screen. Let me know when v2 is up." },
+        { "from": "Jun Park <jun@northwind.example>", "date": "@now-5h", "body": "v2 is up! Changed the copy on step two as well." }
+      ]
+    },
+    {
+      "subject": "Reference check for Alex M.",
+      "meta": { "column": "waiting", "movedAt": "@now-2d" },
+      "messages": [
+        { "from": "me", "to": "Dana Lee <dana@finchrecruiting.example>", "date": "@now-2d", "body": "Happy to chat. Does Friday afternoon work?" }
+      ]
+    },
+    {
+      "subject": "Laptop refresh order",
+      "meta": { "column": "waiting", "movedAt": "@now-6d" },
+      "messages": [
+        { "from": "IT Helpdesk <it@northwind.example>", "date": "@now-6d", "body": "We've placed the order. Expect delivery within ten business days." }
+      ]
+    },
+    {
+      "subject": "Board meeting notes",
+      "meta": { "column": "done", "movedAt": "@now-1d" },
+      "messages": [
+        { "from": "Priya Shah <priya@northwind.example>", "date": "@now-2d", "body": "Notes from today are in the shared folder.", "attachments": ["board-notes.docx"] }
+      ]
+    },
+    {
+      "subject": "Conference talk accepted 🎉",
+      "meta": { "column": "done", "movedAt": "@now-4d" },
+      "messages": [
+        { "from": "Program Committee <talks@buildconf.example>", "date": "@now-5d", "body": "Congratulations! Your talk has been accepted for the main stage." }
+      ]
+    },
+    {
+      "subject": "Expense report — September",
+      "meta": { "column": "done", "movedAt": "@now-7d" },
+      "messages": [
+        { "from": "Finance <finance@northwind.example>", "date": "@now-8d", "body": "Approved and scheduled for the next payroll run." }
+      ]
+    },
+    {
+      "subject": "Lunch next week?",
+      "messages": [
+        { "from": "Chris Wong <chris@example.com>", "date": "@now-1h", "body": "Free Tuesday or Wednesday?" }
+      ]
+    },
+    {
+      "subject": "Your weekly analytics digest",
+      "messages": [
+        { "from": "Metrics Bot <digest@metrics.example>", "date": "@now-10h", "body": "Signups up 12% week over week.", "listUnsubscribe": true }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "id": "redteam-credentials",
+  "version": 1,
+  "name": "Sandbox Red Team (credentials)",
+  "apiVersion": "2026-10-20",
+  "placement": "page",
+  "permissions": [],
+  "network": ["echo.mailspring-cred.dev", "evil.mailspring-cred.dev"],
+  "credentials": [
+    {
+      "id": "echo",
+      "label": "Echo test token",
+      "hosts": ["echo.mailspring-cred.dev"],
+      "help": "Development only: the credentials red team's local echo server."
+    }
+  ]
+}

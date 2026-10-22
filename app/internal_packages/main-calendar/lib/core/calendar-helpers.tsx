@@ -1,5 +1,6 @@
-import moment from 'moment';
+import moment, { Moment } from 'moment';
 import {
+  CalendarDate,
   Utils,
   AccountStore,
   Calendar,
@@ -16,6 +17,14 @@ import { ShowAsOption, defaultShowAs } from './show-as-selector';
 import { MIN_EVENT_DURATION_SECONDS } from './calendar-constants';
 import { EventOccurrence, coveredDates, isTimed } from './calendar-data-source';
 import { dayFraction } from './week-view-helpers';
+
+export function dateOf(m: Moment): CalendarDate {
+  return CalendarDateUtils.calendarDateFromUnix(m.unix());
+}
+
+export function momentOf(date: CalendarDate): Moment {
+  return moment.unix(CalendarDateUtils.dayStartUnix(date));
+}
 
 // Cache of calendar colors synced from CalDAV servers
 const calendarColorCache: Map<string, string> = new Map();
@@ -229,56 +238,6 @@ export function textColorOnFill({ r, g, b }: { r: number; g: number; b: number }
   return contrastWithBlack > contrastWithWhite ? 'black' : 'white';
 }
 
-// Common video meeting URL patterns and their display names
-const MEETING_URL_PATTERNS: { pattern: RegExp; display: string }[] = [
-  { pattern: /zoom\.us/i, display: 'zoom.us' },
-  { pattern: /meet\.google\.com/i, display: 'meet.google.com' },
-  { pattern: /teams\.microsoft\.com/i, display: 'teams.microsoft.com' },
-  { pattern: /webex\.com/i, display: 'webex.com' },
-  { pattern: /gotomeeting\.com/i, display: 'gotomeeting.com' },
-  { pattern: /whereby\.com/i, display: 'whereby.com' },
-  { pattern: /around\.co/i, display: 'around.co' },
-  { pattern: /meet\.jit\.si/i, display: 'meet.jit.si' },
-  { pattern: /discord\.gg/i, display: 'discord.gg' },
-  { pattern: /slack\.com\/calls/i, display: 'slack.com' },
-  { pattern: /chime\.aws/i, display: 'chime.aws' },
-  { pattern: /bluejeans\.com/i, display: 'bluejeans.com' },
-  { pattern: /appear\.in/i, display: 'appear.in' },
-  { pattern: /livestorm\.co/i, display: 'livestorm.co' },
-  { pattern: /hopin\.com/i, display: 'hopin.com' },
-  { pattern: /loom\.com/i, display: 'loom.com' },
-  { pattern: /tuple\.app/i, display: 'tuple.app' },
-  { pattern: /pop\.com/i, display: 'pop.com' },
-  { pattern: /cal\.com/i, display: 'cal.com' },
-  { pattern: /calendly\.com/i, display: 'calendly.com' },
-  { pattern: /facetime:/i, display: 'FaceTime' },
-];
-
-/**
- * Extract a meeting URL domain from location or description text.
- * Returns the friendly domain name (e.g., "zoom.us", "meet.google.com") or null.
- */
-export function extractMeetingDomain(location: string, description: string): string | null {
-  const textToSearch = `${location} ${description}`;
-
-  // First check for known meeting platforms
-  for (const { pattern, display } of MEETING_URL_PATTERNS) {
-    if (pattern.test(textToSearch)) {
-      return display;
-    }
-  }
-
-  // Fall back to extracting domain from any URL in location field
-  const urlMatch = location.match(/https?:\/\/([^/\s]+)/i);
-  if (urlMatch) {
-    const domain = urlMatch[1].toLowerCase();
-    // Remove www. prefix if present
-    return domain.replace(/^www\./, '');
-  }
-
-  return null;
-}
-
 /**
  * All-day events store an exclusive end — midnight after the last day covered — so a
  * date picker showing it raw reads a day later than the event actually runs.
@@ -374,12 +333,32 @@ export function newEventOccurrence(id: string, draft: NewEventDraft): EventOccur
  */
 export function formatShortTime(unix: number): string {
   const time = moment.unix(unix);
+  return time.format(shortTimeFormat(time));
+}
+
+function shortTimeFormat(time: moment.Moment): string {
   const lt = moment.localeData().longDateFormat('LT');
   // moment's LT uses h for a 12-hour clock and H for a 24-hour one, as in time-picker.tsx
   if (!/h/.test(lt) || time.minutes() !== 0) {
-    return time.format('LT');
+    return lt;
   }
-  return time.format(lt.replace(/[:.]mm/, ''));
+  return lt.replace(/[:.]mm/, '');
+}
+
+/**
+ * A range in formatShortTime's terms, naming the meridiem once when both ends share it, as Notion
+ * Calendar does: "7:30–8:30 PM", "11:30 AM–12 PM".
+ */
+export function formatShortTimeRange(startUnix: number, endUnix: number): string {
+  const start = moment.unix(startUnix);
+  const end = moment.unix(endUnix);
+  let startFormat = shortTimeFormat(start);
+  // Only a meridiem set apart at either end; lb's "[Auer]" literal and ne's "Aको" stay whole.
+  const separateMeridiem = /^[aA]\s+|\s+[aA]$/;
+  if (/h/.test(startFormat) && start.format('A') === end.format('A')) {
+    startFormat = startFormat.replace(separateMeridiem, '');
+  }
+  return `${start.format(startFormat)}–${end.format(shortTimeFormat(end))}`;
 }
 
 /**

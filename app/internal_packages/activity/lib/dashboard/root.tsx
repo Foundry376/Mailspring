@@ -8,6 +8,7 @@ import {
   Message,
   DatabaseStore,
   Actions,
+  DateUtils,
 } from 'mailspring-exports';
 
 import {
@@ -67,23 +68,6 @@ function median(values: number[]) {
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
   return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-}
-
-/** "3d 4h", "2h 15m", "12m", "< 1m". */
-function formatDuration(seconds: number) {
-  if (seconds < MINUTE) {
-    return localized('< 1m');
-  }
-  const days = Math.floor(seconds / DAY);
-  const hours = Math.floor((seconds % DAY) / HOUR);
-  const minutes = Math.floor((seconds % HOUR) / MINUTE);
-  if (days > 0) {
-    return hours > 0 ? localized('%@d %@h', days, hours) : localized('%@d', days);
-  }
-  if (hours > 0) {
-    return minutes > 0 ? localized('%@h %@m', hours, minutes) : localized('%@h', hours);
-  }
-  return localized('%@m', minutes);
 }
 
 /** Strips reply/forward prefixes so replies sent from a template group with it. */
@@ -615,7 +599,7 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
     const axisLeft = single ? '' : timespan.startDate.format('MMM D');
     const axisRight = single ? localized('Today') : timespan.endDate.format('MMM D');
     const medianOf = ({ medianSeconds }: DelayMetric) =>
-      medianSeconds === undefined ? '—' : formatDuration(medianSeconds);
+      medianSeconds === undefined ? '—' : DateUtils.formatDuration(medianSeconds);
 
     const lowTrackingUsage = !loading && metrics.percentUsingTracking < 75;
     const lowTrackingPhrase =

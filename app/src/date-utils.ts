@@ -1,4 +1,5 @@
 import moment, { Moment } from 'moment-timezone';
+import { localized } from './intl';
 
 // Init locale for moment
 moment.locale(navigator.language);
@@ -501,6 +502,26 @@ const DateUtils = {
       weekday: 'long',
       second: undefined,
     });
+  },
+
+  /** How long something lasts or took: "3d 4h", "2h 15m", "12m", "< 1m". */
+  formatDuration(seconds: number) {
+    const MINUTE = 60;
+    const HOUR = 60 * MINUTE;
+    const DAY = 24 * HOUR;
+    if (seconds < MINUTE) {
+      return localized('< 1m');
+    }
+    const days = Math.floor(seconds / DAY);
+    const hours = Math.floor((seconds % DAY) / HOUR);
+    const minutes = Math.floor((seconds % HOUR) / MINUTE);
+    if (days > 0) {
+      return hours > 0 ? localized('%@d %@h', days, hours) : localized('%@d', days);
+    }
+    if (hours > 0) {
+      return minutes > 0 ? localized('%@h %@m', hours, minutes) : localized('%@h', hours);
+    }
+    return localized('%@m', minutes);
   },
 };
 

@@ -1,3 +1,8 @@
+// Also loaded by file path, outside the module system: app/src/browser/view-sessions.ts
+// (emailColorsScript) serves this file to Views as `_runtime/email-colors.js`, and
+// views/runtime/mailspring-view.js calls `prepareEmailColors` and `backgroundColorBehind`
+// off `window.MailspringEmailColors`. Keep it import-free DOM code, and update both if it
+// moves or those exports are renamed.
 type RGBA = [number, number, number, number];
 
 // Parses the `rgb(r, g, b)` / `rgba(r, g, b, a)` forms Chrome uses for computed

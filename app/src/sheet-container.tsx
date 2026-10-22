@@ -92,9 +92,11 @@ export default class SheetContainer extends React.Component<
 
   _onToolbarDoubleClick = (e: React.MouseEvent<HTMLElement>) => {
     if (process.platform !== 'darwin') return;
-    if (e.target instanceof HTMLElement) {
-      if (['INPUT', 'A', 'BUTTON'].includes(e.target.tagName)) return;
-      if (e.target.hasAttribute('contenteditable')) return;
+    if (
+      e.target instanceof Element &&
+      e.target.closest('button, input, select, textarea, a, [contenteditable]')
+    ) {
+      return;
     }
 
     if (Date.now() - this._lastToolbarClickTime < 350) {
