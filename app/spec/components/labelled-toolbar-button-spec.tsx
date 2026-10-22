@@ -1,9 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { QuickEventButton } from '../internal_packages/main-calendar/lib/quick-event-button';
+import LabelledToolbarButton from '../../src/components/labelled-toolbar-button';
 
-describe('QuickEventButton', function () {
+describe('LabelledToolbarButton', function () {
   let host: HTMLDivElement;
   let observed: { callback: () => void; target: Element }[];
   let RealResizeObserver: typeof ResizeObserver;
@@ -36,7 +36,12 @@ describe('QuickEventButton', function () {
       <>
         <div style={{ width: 120, flexShrink: 0 }} />
         <div className="item-spacer" style={{ flex: 1 }} />
-        <QuickEventButton />
+        <LabelledToolbarButton
+          className="item-compose"
+          iconName="toolbar-compose.png"
+          label="New Event"
+          onClick={() => {}}
+        />
       </>,
       host
     );
