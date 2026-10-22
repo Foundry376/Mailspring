@@ -48,6 +48,8 @@ export interface SheetDeclaration {
   name: string;
   root: boolean;
   sidebarComponent: any;
+  /** The Back button's label on sheets pushed over this one; defaults to the mailbox name. */
+  backTitle?: () => string;
 
   Toolbar: SheetToolbarDeclaration;
   Header: { id: string };
@@ -294,6 +296,15 @@ class WorkspaceStore extends MailspringStore {
   Managing Sheets
   */
 
+  // Returns the location for a column, creating it if needed, so a package can register
+  // into another package's column regardless of which activates first.
+  defineLocation(col: string) {
+    if (Location[col] == null) {
+      Location[col] = { id: `${col}`, Toolbar: { id: `${col}:Toolbar` } };
+    }
+    return Location[col];
+  }
+
   // * `id` {String} The ID of the Sheet being defined.
   // * `options` {Object} If the sheet should be listed in the left sidebar,
   //      pass `{root: true, name: 'Label'}`.
@@ -314,6 +325,7 @@ class WorkspaceStore extends MailspringStore {
       name: options.name,
       root: options.root,
       sidebarComponent: options.sidebarComponent,
+      backTitle: options.backTitle,
 
       Toolbar: {
         Left: { id: `Sheet:${id}:Toolbar:Left` },
@@ -328,10 +340,7 @@ class WorkspaceStore extends MailspringStore {
     for (const [mode, cols] of Object.entries(columns)) {
       Sheet[id].columns[mode] = [];
       for (const col of cols) {
-        if (Location[col] == null) {
-          Location[col] = { id: `${col}`, Toolbar: { id: `${col}:Toolbar` } };
-        }
-        Sheet[id].columns[mode].push(Location[col]);
+        Sheet[id].columns[mode].push(this.defineLocation(col));
       }
     }
 

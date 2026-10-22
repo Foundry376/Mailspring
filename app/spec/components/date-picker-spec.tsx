@@ -26,7 +26,7 @@ describe('DatePicker', function datePicker() {
     fireEvent.focus(picker);
     const day = moment(`${target} 00:00`, 'YYYY-MM-DD HH:mm');
     const shown = () => moment(container.querySelector('.month-title').textContent, 'MMMM YYYY');
-    const [prev, next] = Array.from(container.querySelectorAll('.btn-icon'));
+    const [prev, next] = Array.from(container.querySelectorAll('.mini-month-view .header button'));
     while (!shown().isSame(day, 'month')) {
       fireEvent.click(shown().isBefore(day) ? next : prev);
     }

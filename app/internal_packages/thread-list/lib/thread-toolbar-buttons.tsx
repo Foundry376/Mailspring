@@ -420,7 +420,7 @@ class ThreadArrowButton extends React.Component<
     const { direction, title } = this.props;
     const { disabled } = this.state;
     const classes = classNames({
-      'btn-icon': true,
+      'btn-bare': true,
       'message-toolbar-arrow': true,
       disabled: disabled,
     });
@@ -437,8 +437,9 @@ class ThreadArrowButton extends React.Component<
         title={title}
       >
         <RetinaImg
-          name={`toolbar-${direction}-arrow.png`}
+          name={`ic-calendar-${direction}-arrow.png`}
           mode={RetinaImg.Mode.ContentIsMask}
+          style={{ width: 14, height: 14, WebkitMaskSize: 'contain', WebkitMaskPosition: 'center' }}
           aria-hidden="true"
         />
       </div>

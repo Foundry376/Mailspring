@@ -139,17 +139,14 @@ describe('serializeBirthday', function () {
     expect(result.value.split('-')[0]).toBe('1234');
   });
 
-  it('handles NaN year by treating it as 0 (padding produces "0001" due to implementation)', () => {
-    // td(NaN, 4): clean=0, str='0', length 1 < 4
-    // padding branch: '0'.repeat(3) + str.length → '000' + 1 → '0001'
+  it('handles NaN year by treating it as 0', () => {
     const result = serializeBirthday({ date: { year: NaN, month: 12, day: 31 } });
-    expect(result.value.split('-')[0]).toBe('0001');
+    expect(result.value.split('-')[0]).toBe('0000');
   });
 
-  it('single-digit month produces a padded two-character value (padding uses str.length)', () => {
-    // td(5, 2): str='5', length 1 < 2 → '0'.repeat(1) + str.length → '0' + 1 → '01'
-    const result = serializeBirthday({ date: { year: 2000, month: 5, day: 31 } });
-    expect(result.value.split('-')[1]).toBe('01');
+  it('zero-pads single-digit months and days', () => {
+    const result = serializeBirthday({ date: { year: 2000, month: 5, day: 7 } });
+    expect(result.value).toBe('2000-05-07');
   });
 
   it('returns an object with a value property containing hyphens', () => {
@@ -396,6 +393,10 @@ describe('parseName', function () {
     const result = parseName(null);
     // parts[1] is undefined on a single-element array; || '' makes it ''
     expect(result.givenName).toBe('');
+  });
+
+  it('returns an empty displayName rather than "undefined" when given null', () => {
+    expect(parseName(null).displayName).toBe('');
   });
 
   it('returns empty string for familyName when the _data is empty', () => {

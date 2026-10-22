@@ -201,6 +201,31 @@ describe('KeyManager', function () {
     });
   });
 
+  describe('deletePasswordsWithPrefix', function () {
+    it('refuses an empty prefix without touching the stored keys', async function () {
+      spyOn(KeyManager, '_getKeyHash');
+      for (const prefix of ['', undefined]) {
+        let error = null;
+        try {
+          await KeyManager.deletePasswordsWithPrefix(prefix);
+        } catch (err) {
+          error = err;
+        }
+        expect(error).not.toBe(null);
+      }
+      expect(KeyManager._getKeyHash).not.toHaveBeenCalled();
+    });
+
+    it('deletes only the keys that start with the prefix', async function () {
+      spyOn(KeyManager, '_getKeyHash').andReturn(
+        Promise.resolve({ 'view-credential:v1:a': '1', 'view-credential:v2:a': '2' } as any)
+      );
+      const write = spyOn(KeyManager, '_writeKeyHash').andReturn(Promise.resolve());
+      await KeyManager.deletePasswordsWithPrefix('view-credential:v1:');
+      expect(write.calls[0].args[0]).toEqual({ 'view-credential:v2:a': '2' });
+    });
+  });
+
   describe('_reportFatalError', function () {
     it('shows one dialog no matter how many failures arrive', function () {
       const remote = require('@electron/remote');

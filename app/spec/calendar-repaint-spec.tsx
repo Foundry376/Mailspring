@@ -2,15 +2,15 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import ReactTestUtils from 'react-dom/test-utils';
 import moment from 'moment';
-import Rx from 'rx-lite';
 import { Calendar } from '../src/flux/models/calendar';
 import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
-import { WeekView } from '../internal_packages/main-calendar/lib/core/week-view';
-import { DayView } from '../internal_packages/main-calendar/lib/core/day-view';
+import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
+import { TimeGridView } from '../internal_packages/main-calendar/lib/core/time-grid-view';
 import { WeekViewEventColumn } from '../internal_packages/main-calendar/lib/core/week-view-event-column';
 import { WeekViewAllDayEvents } from '../internal_packages/main-calendar/lib/core/week-view-all-day-events';
 import { EventGridBackground } from '../internal_packages/main-calendar/lib/core/event-grid-background';
 import { setCalendarColors } from '../internal_packages/main-calendar/lib/core/calendar-helpers';
+import { calendarViewProps } from './fixtures/calendar-view-props';
 
 const calendar = (color: string) =>
   new Calendar({ id: 'repaint-cal', accountId: 'a', name: 'Team', color } as any);
@@ -31,8 +31,7 @@ describe('repainting the calendar when colours change', function () {
     setCalendarColors([calendar('#445566')]);
     const after = viewElement(cal);
     expect(after.type).toBe(before.type);
-    expect(before.key).toBe(null);
-    expect(after.key).toBe(null);
+    expect(after.key).toBe(before.key);
     expect(after.props.paintVersion).not.toBe(before.props.paintVersion);
   });
 
@@ -41,8 +40,18 @@ describe('repainting the calendar when colours change', function () {
     const before = viewElement(cal);
     cal.state = { ...cal.state, themeVersion: cal.state.themeVersion + 1 };
     const after = viewElement(cal);
-    expect(after.key).toBe(null);
+    expect(after.key).toBe(before.key);
     expect(after.props.paintVersion).not.toBe(before.props.paintVersion);
+  });
+
+  it('remounts the grid when switching between Day and Week', function () {
+    const cal = loadedCalendar();
+    cal.state = { ...cal.state, view: CalendarView.DAY };
+    const day = viewElement(cal);
+    cal.state = { ...cal.state, view: CalendarView.WEEK };
+    const week = viewElement(cal);
+    expect(week.type).toBe(day.type);
+    expect(week.key).not.toBe(day.key);
   });
 
   it('nothing else changing leaves the paint version alone', function () {
@@ -113,29 +122,7 @@ describe('the hour grid', function () {
 });
 
 describe('the week and day views', function () {
-  const dataSource = { buildObservable: () => Rx.Observable.just({ events: [] }) };
-  const viewProps: any = {
-    dataSource,
-    disabledCalendars: [],
-    focusedMoment: moment(),
-    focusedEvent: null,
-    selectedEvents: [],
-    onChangeView: () => {},
-    onChangeFocusedMoment: () => {},
-    onCalendarMouseUp: () => {},
-    onCalendarMouseDown: () => {},
-    onCalendarMouseMove: () => {},
-    onCalendarClick: () => {},
-    onCalendarDoubleClick: () => {},
-    onEventClick: () => {},
-    onEventDoubleClick: () => {},
-    onEventFocused: () => {},
-    onEventDragStart: () => {},
-    dragState: null,
-    readOnlyCalendarIds: new Set(),
-    isCalendarReadOnly: () => false,
-    paintVersion: '7-1',
-  };
+  const viewProps = calendarViewProps({ paintVersion: '7-1' });
   let host: HTMLDivElement;
 
   beforeEach(() => {
@@ -147,9 +134,12 @@ describe('the week and day views', function () {
     host.remove();
   });
 
-  for (const View of [WeekView, DayView]) {
-    it(`${View.displayName || View.name} hands the paint version to every guarded child and the hour grid`, function () {
-      const view = ReactDOM.render(React.createElement(View, viewProps), host) as any;
+  for (const visibleDays of [7, 1] as const) {
+    it(`a ${visibleDays}-day grid hands the paint version to every guarded child and the hour grid`, function () {
+      const view = ReactDOM.render(
+        React.createElement(TimeGridView, { ...viewProps, visibleDays }),
+        host
+      ) as any;
       const columns = ReactTestUtils.scryRenderedComponentsWithType(view, WeekViewEventColumn);
       const allDay = ReactTestUtils.scryRenderedComponentsWithType(view, WeekViewAllDayEvents);
       const grid = ReactTestUtils.scryRenderedComponentsWithType(view, EventGridBackground);

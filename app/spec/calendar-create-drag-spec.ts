@@ -7,14 +7,13 @@ import {
 import React from 'react';
 import ReactDOM from 'react-dom';
 import moment from 'moment';
-import Rx from 'rx-lite';
 import * as CalendarDateUtils from '../src/calendar-date';
 import { Calendar } from '../src/flux/models/calendar';
 import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
-import { WeekView } from '../internal_packages/main-calendar/lib/core/week-view';
-import { DayView } from '../internal_packages/main-calendar/lib/core/day-view';
+import { TimeGridView } from '../internal_packages/main-calendar/lib/core/time-grid-view';
 import { DEFAULT_TIMED_EVENT_DURATION_SECONDS } from '../internal_packages/main-calendar/lib/core/calendar-constants';
 import { MonthView } from '../internal_packages/main-calendar/lib/core/month-view';
+import { calendarViewProps } from './fixtures/calendar-view-props';
 
 const BASE = 1787860800; // 2026-08-27 16:00:00 UTC, a quarter-hour boundary
 
@@ -453,32 +452,10 @@ describe('opening the editor for a new event', function () {
 });
 
 describe('the views draw the range being dragged', function () {
-  const dataSource = { buildObservable: () => Rx.Observable.just({ events: [] }) };
   const now = moment();
   const anchor = now.clone().startOf('day').add(10, 'hours').unix();
-  const viewProps = (newEventPreview: any): any => ({
-    dataSource,
-    disabledCalendars: [],
-    focusedMoment: now,
-    focusedEvent: null,
-    selectedEvents: [],
-    onChangeView: () => {},
-    onChangeFocusedMoment: () => {},
-    onCalendarMouseUp: () => {},
-    onCalendarMouseDown: () => {},
-    onCalendarMouseMove: () => {},
-    onCalendarClick: () => {},
-    onCalendarDoubleClick: () => {},
-    onCalendarContextMenu: () => {},
-    onEventClick: () => {},
-    onEventDoubleClick: () => {},
-    onEventFocused: () => {},
-    onEventDragStart: () => {},
-    dragState: null,
-    newEventPreview,
-    readOnlyCalendarIds: new Set(),
-    isCalendarReadOnly: () => false,
-  });
+  const viewProps = (newEventPreview: any) =>
+    calendarViewProps({ focusedMoment: now, newEventPreview });
   let host: HTMLDivElement;
 
   beforeEach(() => {
@@ -490,19 +467,19 @@ describe('the views draw the range being dragged', function () {
     host.remove();
   });
 
-  const cases: Array<[any, boolean, string]> = [
-    [WeekView, false, '.calendar-event.drag-preview'],
-    [DayView, false, '.calendar-event.drag-preview'],
-    [MonthView, true, '.month-view-event.drag-preview'],
+  const cases: Array<[string, any, object, boolean, string]> = [
+    ['Week view', TimeGridView, { visibleDays: 7 }, false, '.calendar-event.drag-preview'],
+    ['Day view', TimeGridView, { visibleDays: 1 }, false, '.calendar-event.drag-preview'],
+    ['Month view', MonthView, {}, true, '.month-view-event.drag-preview'],
   ];
-  for (const [View, isAllDay, selector] of cases) {
-    it(`${View.displayName || View.name} draws the new event it is given, and none without one`, function () {
+  for (const [name, View, viewOptions, isAllDay, selector] of cases) {
+    it(`${name} draws the new event it is given, and none without one`, function () {
       const preview = createNewEventPreview(
         drag({ anchorTime: anchor, currentTime: anchor + 3600, isAllDay })
       );
-      ReactDOM.render(React.createElement(View, viewProps(null)), host);
+      ReactDOM.render(React.createElement(View, { ...viewProps(null), ...viewOptions }), host);
       expect(host.querySelector(selector)).toBe(null);
-      ReactDOM.render(React.createElement(View, viewProps(preview)), host);
+      ReactDOM.render(React.createElement(View, { ...viewProps(preview), ...viewOptions }), host);
       expect(host.querySelector(selector)).not.toBe(null);
     });
   }

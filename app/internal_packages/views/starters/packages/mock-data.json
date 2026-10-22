@@ -1,0 +1,169 @@
+{
+ "me": {
+  "name": "Sam Carter",
+  "email": "sam@example.com"
+ },
+ "threads": [
+  {
+   "subject": "Your UPS package is out for delivery",
+   "messages": [
+    {
+     "from": "UPS <mcinfo@ups.com>",
+     "date": "@now-3d",
+     "subject": "Your UPS package has shipped",
+     "body": "Your package from Oakline Furniture has shipped. Tracking number: 1Z84X9W70391857262. Scheduled delivery: Thursday."
+    },
+    {
+     "from": "UPS <mcinfo@ups.com>",
+     "date": "@now-2h",
+     "subject": "Your UPS package is out for delivery",
+     "body": "Good news! Your package 1Z84X9W70391857262 is out for delivery today by 7 PM."
+    }
+   ]
+  },
+  {
+   "subject": "USPS Expected Delivery on Monday",
+   "messages": [
+    {
+     "from": "USPS <auto-reply@usps.com>",
+     "date": "@now-1d",
+     "subject": "USPS Expected Delivery on Monday",
+     "body": "Your item 9400111899223817465093 is in transit to the next facility and arriving Monday."
+    }
+   ]
+  },
+  {
+   "subject": "Shipped: \"The Overstory\" and 2 more items",
+   "messages": [
+    {
+     "from": "Amazon <shipment-tracking@amazon.com>",
+     "date": "@now-2d",
+     "subject": "Shipped: \"The Overstory\" and 2 more items",
+     "body": "Your package is on its way. Track package TBA318204557601. Arriving Saturday."
+    }
+   ]
+  },
+  {
+   "subject": "Delivery exception for your FedEx shipment",
+   "messages": [
+    {
+     "from": "FedEx <TrackingUpdates@fedex.com>",
+     "date": "@now-4d",
+     "subject": "Your FedEx shipment is on the way",
+     "body": "FedEx tracking number 771284039214 is in transit. Estimated delivery Tuesday."
+    },
+    {
+     "from": "FedEx <TrackingUpdates@fedex.com>",
+     "date": "@now-1d",
+     "subject": "Delivery exception for your FedEx shipment",
+     "body": "Delivery exception: the delivery attempt for tracking number 771284039214 was unsuccessful. Action required."
+    }
+   ]
+  },
+  {
+   "subject": "Your order is on its way!",
+   "messages": [
+    {
+     "from": "Trailhead Outfitters <orders@trailhead.shopify.com>",
+     "date": "@now-5h",
+     "subject": "Your order is on its way!",
+     "body": "Good news — your Trailhead order #1043 has shipped and is on its way.",
+     "extract": {
+      "kind": "shipment update",
+      "carrier": "UPS",
+      "trackingNumber": null,
+      "status": "in transit",
+      "expectedArrival": "@today+3d"
+     }
+    }
+   ]
+  },
+  {
+   "subject": "Your DHL shipment was delivered",
+   "messages": [
+    {
+     "from": "DHL <noreply@dhl.com>",
+     "date": "@now-9d",
+     "subject": "DHL shipment in transit",
+     "body": "DHL waybill 4920583716 is in transit."
+    },
+    {
+     "from": "DHL <noreply@dhl.com>",
+     "date": "@now-7d",
+     "subject": "Your DHL shipment was delivered",
+     "body": "Your DHL shipment 4920583716 was delivered to the front door."
+    }
+   ]
+  },
+  {
+   "subject": "UPS Update: Your package was delivered",
+   "messages": [
+    {
+     "from": "UPS <mcinfo@ups.com>",
+     "date": "@now-12d",
+     "subject": "UPS Update: Package Scheduled for Delivery",
+     "body": "Shipment 1Z22A7F90328845519 has left the facility."
+    },
+    {
+     "from": "UPS <mcinfo@ups.com>",
+     "date": "@now-10d",
+     "subject": "UPS Update: Your package was delivered",
+     "body": "Your package 1Z22A7F90328845519 was delivered at the front porch."
+    }
+   ]
+  },
+  {
+   "subject": "Delivered: USB-C cables",
+   "messages": [
+    {
+     "from": "Amazon <shipment-tracking@amazon.com>",
+     "date": "@now-15d",
+     "subject": "Delivered: USB-C cables",
+     "body": "Your package TBA318204001122 was delivered. It was handed directly to a resident."
+    }
+   ]
+  },
+  {
+   "subject": "USPS: Your item was delivered",
+   "messages": [
+    {
+     "from": "USPS <auto-reply@usps.com>",
+     "date": "@now-20d",
+     "subject": "USPS: Your item was delivered",
+     "body": "Your item 9261290100130839274641 was delivered in or at the mailbox at 2:14 pm."
+    }
+   ]
+  },
+  {
+   "subject": "Your Leaf & Kettle order has been delivered",
+   "messages": [
+    {
+     "from": "Leaf & Kettle <hello@leafkettle.shop.app>",
+     "date": "@now-25d",
+     "subject": "Your Leaf & Kettle order has been delivered",
+     "body": "Your order #5521 has been delivered. Enjoy your tea!",
+     "extract": {
+      "kind": "shipment update",
+      "carrier": "USPS",
+      "trackingNumber": null,
+      "status": "delivered",
+      "expectedArrival": null
+     }
+    }
+   ]
+  },
+  {
+   "subject": "Weekend plans",
+   "messages": [
+    {
+     "from": "Chris Wong <chris@example.com>",
+     "date": "@now-3h",
+     "body": "Hike Saturday?"
+    }
+   ]
+  }
+ ],
+ "viewState": {
+  "months": 1
+ }
+}

@@ -236,6 +236,68 @@ const parseHasQuery = (text: string): [QueryExpression, string] => {
   return null;
 };
 
+// A field followed by a group applies the field to every term in it, so `subject:(a OR b)`
+// means `subject:a OR subject:b`. Inside the group, OR binds tighter than AND, as it does at
+// the top level.
+const parseFieldGroupTerm = (
+  text: string,
+  make: (txt: TextQueryExpression) => QueryExpression
+): [QueryExpression, string] => {
+  const [tok, afterTok] = nextToken(text);
+  if (tok === null) {
+    throw new Error("Expected ')' to close the group");
+  }
+  if (tok.s === '(') {
+    const [exp, afterExp] = parseFieldGroup(afterTok, make);
+    return [exp, consumeExpectedToken(afterExp, ')')];
+  }
+  if (tok.s === ')' || tok.s.toUpperCase() === 'OR' || tok.s.toUpperCase() === 'AND') {
+    throw new Error(`Expected a term inside the group, got '${tok.s}'`);
+  }
+  return [make(new TextQueryExpression(tok)), afterTok];
+};
+
+const parseFieldGroupOr = (
+  text: string,
+  make: (txt: TextQueryExpression) => QueryExpression
+): [QueryExpression, string] => {
+  const [lhs, afterLhs] = parseFieldGroupTerm(text, make);
+  const [tok, afterTok] = nextToken(afterLhs);
+  if (tok !== null && tok.s.toUpperCase() === 'OR') {
+    const [rhs, afterRhs] = parseFieldGroupOr(afterTok, make);
+    return [new OrQueryExpression(lhs, rhs), afterRhs];
+  }
+  return [lhs, afterLhs];
+};
+
+const parseFieldGroup = (
+  text: string,
+  make: (txt: TextQueryExpression) => QueryExpression
+): [QueryExpression, string] => {
+  const [lhs, afterLhs] = parseFieldGroupOr(text, make);
+  const [tok, afterTok] = nextToken(afterLhs);
+  if (tok === null || tok.s === ')') {
+    return [lhs, afterLhs];
+  }
+  const rhsStart = tok.s.toUpperCase() === 'AND' ? afterTok : afterLhs;
+  const [rhs, afterRhs] = parseFieldGroup(rhsStart, make);
+  return [new AndQueryExpression(lhs, rhs), afterRhs];
+};
+
+const parseFieldValue = (
+  text: string,
+  make: (txt: TextQueryExpression) => QueryExpression
+): [QueryExpression, string] => {
+  const afterColon = consumeExpectedToken(text, ':');
+  const [tok, afterTok] = nextToken(afterColon);
+  if (tok !== null && tok.s === '(') {
+    const [exp, afterExp] = parseFieldGroup(afterTok, make);
+    return [exp, consumeExpectedToken(afterExp, ')')];
+  }
+  const [txt, afterTxt] = parseText(afterColon);
+  return [make(txt), afterTxt];
+};
+
 const parseSimpleQuery = (text: string): [QueryExpression, string] => {
   const [tok, afterTok] = nextToken(text);
   if (tok === null) {
@@ -248,21 +310,15 @@ const parseSimpleQuery = (text: string): [QueryExpression, string] => {
   }
 
   if (tok.s.toUpperCase() === 'TO') {
-    const afterColon = consumeExpectedToken(afterTok, ':');
-    const [txt, afterTxt] = parseText(afterColon);
-    return [new ToQueryExpression(txt), afterTxt];
+    return parseFieldValue(afterTok, (txt) => new ToQueryExpression(txt));
   }
 
   if (tok.s.toUpperCase() === 'FROM') {
-    const afterColon = consumeExpectedToken(afterTok, ':');
-    const [txt, afterTxt] = parseText(afterColon);
-    return [new FromQueryExpression(txt), afterTxt];
+    return parseFieldValue(afterTok, (txt) => new FromQueryExpression(txt));
   }
 
   if (tok.s.toUpperCase() === 'SUBJECT') {
-    const afterColon = consumeExpectedToken(afterTok, ':');
-    const [txt, afterTxt] = parseText(afterColon);
-    return [new SubjectQueryExpression(txt), afterTxt];
+    return parseFieldValue(afterTok, (txt) => new SubjectQueryExpression(txt));
   }
 
   if (tok.s.toUpperCase() === 'IS') {
@@ -292,9 +348,7 @@ const parseSimpleQuery = (text: string): [QueryExpression, string] => {
   }
 
   if (tok.s.toUpperCase() === 'IN') {
-    const afterColon = consumeExpectedToken(afterTok, ':');
-    const [txt, afterTxt] = parseText(afterColon);
-    return [new InQueryExpression(txt), afterTxt];
+    return parseFieldValue(afterTok, (txt) => new InQueryExpression(txt));
   }
 
   const [txt, afterTxt] = parseText(text);

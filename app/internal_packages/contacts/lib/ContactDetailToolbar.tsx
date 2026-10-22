@@ -64,6 +64,23 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
     if (contacts.some((c) => c.source === 'gpeople' && showGPeopleReadonlyNotice(c.accountId))) {
       return;
     }
+    // DestroyContactTask can't be undone, so confirm before removing the contact from the server.
+    const response = require('@electron/remote').dialog.showMessageBoxSync({
+      type: 'warning',
+      message:
+        contacts.length === 1
+          ? localized('Delete %@?', contacts[0].name || contacts[0].email)
+          : localized('Delete %@ contacts?', contacts.length),
+      detail: localized(
+        'This contact will be removed from your address book. This cannot be undone.'
+      ),
+      buttons: [localized('Delete'), localized('Cancel')],
+      defaultId: 0,
+      cancelId: 1,
+    });
+    if (response !== 0) {
+      return;
+    }
     Actions.queueTask(
       DestroyContactTask.forRemoving({
         contacts: this.actionSet(),
@@ -133,7 +150,7 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
             onClick={actionSet.length > 0 ? () => exportContactsToFile(actionSet) : undefined}
           >
             <RetinaImg
-              name="toolbar-export-contact.png"
+              name="toolbar-download.png"
               mode={RetinaImg.Mode.ContentIsMask}
               aria-hidden="true"
             />

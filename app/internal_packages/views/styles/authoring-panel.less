@@ -1,0 +1,1094 @@
+@import 'ui-variables';
+
+// The authoring panel is a distinct "AI" surface: the same dark palette in every theme, so
+// it reads as separate from the mailbox it floats over and from any View content.
+@ap-bg: #1c1e22;
+@ap-bg-raised: #26292e;
+@ap-bg-sunken: #16181b;
+@ap-border: rgba(255, 255, 255, 0.1);
+// Stronger outline so the panel stays distinct over dark themes.
+@ap-outline: rgba(255, 255, 255, 0.16);
+@ap-text: #e9ebee;
+@ap-muted: #9aa1ab;
+@ap-faint: #6c727c;
+@ap-accent: #5aa2ff;
+@ap-ok: #4cc38a;
+@ap-warning: #f2b54b;
+@ap-error: #f06a6a;
+
+.views-authoring-panel {
+  position: fixed;
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  background: @ap-bg;
+  color: @ap-text;
+  border: 1px solid @ap-outline;
+  border-radius: 12px;
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.35),
+    0 2px 8px rgba(0, 0, 0, 0.25);
+  font-family: @font-family-sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  overflow: hidden;
+  -webkit-user-select: text;
+
+  &.collapsed {
+    border-radius: 20px;
+  }
+
+  &.has-request:not(.collapsed) {
+    border-color: fade(@ap-accent, 45%);
+  }
+
+  .ap-resize {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 14px;
+    height: 14px;
+    cursor: nwse-resize;
+    z-index: 2;
+  }
+
+  .ap-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    height: 40px;
+    padding: 0 8px 0 14px;
+    border-bottom: 1px solid @ap-border;
+    cursor: grab;
+    -webkit-user-select: none;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+
+  &.collapsed .ap-header {
+    border-bottom: 0;
+  }
+
+  .ap-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background: @ap-faint;
+
+    &.tone-working,
+    &.tone-attention {
+      background: @ap-accent;
+    }
+    &.tone-ok {
+      background: @ap-ok;
+    }
+    &.tone-warning {
+      background: @ap-warning;
+    }
+    &.tone-error {
+      background: @ap-error;
+    }
+    &.pulsing {
+      animation: ap-pulse 1.4s ease-in-out infinite;
+    }
+  }
+
+  .ap-title {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .ap-name {
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ap-cloud-hint {
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 1px 7px;
+    border: 1px solid fade(#ffffff, 14%);
+    border-radius: 9px;
+    color: @ap-faint;
+    font-size: 11px;
+    cursor: help;
+  }
+
+  .ap-usage {
+    color: @ap-faint;
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .ap-icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: @ap-muted;
+    cursor: pointer;
+
+    &:hover {
+      background: @ap-bg-raised;
+      color: @ap-text;
+    }
+  }
+
+  .ap-btn {
+    height: 28px;
+    padding: 0 12px;
+    border: 1px solid @ap-border;
+    border-radius: 7px;
+    background: @ap-bg-raised;
+    color: @ap-text;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover:not(:disabled) {
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    &:disabled {
+      opacity: 0.45;
+      cursor: default;
+    }
+  }
+
+  .ap-btn-primary {
+    background: @ap-accent;
+    border-color: @ap-accent;
+    color: #0b1220;
+    font-weight: 600;
+
+    &:hover:not(:disabled) {
+      border-color: lighten(@ap-accent, 8%);
+      background: lighten(@ap-accent, 6%);
+    }
+  }
+
+  .ap-btn-ghost {
+    background: transparent;
+  }
+
+  .ap-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  // Request footers put the primary action on the right, in line with the composer's Send.
+  .ap-actions-end {
+    justify-content: flex-end;
+  }
+
+  .ap-transcript {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 12px 14px 4px;
+  }
+
+  .ap-empty {
+    color: @ap-muted;
+    padding: 6px 0 10px;
+  }
+
+  .ap-entry {
+    margin-bottom: 10px;
+
+    &.role-user {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+
+      .ap-entry-text {
+        max-width: 85%;
+        padding: 7px 11px;
+        border-radius: 10px 10px 2px 10px;
+        background: @ap-bg-raised;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+    }
+
+    &.role-system .ap-entry-text {
+      color: @ap-faint;
+      font-size: 12px;
+      text-align: center;
+    }
+  }
+
+  .ap-markdown {
+    word-break: break-word;
+
+    p {
+      margin: 0 0 6px;
+    }
+    .ap-heading {
+      font-weight: 600;
+    }
+    ul,
+    ol {
+      margin: 0 0 6px;
+      padding-left: 20px;
+    }
+    li {
+      margin: 2px 0;
+    }
+    code {
+      padding: 1px 4px;
+      border-radius: 4px;
+      background: @ap-bg-sunken;
+      font-family: Menlo, Consolas, monospace;
+      font-size: 11.5px;
+    }
+    pre {
+      margin: 0 0 6px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      background: @ap-bg-sunken;
+      font-family: Menlo, Consolas, monospace;
+      font-size: 11.5px;
+      white-space: pre-wrap;
+    }
+    strong {
+      font-weight: 600;
+    }
+    .ap-link-text {
+      color: @ap-accent;
+    }
+  }
+
+  .ap-sent-chips {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 6px;
+    max-width: 85%;
+
+    .ap-chip {
+      opacity: 0.8;
+    }
+  }
+
+  .ap-request,
+  .ap-revision,
+  .ap-banner {
+    margin: 4px 0 10px;
+    padding: 10px 12px;
+    border-radius: 9px;
+    background: @ap-bg-raised;
+    border: 1px solid @ap-border;
+  }
+
+  .ap-request {
+    border-color: fade(@ap-accent, 40%);
+    background: fade(@ap-accent, 9%);
+  }
+
+  .ap-request-hint {
+    margin-top: 4px;
+    color: @ap-muted;
+    font-size: 12px;
+  }
+
+  .ap-screenshot-note {
+    margin-top: 6px;
+    color: @ap-muted;
+    font-size: 12px;
+  }
+
+  .ap-screenshot-wrap {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+    margin-top: 8px;
+  }
+
+  .ap-screenshot {
+    display: block;
+    max-width: 100%;
+    max-height: 140px;
+    border-radius: 6px;
+    border: 1px solid @ap-border;
+  }
+
+  .ap-live {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 7px 2px 6px;
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.62);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+
+    &::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: @ap-ok;
+      animation: ap-live-pulse 1.6s ease-in-out infinite;
+    }
+  }
+
+  // An answered request: the agent's ask, kept in the history above the user's response.
+  .ap-entry.ap-asked .ap-markdown {
+    padding-left: 10px;
+    border-left: 2px solid fade(@ap-accent, 45%);
+  }
+
+  .ap-sent-screenshot {
+    display: block;
+    max-width: 60%;
+    max-height: 90px;
+    margin-top: 6px;
+    border-radius: 6px;
+    border: 1px solid @ap-border;
+    opacity: 0.85;
+  }
+
+  // Footer bar for the latest working revision.
+  .ap-ready {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 12px 0 14px;
+
+    .ap-ready-label {
+      font-weight: 600;
+      color: @ap-ok;
+      font-size: 12px;
+    }
+    .ap-ready-spacer {
+      flex: 1;
+    }
+  }
+
+  .ap-revision-line {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .ap-revision-label {
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .ap-revision-status {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: @ap-muted;
+  }
+
+  .rev-ok .ap-revision-status {
+    color: @ap-ok;
+  }
+  .rev-failed .ap-revision-status,
+  .rev-timeout .ap-revision-status,
+  .rev-rejected .ap-revision-status {
+    color: @ap-error;
+  }
+
+  .ap-revision-summary {
+    flex: 1;
+    min-width: 0;
+    color: @ap-muted;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ap-banner {
+    // A plan limit is information, not a failure: accent-tinted like requests.
+    &.tone-limit {
+      border-color: fade(@ap-accent, 40%);
+      background: fade(@ap-accent, 9%);
+    }
+    &.tone-warning {
+      border-color: fade(@ap-warning, 45%);
+      background: fade(@ap-warning, 9%);
+    }
+    &.tone-error {
+      border-color: fade(@ap-error, 45%);
+      background: fade(@ap-error, 9%);
+      color: lighten(@ap-error, 12%);
+    }
+  }
+
+  .ap-footer {
+    flex-shrink: 0;
+    border-top: 1px solid @ap-border;
+    background: @ap-bg;
+  }
+
+  // Same right inset as the composer, so the request's primary action lines up with Send.
+  .ap-staged {
+    padding: 8px 12px 0 14px;
+  }
+
+  .ap-staged-label {
+    color: @ap-muted;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+  }
+
+  .ap-chips {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .ap-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    max-width: 260px;
+    padding: 5px 6px 5px 10px;
+    border-radius: 8px;
+    background: @ap-bg-raised;
+    border: 1px solid @ap-border;
+    font-size: 12px;
+
+    .ap-chip-text {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .ap-chip-from {
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .ap-chip-subject {
+      color: @ap-muted;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .ap-chip-meta {
+      color: @ap-faint;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+    .ap-chip-remove {
+      width: 20px;
+      height: 20px;
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      color: @ap-muted;
+      cursor: pointer;
+      line-height: 20px;
+
+      &:hover {
+        background: @ap-bg-sunken;
+        color: @ap-text;
+      }
+    }
+  }
+
+  .ap-composer-hint {
+    margin-top: -4px;
+    padding: 0 14px 10px;
+    font-size: 11.5px;
+    color: @ap-faint;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+
+    &.over {
+      color: @ap-warning;
+      text-align: left;
+    }
+  }
+
+  .ap-composer {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    padding: 10px 12px 12px 14px;
+
+    textarea {
+      flex: 1;
+      box-sizing: border-box;
+      height: 36px;
+      min-height: 36px;
+      max-height: 96px;
+      padding: 8px 10px;
+      resize: none;
+      border: 1px solid @ap-border;
+      border-radius: 8px;
+      background: @ap-bg-sunken;
+      color: @ap-text;
+      font-family: inherit;
+      font-size: 13px;
+      line-height: 18px;
+      outline: none;
+
+      &:focus {
+        border-color: fade(@ap-accent, 60%);
+      }
+      &::placeholder {
+        color: @ap-faint;
+      }
+    }
+
+    .ap-btn {
+      flex-shrink: 0;
+      height: 36px;
+    }
+  }
+
+  .ap-drop-overlay {
+    position: absolute;
+    inset: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    border: 2px dashed @ap-accent;
+    border-radius: 10px;
+    background: fade(@ap-bg, 92%);
+    color: @ap-text;
+    font-weight: 600;
+    pointer-events: none;
+    z-index: 3;
+
+    .ap-drop-sub {
+      font-weight: normal;
+      color: @ap-muted;
+      font-size: 12px;
+    }
+  }
+}
+
+@keyframes ap-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.views-authoring-panel {
+  .ap-drop-hint {
+    padding: 10px;
+    border: 1px dashed fade(@ap-accent, 55%);
+    border-radius: 8px;
+    color: @ap-muted;
+    font-size: 12px;
+    text-align: center;
+  }
+
+  .ap-staged .ap-actions {
+    margin-top: 8px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.16);
+  }
+  ::-webkit-scrollbar-track,
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+// Appearance: the panel pops out of the window corner it's anchored to (--ap-origin and the
+// --ap-dx/--ap-dy nudge are set inline from its position) with a slight overshoot, and drops
+// back into it faster on close. Only transform and opacity animate, so layout never reflows.
+@ap-spring: cubic-bezier(0.34, 1.45, 0.64, 1);
+
+.views-authoring-panel {
+  transform-origin: var(--ap-origin, right bottom);
+
+  &.anim-enter {
+    animation: ap-pop-in 320ms @ap-spring both;
+  }
+  &.anim-exit {
+    animation: ap-pop-out 170ms cubic-bezier(0.4, 0, 1, 1) both;
+  }
+  &.anim-expand-0 {
+    animation: ap-expand-a 260ms @ap-spring both;
+  }
+  &.anim-expand-1 {
+    animation: ap-expand-b 260ms @ap-spring both;
+  }
+  &.anim-collapse-0 {
+    animation: ap-settle-a 200ms @ap-spring both;
+  }
+  &.anim-collapse-1 {
+    animation: ap-settle-b 200ms @ap-spring both;
+  }
+  &.leaving {
+    pointer-events: none;
+  }
+}
+
+@keyframes ap-pop-in {
+  from {
+    opacity: 0;
+    transform: translate(var(--ap-dx, 14px), var(--ap-dy, 14px)) scale(0.86);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ap-pop-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translate(var(--ap-dx, 14px), var(--ap-dy, 14px)) scale(0.9);
+  }
+}
+
+// Two identical copies of each: alternating the animation-name restarts it on every toggle.
+@keyframes ap-expand-a {
+  from {
+    opacity: 0.4;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ap-expand-b {
+  from {
+    opacity: 0.4;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ap-settle-a {
+  from {
+    opacity: 0.5;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ap-settle-b {
+  from {
+    opacity: 0.5;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ap-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ap-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .views-authoring-panel {
+    &.anim-enter,
+    &.anim-expand-0,
+    &.anim-expand-1,
+    &.anim-collapse-0,
+    &.anim-collapse-1 {
+      animation: ap-fade-in 150ms ease both;
+    }
+    &.anim-exit {
+      animation: ap-fade-out 120ms ease both;
+    }
+    .ap-busy-dots i,
+    .ap-busy-bar span,
+    .ap-live::before {
+      animation: none;
+    }
+    .ap-busy-label {
+      animation: ap-fade-in 300ms ease both;
+    }
+  }
+}
+
+.views-authoring-panel {
+  // Working card shown in the transcript while the agent builds.
+  .ap-busy {
+    margin: 4px 0 10px;
+    padding: 12px 12px 10px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, fade(@ap-accent, 12%), fade(@ap-accent, 4%));
+    border: 1px solid fade(@ap-accent, 28%);
+  }
+
+  .ap-busy-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .ap-busy-dots {
+    display: inline-flex;
+    gap: 4px;
+    flex-shrink: 0;
+
+    i {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: @ap-accent;
+      animation: ap-busy-dot 1.2s ease-in-out infinite;
+
+      &:nth-child(2) {
+        animation-delay: 0.15s;
+      }
+      &:nth-child(3) {
+        animation-delay: 0.3s;
+      }
+    }
+  }
+
+  .ap-busy-label {
+    flex: 1;
+    min-width: 0;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    animation: ap-line-in 450ms ease-out both;
+  }
+
+  .ap-busy-time {
+    color: @ap-muted;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ap-busy-stop {
+    height: 24px;
+    padding: 0 10px;
+  }
+
+  .ap-busy-bar {
+    position: relative;
+    height: 3px;
+    margin-top: 10px;
+    border-radius: 2px;
+    background: fade(@ap-accent, 14%);
+    overflow: hidden;
+
+    span {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 35%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, transparent, @ap-accent, transparent);
+      animation: ap-busy-sweep 1.6s ease-in-out infinite;
+    }
+  }
+
+  .ap-busy-hint {
+    margin-top: 8px;
+    color: @ap-muted;
+    font-size: 12px;
+  }
+
+  // Free-text answer for a question with no suggested choices.
+  .ap-answer {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    margin-top: 10px;
+
+    textarea {
+      flex: 1;
+      box-sizing: border-box;
+      height: 36px;
+      min-height: 36px;
+      max-height: 96px;
+      padding: 8px 10px;
+      resize: none;
+      border: 1px solid @ap-border;
+      border-radius: 8px;
+      background: @ap-bg-sunken;
+      color: @ap-text;
+      font-family: inherit;
+      font-size: 13px;
+      line-height: 18px;
+      outline: none;
+
+      &:focus {
+        border-color: fade(@ap-accent, 60%);
+      }
+      &::placeholder {
+        color: @ap-faint;
+      }
+    }
+
+    .ap-btn {
+      height: 36px;
+    }
+  }
+
+  // With the composer hidden during an examples request, the staged area is the whole footer.
+  &.has-request .ap-staged {
+    padding-bottom: 12px;
+  }
+}
+
+@keyframes ap-live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes ap-busy-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.75);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes ap-busy-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(290%);
+  }
+}
+
+@keyframes ap-line-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// ── Compact intro ────────────────────────────────────────────────────────────
+
+.views-authoring-panel {
+  &.compact .ap-transcript {
+    flex: none;
+    padding-bottom: 12px;
+  }
+}
+
+// ── Morphing to and from the Edit button ─────────────────────────────────────
+
+.views-authoring-panel {
+  &.anim-morph-in {
+    transform-origin: var(--ap-morph-origin);
+    animation: ap-morph-in 340ms @ap-spring both;
+  }
+  &.anim-morph-out {
+    transform-origin: var(--ap-morph-origin);
+    animation: ap-morph-out 200ms cubic-bezier(0.4, 0, 1, 1) both;
+  }
+}
+
+@keyframes ap-morph-in {
+  from {
+    opacity: 0.2;
+    border-radius: 40px;
+    transform: scale(var(--ap-msx, 0.1), var(--ap-msy, 0.1));
+  }
+  35% {
+    opacity: 1;
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ap-morph-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    border-radius: 40px;
+    transform: scale(var(--ap-msx, 0.1), var(--ap-msy, 0.1));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .views-authoring-panel {
+    &.anim-morph-in {
+      animation: ap-fade-in 150ms ease both;
+    }
+    &.anim-morph-out {
+      animation: ap-fade-out 120ms ease both;
+    }
+  }
+  .view-edit-button {
+    transition: opacity 120ms ease;
+  }
+}
+
+// ── Edit button ──────────────────────────────────────────────────────────────
+
+// Same dark surface as the panel it opens, so the two read as one control.
+.view-edit-button {
+  position: absolute;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid @ap-outline;
+  border-radius: 50%;
+  background: @ap-bg;
+  color: @ap-text;
+  cursor: pointer;
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.28),
+    0 1px 3px rgba(0, 0, 0, 0.2);
+  // Reappears once the panel has finished shrinking back into it.
+  transition:
+    opacity 160ms ease 140ms,
+    transform 220ms @ap-spring 140ms;
+
+  &:hover {
+    background: lighten(@ap-bg, 6%);
+  }
+  &:focus-visible {
+    outline: 2px solid @ap-accent;
+    outline-offset: 2px;
+  }
+  &.hidden {
+    opacity: 0;
+    transform: scale(0.6);
+    pointer-events: none;
+    transition:
+      opacity 90ms ease,
+      transform 90ms ease;
+  }
+
+  &.variant-page {
+    right: 20px;
+    bottom: 20px;
+    width: 40px;
+    height: 40px;
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  // Sidebar Views are small and dense, so the pencil only shows when the pointer is over one.
+  &.variant-sidebar {
+    right: 8px;
+    bottom: 8px;
+    width: 24px;
+    height: 24px;
+    opacity: 0;
+    transform: scale(0.8);
+    svg {
+      width: 12px;
+      height: 12px;
+    }
+  }
+
+  .view-edit-button-dot {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: @ap-accent;
+    animation: ap-pulse 1.4s ease-in-out infinite;
+  }
+}
+
+.sidebar-view:hover > .view-edit-button.variant-sidebar:not(.hidden),
+.view-edit-button.variant-sidebar.working:not(.hidden),
+.view-edit-button.variant-sidebar:focus-visible {
+  opacity: 1;
+  transform: none;
+}

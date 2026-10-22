@@ -510,19 +510,82 @@
   width: 250px;
 }
 
+// The toolbar makes every item a no-drag region; the empty space beside the controls still moves the window.
+.sheet-toolbar .item-container > .header-controls {
+  -webkit-app-region: drag;
+}
+
+.header-controls {
+  align-items: center;
+  align-self: stretch;
+  display: flex;
+  justify-content: flex-end;
+  // Outgrows the toolbar's two flexible spacers, so the controls sit at the far end.
+  flex: 1000 1 auto;
+  min-width: 0;
+  padding: 0 10px;
+  color: @text-color-subtle;
+
+  .side-controls {
+    -webkit-app-region: no-drag;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+
+    > :not(.event-search-bar) {
+      flex-shrink: 0;
+    }
+    gap: 8px;
+  }
+
+  // The header centres its controls itself, so drop the toolbar's per-button offsets.
+  .btn-toolbar,
+  .btn-toolbar:only-of-type,
+  .btn-ghost,
+  .btn-bare {
+    margin: 0;
+  }
+
+  .btn-toolbar:focus-visible {
+    outline-width: 1px;
+  }
+
+  .nav-arrows {
+    display: flex;
+    gap: 2px;
+  }
+
+  .view-select {
+    position: relative;
+    display: flex;
+    align-items: center;
+
+    // Sized to the view it shows rather than its longest option, so "Day" leaves no gap.
+    select {
+      appearance: none;
+      field-sizing: content;
+      padding-right: 25px;
+    }
+    img.content-mask {
+      position: absolute;
+      pointer-events: none;
+      background-color: @btn-default-text-color;
+    }
+  }
+}
+
 // Event Search Bar - matches ThreadSearchBar styling
 .event-search-bar {
   position: relative;
-  order: -100;
   overflow: visible;
   z-index: 100;
-  width: 450px;
+  flex: 0 1 180px;
+  min-width: 120px;
   height: 23px;
   font-weight: 400;
   line-height: 23px;
   background: @input-bg;
   color: @text-color;
-  margin-top: 5px;
   padding-left: @padding-xs-horizontal;
   padding-right: @padding-xs-horizontal;
   border-radius: @border-radius-base;
@@ -531,7 +594,7 @@
   align-items: center;
 
   &.focused {
-    box-shadow: 0 0 0 2px @accent-primary;
+    box-shadow: 0 0 0 1px @accent-primary;
   }
 
   .search-accessory {
@@ -578,10 +641,11 @@
     }
   }
 
+  // Wider than the field, which sits at the toolbar's right edge.
   .suggestions {
-    left: 0;
+    right: 0;
     top: 23px;
-    width: 100%;
+    width: 450px;
     position: absolute;
     background: @input-bg;
     border-bottom-left-radius: @border-radius-base;
@@ -660,8 +724,28 @@
 :where(body.platform-darwin) .event-search-bar {
   height: @toolbar-btn-height-darwin;
   line-height: @toolbar-btn-height-darwin;
-  margin-top: ((@toolbar-height-darwin - @toolbar-btn-height-darwin) / 2);
   padding-left: @padding-base-horizontal;
   padding-right: @padding-base-horizontal;
   border-radius: (@toolbar-btn-height-darwin / 2);
+}
+
+.mailspring-calendar.sidebar-agenda-panel {
+  flex: 1;
+  min-height: 0;
+  background: @background-secondary;
+
+  .agenda-panel {
+    flex: 1;
+    width: auto;
+    border-left: none;
+    background: @background-secondary;
+
+    .agenda-day-header {
+      background: @background-secondary;
+    }
+
+    .agenda-event-list {
+      padding: 0 8px 12px;
+    }
+  }
 }

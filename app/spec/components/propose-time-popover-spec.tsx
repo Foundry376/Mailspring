@@ -55,6 +55,15 @@ describe('ProposeTimePopover', function () {
       expect(Actions.closePopover).toHaveBeenCalled();
     });
 
+    it("shows how long the proposal runs, in the app's short form", function () {
+      const duration = () =>
+        ReactTestUtils.findRenderedDOMComponentWithClass(popover, 'propose-time-duration')
+          .textContent;
+      expect(duration()).toBe('30m');
+      popover._onChangeEndTime(moment('2026-03-10 15:30', 'YYYY-MM-DD HH:mm').valueOf());
+      expect(duration()).toBe('1h 30m');
+    });
+
     it('changes the duration when the end moves, never below a minute', function () {
       popover._onChangeEndTime(moment('2026-03-10 15:00', 'YYYY-MM-DD HH:mm').valueOf());
       expect(popover.state.end - popover.state.start).toBe(3600);
