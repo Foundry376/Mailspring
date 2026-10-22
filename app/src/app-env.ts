@@ -666,10 +666,11 @@ export default class AppEnvConstructor {
       dimensions = this.getDefaultWindowDimensions();
     }
 
-    // Amazingly, Wayland doesn't let apps adjust the positions of their windows, only their size.
-    // This is wild and users seem to dislike it, but we'll let the app use it's default position,
-    // and avoid interfering with any userland scripts / extensions users have to save their settings.
-    if (!isWaylandSession()) {
+    // Wayland lets an app size its window but not position it, so restore only the size there and
+    // leave placement to the compositor and any userland scripts / extensions that remember it.
+    if (isWaylandSession()) {
+      this.setSize(dimensions.width, dimensions.height);
+    } else {
       this.setWindowDimensions(dimensions);
     }
 

@@ -6,6 +6,7 @@ import { EventEmitter } from 'events';
 import { isWaylandSession } from './is-wayland';
 import { developerToolsAvailable } from '../developer-tools';
 import { XDG_DATA_PATHS, getFirstExistingPath } from '../utils/xdg-paths';
+import { prepareViewWebview, guardViewGuest } from './view-sessions';
 
 import {
   attemptEarlyRendererCrashRecovery,
@@ -168,7 +169,10 @@ export default class MailspringWindow extends EventEmitter {
     // legitimate guest (the onboarding sign-in view in
     // app/src/components/webview.tsx) displays remote web content and needs none
     // of these privileges. Do not relax this. See GHSA-x8wg-258g-v28h.
-    this.browserWindow.webContents.on('will-attach-webview', (_event, webPreferences, params) => {
+    //
+    // Sandboxed View guests get their bridge preload from their session (registered by
+    // view-sessions.ts), never from the tag, so stripping preloads here applies to them too.
+    this.browserWindow.webContents.on('will-attach-webview', (event, webPreferences, params) => {
       delete (webPreferences as any).preload;
       delete (params as any).preload;
       delete (params as any).webpreferences;
@@ -179,6 +183,12 @@ export default class MailspringWindow extends EventEmitter {
       webPreferences.contextIsolation = true;
       webPreferences.sandbox = true;
       webPreferences.devTools = developerToolsAvailable();
+      if (!prepareViewWebview(webPreferences, params as any)) {
+        event.preventDefault();
+      }
+    });
+    this.browserWindow.webContents.on('did-attach-webview', (_event, guest) => {
+      guardViewGuest(guest);
     });
 
     require('@electron/remote/main').enable(this.browserWindow.webContents);

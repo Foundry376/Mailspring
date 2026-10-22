@@ -74,12 +74,13 @@ const OutlineViewForAccount = ({
 
     for (const group of groups) {
       const perspective = perspectiveForGroup(group);
+      const isSelectedGroup = selected?.type === 'group' && selected.groupId === group.id;
       items.push({
-        id: `${perspective.accountId}-${perspective.label}`,
+        id: group.id,
         name: perspective.label,
         iconName: 'label.png',
         children: [],
-        selected: isEqual(selected, perspective),
+        selected: isSelectedGroup,
         onSelect: () => onSelect(perspective),
         onEdited: (item, value: string) => {
           if (showGPeopleReadonlyNotice(account.id)) {
@@ -95,7 +96,9 @@ const OutlineViewForAccount = ({
         },
         onDrop: (item, { dataTransfer }) => {
           const data = JSON.parse(dataTransfer.getData('mailspring-contacts-data'));
-          const contacts = data.ids.map((i) => Store.filteredContacts().find((c) => c.id === i));
+          const contacts = data.ids
+            .map((i) => Store.filteredContacts().find((c) => c.id === i))
+            .filter(Boolean);
           if (!contacts.length) {
             return false;
           }
@@ -114,7 +117,7 @@ const OutlineViewForAccount = ({
           if (!dataTransfer.types.includes('mailspring-contacts-data')) {
             return false;
           }
-          if (isEqual(selected, perspective)) {
+          if (isSelectedGroup) {
             return false;
           }
           // We can't inspect the drag payload until drop, so we use a dataTransfer

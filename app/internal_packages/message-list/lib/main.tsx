@@ -11,12 +11,17 @@ import { MessageListHiddenMessagesToggle } from './message-list-hidden-messages-
 import MessageList from './message-list';
 import { SidebarPluginContainer } from './sidebar-plugin-container';
 import { SidebarParticipantPicker } from './sidebar-participant-picker';
+import { SidebarPanels } from './sidebar-panels';
 
 export function activate() {
   if (AppEnv.isMainWindow()) {
     // Register Message List Actions we provide globally
     ComponentRegistry.register(MessageList, {
       location: WorkspaceStore.Location.MessageList,
+    });
+    // Registered first so the panel switcher sits at the top of the sidebar column.
+    ComponentRegistry.register(SidebarPanels, {
+      location: WorkspaceStore.Location.MessageListSidebar,
     });
     ComponentRegistry.register(SidebarParticipantPicker, {
       location: WorkspaceStore.Location.MessageListSidebar,
@@ -50,4 +55,5 @@ export function deactivate() {
   ComponentRegistry.unregister(MessageList);
   ComponentRegistry.unregister(SidebarPluginContainer);
   ComponentRegistry.unregister(SidebarParticipantPicker);
+  ComponentRegistry.unregister(SidebarPanels);
 }

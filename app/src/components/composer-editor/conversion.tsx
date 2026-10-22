@@ -25,6 +25,7 @@ import GrammarCheckPlugins from './grammar-check-plugins';
 import { Rule, ComposerEditorPlugin } from './types';
 
 import './patch-chrome-ime';
+import './patch-slate-normalizing';
 import { deepenPlaintextQuote } from './plaintext';
 
 export const schema = {

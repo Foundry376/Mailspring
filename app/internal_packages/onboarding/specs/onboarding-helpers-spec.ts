@@ -1,6 +1,11 @@
 import dns from 'dns';
 import { Account, AccountStore } from 'mailspring-exports';
-import { expandAccountWithCommonSettings } from '../lib/onboarding-helpers';
+import {
+  expandAccountForSetup,
+  expandAccountWithCommonSettings,
+  isHostInDomain,
+  serversOutsideDomain,
+} from '../lib/onboarding-helpers';
 
 const AUTOCONFIG_IMAP_HOST = 'imap.autoconfig.example';
 const AUTOCONFIG_SMTP_HOST = 'smtp.autoconfig.example';
@@ -47,14 +52,32 @@ function accountFor(emailAddress: string, provider = 'imap', settings = {}) {
   return new Account({ name: 'Test', emailAddress, provider, settings } as any);
 }
 
+// Answers SRV queries from `records`, keyed by the full query name, and fails the rest.
+function stubSrv(records: { [name: string]: [number, number, number, string][] }) {
+  (dns.Resolver.prototype.resolveSrv as unknown as jasmine.Spy).andCallFake((name, callback) => {
+    if (!records[name]) return callback(new Error('ENOTFOUND'));
+    callback(
+      null,
+      records[name].map(([priority, weight, port, target]) => ({
+        priority,
+        weight,
+        port,
+        name: target,
+      }))
+    );
+  });
+}
+
 describe('expandAccountWithCommonSettings', function onboardingHelpersTests() {
   let resolveMxSpy: jasmine.Spy;
 
   beforeEach(() => {
-    // The MX lookup only feeds the Mailcore table's mx-match rules, and it is a real
-    // network call - stub it so specs don't depend on DNS.
+    // The MX and SRV lookups are real network calls - stub them so specs don't depend on DNS.
     resolveMxSpy = spyOn(dns, 'resolveMx');
     resolveMxSpy.andCallFake((domain, callback) => callback(new Error('ENOTFOUND')));
+    spyOn(dns.Resolver.prototype, 'resolveSrv').andCallFake((name, callback) =>
+      callback(new Error('ENOTFOUND'))
+    );
     spyOn(AccountStore, 'containerFolderDefaultGetter').andReturn('');
   });
 
@@ -114,6 +137,98 @@ describe('expandAccountWithCommonSettings', function onboardingHelpersTests() {
     expect(account.settings.container_folder).toEqual('');
   });
 
+  it('uses SRV records before guessing, and asks to confirm servers outside the domain', async () => {
+    stubAutoconfig([]);
+    stubSrv({
+      '_imaps._tcp.hosted.example': [
+        [10, 100, 993, 'backup.provider.example'],
+        [0, 100, 993, 'mail.provider.example'],
+      ],
+      '_submission._tcp.hosted.example': [[0, 100, 587, 'mail.provider.example']],
+    });
+    const { account, confirmServers } = await expandAccountForSetup(
+      accountFor('user@hosted.example')
+    );
+
+    expect(account.settings.imap_host).toEqual('mail.provider.example');
+    expect(account.settings.imap_port).toEqual(993);
+    expect(account.settings.imap_security).toEqual('SSL / TLS');
+    expect(account.settings.imap_username).toEqual('user@hosted.example');
+    expect(account.settings.smtp_host).toEqual('mail.provider.example');
+    expect(account.settings.smtp_port).toEqual(587);
+    expect(account.settings.smtp_security).toEqual('STARTTLS');
+    expect(confirmServers).toBe(true);
+  });
+
+  it('prefers implicit TLS SRV services and skips services marked unavailable', async () => {
+    stubAutoconfig([]);
+    stubSrv({
+      '_imaps._tcp.srv.example': [[0, 0, 993, '.']],
+      '_imap._tcp.srv.example': [[0, 1, 143, 'imap.srv.example']],
+      '_submissions._tcp.srv.example': [[0, 1, 465, 'smtp.srv.example']],
+      '_submission._tcp.srv.example': [[0, 1, 587, 'smtp.srv.example']],
+    });
+    const { account, confirmServers } = await expandAccountForSetup(accountFor('user@srv.example'));
+
+    expect(account.settings.imap_host).toEqual('imap.srv.example');
+    expect(account.settings.imap_port).toEqual(143);
+    expect(account.settings.imap_security).toEqual('STARTTLS');
+    expect(account.settings.smtp_port).toEqual(465);
+    expect(account.settings.smtp_security).toEqual('SSL / TLS');
+    expect(confirmServers).toBe(false);
+  });
+
+  it('guesses the side that has no SRV records and keeps the other side from SRV', async () => {
+    stubAutoconfig([]);
+    stubSrv({ '_submissions._tcp.hosted.example': [[0, 1, 465, 'smtp.provider.example']] });
+    const { account, confirmServers } = await expandAccountForSetup(
+      accountFor('user@hosted.example')
+    );
+
+    expect(account.settings.imap_host).toEqual('imap.hosted.example');
+    expect(account.settings.imap_port).toEqual(993);
+    expect(account.settings.imap_security).toEqual('SSL / TLS');
+    expect(account.settings.smtp_host).toEqual('smtp.provider.example');
+    expect(account.settings.smtp_port).toEqual(465);
+    expect(account.settings.smtp_security).toEqual('SSL / TLS');
+    expect(confirmServers).toBe(true);
+  });
+
+  it('treats uppercase and trailing-dot SRV targets in the domain as in-domain', async () => {
+    stubAutoconfig([]);
+    stubSrv({
+      '_imaps._tcp.hosted.example': [[0, 1, 993, 'IMAP.Hosted.Example.']],
+      '_submissions._tcp.hosted.example': [[0, 1, 465, 'hosted.example.']],
+    });
+    const { account, confirmServers } = await expandAccountForSetup(
+      accountFor('user@hosted.example')
+    );
+
+    expect(account.settings.imap_host).toEqual('imap.hosted.example');
+    expect(account.settings.smtp_host).toEqual('hosted.example');
+    expect(confirmServers).toBe(false);
+  });
+
+  it('asks to confirm an SRV target on a lookalike domain', async () => {
+    stubAutoconfig([]);
+    stubSrv({ '_imaps._tcp.example.com': [[0, 1, 993, 'imap.evil-example.com']] });
+    const { confirmServers } = await expandAccountForSetup(accountFor('user@example.com'));
+
+    expect(confirmServers).toBe(true);
+  });
+
+  it('prefers the autoconfig file over SRV records', async () => {
+    stubAutoconfig(['hosted.example']);
+    stubSrv({ '_imaps._tcp.hosted.example': [[0, 1, 993, 'mail.provider.example']] });
+    const { account, confirmServers } = await expandAccountForSetup(
+      accountFor('user@hosted.example')
+    );
+
+    expect(account.settings.imap_host).toEqual(AUTOCONFIG_IMAP_HOST);
+    expect(confirmServers).toBe(false);
+    expect(dns.Resolver.prototype.resolveSrv).not.toHaveBeenCalled();
+  });
+
   it('keeps user-entered settings ahead of the autoconfig and template defaults', async () => {
     stubAutoconfig(['proton.me']);
     const account = await expandAccountWithCommonSettings(
@@ -134,6 +249,7 @@ describe('expandAccountWithCommonSettings', function onboardingHelpersTests() {
     expect(account.settings.imap_host).toEqual('imap.gmail.com');
     expect(account.settings.smtp_host).toEqual('smtp.gmail.com');
     expect(window.fetch).not.toHaveBeenCalled();
+    expect(dns.Resolver.prototype.resolveSrv).not.toHaveBeenCalled();
   });
 
   it('uses Google servers for a domain whose MX record is smtp.google.com', async () => {
@@ -181,6 +297,18 @@ describe('expandAccountWithCommonSettings', function onboardingHelpersTests() {
     expect(account.settings.smtp_host).toEqual('smtp.mail.yahoo.com');
   });
 
+  it('prefers the account type preset over SRV records', async () => {
+    stubAutoconfig([]);
+    stubSrv({ '_imaps._tcp.unknown-domain.example': [[0, 1, 993, 'mail.provider.example']] });
+    const { account, confirmServers } = await expandAccountForSetup(
+      accountFor('user@unknown-domain.example', 'yahoo')
+    );
+
+    expect(account.settings.imap_host).toEqual('imap.mail.yahoo.com');
+    expect(confirmServers).toBe(false);
+    expect(dns.Resolver.prototype.resolveSrv).not.toHaveBeenCalled();
+  });
+
   it('applies the configured container folder default when the template has none', async () => {
     (AccountStore.containerFolderDefaultGetter as jasmine.Spy).andReturn('Mail');
     stubAutoconfig(['autoconfig-only.example']);
@@ -189,5 +317,55 @@ describe('expandAccountWithCommonSettings', function onboardingHelpersTests() {
     );
 
     expect(account.settings.container_folder).toEqual('Mail');
+  });
+});
+
+describe('isHostInDomain', function isHostInDomainTests() {
+  it('accepts the domain itself and its subdomains', () => {
+    expect(isHostInDomain('example.com', 'example.com')).toBe(true);
+    expect(isHostInDomain('imap.example.com', 'example.com')).toBe(true);
+    expect(isHostInDomain('a.b.example.com', 'example.com')).toBe(true);
+  });
+
+  it('rejects lookalike domains', () => {
+    expect(isHostInDomain('evil-example.com', 'example.com')).toBe(false);
+    expect(isHostInDomain('imap.evil-example.com', 'example.com')).toBe(false);
+    expect(isHostInDomain('evilexample.com', 'example.com')).toBe(false);
+    expect(isHostInDomain('example.com.attacker.net', 'example.com')).toBe(false);
+  });
+
+  it('ignores case and a trailing root dot', () => {
+    expect(isHostInDomain('IMAP.Example.COM', 'example.com')).toBe(true);
+    expect(isHostInDomain('imap.example.com.', 'Example.com')).toBe(true);
+    expect(isHostInDomain('imap.evil-example.com.', 'example.com')).toBe(false);
+  });
+});
+
+describe('serversOutsideDomain', function serversOutsideDomainTests() {
+  it('lists each foreign IMAP or SMTP host once', () => {
+    expect(
+      serversOutsideDomain(
+        accountFor('user@example.com', 'imap', {
+          imap_host: 'mail.provider.net',
+          smtp_host: 'mail.provider.net',
+        })
+      )
+    ).toEqual(['mail.provider.net']);
+    expect(
+      serversOutsideDomain(
+        accountFor('user@example.com', 'imap', {
+          imap_host: 'imap.provider.net',
+          smtp_host: 'smtp.example.com',
+        })
+      )
+    ).toEqual(['imap.provider.net']);
+    expect(
+      serversOutsideDomain(
+        accountFor('user@example.com', 'imap', {
+          imap_host: 'imap.provider.net',
+          smtp_host: 'smtp.provider.net',
+        })
+      )
+    ).toEqual(['imap.provider.net', 'smtp.provider.net']);
   });
 });

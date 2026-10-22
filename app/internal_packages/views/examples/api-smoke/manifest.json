@@ -1,0 +1,10 @@
+{
+  "name": "API Smoke Test",
+  "apiVersion": "2026-10-20",
+  "placement": "page",
+  "permissions": [
+    "mail.bodies",
+    "mail.modify",
+    "calendar.read"
+  ]
+}

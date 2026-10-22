@@ -234,7 +234,7 @@ export async function modifyEventWithRecurringSupport(
     }
   } else if (isException && !event.isRecurrenceException()) {
     // Inline exception being modified — `options.event` is the master event (guaranteed
-    // because `parseEventIdFromOccurrence` strips the `-e{N}` suffix from inline occurrences).
+    // because `CalendarUtils.parseOccurrenceId` strips the `-e{N}` suffix from inline occurrences).
     // `originalOccurrenceStart` must be the RECURRENCE-ID value (occurrence.recurrenceIdStart),
     // not the exception's moved DTSTART.
     createOccurrenceException(options);

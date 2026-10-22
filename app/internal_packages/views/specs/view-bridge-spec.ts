@@ -1,0 +1,512 @@
+import Rx from 'rx-lite';
+import { ViewBridge, CALL_CHANNEL, HELLO_CHANNEL } from '../lib/view-bridge';
+import { HANDLERS, mailQuery, BridgeContext } from '../lib/bridge/handlers';
+import { ViewGrant, ViewPermission } from '../lib/bridge/grant';
+import { serializeThreadSummary } from '../lib/bridge/serializers';
+import { FULL_GRANT } from '../../../src/services/mail-access/grant';
+import fs from 'fs';
+import { ipcRenderer, webFrame } from 'electron';
+import ThreadListContextMenu from '../../thread-list/lib/thread-list-context-menu';
+import {
+  Thread,
+  Contact,
+  Folder,
+  Message,
+  File,
+  AttachmentStore,
+  MessageBodyProcessor,
+  DatabaseStore,
+  Actions,
+  DraftFactory,
+  DraftStore,
+} from 'mailspring-exports';
+import { renderableFor } from '../lib/bridge/renderable';
+
+function grantWith(permissions: ViewPermission[], scope = FULL_GRANT): ViewGrant {
+  return { viewId: 'spec', namespace: 'view:spec', permissions: new Set(permissions), scope };
+}
+
+function ctxWith(grant: ViewGrant): BridgeContext {
+  return { viewId: 'spec', grant, emit: () => {} };
+}
+
+// Handlers may throw synchronously or reject; both are how a call fails.
+async function errorFrom(fn: () => any) {
+  try {
+    await fn();
+  } catch (err) {
+    return err;
+  }
+  return null;
+}
+
+describe('View bridge', function () {
+  describe('permissions', function () {
+    const REQUIRED: [string, ViewPermission, any][] = [
+      ['events.find', 'calendar.read', { start: '2026-01-01', end: '2026-02-01' }],
+      ['events.freeBusy', 'calendar.read', { start: '2026-01-01', end: '2026-02-01' }],
+      ['calendars.find', 'calendar.read', {}],
+      ['calendar.rsvp', 'calendar.write', { id: 'e1', status: 'accepted' }],
+      [
+        'calendar.createEvent',
+        'calendar.write',
+        {
+          calendarId: 'c1',
+          title: 'x',
+          start: '2026-01-01T10:00:00Z',
+          end: '2026-01-01T11:00:00Z',
+        },
+      ],
+      ['calendar.updateEvent', 'calendar.write', { id: 'e1', patch: { title: 'y' } }],
+      ['calendar.deleteEvent', 'calendar.write', { id: 'e1' }],
+      ['ui.showEvent', 'calendar.read', { id: 'e1' }],
+      ['messages.content', 'mail.bodies', { ids: ['m1'] }],
+      ['mail.modify', 'mail.modify', { threadIds: ['t1'], change: { starred: true } }],
+      ['messages.renderable', 'mail.bodies', { ids: ['m1'] }],
+      ['attachments.url', 'mail.bodies', { fileId: 'f1' }],
+    ];
+
+    REQUIRED.forEach(([method, permission, params]) => {
+      it(`rejects ${method} without ${permission}`, async () => {
+        const others = (
+          ['mail.bodies', 'mail.modify', 'calendar.read', 'calendar.write'] as ViewPermission[]
+        ).filter((p) => p !== permission);
+        const err = await errorFrom(() => HANDLERS[method](ctxWith(grantWith(others)), params));
+        expect(err && err.code).toBe('permission');
+        expect(err.permission).toBe(permission);
+      });
+    });
+  });
+
+  describe('mailQuery', function () {
+    const grant = grantWith([]);
+
+    it('treats a string as a search and applies the default limit', () => {
+      const q = mailQuery(grant, 'threads', 'from:uber.com');
+      expect(q.search).toBe('from:uber.com');
+      expect(q.limit).toBe(100);
+    });
+
+    it('scopes `tagged` to the View namespace and nothing else', () => {
+      expect(mailQuery(grant, 'threads', { tagged: true }).metadataPluginId).toBe('view:spec');
+      expect(mailQuery(grant, 'threads', {}).metadataPluginId).toBe(undefined);
+    });
+
+    it('rejects limits over the cap and malformed queries', () => {
+      const codeFor = (query) => {
+        try {
+          mailQuery(grant, 'threads', query);
+        } catch (err) {
+          return err.code;
+        }
+        return null;
+      };
+      expect(codeFor({ limit: 5000 })).toBe('limit');
+      expect(codeFor({ ids: 'nope' })).toBe('invalid');
+    });
+  });
+
+  describe('serializeThreadSummary', function () {
+    const thread = new Thread({
+      id: 't1',
+      accountId: 'a1',
+      subject: 'Hi',
+      participants: [
+        new Contact({ email: 'me@example.com', name: 'Me' }),
+        new Contact({ email: 'them@example.com', name: 'Them' }),
+      ],
+      folders: [new Folder({ id: 'f-excluded', accountId: 'a1', path: 'Secret' })],
+    });
+
+    beforeEach(() => {
+      spyOn(Contact.prototype, 'isMe').andCallFake(function () {
+        return this.email === 'me@example.com';
+      });
+    });
+
+    it('puts counterparties before the account owner', () => {
+      const summary = serializeThreadSummary(grantWith([]), thread);
+      expect(summary.participants.map((p) => p.email)).toEqual([
+        'them@example.com',
+        'me@example.com',
+      ]);
+      expect(summary.participants[1].isMe).toBe(true);
+    });
+
+    it('returns null for threads outside the grant', () => {
+      const scoped = grantWith([], {
+        accountIds: null,
+        excludedFolderIds: { a1: ['f-excluded'] },
+      });
+      expect(serializeThreadSummary(scoped, thread)).toBe(null);
+      expect(
+        serializeThreadSummary(
+          grantWith([], { accountIds: ['other'], excludedFolderIds: {} }),
+          thread
+        )
+      ).toBe(null);
+    });
+
+    it('never includes another plugin namespace as meta', () => {
+      thread.directlyAttachMetadata('send-later', { expiration: 1 });
+      expect(serializeThreadSummary(grantWith([]), thread).meta).toBe(null);
+      thread.directlyAttachMetadata('view:spec', { column: 'Done' });
+      expect(serializeThreadSummary(grantWith([]), thread).meta).toEqual({
+        column: 'Done',
+      });
+    });
+  });
+});
+
+describe('ViewBridge dispatch limits', function () {
+  function fakeWebview() {
+    const replies = [];
+    let listener = null;
+    let helloSent = false;
+    return {
+      replies,
+      addEventListener: (name, fn) => (listener = fn),
+      removeEventListener: () => {},
+      send: (channel, payload) => replies.push(payload),
+      call: (id, method, params) => {
+        if (!helloSent) {
+          helloSent = true;
+          listener({ channel: HELLO_CHANNEL, args: [{ page: 'p1' }] });
+        }
+        return listener({ channel: CALL_CHANNEL, args: [{ page: 'p1', id, method, params }] });
+      },
+    };
+  }
+
+  it('rejects oversized parameters before dispatch', async () => {
+    const webview = fakeWebview();
+    const bridge = new ViewBridge('spec', webview as any);
+    await webview.call(1, 'ui.setHeight', { blob: 'x'.repeat(2 * 1024 * 1024) });
+    expect(webview.replies[0].error.code).toBe('limit');
+    bridge.dispose();
+  });
+
+  it('delivers a snapshot a shared query replays synchronously on subscribe', async () => {
+    const webview = fakeWebview();
+    const bridge = new ViewBridge('spec', webview as any);
+    // QuerySubscriptionPool replays an already-running query's last result inside subscribe().
+    spyOn(bridge as any, 'observableFor').andReturn(Rx.Observable.just({ data: { busy: [] } }));
+    await webview.call(1, 'subscribe', { subId: 's1', kind: 'freeBusy', params: {} });
+    const snapshot = webview.replies.find((r) => r.event === 'subscription');
+    expect(snapshot && snapshot.payload.subId).toBe('s1');
+    expect(snapshot.payload.data).toEqual({ busy: [] });
+    bridge.dispose();
+  });
+
+  it('answers calls beyond the rate limit with a limit error', async () => {
+    const webview = fakeWebview();
+    const bridge = new ViewBridge('spec', webview as any);
+    await Promise.all([...Array(1000)].map((_, i) => webview.call(i, 'ui.setHeight', { px: 1 })));
+    const codes = webview.replies.map((r) => (r.error ? r.error.code : 'ok'));
+    expect(codes.length).toBe(1000);
+    expect(codes.filter((c) => c === 'ok').length).toBeLessThan(500);
+    expect(codes.filter((c) => c === 'limit').length).toBeGreaterThan(500);
+    bridge.dispose();
+  });
+});
+
+describe('ui.print', function () {
+  it('prints the View in the requested orientation, one dialog at a time', async () => {
+    const replies = [];
+    let listener = null;
+    let finishPrint = null;
+    const webview = {
+      addEventListener: (name, fn) => (listener = fn),
+      removeEventListener: () => {},
+      send: (channel, payload) => replies.push(payload),
+      print: jasmine.createSpy('print').andCallFake(() => new Promise((r) => (finishPrint = r))),
+    };
+    const bridge = new ViewBridge('spec', webview as any);
+    listener({ channel: HELLO_CHANNEL, args: [{ page: 'p1' }] });
+    const call = (id) =>
+      listener({
+        channel: CALL_CHANNEL,
+        args: [{ page: 'p1', id, method: 'ui.print', params: { landscape: true } }],
+      });
+
+    const first = call(1);
+    await call(2);
+    expect(replies.find((r) => r.id === 2).error.code).toBe('limit');
+    finishPrint();
+    await first;
+    expect(replies.find((r) => r.id === 1).result).toEqual({});
+    expect(webview.print).toHaveBeenCalledWith({ landscape: true, printBackground: true });
+    expect(webview.print.calls.length).toBe(1);
+    bridge.dispose();
+  });
+});
+
+describe('ui.compose', function () {
+  it('opens one composer, then refuses compose and reply until the cooldown passes', async () => {
+    const replies = [];
+    let listener = null;
+    const webview = {
+      addEventListener: (name, fn) => (listener = fn),
+      removeEventListener: () => {},
+      send: (channel, payload) => replies.push(payload),
+    };
+    const createDraft = spyOn(DraftFactory, 'createDraftForMailto').andReturn(
+      Promise.resolve({} as any)
+    );
+    spyOn(DraftStore as any, '_finalizeAndPersistNewMessage').andReturn(Promise.resolve({}));
+    spyOn(Actions, 'composeReply');
+    let now = 10000;
+    spyOn(Date, 'now').andCallFake(() => now);
+    const bridge = new ViewBridge('spec', webview as any);
+    listener({ channel: HELLO_CHANNEL, args: [{ page: 'p1' }] });
+    const call = async (id, method, params) => {
+      await listener({ channel: CALL_CHANNEL, args: [{ page: 'p1', id, method, params }] });
+      return replies.find((r) => r.id === id);
+    };
+
+    expect((await call(1, 'ui.compose', { to: ['a@example.com'] })).result).toEqual({});
+    expect((await call(2, 'ui.compose', {})).error.code).toBe('limit');
+    expect((await call(3, 'ui.reply', { messageId: 'm1' })).error.code).toBe('limit');
+    expect(createDraft.calls.length).toBe(1);
+    expect(Actions.composeReply).not.toHaveBeenCalled();
+
+    now += 2000;
+    expect((await call(4, 'ui.compose', {})).result).toEqual({});
+    expect(createDraft.calls.length).toBe(2);
+    bridge.dispose();
+  });
+});
+
+describe('ai.extract over events', function () {
+  it('requires calendar.read rather than mail.bodies', async () => {
+    const replies = [];
+    let listener = null;
+    const webview = {
+      addEventListener: (name, fn) => (listener = fn),
+      removeEventListener: () => {},
+      send: (channel, payload) => replies.push(payload),
+    };
+    const bridge = new ViewBridge('spec', webview as any);
+    const call = async (permissions: ViewPermission[]) => {
+      bridge.grant = grantWith(permissions);
+      listener({ channel: HELLO_CHANNEL, args: [{ page: 'p1' }] });
+      await listener({
+        channel: CALL_CHANNEL,
+        args: [
+          {
+            page: 'p1',
+            id: replies.length + 1,
+            method: 'ai.extract',
+            params: {
+              jobId: 'j1',
+              events: { start: '2026-10-01', end: '2026-10-02', eventIds: [] },
+              schema: { who: 'string' },
+            },
+          },
+        ],
+      });
+      return replies[replies.length - 1];
+    };
+    const denied = await call(['mail.bodies']);
+    expect(denied.error.code).toBe('permission');
+    expect(denied.error.permission).toBe('calendar.read');
+    spyOn(DatabaseStore, 'findAll').andReturn({ where: () => Promise.resolve([]) } as any);
+    const allowed = await call(['calendar.read']);
+    expect(allowed.result).toEqual({ jobId: 'j1', total: 0 });
+    bridge.dispose();
+  });
+});
+
+describe('ui.threadMenu', function () {
+  function fakeWebview() {
+    const replies = [];
+    let listener = null;
+    return {
+      replies,
+      addEventListener: (name, fn) => (listener = fn),
+      removeEventListener: () => {},
+      send: (channel, payload) => replies.push(payload),
+      getBoundingClientRect: () => ({ left: 100, top: 50, width: 400, height: 300 }),
+      getZoomFactor: () => 1.5,
+      call: async (params) => {
+        listener({ channel: HELLO_CHANNEL, args: [{ page: 'p1' }] });
+        await listener({
+          channel: CALL_CHANNEL,
+          args: [{ page: 'p1', id: 1, method: 'ui.threadMenu', params }],
+        });
+        return replies[replies.length - 1];
+      },
+    };
+  }
+
+  function threadsInDatabase(threads: Thread[]) {
+    spyOn(DatabaseStore, 'findAll').andReturn({ where: () => Promise.resolve(threads) } as any);
+  }
+
+  beforeEach(() => {
+    spyOn(ThreadListContextMenu.prototype, 'displayMenu');
+    spyOn(webFrame, 'getZoomFactor').andReturn(2);
+  });
+
+  it('opens the menu for the threads at the anchor in window coordinates', async () => {
+    threadsInDatabase([new Thread({ id: 't1', accountId: 'a1' })]);
+    const webview = fakeWebview();
+    const bridge = new ViewBridge('spec', webview as any);
+    bridge.grant = grantWith([]);
+    const reply = await webview.call({ threadIds: ['t1'], anchor: { x: 40, y: 20 } });
+    expect(reply.error).toBe(undefined);
+    const menu = ThreadListContextMenu.prototype.displayMenu as jasmine.Spy;
+    // Guest px × guest zoom ÷ host zoom = host px; host px × host zoom = window px.
+    expect(menu.calls[0].args[0]).toEqual({ x: (100 + 30) * 2, y: (50 + 15) * 2 });
+    bridge.dispose();
+  });
+
+  it('keeps the menu inside the webview', async () => {
+    threadsInDatabase([new Thread({ id: 't1', accountId: 'a1' })]);
+    const webview = fakeWebview();
+    const bridge = new ViewBridge('spec', webview as any);
+    bridge.grant = grantWith([]);
+    await webview.call({ threadIds: ['t1'], anchor: { x: -500, y: 99999 } });
+    const menu = ThreadListContextMenu.prototype.displayMenu as jasmine.Spy;
+    expect(menu.calls[0].args[0]).toEqual({ x: 100 * 2, y: (50 + 300) * 2 });
+    bridge.dispose();
+  });
+
+  it('refuses threads outside the grant', async () => {
+    threadsInDatabase([new Thread({ id: 't1', accountId: 'other' })]);
+    const webview = fakeWebview();
+    const bridge = new ViewBridge('spec', webview as any);
+    bridge.grant = grantWith([], { accountIds: ['a1'], excludedFolderIds: {} });
+    const reply = await webview.call({ threadIds: ['t1'] });
+    expect(reply.error.code).toBe('not_found');
+    expect(ThreadListContextMenu.prototype.displayMenu).not.toHaveBeenCalled();
+    bridge.dispose();
+  });
+});
+
+describe('ui.showThread', function () {
+  function fakeWebview() {
+    const replies = [];
+    let listener = null;
+    return {
+      replies,
+      addEventListener: (name, fn) => (listener = fn),
+      removeEventListener: () => {},
+      send: (channel, payload) => replies.push(payload),
+      blur: jasmine.createSpy('blur'),
+      call: async (params) => {
+        listener({ channel: HELLO_CHANNEL, args: [{ page: 'p1' }] });
+        await listener({
+          channel: CALL_CHANNEL,
+          args: [{ page: 'p1', id: 1, method: 'ui.showThread', params }],
+        });
+        return replies[replies.length - 1];
+      },
+    };
+  }
+
+  beforeEach(() => {
+    spyOn(Actions, 'setFocus');
+  });
+
+  it('focuses the thread and takes keyboard focus out of the View', async () => {
+    const thread = new Thread({ id: 't1', accountId: 'a1' });
+    spyOn(DatabaseStore, 'find').andReturn(Promise.resolve(thread) as any);
+    const webview = fakeWebview();
+    const bridge = new ViewBridge('spec', webview as any);
+    bridge.grant = grantWith([]);
+    const reply = await webview.call({ id: 't1' });
+    expect(reply.error).toBe(undefined);
+    expect(Actions.setFocus).toHaveBeenCalledWith({ collection: 'thread', item: thread });
+    expect(webview.blur).toHaveBeenCalled();
+    bridge.dispose();
+  });
+
+  it('keeps focus in the View when the thread is not shown', async () => {
+    spyOn(DatabaseStore, 'find').andReturn(Promise.resolve(null) as any);
+    const webview = fakeWebview();
+    const bridge = new ViewBridge('spec', webview as any);
+    bridge.grant = grantWith([]);
+    const reply = await webview.call({ id: 'missing' });
+    expect(reply.error.code).toBe('not_found');
+    expect(webview.blur).not.toHaveBeenCalled();
+    bridge.dispose();
+  });
+});
+
+describe('renderableFor', function () {
+  const grant = grantWith(['mail.bodies']);
+  let registered;
+
+  function messageWithBody(body: string) {
+    return new Message({
+      id: 'm1',
+      accountId: 'a1',
+      body,
+      files: [
+        new File({ id: 'f1', contentId: 'logo@x', filename: 'logo.png', contentType: 'image/png' }),
+      ],
+    } as any);
+  }
+
+  beforeEach(() => {
+    registered = [];
+    spyOn(MessageBodyProcessor, 'retrieve').andCallFake(async (m: Message) => ({
+      body: m.body,
+      clipped: false,
+    }));
+    spyOn(AttachmentStore, 'pathForFile').andReturn('/files/f1/logo.png');
+    spyOn(fs, 'existsSync').andReturn(true);
+    spyOn(ipcRenderer, 'invoke').andCallFake(async (channel, viewId, entries) => {
+      registered.push(...entries);
+      return entries.map((e, i) =>
+        e.kind === 'remote' && e.url.includes('blocked') ? null : `tok${i}`
+      );
+    });
+  });
+
+  it('points inline and remote images at host-served tokens', async () => {
+    const { html } = await renderableFor(
+      grant,
+      messageWithBody(
+        '<img src="cid:logo@x"><img src="https://img.example.com/a.png">' +
+          '<div style="background: url(\'https://img.example.com/b.png\')">x</div>'
+      )
+    );
+    expect(registered.map((e) => e.kind)).toEqual(['file', 'remote', 'remote']);
+    expect(registered[0].filePath).toBe('/files/f1/logo.png');
+    expect(html).toContain('src="mailspring-view://spec/_res/tok0"');
+    expect(html).toContain('src="mailspring-view://spec/_res/tok1"');
+    expect(html).toContain('url(&quot;mailspring-view://spec/_res/tok2&quot;)');
+    expect(html).not.toContain('img.example.com');
+  });
+
+  it('drops scripts, frames, unresolvable and policy-blocked images', async () => {
+    const { html } = await renderableFor(
+      grant,
+      messageWithBody(
+        '<script>alert(1)</script><iframe src="https://x.com"></iframe>' +
+          '<img src="#"><img src="javascript:alert(1)"><img src="https://blocked.example.com/p.gif">'
+      )
+    );
+    expect(html).not.toContain('<script');
+    expect(html).not.toContain('<iframe');
+    expect(html).not.toContain('javascript:');
+    expect(html).not.toContain('blocked.example.com');
+    expect(html.match(/<img>/g).length).toBe(3);
+  });
+
+  it('escapes plaintext bodies', async () => {
+    const message = messageWithBody('<b>not bold</b>');
+    message.plaintext = true;
+    const { html, plaintext } = await renderableFor(grant, message);
+    expect(plaintext).toBe(true);
+    expect(html).toContain('&#60;b&#62;not bold');
+  });
+
+  it('refuses messages outside the grant', async () => {
+    const scoped = grantWith(['mail.bodies'], { accountIds: ['other'], excludedFolderIds: {} });
+    const err = await errorFrom(() => renderableFor(scoped, messageWithBody('hi')));
+    expect(err && err.code).toBe('not_found');
+  });
+});
