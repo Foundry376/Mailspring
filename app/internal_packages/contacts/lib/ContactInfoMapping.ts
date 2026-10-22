@@ -1,6 +1,7 @@
 import vCard from 'vcf';
 import { ContactInfoGoogle, ContactInfoVCF, Contact, Utils } from 'mailspring-exports';
 import * as VCFHelpers from './VCFHelpers';
+import { displayNameForContact } from './ContactDisplayName';
 
 /**
 This file contains business logic that maps two separate "contact.info" formats onto
@@ -63,7 +64,10 @@ function safeParseVCard(vcard: string) {
 }
 
 /** Parse a Contact with no `info` into the shared details format. */
-export function fromContact({ name, email }: Contact): ContactParseResult {
+export function fromContact(contact: Contact): ContactParseResult {
+  const { email } = contact;
+  const displayName = displayNameForContact(contact);
+  const name = displayName === email ? '' : displayName;
   const nameParts = name.split(' ');
 
   return {
@@ -161,7 +165,11 @@ export function applyToVCF(contact: Contact, changes: Partial<ContactBase>) {
       card.set('fn', VCFHelpers.formatDisplayName(changes.name));
       contact.name = VCFHelpers.formatDisplayName(changes.name);
     } else if (key === 'title') {
-      card.add('title', changes.title);
+      if (changes.title) {
+        card.set('title', changes.title);
+      } else {
+        delete card.data['title'];
+      }
     } else if (key === 'company') {
       const org = VCFHelpers.asSingle(card.get('org')) as any;
       if (org) {
@@ -176,6 +184,9 @@ export function applyToVCF(contact: Contact, changes: Partial<ContactBase>) {
     } else if (key === 'phoneNumbers' || key === 'emailAddresses' || key === 'urls') {
       const attr = { phoneNumbers: 'tel', emailAddresses: 'email', urls: 'url' }[key];
       VCFHelpers.setArray(attr, card, changes[key]);
+      if (key === 'emailAddresses') {
+        contact.email = changes.emailAddresses[0]?.value || '';
+      }
     } else if (key === 'birthdays') {
       VCFHelpers.setArray('bday', card, changes.birthdays.map(VCFHelpers.serializeBirthday));
     } else if (key === 'addresses') {
@@ -214,6 +225,8 @@ export function fromGoogle(info: ContactInfoGoogle): ContactParseResult {
       title: ((info.organizations || [])[0] || {}).title || '',
       company: ((info.organizations || [])[0] || {}).name || '',
       notes: ((info.biographies || [])[0] || {}).value || undefined,
+      // Google returns a generated monogram flagged `default` when there's no real photo.
+      photoURL: (info.photos || []).find((p) => !p.default)?.url,
       ...info,
     }),
   };
@@ -248,7 +261,7 @@ export function applyToGoogle(contact: Contact, changes: Partial<ContactBase>) {
       contact.name = VCFHelpers.formatDisplayName(changes.name);
     } else if (key === 'emailAddresses') {
       info[key] = val;
-      contact.email = val[0].value;
+      contact.email = val[0]?.value || '';
     } else if (key === 'title') {
       if (!info.organizations || info.organizations.length === 0) {
         info.organizations = [{ title: '', name: '', metadata }];

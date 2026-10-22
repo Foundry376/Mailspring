@@ -20,7 +20,7 @@ function send(ws, method, params = {}) {
     ws.send(JSON.stringify({ id: myId, method, params }));
   });
 }
-const targets = await (await fetch('http://localhost:9333/json')).json();
+const targets = await (await fetch(`http://localhost:${process.env.CDP_PORT || 9333}/json`)).json();
 let main = null;
 for (const t of targets) {
   if (t.type !== 'page') continue;

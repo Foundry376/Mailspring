@@ -1,4 +1,4 @@
-import { AccountStore, Calendar, RegExpUtils, Utils } from 'mailspring-exports';
+import { AccountStore, Calendar, Event, Matcher, RegExpUtils, Utils } from 'mailspring-exports';
 import { findOneIana } from 'windows-iana';
 
 type ICAL = typeof import('ical.js').default;
@@ -575,4 +575,84 @@ export function isOwnCalendar(calendar: Calendar, addresses: string[]): boolean 
  */
 export function isSomeoneElsesCalendar(calendar: Calendar | undefined | null): boolean {
   return !!calendar && calendar.ownership === 'other';
+}
+
+/**
+ * Stored events whose span touches the range: one-off events, and recurring masters whose series
+ * (recurrenceStart..recurrenceEnd) overlaps it, which the caller then expands into occurrences.
+ */
+export function eventsInRangeMatcher(startUnix: number, endUnix: number) {
+  const end = Event.attributes.recurrenceEnd;
+  const start = Event.attributes.recurrenceStart;
+  return new Matcher.Or([
+    new Matcher.And([start.lte(endUnix), end.gte(startUnix)]),
+    new Matcher.And([start.lte(endUnix), start.gte(startUnix)]),
+    new Matcher.And([end.gte(startUnix), end.lte(endUnix)]),
+    new Matcher.And([end.gte(endUnix), start.lte(startUnix)]),
+  ]);
+}
+
+/** The id an occurrence expanded from `eventId`'s ICS is drawn under; a move gives it a new one. */
+export function occurrenceId(eventId: string, start: number): string {
+  return `${eventId}-e${Math.round(start)}`;
+}
+
+/**
+ * The stored event and start an occurrence id names. The start can be negative (an event before
+ * 1970); an id without the suffix is an event id already, and comes back with a null start.
+ */
+export function parseOccurrenceId(id: string): { eventId: string; start: number | null } {
+  const match = id.match(/^(.+)-e(-?\d+)$/);
+  return match ? { eventId: match[1], start: Number(match[2]) } : { eventId: id, start: null };
+}
+
+/** Video meeting providers, by a pattern their links match and the name to show for them. */
+const MEETING_URL_PATTERNS: { pattern: RegExp; display: string }[] = [
+  { pattern: /zoom\.us/i, display: 'zoom.us' },
+  { pattern: /meet\.google\.com/i, display: 'meet.google.com' },
+  { pattern: /teams\.microsoft\.com/i, display: 'teams.microsoft.com' },
+  { pattern: /teams\.live\.com/i, display: 'teams.live.com' },
+  { pattern: /webex\.com/i, display: 'webex.com' },
+  { pattern: /gotomeeting\.com/i, display: 'gotomeeting.com' },
+  { pattern: /whereby\.com/i, display: 'whereby.com' },
+  { pattern: /around\.co/i, display: 'around.co' },
+  { pattern: /meet\.jit\.si/i, display: 'meet.jit.si' },
+  { pattern: /discord\.gg/i, display: 'discord.gg' },
+  { pattern: /slack\.com\/calls/i, display: 'slack.com' },
+  { pattern: /chime\.aws/i, display: 'chime.aws' },
+  { pattern: /bluejeans\.com/i, display: 'bluejeans.com' },
+  { pattern: /appear\.in/i, display: 'appear.in' },
+  { pattern: /livestorm\.co/i, display: 'livestorm.co' },
+  { pattern: /hopin\.com/i, display: 'hopin.com' },
+  { pattern: /loom\.com/i, display: 'loom.com' },
+  { pattern: /tuple\.app/i, display: 'tuple.app' },
+  { pattern: /pop\.com/i, display: 'pop.com' },
+  { pattern: /cal\.com/i, display: 'cal.com' },
+  { pattern: /calendly\.com/i, display: 'calendly.com' },
+  { pattern: /facetime:/i, display: 'FaceTime' },
+];
+
+const LINK_IN_TEXT = /(?:https?:\/\/|facetime:)[^\s<>"')\]]+/gi;
+
+/** The first video meeting link in an event's location or description, or null. */
+export function extractMeetingUrl(location: string, description: string): string | null {
+  const links = `${location || ''} ${description || ''}`.match(LINK_IN_TEXT) || [];
+  return (
+    links.find((link) => MEETING_URL_PATTERNS.some(({ pattern }) => pattern.test(link))) || null
+  );
+}
+
+/**
+ * The meeting provider's name ("zoom.us", "FaceTime") from an event's location or description,
+ * falling back on the domain of any link in the location. Null when there is neither.
+ */
+export function extractMeetingDomain(location: string, description: string): string | null {
+  const textToSearch = `${location || ''} ${description || ''}`;
+  for (const { pattern, display } of MEETING_URL_PATTERNS) {
+    if (pattern.test(textToSearch)) {
+      return display;
+    }
+  }
+  const urlMatch = (location || '').match(/https?:\/\/([^/\s]+)/i);
+  return urlMatch ? urlMatch[1].toLowerCase().replace(/^www\./, '') : null;
 }

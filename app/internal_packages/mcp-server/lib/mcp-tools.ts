@@ -23,7 +23,6 @@ import {
   TaskFactory,
   TaskQueue,
   Actions,
-  SearchQueryParser,
 } from 'mailspring-exports';
 import {
   checkAccessLevel,
@@ -31,15 +30,41 @@ import {
   checkFolderAccess,
   isFolderAllowed,
   isThreadAllowed,
-  isMessageAllowed,
+  allowedMessages,
+  isMessageVisible,
   getAllowedAccountIds,
   assertThreadsAllowed,
+  mcpGrant,
 } from './mcp-access-control';
 import {
   serializeThreadSummary,
   serializeThreadDetail,
   serializeMessageDetail,
 } from './mcp-serializers';
+import {
+  type AuditEntry,
+  addAuditEntry,
+  audited,
+  clearAuditLog,
+  getAuditLog,
+  onAuditLogChanged,
+} from '../../../src/services/mail-access/audit';
+import { threadQuery } from '../../../src/services/mail-access/queries';
+import { FilterError, validateFilter } from '../../../src/services/mail-access/filter';
+import { countMessages, DIMS } from '../../../src/services/mail-access/counts';
+import { currentIdentity } from '../../../src/services/mail-access/identity';
+
+const FILTER_DESCRIPTION =
+  'Structured JSON filter, an alternative to `query` that avoids search-syntax parsing. Each ' +
+  'object has exactly one key. Combinators: {and:[...]}, {or:[...]}, {not:{...}}. Message ' +
+  'fields (a thread matches if any of its messages does): {from: addr|addr[]}, {to: ...} ' +
+  '(to/cc/bcc), {participant: ...}, {direction:"sent"|"received"}, {hasAttachment:bool}, ' +
+  '{listUnsubscribe:bool}. Thread fields: {in: role|folderId|name} (roles: inbox, sent, ' +
+  'drafts, trash, spam, archive, all), {text:"words"} (full-text, every word must appear, ' +
+  'stemmed), {subject:"substring"}, {unread:bool}, {starred:bool}, {account:id}, ' +
+  '{date:{after?:ISO, before?:ISO}}, {search:"search-bar syntax"}. An addr is a full address ' +
+  '("a@b.com") or a domain ("uber.com", matching subdomains too). Example: ' +
+  '{and:[{from:["uber.com","lyft.com"]},{date:{after:"2026-01-01"}}]}';
 
 // Plugin IDs used by the built-in open-tracking and link-tracking packages
 // (see app/internal_packages/open-tracking/package.json and link-tracking/package.json).
@@ -217,38 +242,8 @@ function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export interface AuditEntry {
-  timestamp: number;
-  toolName: string;
-  params: string;
-  resultSummary: string;
-  durationMs: number;
-}
-
-let auditLog: AuditEntry[] = [];
-let auditListeners: (() => void)[] = [];
-
-export function getAuditLog(): AuditEntry[] {
-  return auditLog;
-}
-
-export function clearAuditLog() {
-  auditLog = [];
-  auditListeners.forEach((fn) => fn());
-}
-
-export function onAuditLogChanged(fn: () => void) {
-  auditListeners.push(fn);
-  return () => {
-    auditListeners = auditListeners.filter((l) => l !== fn);
-  };
-}
-
-function addAuditEntry(entry: AuditEntry) {
-  auditLog.push(entry);
-  if (auditLog.length > 50) auditLog.shift();
-  auditListeners.forEach((fn) => fn());
-}
+export type { AuditEntry };
+export { getAuditLog, clearAuditLog, onAuditLogChanged };
 
 function textResult(data: any) {
   return { content: [{ type: 'text' as const, text: JSON.stringify(data, null, 2) }] };
@@ -272,25 +267,11 @@ async function withAudit(
   params: Record<string, any>,
   fn: () => Promise<ToolResult>
 ) {
-  const start = Date.now();
   try {
-    const result = await fn();
-    addAuditEntry({
-      timestamp: Date.now(),
-      toolName,
-      params: JSON.stringify(params).slice(0, 200),
-      resultSummary: result.isError ? 'error' : 'ok',
-      durationMs: Date.now() - start,
-    });
-    return result;
+    return await audited('mcp', toolName, params, fn, (result) =>
+      result.isError ? 'error' : 'ok'
+    );
   } catch (err) {
-    addAuditEntry({
-      timestamp: Date.now(),
-      toolName,
-      params: JSON.stringify(params).slice(0, 200),
-      resultSummary: `error: ${(err as Error).message}`.slice(0, 100),
-      durationMs: Date.now() - start,
-    });
     return errorResult((err as Error).message);
   }
 }
@@ -337,7 +318,7 @@ export function registerResources(server: McpServer) {
       const start = Date.now();
       const audit = (resultSummary: string) =>
         addAuditEntry({
-          timestamp: Date.now(),
+          source: 'mcp',
           toolName: 'resources/read',
           params: uri.href.slice(0, 200),
           resultSummary,
@@ -351,7 +332,7 @@ export function registerResources(server: McpServer) {
         const fileId = decodeURIComponent(String(variables.fileId));
 
         const message = await DatabaseStore.find<Message>(Message, messageId);
-        if (!message || !isMessageAllowed(message)) {
+        if (!(await isMessageVisible(message))) {
           throw new Error(`Message '${messageId}' not found`);
         }
         const file = (message.files || []).find((f) => f.id === fileId);
@@ -431,7 +412,11 @@ export function registerTools(server: McpServer) {
     'search_mail',
     'Search for email threads using query syntax. Keywords: from:<email>, to:<email>, subject:<text>, in:<folder> (matches a folder/label\'s standard role when it has one, e.g. "in:sent", "in:inbox", "in:trash", "in:drafts", "in:spam", "in:archive" — this works across providers without needing to look up folder names first; falls back to matching the folder/path name for custom folders/labels), is:unread|read|starred|unstarred, has:attachment, before:<date>/since:<date>/after:<date> (accepts natural language like "yesterday", "2 days ago", "last week", or an exact date like "2018/05/31"). Combine terms with AND (the default between adjacent terms), OR, and NOT; use parentheses to group and "quoted phrases" for exact matches. Examples: \'in:sent project alpha\', \'from:alice is:unread\', \'(to:bob OR to:carol) has:attachment\'.',
     {
-      query: z.string().describe('Search query string'),
+      query: z
+        .string()
+        .optional()
+        .describe('Search query string. Optional when `filter` is given.'),
+      filter: z.record(z.string(), z.any()).optional().describe(FILTER_DESCRIPTION),
       accountId: z.string().optional().describe('Optional account ID to scope the search'),
       limit: z.number().optional().default(150).describe('Max results to return (default 150)'),
       offset: z
@@ -441,31 +426,27 @@ export function registerTools(server: McpServer) {
         .describe('Number of results to skip for pagination (default 0)'),
     },
     'read',
-    async ({ query, accountId, limit, offset }) => {
+    async ({ query, filter, accountId, limit, offset }) => {
       if (accountId) {
         const err = checkAccountAccess(accountId);
         if (err) return errorResult(err);
       }
+      if (!query && !filter) return errorResult('Provide `query`, `filter`, or both.');
 
-      let dbQuery = DatabaseStore.findAll<Thread>(Thread);
-      if (accountId) {
-        dbQuery = dbQuery.where({ accountId });
-      } else {
-        // Scope the query to allowed accounts up front so pagination
-        // (`.limit()` below) counts against already-allowed rows.
-        const allowedIds = getAllowedAccountIds(AccountStore.accounts().map((a) => a.id));
-        dbQuery = dbQuery.where(Thread.attributes.accountId.in(allowedIds));
-      }
+      let dbQuery;
       try {
-        const parsed = SearchQueryParser.parse(query);
-        dbQuery = dbQuery.structuredSearch(parsed);
-      } catch {
-        dbQuery = dbQuery.search(query);
+        dbQuery = threadQuery(mcpGrant(), {
+          search: query,
+          filter: filter ? validateFilter(filter) : undefined,
+          accountId,
+          limit: limit || 150,
+          offset: offset || 0,
+          background: !!filter,
+        });
+      } catch (err) {
+        if (err instanceof FilterError) return errorResult(err.message);
+        throw err;
       }
-      dbQuery = dbQuery
-        .order(Thread.attributes.lastMessageReceivedTimestamp.descending())
-        .offset(offset || 0)
-        .limit(limit || 150);
 
       const threads = await dbQuery;
       // Folder-level exclusion can't be pushed into this query cheaply (it's
@@ -478,6 +459,63 @@ export function registerTools(server: McpServer) {
         .filter((r): r is Record<string, any> => r !== null);
       return textResult(results);
     }
+  );
+
+  defineTool(
+    server,
+    'count_mail',
+    'Count messages grouped by one or two dimensions, computed in SQL (fast over large mailboxes). ' +
+      'Use it for top senders/recipients, volume over time and per-folder breakdowns instead of ' +
+      'paging through search results. Rows are sorted by count, descending, and ' +
+      'carry `first`/`last` message dates. Person dimensions (sender, recipient) include a display ' +
+      'name in `labels` and an `isMe` flag; category and account rows include readable names.',
+    {
+      groupBy: z
+        .array(z.enum(DIMS as [string, ...string[]]))
+        .min(1)
+        .max(2)
+        .describe(
+          'Dimensions: sender, recipient, category, account, thread, day (local YYYY-MM-DD; sum days for weeks or months)'
+        ),
+      query: z.string().optional().describe('Search query string, as in search_mail'),
+      filter: z.record(z.string(), z.any()).optional().describe(FILTER_DESCRIPTION),
+      accountId: z.string().optional().describe('Optional account ID to scope the count'),
+      limit: z.number().optional().default(100).describe('Max rows to return (default 100)'),
+    },
+    'read',
+    async ({ groupBy, query, filter, accountId, limit }) => {
+      if (accountId) {
+        const err = checkAccountAccess(accountId);
+        if (err) return errorResult(err);
+      }
+      try {
+        const rows = await countMessages(
+          mcpGrant(),
+          {
+            search: query,
+            filter: filter ? validateFilter(filter) : undefined,
+            accountId,
+            limit: undefined,
+            background: true,
+          },
+          groupBy as any
+        );
+        return textResult(rows.slice(0, limit || 100));
+      } catch (err) {
+        if (err instanceof FilterError) return errorResult(err.message);
+        throw err;
+      }
+    }
+  );
+
+  defineTool(
+    server,
+    'get_identity',
+    "The user's own accounts and their addresses, including configured aliases. Use it to tell " +
+      'the user apart from the people they correspond with.',
+    {},
+    'read',
+    async () => textResult(currentIdentity(mcpGrant()))
   );
 
   defineTool(
@@ -549,7 +587,9 @@ export function registerTools(server: McpServer) {
       const message = await DatabaseStore.find<Message>(Message, messageId).include(
         Message.attributes.body
       );
-      if (!message) return errorResult(`Message '${messageId}' not found`);
+      if (!(await isMessageVisible(message))) {
+        return errorResult(`Message '${messageId}' not found`);
+      }
 
       const result = serializeMessageDetail(message);
       if (!result) return errorResult(`Message '${messageId}' not found`);
@@ -572,7 +612,7 @@ export function registerTools(server: McpServer) {
       const message = await DatabaseStore.find<Message>(Message, messageId).include(
         Message.attributes.body
       );
-      if (!message || !isMessageAllowed(message)) {
+      if (!(await isMessageVisible(message))) {
         return errorResult(`Message '${messageId}' not found`);
       }
 
@@ -684,7 +724,7 @@ export function registerTools(server: McpServer) {
     'read',
     async ({ messageId }) => {
       const message = await DatabaseStore.find<Message>(Message, messageId);
-      if (!message || !isMessageAllowed(message)) {
+      if (!(await isMessageVisible(message))) {
         return errorResult(`Message '${messageId}' not found`);
       }
 
@@ -793,9 +833,10 @@ export function registerTools(server: McpServer) {
       // Metadata contents (open/click timestamps) aren't queryable in SQL,
       // so activity-based filters — and folder-level access filtering — are
       // applied in-memory after the bounded fetch above.
-      let candidates = messages
-        .filter(isMessageAllowed)
-        .map((m) => ({ message: m, tracking: messageTrackingSummary(m) }));
+      let candidates = (await allowedMessages(messages)).map((m) => ({
+        message: m,
+        tracking: messageTrackingSummary(m),
+      }));
 
       candidates = candidates.filter(({ tracking }) => {
         if (minOpens !== undefined && (!tracking.opens || tracking.opens.count < minOpens)) {
@@ -901,8 +942,7 @@ export function registerTools(server: McpServer) {
         accountId: string;
       }[] = [];
 
-      for (const message of messages) {
-        if (!isMessageAllowed(message)) continue;
+      for (const message of await allowedMessages(messages)) {
         const { links } = messageTrackingSummary(message);
         if (!links) continue;
         for (const link of links.links) {
@@ -1086,9 +1126,13 @@ export function registerTools(server: McpServer) {
         if (!folder) return null;
         return new ChangeFolderTask({ folder, threads: accountThreads, source: 'MCP' });
       });
+      if (tasks.length === 0) {
+        return errorResult(`Folder '${folderId}' not found in these threads' accounts`);
+      }
       for (const task of tasks) Actions.queueTask(task);
 
-      return textResult({ moved: threadIds.length, folderId });
+      const moved = tasks.reduce((n, t) => n + (t as ChangeFolderTask).threadIds.length, 0);
+      return textResult({ moved, folderId });
     }
   );
 
@@ -1199,7 +1243,7 @@ export function registerTools(server: McpServer) {
         draft: true,
       }).include(Message.attributes.body);
 
-      if (!draft || !isMessageAllowed(draft)) {
+      if (!(await isMessageVisible(draft))) {
         return errorResult(`Draft with headerMessageId '${headerMessageId}' not found`);
       }
 
@@ -1240,7 +1284,7 @@ export function registerTools(server: McpServer) {
         headerMessageId,
         draft: true,
       });
-      if (!draft || !isMessageAllowed(draft)) {
+      if (!(await isMessageVisible(draft))) {
         return errorResult(`Draft with headerMessageId '${headerMessageId}' not found`);
       }
 
@@ -1270,7 +1314,7 @@ export function registerTools(server: McpServer) {
         headerMessageId,
         draft: true,
       });
-      if (!draft || !isMessageAllowed(draft)) {
+      if (!(await isMessageVisible(draft))) {
         return errorResult(`Draft with headerMessageId '${headerMessageId}' not found`);
       }
 
@@ -1317,8 +1361,7 @@ export function registerTools(server: McpServer) {
       const drafts = await dbQuery;
       const now = new Date();
 
-      const results = drafts
-        .filter(isMessageAllowed)
+      const results = (await allowedMessages(drafts))
         .map((d) => ({
           draft: d,
           metadata: d.metadataForPluginId(SEND_LATER_ID) as SendLaterMetadata | null,

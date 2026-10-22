@@ -1,0 +1,227 @@
+@import 'ui-variables';
+
+.views-root {
+  position: relative;
+  display: flex;
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+
+  > .view-host {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+  }
+}
+
+.view-host {
+  position: relative;
+  display: flex;
+  background: @background-primary;
+
+  .view-host-webview {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+
+    webview {
+      flex: 1;
+      border: 0;
+    }
+  }
+}
+
+.view-host-cover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: @padding-base-vertical * 2;
+  padding: @padding-large-horizontal;
+  background: fade(@background-primary, 92%);
+  color: @text-color-subtle;
+  text-align: center;
+
+  .view-host-cover-title {
+    font-size: @font-size-large;
+  }
+  .view-host-cover-actions {
+    display: flex;
+    gap: @padding-base-horizontal;
+  }
+}
+
+// Card mode reuses the contact card's `.sidebar-section` chrome (message-list.less), so a
+// View drawn on a transparent background sits inside the same border, radius and padding.
+.sidebar-view-card {
+  // The sidebar column scrolls as a whole; a View squeezed below its content height would
+  // scroll inside itself instead.
+  flex-shrink: 0;
+  position: relative;
+
+  .sidebar-view-frame {
+    display: flex;
+    // The height set inline is the View's content height, measured inside the card padding.
+    box-sizing: content-box;
+
+    > .view-host {
+      flex: 1;
+      min-width: 0;
+      background: transparent;
+    }
+  }
+}
+
+// Panel mode draws no card; the inset lines the View's content up with the switcher above it.
+.sidebar-view-panel {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  padding: 5px 15px 15px 15px;
+
+  > .view-host {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+  }
+}
+
+// Each child carries one theme token in `color` (or `font-*`) so theme-tokens.ts can read the
+// resolved value with getComputedStyle and push it into Views.
+.views-theme-probe {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: none;
+  [data-token='background'] {
+    color: @background-primary;
+  }
+  [data-token='background-secondary'] {
+    color: @background-secondary;
+  }
+  [data-token='text'] {
+    color: @text-color;
+  }
+  [data-token='text-subtle'] {
+    color: @text-color-subtle;
+  }
+  [data-token='text-heading'] {
+    color: @text-color-heading;
+  }
+  [data-token='link'] {
+    color: @text-color-link;
+  }
+  [data-token='accent'] {
+    color: @accent-primary;
+  }
+  [data-token='border'] {
+    color: @border-color-primary;
+  }
+  [data-token='success'] {
+    color: @color-success;
+  }
+  [data-token='warning'] {
+    color: @color-warning;
+  }
+  [data-token='danger'] {
+    color: @color-danger;
+  }
+  [data-token='font'] {
+    font-family: @font-family;
+    font-size: @font-size-base;
+  }
+}
+
+// Shown in place of a View until the user allows what its manifest asks for. In flow rather
+// than covering, so a sidebar card grows to fit it.
+.view-host-consent {
+  position: static;
+  flex: 1;
+  background: @background-primary;
+
+  .view-host-consent-box {
+    width: 100%;
+    max-width: 440px;
+    box-sizing: border-box;
+    padding: @padding-large-vertical * 1.5 @padding-large-horizontal;
+    border: 1px solid @border-color-primary;
+    border-radius: @border-radius-base * 2;
+    background: @background-off-primary;
+    text-align: start;
+  }
+  .view-host-consent-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    li {
+      position: relative;
+      padding: 3px 0;
+      padding-inline-start: 22px;
+      &::before {
+        position: absolute;
+        inset-inline-start: 0;
+        width: 16px;
+        text-align: center;
+        font-weight: @font-weight-semi-bold;
+      }
+    }
+  }
+  .view-host-consent-granted {
+    color: @text-color;
+    li::before {
+      content: '✓';
+      color: @color-success;
+    }
+  }
+  .view-host-consent-network {
+    font-weight: @font-weight-semi-bold;
+  }
+  .view-host-consent-withheld-title {
+    margin-top: @padding-large-vertical;
+    padding-top: @padding-large-vertical;
+    border-top: 1px solid @border-color-divider;
+    font-size: @font-size-small;
+    color: @text-color-subtle;
+  }
+  .view-host-consent-withheld {
+    font-size: @font-size-small;
+    color: @text-color-subtle;
+    li::before {
+      content: '✕';
+      color: @text-color-very-subtle;
+    }
+  }
+}
+.view-host:has(> .view-host-consent) > .view-host-webview {
+  display: none;
+}
+
+// The sidebar card already draws a border, so the consent box drops its own there.
+.sidebar-view-card .view-host-consent-box {
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.view-pin-button {
+  color: fade(@text-color-heading, 80%);
+  svg {
+    width: 14px;
+    height: 14px;
+    vertical-align: text-bottom;
+  }
+}
+
+.views-root.unbuilt {
+  align-items: center;
+  justify-content: center;
+  .views-unbuilt-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: @text-color-subtle;
+  }
+}

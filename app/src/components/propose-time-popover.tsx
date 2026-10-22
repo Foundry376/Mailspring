@@ -1,6 +1,6 @@
 import React from 'react';
 import moment, { Moment } from 'moment';
-import { Actions, localized } from 'mailspring-exports';
+import { Actions, DateUtils, localized } from 'mailspring-exports';
 import { DatePicker, TimePicker } from 'mailspring-component-kit';
 
 // The pickers speak milliseconds; events are passed around in unix seconds.
@@ -94,13 +94,7 @@ export class ProposeTimePopover extends React.Component<
   };
 
   _renderTimed(start: number, end: number) {
-    const minutes = Math.round((end - start) / 60);
-    const duration =
-      minutes % 60 === 0
-        ? localized('%@ hr', minutes / 60)
-        : minutes > 60
-          ? localized('%@ hr %@ min', Math.floor(minutes / 60), minutes % 60)
-          : localized('%@ min', minutes);
+    const duration = DateUtils.formatDuration(end - start);
     return (
       <div className="propose-time-fields">
         <label className="propose-time-field">

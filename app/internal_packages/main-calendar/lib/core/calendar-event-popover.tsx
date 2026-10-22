@@ -48,7 +48,6 @@ import { AlertSelector, AlertTiming } from './alert-selector';
 import { ShowAsSelector, ShowAsOption, defaultShowAs } from './show-as-selector';
 import { EventPopoverActions } from './event-popover-actions';
 import { TimeZoneSelector } from './timezone-selector';
-import { parseEventIdFromOccurrence } from './calendar-drag-utils';
 import { showRecurringEventDialog } from './recurring-event-dialog';
 
 /**
@@ -226,7 +225,7 @@ export class CalendarEventPopover extends React.Component<
     let repeat: RepeatOption = 'none';
     let timezone = this.state.timezone;
     try {
-      const eventId = parseEventIdFromOccurrence(this.props.event.id);
+      const eventId = CalendarUtils.parseOccurrenceId(this.props.event.id).eventId;
       const event = await DatabaseStore.find<Event>(Event, eventId);
       if (event) {
         const recurrenceInfo = ICSEventHelpers.getRecurrenceInfo(event.ics);
@@ -321,7 +320,7 @@ export class CalendarEventPopover extends React.Component<
       }
 
       // Extract the real event ID from the occurrence ID (format: `${eventId}-e${idx}`)
-      const eventId = parseEventIdFromOccurrence(this.props.event.id);
+      const eventId = CalendarUtils.parseOccurrenceId(this.props.event.id).eventId;
 
       // Fetch the actual Event from the database
       const event = await DatabaseStore.find<Event>(Event, eventId);

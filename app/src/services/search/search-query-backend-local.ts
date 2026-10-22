@@ -28,11 +28,27 @@ class MatchQueryExpressionVisitor extends SearchQueryExpressionVisitor {
     }
   }
 
+  // The parser builds right-nested binary trees, and FTS5's parser overflows its stack on
+  // deeply nested parentheses (about 40 levels), so chains of the same operator are emitted
+  // flat: `(a OR b OR c)` rather than `(a OR (b OR c))`.
+  _operands(node, type) {
+    const out = [];
+    const stack = [node];
+    while (stack.length) {
+      const n = stack.pop();
+      if (n instanceof type) {
+        stack.push(n.e2, n.e1);
+      } else {
+        out.push(n);
+      }
+    }
+    return out;
+  }
+
   visitAnd(node) {
     this._assertIsMatchCompatible(node);
-    const lhs = this.visitAndGetResult(node.e1);
-    const rhs = this.visitAndGetResult(node.e2);
-    this._result = `(${lhs} AND ${rhs})`;
+    const parts = this._operands(node, AndQueryExpression).map((n) => this.visitAndGetResult(n));
+    this._result = `(${parts.join(' AND ')})`;
   }
 
   visitNot(node) {
@@ -43,9 +59,8 @@ class MatchQueryExpressionVisitor extends SearchQueryExpressionVisitor {
   }
 
   visitOr(node) {
-    const lhs = this.visitAndGetResult(node.e1);
-    const rhs = this.visitAndGetResult(node.e2);
-    this._result = `(${lhs} OR ${rhs})`;
+    const parts = this._operands(node, OrQueryExpression).map((n) => this.visitAndGetResult(n));
+    this._result = `(${parts.join(' OR ')})`;
   }
 
   visitDate(node) {}
