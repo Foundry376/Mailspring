@@ -186,9 +186,20 @@ export class SendDraftTask extends Task {
         LocalizedErrorStrings[smtpError]
       );
     } else if (key === 'smtp-auth-disabled') {
-      errorMessage = localized(
-        'Your organization has turned off SMTP sending for this account. Reconnect the account in Preferences > Accounts so Mailspring can send through Microsoft 365.'
-      );
+      // A shared mailbox sends over SMTP as its owner whether or not it is reconnected, so
+      // only an administrator enabling SMTP AUTH for it can fix this.
+      const account = AccountStore.accountForId(this.draft.accountId);
+      const isSharedMailbox =
+        account &&
+        account.settings.smtp_username &&
+        account.settings.smtp_username.toLowerCase() !== account.emailAddress.toLowerCase();
+      errorMessage = isSharedMailbox
+        ? localized(
+            'Microsoft has turned off SMTP sending for this shared mailbox. An administrator must enable SMTP AUTH for it before Mailspring can send from it.'
+          )
+        : localized(
+            'Microsoft has turned off SMTP sending for this account. Reconnect the account in Preferences > Accounts so Mailspring can send through Microsoft 365.'
+          );
       errorDetail = debuginfo;
     } else if (key === 'send-failed') {
       errorMessage = localized(

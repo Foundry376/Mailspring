@@ -17,6 +17,9 @@ import {
   GMAIL_CLIENT_SECRET,
   LOCAL_SERVER_PORT,
   O365_SCOPES,
+  O365_GRAPH_SEND_SCOPES,
+  setLatestO365Scopes,
+  getLatestO365Scopes,
   O365_CLIENT_ID,
   CODE_VERIFIER,
   GMAIL_SCOPES,
@@ -404,7 +407,9 @@ export async function buildMicrosoftAccountFromAuthResponse(
       `https://login.microsoftonline.com/common/oauth2/v2.0/token`,
       {
         code: code,
-        scope: O365_SCOPES.filter((f) => !f.startsWith('https://outlook.office.com')).join(' '),
+        scope: getLatestO365Scopes()
+          .filter((f) => !f.startsWith('https://outlook.office.com'))
+          .join(' '),
         client_id: O365_CLIENT_ID,
         code_verifier: CODE_VERIFIER,
         grant_type: `authorization_code`,
@@ -512,12 +517,14 @@ export function buildGmailAuthURL() {
   })}`;
 }
 
-export function buildO365AuthURL() {
+export function buildO365AuthURL({ withGraphSend = true }: { withGraphSend?: boolean } = {}) {
+  const scopes = withGraphSend ? [...O365_SCOPES, ...O365_GRAPH_SEND_SCOPES] : O365_SCOPES;
+  setLatestO365Scopes(scopes);
   return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${qs.stringify({
     client_id: O365_CLIENT_ID,
     redirect_uri: `http://localhost:${LOCAL_SERVER_PORT}/desktop`,
     response_type: 'code',
-    scope: O365_SCOPES.join(' '),
+    scope: scopes.join(' '),
     response_mode: 'query',
     code_challenge: CODE_CHALLENGE,
     code_challenge_method: 'S256',

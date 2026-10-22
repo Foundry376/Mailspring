@@ -1,7 +1,9 @@
 import dns from 'dns';
 import { AccountStore, MailsyncProcess } from 'mailspring-exports';
 import { O365_SCOPES } from '../lib/onboarding-constants';
+import { extractOAuthErrorFromUrl } from '../lib/oauth-signin-page';
 import {
+  buildO365AuthURL,
   buildO365AccountFromAuthResponse,
   buildOutlookAccountFromAuthResponse,
   grantsGraphSend,
@@ -12,10 +14,15 @@ const GRAPH_SEND_SCOPE =
   'https://graph.microsoft.com/Mail.ReadWrite https://graph.microsoft.com/Mail.Send ' +
   'https://graph.microsoft.com/User.Read';
 
-// Answers the code exchange with `tokenScope` and Graph /me with a mailbox user.
+const scopesOf = (authURL: string) => (new URL(authURL).searchParams.get('scope') || '').split(' ');
+
+// Answers the code exchange with `tokenScope` and Graph /me with a mailbox user. Returns the
+// form bodies sent to the token endpoint.
 function stubMicrosoft(tokenScope: string) {
-  spyOn(window as any, 'fetch').andCallFake((url: string) => {
+  const tokenRequests: URLSearchParams[] = [];
+  spyOn(window as any, 'fetch').andCallFake((url: string, init: any) => {
     if (url.startsWith('https://login.microsoftonline.com/')) {
+      tokenRequests.push(new URLSearchParams(init.body));
       return Promise.resolve({
         ok: true,
         json: () =>
@@ -35,6 +42,7 @@ function stubMicrosoft(tokenScope: string) {
     }
     return Promise.resolve({ ok: false, status: 404, statusText: 'Not Found', text: () => '' });
   });
+  return tokenRequests;
 }
 
 describe('Microsoft Graph sending', () => {
@@ -45,14 +53,58 @@ describe('Microsoft Graph sending', () => {
     );
     spyOn(AccountStore, 'containerFolderDefaultGetter').andReturn('');
     spyOn(MailsyncProcess.prototype, 'test').andReturn(Promise.resolve());
+    buildO365AuthURL();
   });
 
   it('requests the Graph mail scopes alongside IMAP and SMTP', () => {
-    expect(O365_SCOPES).toContain('Mail.ReadWrite');
-    expect(O365_SCOPES).toContain('Mail.Send');
+    const scopes = scopesOf(buildO365AuthURL());
+    expect(scopes).toContain('Mail.ReadWrite');
+    expect(scopes).toContain('Mail.Send');
     // Accounts that cannot send through Graph still sync over IMAP and send over SMTP.
-    expect(O365_SCOPES).toContain('https://outlook.office.com/IMAP.AccessAsUser.All');
-    expect(O365_SCOPES).toContain('https://outlook.office.com/SMTP.Send');
+    expect(scopes).toContain('https://outlook.office.com/IMAP.AccessAsUser.All');
+    expect(scopes).toContain('https://outlook.office.com/SMTP.Send');
+  });
+
+  it('can sign in with only the permissions Mailspring asked for before Graph sending', () => {
+    const scopes = scopesOf(buildO365AuthURL({ withGraphSend: false }));
+    expect(scopes).not.toContain('Mail.ReadWrite');
+    expect(scopes).not.toContain('Mail.Send');
+    expect(scopes.sort()).toEqual([...O365_SCOPES].sort());
+  });
+
+  it('exchanges the code for the Graph mail scopes it asked the user to approve', async () => {
+    const tokenRequests = stubMicrosoft(GRAPH_SEND_SCOPE);
+    buildO365AuthURL();
+    const account = await buildO365AccountFromAuthResponse('code');
+    expect(tokenRequests[0].get('scope')).toContain('Mail.Send');
+    expect(tokenRequests[0].get('scope')).not.toContain('outlook.office.com');
+    expect(account.sendsViaGraph()).toBe(true);
+  });
+
+  it('exchanges the code without them after signing in without Graph sending', async () => {
+    const tokenRequests = stubMicrosoft('openid https://graph.microsoft.com/User.Read');
+    buildO365AuthURL({ withGraphSend: false });
+    const account = await buildO365AccountFromAuthResponse('code');
+    expect(tokenRequests[0].get('scope')).not.toContain('Mail.Send');
+    expect(tokenRequests[0].get('scope')).not.toContain('Mail.ReadWrite');
+    expect(account.sendsViaGraph()).toBe(false);
+  });
+
+  describe('extractOAuthErrorFromUrl', () => {
+    it("reads Microsoft's reason without the trace ids", () => {
+      expect(
+        extractOAuthErrorFromUrl(
+          '/desktop?error=access_denied&error_description=AADSTS65004%3a+User+declined+to+consent+to+access+the+app.%0d%0aTrace+ID%3a+abc&state=x'
+        )
+      ).toEqual('AADSTS65004: User declined to consent to access the app.');
+    });
+
+    it('falls back to the error code, and ignores a successful redirect', () => {
+      expect(extractOAuthErrorFromUrl('/desktop?error=access_denied&state=x')).toEqual(
+        'access_denied'
+      );
+      expect(extractOAuthErrorFromUrl('/desktop?code=abc&state=x')).toBe(null);
+    });
   });
 
   describe('grantsGraphSend', () => {

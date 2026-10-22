@@ -48,8 +48,6 @@ export const O365_SCOPES = [
   'Contacts.ReadWrite.Shared', // contacts
   'Calendars.ReadWrite', // calendar
   'Calendars.ReadWrite.Shared', // calendar
-  'Mail.ReadWrite', // sending: the draft Graph sends, and finding its Sent Items copy
-  'Mail.Send', // sending through Graph, which works where the tenant disables SMTP AUTH
 
   // Future note: When you exchange the refresh token for an access token, you may
   // request these two OR the above set but NOT BOTH, because Microsoft has mapped
@@ -59,6 +57,12 @@ export const O365_SCOPES = [
   'https://outlook.office.com/IMAP.AccessAsUser.All', // email
   'https://outlook.office.com/SMTP.Send', // email, for accounts that do not send through Graph
 ];
+
+// Sending through Microsoft Graph, which works where the tenant disables SMTP AUTH: Mail.Send,
+// plus Mail.ReadWrite for the draft Graph sends and to find its Sent Items copy. Requested with
+// O365_SCOPES unless the user chose to sign in without them, because their organization
+// requires admin approval for permissions Mailspring was not granted before.
+export const O365_GRAPH_SEND_SCOPES = ['Mail.ReadWrite', 'Mail.Send'];
 
 // Re-created only at onboarding page load / auth session start because storing
 // verifier would require additional state refactoring
@@ -98,4 +102,16 @@ export function createOAuthState(): string {
 
 export function getLatestOAuthState(): string | null {
   return latestOAuthState;
+}
+
+// The Microsoft scopes on the most recently built authorization URL. The code exchange must
+// ask for the same set: a scope the user was not asked to approve fails the exchange.
+let latestO365Scopes: string[] = [];
+
+export function setLatestO365Scopes(scopes: string[]) {
+  latestO365Scopes = scopes;
+}
+
+export function getLatestO365Scopes(): string[] {
+  return latestO365Scopes;
 }
