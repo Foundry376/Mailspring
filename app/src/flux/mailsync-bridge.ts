@@ -114,6 +114,9 @@ class CrashTracker {
 export default class MailsyncBridge {
   _crashTracker = new CrashTracker();
   _clients: { [accountId: string]: MailsyncProcess } = {};
+  // The account settings each sync client was launched with. Clients launched for other
+  // purposes (resetCacheForAccount) have no entry and are never relaunched for a change.
+  _launchedSettings = new WeakMap<MailsyncProcess, Account['settings']>();
   _lastWait: number;
 
   constructor() {
@@ -182,12 +185,21 @@ export default class MailsyncBridge {
     const keys = await KeyManager._getKeyHash();
 
     for (const acct of AccountStore.accounts()) {
-      if (!this._clients[acct.id]) {
+      const client = this._clients[acct.id];
+      if (!client) {
         // client for this account is missing, launch it!
         this._launchClient(acct, keys);
       } else {
         // client for this account exists
         delete clientsWithoutAccounts[acct.id];
+
+        // Reconnecting an account rewrites its settings (a Microsoft account can switch to
+        // sending through Graph), which the running engine only reads at launch.
+        const launched = this._launchedSettings.get(client);
+        if (launched && !_.isEqual(launched, acct.settings)) {
+          this._launchClient(acct, keys, { force: true });
+          client.kill();
+        }
       }
     }
 
@@ -337,6 +349,7 @@ export default class MailsyncBridge {
   ) {
     const client = new MailsyncProcess(this._getClientConfiguration());
     this._clients[account.id] = client; // set this synchornously so we never spawn two
+    this._launchedSettings.set(client, JSON.parse(JSON.stringify(account.settings)));
 
     const fullAccountJSON = (await KeyManager.insertAccountSecrets(account, keys)).toJSON();
 
