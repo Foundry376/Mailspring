@@ -1,15 +1,22 @@
 # Mailspring Changelog
 
-## 1.26.1 (10/20/2026)
+## 1.26.1 (10/21/2026)
 
-This is a security patch release. It updates Electron to 44.9.1, which distrusts eight eMudhra intermediate certificates whose private keys were compromised. An attacker holding one of those keys could impersonate any mail server or website. (https://emudhra.we-have-a-problem.com/)
+This is a security patch release. Eight eMudhra intermediate certificates had their private keys compromised, so an attacker holding one could impersonate any mail server or website. (https://emudhra.we-have-a-problem.com/) Operating system vendors have blocked them, and Mailspring now relies on your operating system's trust decisions everywhere it makes a secure connection.
 
 Security:
 
 - Updated Electron to 44.9.1 to block the compromised eMudhra intermediate certificates.
+- On macOS, calendar, contacts, sign-in and Mailspring account requests now check server certificates with the macOS trust store, so certificates Apple has revoked or blocked are rejected.
+- On Windows, mail server certificates are now checked with the Windows certificate store, including certificates Microsoft has blocked or the issuer has revoked, and the certificate must match the server's hostname.
+- "Allow insecure SSL" no longer turns off certificate validation. It still allows older encryption settings. If your mail server uses a self-signed certificate or one from a private certificate authority, add it to your operating system's trust store (Keychain Access on macOS, the Windows certificate store, or your distribution's CA certificates on Linux).
+- Passwords and OAuth tokens are no longer written to the sync engine's connection logs.
 - On Linux, tray icons are converted with ImageMagick without going through a shell. (#2934)
 
 Bug Fixes:
+
+- Contact names and email addresses mangled by earlier versions are repaired from message headers and vCards on upgrade.
+- Fixed changes to Google contact group membership not being saved locally.
 
 - Fixed Mailspring failing to start when the interface language is set to Luxembourgish. (#2954) Thanks @brhellman!
 - Fixed a composer crash when a list item has no list around it. (#2813)

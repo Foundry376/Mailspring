@@ -52,7 +52,7 @@
   <content_rating type="oars-1.1" />
 
   <releases>
-    <release version="1.26.1" date="2026-10-20">
+    <release version="1.26.1" date="2026-10-21">
       <url type="details">https://github.com/Foundry376/Mailspring/releases/tag/1.26.1</url>
     </release>
     <release version="1.26.0" date="2026-10-01">
