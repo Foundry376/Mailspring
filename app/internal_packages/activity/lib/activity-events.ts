@@ -31,6 +31,19 @@ export function pluckByEmail(recipients: Contact[], email: string) {
   return null;
 }
 
+/**
+ * True when a tracked message went to several recipients as one shared body, so an open or
+ * click cannot be attributed to any of them. Accounts that send through Microsoft Graph send
+ * every recipient the same message; the tracking metadata records this as `shared_body`. With
+ * a single recipient the event is still theirs (pluckByEmail).
+ */
+export function recipientIsUnknowable(message: Message, metadata: { shared_body?: boolean }) {
+  if (!metadata || !metadata.shared_body) {
+    return false;
+  }
+  return message.to.length + message.cc.length + message.bcc.length > 1;
+}
+
 export function eventCountLabel(count: number) {
   return count === 1 ? localized('1 event') : localized('%@ events', count);
 }

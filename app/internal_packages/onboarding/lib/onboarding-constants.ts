@@ -48,6 +48,8 @@ export const O365_SCOPES = [
   'Contacts.ReadWrite.Shared', // contacts
   'Calendars.ReadWrite', // calendar
   'Calendars.ReadWrite.Shared', // calendar
+  'Mail.ReadWrite', // sending: the draft Graph sends, and finding its Sent Items copy
+  'Mail.Send', // sending through Graph, which works where the tenant disables SMTP AUTH
 
   // Future note: When you exchange the refresh token for an access token, you may
   // request these two OR the above set but NOT BOTH, because Microsoft has mapped
@@ -55,7 +57,7 @@ export const O365_SCOPES = [
   // need to get an outlook token and not a Micrsosoft Graph token to use these APIs.
   // https://stackoverflow.com/questions/61597263/
   'https://outlook.office.com/IMAP.AccessAsUser.All', // email
-  'https://outlook.office.com/SMTP.Send', // email
+  'https://outlook.office.com/SMTP.Send', // email, for accounts that do not send through Graph
 ];
 
 // Re-created only at onboarding page load / auth session start because storing

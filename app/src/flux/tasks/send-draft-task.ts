@@ -54,9 +54,14 @@ export class SendDraftTask extends Task {
     task.headerMessageId = task.draft.headerMessageId;
     task.silent = silent;
 
-    const separateBodies = ComposerExtensionRegistry.extensions().some(
-      (ext) => ext.needsPerRecipientBodies && ext.needsPerRecipientBodies(task.draft)
-    );
+    // Graph sends one message to every recipient, so tracking extensions get a null recipient
+    // and produce one body for all of them (see recipientIsUnknowable).
+    const account = AccountStore.accountForId(task.draft.accountId);
+    const separateBodies =
+      !(account && account.sendsViaGraph()) &&
+      ComposerExtensionRegistry.extensions().some(
+        (ext) => ext.needsPerRecipientBodies && ext.needsPerRecipientBodies(task.draft)
+      );
 
     if (task.draft.plaintext) {
       // Our editor uses zero-width spaces to differentiate between soft and hard newlines
@@ -180,6 +185,11 @@ export class SendDraftTask extends Task {
         emails,
         LocalizedErrorStrings[smtpError]
       );
+    } else if (key === 'smtp-auth-disabled') {
+      errorMessage = localized(
+        'Your organization has turned off SMTP sending for this account. Reconnect the account in Preferences > Accounts so Mailspring can send through Microsoft 365.'
+      );
+      errorDetail = debuginfo;
     } else if (key === 'send-failed') {
       errorMessage = localized(
         `Sorry, Mailspring was unable to deliver this message: %@`,

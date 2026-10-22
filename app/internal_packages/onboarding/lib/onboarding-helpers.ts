@@ -378,23 +378,39 @@ export async function buildOutlookAccountFromAuthResponse(code: string) {
   return buildMicrosoftAccountFromAuthResponse(code, 'outlook');
 }
 
+/**
+ * Whether a Microsoft token response's `scope` grants what the sync engine needs to send
+ * through Microsoft Graph. Graph scopes come back as full URIs on work accounts
+ * ("https://graph.microsoft.com/Mail.Send") and sometimes bare on personal ones.
+ */
+export function grantsGraphSend(scope: string | undefined) {
+  const granted = new Set(
+    (scope || '')
+      .split(' ')
+      .filter((s) => !s.startsWith('https://outlook.office.com/'))
+      .map((s) => s.split('/').pop().toLowerCase())
+  );
+  return granted.has('mail.send') && granted.has('mail.readwrite');
+}
+
 export async function buildMicrosoftAccountFromAuthResponse(
   code: string,
   provider: 'outlook' | 'office365',
   sharedMailboxAddress?: string
 ) {
   /// Exchange code for an access token
-  const { access_token, refresh_token, id_token } = await fetchPostWithFormBody<TokenResponse>(
-    `https://login.microsoftonline.com/common/oauth2/v2.0/token`,
-    {
-      code: code,
-      scope: O365_SCOPES.filter((f) => !f.startsWith('https://outlook.office.com')).join(' '),
-      client_id: O365_CLIENT_ID,
-      code_verifier: CODE_VERIFIER,
-      grant_type: `authorization_code`,
-      redirect_uri: `http://localhost:${LOCAL_SERVER_PORT}/desktop`,
-    }
-  );
+  const { access_token, refresh_token, id_token, scope } =
+    await fetchPostWithFormBody<TokenResponse>(
+      `https://login.microsoftonline.com/common/oauth2/v2.0/token`,
+      {
+        code: code,
+        scope: O365_SCOPES.filter((f) => !f.startsWith('https://outlook.office.com')).join(' '),
+        client_id: O365_CLIENT_ID,
+        code_verifier: CODE_VERIFIER,
+        grant_type: `authorization_code`,
+        redirect_uri: `http://localhost:${LOCAL_SERVER_PORT}/desktop`,
+      }
+    );
 
   // get the user's email address
   const meResp = await fetch('https://graph.microsoft.com/v1.0/me', {
@@ -448,9 +464,14 @@ export async function buildMicrosoftAccountFromAuthResponse(
   // visible to every member of the mailbox. create_helper_folders: false keeps the
   // sync engine from provisioning "Mailspring/Snoozed" in the shared mailbox, which
   // would also be visible to every member (snoozing is unavailable in that account).
+  //
+  // Mail goes out through Microsoft Graph when the user granted Mail.Send, since many tenants
+  // disable SMTP AUTH. Shared mailboxes keep SMTP: Graph would file the sent copy in the
+  // signed-in user's Sent Items rather than the shared mailbox's.
   const settings: any = {
     refresh_client_id: O365_CLIENT_ID,
     refresh_token: refresh_token,
+    graph_send: !sharedMailboxAddress && grantsGraphSend(scope),
   };
   if (sharedMailboxAddress) {
     settings.smtp_username = emailAddress;

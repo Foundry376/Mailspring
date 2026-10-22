@@ -107,6 +107,9 @@ export class Account extends ModelWithMetadata {
     smtp_allow_insecure_ssl: boolean;
     smtp_security: 'SSL / TLS' | 'STARTTLS' | 'none';
     refresh_token: string;
+    // Microsoft accounts only: send through Microsoft Graph instead of SMTP. Set at sign-in
+    // when the user granted Mail.Send; accounts authorized earlier get it by reconnecting.
+    graph_send?: boolean;
     container_folder: string;
   };
   public label: string;
@@ -193,6 +196,12 @@ export class Account extends ModelWithMetadata {
 
   usesOAuth() {
     return ['gmail', 'office365', 'outlook'].includes(this.provider);
+  }
+
+  // Graph addresses one message to all its recipients, so it cannot send each recipient a
+  // body of their own (per-recipient open and link tracking).
+  sendsViaGraph() {
+    return !!(this.settings && this.settings.graph_send);
   }
 
   // Public: Returns the localized, properly capitalized provider name,
