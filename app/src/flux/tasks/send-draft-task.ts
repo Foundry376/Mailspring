@@ -186,19 +186,22 @@ export class SendDraftTask extends Task {
         LocalizedErrorStrings[smtpError]
       );
     } else if (key === 'smtp-auth-disabled') {
-      // A shared mailbox sends over SMTP as its owner whether or not it is reconnected, so
-      // only an administrator enabling SMTP AUTH for it can fix this.
+      // Reconnecting signs a Microsoft account in through OAuth and moves it to Graph sending,
+      // unless its organization declines Mail.Send. A shared mailbox (sending over SMTP as its
+      // owner) or an IMAP/SMTP account cannot move, so only an administrator can help those.
       const account = AccountStore.accountForId(this.draft.accountId);
       const isSharedMailbox =
         account &&
         account.settings.smtp_username &&
         account.settings.smtp_username.toLowerCase() !== account.emailAddress.toLowerCase();
-      errorMessage = isSharedMailbox
+      const canSendThroughGraph =
+        account && ['office365', 'outlook'].includes(account.provider) && !isSharedMailbox;
+      errorMessage = canSendThroughGraph
         ? localized(
-            'Microsoft has turned off SMTP sending for this shared mailbox. An administrator must enable SMTP AUTH for it before Mailspring can send from it.'
+            "Microsoft has turned off SMTP sending for this account. Reconnect the account in Preferences > Accounts so Mailspring can send through Microsoft 365. If Microsoft asks for an administrator's approval, an administrator must approve Mailspring's mail permissions or enable SMTP AUTH."
           )
         : localized(
-            'Microsoft has turned off SMTP sending for this account. Reconnect the account in Preferences > Accounts so Mailspring can send through Microsoft 365.'
+            'Microsoft has turned off SMTP sending for this mailbox. An administrator must enable SMTP AUTH for it before Mailspring can send from it.'
           );
       errorDetail = debuginfo;
     } else if (key === 'send-failed') {
