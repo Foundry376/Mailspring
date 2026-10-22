@@ -239,6 +239,7 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
   static displayName = 'ActivityReports';
 
   _mounted = false;
+  _computeVersion = 0;
 
   constructor(props: RootProps) {
     super(props);
@@ -301,6 +302,8 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
 
   _onComputeMetrics = async () => {
     const metricsComputeStarted = Date.now();
+    const version = ++this._computeVersion;
+    const isStale = () => !this._mounted || version !== this._computeVersion;
 
     const {
       timespan: { startDate, endDate, days },
@@ -330,7 +333,7 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
     const trackedByWeekday = Array(7).fill(0);
     const openedByWeekday = Array(7).fill(0);
 
-    await this._forEachMessageIn(accountIds, startUnix, endUnix, (message, messageUnix) => {
+    const tallyMessage = (message: Message, messageUnix: number) => {
       const dayIdx = Math.floor((messageUnix - startUnix) / DAY);
       if (dayIdx > days - 1) {
         return;
@@ -424,7 +427,11 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
           }
         }
       }
-    });
+    };
+    await forEachMessageIn(accountIds, startUnix, endUnix, tallyMessage, isStale);
+    if (isStale()) {
+      return;
+    }
 
     const replied = { hits: 0, total: 0 };
     const startedByDay = zerosByDay();
@@ -487,7 +494,7 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
     const animationDelay = Math.max(0, metricsComputeStarted + MINIMUM_THINKING_TIME - Date.now());
 
     setTimeout(() => {
-      if (!this._mounted) {
+      if (isStale()) {
         return;
       }
       const replyCount = (n: number) => localized('%@ replies', n);
