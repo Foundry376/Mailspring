@@ -15,7 +15,6 @@ import React from 'react';
 import ICAL from 'ical.js';
 import { ProposeTimePopover } from 'mailspring-component-kit';
 import { EventOccurrence, occurrenceStartUnix, occurrenceEndUnix } from './calendar-data-source';
-import { parseEventIdFromOccurrence } from './calendar-drag-utils';
 import { formatCalendarDate } from '../../../../src/calendar-date';
 import { showRecurringEventDialog } from './recurring-event-dialog';
 
@@ -64,7 +63,7 @@ export async function respondToCalendarEvent(
   occurrence: EventOccurrence,
   status: ICSParticipantStatus
 ): Promise<void> {
-  const eventId = parseEventIdFromOccurrence(occurrence.id);
+  const eventId = CalendarUtils.parseOccurrenceId(occurrence.id).eventId;
   const event = await DatabaseStore.find<Event>(Event, eventId);
   if (!event) {
     console.warn(`Calendar RSVP: could not find event ${eventId}`);
@@ -93,9 +92,33 @@ export async function respondToCalendarEvent(
     if (choice === 'cancel') return;
     thisOccurrenceOnly = choice === 'this-occurrence';
   }
+  await recordAndSendRSVP({
+    event,
+    myEmail: me.email,
+    status,
+    recurrenceId: thisOccurrenceOnly ? occurrenceRecurrenceId(occurrence) : null,
+  });
+}
+
+/**
+ * The RSVP itself, shared with Views: our PARTSTAT on our copy when that copy is writable, and
+ * an emailed REPLY to the organizer either way. `recurrenceId` answers one occurrence; null
+ * answers the whole stored object. Not undoable: the REPLY cannot be retracted.
+ */
+export async function recordAndSendRSVP({
+  event,
+  myEmail,
+  status,
+  recurrenceId,
+}: {
+  event: Event;
+  myEmail: string;
+  status: ICSParticipantStatus;
+  recurrenceId: ICAL.Time | null;
+}): Promise<void> {
   // What the answer is about: the one occurrence's VEVENT, or the whole stored object.
-  const answered = thisOccurrenceOnly
-    ? ICSEventHelpers.occurrenceIcs(event.ics, occurrenceRecurrenceId(occurrence))
+  const answered = recurrenceId
+    ? ICSEventHelpers.occurrenceIcs(event.ics, recurrenceId)
     : event.ics;
 
   // A calendar the server named as somebody else's holds their event, not ours; the invitation
@@ -104,22 +127,23 @@ export async function respondToCalendarEvent(
   const writable =
     calendar && !calendar.readOnly && !CalendarUtils.isSomeoneElsesCalendar(calendar);
   if (writable) {
-    const ics = thisOccurrenceOnly
-      ? ICSEventHelpers.updateOccurrenceAttendeeStatus(event.ics, answered, me.email, status)
-      : ICSEventHelpers.updateAttendeeStatus(event.ics, me.email, status);
+    const ics = recurrenceId
+      ? ICSEventHelpers.updateOccurrenceAttendeeStatus(event.ics, answered, myEmail, status)
+      : ICSEventHelpers.updateAttendeeStatus(event.ics, myEmail, status);
     if (ics) {
       const updated = event.clone();
       updated.ics = ics;
       const answer = {
-        email: me.email,
+        email: myEmail,
         status,
-        occurrenceIcs: thisOccurrenceOnly ? answered : undefined,
+        occurrenceIcs: recurrenceId ? answered : undefined,
       };
       Actions.queueTask(SyncbackEventTask.forAnswering({ event: updated, answer }));
     }
   }
 
-  const organizerEmail = CalendarUtils.emailFromParticipantURI(parsed.event.organizer);
+  const { event: parsed } = CalendarUtils.parseICSString(event.ics);
+  const organizerEmail = CalendarUtils.emailFromParticipantURI(parsed.organizer);
   if (!organizerEmail) return; // nothing to tell - an event with no organizer isn't scheduled
 
   try {
@@ -157,7 +181,7 @@ export async function proposeNewTimeForCalendarEvent(
   occurrence: EventOccurrence,
   proposal: { start: Date; end: Date; comment: string }
 ): Promise<void> {
-  const eventId = parseEventIdFromOccurrence(occurrence.id);
+  const eventId = CalendarUtils.parseOccurrenceId(occurrence.id).eventId;
   const event = await DatabaseStore.find<Event>(Event, eventId);
   if (!event) {
     console.warn(`Calendar counter-proposal: could not find event ${eventId}`);

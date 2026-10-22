@@ -13,6 +13,8 @@ import * as OnboardingActions from './onboarding-actions';
 class OnboardingStore extends MailspringStore {
   _account: Account;
   _pageStack: string[];
+  // Cleared by any later setAccount, such as submitting the form or going back.
+  _confirmServers = false;
 
   constructor() {
     super();
@@ -103,11 +105,15 @@ class OnboardingStore extends MailspringStore {
     this._onMoveToPage(nextPage);
   };
 
-  _onSetAccount = (acct: Account) => {
+  _onSetAccount = (
+    acct: Account,
+    { confirmServers = false }: { confirmServers?: boolean } = {}
+  ) => {
     if (!(acct instanceof Account)) {
       throw new Error('OnboardingActions.setAccount expects an Account instance.');
     }
     this._account = acct;
+    this._confirmServers = confirmServers;
     this.trigger();
   };
 
@@ -184,6 +190,10 @@ class OnboardingStore extends MailspringStore {
 
   account() {
     return this._account;
+  }
+
+  confirmServers() {
+    return this._confirmServers;
   }
 }
 

@@ -1,14 +1,14 @@
 import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
 import { InjectedComponentSet } from 'mailspring-component-kit';
-import { CalendarDateUtils } from 'mailspring-exports';
+import { CalendarDateUtils, CalendarUtils } from 'mailspring-exports';
 import {
   EventOccurrence,
   isTimed,
   occurrenceStartUnix,
   occurrenceEndUnix,
 } from './calendar-data-source';
-import { calcEventColors, extractMeetingDomain, formatEventTimeRange } from './calendar-helpers';
+import { calcEventColors, formatEventTimeRange } from './calendar-helpers';
 import { HitZone, ViewDirection } from './calendar-drag-types';
 import { detectHitZone, canAttemptMove, formatDragPreviewTime } from './calendar-drag-utils';
 import { DAY_DUR, columnSpan } from './week-view-helpers';
@@ -293,7 +293,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       return null;
     }
 
-    const meetingDomain = extractMeetingDomain(event.location, event.description);
+    const meetingDomain = CalendarUtils.extractMeetingDomain(event.location, event.description);
     const timeRange = formatEventTimeRange(
       occurrenceStartUnix(event),
       occurrenceEndUnix(event),

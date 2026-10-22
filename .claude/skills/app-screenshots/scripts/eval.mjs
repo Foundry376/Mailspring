@@ -1,11 +1,12 @@
 // Usage: node --experimental-websocket eval.mjs <eval-js> [screenshot-path] [clickX clickY]
-// Evaluates JS in the main Mailspring window (dev app launched with --remote-debugging-port=9333).
+// Evaluates JS in the main Mailspring window (dev app launched with --remote-debugging-port=9333,
+// or the port in CDP_PORT).
 // Optionally captures a full-window screenshot, and/or dispatches a real mouse click first.
 import fs from 'fs';
 
 const [, , js, shot, clickX, clickY] = process.argv;
 let id = 0;
-const targets = await (await fetch('http://localhost:9333/json')).json();
+const targets = await (await fetch(`http://localhost:${process.env.CDP_PORT || 9333}/json`)).json();
 let main = null;
 for (const t of targets) {
   if (t.type !== 'page') continue;

@@ -72,6 +72,46 @@ export function nextDayStartUnix(date: CalendarDate): number {
 }
 
 /**
+ * Calls `onChange` once the local date moves past `today`: shortly after each midnight, and when
+ * the window shows again, since a timer set before the machine slept fires late. Dispose to stop.
+ */
+export function onDayChange(
+  today: CalendarDate,
+  onChange: (today: CalendarDate) => void,
+  nowUnix: () => number = () => Date.now() / 1000
+): { dispose(): void } {
+  let timer: number | undefined;
+
+  const check = () => {
+    const now = nowUnix();
+    const date = calendarDateFromUnix(now);
+    if (date !== today) {
+      today = date;
+      onChange(date);
+    }
+    schedule(now);
+  };
+  // The extra second keeps a timer that fires slightly early from landing on the same day and
+  // scheduling a second near-zero wait.
+  const schedule = (now: number) => {
+    window.clearTimeout(timer);
+    timer = window.setTimeout(check, Math.max(1, nextDayStartUnix(today) - now + 1) * 1000);
+  };
+  const onVisibilityChange = () => {
+    if (!document.hidden) check();
+  };
+
+  document.addEventListener('visibilitychange', onVisibilityChange);
+  schedule(nowUnix());
+  return {
+    dispose() {
+      window.clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    },
+  };
+}
+
+/**
  * Wall-clock seconds since the local midnight of the date an instant falls on: 10:30 is 37800
  * on a 23- or 25-hour day too. Not `unix - dayStartUnix(date)`, which is elapsed time and sits
  * an hour off the clock after a DST transition.
@@ -147,6 +187,30 @@ export function calendarDaysBetween(from: CalendarDate, to: CalendarDate): numbe
 /** From y/m/d directly, so no timezone is applied on the way. `month` is 1-based, as in ICS. */
 export function calendarDateFromParts(year: number, month: number, day: number): CalendarDate {
   return (Date.UTC(year, month - 1, day) / MS_PER_DAY) as CalendarDate;
+}
+
+/** 0 for Sunday through 6 for Saturday, as `Date.getDay` counts. */
+export function dayOfWeek(date: CalendarDate): number {
+  // Epoch day 0, 1970-01-01, was a Thursday.
+  return (((date + 4) % 7) + 7) % 7;
+}
+
+/** The first day of the week holding `date`, for a week starting on `firstDayOfWeek` (0 is Sunday). */
+export function weekStartOf(date: CalendarDate, firstDayOfWeek: number): CalendarDate {
+  return addCalendarDays(date, -((dayOfWeek(date) - firstDayOfWeek + 7) % 7));
+}
+
+export function monthStartOf(date: CalendarDate): CalendarDate {
+  const d = new Date(date * MS_PER_DAY);
+  return calendarDateFromParts(d.getUTCFullYear(), d.getUTCMonth() + 1, 1);
+}
+
+/**
+ * The month a title over rows of weeks names: the one holding the middle day. Six rows aligned on a
+ * month's first week always put the middle day between its 16th and 22nd.
+ */
+export function monthShownFrom(topWeek: CalendarDate, visibleWeeks: number): CalendarDate {
+  return monthStartOf(addCalendarDays(topWeek, Math.floor((visibleWeeks * 7) / 2)));
 }
 
 /** ISO form, `2026-06-21`. For debugging, specs, and anywhere a human reads the value. */

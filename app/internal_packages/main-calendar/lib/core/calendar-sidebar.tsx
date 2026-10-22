@@ -64,6 +64,13 @@ export class CalendarSidebar extends React.Component<
   render() {
     return (
       <div className="calendar-source-list">
+        <div className="mini-month-view-wrap">
+          <MiniMonthView
+            arrows="vertical"
+            value={this.state.focusedMoment}
+            onChange={(m) => FocusedMomentStore.setFocusedMoment(m)}
+          />
+        </div>
         <ScrollRegion style={{ flex: 1 }}>
           <CalendarSourceList
             accounts={this.state.accounts}
@@ -71,12 +78,6 @@ export class CalendarSidebar extends React.Component<
             disabledCalendars={this.state.disabledCalendars}
           />
         </ScrollRegion>
-        <div style={{ width: '100%' }}>
-          <MiniMonthView
-            value={this.state.focusedMoment}
-            onChange={(m) => FocusedMomentStore.setFocusedMoment(m)}
-          />
-        </div>
       </div>
     );
   }

@@ -325,6 +325,27 @@ describe('MCP attachment tools', function () {
       });
     });
 
+    it('hides a message whose thread carries an excluded Gmail label', function () {
+      const file = makeFile();
+      const message = makeMessage([file]);
+      spyOn(DatabaseStore, 'find').andCallFake(() => stubMessageQuery(message));
+      const thread = {
+        id: 'thread-1',
+        accountId: TEST_ACCOUNT_ID,
+        categories: [{ id: 'label-private' }],
+      };
+      spyOn(DatabaseStore, 'findAll').andReturn({ where: () => Promise.resolve([thread]) } as any);
+      AppEnv.config.set('core.mcp.enabledAccounts', {
+        [TEST_ACCOUNT_ID]: { enabled: true, excludedFolderIds: ['label-private'] },
+      });
+
+      waitsForPromise(async () => {
+        const result: any = await callGetAttachment(this.client, message, file);
+        expect(result.isError).toBe(true);
+        expect(JSON.parse(result.content[0].text).error).toBe(`Message 'msg-1' not found`);
+      });
+    });
+
     it('records calls in the audit log', function () {
       const file = makeFile({ id: 'file-audit', filename: 'audit.txt' });
       const message = makeMessage([file]);

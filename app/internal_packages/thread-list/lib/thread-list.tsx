@@ -230,6 +230,7 @@ class ThreadList extends React.Component<
     new ThreadListContextMenu({
       threadIds: items.map((t) => t.id),
       accountIds: [...new Set(items.map((t) => t.accountId))],
+      perspective: FocusedPerspectiveStore.current(),
     }).displayMenu();
   };
 

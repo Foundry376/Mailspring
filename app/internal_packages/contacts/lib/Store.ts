@@ -5,9 +5,11 @@ import {
   ContactGroup,
   ContactBook,
   MutableQuerySubscription,
+  localized,
 } from 'mailspring-exports';
 import MailspringStore from 'mailspring-store';
 import { ListTabular } from 'mailspring-component-kit';
+import { displayNameForContact } from './ContactDisplayName';
 
 class ContactsWindowStore extends MailspringStore {
   _perspective: ContactsPerspective = { type: 'unified' };
@@ -27,10 +29,9 @@ class ContactsWindowStore extends MailspringStore {
     window.requestAnimationFrame(() => {
       AppEnv.displayWindow();
 
-      const contacts = DatabaseStore.findAll<Contact>(Contact)
-        .where(Contact.attributes.refs.greaterThan(0))
-        .where(Contact.attributes.hidden.equal(false));
-      this._contactsSubscription = new MutableQuerySubscription<Contact>(contacts);
+      this._contactsSubscription = new MutableQuerySubscription<Contact>(
+        this._queryForPerspective(this._perspective)
+      );
 
       Rx.Observable.fromNamedQuerySubscription('contacts', this._contactsSubscription).subscribe(
         (contacts) => {
@@ -43,6 +44,7 @@ class ContactsWindowStore extends MailspringStore {
       Rx.Observable.fromQuery(DatabaseStore.findAll<ContactGroup>(ContactGroup)).subscribe(
         (groups) => {
           this._groups = groups;
+          this._syncGroupPerspective();
           this.trigger();
         }
       );
@@ -85,17 +87,25 @@ class ContactsWindowStore extends MailspringStore {
     this.trigger();
   }
 
-  setPerspective(perspective: ContactsPerspective) {
+  /** "All Contacts", unified or per-account, means address book entries. Addresses
+  harvested from sent mail number in the thousands and carry whatever display name the
+  sending client wrote, so they only appear under each account's "Found in Mail". */
+  _queryForPerspective(perspective: ContactsPerspective) {
     const q = DatabaseStore.findAll<Contact>(Contact)
       .where(Contact.attributes.refs.greaterThan(0))
       .where(Contact.attributes.hidden.equal(false));
 
-    if (perspective.type === 'all') {
+    if (perspective.type === 'all' || perspective.type === 'unified') {
       q.where(Contact.attributes.source.not('mail'));
     }
     if (perspective.type === 'group') {
       q.where(Contact.attributes.contactGroups.contains(perspective.groupId));
     }
+    return q;
+  }
+
+  setPerspective(perspective: ContactsPerspective) {
+    const q = this._queryForPerspective(perspective);
 
     this._filtered = null;
     this._perspective = perspective;
@@ -106,6 +116,24 @@ class ContactsWindowStore extends MailspringStore {
       this._contactsSubscription.replaceQuery(q);
     }
     this.repopulate();
+  }
+
+  /** Keeps the selected group's label current after a rename and leaves the group
+  once it's been deleted, since the perspective holds a copy of the group's name. */
+  _syncGroupPerspective() {
+    const perspective = this._perspective;
+    if (perspective.type !== 'group') return;
+
+    const group = this._groups.find((g) => g.id === perspective.groupId);
+    if (!group) {
+      this.setPerspective({
+        type: 'all',
+        accountId: perspective.accountId,
+        label: localized('All Contacts'),
+      });
+    } else if (group.name !== perspective.label) {
+      this._perspective = { ...perspective, label: group.name };
+    }
   }
 
   search() {
@@ -137,7 +165,8 @@ class ContactsWindowStore extends MailspringStore {
     }
 
     // note we do this in JS because in SQLite the order is not locale aware.
-    this._filtered = filtered.sort((a, b) => a.name.localeCompare(b.name));
+    const sortKeys = new Map(filtered.map((c) => [c, displayNameForContact(c)]));
+    this._filtered = filtered.sort((a, b) => sortKeys.get(a).localeCompare(sortKeys.get(b)));
     this._listSource.setItems(this._filtered);
     this.trigger();
   }

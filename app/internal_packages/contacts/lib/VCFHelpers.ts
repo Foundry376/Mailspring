@@ -11,8 +11,13 @@ export const asSingle = (obj: any | Array<any>) => {
 };
 
 /** Apply an array of items to a VCard. The underlying API requires that we `set` to
-clear the array and then `add` subsequent items. */
+clear the array and then `add` subsequent items, and an empty array must delete the
+property explicitly or the old values survive. */
 export const setArray = (attr: string, card: any, values: { value: string; type?: string }[]) => {
+  if (values.length === 0) {
+    delete card.data[attr];
+    return;
+  }
   values.forEach(({ value, type }, idx) => {
     const params = {};
     if (type) {
@@ -43,7 +48,7 @@ export const serializeBirthday = ({
     if (isNaN(clean)) clean = 0;
     let str = clean.toString();
     if (str.length > count) str = str.slice(0, count);
-    if (str.length < count) str = '0'.repeat(count - str.length) + str.length;
+    if (str.length < count) str = '0'.repeat(count - str.length) + str;
     return str;
   };
   return { value: `${td(date.year, 4)}-${td(date.month, 2)}-${td(date.day, 2)}` };
@@ -122,7 +127,7 @@ export const parseName = (name: { _data: string } | null) => {
     familyName: parts[0] || '',
     honorificPrefix: parts[3] || '',
     honorificSuffix: parts[4] || '',
-    displayName: `${parts[3] || ''} ${parts[1]} ${parts[0]} ${parts[4] || ''}`.trim(),
+    displayName: [parts[3], parts[1], parts[0], parts[4]].filter(Boolean).join(' '),
   };
 };
 

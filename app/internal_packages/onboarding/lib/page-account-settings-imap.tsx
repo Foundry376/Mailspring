@@ -3,6 +3,7 @@ import React from 'react';
 import { localized, Account } from 'mailspring-exports';
 import CreatePageForForm from './decorators/create-page-for-form';
 import FormField from './form-field';
+import { serversOutsideDomain } from './onboarding-helpers';
 
 const StandardIMAPPorts = [143, 993];
 const StandardSMTPPorts = [25, 465, 587];
@@ -32,6 +33,36 @@ class AccountIMAPSettingsForm extends React.Component<AccountIMAPSettingsFormPro
 
   static subtitleLabel = () => {
     return localized('Complete the IMAP and SMTP settings below to connect your account.');
+  };
+
+  // confirmServers means the servers came from unsigned DNS SRV records, so the user confirms
+  // each host outside their domain by name before the password goes to it (RFC 6186 §6).
+  static warningLabel = ({
+    account,
+    confirmServers,
+  }: {
+    account: Account;
+    confirmServers?: boolean;
+  }) => {
+    if (!confirmServers) return null;
+    const domain = account.emailAddress.split('@').pop();
+    const hosts = serversOutsideDomain(account);
+    if (hosts.length === 1) {
+      return localized(
+        `The server %@ is not part of %@. It came from that domain's DNS records, which can be forged, so connect only if your email provider runs it.`,
+        hosts[0],
+        domain
+      );
+    }
+    if (hosts.length === 2) {
+      return localized(
+        `The servers %@ and %@ are not part of %@. They came from that domain's DNS records, which can be forged, so connect only if your email provider runs them.`,
+        hosts[0],
+        hosts[1],
+        domain
+      );
+    }
+    return null;
   };
 
   static validateAccount = (account: Account) => {

@@ -16,6 +16,8 @@ import {
   EmlUtils,
   SearchableComponentStore,
   SearchableComponentMaker,
+  DragDropTypes,
+  CanvasUtils,
 } from 'mailspring-exports';
 
 import {
@@ -500,6 +502,20 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
     };
   }
 
+  // Dragging the subject drags the open thread, in the same format as thread-list rows, so it
+  // can be dropped anywhere a thread can (folders, labels, the Views authoring panel).
+  _onSubjectDragStart = (event: React.DragEvent) => {
+    const thread = this.state.currentThread;
+    if (!thread) return;
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setDragImage(CanvasUtils.canvasForDragging('threads', 1), 10, 10);
+    event.dataTransfer.setData(
+      DragDropTypes.ThreadsDragType,
+      JSON.stringify({ threadIds: [thread.id], accountIds: [thread.accountId] })
+    );
+    event.dataTransfer.setData(`${DragDropTypes.AccountsDragTypePrefix}${thread.accountId}`, '1');
+  };
+
   _renderSubject() {
     let subject = this.state.currentThread.subject;
     if (!subject || subject.length === 0) {
@@ -510,7 +526,12 @@ class MessageList extends React.Component<Record<string, unknown>, MessageListSt
       <header className="message-subject-wrap">
         <MailImportantIcon thread={this.state.currentThread} />
         <div style={{ flex: 1 }}>
-          <span className="message-subject" onContextMenu={() => _onSubjectContextMenu()}>
+          <span
+            className="message-subject"
+            draggable
+            onDragStart={this._onSubjectDragStart}
+            onContextMenu={() => _onSubjectContextMenu()}
+          >
             {subject}
           </span>
           <MailLabelSet
