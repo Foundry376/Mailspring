@@ -39,6 +39,27 @@ const ActivityNavRailItem = () => (
 );
 ActivityNavRailItem.displayName = 'ActivityNavRailItem';
 
+// Added by the plugin so it goes when the plugin is disabled. Spliced in after Calendar, since
+// AppEnv.menu.add appends to the end of the Window menu.
+const windowMenuItem = { label: localized('Activity'), command: 'application:show-activity' };
+
+function windowMenu() {
+  return AppEnv.menu.template.find((item) => item.id === 'Window');
+}
+
+function addWindowMenuItem() {
+  const items = windowMenu().submenu;
+  const calendarIdx = items.findIndex((item) => item.command === 'application:show-calendar');
+  items.splice(calendarIdx + 1, 0, windowMenuItem);
+  AppEnv.menu.update();
+}
+
+function removeWindowMenuItem() {
+  const menu = windowMenu();
+  menu.submenu = menu.submenu.filter((item) => item !== windowMenuItem);
+  AppEnv.menu.update();
+}
+
 export function activate() {
   // summary view
   WorkspaceStore.defineSheet('Activity', { root: true }, { list: ['ActivityContent'] });
@@ -48,6 +69,7 @@ export function activate() {
   });
   ComponentRegistry.register(ActivityNavRailItem, { role: 'NavRail:Item' });
   ipcRenderer.on('show-activity', onShowActivity);
+  addWindowMenuItem();
 
   // list view in the mail and calendar toolbars, beside compose / new event
   ComponentRegistry.register(ActivityListButtonWithTutorialTip, {
@@ -64,6 +86,7 @@ export function deactivate() {
   ComponentRegistry.unregister(Root);
   ComponentRegistry.unregister(ActivityNavRailItem);
   ipcRenderer.removeListener('show-activity', onShowActivity);
+  removeWindowMenuItem();
 
   // list view in top left
   ComponentRegistry.unregister(ActivityListButtonWithTutorialTip);
