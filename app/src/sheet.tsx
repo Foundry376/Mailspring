@@ -16,6 +16,7 @@ const COLUMN_META: Record<string, { role: string; label: () => string }> = {
   MessageListSidebar: { role: 'complementary', label: () => localized('Contact panel') },
   CalendarSidebar: { role: 'complementary', label: () => localized('Calendar sidebar') },
   CalendarContent: { role: 'region', label: () => localized('Calendar') },
+  ActivityContent: { role: 'region', label: () => localized('Activity') },
 };
 
 // Mail and Calendar share one sidebar width, so switching sections leaves the toolbar in place.

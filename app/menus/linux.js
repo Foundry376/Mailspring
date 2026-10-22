@@ -222,6 +222,7 @@ module.exports = {
         { type: 'separator' },
         { label: localized('Mail'), command: 'application:show-mail' },
         { label: localized('Calendar'), command: 'application:show-calendar' },
+        { label: localized('Activity'), command: 'application:show-activity' },
         {
           label: localized('Contacts'),
           command: 'application:show-contacts',
