@@ -1,0 +1,41 @@
+// The strip spans decades, so a scrollbar thumb would be a sliver that jumps years.
+.snap-scroller {
+  overflow-anchor: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  &.vertical {
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+  }
+
+  &.horizontal {
+    // Without it the spacers' widths size every ancestor, which widens the days, and so on.
+    contain: inline-size;
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    > * {
+      flex: none;
+    }
+  }
+
+  .snap-scroller-span {
+    display: flex;
+    > * {
+      flex: 1 1 0;
+      min-width: 0;
+      min-height: 0;
+      scroll-snap-align: start;
+    }
+  }
+  &.vertical .snap-scroller-span {
+    flex-direction: column;
+  }
+  &.horizontal .snap-scroller-span {
+    height: 100%;
+  }
+}

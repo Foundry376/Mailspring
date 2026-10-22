@@ -2,6 +2,21 @@ import moment from 'moment';
 import { DateUtils } from 'mailspring-exports';
 
 describe('DateUtils', function dateUtils() {
+  describe('formatDuration', () => {
+    it('writes the two largest units it needs, down to minutes', () => {
+      expect(DateUtils.formatDuration(30 * 60)).toBe('30m');
+      expect(DateUtils.formatDuration(60 * 60)).toBe('1h');
+      expect(DateUtils.formatDuration(90 * 60)).toBe('1h 30m');
+      expect(DateUtils.formatDuration(26 * 3600 + 15 * 60)).toBe('1d 2h');
+      expect(DateUtils.formatDuration(48 * 3600)).toBe('2d');
+    });
+
+    it('calls anything under a minute less than one', () => {
+      expect(DateUtils.formatDuration(0)).toBe('< 1m');
+      expect(DateUtils.formatDuration(59)).toBe('< 1m');
+    });
+  });
+
   describe('nextWeek', () => {
     it('returns tomorrow if now is sunday', () => {
       const sunday = moment('03-06-2016', 'MM-DD-YYYY');

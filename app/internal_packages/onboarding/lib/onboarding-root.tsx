@@ -36,6 +36,7 @@ interface OnboardingRootState {
   pageDepth: number;
   page: string;
   account: Account;
+  confirmServers: boolean;
 }
 
 export default class OnboardingRoot extends React.Component<
@@ -69,6 +70,7 @@ export default class OnboardingRoot extends React.Component<
       page: OnboardingStore.page(),
       pageDepth: OnboardingStore.pageDepth(),
       account: OnboardingStore.account(),
+      confirmServers: OnboardingStore.confirmServers(),
     };
   };
 
@@ -91,7 +93,7 @@ export default class OnboardingRoot extends React.Component<
         <TransitionGroup component={null}>
           <CSSTransition key={this.state.page} classNames="alpha-fade" timeout={150}>
             <div className="page-container">
-              <Component account={this.state.account} />
+              <Component account={this.state.account} confirmServers={this.state.confirmServers} />
             </div>
           </CSSTransition>
         </TransitionGroup>

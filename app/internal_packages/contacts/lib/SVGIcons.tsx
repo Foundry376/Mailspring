@@ -408,3 +408,16 @@ export const Person = () => (
     </g>
   </svg>
 );
+
+export const Tag = () => (
+  <svg width="14px" height="14px" viewBox="0 0 16 16" aria-hidden="true">
+    <path
+      d="M2 2.75C2 2.34 2.34 2 2.75 2h5.07c.2 0 .39.08.53.22l5.5 5.5c.29.29.29.77 0 1.06l-5.07 5.07a.75.75 0 0 1-1.06 0l-5.5-5.5A.75.75 0 0 1 2 7.82V2.75Z"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.3"
+      strokeLinejoin="round"
+    />
+    <circle cx="5.25" cy="5.25" r="1.1" fill="currentColor" />
+  </svg>
+);

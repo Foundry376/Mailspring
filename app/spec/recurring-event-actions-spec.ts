@@ -744,7 +744,7 @@ describe('modifyEventWithRecurringSupport', function () {
 
   describe('when isException is true but event is a standalone DB exception (event.isRecurrenceException() === true)', function () {
     // A standalone exception is a separate DB record (legacy or server-sent). When the
-    // drag handler resolves its ID, parseEventIdFromOccurrence returns the exception
+    // drag handler resolves its ID, CalendarUtils.parseOccurrenceId returns the exception
     // record's ID — so options.event IS the exception, not the master. Calling
     // createOccurrenceException here would try to embed inline into the exception ICS
     // rather than the master. The correct path is modifySimpleEvent (direct ICS update).

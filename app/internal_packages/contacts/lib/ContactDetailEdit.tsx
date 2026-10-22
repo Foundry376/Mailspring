@@ -1,11 +1,12 @@
 import React from 'react';
-import { Contact } from 'mailspring-exports';
+import { AccountStore, Contact, localized } from 'mailspring-exports';
+import { ContactProfilePhoto } from 'mailspring-component-kit';
 import { ContactBase } from './ContactInfoMapping';
-import { YYMMDDInput } from './YYMMDDInput';
+import { BirthdayInput } from './BirthdayInput';
 import { ListEditor } from './ListEditor';
 import { TypeaheadFreeInput } from './TypeaheadFreeInput';
+import { ContactField, ContactTextField } from './ContactField';
 import * as Icons from './SVGIcons';
-import { ContactProfilePhoto } from 'mailspring-component-kit';
 
 const BaseTypes = ['Home', 'Work', 'Other'];
 
@@ -40,6 +41,33 @@ const RelationTypes = [
   'Domestic Partner',
 ];
 
+const EditSection = ({ icon, children }: { icon: React.ReactNode; children: React.ReactNode }) => (
+  <div className="contact-edit-section">
+    <div className="contact-edit-section-icon" aria-hidden="true">
+      {icon}
+    </div>
+    <div className="contact-edit-section-content">{children}</div>
+  </div>
+);
+
+const TypeField = ({
+  value,
+  suggestions,
+  onChange,
+}: {
+  value: string | undefined;
+  suggestions: string[];
+  onChange: (value: string) => void;
+}) => (
+  <ContactField label={localized('Label')} className="type">
+    <TypeaheadFreeInput
+      suggestions={suggestions}
+      value={value || ''}
+      onChange={(e) => onChange(e.currentTarget.value)}
+    />
+  </ContactField>
+);
+
 export class ContactDetailEdit extends React.Component<{
   data: ContactBase;
   contact: Contact;
@@ -47,370 +75,244 @@ export class ContactDetailEdit extends React.Component<{
 }> {
   render() {
     const { onChange, contact, data } = this.props;
+    const account = AccountStore.accountForId(contact.accountId);
 
     return (
-      <div className="contact-detail-content-wrap">
-        <div className="contact-edit-section">
-          <div className="contact-edit-section-icon" style={{ padding: 0, marginTop: 0 }}>
-            <ContactProfilePhoto contact={contact} loading={false} avatar={data.photoURL} />
+      <div className="contact-detail-content-wrap editing">
+        <div className="contact-hero">
+          <ContactProfilePhoto contact={contact} loading={false} avatar={data.photoURL} />
+          <div className="contact-hero-text">
+            <h1>{contact.id ? localized('Edit Contact') : localized('New Contact')}</h1>
+            {account && <div className="contact-hero-subtitle">{account.label}</div>}
           </div>
-          <div className="contact-edit-section-content">
-            <div className="contact-edit-field">
-              <label>
-                First Name
-                <input
-                  type="text"
-                  value={data.name.givenName}
-                  onChange={(e) =>
-                    onChange({ name: { ...data.name, givenName: e.currentTarget.value } })
-                  }
+        </div>
+
+        <EditSection icon={<Icons.Person />}>
+          <ContactTextField
+            label={localized('First Name')}
+            value={data.name.givenName}
+            onChange={(givenName) => onChange({ name: { ...data.name, givenName } })}
+          />
+          <ContactTextField
+            label={localized('Last Name')}
+            value={data.name.familyName}
+            onChange={(familyName) => onChange({ name: { ...data.name, familyName } })}
+          />
+          <ListEditor<ContactBase['nicknames'][0]>
+            items={data.nicknames || []}
+            itemTemplate={{ value: '' }}
+            addLabel={localized('Add nickname')}
+            onChange={(items) => onChange({ nicknames: items })}
+          >
+            {(item, onChange) => (
+              <ContactTextField
+                label={localized('Nickname')}
+                value={item.value}
+                onChange={(value) => onChange({ value })}
+              />
+            )}
+          </ListEditor>
+        </EditSection>
+
+        <EditSection icon={<Icons.Briefcase />}>
+          <ContactTextField
+            label={localized('Company')}
+            value={data.company}
+            onChange={(company) => onChange({ company })}
+          />
+          <ContactTextField
+            label={localized('Job Title')}
+            value={data.title}
+            onChange={(title) => onChange({ title })}
+          />
+        </EditSection>
+
+        <EditSection icon={<Icons.Envelope />}>
+          <ListEditor<ContactBase['emailAddresses'][0]>
+            items={data.emailAddresses || []}
+            itemTemplate={{ type: '', value: '' }}
+            addLabel={localized('Add email')}
+            onChange={(items) => onChange({ emailAddresses: items })}
+          >
+            {(item, onChange) => (
+              <div className="contact-field-row">
+                <ContactTextField
+                  type="email"
+                  label={localized('Email')}
+                  value={item.value}
+                  onChange={(value) => onChange({ value })}
                 />
-              </label>
-            </div>
-            <div className="contact-edit-field">
-              <label>
-                Last Name
-                <input
-                  type="text"
-                  value={data.name.familyName}
-                  onChange={(e) =>
-                    onChange({ name: { ...data.name, familyName: e.currentTarget.value } })
-                  }
+                <TypeField
+                  value={item.type}
+                  suggestions={BaseTypes}
+                  onChange={(type) => onChange({ type })}
                 />
-              </label>
-            </div>
-
-            <ListEditor<ContactBase['nicknames'][0]>
-              items={data.nicknames || []}
-              itemTemplate={{ value: '' }}
-              onChange={(items) => onChange({ nicknames: items })}
-            >
-              {(item, onChange) => (
-                <div className="contact-edit-field">
-                  <label>
-                    Nickname
-                    <input
-                      type="text"
-                      value={item.value}
-                      onChange={(e) => onChange({ value: e.currentTarget.value })}
-                    />
-                  </label>
-                </div>
-              )}
-            </ListEditor>
-          </div>
-        </div>
-
-        <div className="contact-edit-section">
-          <div className="contact-edit-section-icon">
-            <Icons.Briefcase />
-          </div>
-          <div className="contact-edit-section-content">
-            <div className="contact-edit-twoup">
-              <div className="contact-edit-field">
-                <label>
-                  Title
-                  <input
-                    type="text"
-                    value={data.title}
-                    onChange={(e) => onChange({ title: e.currentTarget.value })}
-                  />
-                </label>
               </div>
-              <div className="contact-edit-field" style={{ flex: 0.7 }}>
-                <label>
-                  Company
-                  <input
-                    type="text"
-                    value={data.company}
-                    onChange={(e) => onChange({ company: e.currentTarget.value })}
-                  />
-                </label>
+            )}
+          </ListEditor>
+        </EditSection>
+
+        <EditSection icon={<Icons.Phone />}>
+          <ListEditor<ContactBase['phoneNumbers'][0]>
+            items={data.phoneNumbers || []}
+            itemTemplate={{ type: '', value: '' }}
+            addLabel={localized('Add phone')}
+            onChange={(items) => onChange({ phoneNumbers: items })}
+          >
+            {(item, onChange) => (
+              <div className="contact-field-row">
+                <ContactTextField
+                  type="tel"
+                  label={localized('Phone')}
+                  value={item.value}
+                  onChange={(value) => onChange({ value })}
+                />
+                <TypeField
+                  value={item.type}
+                  suggestions={PhoneTypes}
+                  onChange={(type) => onChange({ type })}
+                />
               </div>
-            </div>
-          </div>
-        </div>
+            )}
+          </ListEditor>
+        </EditSection>
 
-        <div className="contact-edit-section">
-          <div className="contact-edit-section-icon">
-            <Icons.Envelope />
-          </div>
-          <div className="contact-edit-section-content">
-            <ListEditor<ContactBase['emailAddresses'][0]>
-              items={data.emailAddresses || []}
-              itemTemplate={{ type: '', value: '' }}
-              onChange={(items) => onChange({ emailAddresses: items })}
-            >
-              {(item, onChange) => (
-                <div className="contact-edit-twoup">
-                  <div className="contact-edit-field">
-                    <label>
-                      Email
-                      <input
-                        type="text"
-                        value={item.value}
-                        onChange={(e) => onChange({ value: e.currentTarget.value })}
-                      />
-                    </label>
-                  </div>
-                  <div className="contact-edit-field" style={{ flex: 0.7 }}>
-                    <span aria-hidden="true" className="form-spacer" />
-                    <TypeaheadFreeInput
-                      placeholder="Label"
-                      suggestions={BaseTypes}
-                      value={item.type || ''}
-                      onChange={(e) => onChange({ type: e.currentTarget.value })}
-                    />
-                  </div>
+        <EditSection icon={<Icons.Map />}>
+          <ListEditor<ContactBase['addresses'][0]>
+            items={data.addresses || []}
+            itemTemplate={{
+              type: '',
+              formattedValue: '',
+              city: '',
+              country: '',
+              postalCode: '',
+              region: '',
+              streetAddress: '',
+              extendedAddress: '',
+            }}
+            addLabel={localized('Add address')}
+            onChange={(items) => onChange({ addresses: items })}
+          >
+            {(item, onChange) => (
+              <div className="contact-address-fields">
+                <ContactTextField
+                  label={localized('Street Address')}
+                  value={item.streetAddress}
+                  onChange={(streetAddress) => onChange({ streetAddress })}
+                />
+                <ContactTextField
+                  label={localized('Street Address Line 2')}
+                  value={item.extendedAddress}
+                  onChange={(extendedAddress) => onChange({ extendedAddress })}
+                />
+                <div className="contact-field-row">
+                  <ContactTextField
+                    label={localized('City')}
+                    value={item.city}
+                    onChange={(city) => onChange({ city })}
+                  />
+                  <ContactTextField
+                    label={localized('State / Region')}
+                    value={item.region}
+                    onChange={(region) => onChange({ region })}
+                  />
+                  <ContactTextField
+                    label={localized('Postal Code')}
+                    className="postal-code"
+                    value={item.postalCode}
+                    onChange={(postalCode) => onChange({ postalCode })}
+                  />
                 </div>
-              )}
-            </ListEditor>
-          </div>
-        </div>
+                <div className="contact-field-row">
+                  <ContactTextField
+                    label={localized('Country')}
+                    value={item.country}
+                    onChange={(country) => onChange({ country })}
+                  />
+                  <TypeField
+                    value={item.type}
+                    suggestions={BaseTypes}
+                    onChange={(type) => onChange({ type })}
+                  />
+                </div>
+              </div>
+            )}
+          </ListEditor>
+        </EditSection>
 
-        <div className="contact-edit-section">
-          <div className="contact-edit-section-icon">
-            <Icons.Phone />
-          </div>
-          <div className="contact-edit-section-content">
-            <ListEditor<ContactBase['phoneNumbers'][0]>
-              items={data.phoneNumbers || []}
-              itemTemplate={{ type: '', value: '' }}
-              onChange={(items) => onChange({ phoneNumbers: items })}
-            >
-              {(item, onChange) => (
-                <div className="contact-edit-twoup">
-                  <div className="contact-edit-field">
-                    <label>
-                      Phone
-                      <input
-                        type="text"
-                        value={item.value}
-                        onChange={(e) => onChange({ value: e.currentTarget.value })}
-                      />
-                    </label>
-                  </div>
-                  <div className="contact-edit-field" style={{ flex: 0.7 }}>
-                    <span aria-hidden="true" className="form-spacer" />
-                    <TypeaheadFreeInput
-                      placeholder="Label"
-                      suggestions={PhoneTypes}
-                      value={item.type || ''}
-                      onChange={(e) => onChange({ type: e.currentTarget.value })}
-                    />
-                  </div>
-                </div>
-              )}
-            </ListEditor>
-          </div>
-        </div>
-        <div className="contact-edit-section">
-          <div className="contact-edit-section-icon">
-            <Icons.Map />
-          </div>
-          <div className="contact-edit-section-content">
-            <ListEditor<ContactBase['addresses'][0]>
-              items={data.addresses || []}
-              itemTemplate={{
-                type: '',
-                formattedValue: '',
-                city: '',
-                country: '',
-                postalCode: '',
-                region: '',
-                streetAddress: '',
-                extendedAddress: '',
-              }}
-              onChange={(items) => onChange({ addresses: items })}
-            >
-              {(item, onChange) => (
-                <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-                  <div className="contact-edit-field">
-                    <label>
-                      Street Address
-                      <input
-                        type="text"
-                        value={item.streetAddress}
-                        onChange={(e) => onChange({ streetAddress: e.currentTarget.value })}
-                      />
-                    </label>
-                  </div>
-                  <div className="contact-edit-field">
-                    <label>
-                      Street Address line 2
-                      <input
-                        type="text"
-                        value={item.extendedAddress}
-                        onChange={(e) => onChange({ extendedAddress: e.currentTarget.value })}
-                      />
-                    </label>
-                  </div>
-                  <div className="contact-edit-field">
-                    <label>
-                      City
-                      <input
-                        type="text"
-                        value={item.city}
-                        onChange={(e) => onChange({ city: e.currentTarget.value })}
-                      />
-                    </label>
-                  </div>
-                  <div className="contact-edit-twoup">
-                    <div className="contact-edit-field">
-                      <label>
-                        Region
-                        <input
-                          type="text"
-                          value={item.region}
-                          onChange={(e) => onChange({ region: e.currentTarget.value })}
-                        />
-                      </label>
-                    </div>
-                    <div className="contact-edit-field" style={{ flex: 0.7 }}>
-                      <label>
-                        Postal Code
-                        <input
-                          type="text"
-                          value={item.postalCode}
-                          onChange={(e) => onChange({ postalCode: e.currentTarget.value })}
-                        />
-                      </label>
-                    </div>
-                  </div>
+        <EditSection icon={<Icons.Crown />}>
+          <ListEditor<ContactBase['birthdays'][0]>
+            items={data.birthdays || []}
+            itemTemplate={{ date: { year: null, month: null, day: null } }}
+            addLabel={localized('Add birthday')}
+            onChange={(items) => onChange({ birthdays: items })}
+          >
+            {(item, onChange) => (
+              <BirthdayInput value={item.date} onChange={(date) => onChange({ date })} />
+            )}
+          </ListEditor>
+        </EditSection>
 
-                  <div className="contact-edit-field">
-                    <label>
-                      Country
-                      <input
-                        type="text"
-                        value={item.country}
-                        onChange={(e) => onChange({ country: e.currentTarget.value })}
-                      />
-                    </label>
-                  </div>
-                  <div className="contact-edit-field" style={{ flex: 0.7 }}>
-                    <span aria-hidden="true" className="form-spacer" />
-                    <TypeaheadFreeInput
-                      aria-label="Type"
-                      placeholder="Label"
-                      suggestions={BaseTypes}
-                      value={item.type || ''}
-                      onChange={(e) => onChange({ type: e.currentTarget.value })}
-                    />
-                  </div>
-                </div>
-              )}
-            </ListEditor>
-          </div>
-        </div>
-        <div className="contact-edit-section">
-          <div className="contact-edit-section-icon">
-            <Icons.Crown />
-          </div>
-          <div className="contact-edit-section-content">
-            <ListEditor<ContactBase['birthdays'][0]>
-              items={data.birthdays || []}
-              itemTemplate={{ date: { year: null, month: null, day: null } }}
-              onChange={(items) => onChange({ birthdays: items })}
-            >
-              {(item, onChange) => (
-                <YYMMDDInput value={item.date} onChange={(date) => onChange({ date })} />
-              )}
-            </ListEditor>
-          </div>
-        </div>
         {data.relations !== undefined && (
-          <div className="contact-edit-section">
-            <div className="contact-edit-section-icon">
-              <Icons.People />
-            </div>
-            <div className="contact-edit-section-content">
-              <ListEditor<ContactBase['relations'][0]>
-                items={data.relations || []}
-                itemTemplate={{ person: '', type: '' }}
-                onChange={(items) => onChange({ relations: items })}
-              >
-                {(item, onChange) => (
-                  <div className="contact-edit-twoup">
-                    <div className="contact-edit-field">
-                      <label>
-                        Relation
-                        <input
-                          type="text"
-                          value={item.person}
-                          onChange={(e) => onChange({ person: e.currentTarget.value })}
-                        />
-                      </label>
-                    </div>
-                    <div className="contact-edit-field" style={{ flex: 0.7 }}>
-                      <span aria-hidden="true" className="form-spacer" />
-                      <TypeaheadFreeInput
-                        placeholder="Label"
-                        suggestions={RelationTypes}
-                        value={item.type || ''}
-                        onChange={(e) => onChange({ type: e.currentTarget.value })}
-                      />
-                    </div>
-                  </div>
-                )}
-              </ListEditor>
-            </div>
-          </div>
-        )}
-        <div className="contact-edit-section">
-          <div className="contact-edit-section-icon">
-            <Icons.Link />
-          </div>
-          <div className="contact-edit-section-content">
-            <ListEditor<ContactBase['urls'][0]>
-              items={data.urls || []}
-              itemTemplate={{ value: '', type: '' }}
-              onChange={(items) => onChange({ urls: items })}
+          <EditSection icon={<Icons.People />}>
+            <ListEditor<ContactBase['relations'][0]>
+              items={data.relations || []}
+              itemTemplate={{ person: '', type: '' }}
+              addLabel={localized('Add relationship')}
+              onChange={(items) => onChange({ relations: items })}
             >
               {(item, onChange) => (
-                <div className="contact-edit-twoup">
-                  <div className="contact-edit-field">
-                    <label>
-                      Link
-                      <input
-                        type="text"
-                        value={item.value}
-                        onChange={(e) => onChange({ value: e.currentTarget.value })}
-                      />
-                    </label>
-                  </div>
-                  <div className="contact-edit-field" style={{ flex: 0.7 }}>
-                    <span aria-hidden="true" className="form-spacer" />
-                    <TypeaheadFreeInput
-                      placeholder="Label"
-                      suggestions={WebTypes}
-                      value={item.type || ''}
-                      onChange={(e) => onChange({ type: e.currentTarget.value })}
-                    />
-                  </div>
+                <div className="contact-field-row">
+                  <ContactTextField
+                    label={localized('Relationship')}
+                    value={item.person}
+                    onChange={(person) => onChange({ person })}
+                  />
+                  <TypeField
+                    value={item.type}
+                    suggestions={RelationTypes}
+                    onChange={(type) => onChange({ type })}
+                  />
                 </div>
               )}
             </ListEditor>
-          </div>
-        </div>
-        <div className="contact-edit-section">
-          <div className="contact-edit-section-icon">
-            <Icons.Note />
-          </div>
-          <div className="contact-edit-section-content">
-            <div className="contact-edit-field">
-              <label>
-                Notes
-                <textarea
-                  className="contact-notes-textarea"
-                  value={data.notes || ''}
-                  onChange={(e) => onChange({ notes: e.currentTarget.value })}
-                  rows={4}
+          </EditSection>
+        )}
+
+        <EditSection icon={<Icons.Link />}>
+          <ListEditor<ContactBase['urls'][0]>
+            items={data.urls || []}
+            itemTemplate={{ value: '', type: '' }}
+            addLabel={localized('Add website')}
+            onChange={(items) => onChange({ urls: items })}
+          >
+            {(item, onChange) => (
+              <div className="contact-field-row">
+                <ContactTextField
+                  type="url"
+                  label={localized('Website')}
+                  value={item.value}
+                  onChange={(value) => onChange({ value })}
                 />
-              </label>
-            </div>
-          </div>
-        </div>
+                <TypeField
+                  value={item.type}
+                  suggestions={WebTypes}
+                  onChange={(type) => onChange({ type })}
+                />
+              </div>
+            )}
+          </ListEditor>
+        </EditSection>
+
+        <EditSection icon={<Icons.Note />}>
+          <ContactField label={localized('Notes')}>
+            <textarea
+              value={data.notes || ''}
+              onChange={(e) => onChange({ notes: e.currentTarget.value })}
+              rows={4}
+            />
+          </ContactField>
+        </EditSection>
       </div>
     );
   }

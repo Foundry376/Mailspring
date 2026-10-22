@@ -75,6 +75,7 @@
   "scripts": {
     "postinstall": "node scripts/postinstall.js",
     "start": "electron ./app --enable-logging --dev",
+    "build:fm-helper": "swift build -c release --arch arm64 --package-path app/native/mailspring-fm",
     "lint": "eslint --fix -c .eslintrc \"app/src/**/*.{ts,tsx}\" \"app/internal_packages/**/*.{ts,tsx}\"",
     "lint:check": "eslint -c .eslintrc \"app/src/**/*.{ts,tsx}\" \"app/internal_packages/**/*.{ts,tsx}\"",
     "typecheck": "./node_modules/.bin/tsc -p app/tsconfig.json --noEmit",

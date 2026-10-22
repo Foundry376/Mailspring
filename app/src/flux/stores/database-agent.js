@@ -27,9 +27,14 @@ process.on('message', m => {
   getDatabase(dbpath).then(db => {
     clearTimeout(deathTimer);
     const fn = query.startsWith('SELECT') ? 'all' : 'run';
-    const stmt = db.prepare(query);
-    const results = stmt[fn](values);
-    process.send({ type: 'results', results, id, agentTime: Date.now() - start });
+    try {
+      const stmt = db.prepare(query);
+      const results = stmt[fn](values);
+      process.send({ type: 'results', results, id, agentTime: Date.now() - start });
+    } catch (err) {
+      // Without a reply the caller's promise would never settle.
+      process.send({ type: 'error', error: err.toString(), id, agentTime: Date.now() - start });
+    }
 
     clearTimeout(deathTimer);
     deathTimer = setTimeout(() => process.exit(0), deathDelay);

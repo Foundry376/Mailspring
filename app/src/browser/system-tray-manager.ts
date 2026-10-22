@@ -1,8 +1,27 @@
 import path from 'path';
-import { Tray, Menu, nativeImage, nativeTheme } from 'electron';
+import { app, Tray, Menu, nativeImage, NativeImage, nativeTheme } from 'electron';
 import { localized } from '../intl';
 import { waitForStatusNotifierHost } from './sni-host';
 import Application from './application';
+
+// Windows remembers whether a tray icon is pinned to the taskbar or hidden in the
+// overflow flyout. Without a GUID it keys that choice by the executable's path, and
+// Squirrel installs every update into a new app-x.y.z folder, so the icon falls back
+// into the overflow after each update. With a GUID on a signed executable, Windows
+// keys the choice by the GUID and the signer instead. Never change this value: users
+// would have to pin the icon again.
+const WINDOWS_TRAY_GUID = 'a66c4fa1-dd67-4732-9609-776b8a41579c';
+
+function _createTray(platform: string, icon: NativeImage) {
+  // An unsigned executable ties the GUID to its path, and Windows then refuses to
+  // create the icon from any other path. Dev builds run an unsigned electron.exe
+  // from each checkout, so only packaged builds use the GUID. Electron rejects an
+  // explicit `undefined` GUID, so the argument is omitted everywhere else.
+  if (platform === 'win32' && app.isPackaged) {
+    return new Tray(icon, WINDOWS_TRAY_GUID);
+  }
+  return new Tray(icon);
+}
 
 function _getMenuTemplate(platform: string, application: Application) {
   const template = [
@@ -116,7 +135,7 @@ class SystemTrayManager {
       if (!this._trayEnabled() || this._tray !== null) return;
     }
 
-    this._tray = new Tray(_getIcon(this._iconPath || this._defaultIconPath()));
+    this._tray = _createTray(this._platform, _getIcon(this._iconPath || this._defaultIconPath()));
     this._tray.setToolTip(_getTooltip(this._unreadString));
     this._tray.addListener('click', this._onClick);
     this._tray.setContextMenu(

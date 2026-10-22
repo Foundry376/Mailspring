@@ -6,6 +6,8 @@ import {
   SyncbackContactTask,
   AccountStore,
   ContactGroup,
+  DatabaseStore,
+  TaskQueue,
 } from 'mailspring-exports';
 import { isEqual } from 'underscore';
 import { FocusContainer, ListensToFluxStore, ScrollRegion } from 'mailspring-component-kit';
@@ -104,6 +106,13 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
       : SyncbackContactTask.forCreating({ contact, accountId: perspective.accountId });
     Actions.queueTask(task);
     Store.setEditing(false);
+
+    if (!contact.id) {
+      // The sync engine assigns the new contact's id during performLocal.
+      TaskQueue.waitForPerformLocal(task)
+        .then((t) => DatabaseStore.find<Contact>(Contact, t.contact.id).then((c) => c))
+        .then((created) => created && Actions.setFocus({ collection: 'contact', item: created }));
+    }
   };
 
   render() {
@@ -138,7 +147,6 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
             <button className={`btn`} onClick={this.onCancel}>
               {localized('Cancel')}
             </button>
-            <div style={{ flex: 1 }} />
             <button className={`btn btn-emphasis`} onClick={this.onSaveChanges}>
               {localized('Save Changes')}
             </button>

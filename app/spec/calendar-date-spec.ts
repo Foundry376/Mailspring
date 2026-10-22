@@ -5,12 +5,17 @@ import {
   nextDayStartUnix,
   addCalendarDays,
   calendarDaysBetween,
+  dayOfWeek,
+  monthStartOf,
+  monthShownFrom,
+  weekStartOf,
   formatCalendarDate,
   parseCalendarDate,
   secondsIntoDay,
   secondsIntoDayUnix,
   firstOccurrenceUnix,
   sameOffsetOccurrenceUnix,
+  onDayChange,
 } from '../src/calendar-date';
 
 /** Fixtures read as dates, not epoch-day integers — a failure says 2026-06-21, not 20627 */
@@ -291,6 +296,42 @@ describe('calendarDaysBetween', function () {
   });
 });
 
+describe('dayOfWeek', function () {
+  it('counts from Sunday, including before the epoch', function () {
+    expect(dayOfWeek(d('2026-10-18'))).toBe(0);
+    expect(dayOfWeek(d('2026-10-16'))).toBe(5);
+    expect(dayOfWeek(d('1969-12-31'))).toBe(3);
+    expect(dayOfWeek(d('1900-01-01'))).toBe(1);
+  });
+});
+
+describe('monthStartOf', function () {
+  it('goes back to the 1st, including before the epoch', function () {
+    expect(formatCalendarDate(monthStartOf(d('2026-10-16')))).toBe('2026-10-01');
+    expect(formatCalendarDate(monthStartOf(d('2026-10-01')))).toBe('2026-10-01');
+    expect(formatCalendarDate(monthStartOf(d('2028-02-29')))).toBe('2028-02-01');
+    expect(formatCalendarDate(monthStartOf(d('1969-12-31')))).toBe('1969-12-01');
+  });
+});
+
+describe('weekStartOf', function () {
+  it('goes back to the first day of its week, whether that is Sunday or Monday', function () {
+    expect(formatCalendarDate(weekStartOf(d('2026-10-21'), 0))).toBe('2026-10-18');
+    expect(formatCalendarDate(weekStartOf(d('2026-10-21'), 1))).toBe('2026-10-19');
+    expect(formatCalendarDate(weekStartOf(d('2026-10-18'), 1))).toBe('2026-10-12');
+    expect(formatCalendarDate(weekStartOf(d('2026-10-18'), 0))).toBe('2026-10-18');
+  });
+});
+
+describe('monthShownFrom', function () {
+  it('names the month holding the middle of six rows', function () {
+    // Sun 27 Sep 2026 to Sat 7 Nov: the 22nd day is 18 Oct.
+    expect(formatCalendarDate(monthShownFrom(d('2026-09-27'), 6))).toBe('2026-10-01');
+    // From 11 Oct, three rows are October's and three November's: the 22nd day is 1 Nov.
+    expect(formatCalendarDate(monthShownFrom(d('2026-10-11'), 6))).toBe('2026-11-01');
+  });
+});
+
 describe('the readable form', function () {
   // The value is a plain number at runtime, so a spec asserting the wrong day would otherwise
   // read as "expected 20627, got 20628". These keep failures legible.
@@ -298,5 +339,75 @@ describe('the readable form', function () {
     ['2026-06-21', '2026-01-05', '2026-12-31', '2028-02-29'].forEach((iso) => {
       expect(formatCalendarDate(parseCalendarDate(iso))).toBe(iso);
     });
+  });
+});
+
+describe('onDayChange', function () {
+  // The spec clock fakes setTimeout but not Date, so the helper is handed its own clock.
+  const at = (iso: string) => new Date(iso).getTime() / 1000;
+  let now: number;
+  let changes: string[];
+  let watch: { dispose(): void };
+
+  const watchFrom = (iso: string) =>
+    onDayChange(
+      parseCalendarDate(iso),
+      (today) => changes.push(formatCalendarDate(today)),
+      () => now
+    );
+
+  beforeEach(function () {
+    now = at('2026-10-20T23:59:00');
+    changes = [];
+    watch = watchFrom('2026-10-20');
+  });
+
+  afterEach(() => watch.dispose());
+
+  it('reports the new date once midnight passes, and again the next night', function () {
+    advanceClock(59 * 1000);
+    expect(changes).toEqual([]);
+
+    now = at('2026-10-21T00:00:01');
+    advanceClock(2 * 1000);
+    expect(changes).toEqual(['2026-10-21']);
+
+    now = at('2026-10-22T00:00:01');
+    advanceClock(24 * 3600 * 1000);
+    expect(changes).toEqual(['2026-10-21', '2026-10-22']);
+  });
+
+  it('checks when the window shows again, after a sleep that held up the timer', function () {
+    now = at('2026-10-23T08:00:00');
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(changes).toEqual(['2026-10-23']);
+  });
+
+  it('waits the 25 hours of the day the clocks go back', function () {
+    watch.dispose();
+    now = at('2026-11-01T00:00:01');
+    watch = watchFrom('2026-11-01');
+
+    now = at('2026-11-02T00:00:01');
+    advanceClock(24 * 3600 * 1000);
+    expect(changes).toEqual([]);
+    advanceClock(3600 * 1000);
+    expect(changes).toEqual(['2026-11-02']);
+  });
+
+  it('reports at once a day that passed before it started watching', function () {
+    watch.dispose();
+    now = at('2026-10-21T00:00:01');
+    watch = watchFrom('2026-10-20');
+    advanceClock(1000);
+    expect(changes).toEqual(['2026-10-21']);
+  });
+
+  it('stays quiet once disposed', function () {
+    watch.dispose();
+    now = at('2026-10-21T00:00:01');
+    advanceClock(2 * 60 * 1000);
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(changes).toEqual([]);
   });
 });
