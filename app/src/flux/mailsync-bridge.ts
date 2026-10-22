@@ -62,40 +62,36 @@ export function isAuthFailureExit({ error }: Pick<MailsyncProcessExit, 'error'>)
   );
 }
 
-const CRASH_WINDOW = 30 * 60 * 1000;
-const MAX_CRASHES_IN_WINDOW = 5;
-const MAX_AUTH_FAILURES_IN_WINDOW = 2;
-const FIRST_RELAUNCH_DELAY = 5 * 1000;
-const MAX_RELAUNCH_DELAY = 5 * 60 * 1000;
+const AUTH_FAILURE_WINDOW = 30 * 60 * 1000;
+
+type CrashTrackerAccount = { id: string; settings: Record<string, unknown>; authedAt?: unknown };
 
 /*
-This class keeps track of how often Mailsync workers exit. Each exit within CRASH_WINDOW
-doubles the delay before the worker is relaunched. After MAX_CRASHES_IN_WINDOW exits, or
-MAX_AUTH_FAILURES_IN_WINDOW authentication failures, we consider it "too many failures" and
-won't relaunch it until:
+This class keeps track of how often Mailsync workers crash. If a mailsync
+worker exits more than 5 times in <5 minutes, or exits twice in 30 minutes because
+it could not authenticate, we consider it "too many failures" and won't relaunch it until:
 
 - the user restarts the app, clearing the history
-- the user changes the account's settings (updating password, etc.)
+- the user reconnects the account or changes its settings (updating password, etc.)
 - the user explicitly says "Try Again" in the UI
 
-Mailsync retries a rejected login itself for a couple of minutes before exiting
-(LOGIN_REJECTED_RETRY_DELAYS), so every authentication failure exit already represents
-several rejections.
+Mailsync retries a rejected login for a couple of minutes before exiting
+(LOGIN_REJECTED_RETRY_DELAYS), so authentication failures never reach 5 exits in
+5 minutes, and each one already represents several rejections.
 */
 export class CrashTracker {
-  _timestamps: { [key: string]: { at: number; auth: boolean }[] } = {};
+  _timestamps: { [key: string]: number[] } = {};
+  _authFailureTimestamps: { [key: string]: number[] } = {};
   _tooManyFailures: { [key: string]: boolean } = {};
 
-  forgetCrashes(fullAccountJSON: { id: string; settings: Record<string, unknown> }) {
+  forgetCrashes(fullAccountJSON: CrashTrackerAccount) {
     const key = this._keyFor(fullAccountJSON);
     delete this._timestamps[key];
+    delete this._authFailureTimestamps[key];
     delete this._tooManyFailures[key];
   }
 
-  recordClientCrash(
-    fullAccountJSON: { id: string; settings: Record<string, unknown> },
-    crash: MailsyncProcessExit
-  ) {
+  recordClientCrash(fullAccountJSON: CrashTrackerAccount, crash: MailsyncProcessExit) {
     console.log(`Sync worker exited.`, crash);
 
     this._appendCrashToHistory(fullAccountJSON, isAuthFailureExit(crash));
@@ -103,43 +99,35 @@ export class CrashTracker {
     // We now let crashpad do this, because Sentry was losing it's mind.
   }
 
-  relaunchDelay(fullAccountJSON: { id: string; settings: Record<string, unknown> }) {
-    const recent = this._recentCrashes(this._keyFor(fullAccountJSON));
-    if (recent.length === 0) {
-      return 0;
-    }
-    return Math.min(FIRST_RELAUNCH_DELAY * 2 ** (recent.length - 1), MAX_RELAUNCH_DELAY);
+  _keyFor({ id, settings, authedAt }: CrashTrackerAccount) {
+    return JSON.stringify({ id, settings, authedAt });
   }
 
-  _keyFor({ id, settings }) {
-    return JSON.stringify({ id, settings });
-  }
-
-  _recentCrashes(key: string) {
-    const now = Date.now();
-    return (this._timestamps[key] || []).filter(({ at }) => now - at < CRASH_WINDOW);
-  }
-
-  _appendCrashToHistory(
-    fullAccountJSON: { id: string; settings: Record<string, unknown> },
-    auth: boolean
-  ) {
+  _appendCrashToHistory(fullAccountJSON: CrashTrackerAccount, isAuthFailure: boolean) {
     const key = this._keyFor(fullAccountJSON);
+    const now = Date.now();
     this._timestamps[key] = this._timestamps[key] || [];
-    if (this._timestamps[key].unshift({ at: Date.now(), auth }) > MAX_CRASH_HISTORY) {
+    if (this._timestamps[key].unshift(now) > MAX_CRASH_HISTORY) {
       this._timestamps[key].length = MAX_CRASH_HISTORY;
     }
+    if (isAuthFailure) {
+      this._authFailureTimestamps[key] = (this._authFailureTimestamps[key] || [])
+        .filter((at) => now - at < AUTH_FAILURE_WINDOW)
+        .concat([now]);
+    }
 
-    const recent = this._recentCrashes(key);
+    // has the client crashed more than 5 times in the last 5 minutes, or failed to
+    // authenticate twice in the last 30? If so, do not restart. We'll mark that the
+    // account is not syncing.
     if (
-      recent.length >= MAX_CRASHES_IN_WINDOW ||
-      recent.filter((c) => c.auth).length >= MAX_AUTH_FAILURES_IN_WINDOW
+      (this._timestamps[key].length >= 5 && now - this._timestamps[key][4] < 5 * 60 * 1000) ||
+      (this._authFailureTimestamps[key] || []).length >= 2
     ) {
       this._tooManyFailures[key] = true;
     }
   }
 
-  tooManyFailures(fullAccountJSON: { id: string; settings: Record<string, unknown> }) {
+  tooManyFailures(fullAccountJSON: CrashTrackerAccount) {
     const key = this._keyFor(fullAccountJSON);
     return this._tooManyFailures[key];
   }
@@ -148,9 +136,6 @@ export class CrashTracker {
 export default class MailsyncBridge {
   _crashTracker = new CrashTracker();
   _clients: { [accountId: string]: MailsyncProcess } = {};
-  _pendingRelaunches: {
-    [accountId: string]: { timer: ReturnType<typeof setTimeout>; credentials: string };
-  } = {};
   _lastWait: number;
 
   constructor() {
@@ -219,14 +204,6 @@ export default class MailsyncBridge {
     const keys = await KeyManager._getKeyHash();
 
     for (const acct of AccountStore.accounts()) {
-      const pending = this._pendingRelaunches[acct.id];
-      if (pending) {
-        // Reconnecting the account updates it in place rather than calling forceRelaunchClient.
-        if (pending.credentials === this._credentialsKey(acct)) {
-          continue;
-        }
-        this._cancelPendingRelaunch(acct.id);
-      }
       if (!this._clients[acct.id]) {
         // client for this account is missing, launch it!
         this._launchClient(acct, keys);
@@ -245,21 +222,8 @@ export default class MailsyncBridge {
   }, 100);
 
   async forceRelaunchClient(account: Account) {
-    this._cancelPendingRelaunch(account.id);
     const keys = await KeyManager._getKeyHash();
     this._launchClient(account, keys, { force: true });
-  }
-
-  _credentialsKey(account: Account) {
-    return JSON.stringify({ settings: account.settings, authedAt: account.authedAt });
-  }
-
-  _cancelPendingRelaunch(accountId: string) {
-    const pending = this._pendingRelaunches[accountId];
-    if (pending) {
-      clearTimeout(pending.timer);
-      delete this._pendingRelaunches[accountId];
-    }
   }
 
   async tailClientLog(accountId: string) {
@@ -429,11 +393,7 @@ export default class MailsyncBridge {
           syncError: { code, error, signal },
         });
       } else {
-        const timer = setTimeout(() => {
-          delete this._pendingRelaunches[account.id];
-          this.ensureClients();
-        }, this._crashTracker.relaunchDelay(fullAccountJSON));
-        this._pendingRelaunches[account.id] = { timer, credentials: this._credentialsKey(account) };
+        this.ensureClients();
       }
     });
 
