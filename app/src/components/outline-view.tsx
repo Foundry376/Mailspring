@@ -40,6 +40,7 @@ interface OutlineViewProps {
   titleColor?: string;
   onCollapseToggled?: (props: OutlineViewProps) => void;
   onItemCreated?: (displayName) => void;
+  children?: React.ReactNode;
 }
 
 interface OutlineViewState {
@@ -65,6 +66,8 @@ interface OutlineViewState {
  * add a new item. See {@link RetinaImg} for further reference.
  * @param {array} props.items - Array of strings or numbers to display as {@link
  * OutlineViewItem}s
+ * @param {node} props.children - Rows shown in place of `items`, for sections whose rows
+ * aren't OutlineViewItems
  * @param {boolean} props.collapsed - Whether the OutlineView is collapsed or
  * not
  * @param {string} props.titleColor - Colored bar that is displayed to highlight the title
@@ -348,6 +351,9 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
   _renderOutline(allowCreate: boolean, collapsed: boolean) {
     if (collapsed) {
       return <span />;
+    }
+    if (this.props.children) {
+      return this.props.children;
     }
 
     const showInput = allowCreate && this.state.showCreateInput;
