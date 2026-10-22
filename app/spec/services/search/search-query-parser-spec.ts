@@ -158,4 +158,41 @@ describe('SearchQueryParser.parse', () => {
       )
     ).toBe(true);
   });
+
+  it('applies a field to every term of a group', () => {
+    expect(
+      SearchQueryParser.parse('subject:(invoice OR payment)').equals(
+        or(subject(text(token('invoice'))), subject(text(token('payment'))))
+      )
+    ).toBe(true);
+    expect(
+      SearchQueryParser.parse('from:(a.com OR b.com OR c.com)').equals(
+        or(from(text(token('a.com'))), or(from(text(token('b.com'))), from(text(token('c.com')))))
+      )
+    ).toBe(true);
+    expect(
+      SearchQueryParser.parse('to:(alice bob)').equals(
+        and(to(text(token('alice'))), to(text(token('bob'))))
+      )
+    ).toBe(true);
+    expect(
+      SearchQueryParser.parse('in:(inbox OR archive) is:unread').equals(
+        and(or(in_(text(token('inbox'))), in_(text(token('archive')))), unread(true))
+      )
+    ).toBe(true);
+    expect(
+      SearchQueryParser.parse('subject:("weekly report" OR (draft AND final))').equals(
+        or(
+          subject(text(token('weekly report'))),
+          and(subject(text(token('draft'))), subject(text(token('final'))))
+        )
+      )
+    ).toBe(true);
+  });
+
+  it('rejects unterminated or empty field groups instead of matching "("', () => {
+    expect(() => SearchQueryParser.parse('subject:(invoice OR payment')).toThrow();
+    expect(() => SearchQueryParser.parse('subject:()')).toThrow();
+    expect(() => SearchQueryParser.parse('subject:(OR x)')).toThrow();
+  });
 });

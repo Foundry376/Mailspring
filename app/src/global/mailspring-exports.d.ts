@@ -146,6 +146,19 @@ export const FocusedPerspectiveStore: FocusedPerspectiveStore;
 export type SearchableComponentStore =
   typeof import('../flux/stores/searchable-component-store').default;
 export const SearchableComponentStore: SearchableComponentStore;
+export type LocalModelStore = typeof import('../flux/stores/local-model-store').default;
+export const LocalModelStore: LocalModelStore;
+export type {
+  LocalAIAnswer,
+  LocalAIRequest,
+  LocalAIStatus,
+  LocalModelProvider,
+  LocalModelState,
+  LocalModelStatus,
+} from '../flux/stores/local-model-store';
+export const LocalModelPrompt: typeof import('../flux/stores/local-model-prompt');
+export const LocalModelSummaries: typeof import('../flux/stores/local-model-summaries');
+export type { MessageSummary, SummaryInput } from '../flux/stores/local-model-summaries';
 
 export type ServiceRegistry = typeof import('../registries/service-registry').default;
 export const ServiceRegistry: ServiceRegistry;

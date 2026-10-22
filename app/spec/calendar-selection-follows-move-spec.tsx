@@ -292,6 +292,30 @@ describe('the selection after an event is moved', function () {
     expect(calendar.state.selectedEvents.map((o) => o.id)).toEqual(['standup-e0']);
   });
 
+  it('leaves an event selected from the agenda panel where it is', async function () {
+    const calendar = calendarWith([occurrenceAt(START)]);
+    calendar.state.view = CalendarView.WEEK;
+    const panel = document.createElement('div');
+    panel.className = 'agenda-panel';
+    const panelRow = document.createElement('div');
+    panelRow.tabIndex = 0;
+    panel.appendChild(panelRow);
+    document.body.appendChild(panel);
+    try {
+      panelRow.focus();
+      calendar._onMoveSelectedEvent('down', false);
+      calendar._onMoveSelectedEvent('right', false);
+      await settle();
+    } finally {
+      panel.remove();
+    }
+    expect(modify).not.toHaveBeenCalled();
+
+    calendar._onMoveSelectedEvent('down', false);
+    await settle();
+    expect(modify).toHaveBeenCalled();
+  });
+
   it('ignores the next arrow key until the move has synced back', async function () {
     const calendar = calendarWith([occurrenceAt(START)]);
     calendar.state.view = CalendarView.WEEK;

@@ -1,6 +1,7 @@
 import React from 'react';
 import moment from 'moment';
 import { BindGlobalCommands } from 'mailspring-component-kit';
+import { PopoverStore } from 'mailspring-exports';
 import { CalendarView } from './core/calendar-constants';
 
 interface CalendarMenuCommandsProps {
@@ -11,6 +12,7 @@ interface CalendarMenuCommandsProps {
   onDeleteEvent: () => void;
   onRefreshCalendars: () => void;
   hasSelectedEvents: boolean;
+  view: CalendarView;
 }
 
 export class CalendarMenuCommands extends React.Component<CalendarMenuCommandsProps> {
@@ -21,7 +23,6 @@ export class CalendarMenuCommands extends React.Component<CalendarMenuCommandsPr
       'calendar:view-day': () => this.props.onChangeView(CalendarView.DAY),
       'calendar:view-week': () => this.props.onChangeView(CalendarView.WEEK),
       'calendar:view-month': () => this.props.onChangeView(CalendarView.MONTH),
-      'calendar:view-agenda': () => this.props.onChangeView(CalendarView.AGENDA),
       'calendar:go-to-today': () => this.props.onChangeFocusedMoment(moment()),
       'calendar:navigate-next': this.props.onNavigateNext,
       'calendar:navigate-previous': this.props.onNavigatePrevious,
@@ -30,6 +31,21 @@ export class CalendarMenuCommands extends React.Component<CalendarMenuCommandsPr
 
     if (this.props.hasSelectedEvents) {
       commands['core:delete-item'] = this.props.onDeleteEvent;
+    } else {
+      // With nothing selected, the keys that move an event step through time instead.
+      const stepBack = () => {
+        if (!PopoverStore.isOpen) this.props.onNavigatePrevious();
+      };
+      const stepForward = () => {
+        if (!PopoverStore.isOpen) this.props.onNavigateNext();
+      };
+      commands['calendar:move-event-left'] = stepBack;
+      commands['calendar:move-event-right'] = stepForward;
+      // Month view steps vertically; Day and Week leave up/down to scroll the hours.
+      if (this.props.view === CalendarView.MONTH) {
+        commands['calendar:move-event-up'] = stepBack;
+        commands['calendar:move-event-down'] = stepForward;
+      }
     }
 
     // No `key` here on purpose: this wraps the whole calendar view, so a key that changes
