@@ -483,6 +483,11 @@ export default class Application extends EventEmitter {
       this.windowManager.get(WindowManager.MAIN_WINDOW)?.sendMessage('show-calendar', focusEvent);
     });
 
+    this.on('application:show-activity', () => {
+      this.ensureWindowsForTokenState();
+      this.windowManager.get(WindowManager.MAIN_WINDOW)?.sendMessage('show-activity');
+    });
+
     // Only the main window's MailsyncBridge has sync clients, so other windows route a
     // refresh through here.
     this.on('application:sync-calendar', (accountId?: string) => {
