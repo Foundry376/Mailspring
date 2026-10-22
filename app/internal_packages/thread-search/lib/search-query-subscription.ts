@@ -2,10 +2,14 @@ import _ from 'underscore';
 import {
   Actions,
   Thread,
+  Utils,
+  AccountStore,
+  CategoryStore,
   DatabaseStore,
   SearchQueryParser,
   ComponentRegistry,
   MutableQuerySubscription,
+  RemoteSearchQueryBackend,
 } from 'mailspring-exports';
 
 class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
@@ -14,6 +18,10 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
   _connections = [];
   _extDisposables = [];
   _searching = false;
+  _parsedQuery = null;
+  _remoteSearches = new Map<string, string>();
+  _remoteThreadIds = new Set<string>();
+  _remoteUnlisten: () => void = null;
 
   constructor(searchQuery: string, accountIds: string[]) {
     super(null, { emitResultSet: true });
@@ -29,7 +37,15 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
 
   performSearch() {
     this._searching = true;
+    let parsedQuery = null;
+    try {
+      parsedQuery = SearchQueryParser.parse(this._searchQuery);
+    } catch (e) {
+      console.info('Failed to parse local search query, falling back to generic query', e);
+    }
+    this._parsedQuery = parsedQuery;
     this.performLocalSearch();
+    this.performRemoteSearch();
     this.performExtensionSearch();
   }
 
@@ -38,12 +54,9 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
     if (this._accountIds.length === 1) {
       dbQuery = dbQuery.where({ accountId: this._accountIds[0] });
     }
-
-    try {
-      const parsedQuery = SearchQueryParser.parse(this._searchQuery);
-      dbQuery = dbQuery.structuredSearch(parsedQuery);
-    } catch (e) {
-      console.info('Failed to parse local search query, falling back to generic query', e);
+    if (this._parsedQuery) {
+      dbQuery = dbQuery.structuredSearch(this._parsedQuery, [...this._remoteThreadIds]);
+    } else {
       dbQuery = dbQuery.search(this._searchQuery);
     }
     dbQuery = dbQuery
@@ -53,6 +66,51 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
 
     this.replaceQuery(dbQuery);
   }
+
+  // The local index holds message bodies only for recent mail, so the query also runs on
+  // each account's server, whose matches join the local ones as they arrive.
+  performRemoteSearch() {
+    if (!this._parsedQuery || !AppEnv.mailsyncBridge) {
+      return;
+    }
+    this._remoteUnlisten = Actions.remoteSearchResultReceived.listen(this._onRemoteSearchResult);
+    for (const accountId of this._accountIds) {
+      const account = AccountStore.accountForId(accountId);
+      if (!account) {
+        continue;
+      }
+      const request = RemoteSearchQueryBackend.compile(
+        this._parsedQuery,
+        account,
+        CategoryStore.categories(accountId)
+      );
+      if (!request) {
+        continue;
+      }
+      const searchId = Utils.generateTempId();
+      this._remoteSearches.set(searchId, accountId);
+      AppEnv.mailsyncBridge.sendMessageToAccount(accountId, {
+        type: 'search-remote',
+        searchId,
+        ...request,
+      });
+    }
+  }
+
+  _onRemoteSearchResult = (result: { id: string; done: boolean; threadIds?: string[] }) => {
+    if (!this._remoteSearches.has(result.id)) {
+      return;
+    }
+    if (result.done) {
+      this._remoteSearches.delete(result.id);
+    }
+    const added = (result.threadIds || []).filter((id) => !this._remoteThreadIds.has(id));
+    if (added.length === 0) {
+      return;
+    }
+    added.forEach((id) => this._remoteThreadIds.add(id));
+    this.performLocalSearch();
+  };
 
   _createResultAndTrigger() {
     super._createResultAndTrigger();
@@ -75,16 +133,6 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
     this.replaceQuery(dbQuery);
   }
 
-  performRemoteSearch() {
-    // TODO: Perform IMAP search here.
-    //
-    // This is temporarily disabled because we support Gmail's
-    // advanced syntax locally (eg: in: inbox, is:unread), and
-    // search message bodies, so local search is pretty much
-    // good enough for v1. Come back and implement this soon!
-    //
-  }
-
   performExtensionSearch() {
     const searchExtensions = ComponentRegistry.findComponentsMatching({
       role: 'SearchBarResults',
@@ -102,6 +150,16 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
   onLastCallbackRemoved() {
     this._connections.forEach((conn) => conn.end());
     this._extDisposables.forEach((disposable) => disposable.dispose());
+    if (this._remoteUnlisten) {
+      this._remoteUnlisten();
+    }
+    for (const [searchId, accountId] of this._remoteSearches) {
+      AppEnv.mailsyncBridge.sendMessageToAccount(accountId, {
+        type: 'search-remote-cancel',
+        searchId,
+      });
+    }
+    this._remoteSearches.clear();
   }
 }
 

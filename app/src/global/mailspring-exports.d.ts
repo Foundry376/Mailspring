@@ -59,6 +59,9 @@ export const SearchQueryAST: SearchQueryAST;
 export * from '../services/search/search-query-parser';
 export type IMAPSearchQueryBackend = import('../services/search/search-query-backend-imap').default;
 export const IMAPSearchQueryBackend: IMAPSearchQueryBackend;
+export type RemoteSearchQueryBackend =
+  typeof import('../services/search/search-query-backend-remote').default;
+export const RemoteSearchQueryBackend: RemoteSearchQueryBackend;
 
 // Tasks
 export * from '../flux/tasks/task';
