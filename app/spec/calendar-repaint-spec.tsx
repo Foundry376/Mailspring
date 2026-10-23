@@ -97,7 +97,7 @@ describe('the hour grid', function () {
 
   beforeEach(() => {
     host = document.createElement('div');
-    host.style.setProperty('--grid-line-major', 'rgb(1, 1, 1)');
+    host.style.setProperty('--grid-line', 'rgb(1, 1, 1)');
     document.body.appendChild(host);
     strokes = [];
     spyOn(CanvasRenderingContext2D.prototype, 'stroke').andCallFake(function () {
@@ -112,7 +112,7 @@ describe('the hour grid', function () {
   it("strokes the theme's current line colour on a new paint version, and only then", function () {
     ReactDOM.render(<EventGridBackground {...props} />, host);
     expect(strokes).toContain('#010101');
-    host.style.setProperty('--grid-line-major', 'rgb(2, 2, 2)');
+    host.style.setProperty('--grid-line', 'rgb(2, 2, 2)');
     strokes = [];
     ReactDOM.render(<EventGridBackground {...props} />, host);
     expect(strokes).toEqual([]);

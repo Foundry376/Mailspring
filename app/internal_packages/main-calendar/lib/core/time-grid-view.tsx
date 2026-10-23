@@ -16,7 +16,7 @@ import { EventGridBackground } from './event-grid-background';
 import { WeekViewEventColumn } from './week-view-event-column';
 import { WeekViewAllDayEvents } from './week-view-all-day-events';
 import { CalendarEventContainer } from './calendar-event-container';
-import { CurrentTimeIndicator } from './current-time-indicator';
+import { CurrentTimeIndicator, CurrentTimeLabel } from './current-time-indicator';
 import { CalendarView } from './calendar-constants';
 import {
   overlapForEvents,
@@ -32,7 +32,7 @@ import { WeekdayHeader } from './weekday-header';
 
 const MIN_INTERVAL_HEIGHT = 21;
 const DATE_LABELS_HEIGHT = 28;
-const DAY_PORTION_SHOWN_VERTICALLY = 11 / 24;
+const DAY_PORTION_SHOWN_VERTICALLY = 14 / 24;
 const QUERY_MARGIN_DAYS = 21;
 
 function weekStartOf(date: CalendarDate): CalendarDate {
@@ -252,7 +252,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
 
   _renderEventGridLabels() {
     const labels = [];
-    for (const { time, y } of tickGenerator('major', this.state.intervalHeight)) {
+    for (const { time, y } of tickGenerator(this.state.intervalHeight)) {
       labels.push(
         <span className="legend-text" key={y} style={{ top: y === 0 ? y : y - 8 }}>
           {formatShortTime(time.unix())}
@@ -354,6 +354,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     const view = visibleDays === 1 ? CalendarView.DAY : CalendarView.WEEK;
     const { allDayBarHeight } = this._allDay(this._eventsWithPreviews(), firstVisible);
     const totalHeight = TICKS_PER_DAY * this.state.intervalHeight;
+    const todayOffset = CalendarDateUtils.calendarDaysBetween(firstVisible, dateOf(this._now()));
 
     return (
       <div className={classnames('calendar-view', 'week-view', { 'day-view': visibleDays === 1 })}>
@@ -383,6 +384,10 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
               <div className="event-grid-legend-wrap" ref={this._legendWrapEl}>
                 <div className="event-grid-legend" style={{ height: totalHeight }}>
                   {this._renderEventGridLabels()}
+                  <CurrentTimeLabel
+                    gridHeight={totalHeight}
+                    visible={todayOffset >= 0 && todayOffset < visibleDays}
+                  />
                 </div>
               </div>
             </div>
