@@ -237,6 +237,7 @@ class _AccountStore extends MailspringStore {
     AppEnv.config.set(configСontainerFolderDefaultKey, this._containerFolderDefault);
   };
 
+  // Returns the stored account: an account reconnected under a new id keeps its existing one.
   addAccount = async (account: Account) => {
     if (!account.emailAddress || !account.provider || !(account instanceof Account)) {
       throw new Error(`Returned account data is invalid: ${JSON.stringify(account)}`);
@@ -252,18 +253,20 @@ class _AccountStore extends MailspringStore {
       (a) => a.id === cleanAccount.id || a.emailAddress === cleanAccount.emailAddress
     );
 
+    let stored = cleanAccount;
     if (existingIdx === -1) {
       this._accounts.push(cleanAccount);
     } else {
-      const existing = this._accounts[existingIdx];
-      existing.syncState = Account.SYNC_STATE_OK;
-      existing.name = cleanAccount.name;
-      existing.authedAt = cleanAccount.authedAt;
-      existing.emailAddress = cleanAccount.emailAddress;
-      existing.settings = cleanAccount.settings;
+      stored = this._accounts[existingIdx];
+      stored.syncState = Account.SYNC_STATE_OK;
+      stored.name = cleanAccount.name;
+      stored.authedAt = cleanAccount.authedAt;
+      stored.emailAddress = cleanAccount.emailAddress;
+      stored.settings = cleanAccount.settings;
     }
 
     this._save();
+    return stored;
   };
 
   _cachedGetter<T>(key: string, fn: () => T) {

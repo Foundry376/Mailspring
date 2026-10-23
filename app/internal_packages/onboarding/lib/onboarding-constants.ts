@@ -55,8 +55,14 @@ export const O365_SCOPES = [
   // need to get an outlook token and not a Micrsosoft Graph token to use these APIs.
   // https://stackoverflow.com/questions/61597263/
   'https://outlook.office.com/IMAP.AccessAsUser.All', // email
-  'https://outlook.office.com/SMTP.Send', // email
+  'https://outlook.office.com/SMTP.Send', // email, for accounts that do not send through Graph
 ];
+
+// Sending through Microsoft Graph, which works where the tenant disables SMTP AUTH: Mail.Send,
+// plus Mail.ReadWrite for the draft Graph sends and to find its Sent Items copy. Requested with
+// O365_SCOPES unless the user chose to sign in without them, because their organization
+// requires admin approval for permissions Mailspring was not granted before.
+export const O365_GRAPH_SEND_SCOPES = ['Mail.ReadWrite', 'Mail.Send'];
 
 // Re-created only at onboarding page load / auth session start because storing
 // verifier would require additional state refactoring

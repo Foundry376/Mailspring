@@ -47,26 +47,29 @@
     min-height: 0;
   }
 
+  // Shown only in a report shared to the web (see share-button.tsx).
+  .visible-on-web {
+    display: none;
+  }
+
   .header {
     margin: 20px;
     margin-bottom: 6px;
     display: flex;
-    .accounts {
-      font-size: @font-size-base;
-      color: @text-color-very-subtle;
-    }
+    align-items: center;
+    gap: 8px;
     h2 {
       margin: 0;
+      flex: 1;
     }
     .timespan-selector {
       display: flex;
-      align-items: baseline;
-      .timespan-text {
-        color: @text-color-very-subtle;
-      }
-      .dropdown-menu {
-        margin-left: @padding-base-horizontal * 2;
-      }
+      align-items: center;
+      gap: 12px;
+    }
+    .timespan-text,
+    .accounts {
+      color: @text-color-very-subtle;
     }
     .dropdown-menu .menu {
       width: 160px;

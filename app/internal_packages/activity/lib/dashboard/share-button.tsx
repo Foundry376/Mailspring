@@ -26,6 +26,9 @@ function buildShareHTML(htmlEl: HTMLElement, styleEl: HTMLStyleElement) {
     .hidden-on-web {
       display: none !important;
     }
+    .visible-on-web {
+      display: block !important;
+    }
     </style>
     ${styleEl.outerHTML}
     </head>
