@@ -131,6 +131,7 @@ describe('TaskFactory', function taskFactory() {
       expect(tasks.map((t) => t.labelsToAdd.map((l) => l.id))).toEqual([['h-trash'], ['h-trash']]);
       expect(tasks.map((t) => t.threadIds)).toEqual([['t3'], ['t4']]);
       expect(tasks.map((t) => t.labelsToRemove.map((l) => l.id))).toEqual([['h-inbox'], []]);
+      expect(tasks.map((t) => t.description())).toEqual(['Trashed 2 threads', 'Trashed 2 threads']);
     });
 
     it('does not put threads outside the Inbox into it on undo', () => {

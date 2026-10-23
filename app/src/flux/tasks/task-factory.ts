@@ -11,7 +11,8 @@ import { Task } from '../tasks/task';
 // Gmail accounts that hide [Gmail]/Trash or [Gmail]/Spam from IMAP get those roles on a label
 // matched by name, such as "Trash" or "Junk" (MAILSPRING-CLIENT-AH, -61). Inbox is removed in
 // a separate task from the threads that have it, because undo swaps the added and removed
-// labels and would otherwise put every thread into the Inbox.
+// labels and would otherwise put every thread into the Inbox. The tasks share one
+// description so the undo toast reads as a single action.
 function tasksForApplyingRoleLabel(
   label: Label,
   threads: Thread[],
@@ -25,6 +26,12 @@ function tasksForApplyingRoleLabel(
     { threads: threads.filter(inInbox), labelsToRemove: [inbox] },
     { threads: threads.filter((t) => !inInbox(t)), labelsToRemove: [] },
   ];
+  const taskDescription = new ChangeLabelsTask({
+    labelsToAdd: [label],
+    labelsToRemove: [],
+    threads,
+    source,
+  }).description();
   return groups
     .filter((g) => g.threads.length > 0)
     .map(
@@ -34,6 +41,7 @@ function tasksForApplyingRoleLabel(
           labelsToRemove: g.labelsToRemove,
           threads: g.threads,
           source,
+          taskDescription,
         })
     );
 }
