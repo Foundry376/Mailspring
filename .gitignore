@@ -79,4 +79,4 @@ client_secret.json
 .claude/worktrees/
 /test-results
 /playwright-report
-/playwright/test-results/
+/playwright/test-results/app/static/bundle.js

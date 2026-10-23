@@ -71,6 +71,7 @@
   "scripts": {
     "postinstall": "node scripts/postinstall.js",
     "start": "python3 main.py",
+    "build:frontend": "esbuild app/static/index.js --bundle --outfile=app/static/bundle.js",
     "build:fm-helper": "swift build -c release --arch arm64 --package-path app/native/mailspring-fm",
     "lint": "eslint --fix -c .eslintrc \"app/src/**/*.{ts,tsx}\" \"app/internal_packages/**/*.{ts,tsx}\"",
     "lint:check": "eslint -c .eslintrc \"app/src/**/*.{ts,tsx}\" \"app/internal_packages/**/*.{ts,tsx}\"",
@@ -89,5 +90,8 @@
     "highlight.js@9.18.5": true,
     "@sentry/cli@2.58.6": true
   },
-  "packageManager": "yarn@4.17.1+sha512.ccbfabf7d7b6b32075088be9386fb9a2e00bb6887ef07fa56effabc890a56d53da1ccc4128d62db245fcbd3961b236d75335bdf7d5320ed6eafb7588b7ad4697"
+  "packageManager": "yarn@4.17.1+sha512.ccbfabf7d7b6b32075088be9386fb9a2e00bb6887ef07fa56effabc890a56d53da1ccc4128d62db245fcbd3961b236d75335bdf7d5320ed6eafb7588b7ad4697",
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
 }
