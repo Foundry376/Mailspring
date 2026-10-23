@@ -6,8 +6,11 @@ if (!process.env.PLAYWRIGHT) {
   };
 }
 
+var util = null;
+
 console.inspect = function consoleInspect(val) {
-  console.log(val);
+  util = util || require('util');
+  console.log(util.inspect(val, true, 7, true));
 };
 
 function setLoadTime(loadTime) {
@@ -32,9 +35,7 @@ function showSetupErrorInWindow(stack) {
   button.textContent = 'Copy to Clipboard';
   button.style.cssText = 'margin:0 0 16px;padding:4px 12px;font:13px system-ui,sans-serif;';
   button.onclick = function () {
-    if (window.pywebview && window.pywebview.api) {
-      window.pywebview.api.write_clipboard(stack);
-    }
+    require('@electron/remote').clipboard.writeText(stack);
     button.textContent = 'Copied';
   };
 
@@ -52,34 +53,43 @@ function showSetupErrorInWindow(stack) {
 }
 
 function handleSetupError(error) {
+  var currentWindow = require('@electron/remote').getCurrentWindow();
+  currentWindow.setSize(800, 600);
+  currentWindow.center();
+  currentWindow.show();
   var stack = (error && error.stack) || String(error);
   console.error(stack);
-
-  if (window.pywebview && window.pywebview.api) {
-    window.pywebview.api.log_error(stack);
-    window.pywebview.api.set_window_size(800, 600);
-    window.pywebview.api.center_window();
+  if (require('../src/developer-tools').developerToolsAvailable()) {
+    currentWindow.openDevTools();
+  } else {
+    showSetupErrorInWindow(stack);
   }
-
-  showSetupErrorInWindow(stack);
 }
 
 function copyEnvFromMainProcess() {
-  // Mock function as we don't have main process process.env in pywebview like this.
-  if (window.pywebview && window.pywebview.api) {
-    window.pywebview.api.get_env().then(function(env) {
-      window.process = window.process || {};
-      window.process.env = Object.assign({}, window.process.env || {}, env);
-    });
-  }
+  const newEnv = Object.assign(
+    {},
+    process.env,
+    JSON.parse(JSON.stringify(require('@electron/remote').process.env))
+  );
+  process.env = newEnv;
 }
 
 function setupWindow(loadSettings) {
-  copyEnvFromMainProcess();
+  if (process.platform === 'linux') {
+    // This will properly inherit process.env from the main process, which it doesn't
+    // do by default on Linux. See: https://github.com/atom/electron/issues/3306
+    copyEnvFromMainProcess();
+  }
 
-  // CompileCache requires Node.js `fs` and `path`, we can't use it directly in webview without bundler plugins for polyfills.
-  // The actual app logic will be handled later when rewriting the frontend fully for standard web API.
-  console.log("Bootstrap script to load:", loadSettings.bootstrapScript);
+  if (loadSettings.devMode) {
+    var CompileCache = require('../src/compile-cache-ts');
+    CompileCache.setHomeDirectory(loadSettings.configDirPath);
+  } else {
+    require('../src/compile-cache-ts-unsupported');
+  }
+
+  require(loadSettings.bootstrapScript);
 }
 
 window.onload = function () {
@@ -96,9 +106,9 @@ window.onload = function () {
       throw error;
     }
 
-    // Mock process.resourcesPath setup
-    window.process = window.process || {};
-    window.process.resourcesPath = window.process.resourcesPath || '';
+    // Normalize to make sure drive letter case is consistent on Windows
+    var path = require('path');
+    process.resourcesPath = path.normalize(process.resourcesPath);
 
     setupWindow(loadSettings);
     setLoadTime(Date.now() - startTime);

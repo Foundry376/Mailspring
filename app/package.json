@@ -13,6 +13,7 @@
   "main": "./src/browser/main.js",
   "dependencies": {
     "@bengotow/slate-edit-list": "github:bengotow/slate-edit-list#b868e108",
+    "@electron/remote": "^2.1.2",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@testing-library/react": "^12.1.5",
     "app-module-path": "^2.2.0",
@@ -77,6 +78,7 @@
     "zod": "4.4.3"
   },
   "overrides": {
+    "electron": "44.9.1",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0"
   },
