@@ -103,15 +103,3 @@ export function createOAuthState(): string {
 export function getLatestOAuthState(): string | null {
   return latestOAuthState;
 }
-
-// The Microsoft scopes on the most recently built authorization URL. The code exchange must
-// ask for the same set: a scope the user was not asked to approve fails the exchange.
-let latestO365Scopes: string[] = [];
-
-export function setLatestO365Scopes(scopes: string[]) {
-  latestO365Scopes = scopes;
-}
-
-export function getLatestO365Scopes(): string[] {
-  return latestO365Scopes;
-}

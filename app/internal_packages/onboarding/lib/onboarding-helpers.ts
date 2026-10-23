@@ -18,8 +18,6 @@ import {
   LOCAL_SERVER_PORT,
   O365_SCOPES,
   O365_GRAPH_SEND_SCOPES,
-  setLatestO365Scopes,
-  getLatestO365Scopes,
   O365_CLIENT_ID,
   CODE_VERIFIER,
   GMAIL_SCOPES,
@@ -370,15 +368,31 @@ export async function buildGmailAccountFromAuthResponse(code: string) {
   return account;
 }
 
-export async function buildO365AccountFromAuthResponse(
-  code: string,
-  sharedMailboxAddress?: string
-) {
-  return buildMicrosoftAccountFromAuthResponse(code, 'office365', sharedMailboxAddress);
+// The authorization URL and the code exchange must ask for the same scopes: the exchange fails
+// on a scope the user was not asked to approve. `withGraphSend: false` is the sign-in for
+// organizations that decline the Graph mail scopes.
+function o365Scopes({ withGraphSend }: { withGraphSend: boolean }) {
+  return withGraphSend ? [...O365_SCOPES, ...O365_GRAPH_SEND_SCOPES] : O365_SCOPES;
 }
 
-export async function buildOutlookAccountFromAuthResponse(code: string) {
-  return buildMicrosoftAccountFromAuthResponse(code, 'outlook');
+export async function buildO365AccountFromAuthResponse(
+  code: string,
+  {
+    sharedMailboxAddress,
+    withGraphSend = true,
+  }: { sharedMailboxAddress?: string; withGraphSend?: boolean } = {}
+) {
+  return buildMicrosoftAccountFromAuthResponse(code, 'office365', {
+    sharedMailboxAddress,
+    withGraphSend,
+  });
+}
+
+export async function buildOutlookAccountFromAuthResponse(
+  code: string,
+  { withGraphSend = true }: { withGraphSend?: boolean } = {}
+) {
+  return buildMicrosoftAccountFromAuthResponse(code, 'outlook', { withGraphSend });
 }
 
 /**
@@ -399,7 +413,7 @@ export function grantsGraphSend(scope: string | undefined) {
 export async function buildMicrosoftAccountFromAuthResponse(
   code: string,
   provider: 'outlook' | 'office365',
-  sharedMailboxAddress?: string
+  { sharedMailboxAddress, withGraphSend }: { sharedMailboxAddress?: string; withGraphSend: boolean }
 ) {
   /// Exchange code for an access token
   const { access_token, refresh_token, id_token, scope } =
@@ -407,7 +421,7 @@ export async function buildMicrosoftAccountFromAuthResponse(
       `https://login.microsoftonline.com/common/oauth2/v2.0/token`,
       {
         code: code,
-        scope: getLatestO365Scopes()
+        scope: o365Scopes({ withGraphSend })
           .filter((f) => !f.startsWith('https://outlook.office.com'))
           .join(' '),
         client_id: O365_CLIENT_ID,
@@ -518,8 +532,7 @@ export function buildGmailAuthURL() {
 }
 
 export function buildO365AuthURL({ withGraphSend = true }: { withGraphSend?: boolean } = {}) {
-  const scopes = withGraphSend ? [...O365_SCOPES, ...O365_GRAPH_SEND_SCOPES] : O365_SCOPES;
-  setLatestO365Scopes(scopes);
+  const scopes = o365Scopes({ withGraphSend });
   return `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?${qs.stringify({
     client_id: O365_CLIENT_ID,
     redirect_uri: `http://localhost:${LOCAL_SERVER_PORT}/desktop`,

@@ -4,7 +4,7 @@ import MailsyncBridge from '../src/flux/mailsync-bridge';
 import { MailsyncProcess } from '../src/mailsync-process';
 import KeyManager from '../src/key-manager';
 
-describe('MailsyncBridge.ensureClients', function () {
+describe('MailsyncBridge account clients', function () {
   let accounts: Account[];
   let bridge: MailsyncBridge;
 
@@ -29,26 +29,32 @@ describe('MailsyncBridge.ensureClients', function () {
     bridge = new MailsyncBridge();
   });
 
-  it('launches one client per account and leaves it running while settings are unchanged', async function () {
+  it('leaves a running client alone when the account settings change', async function () {
     await bridge.ensureClients();
     const first = bridge.clients()['acct-1'];
     expect(first).toBeDefined();
 
-    accounts = [account({ imap_host: 'outlook.office365.com' })];
+    accounts = [account({ imap_host: 'outlook.office365.com', graph_send: true })];
     await bridge.ensureClients();
     expect(bridge.clients()['acct-1']).toBe(first);
     expect(MailsyncProcess.prototype.kill).not.toHaveBeenCalled();
   });
 
-  it('relaunches the client when reconnecting changes the account settings', async function () {
+  it('relaunches a running client with the settings onboarding saved', async function () {
     await bridge.ensureClients();
     const first = bridge.clients()['acct-1'];
 
-    accounts = [account({ imap_host: 'outlook.office365.com', graph_send: true })];
-    await bridge.ensureClients();
+    await bridge._onRestartAccountSync(
+      account({ imap_host: 'outlook.office365.com', graph_send: true })
+    );
     const second = bridge.clients()['acct-1'];
     expect(second).not.toBe(first);
     expect((second.account as any).settings.graph_send).toBe(true);
     expect((MailsyncProcess.prototype.kill as jasmine.Spy).calls.length).toBe(1);
+  });
+
+  it('does not launch a client for an account it is not running', async function () {
+    await bridge._onRestartAccountSync(account({ imap_host: 'outlook.office365.com' }));
+    expect(bridge.clients()['acct-1']).toBeUndefined();
   });
 });

@@ -177,7 +177,10 @@ export default class AccountSettingsPageO365 extends React.Component<
         fallback={this._withGraphSend ? this._graphSendFallback : undefined}
         providerConfig={providerConfig}
         buildAccountFromAuthResponse={(code) =>
-          buildO365AccountFromAuthResponse(code, sharedMailbox || undefined)
+          buildO365AccountFromAuthResponse(code, {
+            sharedMailboxAddress: sharedMailbox || undefined,
+            withGraphSend: this._withGraphSend,
+          })
         }
         onSuccess={this.onSuccess}
         onTryAgain={goBack}

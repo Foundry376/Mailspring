@@ -1,5 +1,6 @@
 import {
   localized,
+  Actions,
   AccountStore,
   Account,
   IdentityStore,
@@ -153,9 +154,17 @@ class OnboardingStore extends MailspringStore {
 
   _onFinishAndAddAccount = async (account: Account) => {
     const isFirstAccount = AccountStore.accounts().length === 0;
+    // Matched the way addAccount matches the account it updates.
+    const isReconnect = AccountStore.accounts().some(
+      (a) => a.id === account.id || a.emailAddress === account.emailAddress
+    );
 
     try {
-      AccountStore.addAccount(account);
+      const stored = await AccountStore.addAccount(account);
+      if (isReconnect) {
+        // The account's sync process is still running with its old settings.
+        Actions.restartAccountSync(stored);
+      }
     } catch (e) {
       AppEnv.reportError(e);
       AppEnv.showErrorDialog({

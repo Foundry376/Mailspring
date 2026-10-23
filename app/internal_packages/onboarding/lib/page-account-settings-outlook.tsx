@@ -39,7 +39,9 @@ export default class AccountSettingsPageOutlook extends React.Component<{ accoun
         providerAuthPageUrl={this._authUrl}
         fallback={this._withGraphSend ? this._graphSendFallback : undefined}
         providerConfig={providerConfig}
-        buildAccountFromAuthResponse={buildOutlookAccountFromAuthResponse}
+        buildAccountFromAuthResponse={(code) =>
+          buildOutlookAccountFromAuthResponse(code, { withGraphSend: this._withGraphSend })
+        }
         onSuccess={this.onSuccess}
         onTryAgain={goBack}
       />

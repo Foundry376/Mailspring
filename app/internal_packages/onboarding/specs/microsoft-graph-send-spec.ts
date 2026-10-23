@@ -53,7 +53,6 @@ describe('Microsoft Graph sending', () => {
     );
     spyOn(AccountStore, 'containerFolderDefaultGetter').andReturn('');
     spyOn(MailsyncProcess.prototype, 'test').andReturn(Promise.resolve());
-    buildO365AuthURL();
   });
 
   it('requests the Graph mail scopes alongside IMAP and SMTP', () => {
@@ -74,7 +73,6 @@ describe('Microsoft Graph sending', () => {
 
   it('exchanges the code for the Graph mail scopes it asked the user to approve', async () => {
     const tokenRequests = stubMicrosoft(GRAPH_SEND_SCOPE);
-    buildO365AuthURL();
     const account = await buildO365AccountFromAuthResponse('code');
     expect(tokenRequests[0].get('scope')).toContain('Mail.Send');
     expect(tokenRequests[0].get('scope')).not.toContain('outlook.office.com');
@@ -83,8 +81,7 @@ describe('Microsoft Graph sending', () => {
 
   it('exchanges the code without them after signing in without Graph sending', async () => {
     const tokenRequests = stubMicrosoft('openid https://graph.microsoft.com/User.Read');
-    buildO365AuthURL({ withGraphSend: false });
-    const account = await buildO365AccountFromAuthResponse('code');
+    const account = await buildO365AccountFromAuthResponse('code', { withGraphSend: false });
     expect(tokenRequests[0].get('scope')).not.toContain('Mail.Send');
     expect(tokenRequests[0].get('scope')).not.toContain('Mail.ReadWrite');
     expect(account.sendsViaGraph()).toBe(false);
@@ -152,7 +149,9 @@ describe('Microsoft Graph sending', () => {
 
   it('keeps SMTP for a shared mailbox', async () => {
     stubMicrosoft(GRAPH_SEND_SCOPE);
-    const account = await buildO365AccountFromAuthResponse('code', 'team@contoso.com');
+    const account = await buildO365AccountFromAuthResponse('code', {
+      sharedMailboxAddress: 'team@contoso.com',
+    });
     expect(account.emailAddress).toEqual('team@contoso.com');
     expect(account.sendsViaGraph()).toBe(false);
   });
