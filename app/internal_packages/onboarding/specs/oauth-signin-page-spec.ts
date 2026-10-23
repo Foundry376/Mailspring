@@ -1,4 +1,6 @@
-import {
+import { Account } from 'mailspring-exports';
+import * as OnboardingActions from '../lib/onboarding-actions';
+import OAuthSignInPage, {
   extractOAuthCodeFromUrl,
   extractOAuthStateFromUrl,
   oauthStateIsValid,
@@ -83,5 +85,33 @@ describe('OAuth state validation', function oauthStateTests() {
     const latest = createOAuthState();
     expect(oauthStateIsValid(earlier)).toBe(false);
     expect(oauthStateIsValid(latest)).toBe(true);
+  });
+});
+
+describe('OAuthSignInPage when the server certificate is rejected', function oauthCertificateTests() {
+  it('shows the certificate review with the account it built', async () => {
+    spyOn(OnboardingActions, 'setAccount');
+    spyOn(OnboardingActions, 'moveToPage');
+    spyOn(AppEnv, 'focus');
+    spyOn(AppEnv, 'reportError');
+    const account = new Account({ provider: 'gmail', settings: { refresh_token: 'rt' } } as any);
+    const certificates = [
+      { service: 'imap', host: 'imap.gmail.com', port: 993, sha256: 'aa', chain: [] },
+    ];
+    const err = Object.assign(new Error('Certificate Error (IMAP)'), { certificates, account });
+    const page = new OAuthSignInPage({
+      buildAccountFromAuthResponse: () => Promise.reject(err),
+      onSuccess: jasmine.createSpy('onSuccess'),
+    } as any);
+    page._mounted = true;
+    page.setState = () => {};
+
+    await page._onReceivedCode('code');
+
+    expect(OnboardingActions.setAccount).toHaveBeenCalledWith(account, {
+      rejectedCertificates: certificates,
+    });
+    expect(OnboardingActions.moveToPage).toHaveBeenCalledWith('account-certificate');
+    expect(AppEnv.reportError).not.toHaveBeenCalled();
   });
 });

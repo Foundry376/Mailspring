@@ -6,6 +6,7 @@ import crypto from 'crypto';
 import http from 'http';
 import url from 'url';
 
+import * as OnboardingActions from './onboarding-actions';
 import FormErrorMessage from './form-error-message';
 import { LOCAL_SERVER_PORT, getLatestOAuthState } from './onboarding-constants';
 import AccountProviders from './account-providers';
@@ -211,6 +212,11 @@ export default class OAuthSignInPage extends React.Component<
       account = await this.props.buildAccountFromAuthResponse(code);
     } catch (err) {
       if (!this._mounted) return;
+      if (err.certificates?.length && err.account) {
+        OnboardingActions.setAccount(err.account, { rejectedCertificates: err.certificates });
+        OnboardingActions.moveToPage('account-certificate');
+        return;
+      }
       this._onError(err);
       return;
     }

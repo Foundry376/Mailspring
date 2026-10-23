@@ -87,6 +87,15 @@ export function describeRejectedCertificate(
   };
 }
 
+// A fingerprint is accepted for the server the user reviewed. Pointing a service at another
+// host or port drops it, so that server's certificate is reviewed on its own.
+export function forgetCertificateIfServerChanged(account: Account, settingsKey: string) {
+  const match = /^(imap|smtp)_(host|port)$/.exec(settingsKey);
+  if (match) {
+    delete account.settings[`${match[1]}_certificate_sha256`];
+  }
+}
+
 export function withAcceptedCertificates(account: Account, certificates: RejectedCertificate[]) {
   const next = account.clone();
   for (const { service, sha256 } of certificates) {

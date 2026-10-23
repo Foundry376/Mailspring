@@ -3,6 +3,7 @@ import {
   RejectedCertificate,
   describeRejectedCertificate,
   withAcceptedCertificates,
+  forgetCertificateIfServerChanged,
 } from '../lib/certificate-review';
 
 // Self-signed, CN and DNS SAN mail.example.test, IP SAN 127.0.0.1, valid 2026-10-23 to 2126-09-29.
@@ -74,5 +75,31 @@ describe('withAcceptedCertificates', () => {
     expect(accepted.settings.smtp_certificate_sha256).toEqual('bb');
     expect(accepted.settings.imap_host).toEqual('mail.example.test');
     expect(account.settings.imap_certificate_sha256).toBeUndefined();
+  });
+});
+
+describe('forgetCertificateIfServerChanged', () => {
+  function pinned() {
+    return new Account({
+      provider: 'imap',
+      settings: { imap_certificate_sha256: 'aa', smtp_certificate_sha256: 'bb' },
+    } as any);
+  }
+
+  it("drops a service's fingerprint when its host or port changes", () => {
+    const account = pinned();
+    forgetCertificateIfServerChanged(account, 'imap_host');
+    expect(account.settings.imap_certificate_sha256).toBeUndefined();
+    expect(account.settings.smtp_certificate_sha256).toEqual('bb');
+    forgetCertificateIfServerChanged(account, 'smtp_port');
+    expect(account.settings.smtp_certificate_sha256).toBeUndefined();
+  });
+
+  it('keeps the fingerprints when other settings change', () => {
+    const account = pinned();
+    forgetCertificateIfServerChanged(account, 'imap_password');
+    forgetCertificateIfServerChanged(account, 'smtp_security');
+    expect(account.settings.imap_certificate_sha256).toEqual('aa');
+    expect(account.settings.smtp_certificate_sha256).toEqual('bb');
   });
 });
