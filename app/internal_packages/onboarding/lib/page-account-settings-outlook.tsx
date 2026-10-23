@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Account } from 'mailspring-exports';
+import { Account, localized } from 'mailspring-exports';
 import { buildOutlookAccountFromAuthResponse, buildO365AuthURL } from './onboarding-helpers';
 
 import OAuthSignInPage from './oauth-signin-page';
@@ -11,6 +11,18 @@ export default class AccountSettingsPageOutlook extends React.Component<{ accoun
   static displayName = 'AccountSettingsPageOutlook';
 
   _authUrl = buildO365AuthURL();
+  _withGraphSend = true;
+
+  // Organizations that require admin approval for new permissions decline the Graph mail
+  // scopes; the account can still be added with the permissions approved before, sending over SMTP.
+  _graphSendFallback = {
+    label: localized('Sign in without Microsoft 365 sending'),
+    onSelect: () => {
+      this._withGraphSend = false;
+      this._authUrl = buildO365AuthURL({ withGraphSend: false });
+      this.forceUpdate();
+    },
+  };
 
   onSuccess(account) {
     OnboardingActions.finishAndAddAccount(account);
@@ -23,9 +35,13 @@ export default class AccountSettingsPageOutlook extends React.Component<{ accoun
     return (
       <OAuthSignInPage
         serviceName="Outlook"
+        key={this._authUrl}
         providerAuthPageUrl={this._authUrl}
+        fallback={this._withGraphSend ? this._graphSendFallback : undefined}
         providerConfig={providerConfig}
-        buildAccountFromAuthResponse={buildOutlookAccountFromAuthResponse}
+        buildAccountFromAuthResponse={(code) =>
+          buildOutlookAccountFromAuthResponse(code, { withGraphSend: this._withGraphSend })
+        }
         onSuccess={this.onSuccess}
         onTryAgain={goBack}
       />

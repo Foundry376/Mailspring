@@ -1,7 +1,7 @@
 import React from 'react';
 import { localized, DateUtils, Message } from 'mailspring-exports';
 import { Flexbox } from 'mailspring-component-kit';
-import { pluckByEmail } from '../../activity/lib/activity-events';
+import { pluckByEmail, recipientIsUnknowable } from '../../activity/lib/activity-events';
 import { OpenTrackingMetadata } from './types';
 
 class OpenTrackingMessagePopover extends React.Component<{
@@ -37,6 +37,13 @@ class OpenTrackingMessagePopover extends React.Component<{
       <div className="open-tracking-message-popover" tabIndex={-1}>
         <div className="open-tracking-header">{localized('Opened by')}:</div>
         <div className="open-history-container">{this.renderOpenActions()}</div>
+        {recipientIsUnknowable(this.props.message, this.props.openMetadata) && (
+          <div className="unattributed-note">
+            {localized(
+              'This message was sent to everyone at once, so Mailspring cannot tell which recipient opened it.'
+            )}
+          </div>
+        )}
       </div>
     );
   }
