@@ -10,7 +10,7 @@ import {
 } from 'mailspring-component-kit';
 import { CalendarDate, CalendarDateUtils } from 'mailspring-exports';
 import CalendarHeaderStore from './calendar-header-store';
-import FocusedMomentStore from './focused-moment-store';
+import VisibleRangeStore from './visible-range-store';
 import { EventOccurrence, EventRangeSubscription, isTimed } from './calendar-data-source';
 import { centerGridScroll, dateOf, formatShortTime, momentOf } from './calendar-helpers';
 import { EventGridBackground } from './event-grid-background';
@@ -133,11 +133,11 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     this._mounted = false;
     this._sub.dispose();
     CalendarHeaderStore.setViewNavigation(null);
-    FocusedMomentStore.setVisibleRange(null);
+    VisibleRangeStore.setVisibleRange(null);
   }
 
   _publishNavigation() {
-    FocusedMomentStore.setVisibleRange({
+    VisibleRangeStore.setVisibleRange({
       first: this.state.firstVisible,
       days: this.props.visibleDays,
     });

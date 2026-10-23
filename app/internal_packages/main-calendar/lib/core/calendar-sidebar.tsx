@@ -6,6 +6,7 @@ import { ScrollRegion, MiniMonthView, VisibleRange } from 'mailspring-component-
 import { CalendarSourceList } from './calendar-source-list';
 import { setCalendarColors } from './calendar-helpers';
 import FocusedMomentStore from './focused-moment-store';
+import VisibleRangeStore from './visible-range-store';
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
@@ -30,21 +31,22 @@ export class CalendarSidebar extends React.Component<
 
   _disposable?: Disposable;
   _unlisten?: () => void;
+  _unlistenVisibleRange?: () => void;
 
   state: CalendarSidebarState = {
     accounts: [],
     calendars: [],
     disabledCalendars: AppEnv.config.get(DISABLED_CALENDARS) || [],
     focusedMoment: FocusedMomentStore.focusedMoment(),
-    visibleRange: FocusedMomentStore.visibleRange(),
+    visibleRange: VisibleRangeStore.visibleRange(),
   };
 
   componentDidMount() {
     this._unlisten = FocusedMomentStore.listen(() =>
-      this.setState({
-        focusedMoment: FocusedMomentStore.focusedMoment(),
-        visibleRange: FocusedMomentStore.visibleRange(),
-      })
+      this.setState({ focusedMoment: FocusedMomentStore.focusedMoment() })
+    );
+    this._unlistenVisibleRange = VisibleRangeStore.listen(() =>
+      this.setState({ visibleRange: VisibleRangeStore.visibleRange() })
     );
     this._disposable = Rx.Observable.combineLatest(
       Rx.Observable.fromQuery(DatabaseStore.findAll<Calendar>(Calendar)),
@@ -63,6 +65,7 @@ export class CalendarSidebar extends React.Component<
 
   componentWillUnmount() {
     this._unlisten?.();
+    this._unlistenVisibleRange?.();
     this._disposable?.dispose();
   }
 
