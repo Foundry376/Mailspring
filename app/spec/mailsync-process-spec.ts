@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { lastJSONResponse, MailsyncProcess } from '../src/mailsync-process';
+import { lastJSONResponse, lastLoggedException, MailsyncProcess } from '../src/mailsync-process';
 
 describe('lastJSONResponse', function () {
   it('reads a result that has no trailing newline', function () {
@@ -36,6 +36,30 @@ describe('lastJSONResponse', function () {
 
   it('ignores a truncated object at the end of the stream', function () {
     expect(lastJSONResponse('{"error":null}\n{"error":')).toEqual({ error: null });
+  });
+});
+
+describe('lastLoggedException', function () {
+  const block = (details: string) =>
+    `[critical] \n***\n*** Mailspring Sync \n*** An exception occurred during program execution: \n*** ${details}\n***\n`;
+
+  it('keeps only the exception mailsync logged last', function () {
+    const stderr = block('{"key":"ErrorAuthentication"}') + block('A segmentation fault (SIGSEGV)');
+    const result = lastLoggedException(stderr);
+    expect(result).toContain('SIGSEGV');
+    expect(result).not.toContain('ErrorAuthentication');
+  });
+
+  it('finds the last exception in output written with Windows line endings', function () {
+    const stderr = (block('{"key":"ErrorAuthentication"}') + block('SIGSEGV')).replace(
+      /\n/g,
+      '\r\n'
+    );
+    expect(lastLoggedException(stderr)).not.toContain('ErrorAuthentication');
+  });
+
+  it('returns output with no logged exception unchanged', function () {
+    expect(lastLoggedException('dyld: Library not loaded\n')).toBe('dyld: Library not loaded\n');
   });
 });
 

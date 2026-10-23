@@ -24,7 +24,7 @@ const PageTopBar = (props: { pageDepth: number; allowMoveBack?: boolean }) => {
   };
 
   let backButton = (
-    <div className={closeClass} onClick={closeAction}>
+    <div className={closeClass} onClick={closeAction} style={{ WebkitAppRegion: 'no-drag' } as any}>
       <RetinaImg name={closeIcon} mode={RetinaImg.Mode.ContentPreserve} />
     </div>
   );

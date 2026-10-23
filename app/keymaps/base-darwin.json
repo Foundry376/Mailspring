@@ -5,6 +5,7 @@
   "application:zoom": "alt+command+ctrl+m",
   "application:show-mail": ["mod+alt+1", "mod+0"],
   "application:show-calendar": "mod+alt+2",
+  "application:show-activity": "mod+alt+3",
 
   "window:toggle-full-screen": "command+ctrl+f",
   "window:reload": "mod+alt+l",
