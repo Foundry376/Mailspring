@@ -244,9 +244,9 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
       (e) => !isTimed(e) && e.startDate < drawn.end && e.endDate >= drawn.first
     );
     const allDayOverlap = overlapForEvents(allDayEvents);
-    const allDayBarHeight = allDayEvents.length
-      ? maxConcurrentEvents(allDayOverlap) * MIN_INTERVAL_HEIGHT + 1
-      : 0;
+    // An empty row keeps one lane, so "All Day" sits below the headings.
+    const allDayBarHeight =
+      Math.max(maxConcurrentEvents(allDayOverlap), 1) * MIN_INTERVAL_HEIGHT + 1;
     return { allDayEvents, allDayOverlap, allDayBarHeight };
   }
 
@@ -376,7 +376,9 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
                 className="date-label-legend"
                 style={{ height: allDayBarHeight + DATE_LABELS_HEIGHT + 1 }}
               >
-                <span className="legend-text">All Day</span>
+                <div className="all-day-legend" style={{ top: DATE_LABELS_HEIGHT }}>
+                  <span className="legend-text">All Day</span>
+                </div>
               </div>
               <div className="event-grid-legend-wrap" ref={this._legendWrapEl}>
                 <div className="event-grid-legend" style={{ height: totalHeight }}>

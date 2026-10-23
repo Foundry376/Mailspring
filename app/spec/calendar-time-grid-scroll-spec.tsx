@@ -230,24 +230,30 @@ describe('TimeGridView scrolling', function () {
 
   // Oct 11 to Oct 31 are drawn around Oct 18-24.
   it('sizes the All Day row for the all-day events drawn, not every event loaded', function () {
-    const dayAfterDrawn = allDayOccurrence('day-after-drawn', '2026-11-01');
+    const dayAfterDrawn = [
+      allDayOccurrence('day-after-drawn-1', '2026-11-01'),
+      allDayOccurrence('day-after-drawn-2', '2026-11-01'),
+    ];
     const meeting = timedOccurrence('meeting', '2026-10-20T10:00', '2026-10-20T11:00');
     dataSource.buildObservable.andCallFake(() =>
-      Rx.Observable.just({ events: [dayAfterDrawn, meeting] })
+      Rx.Observable.just({ events: [...dayAfterDrawn, meeting] })
     );
-    render(moment([2026, 9, 19]));
-
-    expect(height('.date-label-legend')).toBe('29px');
-    expect(height('.all-day-events')).toBe('0px');
-  });
-
-  it('sizes the All Day row for events on days drawn off-screen too', function () {
-    const firstDrawn = allDayOccurrence('first-drawn', '2026-10-11');
-    dataSource.buildObservable.andCallFake(() => Rx.Observable.just({ events: [firstDrawn] }));
     render(moment([2026, 9, 19]));
 
     expect(height('.date-label-legend')).toBe('51px');
     expect(height('.all-day-events')).toBe('22px');
+  });
+
+  it('sizes the All Day row for events on days drawn off-screen too', function () {
+    const firstDrawn = [
+      allDayOccurrence('first-drawn-1', '2026-10-11'),
+      allDayOccurrence('first-drawn-2', '2026-10-11'),
+    ];
+    dataSource.buildObservable.andCallFake(() => Rx.Observable.just({ events: firstDrawn }));
+    render(moment([2026, 9, 19]));
+
+    expect(height('.date-label-legend')).toBe('72px');
+    expect(height('.all-day-events')).toBe('43px');
   });
 
   it('requeries only once scrolling draws days past the three weeks queried either side', function () {
