@@ -328,8 +328,9 @@ export function newEventOccurrence(id: string, draft: NewEventDraft): EventOccur
 }
 
 /**
- * A time as compact as the locale allows: a 12-hour clock drops ":00" on the hour ("10 AM"),
- * a 24-hour clock keeps LT ("10:00"), where a bare "10" would not read as a time.
+ * A time as compact as the locale allows: a 12-hour clock drops the space before a trailing
+ * meridiem, and ":00" on the hour ("10AM"); a 24-hour clock keeps LT ("10:00"), where a bare "10"
+ * would not read as a time.
  */
 export function formatShortTime(unix: number): string {
   const time = moment.unix(unix);
@@ -339,22 +340,23 @@ export function formatShortTime(unix: number): string {
 function shortTimeFormat(time: moment.Moment): string {
   const lt = moment.localeData().longDateFormat('LT');
   // moment's LT uses h for a 12-hour clock and H for a 24-hour one, as in time-picker.tsx
-  if (!/h/.test(lt) || time.minutes() !== 0) {
+  if (!/h/.test(lt)) {
     return lt;
   }
-  return lt.replace(/[:.]mm/, '');
+  const tight = lt.replace(/\s+([aA])$/, '$1');
+  return time.minutes() === 0 ? tight.replace(/[:.]mm/, '') : tight;
 }
 
 /**
  * A range in formatShortTime's terms, naming the meridiem once when both ends share it, as Notion
- * Calendar does: "7:30–8:30 PM", "11:30 AM–12 PM".
+ * Calendar does: "7:30–8:30PM", "11:30AM–12PM".
  */
 export function formatShortTimeRange(startUnix: number, endUnix: number): string {
   const start = moment.unix(startUnix);
   const end = moment.unix(endUnix);
   let startFormat = shortTimeFormat(start);
-  // Only a meridiem set apart at either end; lb's "[Auer]" literal and ne's "Aको" stay whole.
-  const separateMeridiem = /^[aA]\s+|\s+[aA]$/;
+  // Only a meridiem standing alone at either end; lb's "[Auer]" literal and ne's "Aको" stay whole.
+  const separateMeridiem = /^[aA]\s+|\s*[aA]$/;
   if (/h/.test(startFormat) && start.format('A') === end.format('A')) {
     startFormat = startFormat.replace(separateMeridiem, '');
   }

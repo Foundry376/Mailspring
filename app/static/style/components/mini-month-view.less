@@ -57,13 +57,22 @@
     .week {
       flex: 1;
       display: flex;
+      position: relative;
       min-height: 24px;
+    }
+    .visible-range {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      border-radius: @border-radius-base;
+      background: color-mix(in srgb, @accent-primary 12%, transparent);
     }
     .day {
       display: flex;
       flex-direction: column;
       justify-content: center;
       flex: 1;
+      position: relative; // above the visible range's band
       min-height: 24px;
       font-size: @font-size-smaller;
       font-weight: @font-weight-medium;
