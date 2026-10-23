@@ -21,19 +21,40 @@ function onPaste(event: React.ClipboardEvent, editor: Editor, next: () => void) 
   }
 }
 
-function buildAutoReplaceHandler({ hrefPrefix = '' } = {}) {
+// Punctuation that commonly follows a URL in prose, e.g. "(see https://example.com)".
+// `;` is left out because it can end a query string.
+const TRAILING_PUNCTUATION = `[)\\]}>.,!?:'"]*`;
+
+// Matches a URL right before the cursor, optionally followed by trailing punctuation.
+// It keeps the `g` flag: slate-auto-replace uses String.match and deletes every
+// captured group it gets back, so the match must come back without groups.
+export const URL_BEFORE_CURSOR_REGEX = new RegExp(
+  `${RegExpUtils.urlRegex().source}${TRAILING_PUNCTUATION}$`,
+  'gi'
+);
+
+export function splitTrailingPunctuation(text: string) {
+  const match = RegExpUtils.urlRegex({ matchStartOfString: true }).exec(text);
+  const link = match ? match[0] : text;
+  return { link, trailing: text.slice(link.length) };
+}
+
+function buildAutoReplaceHandler({ hrefPrefix = '', splitTrailing = false } = {}) {
   return function (editor: Editor, e, matches) {
     if (safeActiveMarks(editor.value).find((m) => m.type === LINK_TYPE))
       return editor.insertText(TriggerKeyValues[e.key]);
 
-    const link = matches.before[0];
-    const mark = Mark.create({ type: LINK_TYPE, data: { href: hrefPrefix + matches.before[0] } });
+    const matched = matches.before[0];
+    const { link, trailing } = splitTrailing
+      ? splitTrailingPunctuation(matched)
+      : { link: matched, trailing: '' };
+    const mark = Mark.create({ type: LINK_TYPE, data: { href: hrefPrefix + link } });
     return editor
-      .deleteBackward(link.length)
+      .deleteBackward(matched.length)
       .addMark(mark)
       .insertText(link)
       .removeMark(mark)
-      .insertText(TriggerKeyValues[e.key]);
+      .insertText(trailing + TriggerKeyValues[e.key]);
   };
 }
 
@@ -153,8 +174,8 @@ const plugins: ComposerEditorPlugin[] = [
   }),
   AutoReplace({
     trigger: (e) => !!TriggerKeyValues[e.key],
-    before: RegExpUtils.urlRegex({ matchTailOfString: true }),
-    change: buildAutoReplaceHandler(),
+    before: URL_BEFORE_CURSOR_REGEX,
+    change: buildAutoReplaceHandler({ splitTrailing: true }),
   }),
 ];
 
