@@ -7,7 +7,7 @@ import { formatShortTime } from './calendar-helpers';
 const nowUnix = () => Date.now() / 1000;
 
 /** Re-renders its child with the current time, once a minute. */
-class EachMinute extends React.Component<
+export class EachMinute extends React.Component<
   { children: (now: number) => React.ReactElement },
   { now: number }
 > {
@@ -66,26 +66,11 @@ export class CurrentTimeIndicator extends React.Component<CurrentTimeIndicatorPr
   }
 }
 
-/** The current time in the time column, level with the indicator's line. */
-export function CurrentTimeLabel({
-  gridHeight,
-  visible,
-}: {
-  gridHeight: number;
-  visible: boolean;
-}) {
+/** The current time in the time column, level with the indicator's line at `y`. */
+export function CurrentTimeLabel({ now, y }: { now: number; y: number }) {
   return (
-    <EachMinute>
-      {(now) =>
-        visible ? (
-          <span
-            className="legend-text current-time-label"
-            style={{ top: gridHeight * dayFraction(now) - 7.5 }}
-          >
-            {formatShortTime(now)}
-          </span>
-        ) : null
-      }
-    </EachMinute>
+    <span className="legend-text current-time-label" style={{ top: y - 7.5 }}>
+      {formatShortTime(now)}
+    </span>
   );
 }

@@ -17,7 +17,7 @@ import { EventGridBackground } from './event-grid-background';
 import { WeekViewEventColumn } from './week-view-event-column';
 import { WeekViewAllDayEvents } from './week-view-all-day-events';
 import { CalendarEventContainer } from './calendar-event-container';
-import { CurrentTimeIndicator, CurrentTimeLabel } from './current-time-indicator';
+import { CurrentTimeIndicator, CurrentTimeLabel, EachMinute } from './current-time-indicator';
 import { CalendarView } from './calendar-constants';
 import {
   overlapForEvents,
@@ -26,6 +26,7 @@ import {
   exclusiveDayEnds,
   TICKS_PER_DAY,
   tickGenerator,
+  dayFraction,
 } from './week-view-helpers';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
 import { getEventsWithDragPreview, withNewEventPreview } from './calendar-drag-utils';
@@ -33,6 +34,8 @@ import { WeekdayHeader } from './weekday-header';
 
 const MIN_INTERVAL_HEIGHT = 21;
 const DATE_LABELS_HEIGHT = 28;
+// Half the current-time pill plus half an hour label: nearer than this, the two overlap.
+const CURRENT_TIME_LABEL_CLEARANCE = 14;
 const DAY_PORTION_SHOWN_VERTICALLY = 14 / 24;
 const QUERY_MARGIN_DAYS = 21;
 
@@ -256,9 +259,13 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     return { allDayEvents, allDayOverlap, allDayBarHeight };
   }
 
-  _renderEventGridLabels() {
+  _renderEventGridLabels(currentTimeY: number | null) {
     const labels = [];
     for (const { time, y } of tickGenerator(this.state.intervalHeight)) {
+      if (currentTimeY !== null && Math.abs(y - currentTimeY) < CURRENT_TIME_LABEL_CLEARANCE) {
+        labels.push(null);
+        continue;
+      }
       labels.push(
         <span className="legend-text" key={y} style={{ top: y === 0 ? y : y - 8 }}>
           {formatShortTime(time.unix())}
@@ -389,11 +396,20 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
               </div>
               <div className="event-grid-legend-wrap" ref={this._legendWrapEl}>
                 <div className="event-grid-legend" style={{ height: totalHeight }}>
-                  {this._renderEventGridLabels()}
-                  <CurrentTimeLabel
-                    gridHeight={totalHeight}
-                    visible={todayOffset >= 0 && todayOffset < visibleDays}
-                  />
+                  <EachMinute>
+                    {(now) => {
+                      const currentTimeY =
+                        todayOffset >= 0 && todayOffset < visibleDays
+                          ? totalHeight * dayFraction(now)
+                          : null;
+                      return (
+                        <>
+                          {this._renderEventGridLabels(currentTimeY)}
+                          {currentTimeY !== null && <CurrentTimeLabel now={now} y={currentTimeY} />}
+                        </>
+                      );
+                    }}
+                  </EachMinute>
                 </div>
               </div>
             </div>
