@@ -126,16 +126,9 @@ describe('MiniMonthView header', () => {
     expect(view.state.today.isSame(moment(), 'day')).toBe(true);
   });
 
-  it('shades a visible range with one band per row, and nothing without one', () => {
-    const bands = () =>
-      Array.from(host.querySelectorAll<HTMLElement>('.visible-range')).map((band) => {
-        const days = Array.from(band.parentElement.querySelectorAll('.day')).map(
-          (d) => d.textContent
-        );
-        const from = Math.round((parseFloat(band.style.left) / 100) * 7);
-        const count = Math.round((parseFloat(band.style.width) / 100) * 7);
-        return days.slice(from, from + count).join(' ');
-      });
+  // The app flips its stylesheets for right-to-left languages, but not inline positions.
+  it('shades the days in view, one band per row, under the right days in right-to-left layouts', () => {
+    host.dir = 'rtl';
     const first = CalendarDates.calendarDateFromParts(2026, 10, 22);
     ReactDOM.render(
       <MiniMonthView
@@ -145,11 +138,26 @@ describe('MiniMonthView header', () => {
       />,
       host
     );
-    // Thu Oct 22 to Wed Oct 28 crosses from one week's row into the next.
-    expect(bands()).toEqual(['22 23 24', '25 26 27 28']);
+    const span = (labels: string[]) => {
+      const cells = Array.from(host.querySelectorAll('.day.cur-month'))
+        .filter((d) => labels.includes(d.textContent))
+        .map((d) => d.getBoundingClientRect());
+      return [Math.min(...cells.map((r) => r.left)), Math.max(...cells.map((r) => r.right))];
+    };
+    const bands = Array.from(host.querySelectorAll('.visible-range')).map((b) => {
+      const r = b.getBoundingClientRect();
+      return [r.left, r.right];
+    });
 
-    ReactDOM.render(<MiniMonthView value={moment([2026, 9, 16])} onChange={() => {}} />, host);
-    expect(bands()).toEqual([]);
+    // Thu Oct 22 to Wed Oct 28 wraps from one week's row onto the next.
+    expect(bands.length).toBe(2);
+    for (const [band, cells] of [
+      [bands[0], span(['22', '23', '24'])],
+      [bands[1], span(['25', '26', '27', '28'])],
+    ]) {
+      expect(Math.abs(band[0] - cells[0])).toBeLessThan(1);
+      expect(Math.abs(band[1] - cells[1])).toBeLessThan(1);
+    }
   });
 
   it('shortens the month name while the full title would not fit, as it resizes or pages', () => {

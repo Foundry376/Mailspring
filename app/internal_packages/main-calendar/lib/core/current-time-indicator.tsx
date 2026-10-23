@@ -54,7 +54,7 @@ export class CurrentTimeIndicator extends React.Component<CurrentTimeIndicatorPr
               <div
                 className="current-time-today"
                 style={{
-                  left: `${(todayColumnIdx * 100) / numColumns}%`,
+                  insetInlineStart: `${(todayColumnIdx * 100) / numColumns}%`,
                   width: `${100 / numColumns}%`,
                 }}
               />

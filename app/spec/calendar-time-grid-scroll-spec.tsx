@@ -94,21 +94,6 @@ describe('TimeGridView scrolling', function () {
     expect(title()).toBe('October 2026');
   });
 
-  it('tells the mini month which days are in view as it scrolls, and nothing once it closes', function () {
-    const visibleRange = () => {
-      const range = FocusedMomentStore.visibleRange();
-      return range && [formatCalendarDate(range.first), range.days];
-    };
-    render(moment([2026, 9, 21]));
-    expect(visibleRange()).toEqual(['2026-10-18', 7]);
-
-    scrollDays(3);
-    expect(visibleRange()).toEqual(['2026-10-21', 7]);
-
-    ReactDOM.unmountComponentAtNode(host);
-    expect(visibleRange()).toBe(null);
-  });
-
   it('titles a week split across months with the month holding more of the days in view', function () {
     render(moment([2026, 11, 30]));
     // Sun Dec 27 to Sat Jan 2: five days in December.

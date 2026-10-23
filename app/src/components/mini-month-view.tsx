@@ -166,7 +166,7 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
       <div
         className="visible-range"
         style={{
-          left: `${((start - rowStart) * 100) / 7}%`,
+          insetInlineStart: `${((start - rowStart) * 100) / 7}%`,
           width: `${((end - start) * 100) / 7}%`,
         }}
       />
