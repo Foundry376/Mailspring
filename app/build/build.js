@@ -15,6 +15,11 @@ const TypeScript = require('typescript');
 const { packager } = require('@electron/packager');
 
 const platform = process.platform;
+const arch = {
+  win32: 'x64',
+  darwin: process.env.OVERRIDE_TO_INTEL ? 'x64' : process.arch,
+  linux: process.arch,
+}[platform];
 const rootDir = path.resolve(__dirname, '..', '..');
 const appDir = path.resolve(rootDir, 'app');
 const buildDir = path.join(appDir, 'build');
@@ -45,6 +50,18 @@ function dependencyClosure(rootPackage) {
   };
   visit(rootPackage, appDir);
   return [...found].map((pkgDir) => path.relative(path.join(appDir, 'node_modules'), pkgDir));
+}
+
+/**
+ * npm installs every node-llama-cpp binary package whose os/cpu match the build machine:
+ * on x64 Windows and Linux that includes CUDA (~550 MB with its -ext half), and the arm64
+ * packages also declare x64. Ship only the CPU build for the target arch plus Metal or Vulkan.
+ * node-llama-cpp skips a GPU type whose package is missing, so CUDA machines use Vulkan.
+ */
+function nodeLlamaCppBinariesToIgnore() {
+  const llamaPlatform = { darwin: 'mac', win32: 'win', linux: 'linux' }[platform];
+  const keep = `${llamaPlatform}-${arch}(-metal|-vulkan)?`;
+  return new RegExp(`node_modules[/]+@node-llama-cpp[/]+(?!${keep}([/]|$))`);
 }
 
 const sourceGlobs = [
@@ -97,7 +114,6 @@ let fmHelperPath = null;
  * on Apple silicon, so Intel builds skip it and always use the downloadable model.
  */
 async function buildFMHelper() {
-  const arch = process.env.OVERRIDE_TO_INTEL ? 'x64' : process.arch;
   if (process.platform !== 'darwin' || arch !== 'arm64') return;
   const packagePath = path.resolve(appDir, 'native', 'mailspring-fm');
   const args = ['build', '-c', 'release', '--arch', 'arm64', '--package-path', packagePath];
@@ -257,11 +273,7 @@ function buildPackagerOptions() {
     dir: appDir,
     appCategoryType: 'public.app-category.business',
     tmpdir,
-    arch: {
-      win32: 'x64',
-      darwin: process.env.OVERRIDE_TO_INTEL ? 'x64' : process.arch,
-      linux: process.arch,
-    }[platform],
+    arch,
     icon: {
       darwin: path.resolve(appDir, 'build', 'resources', 'mac', 'mailspring.icns'),
       win32: path.resolve(appDir, 'build', 'resources', 'win', 'mailspring-square.ico'),
@@ -336,6 +348,7 @@ function buildPackagerOptions() {
       /node_modules[/].*[/]tests?$/,
       /node_modules[/].*[/]coverage$/,
       /node_modules[/].*[/]benchmark$/,
+      nodeLlamaCppBinariesToIgnore(),
     ],
     out: outputDir,
     overwrite: true,
@@ -439,7 +452,6 @@ async function createMacZip() {
   if (fs.existsSync(zipPath)) {
     fs.unlinkSync(zipPath);
   }
-  const arch = process.env.OVERRIDE_TO_INTEL ? 'x64' : process.arch;
   const cwd = path.join(outputDir, `Mailspring-darwin-${arch}`);
   await spawn({
     cmd: 'zip',
