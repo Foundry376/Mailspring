@@ -11,6 +11,7 @@ import {
   Message,
   Contact,
   File,
+  Folder,
   Label,
   DraftFactory,
   SyncbackDraftTask,
@@ -1096,6 +1097,17 @@ export function registerTools(server: McpServer) {
       const threads = await DatabaseStore.modelify<Thread>(Thread, threadIds);
       const err = assertThreadsAllowed(threads);
       if (err) return errorResult(err);
+
+      // TaskFactory skips an account with no Trash folder and explains it in a dialog the
+      // agent never sees, so refuse up front rather than report threads it left in place.
+      const accountIds = [...new Set(threads.map((t) => t.accountId))];
+      const withoutTrash = accountIds.filter(
+        (id) => !(CategoryStore.getTrashCategory(id) instanceof Folder)
+      );
+      if (withoutTrash.length) {
+        const emails = withoutTrash.map((id) => AccountStore.accountForId(id)?.emailAddress || id);
+        return errorResult(`No Trash folder found for ${emails.join(', ')}. Nothing was moved.`);
+      }
 
       const tasks = TaskFactory.tasksForMovingToTrash({ threads, source: 'MCP' });
       for (const task of tasks) Actions.queueTask(task);
