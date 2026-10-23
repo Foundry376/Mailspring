@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { lastJSONResponse, MailsyncProcess } from '../src/mailsync-process';
+import { lastJSONResponse, lastLoggedException, MailsyncProcess } from '../src/mailsync-process';
 
 describe('lastJSONResponse', function () {
   it('reads a result that has no trailing newline', function () {
@@ -39,6 +39,22 @@ describe('lastJSONResponse', function () {
   });
 });
 
+describe('lastLoggedException', function () {
+  const block = (details: string) =>
+    `[critical] \n***\n*** Mailspring Sync \n*** An exception occurred during program execution: \n*** ${details}\n***\n`;
+
+  it('keeps only the exception mailsync logged last', function () {
+    const stderr = block('{"key":"ErrorAuthentication"}') + block('A segmentation fault (SIGSEGV)');
+    const result = lastLoggedException(stderr);
+    expect(result).toContain('SIGSEGV');
+    expect(result).not.toContain('ErrorAuthentication');
+  });
+
+  it('returns output with no logged exception unchanged', function () {
+    expect(lastLoggedException('dyld: Library not loaded\n')).toBe('dyld: Library not loaded\n');
+  });
+});
+
 describe('accumulating mailsync stdout', function () {
   // mailsync's result line carries the whole IMAP/SMTP conversation in `test` mode, so it
   // routinely spans more than one 64KB chunk, and a server error or account name is often
@@ -50,7 +66,7 @@ describe('accumulating mailsync stdout', function () {
   const chunks = [bytes.subarray(0, splitAt), bytes.subarray(splitAt)];
 
   it('mangles a character split across chunks when each chunk is decoded alone', function () {
-    const perChunk = chunks.map(c => c.toString('utf-8')).join('');
+    const perChunk = chunks.map((c) => c.toString('utf-8')).join('');
     expect(perChunk).not.toEqual(payload);
     expect(perChunk).toContain('�');
     expect(lastJSONResponse(perChunk).error).not.toEqual('Café serveur');
