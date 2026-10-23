@@ -6,12 +6,7 @@ import Rx from 'rx-lite';
 import { TimeGridView } from '../internal_packages/main-calendar/lib/core/time-grid-view';
 import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
 import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
-import {
-  calendarDateFromUnix,
-  calendarDaysBetween,
-  formatCalendarDate,
-} from '../src/calendar-date';
-import FocusedMomentStore from '../internal_packages/main-calendar/lib/core/focused-moment-store';
+import { calendarDateFromUnix, calendarDaysBetween } from '../src/calendar-date';
 import {
   allDayOccurrence,
   calendarViewProps,

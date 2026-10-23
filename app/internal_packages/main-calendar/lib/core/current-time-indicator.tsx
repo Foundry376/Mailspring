@@ -5,6 +5,7 @@ import { dayFraction } from './week-view-helpers';
 import { formatShortTime } from './calendar-helpers';
 
 const nowUnix = () => Date.now() / 1000;
+const MS_PER_MINUTE = 60 * 1000;
 
 /** Re-renders its child with the current time, once a minute. */
 export class EachMinute extends React.Component<
@@ -16,11 +17,22 @@ export class EachMinute extends React.Component<
   state = { now: nowUnix() };
 
   componentDidMount() {
-    this._timer = setInterval(() => this.setState({ now: nowUnix() }), 60 * 1000);
+    this._scheduleTick();
   }
 
   componentWillUnmount() {
-    clearInterval(this._timer);
+    clearTimeout(this._timer);
+  }
+
+  // On each minute's turn, so the time shown keeps pace with the clock.
+  _scheduleTick() {
+    this._timer = setTimeout(
+      () => {
+        this.setState({ now: nowUnix() });
+        this._scheduleTick();
+      },
+      MS_PER_MINUTE - (Date.now() % MS_PER_MINUTE)
+    );
   }
 
   render() {

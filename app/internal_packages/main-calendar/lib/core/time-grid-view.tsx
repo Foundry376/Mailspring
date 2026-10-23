@@ -96,6 +96,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
   _pendingInitialCenter = false;
   _scrollbar = React.createRef<any>();
   _sub: EventRangeSubscription;
+  _dayChange?: { dispose(): void };
   _scroller = React.createRef<SnapScroller>();
 
   _legendWrapEl = React.createRef<HTMLDivElement>();
@@ -125,6 +126,8 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     this._subscribe();
     this._setIntervalHeight();
     this._publishNavigation();
+    // Today's column, the current-time line and its pill are worked out as the view renders.
+    this._dayChange = CalendarDateUtils.onDayChange(dateOf(this._now()), () => this.forceUpdate());
   }
 
   componentDidUpdate() {
@@ -135,6 +138,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
   componentWillUnmount() {
     this._mounted = false;
     this._sub.dispose();
+    this._dayChange?.dispose();
     CalendarHeaderStore.setViewNavigation(null);
     VisibleRangeStore.setVisibleRange(null);
   }

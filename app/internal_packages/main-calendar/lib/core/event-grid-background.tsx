@@ -37,7 +37,7 @@ export class EventGridBackground extends React.Component<EventGridBackgroundProp
     ctx.setTransform(1, 0, 0, window.devicePixelRatio, 0, 0);
 
     const wrapStyle = getComputedStyle(canvas.parentElement);
-    ctx.strokeStyle = wrapStyle.getPropertyValue('--grid-line').trim() || '#e0e0e0';
+    ctx.strokeStyle = wrapStyle.getPropertyValue('--grid-line').trim();
     ctx.beginPath();
     for (const { y } of tickGenerator(this.props.intervalHeight)) {
       // Centred on a pixel row so the 1px line isn't spread across two at half strength.

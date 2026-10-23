@@ -1,7 +1,14 @@
 import React from 'react';
 import moment, { Moment } from 'moment';
 import classnames from 'classnames';
-import { CalendarDate, calendarDateFromUnix, dayStartUnix, onDayChange } from '../calendar-date';
+import {
+  CalendarDate,
+  addCalendarDays,
+  calendarDateFromUnix,
+  calendarDaysBetween,
+  dayStartUnix,
+  onDayChange,
+} from '../calendar-date';
 import { localized } from '../intl';
 
 const VISIBLE_WEEKS = 6;
@@ -159,15 +166,17 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
     const range = this.props.visibleRange;
     if (!range) return null;
     const rowStart = calendarDateFromUnix(weekStart.unix());
-    const start = Math.max(range.first, rowStart);
-    const end = Math.min(range.first + range.days, rowStart + 7);
+    const rangeEnd = addCalendarDays(range.first, range.days);
+    const rowEnd = addCalendarDays(rowStart, 7);
+    const start = range.first > rowStart ? range.first : rowStart;
+    const end = rangeEnd < rowEnd ? rangeEnd : rowEnd;
     if (end <= start) return null;
     return (
       <div
         className="visible-range"
         style={{
-          insetInlineStart: `${((start - rowStart) * 100) / 7}%`,
-          width: `${((end - start) * 100) / 7}%`,
+          insetInlineStart: `${(calendarDaysBetween(rowStart, start) * 100) / 7}%`,
+          width: `${(calendarDaysBetween(start, end) * 100) / 7}%`,
         }}
       />
     );
