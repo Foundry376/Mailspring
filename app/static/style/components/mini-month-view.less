@@ -14,7 +14,8 @@
   .header {
     display: flex;
     align-items: center;
-    padding: 4px 0 3px 8px;
+    // Insets the title and the last caret to the first and last columns' centered text, 13px wide.
+    padding: 4px calc(100% / 14 - 11.5px) 3px calc(100% / 14 - 6.5px);
     .month-title {
       flex: 1;
       min-width: 0;
