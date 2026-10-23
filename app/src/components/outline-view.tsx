@@ -1,6 +1,7 @@
 import { Utils, localized } from 'mailspring-exports';
 import React, { Component, CSSProperties } from 'react';
 import { DropZone } from './drop-zone';
+import { DisclosureTriangle } from './disclosure-triangle';
 import { RetinaImg } from './retina-img';
 import OutlineViewItem from './outline-view-item';
 
@@ -40,6 +41,7 @@ interface OutlineViewProps {
   titleColor?: string;
   onCollapseToggled?: (props: OutlineViewProps) => void;
   onItemCreated?: (displayName) => void;
+  children?: React.ReactNode;
 }
 
 interface OutlineViewState {
@@ -65,6 +67,8 @@ interface OutlineViewState {
  * add a new item. See {@link RetinaImg} for further reference.
  * @param {array} props.items - Array of strings or numbers to display as {@link
  * OutlineViewItem}s
+ * @param {node} props.children - Rows shown in place of `items`, for sections whose rows
+ * aren't OutlineViewItems
  * @param {boolean} props.collapsed - Whether the OutlineView is collapsed or
  * not
  * @param {string} props.titleColor - Colored bar that is displayed to highlight the title
@@ -190,7 +194,6 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
     collapsed: boolean,
     collapsible: ((props: OutlineViewProps) => void) | undefined
   ) {
-    const collapseLabel = collapsed ? localized('Show') : localized('Hide');
     let style: CSSProperties = {};
     if (this.props.titleColor) {
       style = {
@@ -211,7 +214,6 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
         <span style={style} className="text" title={this.props.title}>
           {this.props.title}
         </span>
-        {allowCreate ? this._renderCreateButton() : null}
         {collapsible ? (
           <span
             className="collapse-button"
@@ -231,9 +233,10 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
               }
             }}
           >
-            {collapseLabel}
+            <DisclosureTriangle collapsed={collapsed} visible />
           </span>
         ) : null}
+        {allowCreate ? this._renderCreateButton() : null}
       </DropZone>
     );
   }
@@ -348,6 +351,9 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
   _renderOutline(allowCreate: boolean, collapsed: boolean) {
     if (collapsed) {
       return <span />;
+    }
+    if (this.props.children) {
+      return this.props.children;
     }
 
     const showInput = allowCreate && this.state.showCreateInput;

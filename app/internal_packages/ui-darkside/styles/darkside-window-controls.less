@@ -9,6 +9,14 @@
   width: 50px;
 }
 
+// The base macOS styles size the controls to their buttons (`align-self:
+// flex-start`) and position them with a margin-top, which `margin: 0` above
+// cancels. Center them in the bar instead, keeping them sized to the buttons
+// so the strip below still drags the window.
+body.platform-darwin .toolbar-window-controls {
+  align-self: center;
+}
+
 .toolbar-window-controls button {
   background-color: @sidebar-text;
   background-image: none !important;
