@@ -151,18 +151,15 @@ class CategoryStore extends MailspringStore {
     return this.getCategoryByRole(accountOrId, 'inbox');
   }
 
-  // Public: Returns the Folder or Label that should be used for
-  // "Move to Trash", or null if no trash category exists. It is a Label on Gmail
-  // accounts that hide [Gmail]/Trash from IMAP: the engine then gives the role to a
-  // label by name, such as the "Trash" or "Deleted Items" other clients create.
+  // Public: Returns the Folder that should be used for
+  // "Move to Trash", or null if no trash folder exists.
   //
   getTrashCategory(accountOrId: Account | string | null) {
     return this.getCategoryByRole(accountOrId, 'trash');
   }
 
-  // Public: Returns the Folder or Label that should be used for
-  // "Move to Spam", or null if no spam category exists. A Label in the same case as
-  // getTrashCategory, such as a "Junk" label.
+  // Public: Returns the Folder that should be used for
+  // "Move to Spam", or null if no trash folder exists.
   //
   getSpamCategory(accountOrId: Account | string | null) {
     return this.getCategoryByRole(accountOrId, 'spam');

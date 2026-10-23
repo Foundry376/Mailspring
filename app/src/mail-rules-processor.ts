@@ -71,7 +71,7 @@ const MailRulesActions: {
 
   moveToTrash: async (message, thread) => {
     const folder = CategoryStore.getTrashCategory(thread.accountId);
-    if (!folder) {
+    if (!(folder instanceof Folder)) {
       throw new Error('Could not find `trash` folder');
     }
     return new ChangeFolderTask({

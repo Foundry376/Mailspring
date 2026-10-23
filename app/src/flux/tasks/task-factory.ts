@@ -3,47 +3,45 @@ import { ChangeLabelsTask } from './change-labels-task';
 import { ChangeUnreadTask } from './change-unread-task';
 import { ChangeStarredTask } from './change-starred-task';
 import CategoryStore from '../stores/category-store';
+import { AccountStore } from '../stores/account-store';
 import { Thread } from '../models/thread';
 import { Label } from '../models/label';
 import { Folder } from '../models/folder';
 import { Task } from '../tasks/task';
+import { localized } from '../../intl';
 
-// Gmail accounts that hide [Gmail]/Trash or [Gmail]/Spam from IMAP get those roles on a label
-// matched by name, such as "Trash" or "Junk" (MAILSPRING-CLIENT-AH, -61). Inbox is removed in
-// a separate task from the threads that have it, because undo swaps the added and removed
-// labels and would otherwise put every thread into the Inbox. The tasks share one
-// description so the undo toast reads as a single action.
-function tasksForApplyingRoleLabel(
-  label: Label,
-  threads: Thread[],
-  accountId: string,
-  source: string
-) {
-  const inbox = CategoryStore.getInboxCategory(accountId);
-  const inInbox = (t: Thread) =>
-    inbox instanceof Label && (t.labels || []).some((l) => l.id === inbox.id);
-  const groups = [
-    { threads: threads.filter(inInbox), labelsToRemove: [inbox] },
-    { threads: threads.filter((t) => !inInbox(t)), labelsToRemove: [] },
-  ];
-  const taskDescription = new ChangeLabelsTask({
-    labelsToAdd: [label],
-    labelsToRemove: [],
-    threads,
-    source,
-  }).description();
-  return groups
-    .filter((g) => g.threads.length > 0)
-    .map(
-      (g) =>
-        new ChangeLabelsTask({
-          labelsToAdd: [label],
-          labelsToRemove: g.labelsToRemove,
-          threads: g.threads,
-          source,
-          taskDescription,
-        })
-    );
+// Gmail accounts that hide [Gmail]/Trash or [Gmail]/Spam from IMAP have no folder for the
+// role, but may carry it on a label matched by name, such as "Trash" or "Junk"
+// (MAILSPRING-CLIENT-AH, -61). Labelling mail is not moving it to Trash, so the action is
+// refused with an explanation instead.
+function removalFolder(accountId: string, role: 'trash' | 'spam') {
+  const category =
+    role === 'trash'
+      ? CategoryStore.getTrashCategory(accountId)
+      : CategoryStore.getSpamCategory(accountId);
+  if (!category || category instanceof Folder) {
+    return category;
+  }
+  const account = AccountStore.accountForId(accountId);
+  const email = account ? account.emailAddress : accountId;
+  AppEnv.showErrorDialog(
+    role === 'trash'
+      ? {
+          title: localized('Trash folder not found'),
+          message: localized(
+            `Mailspring could not find the Trash folder for %@. In Gmail's settings, open the Labels tab and check "Show in IMAP" for Trash.`,
+            email
+          ),
+        }
+      : {
+          title: localized('Spam folder not found'),
+          message: localized(
+            `Mailspring could not find the Spam folder for %@. In Gmail's settings, open the Labels tab and check "Show in IMAP" for Spam.`,
+            email
+          ),
+        }
+  );
+  return null;
 }
 
 export const TaskFactory = {
@@ -77,14 +75,9 @@ export const TaskFactory = {
 
   tasksForMarkingAsSpam({ threads, source }: { threads: Thread[]; source: string }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
-      const spam = CategoryStore.getSpamCategory(accountId) as any;
-      if (!spam) return null;
-
-      if (spam instanceof Label) {
-        return tasksForApplyingRoleLabel(spam, accountThreads, accountId, source);
-      }
-
-      return new ChangeFolderTask({ folder: spam, source, threads: accountThreads });
+      const folder = removalFolder(accountId, 'spam');
+      if (!folder) return null;
+      return new ChangeFolderTask({ folder, source, threads: accountThreads });
     });
   },
 
@@ -140,13 +133,8 @@ export const TaskFactory = {
 
   tasksForMovingToTrash({ threads, source }: { threads: Thread[]; source: string }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
-      const trash = CategoryStore.getTrashCategory(accountId) as any;
+      const trash = removalFolder(accountId, 'trash');
       if (!trash) return null;
-
-      if (trash instanceof Label) {
-        return tasksForApplyingRoleLabel(trash, accountThreads, accountId, source);
-      }
-
       return new ChangeFolderTask({ folder: trash, threads: accountThreads, source });
     });
   },

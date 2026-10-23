@@ -53,7 +53,7 @@ class UndoRedoStore extends MailspringStore {
     if (tasks.every((t) => t.canBeUndone)) {
       const block = {
         tasks: tasks,
-        description: [...new Set(tasks.map((t) => t.description()))].join(', '),
+        description: tasks.map((t) => t.description()).join(', '),
         do: () => {
           // no-op, tasks queued separately
         },

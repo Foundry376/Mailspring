@@ -1,5 +1,6 @@
 import {
   TaskFactory,
+  AccountStore,
   CategoryStore,
   Folder,
   Label,
@@ -12,7 +13,7 @@ describe('TaskFactory', function taskFactory() {
   beforeEach(() => {
     // ac-1 is a folder-based IMAP account; ac-2 is Gmail, whose Inbox is a label and
     // whose All Mail, Spam and Trash are folders. ac-3 is Gmail with [Gmail]/Trash and
-    // [Gmail]/Spam hidden from IMAP, where the engine gives the roles to labels by name.
+    // [Gmail]/Spam hidden from IMAP, whose trash and spam roles sit on labels.
     this.categories = {
       'ac-1': {
         archive: new Folder({ id: 'f-archive', accountId: 'ac-1', role: 'archive' } as any),
@@ -28,7 +29,6 @@ describe('TaskFactory', function taskFactory() {
         trash: new Folder({ id: 'g-trash', accountId: 'ac-2', role: 'trash' } as any),
       },
       'ac-3': {
-        all: new Folder({ id: 'h-all', accountId: 'ac-3', role: 'all' } as any),
         inbox: new Label({ id: 'h-inbox', accountId: 'ac-3', role: 'inbox' } as any),
         spam: new Label({ id: 'h-junk', accountId: 'ac-3', role: 'spam' } as any),
         trash: new Label({ id: 'h-trash', accountId: 'ac-3', role: 'trash' } as any),
@@ -37,12 +37,7 @@ describe('TaskFactory', function taskFactory() {
     this.threads = [
       new Thread({ id: 't1', accountId: 'ac-1' }),
       new Thread({ id: 't2', accountId: 'ac-2' }),
-      new Thread({
-        id: 't3',
-        accountId: 'ac-3',
-        labels: [this.categories['ac-3'].inbox],
-      } as any),
-      new Thread({ id: 't4', accountId: 'ac-3', labels: [] } as any),
+      new Thread({ id: 't3', accountId: 'ac-3' }),
     ];
 
     const byRole = (role) => (accountId) => this.categories[accountId][role];
@@ -51,6 +46,8 @@ describe('TaskFactory', function taskFactory() {
     spyOn(CategoryStore, 'getInboxCategory').andCallFake(byRole('inbox'));
     spyOn(CategoryStore, 'getSpamCategory').andCallFake(byRole('spam'));
     spyOn(CategoryStore, 'getTrashCategory').andCallFake(byRole('trash'));
+    spyOn(AccountStore, 'accountForId').andCallFake((id) => ({ id, emailAddress: `${id}@x.com` }));
+    spyOn(AppEnv, 'showErrorDialog');
   });
 
   describe('tasksForArchiving', () => {
@@ -122,46 +119,36 @@ describe('TaskFactory', function taskFactory() {
       expect(tasks.map((t) => t.sourceFolderIds)).toEqual([[], []]);
     });
 
-    it('labels the threads Trash when the trash role belongs to a Gmail label', () => {
+    it('refuses with an explanation when the trash role belongs to a Gmail label', () => {
       const tasks = TaskFactory.tasksForMovingToTrash({
-        threads: this.threads.slice(2),
+        threads: [this.threads[2]],
         source: 'Toolbar Button: Thread List',
       });
-      expect(tasks.every((t) => t instanceof ChangeLabelsTask)).toBe(true);
-      expect(tasks.map((t) => t.labelsToAdd.map((l) => l.id))).toEqual([['h-trash'], ['h-trash']]);
-      expect(tasks.map((t) => t.threadIds)).toEqual([['t3'], ['t4']]);
-      expect(tasks.map((t) => t.labelsToRemove.map((l) => l.id))).toEqual([['h-inbox'], []]);
-      expect(tasks.map((t) => t.description())).toEqual(['Trashed 2 threads', 'Trashed 2 threads']);
-    });
-
-    it('does not put threads outside the Inbox into it on undo', () => {
-      const [task] = TaskFactory.tasksForMovingToTrash({
-        threads: [this.threads[3]],
-        source: 'Toolbar Button: Thread List',
-      });
-      const undo = task.createUndoTask() as ChangeLabelsTask;
-      expect(undo.labelsToAdd).toEqual([]);
-      expect(undo.labelsToRemove.map((l) => l.id)).toEqual(['h-trash']);
+      expect(tasks).toEqual([]);
+      const { title, message } = (AppEnv.showErrorDialog as jasmine.Spy).mostRecentCall.args[0];
+      expect(title).toBe('Trash folder not found');
+      expect(message).toContain('ac-3@x.com');
     });
   });
 
   describe('tasksForMarkingAsSpam', () => {
-    it('moves to the Spam folder when there is one', () => {
+    it('moves to the Spam folder', () => {
       const tasks = TaskFactory.tasksForMarkingAsSpam({
         threads: this.threads.slice(0, 2),
         source: 'Toolbar Button: Thread List',
       });
       expect(tasks.map((t) => t.folder.id)).toEqual(['f-spam', 'g-spam']);
+      expect(AppEnv.showErrorDialog).not.toHaveBeenCalled();
     });
 
-    it('labels the threads Spam when the spam role belongs to a Gmail label', () => {
-      const [task] = TaskFactory.tasksForMarkingAsSpam({
+    it('refuses with an explanation when the spam role belongs to a Gmail label', () => {
+      const tasks = TaskFactory.tasksForMarkingAsSpam({
         threads: [this.threads[2]],
         source: 'Toolbar Button: Thread List',
       });
-      expect(task instanceof ChangeLabelsTask).toBe(true);
-      expect(task.labelsToAdd.map((l) => l.id)).toEqual(['h-junk']);
-      expect(task.labelsToRemove.map((l) => l.id)).toEqual(['h-inbox']);
+      expect(tasks).toEqual([]);
+      const { title } = (AppEnv.showErrorDialog as jasmine.Spy).mostRecentCall.args[0];
+      expect(title).toBe('Spam folder not found');
     });
   });
 });
