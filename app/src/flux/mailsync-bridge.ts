@@ -53,59 +53,81 @@ function convertDeltaModels(modelJSONs: any[], modelClass: string) {
   return { models, rawJSONs };
 }
 
+export function isAuthFailureExit({ error }: Pick<MailsyncProcessExit, 'error'>) {
+  return (
+    `${error}`.includes('Response Code: 401') || // mailspring services
+    `${error}`.includes('Response Code: 403') || // mailspring services
+    `${error}`.includes('invalid_grant') || // Google
+    `${error}`.includes('ErrorAuthentication') // mailcore
+  );
+}
+
+const AUTH_FAILURE_WINDOW = 30 * 60 * 1000;
+
+type CrashTrackerAccount = { id: string; settings: Record<string, unknown>; authedAt?: unknown };
+
 /*
 This class keeps track of how often Mailsync workers crash. If a mailsync
-worker exits more than 5 times in <5 minutes, we consider it "too many failures"
-and won't relaunch it until:
+worker exits more than 5 times in <5 minutes, or exits twice in 30 minutes because
+it could not authenticate, we consider it "too many failures" and won't relaunch it until:
 
 - the user restarts the app, clearing the history
-- the user changes the account's settings (updating password, etc.)
+- the user reconnects the account or changes its settings (updating password, etc.)
 - the user explicitly says "Try Again" in the UI
 
+Mailsync retries a rejected login for a couple of minutes before exiting
+(LOGIN_REJECTED_RETRY_DELAYS), so authentication failures never reach 5 exits in
+5 minutes, and each one already represents several rejections.
 */
-class CrashTracker {
-  _timestamps = {};
-  _tooManyFailures = {};
+export class CrashTracker {
+  _timestamps: { [key: string]: number[] } = {};
+  _authFailureTimestamps: { [key: string]: number[] } = {};
+  _tooManyFailures: { [key: string]: boolean } = {};
 
-  forgetCrashes(fullAccountJSON: { id: string; settings: Record<string, unknown> }) {
+  forgetCrashes(fullAccountJSON: CrashTrackerAccount) {
     const key = this._keyFor(fullAccountJSON);
     delete this._timestamps[key];
+    delete this._authFailureTimestamps[key];
     delete this._tooManyFailures[key];
   }
 
-  recordClientCrash(
-    fullAccountJSON: { id: string; settings: Record<string, unknown> },
-    crash: MailsyncProcessExit
-  ) {
+  recordClientCrash(fullAccountJSON: CrashTrackerAccount, crash: MailsyncProcessExit) {
     console.log(`Sync worker exited.`, crash);
 
-    this._appendCrashToHistory(fullAccountJSON);
+    this._appendCrashToHistory(fullAccountJSON, isAuthFailureExit(crash));
 
     // We now let crashpad do this, because Sentry was losing it's mind.
   }
 
-  _keyFor({ id, settings }) {
-    return JSON.stringify({ id, settings });
+  _keyFor({ id, settings, authedAt }: CrashTrackerAccount) {
+    return JSON.stringify({ id, settings, authedAt });
   }
 
-  _appendCrashToHistory(fullAccountJSON: { id: string; settings: Record<string, unknown> }) {
+  _appendCrashToHistory(fullAccountJSON: CrashTrackerAccount, isAuthFailure: boolean) {
     const key = this._keyFor(fullAccountJSON);
+    const now = Date.now();
     this._timestamps[key] = this._timestamps[key] || [];
-    if (this._timestamps[key].unshift(Date.now()) > MAX_CRASH_HISTORY) {
+    if (this._timestamps[key].unshift(now) > MAX_CRASH_HISTORY) {
       this._timestamps[key].length = MAX_CRASH_HISTORY;
     }
+    if (isAuthFailure) {
+      this._authFailureTimestamps[key] = (this._authFailureTimestamps[key] || [])
+        .filter((at) => now - at < AUTH_FAILURE_WINDOW)
+        .concat([now]);
+    }
 
-    // has the client crashed more than 5 times in the last 5 minutes?
-    // If so, do not restart. We'll mark that the account is not syncing.
+    // has the client crashed more than 5 times in the last 5 minutes, or failed to
+    // authenticate twice in the last 30? If so, do not restart. We'll mark that the
+    // account is not syncing.
     if (
-      this._timestamps[key].length >= 5 &&
-      Date.now() - this._timestamps[key][4] < 5 * 60 * 1000
+      (this._timestamps[key].length >= 5 && now - this._timestamps[key][4] < 5 * 60 * 1000) ||
+      (this._authFailureTimestamps[key] || []).length >= 2
     ) {
       this._tooManyFailures[key] = true;
     }
   }
 
-  tooManyFailures(fullAccountJSON: { id: string; settings: Record<string, unknown> }) {
+  tooManyFailures(fullAccountJSON: CrashTrackerAccount) {
     const key = this._keyFor(fullAccountJSON);
     return this._tooManyFailures[key];
   }
@@ -380,15 +402,11 @@ export default class MailsyncBridge {
       }
       this._crashTracker.recordClientCrash(fullAccountJSON, { code, error, signal });
 
-      const isAuthFailure =
-        `${error}`.includes('Response Code: 401') || // mailspring services
-        `${error}`.includes('Response Code: 403') || // mailspring services
-        `${error}`.includes('invalid_grant') || // Google
-        `${error}`.includes('ErrorAuthentication'); // mailcore
-
       if (this._crashTracker.tooManyFailures(fullAccountJSON)) {
         Actions.updateAccount(account.id, {
-          syncState: isAuthFailure ? Account.SYNC_STATE_AUTH_FAILED : Account.SYNC_STATE_ERROR,
+          syncState: isAuthFailureExit({ error })
+            ? Account.SYNC_STATE_AUTH_FAILED
+            : Account.SYNC_STATE_ERROR,
           syncError: { code, error, signal },
         });
       } else {
