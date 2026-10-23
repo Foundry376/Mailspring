@@ -114,6 +114,7 @@ class CrashTracker {
 export default class MailsyncBridge {
   _crashTracker = new CrashTracker();
   _clients: { [accountId: string]: MailsyncProcess } = {};
+  _resettingAccountIds = new Set<string>();
   _lastWait: number;
 
   constructor() {
@@ -201,13 +202,14 @@ export default class MailsyncBridge {
   }, 100);
 
   // `account` arrives from the onboarding window, which may save it before this window's
-  // AccountStore has reloaded, so it is used as given rather than looked up.
+  // AccountStore has reloaded, so it is used as given rather than looked up. An account whose
+  // cache is being reset is skipped: the reset relaunches it with its saved settings when done.
   _onRestartAccountSync = async (account: Account) => {
+    const keys = await KeyManager._getKeyHash();
     const running = this._clients[account.id];
-    if (!running) {
+    if (!running || this._resettingAccountIds.has(account.id)) {
       return;
     }
-    const keys = await KeyManager._getKeyHash();
     this._launchClient(account, keys, { force: true });
     running.kill();
   };
@@ -286,6 +288,7 @@ export default class MailsyncBridge {
     resetClient.kill = () => {};
 
     this._clients[account.id] = resetClient;
+    this._resettingAccountIds.add(account.id);
 
     // kill the old client, ensureClients will be a no-op because the
     // client has already been replaced in our lookup table.
@@ -325,6 +328,7 @@ export default class MailsyncBridge {
       });
     } finally {
       delete this._clients[account.id];
+      this._resettingAccountIds.delete(account.id);
       process.nextTick(() => {
         this.ensureClients();
       });
