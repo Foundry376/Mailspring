@@ -6,7 +6,12 @@ import Rx from 'rx-lite';
 import { TimeGridView } from '../internal_packages/main-calendar/lib/core/time-grid-view';
 import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
 import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
-import { calendarDateFromUnix, calendarDaysBetween } from '../src/calendar-date';
+import {
+  calendarDateFromUnix,
+  calendarDaysBetween,
+  formatCalendarDate,
+} from '../src/calendar-date';
+import FocusedMomentStore from '../internal_packages/main-calendar/lib/core/focused-moment-store';
 import {
   allDayOccurrence,
   calendarViewProps,
@@ -87,6 +92,21 @@ describe('TimeGridView scrolling', function () {
     render(moment([2026, 9, 21]));
     expect(firstInView()).toBe('Sun18');
     expect(title()).toBe('October 2026');
+  });
+
+  it('tells the mini month which days are in view as it scrolls, and nothing once it closes', function () {
+    const visibleRange = () => {
+      const range = FocusedMomentStore.visibleRange();
+      return range && [formatCalendarDate(range.first), range.days];
+    };
+    render(moment([2026, 9, 21]));
+    expect(visibleRange()).toEqual(['2026-10-18', 7]);
+
+    scrollDays(3);
+    expect(visibleRange()).toEqual(['2026-10-21', 7]);
+
+    ReactDOM.unmountComponentAtNode(host);
+    expect(visibleRange()).toBe(null);
   });
 
   it('titles a week split across months with the month holding more of the days in view', function () {

@@ -130,8 +130,12 @@ body.platform-win32 {
       &.today {
         color: @accent-primary;
       }
+      // The band for the days on view marks the date here, not a single filled day.
       &.cur-day {
         opacity: 1;
+      }
+      &.cur-day:not(:hover) {
+        background: transparent;
       }
     }
   }

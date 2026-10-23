@@ -1,7 +1,7 @@
 import React from 'react';
 import moment, { Moment } from 'moment';
 import classnames from 'classnames';
-import { calendarDateFromUnix, dayStartUnix, onDayChange } from '../calendar-date';
+import { CalendarDate, calendarDateFromUnix, dayStartUnix, onDayChange } from '../calendar-date';
 import { localized } from '../intl';
 
 const VISIBLE_WEEKS = 6;
@@ -11,9 +11,17 @@ const CHEVRONS = {
   vertical: { width: 10, height: 6, previous: 'M1 5l4-4 4 4', next: 'M1 1l4 4 4-4' },
 };
 
+/** A run of `days` days from `first`. */
+export interface VisibleRange {
+  first: CalendarDate;
+  days: number;
+}
+
 interface MiniMonthViewProps {
   value: Moment;
   onChange: (moment: Moment) => void;
+  /** Days to shade, such as those the calendar is showing. */
+  visibleRange?: VisibleRange | null;
   /** Which way the month arrows point. Either way, they page a month at a time. */
   arrows?: 'horizontal' | 'vertical';
 }
@@ -140,8 +148,28 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
     }
     return (
       <div className="week" key={weekIndex}>
+        {this._renderVisibleRange(weekStart)}
         {dayEls}
       </div>
+    );
+  }
+
+  // One band per row, drawn behind the days so it reads evenly across dimmed ones.
+  _renderVisibleRange(weekStart: Moment) {
+    const range = this.props.visibleRange;
+    if (!range) return null;
+    const rowStart = calendarDateFromUnix(weekStart.unix());
+    const start = Math.max(range.first, rowStart);
+    const end = Math.min(range.first + range.days, rowStart + 7);
+    if (end <= start) return null;
+    return (
+      <div
+        className="visible-range"
+        style={{
+          left: `${((start - rowStart) * 100) / 7}%`,
+          width: `${((end - start) * 100) / 7}%`,
+        }}
+      />
     );
   }
 

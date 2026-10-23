@@ -126,6 +126,32 @@ describe('MiniMonthView header', () => {
     expect(view.state.today.isSame(moment(), 'day')).toBe(true);
   });
 
+  it('shades a visible range with one band per row, and nothing without one', () => {
+    const bands = () =>
+      Array.from(host.querySelectorAll<HTMLElement>('.visible-range')).map((band) => {
+        const days = Array.from(band.parentElement.querySelectorAll('.day')).map(
+          (d) => d.textContent
+        );
+        const from = Math.round((parseFloat(band.style.left) / 100) * 7);
+        const count = Math.round((parseFloat(band.style.width) / 100) * 7);
+        return days.slice(from, from + count).join(' ');
+      });
+    const first = CalendarDates.calendarDateFromParts(2026, 10, 22);
+    ReactDOM.render(
+      <MiniMonthView
+        value={moment([2026, 9, 16])}
+        visibleRange={{ first, days: 7 }}
+        onChange={() => {}}
+      />,
+      host
+    );
+    // Thu Oct 22 to Wed Oct 28 crosses from one week's row into the next.
+    expect(bands()).toEqual(['22 23 24', '25 26 27 28']);
+
+    ReactDOM.render(<MiniMonthView value={moment([2026, 9, 16])} onChange={() => {}} />, host);
+    expect(bands()).toEqual([]);
+  });
+
   it('shortens the month name while the full title would not fit, as it resizes or pages', () => {
     ReactDOM.render(<MiniMonthView value={moment([2026, 8, 16])} onChange={() => {}} />, host);
     const titleEl = host.querySelector('.month-title');
