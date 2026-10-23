@@ -37,7 +37,12 @@ describe('TaskFactory', function taskFactory() {
     this.threads = [
       new Thread({ id: 't1', accountId: 'ac-1' }),
       new Thread({ id: 't2', accountId: 'ac-2' }),
-      new Thread({ id: 't3', accountId: 'ac-3' }),
+      new Thread({
+        id: 't3',
+        accountId: 'ac-3',
+        labels: [this.categories['ac-3'].inbox],
+      } as any),
+      new Thread({ id: 't4', accountId: 'ac-3', labels: [] } as any),
     ];
 
     const byRole = (role) => (accountId) => this.categories[accountId][role];
@@ -118,13 +123,24 @@ describe('TaskFactory', function taskFactory() {
     });
 
     it('labels the threads Trash when the trash role belongs to a Gmail label', () => {
-      const [task] = TaskFactory.tasksForMovingToTrash({
-        threads: [this.threads[2]],
+      const tasks = TaskFactory.tasksForMovingToTrash({
+        threads: this.threads.slice(2),
         source: 'Toolbar Button: Thread List',
       });
-      expect(task instanceof ChangeLabelsTask).toBe(true);
-      expect(task.labelsToAdd.map((l) => l.id)).toEqual(['h-trash']);
-      expect(task.labelsToRemove.map((l) => l.id)).toEqual(['h-inbox']);
+      expect(tasks.every((t) => t instanceof ChangeLabelsTask)).toBe(true);
+      expect(tasks.map((t) => t.labelsToAdd.map((l) => l.id))).toEqual([['h-trash'], ['h-trash']]);
+      expect(tasks.map((t) => t.threadIds)).toEqual([['t3'], ['t4']]);
+      expect(tasks.map((t) => t.labelsToRemove.map((l) => l.id))).toEqual([['h-inbox'], []]);
+    });
+
+    it('does not put threads outside the Inbox into it on undo', () => {
+      const [task] = TaskFactory.tasksForMovingToTrash({
+        threads: [this.threads[3]],
+        source: 'Toolbar Button: Thread List',
+      });
+      const undo = task.createUndoTask() as ChangeLabelsTask;
+      expect(undo.labelsToAdd).toEqual([]);
+      expect(undo.labelsToRemove.map((l) => l.id)).toEqual(['h-trash']);
     });
   });
 

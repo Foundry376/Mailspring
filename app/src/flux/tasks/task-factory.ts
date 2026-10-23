@@ -8,6 +8,36 @@ import { Label } from '../models/label';
 import { Folder } from '../models/folder';
 import { Task } from '../tasks/task';
 
+// Gmail accounts that hide [Gmail]/Trash or [Gmail]/Spam from IMAP get those roles on a label
+// matched by name, such as "Trash" or "Junk" (MAILSPRING-CLIENT-AH, -61). Inbox is removed in
+// a separate task from the threads that have it, because undo swaps the added and removed
+// labels and would otherwise put every thread into the Inbox.
+function tasksForApplyingRoleLabel(
+  label: Label,
+  threads: Thread[],
+  accountId: string,
+  source: string
+) {
+  const inbox = CategoryStore.getInboxCategory(accountId);
+  const inInbox = (t: Thread) =>
+    inbox instanceof Label && (t.labels || []).some((l) => l.id === inbox.id);
+  const groups = [
+    { threads: threads.filter(inInbox), labelsToRemove: [inbox] },
+    { threads: threads.filter((t) => !inInbox(t)), labelsToRemove: [] },
+  ];
+  return groups
+    .filter((g) => g.threads.length > 0)
+    .map(
+      (g) =>
+        new ChangeLabelsTask({
+          labelsToAdd: [label],
+          labelsToRemove: g.labelsToRemove,
+          threads: g.threads,
+          source,
+        })
+    );
+}
+
 export const TaskFactory = {
   tasksForThreadsByAccountId(
     threads: Thread[],
@@ -43,13 +73,7 @@ export const TaskFactory = {
       if (!spam) return null;
 
       if (spam instanceof Label) {
-        const inbox = CategoryStore.getInboxCategory(accountId);
-        return new ChangeLabelsTask({
-          labelsToAdd: [spam],
-          labelsToRemove: inbox instanceof Label ? [inbox] : [],
-          threads: accountThreads,
-          source,
-        });
+        return tasksForApplyingRoleLabel(spam, accountThreads, accountId, source);
       }
 
       return new ChangeFolderTask({ folder: spam, source, threads: accountThreads });
@@ -112,13 +136,7 @@ export const TaskFactory = {
       if (!trash) return null;
 
       if (trash instanceof Label) {
-        const inbox = CategoryStore.getInboxCategory(accountId);
-        return new ChangeLabelsTask({
-          labelsToAdd: [trash],
-          labelsToRemove: inbox instanceof Label ? [inbox] : [],
-          threads: accountThreads,
-          source,
-        });
+        return tasksForApplyingRoleLabel(trash, accountThreads, accountId, source);
       }
 
       return new ChangeFolderTask({ folder: trash, threads: accountThreads, source });
