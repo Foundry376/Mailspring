@@ -59,6 +59,7 @@ export * from '../components/lazy-rendered-list';
 export * from '../components/attachment-items';
 export const CodeSnippet: typeof import('../components/code-snippet').default;
 export const CopyButton: typeof import('../components/copy-button').default;
+export const NewItemButton: typeof import('../components/new-item-button').default;
 
 export * from '../components/composer-editor/composer-editor';
 export * from '../components/composer-editor/composer-editor-plaintext';

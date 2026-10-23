@@ -23,6 +23,18 @@ export default class AccountSettingsPageO365 extends React.Component<
   static displayName = 'AccountSettingsPageO365';
 
   _authUrl = buildO365AuthURL();
+  _withGraphSend = true;
+
+  // Organizations that require admin approval for new permissions decline the Graph mail
+  // scopes; the account can still be added with the permissions approved before, sending over SMTP.
+  _graphSendFallback = {
+    label: localized('Sign in without Microsoft 365 sending'),
+    onSelect: () => {
+      this._withGraphSend = false;
+      this._authUrl = buildO365AuthURL({ withGraphSend: false });
+      this.forceUpdate();
+    },
+  };
 
   state: AccountSettingsPageO365State = {
     sharedMailbox: '',
@@ -160,10 +172,15 @@ export default class AccountSettingsPageO365 extends React.Component<
     return (
       <OAuthSignInPage
         serviceName="Office 365"
+        key={this._authUrl}
         providerAuthPageUrl={this._authUrl}
+        fallback={this._withGraphSend ? this._graphSendFallback : undefined}
         providerConfig={providerConfig}
         buildAccountFromAuthResponse={(code) =>
-          buildO365AccountFromAuthResponse(code, sharedMailbox || undefined)
+          buildO365AccountFromAuthResponse(code, {
+            sharedMailboxAddress: sharedMailbox || undefined,
+            withGraphSend: this._withGraphSend,
+          })
         }
         onSuccess={this.onSuccess}
         onTryAgain={goBack}

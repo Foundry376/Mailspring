@@ -121,6 +121,7 @@ lazyLoadFrom('AttachmentItem', 'attachment-items');
 lazyLoadFrom('ImageAttachmentItem', 'attachment-items');
 lazyLoad('CodeSnippet', 'code-snippet');
 lazyLoad('CopyButton', 'copy-button');
+lazyLoad('NewItemButton', 'new-item-button');
 
 lazyLoad('ComposerEditor', 'composer-editor/composer-editor');
 lazyLoad('ComposerEditorPlaintext', 'composer-editor/composer-editor-plaintext');

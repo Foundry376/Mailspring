@@ -5,6 +5,7 @@ import React from 'react';
 
 import { calcColor } from './calendar-helpers';
 import { Calendar, Account } from 'mailspring-exports';
+import { OutlineView } from 'mailspring-component-kit';
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
@@ -49,20 +50,40 @@ interface CalendarSourceListProps {
   disabledCalendars: string[];
 }
 export function CalendarSourceList(props: CalendarSourceListProps) {
+  // Kept apart from mail's sidebarKeysCollapsed, so hiding an account's folders leaves its calendars.
+  const [collapsedAccounts, setCollapsedAccounts] = React.useState<{
+    [accountId: string]: boolean;
+  }>(() => AppEnv.savedState.calendarAccountsCollapsed || {});
+  const onCollapseToggled = (accountId: string) => {
+    const next = { ...collapsedAccounts, [accountId]: !collapsedAccounts[accountId] };
+    AppEnv.savedState.calendarAccountsCollapsed = next;
+    setCollapsedAccounts(next);
+  };
+
   const calsByAccountId = _.groupBy(props.calendars, 'accountId');
-  const accountSections = [];
+  const accountSections: { account: Account; calendars: Calendar[] }[] = [];
   for (const accountId of Object.keys(calsByAccountId)) {
     const calendars = calsByAccountId[accountId];
     const account = props.accounts.find((a) => a.id === accountId);
-    if (!account || !calendars || calendars.length === 0) {
+    if (!account) {
       continue;
     }
-    accountSections.push(
-      <div key={accountId} className="account-calendars-wrap">
-        <div className="account-label">{account.label}</div>
-        {renderCalendarToggles(calendars, props.disabledCalendars)}
-      </div>
-    );
+    accountSections.push({ account, calendars });
   }
-  return <div className="calendar-source-list-wrap">{accountSections}</div>;
+
+  const collapsible = accountSections.length > 1;
+  return (
+    <div className="calendar-source-list-wrap">
+      {accountSections.map(({ account, calendars }) => (
+        <OutlineView
+          key={account.id}
+          title={account.label}
+          collapsed={collapsible && !!collapsedAccounts[account.id]}
+          onCollapseToggled={collapsible ? () => onCollapseToggled(account.id) : undefined}
+        >
+          {renderCalendarToggles(calendars, props.disabledCalendars)}
+        </OutlineView>
+      ))}
+    </div>
+  );
 }

@@ -58,6 +58,8 @@ export default class OpenTrackingComposerExtension extends ComposerExtension {
     };
     if (recipient) {
       tokenParams.recipient = recipient.email;
+    } else {
+      metadata.shared_body = true;
     }
 
     const token = encodeOpenTrackingToken(tokenParams);
