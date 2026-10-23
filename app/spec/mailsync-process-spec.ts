@@ -50,6 +50,14 @@ describe('lastLoggedException', function () {
     expect(result).not.toContain('ErrorAuthentication');
   });
 
+  it('finds the last exception in output written with Windows line endings', function () {
+    const stderr = (block('{"key":"ErrorAuthentication"}') + block('SIGSEGV')).replace(
+      /\n/g,
+      '\r\n'
+    );
+    expect(lastLoggedException(stderr)).not.toContain('ErrorAuthentication');
+  });
+
   it('returns output with no logged exception unchanged', function () {
     expect(lastLoggedException('dyld: Library not loaded\n')).toBe('dyld: Library not loaded\n');
   });

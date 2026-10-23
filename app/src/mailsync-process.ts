@@ -114,7 +114,8 @@ export function lastJSONResponse(stdout: string): any | null {
   return null;
 }
 
-const EXCEPTION_HEADER = '***\n*** Mailspring Sync';
+// Matched without the line before it: on Windows mailsync's stderr is in text mode, so \n arrives as \r\n.
+const EXCEPTION_HEADER = '*** Mailspring Sync';
 
 /*
 Drops everything before the last exception mailsync logged to stderr.
