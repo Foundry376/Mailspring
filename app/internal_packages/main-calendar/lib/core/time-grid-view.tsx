@@ -262,12 +262,17 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
   _renderEventGridLabels(currentTimeY: number | null) {
     const labels = [];
     for (const { time, y } of tickGenerator(this.state.intervalHeight)) {
-      if (currentTimeY !== null && Math.abs(y - currentTimeY) < CURRENT_TIME_LABEL_CLEARANCE) {
+      // Centred on its line, except midnight's, which sits below the top edge.
+      const top = y === 0 ? y : y - 8;
+      if (
+        currentTimeY !== null &&
+        Math.abs(top + 8 - currentTimeY) < CURRENT_TIME_LABEL_CLEARANCE
+      ) {
         labels.push(null);
         continue;
       }
       labels.push(
-        <span className="legend-text" key={y} style={{ top: y === 0 ? y : y - 8 }}>
+        <span className="legend-text" key={y} style={{ top }}>
           {formatShortTime(time.unix())}
         </span>
       );
