@@ -126,6 +126,15 @@ export const queueTasks = create('queueTasks', ActionScopeMainWindow);
 export const cancelTask = create('cancelTask', ActionScopeMainWindow);
 
 /*
+  Public: Restart an {Account}'s sync process with its current settings, which the process
+  reads only at launch. Fired when onboarding reconnects an account; an account without a
+  running process is launched by `ensureClients` instead.
+
+  *Scope: Main Window*
+  */
+export const restartAccountSync = create('restartAccountSync', ActionScopeMainWindow);
+
+/*
   Public: Queue a task that does not require processing, placing it on the undo stack only.
   *Scope: Main Window*
   */

@@ -1,5 +1,47 @@
 # Mailspring Changelog
 
+## 1.26.2 (10/22/2026)
+
+Bug Fixes:
+
+- Fixed emails that declare a dark color scheme turning the message background black. (#2988)
+- Fixed the Back and Close buttons in account setup not responding to clicks.
+- The MCP server's `reply_to_thread` tool now loads the message body before quoting it.
+- On macOS, fixed the Darkside theme's window controls sticking to the top of the window. (#2984) Thanks @AlexandreAgrn!
+- Fixed calendar and contacts sync leaving a network connection open after every request, which piled up hundreds of open sockets per account over time. Thanks @Alintya!
+
+## 1.26.1 (10/21/2026)
+
+This is a security patch release. Eight eMudhra intermediate certificates had their private keys compromised, so an attacker holding one could impersonate any mail server or website. (https://emudhra.we-have-a-problem.com/) Operating system vendors have blocked them, and Mailspring now relies on your operating system's trust decisions everywhere it makes a secure connection.
+
+Security:
+
+- Updated Electron to 44.9.1 to block the compromised eMudhra intermediate certificates.
+- On macOS, calendar, contacts, sign-in and Mailspring account requests now check server certificates with the macOS trust store, so certificates Apple has revoked or blocked are rejected.
+- On Windows, mail server certificates are now checked with the Windows certificate store, including certificates Microsoft has blocked or the issuer has revoked, and the certificate must match the server's hostname.
+- "Allow insecure SSL" no longer turns off certificate validation. It still allows older encryption settings. If your mail server uses a self-signed certificate or one from a private certificate authority, add it to your operating system's trust store (Keychain Access on macOS, the Windows certificate store, or your distribution's CA certificates on Linux).
+- Passwords and OAuth tokens are no longer written to the sync engine's connection logs.
+- On Linux, tray icons are converted with ImageMagick without going through a shell. (#2934)
+
+Bug Fixes:
+
+- Contact names and email addresses mangled by earlier versions are repaired from message headers and vCards on upgrade.
+- Fixed changes to Google contact group membership not being saved locally.
+
+- Fixed Mailspring failing to start when the interface language is set to Luxembourgish. (#2954) Thanks @brhellman!
+- Fixed a composer crash when a list item has no list around it. (#2813)
+- Sending a draft now retries the draft lookup once before reporting "draft not found". (#2848)
+- On Wayland, Mailspring now restores the saved window size. (#2961) Thanks @shanelord01!
+- An empty key list in `keymap.json` now unbinds a command. (#2950) Thanks @brhellman!
+
+Localization:
+
+- Updated German translations. (#2976) Thanks @Alintya!
+
+Developer:
+
+- Account-test errors from the sync engine are now reported to Sentry as separate issues. (#2843)
+
 ## 1.26.0 (10/1/2026)
 
 This is a major sync reliability release - The sync engine now tracks every folder a message lives in, rather than forcing each message into a single folder. This permanently fixes mail "flickering" between folders or disappearing from the Inbox when the same message exists in two places — a long-standing issue for iCloud users, self-addressed mail that lands in both Inbox and Sent, Exchange's duplicate Sent copies, and ProtonMail labels. (#2891) This refactor was enabled by a huge new suite of automated mailsync tests that run against real Dovecot, Cyrus in Docker and fake problematic IMAP servers.
