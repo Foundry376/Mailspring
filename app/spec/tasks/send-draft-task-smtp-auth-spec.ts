@@ -42,9 +42,14 @@ describe('SendDraftTask smtp-auth-disabled errors', function () {
     expect(message).not.toContain('Reconnect');
   });
 
-  it('tells a password-based IMAP/SMTP account that an administrator must enable SMTP AUTH', function () {
+  it('tells a password-based IMAP/SMTP account to add itself again with Microsoft sign-in', function () {
     const message = failWith({ smtp_username: 'team@contoso.com' }, 'imap');
+    expect(message).toContain('add it again by choosing Outlook.com or Office 365');
+    expect(message).not.toContain('administrator');
+  });
+
+  it('tells a shared mailbox added over IMAP/SMTP that an administrator must enable SMTP AUTH', function () {
+    const message = failWith({ smtp_username: 'owner@contoso.com' }, 'imap');
     expect(message).toContain('An administrator must enable SMTP AUTH');
-    expect(message).not.toContain('Reconnect');
   });
 });
