@@ -16,10 +16,10 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Fail if branch is not main
-        if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master'
+      - name: Fail if branch is not master or release/*
+        if: github.event_name == 'workflow_dispatch' && github.ref != 'refs/heads/master' && !startsWith(github.ref, 'refs/heads/release/')
         run: |
-          echo "This workflow should not be triggered with workflow_dispatch on a branch other than main"
+          echo "This workflow should not be triggered with workflow_dispatch on a branch other than master or release/*"
           exit 1
 
       - name: Checkout Repo

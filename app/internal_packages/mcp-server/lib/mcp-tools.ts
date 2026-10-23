@@ -1042,9 +1042,9 @@ export function registerTools(server: McpServer) {
       const thread = await DatabaseStore.find<Thread>(Thread, threadId);
       if (!thread || !isThreadAllowed(thread)) return errorResult(`Thread '${threadId}' not found`);
 
-      const messages = await DatabaseStore.findAll<Message>(Message, { threadId }).order(
-        Message.attributes.date.descending()
-      );
+      const messages = await DatabaseStore.findAll<Message>(Message, { threadId })
+        .include(Message.attributes.body)
+        .order(Message.attributes.date.descending());
       const message = messages.find((m) => !m.isHidden());
       if (!message) return errorResult('No visible message found in thread');
 

@@ -114,6 +114,21 @@ export function lastJSONResponse(stdout: string): any | null {
   return null;
 }
 
+// Matched without the line before it: on Windows mailsync's stderr is in text mode, so \n arrives as \r\n.
+const EXCEPTION_HEADER = '*** Mailspring Sync';
+
+/*
+Drops everything before the last exception mailsync logged to stderr.
+
+mailsync logs every exception it catches to stderr, including ones it recovers from (a
+network error, or a login rejection it retries), so the whole buffer can name an error
+that is not the one it exited on. The bridge classifies the exit from this text.
+*/
+export function lastLoggedException(stderr: string): string {
+  const start = stderr.lastIndexOf(EXCEPTION_HEADER);
+  return start > 0 ? stderr.slice(start) : stderr;
+}
+
 export class MailsyncProcess extends EventEmitter {
   _proc: ChildProcess = null;
   _win = null;
@@ -405,7 +420,7 @@ export class MailsyncProcess extends EventEmitter {
     if (this._proc.stderr) {
       this._proc.stderr.on('data', (data) => {
         try {
-          errBuffer += data.toString();
+          errBuffer = lastLoggedException(errBuffer + data.toString());
           // Trim to last 100KB if the buffer grows too large to avoid OOM
           if (errBuffer.length > 100 * 1024) {
             errBuffer = errBuffer.slice(-100 * 1024);

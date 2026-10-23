@@ -43,7 +43,7 @@ node --experimental-websocket scripts/eval.mjs "<js>" [out.png] [clickX clickY]
 
 Useful snippets inside the JS:
 
-- Navigate to a sheet: `$m.Actions.focusMailboxPerspective(new (require('../internal_packages/activity/lib/activity-mailbox-perspective').default)($m.FocusedPerspectiveStore.sidebarAccountIds()))`
+- Navigate to a section: `$m.Actions.selectRootSheet($m.WorkspaceStore.Sheet.Activity)` (or `.Calendar`); `$m.FocusedPerspectiveStore.showMail()` returns to Mail
 - Pick from a `DropdownMenu`: click `.dropdown-menu > div`, wait 300ms, then find the
   item by text under `.menu div` and dispatch `mousedown` **and** `click` on it.
 - Drive a controlled `<input>`: set the value through
