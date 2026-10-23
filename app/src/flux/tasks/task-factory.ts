@@ -3,10 +3,46 @@ import { ChangeLabelsTask } from './change-labels-task';
 import { ChangeUnreadTask } from './change-unread-task';
 import { ChangeStarredTask } from './change-starred-task';
 import CategoryStore from '../stores/category-store';
+import { AccountStore } from '../stores/account-store';
 import { Thread } from '../models/thread';
 import { Label } from '../models/label';
 import { Folder } from '../models/folder';
 import { Task } from '../tasks/task';
+import { localized } from '../../intl';
+
+// Gmail accounts that hide [Gmail]/Trash or [Gmail]/Spam from IMAP have no folder for the
+// role, but may carry it on a label matched by name, such as "Trash" or "Junk"
+// (MAILSPRING-CLIENT-AH, -61). Labelling mail is not moving it to Trash, so the action is
+// refused with an explanation instead.
+function removalFolder(accountId: string, role: 'trash' | 'spam') {
+  const category =
+    role === 'trash'
+      ? CategoryStore.getTrashCategory(accountId)
+      : CategoryStore.getSpamCategory(accountId);
+  if (!category || category instanceof Folder) {
+    return category;
+  }
+  const account = AccountStore.accountForId(accountId);
+  const email = account ? account.emailAddress : accountId;
+  AppEnv.showErrorDialog(
+    role === 'trash'
+      ? {
+          title: localized('Trash folder not found'),
+          message: localized(
+            `Mailspring could not find the Trash folder for %@. In Gmail's settings, open the Labels tab and check "Show in IMAP" for Trash.`,
+            email
+          ),
+        }
+      : {
+          title: localized('Spam folder not found'),
+          message: localized(
+            `Mailspring could not find the Spam folder for %@. In Gmail's settings, open the Labels tab and check "Show in IMAP" for Spam.`,
+            email
+          ),
+        }
+  );
+  return null;
+}
 
 export const TaskFactory = {
   tasksForThreadsByAccountId(
@@ -39,7 +75,7 @@ export const TaskFactory = {
 
   tasksForMarkingAsSpam({ threads, source }: { threads: Thread[]; source: string }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
-      const folder = CategoryStore.getSpamCategory(accountId);
+      const folder = removalFolder(accountId, 'spam');
       if (!folder) return null;
       return new ChangeFolderTask({ folder, source, threads: accountThreads });
     });
@@ -97,7 +133,7 @@ export const TaskFactory = {
 
   tasksForMovingToTrash({ threads, source }: { threads: Thread[]; source: string }) {
     return this.tasksForThreadsByAccountId(threads, (accountThreads, accountId) => {
-      const trash = CategoryStore.getTrashCategory(accountId) as any;
+      const trash = removalFolder(accountId, 'trash');
       if (!trash) return null;
       return new ChangeFolderTask({ folder: trash, threads: accountThreads, source });
     });
