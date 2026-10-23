@@ -48,6 +48,31 @@ describe('AccountErrorNotif', function AccountErrorNotifTests() {
     });
   });
 
+  describe('when an account stopped on a certificate it could not verify', () => {
+    beforeEach(() => {
+      spyOn(AccountStore, 'accounts').andReturn([
+        new Account({
+          id: 'A',
+          syncState: Account.SYNC_STATE_AUTH_FAILED,
+          syncError: {
+            code: null,
+            signal: 'SIGABRT',
+            error: { message: '{"key":"ErrorCertificate"}' },
+          },
+          emailAddress: 'me@proton.me',
+        } as any),
+      ]);
+    });
+
+    it('says the server could not be verified and offers to reconnect', () => {
+      const { container } = render(<AccountErrorNotification />);
+      expect(container.querySelector('.title').textContent).toContain(
+        'Cannot verify the server for me@proton.me'
+      );
+      expect(container.querySelector('#action-1').textContent).toEqual('Reconnect');
+    });
+  });
+
   describe('when more than one account is in the `invalid` state', () => {
     beforeEach(() => {
       spyOn(AccountStore, 'accounts').andReturn([

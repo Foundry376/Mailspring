@@ -24,6 +24,20 @@ interface AccountCertificatePageState {
   errorLog?: string;
 }
 
+// Lets a long fingerprint wrap between bytes without changing the text that is copied.
+function breakableFingerprint(fingerprint: string) {
+  return fingerprint.split(':').map((byte, i) => (
+    <React.Fragment key={i}>
+      {i > 0 && (
+        <>
+          :<wbr />
+        </>
+      )}
+      {byte}
+    </React.Fragment>
+  ));
+}
+
 const ServiceLabels = {
   imap: () => localized('Incoming Mail') + ' (IMAP)',
   smtp: () => localized('Outgoing Mail') + ' (SMTP)',
@@ -68,6 +82,11 @@ export default class AccountCertificatePage extends React.Component<
 
   _renderCertificate(services: RejectedCertificate[], description: CertificateDescription) {
     const { sha256 } = services[0];
+    const { settings } = this.props.account;
+    const replacesAccepted = services.some((s) => {
+      const accepted = settings[`${s.service}_certificate_sha256`];
+      return accepted && accepted.toLowerCase() !== sha256.toLowerCase();
+    });
     return (
       <div className="certificate" key={sha256 + services[0].host}>
         <div className="certificate-servers">
@@ -80,6 +99,11 @@ export default class AccountCertificatePage extends React.Component<
         {description ? (
           <>
             <ul className="certificate-problems">
+              {replacesAccepted && (
+                <li>
+                  {localized('It is not the certificate you accepted for this server before.')}
+                </li>
+              )}
               {description.problems.map((problem) => (
                 <li key={problem}>{problem}</li>
               ))}
@@ -97,7 +121,7 @@ export default class AccountCertificatePage extends React.Component<
                 {description.validTo.toLocaleDateString()}
               </dd>
               <dt>SHA-256</dt>
-              <dd className="fingerprint">{description.fingerprint}</dd>
+              <dd className="fingerprint">{breakableFingerprint(description.fingerprint)}</dd>
             </dl>
           </>
         ) : (

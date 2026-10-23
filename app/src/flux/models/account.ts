@@ -248,6 +248,11 @@ export class Account extends ModelWithMetadata {
     return CategoryStore.getArchiveCategory(this);
   }
 
+  // The server presented a certificate that is untrusted, or not the one the user accepted.
+  hasCertificateSyncError() {
+    return JSON.stringify(this.syncError || {}).includes('ErrorCertificate');
+  }
+
   hasSyncStateError() {
     return this.syncState !== Account.SYNC_STATE_OK;
   }

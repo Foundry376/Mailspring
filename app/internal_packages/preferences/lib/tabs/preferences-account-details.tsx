@@ -269,10 +269,15 @@ class PreferencesAccountDetails extends Component<
     switch (account.syncState) {
       case Account.SYNC_STATE_AUTH_FAILED:
         return this._renderErrorDetail(
-          localized(
-            `Mailspring can no longer authenticate with %@. The password or authentication may have changed.`,
-            account.emailAddress
-          ),
+          account.hasCertificateSyncError()
+            ? localized(
+                `Mailspring can't verify the server for %@. Its certificate is not trusted, or has changed since you accepted it. Reconnect to review it.`,
+                account.emailAddress
+              )
+            : localized(
+                `Mailspring can no longer authenticate with %@. The password or authentication may have changed.`,
+                account.emailAddress
+              ),
           [
             { text: localized('Reconnect'), action: this._onReconnect },
             { text: localized('Error Details...'), action: this._onShowErrorDetails },

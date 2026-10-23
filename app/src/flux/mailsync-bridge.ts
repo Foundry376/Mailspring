@@ -58,7 +58,10 @@ export function isAuthFailureExit({ error }: Pick<MailsyncProcessExit, 'error'>)
     `${error}`.includes('Response Code: 401') || // mailspring services
     `${error}`.includes('Response Code: 403') || // mailspring services
     `${error}`.includes('invalid_grant') || // Google
-    `${error}`.includes('ErrorAuthentication') // mailcore
+    `${error}`.includes('ErrorAuthentication') || // mailcore
+    // The server's certificate is untrusted or changed since the user accepted it. Like a bad
+    // password, retrying can't fix it: reconnecting shows the certificate for review.
+    `${error}`.includes('ErrorCertificate')
   );
 }
 

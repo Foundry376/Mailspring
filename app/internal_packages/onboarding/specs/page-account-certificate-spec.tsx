@@ -48,7 +48,24 @@ describe('AccountCertificatePage', function accountCertificatePageTests() {
     expect(html).toContain('127.0.0.1:1143');
     expect(html).toContain('127.0.0.1:1025');
     expect(html).toContain('It is self-signed');
-    expect(html).toContain('37:5B:27:4A');
+    expect(html.replace(/<wbr\/>/g, '')).toContain('37:5B:27:4A');
+  });
+
+  it('says when a certificate replaces the one accepted before', () => {
+    const account = bridgeAccount();
+    account.settings.imap_certificate_sha256 = 'ff'.repeat(32);
+    const html = ReactDOMServer.renderToStaticMarkup(
+      <AccountCertificatePage account={account} rejectedCertificates={bridgeCertificates} />
+    );
+    expect(html).toContain('It is not the certificate you accepted for this server before.');
+    expect(
+      ReactDOMServer.renderToStaticMarkup(
+        <AccountCertificatePage
+          account={bridgeAccount()}
+          rejectedCertificates={bridgeCertificates}
+        />
+      )
+    ).not.toContain('accepted for this server before');
   });
 
   it('connects with both fingerprints when the user accepts', async () => {
