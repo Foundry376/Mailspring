@@ -11,7 +11,7 @@ import {
 import { CalendarDate, CalendarDateUtils } from 'mailspring-exports';
 import CalendarHeaderStore from './calendar-header-store';
 import { EventOccurrence, EventRangeSubscription, isTimed } from './calendar-data-source';
-import { centerGridScroll, dateOf, momentOf } from './calendar-helpers';
+import { centerGridScroll, dateOf, formatShortTime, momentOf } from './calendar-helpers';
 import { EventGridBackground } from './event-grid-background';
 import { WeekViewEventColumn } from './week-view-event-column';
 import { WeekViewAllDayEvents } from './week-view-all-day-events';
@@ -255,7 +255,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     for (const { time, y } of tickGenerator('major', this.state.intervalHeight)) {
       labels.push(
         <span className="legend-text" key={y} style={{ top: y === 0 ? y : y - 8 }}>
-          {time.format('LT')}
+          {formatShortTime(time.unix())}
         </span>
       );
     }

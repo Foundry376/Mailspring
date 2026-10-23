@@ -578,16 +578,18 @@ body.platform-win32 {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-width: 24px;
+      width: 24px;
       height: 24px;
-      box-sizing: border-box;
-      padding: 0 6px;
       font-size: 12px;
       color: @text-color-subtle;
       cursor: pointer;
-      border-radius: 12px;
+      border-radius: 50%;
 
       &.is-month-start {
+        width: auto;
+        min-width: 24px;
+        padding: 0 6px;
+        border-radius: 12px;
         font-weight: @font-weight-semi-bold;
       }
 
