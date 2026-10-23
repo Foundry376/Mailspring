@@ -263,26 +263,36 @@ class PreferencesAccountDetails extends Component<
     );
   }
 
+  _authFailureMessage(account: Account) {
+    if (!account.hasCertificateSyncError()) {
+      return localized(
+        `Mailspring can no longer authenticate with %@. The password or authentication may have changed.`,
+        account.emailAddress
+      );
+    }
+    // Gmail and Microsoft servers always present a trusted certificate, so there is nothing for
+    // the user to review and accept: something on the network is intercepting the connection.
+    if (account.usesOAuth()) {
+      return localized(
+        `Mailspring can't verify the server for %@. Its certificate is not trusted, which can happen when antivirus or network software intercepts secure connections.`,
+        account.emailAddress
+      );
+    }
+    return localized(
+      `Mailspring can't verify the server for %@. Its certificate is not trusted, or has changed since you accepted it. Reconnect to review it.`,
+      account.emailAddress
+    );
+  }
+
   _renderSyncErrorDetails() {
     const { account } = this.state;
 
     switch (account.syncState) {
       case Account.SYNC_STATE_AUTH_FAILED:
-        return this._renderErrorDetail(
-          account.hasCertificateSyncError()
-            ? localized(
-                `Mailspring can't verify the server for %@. Its certificate is not trusted, or has changed since you accepted it. Reconnect to review it.`,
-                account.emailAddress
-              )
-            : localized(
-                `Mailspring can no longer authenticate with %@. The password or authentication may have changed.`,
-                account.emailAddress
-              ),
-          [
-            { text: localized('Reconnect'), action: this._onReconnect },
-            { text: localized('Error Details...'), action: this._onShowErrorDetails },
-          ]
-        );
+        return this._renderErrorDetail(this._authFailureMessage(account), [
+          { text: localized('Reconnect'), action: this._onReconnect },
+          { text: localized('Error Details...'), action: this._onShowErrorDetails },
+        ]);
       case Account.SYNC_STATE_ERROR:
         return this._renderErrorDetail(
           localized(

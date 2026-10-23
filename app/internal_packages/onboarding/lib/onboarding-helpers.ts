@@ -575,13 +575,7 @@ export async function finalizeAndValidateAccount(account: Account) {
   const proc = new MailsyncProcess(AppEnv.getLoadSettings());
   proc.identity = IdentityStore.identity();
   proc.account = account;
-  try {
-    await proc.test();
-  } catch (err) {
-    // OAuth sign-in builds the account itself, so the certificate review needs it from here.
-    if (err.certificates?.length) err.account = account;
-    throw err;
-  }
+  await proc.test();
 
   // Record the date of successful auth
   account.authedAt = new Date();
