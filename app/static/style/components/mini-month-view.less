@@ -44,6 +44,7 @@
     .weekday {
       flex: 1;
       font-size: 11px;
+      color: @text-color-very-subtle;
     }
     padding: 3px 0;
   }
@@ -64,7 +65,8 @@
       flex: 1;
       min-height: 24px;
       font-size: @font-size-smaller;
-      color: @text-color-very-subtle;
+      font-weight: @font-weight-medium;
+      color: fadeout(@text-color, 70%);
       &.cur-month {
         color: @text-color;
       }
