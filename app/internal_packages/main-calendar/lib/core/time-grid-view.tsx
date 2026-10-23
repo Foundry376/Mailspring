@@ -28,8 +28,10 @@ import {
 } from './week-view-helpers';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
 import { getEventsWithDragPreview, withNewEventPreview } from './calendar-drag-utils';
+import { WeekdayHeader } from './weekday-header';
 
 const MIN_INTERVAL_HEIGHT = 21;
+const DATE_LABELS_HEIGHT = 28;
 const DAY_PORTION_SHOWN_VERTICALLY = 11 / 24;
 const QUERY_MARGIN_DAYS = 21;
 
@@ -260,18 +262,9 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     return labels.slice(0, labels.length - 1);
   }
 
-  _renderDateLabel = (day: Moment) => {
-    const className = classnames({
-      'day-label-wrap': true,
-      'is-today': this._isToday(day),
-    });
-    return (
-      <div className={className} key={day.valueOf()}>
-        <span className="date-label">{day.format('D')}</span>
-        <span className="weekday-label">{day.format('ddd')}</span>
-      </div>
-    );
-  };
+  _renderDateLabel = (day: Moment) => (
+    <WeekdayHeader key={day.valueOf()} day={day} isToday={this._isToday(day)} showDate />
+  );
 
   _renderDays = (dayStarts: CalendarDate[], firstVisible: CalendarDate) => {
     const events = this._eventsWithPreviews();
@@ -286,7 +279,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
 
     return (
       <div className="time-grid-days">
-        <div className="week-header">
+        <div className="week-header" style={{ paddingTop: DATE_LABELS_HEIGHT }}>
           <div className="date-labels">{days.map(this._renderDateLabel)}</div>
 
           <WeekViewAllDayEvents
@@ -379,7 +372,10 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
           <div className="calendar-title">{this._title()}</div>
           <div className="calendar-body-wrap">
             <div className="calendar-legend">
-              <div className="date-label-legend" style={{ height: allDayBarHeight + 75 + 1 }}>
+              <div
+                className="date-label-legend"
+                style={{ height: allDayBarHeight + DATE_LABELS_HEIGHT + 1 }}
+              >
                 <span className="legend-text">All Day</span>
               </div>
               <div className="event-grid-legend-wrap" ref={this._legendWrapEl}>

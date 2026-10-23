@@ -141,9 +141,40 @@ body.platform-win32 {
     position: relative;
   }
 
+  // min-width:0: the default min-width:auto sets a floor that makes a heading wider than its column.
+  .weekday-header {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding-left: 10px;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: @font-weight-semi-bold;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: @text-color-subtle;
+
+    .weekday-header-date {
+      font-size: 12px;
+      font-weight: normal;
+      letter-spacing: 0;
+    }
+    &.is-today {
+      color: @accent-primary;
+      .weekday-header-date {
+        font-weight: @font-weight-semi-bold;
+      }
+    }
+  }
+
   .calendar-title {
     flex-shrink: 0;
     padding: 12px 10px 8px;
+    background: @background-primary;
     font-size: 18px;
     font-weight: @font-weight-semi-bold;
     letter-spacing: -0.01em;
@@ -344,7 +375,7 @@ body.platform-win32 {
 
     .week-header {
       position: relative;
-      padding-top: 75px;
+      background: @background-primary;
       border-bottom: 1px solid @border-color-divider;
       flex-shrink: 0;
     }
@@ -380,6 +411,7 @@ body.platform-win32 {
     .date-label-legend {
       width: @legend-width;
       position: relative;
+      background: @background-primary;
       border-bottom: 1px solid @border-color-divider;
       box-shadow: 0 1px 2.5px @standard-shadow-color;
       z-index: 3;
@@ -388,38 +420,8 @@ body.platform-win32 {
       }
     }
 
-    // 2px side padding and min-width:0: either a wider padding or the default min-width:auto
-    // sets a floor that makes a heading wider than its event column.
-    .day-label-wrap {
-      padding: 15px 2px;
-      min-width: 0;
-      overflow: hidden;
-      text-align: center;
-      flex: 1;
-      box-shadow: inset 1px 0 0 rgba(177, 177, 177, 0.15);
+    .date-labels .weekday-header {
       scroll-snap-align: start;
-      &.is-today {
-        .date-label {
-          color: @accent-primary;
-        }
-        .weekday-label {
-          color: @accent-primary;
-        }
-      }
-    }
-    .date-label {
-      display: block;
-      font-size: 16px;
-      font-weight: 300;
-      color: @text-color-subtle;
-    }
-    .weekday-label {
-      display: block;
-      font-weight: 500;
-      text-transform: uppercase;
-      margin-top: 3px;
-      font-size: 12px;
-      color: @text-color-subtle;
     }
 
     .event-grid-wrap {
@@ -499,25 +501,8 @@ body.platform-win32 {
     .month-view-weekday-headers {
       display: flex;
       border-bottom: 1px solid @border-color-divider;
-      background: @background-off-primary;
       flex-shrink: 0;
       width: 100%;
-    }
-
-    .month-view-weekday-header {
-      flex: 1;
-      text-align: center;
-      padding: 8px 0;
-      font-size: 12px;
-      font-weight: 500;
-      text-transform: uppercase;
-      color: @text-color-subtle;
-      box-shadow: inset 1px 0 0 rgba(177, 177, 177, 0.15);
-      min-width: 0;
-
-      &:first-child {
-        box-shadow: none;
-      }
     }
 
     .month-view-grid {
