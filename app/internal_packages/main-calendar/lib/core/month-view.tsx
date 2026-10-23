@@ -11,6 +11,7 @@ import { MonthViewWeek } from './month-view-week';
 import { WeekBarsLayout, firstVisibleBarIds, layoutWeekBars } from './month-view-helpers';
 import { getEventsWithDragPreview, withNewEventPreview } from './calendar-drag-utils';
 import { momentOf } from './calendar-helpers';
+import { WeekdayHeader } from './weekday-header';
 
 const DAYS_IN_WEEK = 7;
 const MAX_VISIBLE_EVENTS = 5;
@@ -143,14 +144,20 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
   };
 
   _renderWeekdayHeaders() {
-    const weekdays = moment.weekdaysShort();
+    const now = moment();
+    const todayInView = now.isSame(momentOf(this.state.shownMonth), 'month');
+    const weekStart = CalendarDateUtils.weekStartOf(
+      this.state.shownMonth,
+      moment.localeData().firstDayOfWeek()
+    );
     return (
       <div className="month-view-weekday-headers">
-        {weekdays.map((day, idx) => (
-          <div key={idx} className="month-view-weekday-header">
-            {day}
-          </div>
-        ))}
+        {Array.from({ length: DAYS_IN_WEEK }, (_, i) => {
+          const day = momentOf(CalendarDateUtils.addCalendarDays(weekStart, i));
+          return (
+            <WeekdayHeader key={i} day={day} isToday={todayInView && day.day() === now.day()} />
+          );
+        })}
       </div>
     );
   }
