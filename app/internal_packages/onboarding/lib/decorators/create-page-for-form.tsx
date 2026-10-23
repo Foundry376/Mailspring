@@ -170,6 +170,14 @@ const CreatePageForForm = (FormComponent: React.ComponentType<any> & Record<stri
           OnboardingActions.finishAndAddAccount(validated);
         })
         .catch((err) => {
+          // No credentials have gone to a server whose certificate was rejected. The user
+          // reviews the certificates, and accepting them retries with their fingerprints.
+          if (err.certificates?.length) {
+            this.setState({ submitting: false });
+            OnboardingActions.setAccount(account, { rejectedCertificates: err.certificates });
+            OnboardingActions.moveToPage('account-certificate');
+            return;
+          }
           // If we're connecting from the `basic` settings page with an IMAP account,
           // the settings are from a template. If authentication fails, move the user
           // to the full settings since our guesses may have been wrong.

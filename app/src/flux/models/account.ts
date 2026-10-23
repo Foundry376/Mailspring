@@ -106,6 +106,10 @@ export class Account extends ModelWithMetadata {
     smtp_password: string;
     smtp_allow_insecure_ssl: boolean;
     smtp_security: 'SSL / TLS' | 'STARTTLS' | 'none';
+    // SHA-256 of a certificate that failed validation and the user accepted. The sync engine
+    // trusts exactly that certificate for the server, until it presents a different one.
+    imap_certificate_sha256?: string;
+    smtp_certificate_sha256?: string;
     refresh_token: string;
     // Microsoft accounts only: send through Microsoft Graph instead of SMTP. Set at sign-in
     // when the user granted Mail.Send; accounts authorized earlier get it by reconnecting.
