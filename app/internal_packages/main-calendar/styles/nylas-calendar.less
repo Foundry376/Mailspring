@@ -53,6 +53,9 @@ body.platform-win32 {
   }
   .calendar-source-list-wrap {
     padding: 0 10px 12px;
+    .heading {
+      padding-left: 0;
+    }
   }
   .colored-checkbox {
     position: relative;
@@ -75,25 +78,11 @@ body.platform-win32 {
   label {
     padding-left: 0.4em;
   }
-  .toggle-wrap,
-  .account-label {
+  .toggle-wrap {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
     margin-top: 2px;
-  }
-  .account-calendars-wrap {
-    &:first-child {
-      margin-top: 0;
-    }
-  }
-  .account-label {
-    cursor: default;
-    color: @text-color-very-subtle;
-    font-weight: @font-weight-semi-bold;
-    font-size: @font-size-small * 0.9;
-    margin-top: @padding-large-vertical;
-    letter-spacing: -0.2px;
   }
 }
 

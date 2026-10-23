@@ -1,11 +1,11 @@
 import React from 'react';
 import classnames from 'classnames';
-import { localized, Actions, FocusedPerspectiveStore } from 'mailspring-exports';
+import { ipcRenderer } from 'electron';
+import { localized } from 'mailspring-exports';
 import { Flexbox, ScrollRegion, RetinaImg } from 'mailspring-component-kit';
 
 import ActivityEventStore from '../activity-event-store';
 import * as ActivityActions from '../activity-actions';
-import ActivityMailboxPerspective from '../activity-mailbox-perspective';
 import ActivityListItemContainer from './activity-list-item-container';
 import ActivityListEmptyState from './activity-list-empty-state';
 
@@ -39,11 +39,10 @@ class ActivityList extends React.Component<
     if (document.activeElement && document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
-    const aids = FocusedPerspectiveStore.sidebarAccountIds();
     // The sheet reads the saved tab on mount; the action covers the already-mounted case.
     AppEnv.savedState.activityTab = 'feed';
     ActivityActions.selectTab('feed');
-    Actions.focusMailboxPerspective(new ActivityMailboxPerspective(aids));
+    ipcRenderer.send('command', 'application:show-activity');
   };
 
   _getStateFromStores() {

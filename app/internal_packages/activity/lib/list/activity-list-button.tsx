@@ -68,7 +68,7 @@ class ActivityListButton extends React.Component<
       >
         <div className={unreadCountClass}>{this.state.unreadCount}</div>
         <RetinaImg
-          name="icon-toolbar-activity.png"
+          name="ic-toolbar-native-reminder.png"
           className={iconClass}
           mode={RetinaImg.Mode.ContentIsMask}
           aria-hidden="true"

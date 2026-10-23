@@ -1,7 +1,8 @@
 import React from 'react';
 import { Message, localized, DateUtils } from 'mailspring-exports';
 import { Flexbox } from 'mailspring-component-kit';
-import { pluckByEmail } from '../../activity/lib/activity-events';
+import { pluckByEmail, recipientIsUnknowable } from '../../activity/lib/activity-events';
+import { PLUGIN_ID } from './link-tracking-constants';
 import { LinkTrackingMetadata } from './types';
 
 class LinkTrackingMessagePopover extends React.Component<{
@@ -38,6 +39,16 @@ class LinkTrackingMessagePopover extends React.Component<{
       <div className="link-tracking-message-popover" tabIndex={-1}>
         <div className="link-tracking-header">{localized('Clicked by:')}</div>
         <div className="click-history-container">{this.renderClickActions()}</div>
+        {recipientIsUnknowable(
+          this.props.message,
+          this.props.message.metadataForPluginId(PLUGIN_ID) as LinkTrackingMetadata
+        ) && (
+          <div className="unattributed-note">
+            {localized(
+              'This message was sent to everyone at once, so Mailspring cannot tell which recipient clicked.'
+            )}
+          </div>
+        )}
       </div>
     );
   }

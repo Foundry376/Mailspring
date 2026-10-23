@@ -99,8 +99,17 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
   editor: Editor | null = null;
   state: ComposerEditorState = { isTyping: false };
 
+  // True between compositionstart and compositionend (IME input, dead keys). The
+  // spellCheck attribute must not change while a composition is in progress:
+  // toggling it already caused swallowed keystrokes (#2578) and selection resets
+  // (#2644), and in the middle of a composition it can break the IME session.
+  // Keydowns during a composition never reach onKeyDown (Slate stops them), so
+  // without this flag the debounce below would re-enable spellcheck 800ms after
+  // the composition started, in the middle of it.
+  _isComposing = false;
+
   _onDoneTyping = debounce(() => {
-    if (this._mounted) {
+    if (this._mounted && !this._isComposing) {
       this.setState({ isTyping: false });
     }
   }, 800);
@@ -210,9 +219,17 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
       'PageUp',
       'PageDown',
     ].includes(event.key);
+
+    // Slate stops keydowns while it is composing, so reaching this point means no
+    // composition is in progress, even if compositionend was never fired.
+    this._isComposing = false;
+
+    // The keydown that starts a composition is followed by compositionstart in
+    // the same task, so the composition is already in progress when this frame
+    // callback runs. Skip the toggle in that case.
     if (!isNavigationKey && !this.state.isTyping) {
       requestAnimationFrame(() => {
-        if (this._mounted && !this.state.isTyping) {
+        if (this._mounted && !this.state.isTyping && !this._isComposing) {
           this.setState({ isTyping: true });
         }
       });
@@ -220,6 +237,18 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
     if (!isNavigationKey) {
       this._onDoneTyping();
     }
+    return next();
+  };
+
+  onCompositionStart = (_event, _editor: Editor, next: () => void) => {
+    this._isComposing = true;
+    return next();
+  };
+
+  onCompositionEnd = (_event, _editor: Editor, next: () => void) => {
+    this._isComposing = false;
+    // Re-enable spellcheck 800ms after the composition ends, if no typing follows.
+    this._onDoneTyping();
     return next();
   };
 
@@ -414,6 +443,8 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
               if (!e.isPropagationStopped()) next();
             }}
             onKeyDown={this.onKeyDown as any}
+            onCompositionStart={this.onCompositionStart as any}
+            onCompositionEnd={this.onCompositionEnd as any}
             onCut={this.onCut as any}
             onCopy={this.onCopy as any}
             onPaste={this.onPaste as any}
