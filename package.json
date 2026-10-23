@@ -17,7 +17,6 @@
     "@types/react-dom": "^17.0.0"
   },
   "dependencies": {
-    "@electron/packager": "^20.0.1",
     "@playwright/test": "^1.59.1",
     "@sentry/cli": "^2.43.0",
     "@types/better-sqlite3": "^7.6.3",
@@ -49,9 +48,6 @@
     "better-sqlite3": "^12.8.0",
     "chalk": "1.x.x",
     "devtron": "^1.4.0",
-    "electron": "44.9.1",
-    "electron-playwright-helpers": "^2.1.0",
-    "electron-winstaller": "5.4.0",
     "eslint": "^8.0.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-import": "^2.29.0",
@@ -74,7 +70,7 @@
   },
   "scripts": {
     "postinstall": "node scripts/postinstall.js",
-    "start": "electron ./app --enable-logging --dev",
+    "start": "python3 main.py",
     "build:fm-helper": "swift build -c release --arch arm64 --package-path app/native/mailspring-fm",
     "lint": "eslint --fix -c .eslintrc \"app/src/**/*.{ts,tsx}\" \"app/internal_packages/**/*.{ts,tsx}\"",
     "lint:check": "eslint -c .eslintrc \"app/src/**/*.{ts,tsx}\" \"app/internal_packages/**/*.{ts,tsx}\"",
@@ -90,7 +86,6 @@
   },
   "allowScripts": {
     "better-sqlite3@12.11.1": true,
-    "electron-winstaller@5.4.0": true,
     "highlight.js@9.18.5": true,
     "@sentry/cli@2.58.6": true
   },
