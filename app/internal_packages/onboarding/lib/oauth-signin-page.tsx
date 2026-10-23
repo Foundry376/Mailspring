@@ -37,6 +37,21 @@ export function extractOAuthStateFromUrl(requestUrl: string): string | null {
 }
 
 /**
+ * The provider's reason for redirecting back without a code (RFC 6749 §4.1.2.1): the user
+ * declined, or their organization requires an admin to approve the permissions requested.
+ * Microsoft's error_description begins with the AADSTS code and ends with trace ids.
+ */
+export function extractOAuthErrorFromUrl(requestUrl: string): string | null {
+  const error = extractQueryParam(requestUrl, 'error');
+  if (!error) return null;
+  const description = (extractQueryParam(requestUrl, 'error_description') || '')
+    .replace(/\+/g, ' ')
+    .split(/\s+Trace ID:/)[0]
+    .trim();
+  return description || error;
+}
+
+/**
  * The `state` value is carried alongside PKCE as defense in depth (RFC 6749 §10.12).
  * A callback whose state is absent or does not match the value on the most recently
  * built authorization URL aborts the sign-in rather than exchanging the code.
@@ -59,6 +74,9 @@ interface OAuthSignInPageProps {
   onTryAgain: () => void;
   providerConfig: (typeof AccountProviders)[0];
   serviceName: string;
+  // Offered beside Try Again when the provider declines the authorization request, e.g. to
+  // sign in again asking for fewer permissions.
+  fallback?: { label: string; onSelect: () => void };
   children?: React.ReactNode;
 }
 
@@ -67,6 +85,7 @@ interface OAuthSignInPageState {
   showAlternative: boolean;
   errorMessage?: string;
   errorLog?: string;
+  authorizationDeclined?: boolean;
 }
 
 export default class OAuthSignInPage extends React.Component<
@@ -102,7 +121,8 @@ export default class OAuthSignInPage extends React.Component<
     this._server = http.createServer((request, response) => {
       if (!this._mounted) return;
       const code = extractOAuthCodeFromUrl(request.url);
-      if (!code) {
+      const authError = code ? null : extractOAuthErrorFromUrl(request.url);
+      if (!code && !authError) {
         response.end('Unknown Request');
         return;
       }
@@ -110,6 +130,11 @@ export default class OAuthSignInPage extends React.Component<
         this._onStateMismatch();
         response.writeHead(400);
         response.end('Invalid State');
+        return;
+      }
+      if (authError) {
+        this._onAuthorizationDeclined(authError);
+        response.end(localized('Sign-in was not completed. Return to Mailspring to continue.'));
         return;
       }
       this._onReceivedCode(code);
@@ -165,6 +190,16 @@ export default class OAuthSignInPage extends React.Component<
     );
     err.isUserError = true;
     this._onError(err);
+  }
+
+  _onAuthorizationDeclined(reason: string) {
+    AppEnv.focus();
+    const err: any = new Error(
+      localized('%@ did not complete the sign-in: %@', this.props.serviceName, reason)
+    );
+    err.isUserError = true;
+    this._onError(err);
+    this.setState({ authorizationDeclined: true });
   }
 
   async _onReceivedCode(code) {
@@ -223,6 +258,15 @@ export default class OAuthSignInPage extends React.Component<
           <div className="btn" style={{ marginTop: 20 }} onClick={this.props.onTryAgain}>
             {localized('Try Again')}
           </div>
+          {this.props.fallback && this.state.authorizationDeclined && (
+            <div
+              className="btn"
+              style={{ marginTop: 20, marginLeft: 10 }}
+              onClick={this.props.fallback.onSelect}
+            >
+              {this.props.fallback.label}
+            </div>
+          )}
         </div>
       </div>
     );

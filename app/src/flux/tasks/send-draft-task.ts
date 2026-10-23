@@ -54,9 +54,14 @@ export class SendDraftTask extends Task {
     task.headerMessageId = task.draft.headerMessageId;
     task.silent = silent;
 
-    const separateBodies = ComposerExtensionRegistry.extensions().some(
-      (ext) => ext.needsPerRecipientBodies && ext.needsPerRecipientBodies(task.draft)
-    );
+    // Graph sends one message to every recipient, so tracking extensions get a null recipient
+    // and produce one body for all of them (see recipientIsUnknowable).
+    const account = AccountStore.accountForId(task.draft.accountId);
+    const separateBodies =
+      !(account && account.sendsViaGraph()) &&
+      ComposerExtensionRegistry.extensions().some(
+        (ext) => ext.needsPerRecipientBodies && ext.needsPerRecipientBodies(task.draft)
+      );
 
     if (task.draft.plaintext) {
       // Our editor uses zero-width spaces to differentiate between soft and hard newlines
@@ -180,6 +185,25 @@ export class SendDraftTask extends Task {
         emails,
         LocalizedErrorStrings[smtpError]
       );
+    } else if (key === 'smtp-auth-disabled') {
+      // Reconnecting signs a Microsoft account in through OAuth and moves it to Graph sending,
+      // unless its organization declines Mail.Send. A shared mailbox (sending over SMTP as its
+      // owner) or an IMAP/SMTP account cannot move, so only an administrator can help those.
+      const account = AccountStore.accountForId(this.draft.accountId);
+      const isSharedMailbox =
+        account &&
+        account.settings.smtp_username &&
+        account.settings.smtp_username.toLowerCase() !== account.emailAddress.toLowerCase();
+      const canSendThroughGraph =
+        account && ['office365', 'outlook'].includes(account.provider) && !isSharedMailbox;
+      errorMessage = canSendThroughGraph
+        ? localized(
+            "Microsoft has turned off SMTP sending for this account. Reconnect the account in Preferences > Accounts so Mailspring can send through Microsoft 365. If Microsoft asks for an administrator's approval, an administrator must approve Mailspring's mail permissions or enable SMTP AUTH."
+          )
+        : localized(
+            'Microsoft has turned off SMTP sending for this mailbox. An administrator must enable SMTP AUTH for it before Mailspring can send from it.'
+          );
+      errorDetail = debuginfo;
     } else if (key === 'send-failed') {
       errorMessage = localized(
         `Sorry, Mailspring was unable to deliver this message: %@`,
