@@ -1,10 +1,13 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
 import { Flexbox } from 'mailspring-component-kit';
 import { localized } from 'mailspring-exports';
-import fs from 'fs';
 
 import { keyAndModifiersForEvent } from './mousetrap-keybinding-helpers';
+import { readUserKeymap, writeUserKeymap, bindingFromKeys, withBinding } from './user-keymap';
+
+// Mousetrap waits this long for the next key of a sequence (_resetSequenceTimer in mousetrap.js),
+// so a plain key recorded alone is the same key the keymap will later wait for.
+const SEQUENCE_TIMEOUT_MS = 1000;
 
 interface CommandKeybindingProps {
   bindings: string[];
@@ -12,42 +15,34 @@ interface CommandKeybindingProps {
   command: string;
 }
 interface CommandKeybindingState {
-  editing: boolean;
-  editingBinding?: string;
-  modifiers?: string[];
-  keys?: string[];
+  recording: boolean;
+  modifiers: string[];
+  keys: string[];
 }
 
 export default class CommandKeybinding extends React.Component<
   CommandKeybindingProps,
   CommandKeybindingState
 > {
-  _mounted = false;
+  _recorderRef = React.createRef<HTMLSpanElement>();
+  _addButtonRef = React.createRef<HTMLButtonElement>();
+  _sequenceTimer: NodeJS.Timeout = null;
 
   constructor(props) {
     super(props);
 
     this.state = {
-      editing: false,
+      recording: false,
+      modifiers: [],
+      keys: [],
     };
   }
 
-  componentDidMount() {
-    this._mounted = true;
-  }
-
-  componentDidUpdate() {
-    const { modifiers, keys, editing } = this.state;
-    if (editing) {
-      const finished = (modifiers.length > 0 && keys.length > 0) || keys.length >= 2;
-      if (finished) {
-        (ReactDOM.findDOMNode(this) as HTMLElement).blur();
-      }
-    }
-  }
-
   componentWillUnmount() {
-    this._mounted = false;
+    if (this.state.recording) {
+      clearTimeout(this._sequenceTimer);
+      AppEnv.keymaps.resumeAllKeymaps();
+    }
   }
 
   _formatKeystrokes(original: string) {
@@ -114,51 +109,50 @@ export default class CommandKeybinding extends React.Component<
     );
   };
 
-  _onEdit = () => {
-    this.setState({ editing: true, editingBinding: null, keys: [], modifiers: [] });
+  // Keymaps are suspended while recording, so the keys pressed reach nothing but the recorder.
+  _onStartRecording = () => {
     AppEnv.keymaps.suspendAllKeymaps();
+    this.setState({ recording: true, keys: [], modifiers: [] }, () =>
+      this._recorderRef.current.focus()
+    );
   };
 
-  _onFinishedEditing = () => {
-    if (this.state.editingBinding) {
-      const keymapPath = AppEnv.keymaps.getUserKeymapPath();
-      let keymaps = {};
-
-      try {
-        const exists = fs.existsSync(keymapPath);
-        if (exists) {
-          keymaps = JSON.parse(fs.readFileSync(keymapPath).toString());
-        }
-      } catch (err) {
-        console.error(err);
-      }
-
-      keymaps[this.props.command] = this.state.editingBinding;
-
-      try {
-        fs.writeFileSync(keymapPath, JSON.stringify(keymaps, null, 2));
-      } catch (err) {
-        AppEnv.showErrorDialog(
-          localized(`Mailspring was unable to modify your keymaps at %@.`, keymapPath) +
-            ' ' +
-            err.toString()
-        );
-      }
-    }
-
+  // Focus goes back to the + button: left on the body, the next key would reach the mail list.
+  _stopRecording({ refocus }: { refocus: boolean }) {
+    clearTimeout(this._sequenceTimer);
     AppEnv.keymaps.resumeAllKeymaps();
+    this.setState({ recording: false, keys: [], modifiers: [] }, () => {
+      if (refocus) {
+        this._addButtonRef.current.focus();
+      }
+    });
+  }
 
-    setTimeout(() => {
-      if (!this._mounted) return;
-      this.setState({ editing: false, editingBinding: null });
-    }, 100);
+  _onRecorderBlur = () => {
+    if (this.state.recording) {
+      this._stopRecording({ refocus: false });
+    }
   };
 
-  _onKey = (event: React.KeyboardEvent<HTMLElement>) => {
-    if (!this.state.editing) {
-      return;
+  _onFinishRecording = () => {
+    const { keys, modifiers } = this.state;
+    const binding = bindingFromKeys(keys, modifiers, process.platform);
+    const keymapPath = AppEnv.keymaps.getUserKeymapPath();
+    const keymap = readUserKeymap(keymapPath);
+    keymap[this.props.command] = withBinding(this.props.bindings, binding);
+    try {
+      writeUserKeymap(keymapPath, keymap);
+    } catch (err) {
+      AppEnv.showErrorDialog(
+        localized(`Mailspring was unable to modify your keymaps at %@.`, keymapPath) +
+          ' ' +
+          err.toString()
+      );
     }
+    this._stopRecording({ refocus: true });
+  };
 
+  _onRecorderKey = (event: React.KeyboardEvent<HTMLElement>) => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -166,27 +160,42 @@ export default class CommandKeybinding extends React.Component<
     if (!eventKey || ['mod', 'meta', 'command', 'ctrl', 'alt', 'shift'].includes(eventKey)) {
       return;
     }
-
-    let { keys, modifiers } = this.state;
-    keys = keys.concat([eventKey]);
-    modifiers = [...new Set(modifiers.concat(eventMods))];
-
-    let editingBinding = keys.join(' ');
-    if (modifiers.length > 0) {
-      editingBinding = [...modifiers, ...keys].join('+');
-      if (process.platform === 'darwin') {
-        editingBinding = editingBinding.replace(/meta/g, 'mod');
-      } else {
-        editingBinding = editingBinding.replace(/ctrl/g, 'mod');
-      }
+    if (eventKey === 'esc') {
+      this._stopRecording({ refocus: true });
+      return;
     }
 
-    this.setState({ keys, modifiers, editingBinding });
+    const keys = [...this.state.keys, eventKey];
+    const modifiers = [...new Set([...this.state.modifiers, ...eventMods])];
+    this.setState({ keys, modifiers }, () => {
+      if (modifiers.length > 0 || keys.length >= 2) {
+        this._onFinishRecording();
+      } else {
+        this._sequenceTimer = setTimeout(this._onFinishRecording, SEQUENCE_TIMEOUT_MS);
+      }
+    });
   };
 
+  _renderRecorder() {
+    const { keys, modifiers } = this.state;
+    return (
+      <span
+        className="shortcut-recorder"
+        ref={this._recorderRef}
+        tabIndex={-1}
+        onKeyDown={this._onRecorderKey}
+        onBlur={this._onRecorderBlur}
+      >
+        {keys.length > 0
+          ? this._renderKeystrokes(bindingFromKeys(keys, modifiers, process.platform), 0)
+          : localized('Press a shortcut, Esc to cancel')}
+      </span>
+    );
+  }
+
   render() {
-    const { editing, editingBinding } = this.state;
-    const bindings = editingBinding ? [editingBinding] : this.props.bindings;
+    const { recording } = this.state;
+    const { bindings } = this.props;
 
     let value: React.ReactChild | React.ReactChild[] = 'None';
     if (bindings.length > 0) {
@@ -197,22 +206,23 @@ export default class CommandKeybinding extends React.Component<
       value = [...byKey.values()].map(this._renderKeystrokes);
     }
 
-    let classnames = 'shortcut';
-    if (editing) {
-      classnames += ' editing';
-    }
     return (
-      <Flexbox
-        className={classnames}
-        tabIndex={-1}
-        onKeyDown={this._onKey}
-        onKeyPress={this._onKey}
-        onFocus={this._onEdit}
-        onBlur={this._onFinishedEditing}
-      >
+      <Flexbox className={recording ? 'shortcut recording' : 'shortcut'}>
         <div className="col-left shortcut-name">{this.props.label}</div>
         <div className="col-right">
           <div className="values">{value}</div>
+          {recording ? (
+            this._renderRecorder()
+          ) : (
+            <button
+              className="btn btn-small add-shortcut"
+              ref={this._addButtonRef}
+              title={localized('Add a shortcut')}
+              onClick={this._onStartRecording}
+            >
+              +
+            </button>
+          )}
         </div>
       </Flexbox>
     );
