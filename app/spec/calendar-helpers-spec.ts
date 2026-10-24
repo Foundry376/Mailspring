@@ -202,15 +202,15 @@ describe('formatShortTime', function () {
   const at = (hour: number, minute: number) => new Date(2026, 8, 22, hour, minute).getTime() / 1000;
   afterEach(() => moment.locale('en'));
 
-  it('drops :00 on the hour on a 12-hour clock', function () {
+  it('drops :00 on the hour, and the space before the meridiem, on a 12-hour clock', function () {
     moment.locale('en');
-    expect(formatShortTime(at(10, 0))).toBe('10 AM');
-    expect(formatShortTime(at(22, 0))).toBe('10 PM');
+    expect(formatShortTime(at(10, 0))).toBe('10AM');
+    expect(formatShortTime(at(22, 0))).toBe('10PM');
   });
 
   it('keeps the minutes off the hour', function () {
     moment.locale('en');
-    expect(formatShortTime(at(10, 30))).toBe('10:30 AM');
+    expect(formatShortTime(at(10, 30))).toBe('10:30AM');
   });
 
   it('keeps a 24-hour clock whole, since a bare hour does not read as a time', function () {
@@ -230,12 +230,12 @@ describe('formatShortTimeRange', function () {
 
   it('names the meridiem once when both ends share it', function () {
     moment.locale('en');
-    expect(formatShortTimeRange(at(19, 30), at(20, 30))).toBe('7:30–8:30 PM');
+    expect(formatShortTimeRange(at(19, 30), at(20, 30))).toBe('7:30–8:30PM');
   });
 
   it('names both when the range crosses noon', function () {
     moment.locale('en');
-    expect(formatShortTimeRange(at(11, 30), at(12, 0))).toBe('11:30 AM–12 PM');
+    expect(formatShortTimeRange(at(11, 30), at(12, 0))).toBe('11:30AM–12PM');
   });
 
   it('drops the shared meridiem where the locale puts it first', function () {

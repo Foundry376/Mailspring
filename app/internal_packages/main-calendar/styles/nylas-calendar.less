@@ -4,7 +4,7 @@
 .event-chip() {
   padding: 2px 4px 2px 8px; // Extra left padding for colored band
   border-radius: 4px;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 16px;
 
   // Solid colored left band (Apple Calendar-style)
@@ -41,12 +41,14 @@ body.platform-win32 {
   }
 }
 
+// Every gridline, so none reads darker than the rest.
+@calendar-grid-line: fade(@text-color, 6%);
+
 .calendar-source-list {
   display: flex;
   flex-direction: column;
   height: 100%;
   background-color: @source-list-bg;
-  border-right: 1px solid @border-color-divider;
   color: @text-color-subtle;
   .mini-month-view-wrap {
     padding: 14px 10px 18px;
@@ -96,11 +98,17 @@ body.platform-win32 {
     color: inherit;
 
     .header {
-      padding: 0 0 8px 4px;
+      padding-top: 0;
+      padding-bottom: 8px;
       .month-title,
       .btn-ghost {
         color: inherit;
       }
+    }
+
+    .legend .weekday {
+      color: inherit;
+      opacity: 0.5;
     }
 
     // Height follows the sidebar's width, keeping each day a little wider than tall.
@@ -114,7 +122,7 @@ body.platform-win32 {
     .day-grid .day {
       min-height: 0;
       color: inherit;
-      opacity: 0.5;
+      opacity: 0.3;
       &.cur-month {
         color: inherit;
         opacity: 1;
@@ -122,14 +130,19 @@ body.platform-win32 {
       &.today {
         color: @accent-primary;
       }
+      // The band for the days on view marks the date here, not a single filled day.
       &.cur-day {
         opacity: 1;
+      }
+      &.cur-day:not(:hover) {
+        background: transparent;
       }
     }
   }
 }
 
 .mailspring-calendar {
+  --grid-line: @calendar-grid-line;
   height: 100%;
   display: flex;
   color: @text-color;
@@ -141,9 +154,37 @@ body.platform-win32 {
     position: relative;
   }
 
+  // min-width:0: the default min-width:auto sets a floor that makes a heading wider than its column.
+  .weekday-header {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding-left: 10px;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    font-size: 11px;
+    font-weight: normal;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: @text-color-subtle;
+
+    .weekday-header-date {
+      font-size: 12px;
+      letter-spacing: 0;
+    }
+    &.is-today {
+      color: @accent-primary;
+      font-weight: @font-weight-semi-bold;
+    }
+  }
+
   .calendar-title {
     flex-shrink: 0;
     padding: 12px 10px 8px;
+    background: @background-primary;
     font-size: 18px;
     font-weight: @font-weight-semi-bold;
     letter-spacing: -0.01em;
@@ -169,6 +210,7 @@ body.platform-win32 {
       white-space: nowrap;
       cursor: default;
       color: var(--event-text-color, inherit);
+      font-weight: @font-weight-medium;
       opacity: 1;
       flex-shrink: 0;
     }
@@ -177,11 +219,11 @@ body.platform-win32 {
     .event-details {
       display: flex;
       flex-direction: column;
-      font-size: 10px;
-      line-height: 12px;
+      font-size: 11px;
+      line-height: 14px;
       font-weight: 400;
       color: var(--event-text-color, inherit);
-      opacity: 0.85;
+      opacity: 0.75;
       overflow: hidden;
 
       .event-meeting-link,
@@ -337,14 +379,13 @@ body.platform-win32 {
 
       .calendar-legend {
         width: @legend-width;
-        box-shadow: 1px 0 0 rgba(177, 177, 177, 0.15);
         z-index: 2;
       }
     }
 
     .week-header {
       position: relative;
-      padding-top: 75px;
+      background: @background-primary;
       border-bottom: 1px solid @border-color-divider;
       flex-shrink: 0;
     }
@@ -363,70 +404,50 @@ body.platform-win32 {
       width: auto;
       z-index: 2;
       overflow: hidden;
+      box-shadow: inset 0 1px 0 @border-color-divider;
     }
 
     .all-day-legend {
-      width: @legend-width;
-      position: relative;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 6px;
+      border-top: 1px solid @border-color-divider;
+      box-shadow: 1px 0 0 var(--grid-line);
+      .legend-text {
+        position: static;
+      }
     }
 
     .legend-text {
-      font-size: 11px;
+      font-size: 10px;
+      font-weight: @font-weight-medium;
       position: absolute;
       color: @text-color-very-subtle;
-      right: 10px;
+      right: 6px;
     }
 
     .date-label-legend {
       width: @legend-width;
       position: relative;
+      background: @background-primary;
       border-bottom: 1px solid @border-color-divider;
-      box-shadow: 0 1px 2.5px @standard-shadow-color;
       z-index: 3;
-      .legend-text {
-        bottom: 7px;
-      }
     }
 
-    // 2px side padding and min-width:0: either a wider padding or the default min-width:auto
-    // sets a floor that makes a heading wider than its event column.
-    .day-label-wrap {
-      padding: 15px 2px;
-      min-width: 0;
-      overflow: hidden;
-      text-align: center;
-      flex: 1;
-      box-shadow: inset 1px 0 0 rgba(177, 177, 177, 0.15);
+    .date-labels .weekday-header {
       scroll-snap-align: start;
-      &.is-today {
-        .date-label {
-          color: @accent-primary;
-        }
-        .weekday-label {
-          color: @accent-primary;
-        }
-      }
-    }
-    .date-label {
-      display: block;
-      font-size: 16px;
-      font-weight: 300;
-      color: @text-color-subtle;
-    }
-    .weekday-label {
-      display: block;
-      font-weight: 500;
-      text-transform: uppercase;
-      margin-top: 3px;
-      font-size: 12px;
-      color: @text-color-subtle;
     }
 
     .event-grid-wrap {
       flex: 1;
       overflow: auto;
       background: @background-primary;
-      box-shadow: inset 0 1px 2.5px @standard-shadow-color;
+      box-shadow: inset 0 1px 2.5px rgba(0, 0, 0, 0.04);
       height: 100%;
     }
     .event-grid {
@@ -435,7 +456,7 @@ body.platform-win32 {
     }
     .event-grid-legend-wrap {
       overflow: hidden;
-      box-shadow: 1px 0 0 rgba(177, 177, 177, 0.15);
+      box-shadow: 1px 0 0 var(--grid-line);
     }
     .event-grid-legend {
       position: relative;
@@ -443,8 +464,6 @@ body.platform-win32 {
       z-index: 2;
     }
     .event-grid-bg-wrap {
-      --grid-line-minor: fade(@text-color, 5%);
-      --grid-line-major: fade(@text-color, 12%);
 
       .event-grid-bg {
         position: absolute;
@@ -469,7 +488,7 @@ body.platform-win32 {
       height: 100%;
       z-index: 1;
       overflow: hidden;
-      box-shadow: 1px 0 0 rgba(177, 177, 177, 0.15);
+      box-shadow: 1px 0 0 var(--grid-line);
       &.weekend {
         background: rgba(0, 0, 0, 0.02);
       }
@@ -499,25 +518,8 @@ body.platform-win32 {
     .month-view-weekday-headers {
       display: flex;
       border-bottom: 1px solid @border-color-divider;
-      background: @background-off-primary;
       flex-shrink: 0;
       width: 100%;
-    }
-
-    .month-view-weekday-header {
-      flex: 1;
-      text-align: center;
-      padding: 8px 0;
-      font-size: 12px;
-      font-weight: 500;
-      text-transform: uppercase;
-      color: @text-color-subtle;
-      box-shadow: inset 1px 0 0 rgba(177, 177, 177, 0.15);
-      min-width: 0;
-
-      &:first-child {
-        box-shadow: none;
-      }
     }
 
     .month-view-grid {
@@ -533,7 +535,7 @@ body.platform-win32 {
       position: relative;
       min-width: 0;
       width: 100%;
-      border-bottom: 1px solid @border-color-divider;
+      border-bottom: 1px solid var(--grid-line);
     }
 
     .month-view-day-cell {
@@ -541,7 +543,7 @@ body.platform-win32 {
       display: flex;
       flex-direction: column;
       min-width: 0; // Allow flex children to shrink
-      box-shadow: inset 1px 0 0 rgba(177, 177, 177, 0.15);
+      box-shadow: inset 1px 0 0 var(--grid-line);
       overflow: hidden;
 
       &:first-child {
@@ -553,6 +555,9 @@ body.platform-win32 {
 
         .month-view-day-number {
           color: @text-color-very-subtle;
+        }
+        .month-view-day-number:not(.is-month-start) {
+          font-weight: normal;
         }
       }
 
@@ -572,7 +577,8 @@ body.platform-win32 {
     .month-view-day-header {
       height: @month-view-day-header-height;
       box-sizing: border-box;
-      padding: 4px 8px;
+      // Two-digit numbers and month starts begin where the weekday names do (10px in).
+      padding: 4px 8px 4px 5px;
       flex-shrink: 0;
     }
 
@@ -583,9 +589,18 @@ body.platform-win32 {
       width: 24px;
       height: 24px;
       font-size: 12px;
-      color: @text-color-subtle;
+      font-weight: @font-weight-medium;
+      color: @text-color;
       cursor: pointer;
       border-radius: 50%;
+
+      &.is-month-start {
+        width: auto;
+        min-width: 24px;
+        padding: 0 5px;
+        border-radius: 12px;
+        font-weight: @font-weight-semi-bold;
+      }
 
       &:hover {
         background-color: rgba(0, 0, 0, 0.05);
@@ -646,7 +661,15 @@ body.platform-win32 {
         overflow: hidden;
         text-overflow: ellipsis;
         color: var(--event-text-color, inherit);
+        font-weight: @font-weight-medium;
         opacity: 1;
+      }
+
+      .month-view-event-time,
+      .month-view-event-end-time {
+        font-size: 11px;
+        font-weight: normal;
+        opacity: 0.7;
       }
 
       &:focus {
@@ -724,22 +747,32 @@ body.platform-win32 {
     width: 100%;
     height: 1px;
     opacity: 0;
-    border-top: 1px solid rgb(255, 100, 100);
+    border-top: 1px solid color-mix(in srgb, @accent-primary 35%, transparent);
     z-index: 2;
     transition: opacity ease-in-out 300ms;
 
     &.visible {
       opacity: 1;
     }
-    div {
+    .current-time-today {
       position: absolute;
-      width: 11px;
-      height: 11px;
-      border-radius: 6px;
-      background-color: rgb(255, 100, 100);
-      transform: translate3d(-75%, -50%, 0);
-      border: 1px solid @background-primary;
+      top: -1.5px;
+      height: 2px;
+      background-color: @accent-primary;
     }
+  }
+
+  // Styled like the mail sidebar's unread count.
+  .legend-text.current-time-label {
+    z-index: 1;
+    right: 3px; // its padding, so its text lines up with the hour labels'
+    height: 15px;
+    padding: 0 3px;
+    line-height: 15px;
+    border-radius: @border-radius-small;
+    background: @accent-primary;
+    color: @text-color-inverse;
+    font-weight: @font-weight-semi-bold;
   }
 
   .top-banner {
@@ -810,8 +843,8 @@ body.platform-win32 {
       background: @background-primary;
       z-index: 1;
       font-size: 12px;
-      font-weight: @font-weight-medium;
-      color: @text-color-subtle;
+      font-weight: @font-weight-semi-bold;
+      color: @text-color-very-subtle;
 
       &.is-today {
         color: @accent-primary;
@@ -889,6 +922,8 @@ body.platform-win32 {
     .agenda-event-title {
       font-size: 13px;
       line-height: 17px;
+      font-weight: @font-weight-medium;
+      color: @text-color;
     }
 
     .agenda-event-time {

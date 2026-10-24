@@ -167,10 +167,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
       >
         <div className="agenda-event-color-bar" style={{ backgroundColor: colors.band }} />
         <div className="agenda-event-details">
-          <div
-            className="agenda-event-title"
-            style={isSelected ? undefined : { color: colors.text }}
-          >
+          <div className="agenda-event-title">
             {event.isCancelled ? (
               <s>{event.title || localized('(No title)')}</s>
             ) : (
