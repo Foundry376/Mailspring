@@ -340,6 +340,11 @@ const nameSuffixes = {};
   nameSuffixes[suffix] = true;
 });
 
+/** "Jr.", "M.D." and "Ph.D." match the dotless entries above */
+function isNameSuffix(word: string) {
+  return !!nameSuffixes[word.toLowerCase().replace(/\./g, '')];
+}
+
 /*
 Public: The Contact model represents a Contact object.
 
@@ -636,6 +641,20 @@ export class Contact extends Model {
     // Take care of whitespace
     name = name.trim();
 
+    // Drop suffixes written after a comma ("Jane Doe, MD", "John Smith, Jr."), which would
+    // otherwise be read as "last name, first name" below. Single letters stay, so that
+    // "Kumar, V" is still a reversed name rather than a roman numeral.
+    let suffixMatch: RegExpMatchArray | null;
+    while (
+      (suffixMatch = name.match(/^(.*\S)\s*,\s*([^,]+)$/)) &&
+      suffixMatch[2]
+        .trim()
+        .split(/\s+/)
+        .every((word) => word.length > 1 && isNameSuffix(word))
+    ) {
+      name = suffixMatch[1];
+    }
+
     // Handle last name, first name
     let parts = this._parseReverseNames(name);
 
@@ -643,13 +662,10 @@ export class Contact extends Model {
     if (parts.join('').length === 0) {
       parts = [];
       parts = name.split(/\s+/);
-      if (parts.length > 0 && namePrefixes[parts[0].toLowerCase().replace(/\./, '')]) {
+      if (parts.length > 0 && namePrefixes[parts[0].toLowerCase().replace(/\./g, '')]) {
         parts = parts.slice(1);
       }
-      if (
-        parts.length > 0 &&
-        nameSuffixes[parts[parts.length - 1].toLowerCase().replace(/\./, '')]
-      ) {
+      if (parts.length > 0 && isNameSuffix(parts[parts.length - 1])) {
         parts = parts.slice(0, parts.length - 1);
       }
     }
