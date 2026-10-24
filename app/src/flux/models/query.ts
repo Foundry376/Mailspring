@@ -153,9 +153,16 @@ export default class ModelQuery<T extends Model | Model[]> {
     return this;
   }
 
-  structuredSearch(query: QueryExpression) {
+  // `alsoMatchingIds` adds models found some other way, such as a search run on the mail
+  // server, to the query's matches.
+  structuredSearch(query: QueryExpression, alsoMatchingIds: string[] = []) {
     this._assertNotFinalized();
-    this._matchers.push(new Matcher.StructuredSearch(query));
+    const matcher = new Matcher.StructuredSearch(query);
+    this._matchers.push(
+      alsoMatchingIds.length
+        ? new Matcher.Or([matcher, this._klass.attributes.id.in(alsoMatchingIds)])
+        : matcher
+    );
     return this;
   }
 

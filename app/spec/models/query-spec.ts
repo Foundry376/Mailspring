@@ -4,6 +4,8 @@ import * as Attributes from '../../src/flux/attributes';
 import { Message } from '../../src/flux/models/message';
 import { Thread } from '../../src/flux/models/thread';
 import { Account } from '../../src/flux/models/account';
+import { SearchQueryParser } from '../../src/services/search/search-query-parser';
+import LocalSearchQueryBackend from '../../src/services/search/search-query-backend-local';
 
 describe('ModelQuery', function ModelQuerySpecs() {
   beforeEach(() => {
@@ -59,6 +61,25 @@ describe('ModelQuery', function ModelQuerySpecs() {
       expect(() => {
         this.q.where({ looksLikeADuck: 'of course' });
       }).toThrow());
+  });
+
+  describe('structuredSearch', () => {
+    const ast = SearchQueryParser.parse('pineapple');
+
+    it('matches the search alone', () => {
+      const q: any = new ModelQuery(Thread, this.db).structuredSearch(ast);
+      expect(q._matchers[0].whereSQL(Thread)).toBe(
+        new LocalSearchQueryBackend('Thread').compile(ast)
+      );
+    });
+
+    it('also matches the ids it is given', () => {
+      const q: any = new ModelQuery(Thread, this.db).structuredSearch(ast, ['t1', 't2']);
+      expect(q._matchers.length).toBe(1);
+      expect(q._matchers[0].whereSQL(Thread)).toBe(
+        `(${new LocalSearchQueryBackend('Thread').compile(ast)} OR \`Thread\`.\`id\` in ('t1','t2'))`
+      );
+    });
   });
 
   describe('order', () => {
