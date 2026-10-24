@@ -64,13 +64,15 @@ describe('Tracking for accounts that send through Microsoft Graph', () => {
     expect(task.draft.metadataForPluginId(LINK_PLUGIN_ID).shared_body).toBeUndefined();
   });
 
-  it('sends one tracked body to everyone and records that when the account sends through Graph', () => {
+  it('sends one tracked body to everyone, an untracked one for the Sent copy, and records that when the account sends through Graph', () => {
     spyOn(AccountStore, 'accountForId').andReturn(
       new Account({ id: accountId, provider: 'office365', settings: { graph_send: true } } as any)
     );
     const task = SendDraftTask.forSending(trackedDraft(['a@example.com', 'b@example.com']));
 
-    expect(task.perRecipientBodies).toBeFalsy();
+    expect(task.perRecipientBodies).toEqual({
+      self: '<p>Hello <a href="https://example.com/page">page</a></p>',
+    });
     expect(decodeOpenToken(task.draft.body).recipient).toBeUndefined();
     expect(task.draft.body).toContain('/link/tracked@example.test/0?redirect=');
     expect(task.draft.body).not.toContain('&recipient=');

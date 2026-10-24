@@ -126,6 +126,40 @@ describe('MiniMonthView header', () => {
     expect(view.state.today.isSame(moment(), 'day')).toBe(true);
   });
 
+  // The app flips its stylesheets for right-to-left languages, but not inline positions.
+  it('shades the days in view, one band per row, under the right days in right-to-left layouts', () => {
+    host.dir = 'rtl';
+    const first = CalendarDates.calendarDateFromParts(2026, 10, 22);
+    ReactDOM.render(
+      <MiniMonthView
+        value={moment([2026, 9, 16])}
+        visibleRange={{ first, days: 7 }}
+        onChange={() => {}}
+      />,
+      host
+    );
+    const span = (labels: string[]) => {
+      const cells = Array.from(host.querySelectorAll('.day.cur-month'))
+        .filter((d) => labels.includes(d.textContent))
+        .map((d) => d.getBoundingClientRect());
+      return [Math.min(...cells.map((r) => r.left)), Math.max(...cells.map((r) => r.right))];
+    };
+    const bands = Array.from(host.querySelectorAll('.visible-range')).map((b) => {
+      const r = b.getBoundingClientRect();
+      return [r.left, r.right];
+    });
+
+    // Thu Oct 22 to Wed Oct 28 wraps from one week's row onto the next.
+    expect(bands.length).toBe(2);
+    for (const [band, cells] of [
+      [bands[0], span(['22', '23', '24'])],
+      [bands[1], span(['25', '26', '27', '28'])],
+    ]) {
+      expect(Math.abs(band[0] - cells[0])).toBeLessThan(1);
+      expect(Math.abs(band[1] - cells[1])).toBeLessThan(1);
+    }
+  });
+
   it('shortens the month name while the full title would not fit, as it resizes or pages', () => {
     ReactDOM.render(<MiniMonthView value={moment([2026, 8, 16])} onChange={() => {}} />, host);
     const titleEl = host.querySelector('.month-title');

@@ -29,6 +29,7 @@ export default class AccountSettingsPageO365 extends React.Component<
   // scopes; the account can still be added with the permissions approved before, sending over SMTP.
   _graphSendFallback = {
     label: localized('Sign in without Microsoft 365 sending'),
+    prompt: localized("Asked for an administrator's approval?"),
     onSelect: () => {
       this._withGraphSend = false;
       this._authUrl = buildO365AuthURL({ withGraphSend: false });
