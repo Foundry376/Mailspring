@@ -41,7 +41,7 @@ describe('TimeGridView scrolling', function () {
   const title = () => host.querySelector('.calendar-title').textContent;
   const firstInView = () => {
     const left = strip().getBoundingClientRect().left;
-    return Array.from(host.querySelectorAll('.day-label-wrap')).find(
+    return Array.from(host.querySelectorAll('.weekday-header')).find(
       (label) => Math.abs(label.getBoundingClientRect().left - left) < 1
     )?.textContent;
   };
@@ -73,7 +73,7 @@ describe('TimeGridView scrolling', function () {
     style.id = 'time-grid-scroll-spec';
     style.textContent =
       '.calendar-area-wrap { width: 700px; height: 500px; } ' +
-      '.date-labels { display: flex; } .day-label-wrap { flex: 1; min-width: 0; }';
+      '.date-labels { display: flex; } .weekday-header { flex: 1; min-width: 0; }';
     document.head.appendChild(style);
   });
 
@@ -85,7 +85,7 @@ describe('TimeGridView scrolling', function () {
 
   it('lines up on the week of its focused date', function () {
     render(moment([2026, 9, 21]));
-    expect(firstInView()).toBe('18Sun');
+    expect(firstInView()).toBe('Sun18');
     expect(title()).toBe('October 2026');
   });
 
@@ -216,7 +216,7 @@ describe('TimeGridView scrolling', function () {
     // Today, here the 20th, is two weeks back.
     render(moment([2026, 9, 20]));
     expect(lastScroll().behavior).toBe('instant');
-    expect(firstInView()).toBe('18Sun');
+    expect(firstInView()).toBe('Sun18');
   });
 
   it('jumps rather than glides to the week of an event it reveals', function () {
@@ -225,29 +225,35 @@ describe('TimeGridView scrolling', function () {
 
     render(moment([2026, 9, 27]), { id: 'evt', start: moment([2026, 9, 27]).unix() });
     expect(lastScroll().behavior).toBe('instant');
-    expect(firstInView()).toBe('25Sun');
+    expect(firstInView()).toBe('Sun25');
   });
 
   // Oct 11 to Oct 31 are drawn around Oct 18-24.
   it('sizes the All Day row for the all-day events drawn, not every event loaded', function () {
-    const dayAfterDrawn = allDayOccurrence('day-after-drawn', '2026-11-01');
+    const dayAfterDrawn = [
+      allDayOccurrence('day-after-drawn-1', '2026-11-01'),
+      allDayOccurrence('day-after-drawn-2', '2026-11-01'),
+    ];
     const meeting = timedOccurrence('meeting', '2026-10-20T10:00', '2026-10-20T11:00');
     dataSource.buildObservable.andCallFake(() =>
-      Rx.Observable.just({ events: [dayAfterDrawn, meeting] })
+      Rx.Observable.just({ events: [...dayAfterDrawn, meeting] })
     );
     render(moment([2026, 9, 19]));
 
-    expect(height('.date-label-legend')).toBe('76px');
-    expect(height('.all-day-events')).toBe('0px');
+    expect(height('.date-label-legend')).toBe('51px');
+    expect(height('.all-day-events')).toBe('22px');
   });
 
   it('sizes the All Day row for events on days drawn off-screen too', function () {
-    const firstDrawn = allDayOccurrence('first-drawn', '2026-10-11');
-    dataSource.buildObservable.andCallFake(() => Rx.Observable.just({ events: [firstDrawn] }));
+    const firstDrawn = [
+      allDayOccurrence('first-drawn-1', '2026-10-11'),
+      allDayOccurrence('first-drawn-2', '2026-10-11'),
+    ];
+    dataSource.buildObservable.andCallFake(() => Rx.Observable.just({ events: firstDrawn }));
     render(moment([2026, 9, 19]));
 
-    expect(height('.date-label-legend')).toBe('98px');
-    expect(height('.all-day-events')).toBe('22px');
+    expect(height('.date-label-legend')).toBe('72px');
+    expect(height('.all-day-events')).toBe('43px');
   });
 
   it('requeries only once scrolling draws days past the three weeks queried either side', function () {

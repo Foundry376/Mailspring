@@ -75,8 +75,9 @@ interface OAuthSignInPageProps {
   providerConfig: (typeof AccountProviders)[0];
   serviceName: string;
   // Offered beside Try Again when the provider declines the authorization request, e.g. to
-  // sign in again asking for fewer permissions.
-  fallback?: { label: string; onSelect: () => void };
+  // sign in again asking for fewer permissions, and under `prompt` while sign-in is pending:
+  // a user who closes the browser tab at an approval page never sends the provider's decline.
+  fallback?: { label: string; prompt: string; onSelect: () => void };
   children?: React.ReactNode;
 }
 
@@ -291,6 +292,12 @@ export default class OAuthSignInPage extends React.Component<
             readOnly
           />
           <CopyButton className="copy-to-clipboard" text={this.props.providerAuthPageUrl} />
+          {this.props.fallback && this.state.authStage === 'initial' && (
+            <div style={{ marginTop: 20 }}>
+              {this.props.fallback.prompt}{' '}
+              <a onClick={this.props.fallback.onSelect}>{this.props.fallback.label}</a>
+            </div>
+          )}
         </div>
       </div>
     );

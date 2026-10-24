@@ -14,7 +14,8 @@
   .header {
     display: flex;
     align-items: center;
-    padding: 4px 0 3px 8px;
+    // Insets the title and the last caret to the first and last columns' centered text, 13px wide.
+    padding: 4px calc(100% / 14 - 11.5px) 3px calc(100% / 14 - 6.5px);
     .month-title {
       flex: 1;
       min-width: 0;
@@ -43,6 +44,8 @@
     display: flex;
     .weekday {
       flex: 1;
+      font-size: 11px;
+      color: @text-color-very-subtle;
     }
     padding: 3px 0;
   }
@@ -54,16 +57,26 @@
     .week {
       flex: 1;
       display: flex;
+      position: relative;
       min-height: 24px;
+    }
+    .visible-range {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      border-radius: @border-radius-base;
+      background: color-mix(in srgb, @accent-primary 12%, transparent);
     }
     .day {
       display: flex;
       flex-direction: column;
       justify-content: center;
       flex: 1;
+      position: relative; // above the visible range's band
       min-height: 24px;
       font-size: @font-size-smaller;
-      color: @text-color-very-subtle;
+      font-weight: @font-weight-medium;
+      color: fadeout(@text-color, 70%);
       &.cur-month {
         color: @text-color;
       }
