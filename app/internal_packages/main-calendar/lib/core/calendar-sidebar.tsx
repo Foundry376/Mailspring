@@ -2,10 +2,11 @@ import React from 'react';
 import { Moment } from 'moment';
 import { Disposable } from 'rx-core';
 import { Rx, DatabaseStore, AccountStore, Calendar, Account, DOMUtils } from 'mailspring-exports';
-import { ScrollRegion, MiniMonthView } from 'mailspring-component-kit';
+import { ScrollRegion, MiniMonthView, VisibleRange } from 'mailspring-component-kit';
 import { CalendarSourceList } from './calendar-source-list';
 import { setCalendarColors } from './calendar-helpers';
 import FocusedMomentStore from './focused-moment-store';
+import VisibleRangeStore from './visible-range-store';
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 
@@ -14,6 +15,7 @@ interface CalendarSidebarState {
   calendars: Calendar[];
   disabledCalendars: string[];
   focusedMoment: Moment;
+  visibleRange: VisibleRange | null;
 }
 
 export class CalendarSidebar extends React.Component<
@@ -29,17 +31,22 @@ export class CalendarSidebar extends React.Component<
 
   _disposable?: Disposable;
   _unlisten?: () => void;
+  _unlistenVisibleRange?: () => void;
 
   state: CalendarSidebarState = {
     accounts: [],
     calendars: [],
     disabledCalendars: AppEnv.config.get(DISABLED_CALENDARS) || [],
     focusedMoment: FocusedMomentStore.focusedMoment(),
+    visibleRange: VisibleRangeStore.visibleRange(),
   };
 
   componentDidMount() {
     this._unlisten = FocusedMomentStore.listen(() =>
       this.setState({ focusedMoment: FocusedMomentStore.focusedMoment() })
+    );
+    this._unlistenVisibleRange = VisibleRangeStore.listen(() =>
+      this.setState({ visibleRange: VisibleRangeStore.visibleRange() })
     );
     this._disposable = Rx.Observable.combineLatest(
       Rx.Observable.fromQuery(DatabaseStore.findAll<Calendar>(Calendar)),
@@ -58,6 +65,7 @@ export class CalendarSidebar extends React.Component<
 
   componentWillUnmount() {
     this._unlisten?.();
+    this._unlistenVisibleRange?.();
     this._disposable?.dispose();
   }
 
@@ -68,6 +76,7 @@ export class CalendarSidebar extends React.Component<
           <MiniMonthView
             arrows="vertical"
             value={this.state.focusedMoment}
+            visibleRange={this.state.visibleRange}
             onChange={(m) => FocusedMomentStore.setFocusedMoment(m)}
           />
         </div>
