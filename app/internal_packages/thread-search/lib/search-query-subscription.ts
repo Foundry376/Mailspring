@@ -76,7 +76,9 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
     this._remoteUnlisten = Actions.remoteSearchResultReceived.listen(this._onRemoteSearchResult);
     for (const accountId of this._accountIds) {
       const account = AccountStore.accountForId(accountId);
-      if (!account) {
+      // sendMessageToAccount shows the "unable to sync" dialog for an account whose sync
+      // process is not running; a search is silent about it and skips the account.
+      if (!account || !this.hasSyncProcess(accountId)) {
         continue;
       }
       const request = RemoteSearchQueryBackend.compile(
@@ -95,6 +97,10 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
         ...request,
       });
     }
+  }
+
+  hasSyncProcess(accountId: string) {
+    return !!AppEnv.mailsyncBridge.clients()[accountId];
   }
 
   _onRemoteSearchResult = (result: { id: string; done: boolean; threadIds?: string[] }) => {
@@ -154,6 +160,9 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
       this._remoteUnlisten();
     }
     for (const [searchId, accountId] of this._remoteSearches) {
+      if (!this.hasSyncProcess(accountId)) {
+        continue;
+      }
       AppEnv.mailsyncBridge.sendMessageToAccount(accountId, {
         type: 'search-remote-cancel',
         searchId,

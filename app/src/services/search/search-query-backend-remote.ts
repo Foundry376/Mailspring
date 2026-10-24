@@ -10,6 +10,7 @@ import {
 import { Account } from '../../flux/models/account';
 import { Category } from '../../flux/models/category';
 import DateUtils from '../../date-utils';
+import { imapUtf7 } from '../../utils/imap-utf7';
 
 /*
  * A `search-remote` request for the sync engine (Mailspring-Sync SearchWorker): `criteria`
@@ -181,8 +182,9 @@ class GmailVisitor extends SearchQueryExpressionVisitor {
     if (operator) {
       this._result = operator;
     } else {
-      // A Gmail label's name is its IMAP path, "Parent/Child" for a nested one.
-      this._result = `label:${this.quote(category ? category.path : term)}`;
+      // Gmail's label: takes the name as shown, "Parent/Child" for a nested one; the IMAP
+      // path spells non-ASCII and '&' in modified UTF-7 (RFC 3501 5.1.3), which no label has.
+      this._result = `label:${this.quote(category ? imapUtf7.decode(category.path) : term)}`;
     }
   }
 }

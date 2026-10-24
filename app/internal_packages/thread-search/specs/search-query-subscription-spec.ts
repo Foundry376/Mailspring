@@ -15,6 +15,7 @@ describe('SearchQuerySubscription', function () {
   let sent;
   let unlisten;
   let bridge;
+  let clients;
 
   const subscribe = (query: string, accountIds: string[]) => {
     const sub = new SearchQuerySubscription(query, accountIds);
@@ -29,7 +30,9 @@ describe('SearchQuerySubscription', function () {
   beforeEach(function () {
     sent = [];
     unlisten = jasmine.createSpy('unlisten');
+    clients = { a1: {}, a2: {} };
     bridge = {
+      clients: () => clients,
       sendMessageToAccount: (accountId, packet) => sent.push({ accountId, packet }),
     };
     AppEnv.mailsyncBridge = bridge as any;
@@ -95,6 +98,26 @@ describe('SearchQuerySubscription', function () {
     sent = [];
     subscribe('pineapple OR in:inbox', ['a2']);
     expect(sent).toEqual([]);
+  });
+
+  it('skips an account whose sync process is not running, without a dialog', function () {
+    delete clients.a2;
+    const sub = subscribe('pineapple', ['a1', 'a2']);
+    expect(sent.map((s) => s.accountId)).toEqual(['a1']);
+    sent = [];
+    sub.onLastCallbackRemoved();
+    expect(sent.map((s) => s.accountId)).toEqual(['a1']);
+  });
+
+  it('does not cancel on an account whose sync process has since gone', function () {
+    const sub = subscribe('pineapple', ['a1', 'a2']);
+    const running = searchIdFor('a1');
+    delete clients.a2;
+    sent = [];
+    sub.onLastCallbackRemoved();
+    expect(sent).toEqual([
+      { accountId: 'a1', packet: { type: 'search-remote-cancel', searchId: running } },
+    ]);
   });
 
   it('runs locally only when the query does not parse or there is no bridge', function () {

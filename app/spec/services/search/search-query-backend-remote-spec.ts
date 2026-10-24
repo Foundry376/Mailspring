@@ -18,6 +18,9 @@ const gmailCategories = [
   new Label({ id: 'inbox', accountId: 'a1', role: 'inbox', path: 'INBOX' }),
   new Label({ id: 'sent', accountId: 'a1', role: 'sent', path: '[Gmail]/Sent Mail' }),
   new Label({ id: 'work', accountId: 'a1', role: null, path: 'Work Stuff' }),
+  new Label({ id: 'cafe', accountId: 'a1', role: null, path: 'Caf&AOk-' }),
+  new Label({ id: 'rnd', accountId: 'a1', role: null, path: 'R&-D' }),
+  new Label({ id: 'nested', accountId: 'a1', role: null, path: 'Caf&AOk-/Men&APw-' }),
   new Label({ id: 'drafts', accountId: 'a1', role: 'drafts', path: '[Gmail]/Drafts' }),
   new Label({ id: 'starred', accountId: 'a1', role: 'starred', path: '[Gmail]/Starred' }),
   new Label({ id: 'important', accountId: 'a1', role: 'important', path: '[Gmail]/Important' }),
@@ -106,6 +109,13 @@ describe('RemoteSearchQueryBackend', function () {
       expect(compileGmail('in:all')).toEqual({ gmailRaw: '(-in:trash -in:spam)' });
       expect(compileGmail('in:"Work Stuff"')).toEqual({ gmailRaw: 'label:"Work Stuff"' });
       expect(compileGmail('in:unknown')).toEqual({ gmailRaw: 'label:unknown' });
+    });
+
+    it("names a label as Gmail shows it, not as its modified UTF-7 IMAP path", function () {
+      expect(compileGmail('in:Café')).toEqual({ gmailRaw: 'label:"Café"' });
+      expect(compileGmail('in:"R&D"')).toEqual({ gmailRaw: 'label:"R&D"' });
+      expect(compileGmail('in:"Café/Menü"')).toEqual({ gmailRaw: 'label:"Café/Menü"' });
+      expect(compileGmail('in:"A&-B"')).toEqual({ gmailRaw: 'label:"A&-B"' });
       expect(
         RemoteSearchQueryBackend.compile(SearchQueryParser.parse('in:Trash'), gmail, []).gmailRaw
       ).toBe('in:trash');
