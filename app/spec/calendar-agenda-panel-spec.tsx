@@ -129,7 +129,7 @@ describe('AgendaPanel', function () {
     const rows = Array.from(days()[0].querySelectorAll('.agenda-event-details')).map((row) =>
       Array.from(row.children).map((line) => line.textContent)
     );
-    const range = `${moment.unix(timed.start).format('h')}–${moment.unix(timed.end).format('h:mm A')}`;
+    const range = `${moment.unix(timed.start).format('h')}–${moment.unix(timed.end).format('h:mmA')}`;
     expect(rows).toEqual([
       ['Offsite', 'All day'],
       ['Standup', `${range} 30m`],
