@@ -32,22 +32,20 @@ export class EventGridBackground extends React.Component<EventGridBackgroundProp
     const canvas = ReactDOM.findDOMNode(this.refs.canvas) as HTMLCanvasElement;
     const ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const height = this.props.height;
-    canvas.height = height;
+    // Drawn at the screen's resolution, or a Retina display stretches each line soft.
+    canvas.height = this.props.height * window.devicePixelRatio;
+    ctx.setTransform(1, 0, 0, window.devicePixelRatio, 0, 0);
 
     const wrapStyle = getComputedStyle(canvas.parentElement);
-    const doStroke = (type: 'major' | 'minor', strokeStyle: string) => {
-      ctx.strokeStyle = strokeStyle;
-      ctx.beginPath();
-      for (const { y } of tickGenerator(type, this.props.intervalHeight)) {
-        ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
-      }
-      ctx.stroke();
-    };
-
-    doStroke('minor', wrapStyle.getPropertyValue('--grid-line-minor').trim() || '#f1f1f1');
-    doStroke('major', wrapStyle.getPropertyValue('--grid-line-major').trim() || '#e0e0e0');
+    ctx.strokeStyle = wrapStyle.getPropertyValue('--grid-line').trim();
+    ctx.beginPath();
+    for (const { y } of tickGenerator(this.props.intervalHeight)) {
+      // Centred on a pixel row so the 1px line isn't spread across two at half strength.
+      const lineY = Math.round(y) + 0.5;
+      ctx.moveTo(0, lineY);
+      ctx.lineTo(canvas.width, lineY);
+    }
+    ctx.stroke();
   }
 
   onMouseMove(e: React.MouseEvent<HTMLDivElement, MouseEvent>) {

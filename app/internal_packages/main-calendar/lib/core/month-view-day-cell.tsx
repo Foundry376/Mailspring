@@ -21,6 +21,7 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
   render() {
     const { day, isToday, isCurrentMonth } = this.props;
     const { start, end } = dayBoundsUnix(day);
+    const isMonthStart = day.date() === 1;
 
     const cellClassName = classnames('month-view-day-cell', {
       'is-today': isToday,
@@ -36,10 +37,13 @@ export class MonthViewDayCell extends React.Component<MonthViewDayCellProps> {
       >
         <div className="month-view-day-header">
           <span
-            className={classnames('month-view-day-number', { 'is-today': isToday })}
+            className={classnames('month-view-day-number', {
+              'is-today': isToday,
+              'is-month-start': isMonthStart,
+            })}
             onClick={this._onDayNumberClick}
           >
-            {day.date()}
+            {isMonthStart ? day.format('MMM D') : day.date()}
           </span>
         </div>
       </div>
