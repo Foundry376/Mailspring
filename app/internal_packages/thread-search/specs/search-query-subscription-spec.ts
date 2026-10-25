@@ -162,6 +162,46 @@ describe('SearchQuerySubscription', function () {
     expect(sent).toEqual([]);
   });
 
+  describe('searching indicator', function () {
+    const resultsArrive = (sub) => sub._createResultAndTrigger();
+    let completed: jasmine.Spy;
+
+    beforeEach(function () {
+      spyOn(Object.getPrototypeOf(SearchQuerySubscription.prototype), '_createResultAndTrigger');
+      completed = spyOn(Actions, 'searchCompleted');
+    });
+
+    it('stays on until every server has answered', function () {
+      const sub = subscribe('pineapple', ['a1', 'a2']);
+      resultsArrive(sub);
+      expect(completed).not.toHaveBeenCalled();
+      sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: false, threadIds: ['t1'] });
+      resultsArrive(sub);
+      expect(completed).not.toHaveBeenCalled();
+      sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: true, threadIds: [] });
+      expect(completed).not.toHaveBeenCalled();
+      sub._onRemoteSearchResult({ id: searchIdFor('a2'), done: true, error: 'ErrorConnection' });
+      expect(completed.callCount).toBe(1);
+      resultsArrive(sub);
+      expect(completed.callCount).toBe(1);
+    });
+
+    it('waits for the local results when the servers answer first', function () {
+      const sub = subscribe('pineapple', ['a1']);
+      sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: true, threadIds: [] });
+      expect(completed).not.toHaveBeenCalled();
+      resultsArrive(sub);
+      expect(completed.callCount).toBe(1);
+    });
+
+    it('goes off with the local results when no server was asked', function () {
+      AppEnv.mailsyncBridge = undefined;
+      const sub = subscribe('pineapple', ['a1']);
+      resultsArrive(sub);
+      expect(completed.callCount).toBe(1);
+    });
+  });
+
   it('ignores results that arrive after a search is done', function () {
     const sub = subscribe('pineapple', ['a1']);
     sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: true, threadIds: ['t1'] });

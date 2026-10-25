@@ -25,6 +25,11 @@ const gmailCategories = [
   new Label({ id: 'starred', accountId: 'a1', role: 'starred', path: '[Gmail]/Starred' }),
   new Label({ id: 'important', accountId: 'a1', role: 'important', path: '[Gmail]/Important' }),
   new Label({ id: 'snoozed', accountId: 'a1', role: 'snoozed', path: '[Mailspring]/Snoozed' }),
+  new Label({ id: 'junk', accountId: 'a1', role: null, path: 'Junk (Gmail)' }),
+  new Label({ id: 'b1', accountId: 'a1', role: null, path: 'open[' }),
+  new Label({ id: 'b2', accountId: 'a1', role: null, path: 'close]' }),
+  new Label({ id: 'b3', accountId: 'a1', role: null, path: 'open(' }),
+  new Label({ id: 'b4', accountId: 'a1', role: null, path: 'close)' }),
 ];
 
 const imapCategories = [
@@ -68,6 +73,23 @@ describe('RemoteSearchQueryBackend', function () {
       expect(compileGmail('has:attachment')).toEqual({ gmailRaw: 'has:attachment' });
     });
 
+    it('leaves an in: term that names no label to the local search', function () {
+      expect(compileGmail('in:unknown')).toBe(null);
+      expect(compileGmail('in:archive pineapple')).toBe(null);
+      expect(compileGmail('in:"A&-B"')).toBe(null);
+    });
+
+    it('leaves a label with brackets or parentheses in its name to the local search', function () {
+      expect(compileGmail('in:snoozed')).toBe(null);
+      expect(compileGmail('in:"Junk (Gmail)"')).toBe(null);
+      for (const name of ['open[', 'close]', 'open(', 'close)']) {
+        expect(compileGmail(`in:"${name}"`)).toBe(null);
+      }
+      expect(compileGmail('in:"[Gmail]/Sent Mail"')).toEqual({ gmailRaw: 'in:sent' });
+      expect(compileGmail('in:"[Gmail]/Starred"')).toEqual({ gmailRaw: 'is:starred' });
+      expect(compileGmail('in:"Café/Menü"')).toEqual({ gmailRaw: 'label:"Café/Menü"' });
+    });
+
     it('quotes terms Gmail would read as operators or split', function () {
       expect(compileGmail('"a:b"')).toEqual({ gmailRaw: '"a:b"' });
       expect(compileGmail('"-x"')).toEqual({ gmailRaw: '"-x"' });
@@ -95,7 +117,6 @@ describe('RemoteSearchQueryBackend', function () {
       expect(compileGmail('from:alice OR from:bob')).toEqual({
         gmailRaw: '(from:alice OR from:bob)',
       });
-      expect(compileGmail('pineapple NOT pizza')).toEqual({ gmailRaw: '(pineapple -(pizza))' });
     });
 
     it('maps folders and labels to in: and label:', function () {
@@ -105,17 +126,14 @@ describe('RemoteSearchQueryBackend', function () {
       expect(compileGmail('in:drafts')).toEqual({ gmailRaw: 'in:drafts' });
       expect(compileGmail('in:starred')).toEqual({ gmailRaw: 'is:starred' });
       expect(compileGmail('in:important')).toEqual({ gmailRaw: 'is:important' });
-      expect(compileGmail('in:snoozed')).toEqual({ gmailRaw: 'label:"[Mailspring]/Snoozed"' });
       expect(compileGmail('in:all')).toEqual({ gmailRaw: '(-in:trash -in:spam)' });
       expect(compileGmail('in:"Work Stuff"')).toEqual({ gmailRaw: 'label:"Work Stuff"' });
-      expect(compileGmail('in:unknown')).toEqual({ gmailRaw: 'label:unknown' });
     });
 
     it("names a label as Gmail shows it, not as its modified UTF-7 IMAP path", function () {
       expect(compileGmail('in:Café')).toEqual({ gmailRaw: 'label:"Café"' });
       expect(compileGmail('in:"R&D"')).toEqual({ gmailRaw: 'label:"R&D"' });
       expect(compileGmail('in:"Café/Menü"')).toEqual({ gmailRaw: 'label:"Café/Menü"' });
-      expect(compileGmail('in:"A&-B"')).toEqual({ gmailRaw: 'label:"A&-B"' });
       expect(
         RemoteSearchQueryBackend.compile(SearchQueryParser.parse('in:Trash'), gmail, []).gmailRaw
       ).toBe('in:trash');
@@ -147,6 +165,18 @@ describe('RemoteSearchQueryBackend', function () {
       expect(compileGmail('in:trash').gmailRaw).toBe('in:trash');
       expect(compileGmail('in:spam').gmailRaw).toBe('in:spam');
     });
+
+    it('leaves any NOT but the Trash and Spam exclusion to the local search', function () {
+      expect(compileGmail('pineapple NOT pizza')).toBe(null);
+      expect(compileGmail('(pineapple NOT pizza) NOT (in:trash OR in:spam)')).toBe(null);
+      expect(compileGmail('from:alice OR (pineapple NOT pizza)')).toBe(null);
+      expect(compileGmail('pineapple NOT in:sent')).toBe(null);
+      expect(compileGmail('pineapple NOT (in:trash OR in:sent)')).toBe(null);
+      expect(compileGmail('pineapple NOT in:trash')).toEqual({ gmailRaw: '(pineapple -(in:trash))' });
+      expect(compileGmail('(pineapple) NOT (in:Spam OR in:"[Gmail]/Trash")')).toEqual({
+        gmailRaw: '(pineapple -((in:spam OR in:trash)))',
+      });
+    });
   });
 
   it('raises errors other than an inexpressible query', function () {
@@ -164,9 +194,11 @@ describe('RemoteSearchQueryBackend', function () {
       expect(compileIMAP('is:read')).toEqual({ criteria: ['read'] });
       expect(compileIMAP('is:starred')).toEqual({ criteria: ['flagged'] });
       expect(compileIMAP('is:unstarred')).toEqual({ criteria: ['unflagged'] });
-      expect(compileIMAP('has:attachment')).toEqual({
-        criteria: ['header', 'Content-Type', 'multipart/mixed'],
-      });
+    });
+
+    it('leaves has:attachment to the local search', function () {
+      expect(compileIMAP('has:attachment')).toBe(null);
+      expect(compileIMAP('pineapple has:attachment')).toBe(null);
     });
 
     it('sends dates as the day they fall on', function () {
@@ -184,9 +216,25 @@ describe('RemoteSearchQueryBackend', function () {
       expect(compileIMAP('(from:alice pineapple) OR subject:x')).toEqual({
         criteria: ['or', ['and', ['from', 'alice'], anyField('pineapple')], ['subject', 'x']],
       });
-      expect(compileIMAP('pineapple NOT pizza')).toEqual({
-        criteria: ['and', anyField('pineapple'), ['not', anyField('pizza')]],
+    });
+
+    it('leaves any NOT but the Trash and Spam exclusion to the local search', function () {
+      expect(compileIMAP('pineapple NOT pizza')).toBe(null);
+      expect(compileIMAP('(pineapple NOT pizza) NOT (in:trash OR in:spam)')).toBe(null);
+      expect(compileIMAP('from:alice OR (pineapple NOT pizza)')).toBe(null);
+      expect(compileIMAP('pineapple NOT (in:trash OR in:sent)')).toBe(null);
+      expect(compileIMAP('(pineapple) NOT (in:Junk OR in:trash)')).toEqual({
+        criteria: anyField('pineapple'),
       });
+      // The search bar's exclusion still compiles on an account with no Trash or Spam folder.
+      const bare = [new Folder({ id: 'b-inbox', accountId: 'a2', role: 'inbox', path: 'INBOX' })];
+      expect(
+        RemoteSearchQueryBackend.compile(
+          SearchQueryParser.parse('(pineapple) NOT (in:trash OR in:spam)'),
+          imap,
+          bare
+        )
+      ).toEqual({ criteria: anyField('pineapple') });
     });
 
     it('turns top-level in: terms into the folders to search', function () {

@@ -18,6 +18,7 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
   _connections = [];
   _extDisposables = [];
   _searching = false;
+  _haveLocalResults = false;
   _parsedQuery = null;
   _remoteSearches = new Map<string, string>();
   _remoteThreadIds = new Set<string>();
@@ -103,12 +104,18 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
     return !!AppEnv.mailsyncBridge.clients()[accountId];
   }
 
-  _onRemoteSearchResult = (result: { id: string; done: boolean; threadIds?: string[] }) => {
+  _onRemoteSearchResult = (result: {
+    id: string;
+    done: boolean;
+    threadIds?: string[];
+    error?: string;
+  }) => {
     if (!this._remoteSearches.has(result.id)) {
       return;
     }
     if (result.done) {
       this._remoteSearches.delete(result.id);
+      this._completeWhenAnswered();
     }
     const added = (result.threadIds || []).filter((id) => !this._remoteThreadIds.has(id));
     if (added.length === 0) {
@@ -120,7 +127,15 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
 
   _createResultAndTrigger() {
     super._createResultAndTrigger();
-    if (this._searching) {
+    this._haveLocalResults = true;
+    this._completeWhenAnswered();
+  }
+
+  // The searching indicator stays on until the local results are in and every server
+  // asked has answered: a server can take 10 s or more (Yahoo, live 2026-10-25), and its
+  // matches join the list when they arrive.
+  _completeWhenAnswered() {
+    if (this._searching && this._haveLocalResults && this._remoteSearches.size === 0) {
       this._searching = false;
       Actions.searchCompleted();
     }

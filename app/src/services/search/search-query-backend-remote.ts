@@ -91,9 +91,11 @@ class CriteriaVisitor extends SearchQueryExpressionVisitor {
     this._result = [node.status ? 'flagged' : 'unflagged'];
   }
   visitHasAttachment() {
-    // Mail with attachments is multipart/mixed (RFC 2046 5.1.3). The engine stores no
-    // attachment flag the server could be asked about.
-    this._result = ['header', 'Content-Type', 'multipart/mixed'];
+    // The engine stores no attachment flag a server could be asked about, and the nearest
+    // key, HEADER Content-Type multipart/mixed, is refused by iCloud (NO [UNAVAILABLE]) and
+    // Yahoo (a fetch error in every folder) though both answer other HEADER searches
+    // (live, 2026-10-25).
+    throw new Unsupported('has:attachment');
   }
   visitDate(node: DateQueryExpression) {
     const date = dateOf(node);
@@ -181,10 +183,20 @@ class GmailVisitor extends SearchQueryExpressionVisitor {
     const operator = GMAIL_ROLE_OPERATORS[category ? category.role : term.toLowerCase()];
     if (operator) {
       this._result = operator;
+    } else if (!category) {
+      // Sent as label:, a name no label has matches the word instead: `in:archive` returned
+      // 1000 Inbox threads containing "archive" on a live account (2026-10-25).
+      throw new Unsupported(`in:${term} names no label`);
     } else {
       // Gmail's label: takes the name as shown, "Parent/Child" for a nested one; the IMAP
       // path spells non-ASCII and '&' in modified UTF-7 (RFC 3501 5.1.3), which no label has.
-      this._result = `label:${this.quote(category ? imapUtf7.decode(category.path) : term)}`;
+      const name = imapUtf7.decode(category.path);
+      // No spelling of a name with brackets or parentheses found its mail: `[Mailspring]/Snoozed`
+      // matched 0 threads against 3 locally, `Junk (Gmail)` 0 against 20 (live, 2026-10-25).
+      if (/[[\]()]/.test(name)) {
+        throw new Unsupported(`in:${term} names a label Gmail's label: cannot spell`);
+      }
+      this._result = `label:${this.quote(name)}`;
     }
   }
 }
@@ -203,6 +215,30 @@ const scopeTerms = (node: QueryExpression): string[] | null => {
     return a && b ? [...a, ...b] : null;
   }
   return null;
+};
+
+// The one NOT a server may see: the search bar's `NOT (in:trash OR in:spam)`, or a user's
+// own exclusion of those folders. A server evaluates NOT per message and the local search
+// per thread, so for `receipt NOT amazon` a server returned threads in which another
+// message named Amazon (live, 2026-10-25); any other NOT is left to the local search.
+const excludesOnlyTrashAndSpam = (node: NotQueryExpression, categories: Category[]) => {
+  const names = scopeTerms(node.e2);
+  return (
+    !!names &&
+    names.every(
+      (name) =>
+        ['trash', 'spam'].includes(name.toLowerCase()) ||
+        categories.some((c) => ['trash', 'spam'].includes(c.role) && categoryMatches(c, name))
+    )
+  );
+};
+
+const hasOtherNot = (node: QueryExpression, categories: Category[]): boolean => {
+  if (node instanceof NotQueryExpression && !excludesOnlyTrashAndSpam(node, categories)) {
+    return true;
+  }
+  const children = [(node as any).e1, (node as any).e2].filter(Boolean);
+  return children.some((child) => hasOtherNot(child, categories));
 };
 
 // Whether the query asks for mail in a folder with one of these roles. What a NOT excludes
@@ -228,6 +264,9 @@ export default class RemoteSearchQueryBackend {
     account: Account,
     categories: Category[]
   ): RemoteSearchRequest | null {
+    if (hasOtherNot(ast, categories)) {
+      return null;
+    }
     try {
       if (account.provider === 'gmail') {
         return RemoteSearchQueryBackend.compileGmail(ast, categories);
@@ -281,10 +320,6 @@ export default class RemoteSearchQueryBackend {
       if (scope.length === 0) {
         return null;
       }
-    } else if (excluded.some((f) => f.role !== 'trash' && f.role !== 'spam')) {
-      // The engine already leaves Trash and Spam out; any other exclusion would need
-      // the account's full folder list sent as the scope.
-      return null;
     }
 
     const visitor = new CriteriaVisitor();
