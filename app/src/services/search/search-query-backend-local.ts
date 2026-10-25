@@ -7,6 +7,7 @@ import {
   UnreadStatusQueryExpression,
   StarredStatusQueryExpression,
   HasAttachmentQueryExpression,
+  InQueryExpression,
   MatchQueryExpression,
   QueryExpression,
 } from './search-query-ast';
@@ -103,8 +104,7 @@ class MatchQueryExpressionVisitor extends SearchQueryExpressionVisitor {
   }
 
   visitIn(node) {
-    const text = this.visitAndGetResult(node.text);
-    this._result = `(categories : "${text}"*)`;
+    this._assertIsMatchCompatible(node);
   }
 
   visitHasAttachment(node) {
@@ -176,7 +176,7 @@ class MatchCompatibleQueryCondenser extends SearchQueryExpressionVisitor {
   }
 
   visitIn(node) {
-    this._result = this._matchVisitor.visit(node);
+    this._result = new InQueryExpression(node.text);
   }
 
   visitUnread(node) {
@@ -251,8 +251,14 @@ class StructuredSearchQueryVisitor extends SearchQueryExpressionVisitor {
     throw new Error(`Unreachable: ${node}`);
   }
 
+  // `in:` names a folder or label by role or full path, as the search bar writes it
+  // (thread-search-bar.tsx), case-insensitively.
   visitIn(node) {
-    throw new Error(`Unreachable: ${node}`);
+    const name = node.text.token.s.replace(/'/g, "''");
+    const named = (table: string) =>
+      `SELECT \`id\` FROM \`${table}\` WHERE \`role\` = '${name}' COLLATE NOCASE OR \`path\` = '${name}' COLLATE NOCASE`;
+    const categoryIds = `${named('Folder')} UNION ${named('Label')}`;
+    this._result = `(\`${this._className}\`.\`id\` IN (SELECT \`id\` FROM \`${this._className}Category\` WHERE \`value\` IN (${categoryIds})))`;
   }
 
   visitUnread(node) {
