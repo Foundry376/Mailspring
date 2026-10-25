@@ -520,10 +520,12 @@
   align-self: stretch;
   display: flex;
   justify-content: flex-end;
-  // Outgrows the toolbar's two flexible spacers, so the controls sit at the far end.
-  flex: 1000 1 auto;
+  // A full-width basis leaves the toolbar's two flexible spacers no free space, so the controls
+  // reach both ends. Any flex-grow ratio would still hand each spacer a sliver.
+  flex: 1 1 100%;
   min-width: 0;
-  padding: 0 10px;
+  // The agenda toggle sits flush with the toolbar's end, as the mail sidebar toggle does.
+  padding-left: 10px;
   color: @text-color-subtle;
 
   .side-controls {
