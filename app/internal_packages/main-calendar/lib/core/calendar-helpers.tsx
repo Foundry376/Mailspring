@@ -521,3 +521,37 @@ export function centerGridScroll(viewportEl: HTMLElement, selectedEvent?: EventO
   const fraction = selectedEvent && isTimed(selectedEvent) ? dayFraction(selectedEvent.start) : 0.5;
   viewportEl.scrollTop = viewportEl.scrollHeight * fraction - viewportEl.clientHeight / 2;
 }
+
+// A description is markup from whoever sent the invitation. DOMParser's document is inert, so the
+// images it references are never fetched.
+export function extractNotesFromDescription(description: string) {
+  const doc = new DOMParser().parseFromString(description, 'text/html');
+  const descriptionRoot = doc.body;
+
+  // The parsed document has no layout, so block boundaries become newlines here; Google writes
+  // each line of a description as <br>-separated HTML.
+  descriptionRoot.querySelectorAll('br').forEach((br) => br.replaceWith('\n'));
+  descriptionRoot
+    .querySelectorAll('p, div, li, tr, h1, h2, h3, h4, h5, h6, blockquote')
+    .forEach((block) => block.append('\n'));
+
+  // The parser moves <meta> tags that lead the description into <head>.
+  const els = doc.querySelectorAll('meta[itemprop=description]');
+  let notes: string = null;
+  if (els.length) {
+    notes = Array.from(els)
+      .map((el) => (el as HTMLMetaElement).content)
+      .join('\n');
+  } else {
+    notes = descriptionRoot.textContent;
+  }
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const nextNotes = notes.replace('\n\n', '\n');
+    if (nextNotes === notes) {
+      break;
+    }
+    notes = nextNotes;
+  }
+  return notes;
+}

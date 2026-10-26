@@ -2,6 +2,25 @@
 @import 'ui-variables';
 @import 'ui-mixins';
 
+// An attendee's answer as a filled circle, on the element carrying attendeeStatusClass.
+.attendee-status-colors() {
+  &.accepted .attendee-status {
+    background-color: #34c759;
+    color: white;
+  }
+
+  &.declined .attendee-status {
+    background-color: #ff3b30;
+    color: white;
+  }
+
+  &.tentative .attendee-status,
+  &.needs-action .attendee-status {
+    background-color: #8e8e93;
+    color: white;
+  }
+}
+
 .fixed-popover .calendar-event-popover {
   // The one action a read-only card offers. Drawn as a link rather than a .btn box so it
   // sits with the card's text instead of floating in a section of its own.
@@ -120,21 +139,7 @@
       white-space: nowrap;
     }
 
-    &.accepted .attendee-status {
-      background-color: #34c759;
-      color: white;
-    }
-
-    &.declined .attendee-status {
-      background-color: #ff3b30;
-      color: white;
-    }
-
-    &.tentative .attendee-status,
-    &.needs-action .attendee-status {
-      background-color: #8e8e93;
-      color: white;
-    }
+    .attendee-status-colors();
   }
   .description {
     white-space: pre-line;
@@ -749,3 +754,4 @@
     }
   }
 }
+

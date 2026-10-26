@@ -38,7 +38,7 @@ const TIMEZONE_DISPLAY_NAMES: { [key: string]: string } = {
 // Common time zones - a curated list of frequently used zones
 const COMMON_TIMEZONES = Object.keys(TIMEZONE_DISPLAY_NAMES);
 
-function formatTimezone(tz: string): string {
+export function formatTimezone(tz: string): string {
   // Use friendly name if available, otherwise format from timezone ID
   if (TIMEZONE_DISPLAY_NAMES[tz]) {
     return TIMEZONE_DISPLAY_NAMES[tz];

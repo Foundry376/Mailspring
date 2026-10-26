@@ -19,6 +19,10 @@ const SHOW_AS_OPTIONS: { value: ShowAsOption; label: string }[] = [
   { value: 'TRANSPARENT', label: localized('Free') },
 ];
 
+export function showAsLabel(option: ShowAsOption): string {
+  return SHOW_AS_OPTIONS.find((opt) => opt.value === option).label;
+}
+
 interface ShowAsSelectorProps {
   value: ShowAsOption;
   onChange: (value: ShowAsOption) => void;
