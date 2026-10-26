@@ -1,12 +1,11 @@
 import React from 'react';
 import { AccountStore, Contact, localized } from 'mailspring-exports';
-import { ContactProfilePhoto } from 'mailspring-component-kit';
+import { ContactProfilePhoto, SVGIcons } from 'mailspring-component-kit';
 import { ContactBase } from './ContactInfoMapping';
 import { BirthdayInput } from './BirthdayInput';
 import { ListEditor } from './ListEditor';
 import { TypeaheadFreeInput } from './TypeaheadFreeInput';
 import { ContactField, ContactTextField } from './ContactField';
-import * as Icons from './SVGIcons';
 
 const BaseTypes = ['Home', 'Work', 'Other'];
 
@@ -87,7 +86,7 @@ export class ContactDetailEdit extends React.Component<{
           </div>
         </div>
 
-        <EditSection icon={<Icons.Person />}>
+        <EditSection icon={<SVGIcons.PersonFilled />}>
           <ContactTextField
             label={localized('First Name')}
             value={data.name.givenName}
@@ -114,7 +113,7 @@ export class ContactDetailEdit extends React.Component<{
           </ListEditor>
         </EditSection>
 
-        <EditSection icon={<Icons.Briefcase />}>
+        <EditSection icon={<SVGIcons.Briefcase />}>
           <ContactTextField
             label={localized('Company')}
             value={data.company}
@@ -127,7 +126,7 @@ export class ContactDetailEdit extends React.Component<{
           />
         </EditSection>
 
-        <EditSection icon={<Icons.Envelope />}>
+        <EditSection icon={<SVGIcons.Envelope />}>
           <ListEditor<ContactBase['emailAddresses'][0]>
             items={data.emailAddresses || []}
             itemTemplate={{ type: '', value: '' }}
@@ -152,7 +151,7 @@ export class ContactDetailEdit extends React.Component<{
           </ListEditor>
         </EditSection>
 
-        <EditSection icon={<Icons.Phone />}>
+        <EditSection icon={<SVGIcons.Phone />}>
           <ListEditor<ContactBase['phoneNumbers'][0]>
             items={data.phoneNumbers || []}
             itemTemplate={{ type: '', value: '' }}
@@ -177,7 +176,7 @@ export class ContactDetailEdit extends React.Component<{
           </ListEditor>
         </EditSection>
 
-        <EditSection icon={<Icons.Map />}>
+        <EditSection icon={<SVGIcons.Map />}>
           <ListEditor<ContactBase['addresses'][0]>
             items={data.addresses || []}
             itemTemplate={{
@@ -240,7 +239,7 @@ export class ContactDetailEdit extends React.Component<{
           </ListEditor>
         </EditSection>
 
-        <EditSection icon={<Icons.Crown />}>
+        <EditSection icon={<SVGIcons.Crown />}>
           <ListEditor<ContactBase['birthdays'][0]>
             items={data.birthdays || []}
             itemTemplate={{ date: { year: null, month: null, day: null } }}
@@ -254,7 +253,7 @@ export class ContactDetailEdit extends React.Component<{
         </EditSection>
 
         {data.relations !== undefined && (
-          <EditSection icon={<Icons.People />}>
+          <EditSection icon={<SVGIcons.PeopleFilled />}>
             <ListEditor<ContactBase['relations'][0]>
               items={data.relations || []}
               itemTemplate={{ person: '', type: '' }}
@@ -279,7 +278,7 @@ export class ContactDetailEdit extends React.Component<{
           </EditSection>
         )}
 
-        <EditSection icon={<Icons.Link />}>
+        <EditSection icon={<SVGIcons.Link />}>
           <ListEditor<ContactBase['urls'][0]>
             items={data.urls || []}
             itemTemplate={{ value: '', type: '' }}
@@ -304,7 +303,7 @@ export class ContactDetailEdit extends React.Component<{
           </ListEditor>
         </EditSection>
 
-        <EditSection icon={<Icons.Note />}>
+        <EditSection icon={<SVGIcons.Note />}>
           <ContactField label={localized('Notes')}>
             <textarea
               value={data.notes || ''}
