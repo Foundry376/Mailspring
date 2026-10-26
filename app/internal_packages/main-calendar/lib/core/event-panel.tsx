@@ -344,44 +344,31 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
     return (
       <div className="event-panel-section" onBlur={this._onTimesBlur}>
-        {t.isAllDay ? (
-          <div className="event-panel-row">
-            <SVGIcons.Clock className="event-panel-icon" />
-            <DatePicker value={t.start * 1000} onChange={this._changeStart} />
-            {multiDay && <span>–</span>}
-            {multiDay && endDatePicker}
-          </div>
-        ) : (
-          <>
-            <div className="event-panel-row">
-              <SVGIcons.Clock className="event-panel-icon" />
-              <TimePicker value={t.start * 1000} onChange={this._changeStart} />
-              <SVGIcons.ArrowRight className="event-panel-icon" />
-              <TimePicker
-                value={t.end * 1000}
-                relativeTo={t.start * 1000}
-                onChange={(ms) => this._changeEnd(ms / 1000)}
-              />
-              <span className="event-panel-subtle">
-                {DateUtils.formatDuration(t.end - t.start)}
-              </span>
-            </div>
-            <div className="event-panel-row indented">
-              <DatePicker value={t.start * 1000} onChange={this._changeStart} />
-              {multiDay && <span>–</span>}
-              {multiDay && endDatePicker}
-            </div>
-          </>
-        )}
         <div className="event-panel-row">
-          <span className="event-panel-icon">
-            <Switch
-              checked={t.isAllDay}
-              onChange={this._onAllDayChange}
-              label={localized('All day')}
-            />
-          </span>
+          <SVGIcons.Clock className="event-panel-icon" />
+          <Switch
+            checked={t.isAllDay}
+            onChange={this._onAllDayChange}
+            label={localized('All day')}
+          />
           {localized('All day')}
+        </div>
+        {!t.isAllDay && (
+          <div className="event-panel-row indented">
+            <TimePicker value={t.start * 1000} onChange={this._changeStart} />
+            <SVGIcons.ArrowRight className="event-panel-icon" />
+            <TimePicker
+              value={t.end * 1000}
+              relativeTo={t.start * 1000}
+              onChange={(ms) => this._changeEnd(ms / 1000)}
+            />
+            <span className="event-panel-subtle">{DateUtils.formatDuration(t.end - t.start)}</span>
+          </div>
+        )}
+        <div className="event-panel-row indented">
+          <DatePicker value={t.start * 1000} onChange={this._changeStart} />
+          {multiDay && <span>–</span>}
+          {multiDay && endDatePicker}
         </div>
         {!t.isAllDay && (
           <div className="event-panel-row">
