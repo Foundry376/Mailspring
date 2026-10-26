@@ -369,7 +369,7 @@ export class InQueryExpression extends QueryExpression {
   }
 
   // ThreadSearch.categories holds role and path words, so an FTS match would also find
-  // "in:spam" in a label named "Political Spam". Categories are matched exactly in SQL.
+  // "in:spam" in a label named "Political Spam". Categories are matched by whole name in SQL.
   _computeIsMatchCompatible() {
     return false;
   }

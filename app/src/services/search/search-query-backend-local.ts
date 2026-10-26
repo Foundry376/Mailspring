@@ -12,6 +12,10 @@ import {
   QueryExpression,
 } from './search-query-ast';
 import { DateUtils } from 'mailspring-exports';
+import { imapUtf7 } from '../../utils/imap-utf7';
+
+// Category.displayName drops one of these and the delimiter after it.
+const DISPLAY_NAME_PREFIXES = ['INBOX', '[Gmail]', '[Mailspring]', 'Mailspring'];
 
 /*
  * This class visits a match-compatible subtree and condenses it into a single
@@ -251,12 +255,23 @@ class StructuredSearchQueryVisitor extends SearchQueryExpressionVisitor {
     throw new Error(`Unreachable: ${node}`);
   }
 
-  // `in:` names a folder or label by role or full path, as the search bar writes it
-  // (thread-search-bar.tsx), case-insensitively.
+  // `in:` names a folder or label by role, by full path as the search bar writes it
+  // (thread-search-bar.tsx), or by the name the sidebar and `in:` suggestions show
+  // (Category.displayName), case-insensitively.
   visitIn(node) {
-    const name = node.text.token.s.replace(/'/g, "''");
-    const named = (table: string) =>
-      `SELECT \`id\` FROM \`${table}\` WHERE \`role\` = '${name}' COLLATE NOCASE OR \`path\` = '${name}' COLLATE NOCASE`;
+    const name: string = node.text.token.s;
+    const quote = (s: string) => `'${s.replace(/'/g, "''")}'`;
+    const likeEscape = (s: string) => s.replace(/[\\%_]/g, '\\$&');
+
+    const pathMatches = [...new Set([name, imapUtf7.encode(name)])].flatMap((path) => [
+      `\`path\` = ${quote(path)} COLLATE NOCASE`,
+      ...DISPLAY_NAME_PREFIXES.map(
+        (prefix) =>
+          `\`path\` LIKE ${quote(`${likeEscape(prefix)}_${likeEscape(path)}`)} ESCAPE '\\'`
+      ),
+    ]);
+    const where = [`\`role\` = ${quote(name)} COLLATE NOCASE`, ...pathMatches].join(' OR ');
+    const named = (table: string) => `SELECT \`id\` FROM \`${table}\` WHERE ${where}`;
     const categoryIds = `${named('Folder')} UNION ${named('Label')}`;
     this._result = `(\`${this._className}\`.\`id\` IN (SELECT \`id\` FROM \`${this._className}Category\` WHERE \`value\` IN (${categoryIds})))`;
   }
