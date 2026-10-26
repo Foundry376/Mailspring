@@ -2,6 +2,24 @@
 @import 'ui-variables';
 @import 'ui-mixins';
 
+.attendee-status-colors() {
+  &.accepted .attendee-status {
+    background-color: #34c759;
+    color: white;
+  }
+
+  &.declined .attendee-status {
+    background-color: #ff3b30;
+    color: white;
+  }
+
+  &.tentative .attendee-status,
+  &.needs-action .attendee-status {
+    background-color: #8e8e93;
+    color: white;
+  }
+}
+
 .fixed-popover .calendar-event-popover {
   // The one action a read-only card offers. Drawn as a link rather than a .btn box so it
   // sits with the card's text instead of floating in a section of its own.
@@ -120,21 +138,7 @@
       white-space: nowrap;
     }
 
-    &.accepted .attendee-status {
-      background-color: #34c759;
-      color: white;
-    }
-
-    &.declined .attendee-status {
-      background-color: #ff3b30;
-      color: white;
-    }
-
-    &.tentative .attendee-status,
-    &.needs-action .attendee-status {
-      background-color: #8e8e93;
-      color: white;
-    }
+    .attendee-status-colors();
   }
   .description {
     white-space: pre-line;
@@ -749,5 +753,195 @@
     .agenda-event-list {
       padding: 0 8px 12px;
     }
+  }
+}
+
+.calendar-right-panel {
+  position: relative;
+  height: 100%;
+
+  // The agenda under an open event keeps its layout, and so its scroll position.
+  .is-covered {
+    visibility: hidden;
+  }
+}
+
+.event-panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid @border-color-divider;
+  background: @background-primary;
+  font-size: 13px;
+  line-height: 18px;
+  color: @text-color;
+
+  .event-panel-header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 8px 4px 4px;
+  }
+
+  .event-panel-back {
+    height: 24px;
+    padding: 0 8px 0 0;
+    display: flex;
+    align-items: center;
+    font: inherit;
+    color: @text-color;
+
+    img.content-mask {
+      background-color: @text-color;
+    }
+  }
+
+  .event-panel-body {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .event-panel-title {
+    padding: 6px 14px 12px;
+    border-bottom: 1px solid @border-color-divider;
+    font-size: 16px;
+    line-height: 21px;
+    overflow-wrap: anywhere;
+  }
+
+  .event-panel-section {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 14px;
+    border-bottom: 1px solid @border-color-divider;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .event-panel-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 26px;
+
+    &.indented {
+      padding-left: 26px;
+    }
+
+    &.top {
+      align-items: flex-start;
+
+      > .event-panel-icon {
+        margin-top: 5px;
+      }
+    }
+  }
+
+  .event-panel-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: @text-color-very-subtle;
+  }
+
+  .event-panel-subtle {
+    color: @text-color-very-subtle;
+  }
+
+  .event-panel-invitees {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .event-panel-invitee {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0;
+    .attendee-status-colors();
+
+    .attendee-status {
+      width: 12px;
+      height: 12px;
+      margin-top: 3px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      svg {
+        width: 7px;
+        height: 7px;
+      }
+    }
+  }
+
+  .event-panel-invitee-name,
+  .event-panel-location {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .event-panel-notes {
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+
+  .event-panel-calendar-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+}
+
+.calendar-grid-area {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  position: relative;
+}
+
+.scroll-back-pill {
+  position: absolute;
+  margin-top: 8px;
+  transform: translateX(-50%);
+  z-index: 2;
+  max-width: 220px;
+  height: 28px;
+  padding: 0 12px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: color-mix(in srgb, @accent-primary 12%, @background-primary);
+  border: 1px solid color-mix(in srgb, @accent-primary 25%, @background-primary);
+  border-radius: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  font: inherit;
+  font-size: 13px;
+  color: @accent-primary;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  .scroll-back-pill-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }

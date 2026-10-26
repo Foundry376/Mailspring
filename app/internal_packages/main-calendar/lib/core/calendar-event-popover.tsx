@@ -37,13 +37,15 @@ import {
   inclusiveAllDayEnd,
   shiftEndWithStart,
   clampEnd,
+  extractNotesFromDescription,
   NewEventDraft,
 } from './calendar-helpers';
+import { AttendeeStatusIcon, attendeeStatusClass, sortAttendeesByStatus } from './attendee-status';
 // CalendarColorPicker import removed - disabled until custom event colors are fully supported
 import { CalendarSelector } from './calendar-selector';
 import { LocationVideoInput } from './location-video-input';
 import { AllDayToggle } from './all-day-toggle';
-import { RepeatSelector, RepeatOption } from './repeat-selector';
+import { RepeatSelector, RepeatOption, frequencyToRepeatOption } from './repeat-selector';
 import { AlertSelector, AlertTiming } from './alert-selector';
 import { ShowAsSelector, ShowAsOption, defaultShowAs } from './show-as-selector';
 import { EventPopoverActions } from './event-popover-actions';
@@ -65,24 +67,6 @@ function repeatOptionToRRule(option: RepeatOption): string | null {
       return 'FREQ=YEARLY';
     default:
       return null;
-  }
-}
-
-/**
- * Convert an ICS recurrence frequency string to a RepeatOption UI value.
- */
-function frequencyToRepeatOption(frequency: string | undefined): RepeatOption {
-  switch (frequency?.toUpperCase()) {
-    case 'DAILY':
-      return 'daily';
-    case 'WEEKLY':
-      return 'weekly';
-    case 'MONTHLY':
-      return 'monthly';
-    case 'YEARLY':
-      return 'yearly';
-    default:
-      return 'none';
   }
 }
 
@@ -853,59 +837,14 @@ class CalendarEventPopoverUnenditable extends React.Component<
           <ScrollRegion className="section invitees">
             <div className="label">{localized(`Invitees`)}: </div>
             <div className="invitees-list">
-              {sortAttendeesByStatus(attendees).map((a, idx) => {
-                const partstat = a.partstat || 'NEEDS-ACTION';
-                const questionMarkIcon = (
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                    <path
-                      d="M3.5 3.5a1.5 1.5 0 0 1 2.6 1c0 1-1.1 1-1.1 2"
-                      stroke="currentColor"
-                      strokeWidth="1.2"
-                      strokeLinecap="round"
-                    />
-                    <circle cx="5" cy="8.5" r="0.75" fill="currentColor" />
-                  </svg>
-                );
-                let statusIcon: React.ReactNode;
-                let statusClass = 'needs-action';
-                if (partstat === 'ACCEPTED') {
-                  statusIcon = (
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                      <path
-                        d="M1.5 5.5L4 8l4.5-6"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  );
-                  statusClass = 'accepted';
-                } else if (partstat === 'DECLINED') {
-                  statusIcon = (
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                      <path
-                        d="M2 2l6 6M8 2l-6 6"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  );
-                  statusClass = 'declined';
-                } else if (partstat === 'TENTATIVE') {
-                  statusIcon = questionMarkIcon;
-                  statusClass = 'tentative';
-                } else {
-                  statusIcon = questionMarkIcon;
-                }
-                return (
-                  <div key={idx} className={`attendee-chip ${statusClass}`}>
-                    <span className="attendee-status">{statusIcon}</span>
-                    <span className="attendee-name">{a.name || a.email}</span>
-                  </div>
-                );
-              })}
+              {sortAttendeesByStatus(attendees).map((a, idx) => (
+                <div key={idx} className={`attendee-chip ${attendeeStatusClass(a)}`}>
+                  <span className="attendee-status">
+                    <AttendeeStatusIcon attendee={a} />
+                  </span>
+                  <span className="attendee-name">{a.name || a.email}</span>
+                </div>
+              ))}
             </div>
           </ScrollRegion>
           <ScrollRegion className="section description">
@@ -918,52 +857,6 @@ class CalendarEventPopoverUnenditable extends React.Component<
       </div>
     );
   }
-}
-
-function sortAttendeesByStatus(attendees: EventAttendee[]): EventAttendee[] {
-  const statusOrder = { ACCEPTED: 0, TENTATIVE: 1, 'NEEDS-ACTION': 1, DECLINED: 2 };
-  return [...attendees].sort((a, b) => {
-    const aOrder = statusOrder[a.partstat] ?? 1;
-    const bOrder = statusOrder[b.partstat] ?? 1;
-    if (aOrder !== bOrder) return aOrder - bOrder;
-    const aName = (a.name || a.email).toLowerCase();
-    const bName = (b.name || b.email).toLowerCase();
-    return aName.localeCompare(bName);
-  });
-}
-
-// A description is markup from whoever sent the invitation. DOMParser's document is inert, so the
-// images it references are never fetched.
-function extractNotesFromDescription(description: string) {
-  const doc = new DOMParser().parseFromString(description, 'text/html');
-  const descriptionRoot = doc.body;
-
-  // The parsed document has no layout, so block boundaries become newlines here; Google writes
-  // each line of a description as <br>-separated HTML.
-  descriptionRoot.querySelectorAll('br').forEach((br) => br.replaceWith('\n'));
-  descriptionRoot
-    .querySelectorAll('p, div, li, tr, h1, h2, h3, h4, h5, h6, blockquote')
-    .forEach((block) => block.append('\n'));
-
-  // The parser moves <meta> tags that lead the description into <head>.
-  const els = doc.querySelectorAll('meta[itemprop=description]');
-  let notes: string = null;
-  if (els.length) {
-    notes = Array.from(els)
-      .map((el) => (el as HTMLMetaElement).content)
-      .join('\n');
-  } else {
-    notes = descriptionRoot.textContent;
-  }
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const nextNotes = notes.replace('\n\n', '\n');
-    if (nextNotes === notes) {
-      break;
-    }
-    notes = nextNotes;
-  }
-  return notes;
 }
 
 function formatTime(momentTime: Moment) {

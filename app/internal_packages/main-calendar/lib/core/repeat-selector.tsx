@@ -17,6 +17,28 @@ const REPEAT_OPTIONS: { value: RepeatOption; label: string }[] = [
   { value: 'yearly', label: localized('Every Year') },
 ];
 
+export function repeatLabel(option: RepeatOption): string {
+  return REPEAT_OPTIONS.find((opt) => opt.value === option).label;
+}
+
+/**
+ * Convert an ICS recurrence frequency string to a RepeatOption UI value.
+ */
+export function frequencyToRepeatOption(frequency: string | undefined): RepeatOption {
+  switch (frequency?.toUpperCase()) {
+    case 'DAILY':
+      return 'daily';
+    case 'WEEKLY':
+      return 'weekly';
+    case 'MONTHLY':
+      return 'monthly';
+    case 'YEARLY':
+      return 'yearly';
+    default:
+      return 'none';
+  }
+}
+
 export const RepeatSelector: React.FC<RepeatSelectorProps> = ({ value, onChange }) => {
   return (
     <EventPropertyRow label={localized('repeat:')}>

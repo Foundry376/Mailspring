@@ -44,6 +44,7 @@ export * from '../components/outline-view';
 export const DateInput: typeof import('../components/date-input').default;
 export * from '../components/mini-month-view';
 export * from '../components/snap-scroller';
+export * as SVGIcons from '../components/svg-icons';
 export * from '../components/date-picker';
 export const TimePicker: typeof import('../components/time-picker').default;
 export const ProposeTimePopover: typeof import('../components/propose-time-popover').ProposeTimePopover;

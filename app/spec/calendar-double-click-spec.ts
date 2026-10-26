@@ -16,11 +16,23 @@ const occurrence = {
 } as TimedOccurrence;
 
 describe('double-clicking a calendar event', function () {
-  it('opens its editor, not the card', function () {
+  function loadedCalendar() {
     const calendar: any = new MailspringCalendar({} as any);
-    const open = spyOn(calendar, '_openEventPopover');
+    calendar.state = { ...calendar.state, calendarsLoaded: true };
+    spyOn(calendar, '_openEventEditor');
+    return calendar;
+  }
+
+  it('opens the editor for an event we may change', function () {
+    const calendar = loadedCalendar();
     calendar._onEventDoubleClick(occurrence);
-    expect(open).toHaveBeenCalledWith(occurrence, true);
+    expect(calendar._openEventEditor).toHaveBeenCalledWith(occurrence);
+  });
+
+  it("leaves somebody else's meeting to the panel the click opened", function () {
+    const calendar = loadedCalendar();
+    calendar._onEventDoubleClick({ ...occurrence, isMine: false });
+    expect(calendar._openEventEditor).not.toHaveBeenCalled();
   });
 });
 
@@ -33,7 +45,8 @@ describe("the context menu's open item", function () {
       readOnlyCalendarIds: new Set(readOnlyCalendarIds),
       selectedEvents: [occurrence],
     };
-    spyOn(calendar, '_openEventPopover');
+    calendar.setState = (update: object) => Object.assign(calendar.state, update);
+    spyOn(calendar, '_openEventEditor');
     return calendar;
   }
 
@@ -51,23 +64,23 @@ describe("the context menu's open item", function () {
     const menu = menuFor(calendar, occurrence);
     expect(openItem(menu).label).toBe('Edit Event...');
     openItem(menu).click();
-    expect(calendar._openEventPopover).toHaveBeenCalledWith(occurrence, true);
+    expect(calendar._openEventEditor).toHaveBeenCalledWith(occurrence);
   });
 
-  it("is View Event, and keeps the card, for somebody else's meeting", function () {
+  it("is View Event, and shows it in the panel, for somebody else's meeting", function () {
     const calendar = calendarWith([]);
     const theirs = { ...occurrence, isMine: false } as TimedOccurrence;
     const menu = menuFor(calendar, theirs);
     expect(openItem(menu).label).toBe('View Event');
     openItem(menu).click();
-    expect(calendar._openEventPopover).toHaveBeenCalledWith(theirs, false);
+    expect(calendar._openEventEditor).not.toHaveBeenCalled();
   });
 
-  it('keeps the card on a read-only calendar, even for our own event', function () {
+  it('shows it in the panel on a read-only calendar, even for our own event', function () {
     const calendar = calendarWith(['c']);
     const menu = menuFor(calendar, occurrence);
     expect(openItem(menu).label).toBe('View Event');
     openItem(menu).click();
-    expect(calendar._openEventPopover).toHaveBeenCalledWith(occurrence, false);
+    expect(calendar._openEventEditor).not.toHaveBeenCalled();
   });
 });

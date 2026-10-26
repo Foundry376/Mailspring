@@ -244,11 +244,11 @@ export async function proposeNewTimeForCalendarEvent(
 }
 
 /**
- * Opens the time picker for a counter-proposal, anchored on the event in the grid, or on the
- * window's centre when the grid has scrolled it out of view.
+ * Opens the time picker for a counter-proposal, anchored on `anchor`, else on the event in the
+ * grid, or on the window's centre when the grid has scrolled it out of view.
  */
-export function openProposeNewTimePopover(occurrence: EventOccurrence): void {
-  const eventEl = document.getElementById(occurrence.id);
+export function openProposeNewTimePopover(occurrence: EventOccurrence, anchor?: HTMLElement): void {
+  const eventEl = anchor || document.getElementById(occurrence.id);
   Actions.openPopover(
     React.createElement(ProposeTimePopover, {
       start: occurrenceStartUnix(occurrence),

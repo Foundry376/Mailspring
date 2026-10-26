@@ -1,6 +1,6 @@
 import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
-import { InjectedComponentSet } from 'mailspring-component-kit';
+import { InjectedComponentSet, SVGIcons } from 'mailspring-component-kit';
 import { CalendarDateUtils, CalendarUtils } from 'mailspring-exports';
 import {
   EventOccurrence,
@@ -93,8 +93,8 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     (ReactDOM.findDOMNode(this) as HTMLElement | null)?.focus({ preventScroll: true });
   }
 
-  // Announce focus only as it arrives: onFocused opens the card and the reveal scrolls to it, so
-  // doing both on every update reopens the card and jumps the grid on any re-render.
+  // Announce focus only as it arrives: onFocused selects the event and the reveal scrolls to it,
+  // so doing both on every update jumps the grid back to it on any re-render.
   _revealOnFocusGained(wasFocused: boolean) {
     const { focused, event, onFocused } = this.props;
     if (!focused || wasFocused) {
@@ -309,55 +309,19 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       <div className="event-details">
         {meetingDomain && (
           <span className="event-meeting-link">
-            <svg className="detail-icon" viewBox="0 0 12 12" width="10" height="10">
-              <rect
-                x="1"
-                y="3"
-                width="7"
-                height="6"
-                rx="1"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.3"
-              />
-              <path
-                d="M8 4.5 L11 3 V9 L8 7.5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.3"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <SVGIcons.Video className="detail-icon" size={10} strokeWidth={2.6} />
             {meetingDomain}
           </span>
         )}
         {hasPhysicalLocation && (
           <span className="event-location">
-            <svg className="detail-icon" viewBox="0 0 12 12" width="10" height="10">
-              <path
-                d="M6 11 C6 11 2.5 7 2.5 5 A3.5 3.5 0 1 1 9.5 5 C9.5 7 6 11 6 11Z"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.2"
-              />
-              <circle cx="6" cy="5" r="1.3" fill="currentColor" />
-            </svg>
+            <SVGIcons.Location className="detail-icon" size={10} strokeWidth={2.4} />
             {event.location}
           </span>
         )}
         {timeRange && (
           <span className="event-time-range">
-            <svg className="detail-icon" viewBox="0 0 12 12" width="10" height="10">
-              <circle cx="6" cy="6" r="4.5" fill="none" stroke="currentColor" strokeWidth="1.3" />
-              <polyline
-                points="6,3 6,6 8.5,7.5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <SVGIcons.Clock className="detail-icon" size={10} strokeWidth={2.6} />
             {timeRange}
           </span>
         )}
