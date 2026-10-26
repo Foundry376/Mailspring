@@ -38,7 +38,8 @@ interface EventPanelState {
   repeat: RepeatOption;
 }
 
-export class EventPanel extends React.Component<EventPanelProps, EventPanelState> {
+// Pure: the calendar re-renders on every drag move, and the notes are re-parsed on each render.
+export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelState> {
   static displayName = 'EventPanel';
 
   state: EventPanelState = { repeat: 'none' };
@@ -108,36 +109,37 @@ export class EventPanel extends React.Component<EventPanelProps, EventPanelState
         ? firstDay
         : `${firstDay} – ${momentOf(event.endDate).format('ddd MMM D')}`;
 
-    if (!isTimed(event)) {
-      return (
-        <div className="event-panel-section">
-          <div className="event-panel-row">
-            <SVGIcons.Clock className="event-panel-icon" />
-            <span>{days}</span>
-          </div>
-          <div className="event-panel-row indented">{localized('All day')}</div>
-        </div>
-      );
-    }
     return (
       <div className="event-panel-section">
-        <div className="event-panel-row">
-          <SVGIcons.Clock className="event-panel-icon" />
-          <span>{formatShortTime(event.start)}</span>
-          <SVGIcons.ArrowRight className="event-panel-icon" />
-          <span>
-            {formatShortTime(event.end)}{' '}
-            <span className="event-panel-subtle">
-              {DateUtils.formatDuration(event.end - event.start)}
-            </span>
-          </span>
-        </div>
-        <div className="event-panel-row indented">{days}</div>
-        <div className="event-panel-row">
-          <SVGIcons.Globe className="event-panel-icon" />
-          {/* The zone the times above are shown in, which may not be the event's own. */}
-          {formatTimezone(DateUtils.timeZone)}
-        </div>
+        {isTimed(event) ? (
+          <>
+            <div className="event-panel-row">
+              <SVGIcons.Clock className="event-panel-icon" />
+              <span>{formatShortTime(event.start)}</span>
+              <SVGIcons.ArrowRight className="event-panel-icon" />
+              <span>
+                {formatShortTime(event.end)}{' '}
+                <span className="event-panel-subtle">
+                  {DateUtils.formatDuration(event.end - event.start)}
+                </span>
+              </span>
+            </div>
+            <div className="event-panel-row indented">{days}</div>
+            <div className="event-panel-row">
+              <SVGIcons.Globe className="event-panel-icon" />
+              {/* The zone the times above are shown in, which may not be the event's own. */}
+              {formatTimezone(DateUtils.timeZone)}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="event-panel-row">
+              <SVGIcons.Clock className="event-panel-icon" />
+              <span>{days}</span>
+            </div>
+            <div className="event-panel-row indented">{localized('All day')}</div>
+          </>
+        )}
         {this.state.repeat !== 'none' && (
           <div className="event-panel-row">
             <SVGIcons.Repeat className="event-panel-icon" />
@@ -195,7 +197,7 @@ export class EventPanel extends React.Component<EventPanelProps, EventPanelState
   }
 
   _renderNotes() {
-    const notes = extractNotesFromDescription(this.props.event.description || '').trim();
+    const notes = extractNotesFromDescription(this.props.event.description).trim();
     if (!notes) return null;
     return (
       <div className="event-panel-section event-panel-notes" ref={this._notesRef}>

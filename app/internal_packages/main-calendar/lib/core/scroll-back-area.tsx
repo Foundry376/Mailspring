@@ -68,9 +68,12 @@ export function scrolledAwayDirection(
     return sides.includes(null) ? null : sides[0];
   }
 
-  const shown = Array.from(area.querySelectorAll<HTMLElement>(DAY_CELL)).filter(
-    (cell) => sideOutside(cell.getBoundingClientRect(), clipsOf(cell, area)) === null
-  );
+  const cells = Array.from(area.querySelectorAll<HTMLElement>(DAY_CELL));
+  if (cells.length === 0) return null;
+  // The day cells all sit inside the scroller, so they share its clips.
+  const scroller = area.querySelector(DAY_SCROLLER);
+  const clips = [scroller.getBoundingClientRect(), ...clipsOf(scroller, area)];
+  const shown = cells.filter((cell) => sideOutside(cell.getBoundingClientRect(), clips) === null);
   if (shown.length === 0) return null;
   const start = occurrenceStartUnix(event);
   const firstShown = Math.min(...shown.map((cell) => Number(cell.dataset.calendarStart)));
@@ -137,8 +140,8 @@ export class ScrollBackArea extends React.Component<ScrollBackAreaProps, ScrollB
       return;
     }
     const areaRect = area.getBoundingClientRect();
-    const scroller = area.querySelector(DAY_SCROLLER)?.getBoundingClientRect() || areaRect;
-    const gridTop = area.querySelector(GRID_TOP)?.getBoundingClientRect().top ?? areaRect.top;
+    const scroller = area.querySelector(DAY_SCROLLER).getBoundingClientRect();
+    const gridTop = area.querySelector(GRID_TOP).getBoundingClientRect().top;
     const left = scroller.left + scroller.width / 2 - areaRect.left;
     const top = gridTop - areaRect.top;
     const { state } = this;
