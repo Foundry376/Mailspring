@@ -32,6 +32,7 @@ const CHROMIUM_CACHE_DIRECTORIES = ['GPUCache', 'Code Cache', 'Cache'];
 const RECOVERABLE_EXIT_REASONS = new Set(['crashed', 'abnormal-exit', 'launch-failed']);
 
 let recoveryStarted = false;
+let softwareRenderingApplied = false;
 
 export function softwareRenderingMarkerPath(configDirPath: string) {
   return path.join(configDirPath, SOFTWARE_RENDERING_MARKER);
@@ -67,6 +68,10 @@ export function isPrimaryWindow({
 /**
  * Called from render-process-gone. Returns true if a relaunch has been
  * requested and the caller should not show its crash dialog.
+ *
+ * A process already running with software rendering never relaunches: its
+ * renderer is dying for a reason other than the GPU, and relaunching would
+ * loop forever without the user ever seeing the crash dialog.
  */
 export function attemptEarlyRendererCrashRecovery({
   app,
@@ -89,6 +94,12 @@ export function attemptEarlyRendererCrashRecovery({
     recoveryStarted ||
     !shouldRecoverFromEarlyRendererCrash({ platform, primaryWindow, loaded, reason })
   ) {
+    return false;
+  }
+  if (softwareRenderingApplied) {
+    console.warn(
+      `Renderer exited (${reason}) before the primary window loaded, with hardware acceleration already disabled.`
+    );
     return false;
   }
 
@@ -121,6 +132,7 @@ export function applyPersistentSoftwareRendering(
   }
 
   app.disableHardwareAcceleration();
+  softwareRenderingApplied = true;
 
   const cacheClearedPath = path.join(configDirPath, CACHE_CLEARED_MARKER);
   if (!fileSystem.existsSync(cacheClearedPath)) {
@@ -139,4 +151,5 @@ export function applyPersistentSoftwareRendering(
 
 export function resetRecoveryStateForTests() {
   recoveryStarted = false;
+  softwareRenderingApplied = false;
 }
