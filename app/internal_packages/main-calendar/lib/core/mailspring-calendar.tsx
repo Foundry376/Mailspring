@@ -22,6 +22,7 @@ import { TimeGridView } from './time-grid-view';
 import { MonthView } from './month-view';
 import { AgendaContainer } from './agenda-container';
 import { EventPanel } from './event-panel';
+import { ScrollBackArea } from './scroll-back-area';
 import FocusedMomentStore from './focused-moment-store';
 import CalendarHeaderStore from './calendar-header-store';
 import {
@@ -1335,8 +1336,26 @@ export class MailspringCalendar extends React.Component<
 
   _onAgendaEventClick = (e: React.MouseEvent, occurrence: EventOccurrence) => {
     this._onEventClick(e, occurrence);
+    this._revealEvent(occurrence);
+  };
+
+  /** Scrolls the grid to the event, as View in Calendar does. */
+  _revealEvent = (occurrence: EventOccurrence) => {
     Actions.focusCalendarEvent({ id: occurrence.id, start: occurrenceStartUnix(occurrence) });
   };
+
+  _renderGridArea() {
+    const panelEvent = this.state.agendaOpen ? this._panelEvent() : null;
+    return (
+      <ScrollBackArea
+        event={panelEvent}
+        dayAxis={this.state.view === CalendarView.MONTH ? 'vertical' : 'horizontal'}
+        onReveal={this._revealEvent}
+      >
+        {this._renderMainContent()}
+      </ScrollBackArea>
+    );
+  }
 
   // The agenda stays mounted under an open event, so going back keeps its scroll position.
   _renderAgendaPanel() {
@@ -1400,7 +1419,7 @@ export class MailspringCalendar extends React.Component<
             'calendar:resize-event-right': () => this._onMoveSelectedEvent('right', true),
           }}
         >
-          {this._renderMainContent()}
+          {this._renderGridArea()}
           {this._renderAgendaPanel()}
         </KeyCommandsRegion>
       </CalendarMenuCommands>

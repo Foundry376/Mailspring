@@ -901,3 +901,41 @@
   }
 }
 
+.calendar-grid-area {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  position: relative;
+}
+
+.scroll-back-pill {
+  position: absolute;
+  margin-top: 8px;
+  transform: translateX(-50%);
+  z-index: 2;
+  max-width: 220px;
+  height: 28px;
+  padding: 0 12px 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: color-mix(in srgb, @accent-primary 12%, @background-primary);
+  border: 1px solid color-mix(in srgb, @accent-primary 25%, @background-primary);
+  border-radius: 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  font: inherit;
+  font-size: 13px;
+  color: @accent-primary;
+
+  svg {
+    flex-shrink: 0;
+  }
+
+  .scroll-back-pill-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
