@@ -16,6 +16,8 @@ import AccountOnboardingSuccess from './page-account-onboarding-success';
 import InitialPreferencesPage from './page-initial-preferences';
 import InitialSubscriptionPage from './page-initial-subscription';
 import AccountSettingsPageOutlook from './page-account-settings-outlook';
+import AccountCertificatePage from './page-account-certificate';
+import { RejectedCertificate } from './certificate-review';
 
 const PageComponents = {
   welcome: WelcomePage,
@@ -27,6 +29,7 @@ const PageComponents = {
   'account-settings-o365': AccountSettingsPageO365,
   'account-settings-outlook': AccountSettingsPageOutlook,
   'account-settings-imap': AccountSettingsPageIMAP,
+  'account-certificate': AccountCertificatePage,
   'account-onboarding-success': AccountOnboardingSuccess,
   'initial-preferences': InitialPreferencesPage,
   'initial-subscription': InitialSubscriptionPage,
@@ -37,6 +40,7 @@ interface OnboardingRootState {
   page: string;
   account: Account;
   confirmServers: boolean;
+  rejectedCertificates: RejectedCertificate[];
 }
 
 export default class OnboardingRoot extends React.Component<
@@ -71,6 +75,7 @@ export default class OnboardingRoot extends React.Component<
       pageDepth: OnboardingStore.pageDepth(),
       account: OnboardingStore.account(),
       confirmServers: OnboardingStore.confirmServers(),
+      rejectedCertificates: OnboardingStore.rejectedCertificates(),
     };
   };
 
@@ -93,7 +98,11 @@ export default class OnboardingRoot extends React.Component<
         <TransitionGroup component={null}>
           <CSSTransition key={this.state.page} classNames="alpha-fade" timeout={150}>
             <div className="page-container">
-              <Component account={this.state.account} confirmServers={this.state.confirmServers} />
+              <Component
+                account={this.state.account}
+                confirmServers={this.state.confirmServers}
+                rejectedCertificates={this.state.rejectedCertificates}
+              />
             </div>
           </CSSTransition>
         </TransitionGroup>

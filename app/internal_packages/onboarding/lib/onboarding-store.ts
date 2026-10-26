@@ -10,12 +10,14 @@ import { ipcRenderer } from 'electron';
 import MailspringStore from 'mailspring-store';
 
 import * as OnboardingActions from './onboarding-actions';
+import { RejectedCertificate } from './certificate-review';
 
 class OnboardingStore extends MailspringStore {
   _account: Account;
   _pageStack: string[];
   // Cleared by any later setAccount, such as submitting the form or going back.
   _confirmServers = false;
+  _rejectedCertificates: RejectedCertificate[] = [];
 
   constructor() {
     super();
@@ -108,13 +110,17 @@ class OnboardingStore extends MailspringStore {
 
   _onSetAccount = (
     acct: Account,
-    { confirmServers = false }: { confirmServers?: boolean } = {}
+    {
+      confirmServers = false,
+      rejectedCertificates = [],
+    }: { confirmServers?: boolean; rejectedCertificates?: RejectedCertificate[] } = {}
   ) => {
     if (!(acct instanceof Account)) {
       throw new Error('OnboardingActions.setAccount expects an Account instance.');
     }
     this._account = acct;
     this._confirmServers = confirmServers;
+    this._rejectedCertificates = rejectedCertificates;
     this.trigger();
   };
 
@@ -203,6 +209,10 @@ class OnboardingStore extends MailspringStore {
 
   confirmServers() {
     return this._confirmServers;
+  }
+
+  rejectedCertificates() {
+    return this._rejectedCertificates;
   }
 }
 

@@ -58,7 +58,10 @@ export function isAuthFailureExit({ error }: Pick<MailsyncProcessExit, 'error'>)
     `${error}`.includes('Response Code: 401') || // mailspring services
     `${error}`.includes('Response Code: 403') || // mailspring services
     `${error}`.includes('invalid_grant') || // Google
-    `${error}`.includes('ErrorAuthentication') // mailcore
+    `${error}`.includes('ErrorAuthentication') || // mailcore
+    // The server's certificate is untrusted or changed since the user accepted it. Like a bad
+    // password, retrying can't fix it: reconnecting shows the certificate for review.
+    `${error}`.includes('ErrorCertificate')
   );
 }
 
@@ -350,6 +353,7 @@ export default class MailsyncBridge {
       });
     } finally {
       delete this._clients[account.id];
+      Actions.mailsyncProcessExited(resetClient);
       this._resettingAccountIds.delete(account.id);
       process.nextTick(() => {
         this.ensureClients();
@@ -391,6 +395,8 @@ export default class MailsyncBridge {
     client.sync();
     client.on('deltas', this._onIncomingMessages);
     client.on('close', ({ code, error, signal }: MailsyncProcessExit) => {
+      // Also for a client already replaced (restart, reset, relaunch): it answers nothing more.
+      Actions.mailsyncProcessExited(client);
       if (this._clients[account.id] !== client) {
         return;
       }
@@ -510,6 +516,10 @@ export default class MailsyncBridge {
 
       if (modelClass === 'ProcessIdentityRefreshNeeded') {
         IdentityStore.fetchIdentitySoon();
+        continue;
+      }
+      if (modelClass === 'ProcessSearchResult') {
+        modelJSONs.forEach((result) => Actions.remoteSearchResultReceived(result));
         continue;
       }
 

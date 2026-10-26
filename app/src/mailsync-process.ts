@@ -133,6 +133,12 @@ export class MailsyncProcess extends EventEmitter {
   _proc: ChildProcess = null;
   _win = null;
 
+  // The bridge registers a client before spawning it, after the account's secrets are read
+  // from the keychain; a message sent in between is lost.
+  get spawned() {
+    return !!this._proc;
+  }
+
   // these must be set before you use the process
   account: Account = null;
   identity: IIdentity = null;
@@ -333,13 +339,15 @@ export class MailsyncProcess extends EventEmitter {
             if (response.error_service) {
               msg = `${msg} (${response.error_service.toUpperCase()})`;
             }
-            // Set only for a rejected TLS handshake today; arrives unlocalized.
+            // Set for a rejected TLS handshake or certificate; arrives unlocalized.
             if (response.error_advice) {
               msg = `${msg} ${response.error_advice}`;
             }
             const error = new Error(msg);
             (error as any).rawLog = this._stripSecrets(response.log);
             (error as any).errorAdvice = response.error_advice || null;
+            // Certificates that failed validation, for the user to review and accept.
+            (error as any).certificates = response.certificates || null;
             (error as any).errorService = response.error_service || null;
             // Set when the engine classified the failure as this machine being unable to
             // reach the network, rather than a server refusing or rejecting us.
