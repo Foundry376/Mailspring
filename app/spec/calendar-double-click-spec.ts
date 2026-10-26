@@ -14,19 +14,29 @@ const occurrence = {
   start: 1_782_000_000,
   end: 1_782_003_600,
 } as TimedOccurrence;
+// The panel edits a one-off event without guests itself; the editor is for the rest.
+const weekly = { ...occurrence, isRecurring: true } as TimedOccurrence;
 
 describe('double-clicking a calendar event', function () {
   function loadedCalendar() {
     const calendar: any = new MailspringCalendar({} as any);
     calendar.state = { ...calendar.state, calendarsLoaded: true };
+    calendar.setState = (update: object) => Object.assign(calendar.state, update);
     spyOn(calendar, '_openEventEditor');
     return calendar;
   }
 
-  it('opens the editor for an event we may change', function () {
+  it('opens the editor for a repeating event we may change', function () {
+    const calendar = loadedCalendar();
+    calendar._onEventDoubleClick(weekly);
+    expect(calendar._openEventEditor).toHaveBeenCalledWith(weekly);
+  });
+
+  it('edits a one-off event without guests in the panel instead', function () {
     const calendar = loadedCalendar();
     calendar._onEventDoubleClick(occurrence);
-    expect(calendar._openEventEditor).toHaveBeenCalledWith(occurrence);
+    expect(calendar._openEventEditor).not.toHaveBeenCalled();
+    expect(calendar.state.selectedEvents).toEqual([occurrence]);
   });
 
   it("leaves somebody else's meeting to the panel the click opened", function () {
@@ -59,12 +69,12 @@ describe("the context menu's open item", function () {
   const openItem = (menu: CalendarEventContextMenu) =>
     menu.template()[0] as { label: string; click: () => void };
 
-  it('is Edit Event, and opens the editor, for a meeting we organize', function () {
+  it('is Edit Event, and opens the editor, for a repeating meeting we organize', function () {
     const calendar = calendarWith([]);
-    const menu = menuFor(calendar, occurrence);
+    const menu = menuFor(calendar, weekly);
     expect(openItem(menu).label).toBe('Edit Event...');
     openItem(menu).click();
-    expect(calendar._openEventEditor).toHaveBeenCalledWith(occurrence);
+    expect(calendar._openEventEditor).toHaveBeenCalledWith(weekly);
   });
 
   it("is View Event, and shows it in the panel, for somebody else's meeting", function () {
