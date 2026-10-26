@@ -89,7 +89,13 @@ export class EventPanel extends React.Component<EventPanelProps, EventPanelState
           <RetinaImg
             name="sheet-back.png"
             mode={RetinaImg.Mode.ContentIsMask}
-            style={isRTL ? { transform: `scaleX(-1)` } : {}}
+            // Drawn for a 32px toolbar button; the panel's header row is 24px.
+            style={{
+              width: 24,
+              height: 24,
+              WebkitMaskSize: 'contain',
+              ...(isRTL ? { transform: `scaleX(-1)` } : {}),
+            }}
           />
           {localized('Agenda')}
         </button>
