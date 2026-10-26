@@ -14,13 +14,25 @@
     flex-direction: column;
   }
 
-  // Shown above the (empty) columns so the layout is visible before any tracked mail exists.
+  // Floats over the faded, empty columns so the board's layout shows before any tracked mail exists.
   .activity-feed-empty-state {
-    flex: none;
-    padding: 12px 20px 28px 20px;
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: calc(100% - 80px);
+    padding: 24px 28px 28px;
+    background: @background-primary;
+    border-radius: @border-radius-large;
     .logo {
       display: none;
     }
+  }
+
+  .engagement-body.empty .engagement-columns {
+    opacity: 0.5;
+    pointer-events: none;
   }
 
   .engagement-columns {

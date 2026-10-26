@@ -3,7 +3,8 @@
 .activity-dashboard {
   .activity-tabs {
     display: flex;
-    margin: 0 20px;
+    // Padding rather than margin, so the divider runs edge to edge while the tabs line up with the title.
+    padding: 0 20px;
     border-bottom: 1px solid @border-color-divider;
 
     .tab {
@@ -124,6 +125,7 @@
     margin: 0 auto;
     padding: 20px;
     color: @text-color-subtle;
+    text-wrap: pretty;
 
     img.logo {
       background-color: @text-color-very-subtle;
@@ -138,7 +140,7 @@
     }
     .steps {
       text-align: left;
-      margin: 0 0 20px 0;
+      margin: 0 0 24px 0;
       padding-left: 22px;
       li {
         margin-bottom: 10px;
@@ -157,11 +159,6 @@
           vertical-align: middle;
         }
       }
-    }
-    .hint {
-      color: @text-color-very-subtle;
-      font-size: @font-size-small;
-      margin: 0 0 24px 0;
     }
   }
 }

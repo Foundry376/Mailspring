@@ -236,6 +236,7 @@ export default class EngagementBoard extends React.Component<
     for (const e of this._sorted(entries)) {
       byTier.get(tierFor(e)).push(e);
     }
+    const empty = !loading && !recipients.some((r) => r.tracked > 0 || r.replies > 0);
 
     return (
       <div className="engagement-board">
@@ -284,11 +285,9 @@ export default class EngagementBoard extends React.Component<
             {localized('Export CSV')}
           </div>
         </div>
-        <div className="engagement-body">
+        <div className={classnames('engagement-body', { empty })}>
           <LoadingCover active={loading} />
-          {!loading && !recipients.some((r) => r.tracked > 0 || r.replies > 0) && (
-            <ActivityFeedEmptyState hasTrackedMessages={false} />
-          )}
+          {empty && <ActivityFeedEmptyState hasTrackedMessages={false} />}
           <div className="engagement-columns">
             {ENGAGEMENT_TIERS.map((tier) => this.renderColumn(tier, byTier.get(tier)))}
           </div>
