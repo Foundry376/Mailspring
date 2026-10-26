@@ -12,6 +12,19 @@ const CONFIG_DIR = '/tmp/mailspring-profile';
 describe('hardware acceleration recovery', () => {
   beforeEach(() => resetRecoveryStateForTests());
 
+  const buildFileSystem = (existing: string[]) => ({
+    existsSync: jasmine
+      .createSpy('existsSync')
+      .andCallFake((filePath: string) => existing.includes(filePath)),
+    rmSync: jasmine.createSpy('rmSync'),
+    writeFileSync: jasmine.createSpy('writeFileSync'),
+  });
+  const buildApp = () => ({
+    disableHardwareAcceleration: jasmine.createSpy('disableHardwareAcceleration'),
+    exit: jasmine.createSpy('exit'),
+    relaunch: jasmine.createSpy('relaunch'),
+  });
+
   describe('shouldRecoverFromEarlyRendererCrash', () => {
     const crashed = { platform: 'win32', primaryWindow: true, loaded: false, reason: 'crashed' };
 
@@ -72,20 +85,39 @@ describe('hardware acceleration recovery', () => {
     expect(app.relaunch.callCount).toBe(1);
   });
 
-  describe('applyPersistentSoftwareRendering', () => {
-    const buildFileSystem = (existing: string[]) => ({
-      existsSync: jasmine
-        .createSpy('existsSync')
-        .andCallFake((filePath: string) => existing.includes(filePath)),
-      rmSync: jasmine.createSpy('rmSync'),
-      writeFileSync: jasmine.createSpy('writeFileSync'),
-    });
-    const buildApp = () => ({
-      disableHardwareAcceleration: jasmine.createSpy('disableHardwareAcceleration'),
-      exit: jasmine.createSpy('exit'),
-      relaunch: jasmine.createSpy('relaunch'),
+  describe('after applyPersistentSoftwareRendering', () => {
+    const crashOptions = (fileSystem: ReturnType<typeof buildFileSystem>) => ({
+      configDirPath: CONFIG_DIR,
+      loaded: false,
+      primaryWindow: true,
+      platform: 'win32',
+      reason: 'crashed',
+      fileSystem,
     });
 
+    it('leaves an early crash to the crash dialog once software rendering is in effect', () => {
+      const app = buildApp();
+      const fileSystem = buildFileSystem([softwareRenderingMarkerPath(CONFIG_DIR)]);
+      applyPersistentSoftwareRendering(app, CONFIG_DIR, 'win32', fileSystem);
+      fileSystem.writeFileSync.reset();
+
+      expect(attemptEarlyRendererCrashRecovery({ app, ...crashOptions(fileSystem) })).toBe(false);
+      expect(fileSystem.writeFileSync).not.toHaveBeenCalled();
+      expect(app.relaunch).not.toHaveBeenCalled();
+      expect(app.exit).not.toHaveBeenCalled();
+    });
+
+    it('still relaunches when the launch started without the marker', () => {
+      const app = buildApp();
+      const fileSystem = buildFileSystem([]);
+      applyPersistentSoftwareRendering(app, CONFIG_DIR, 'win32', fileSystem);
+
+      expect(attemptEarlyRendererCrashRecovery({ app, ...crashOptions(fileSystem) })).toBe(true);
+      expect(app.relaunch).toHaveBeenCalled();
+    });
+  });
+
+  describe('applyPersistentSoftwareRendering', () => {
     it('does nothing without the marker', () => {
       const app = buildApp();
       expect(applyPersistentSoftwareRendering(app, CONFIG_DIR, 'win32', buildFileSystem([]))).toBe(

@@ -378,6 +378,57 @@
     padding-bottom: 20px;
   }
 }
+.page.account-setup.AccountCertificatePage {
+  overflow-y: auto;
+  padding-bottom: 30px;
+  h2 {
+    padding-top: 30px;
+  }
+  .certificates {
+    width: 640px;
+    margin: 20px auto;
+  }
+  .certificate {
+    text-align: left;
+    margin-bottom: 14px;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    user-select: text;
+  }
+  .certificate-servers {
+    color: #555;
+    strong {
+      font-weight: 500;
+      color: #333;
+    }
+  }
+  .certificate-problems {
+    color: #a33;
+    margin: 10px 0;
+    padding-left: 20px;
+  }
+  dl {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 4px 14px;
+    margin: 0;
+    font-size: 0.92em;
+  }
+  dt {
+    color: #888;
+  }
+  dd {
+    margin: 0;
+    word-break: break-word;
+  }
+  .fingerprint {
+    font-family: monospace;
+    font-size: 0.9em;
+  }
+}
+
 .page.account-setup.google,
 .page.account-setup.office,
 .page.account-setup.outlook,

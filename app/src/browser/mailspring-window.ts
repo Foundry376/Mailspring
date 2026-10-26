@@ -431,7 +431,9 @@ export default class MailspringWindow extends EventEmitter {
         return;
       }
 
-      if (this.neverClose) {
+      // A renderer that died before its first load would die the same way on an
+      // automatic reload, so the main window falls back to the dialog until it has loaded.
+      if (this.neverClose && this.loaded) {
         this.browserWindow.reload();
       } else {
         const chosen = dialog.showMessageBoxSync({
