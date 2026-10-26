@@ -65,6 +65,8 @@ interface EventPanelProps {
   calendar?: Calendar;
   isCalendarReadOnly: boolean;
   onBack: () => void;
+  /** Omitted when the event can't be deleted, which leaves the "…" menu out. */
+  onDelete?: () => void;
   /** Buttons the host shows in the header beside "‹ Agenda". */
   headerActions?: React.ReactNode;
 }
@@ -234,6 +236,12 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     this._saveProperty({ property: 'rrule', value: repeatOptionToRRule(repeat) });
   };
 
+  _onMore = () => {
+    require('@electron/remote')
+      .Menu.buildFromTemplate([{ label: localized('Delete Event'), click: this.props.onDelete }])
+      .popup({});
+  };
+
   _renderHeader() {
     return (
       <div className="event-panel-header">
@@ -255,7 +263,19 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           />
           {localized('Agenda')}
         </button>
-        {this.props.headerActions}
+        <div className="event-panel-actions">
+          {this.props.headerActions}
+          {this.props.onDelete && (
+            <button
+              className="btn-bare event-panel-more"
+              title={localized('More')}
+              aria-label={localized('More')}
+              onClick={this._onMore}
+            >
+              <SVGIcons.More />
+            </button>
+          )}
+        </div>
       </div>
     );
   }

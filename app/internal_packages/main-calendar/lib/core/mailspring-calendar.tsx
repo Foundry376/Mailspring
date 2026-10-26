@@ -1373,6 +1373,11 @@ export class MailspringCalendar extends React.Component<
               calendar={this.state.calendars.find((c) => c.id === event.calendarId)}
               isCalendarReadOnly={this._isCalendarReadOnly(event.calendarId)}
               onBack={this._onBackToAgenda}
+              onDelete={
+                this._isCalendarReadOnly(event.calendarId)
+                  ? undefined
+                  : () => this._deleteEvent(event)
+              }
             />
           )}
         </div>
