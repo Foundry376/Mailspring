@@ -515,6 +515,10 @@ export default class MailsyncBridge {
         IdentityStore.fetchIdentitySoon();
         continue;
       }
+      if (modelClass === 'ProcessSearchResult') {
+        modelJSONs.forEach((result) => Actions.remoteSearchResultReceived(result));
+        continue;
+      }
 
       // dispatch the message to other windows
       ipcRenderer.send('mailsync-bridge-rebroadcast-to-all', msg);

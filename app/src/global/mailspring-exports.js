@@ -92,7 +92,7 @@ lazyLoadAndRegisterModel(`ProviderSyncbackRequest`, 'provider-syncback-request')
 // Search Query Interfaces
 lazyLoad(`SearchQueryAST`, 'services/search/search-query-ast');
 lazyLoad(`SearchQueryParser`, 'services/search/search-query-parser');
-lazyLoad(`IMAPSearchQueryBackend`, 'services/search/search-query-backend-imap');
+lazyLoad(`RemoteSearchQueryBackend`, 'services/search/search-query-backend-remote');
 
 // Tasks
 lazyLoad(`TaskFactory`, 'flux/tasks/task-factory');
