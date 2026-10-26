@@ -76,7 +76,7 @@ export interface EventModificationResult {
  * Modifies a simple (non-recurring) event's times and queues the syncback task.
  * The task is automatically undoable via UndoRedoStore.
  */
-export function modifySimpleEvent(options: EventTimeChangeOptions): void {
+export function modifySimpleEvent(options: EventTimeChangeOptions): SyncbackEventTask {
   const { event, newStart, newEnd, isAllDay, description } = options;
 
   // Capture original state for undo BEFORE modifying
@@ -101,6 +101,7 @@ export function modifySimpleEvent(options: EventTimeChangeOptions): void {
     description: description || localized('Edit event'),
   });
   Actions.queueTask(task);
+  return task;
 }
 
 export type EventPropertyEdit =
@@ -112,7 +113,10 @@ export type EventPropertyEdit =
  * other property is written back as stored, so editing the title leaves an invitation's
  * formatted description intact.
  */
-export function modifySimpleEventProperty(event: Event, edit: EventPropertyEdit): void {
+export function modifySimpleEventProperty(
+  event: Event,
+  edit: EventPropertyEdit
+): SyncbackEventTask {
   const undoData = captureEventSnapshot(event);
   const ics =
     edit.property === 'rrule'
@@ -120,9 +124,13 @@ export function modifySimpleEventProperty(event: Event, edit: EventPropertyEdit)
       : ICSEventHelpers.updateEventProperty(event.ics, edit.property, edit.value);
   event.ics = ICSEventHelpers.bumpEventSequence(ics);
 
-  Actions.queueTask(
-    SyncbackEventTask.forUpdating({ event, undoData, description: localized('Edit event') })
-  );
+  const task = SyncbackEventTask.forUpdating({
+    event,
+    undoData,
+    description: localized('Edit event'),
+  });
+  Actions.queueTask(task);
+  return task;
 }
 
 /**

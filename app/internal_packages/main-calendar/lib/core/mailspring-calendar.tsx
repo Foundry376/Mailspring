@@ -1371,6 +1371,7 @@ export class MailspringCalendar extends React.Component<
               key={CalendarUtils.parseOccurrenceId(event.id).eventId}
               event={event}
               calendar={this.state.calendars.find((c) => c.id === event.calendarId)}
+              isCalendarReadOnly={this._isCalendarReadOnly(event.calendarId)}
               onBack={this._onBackToAgenda}
             />
           )}
