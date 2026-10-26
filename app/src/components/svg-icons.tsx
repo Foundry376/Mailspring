@@ -318,3 +318,87 @@ export const ChevronLeft = chevron('ChevronLeft', 6, 10, 'M5 1L1 5l4 4');
 export const ChevronRight = chevron('ChevronRight', 6, 10, 'M1 1l4 4-4 4');
 export const ChevronUp = chevron('ChevronUp', 10, 6, 'M1 5l4-4 4 4');
 export const ChevronDown = chevron('ChevronDown', 10, 6, 'M1 1l4 4 4-4');
+
+function panelControl(displayName: string, path: React.ReactNode) {
+  const Icon = () => (
+    <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
+      {path}
+    </svg>
+  );
+  Icon.displayName = displayName;
+  return Icon;
+}
+
+export const Expand = panelControl(
+  'Expand',
+  <path
+    d="M2.5 7.5 6 4l3.5 3.5"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.6"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  />
+);
+
+export const Minimize = panelControl(
+  'Minimize',
+  <path
+    d="M2.5 4.5 6 8l3.5-3.5"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.6"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  />
+);
+
+export const Close = panelControl(
+  'Close',
+  <path
+    d="M3 3l6 6M9 3l-6 6"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.6"
+    strokeLinecap="round"
+  />
+);
+
+export const OpenPage = () => (
+  <svg viewBox="0 0 20 20" aria-hidden="true">
+    <path
+      d="M11 4h5v5M16 4l-7 7M14 12v3.5a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 3 15.5v-8A1.5 1.5 0 0 1 4.5 6H8"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const Pin = ({ filled }: { filled: boolean }) => (
+  <svg viewBox="0 0 20 20" aria-hidden="true">
+    <path
+      d="M7.5 2.5h5l-.8 5 3 3H5.3l3-3z"
+      fill={filled ? 'currentColor' : 'none'}
+      stroke="currentColor"
+      strokeWidth="1.4"
+      strokeLinejoin="round"
+    />
+    <path d="M10 10.5v7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+  </svg>
+);
+
+export const Pencil = () => (
+  <svg viewBox="0 0 20 20" width="100%" height="100%" aria-hidden="true">
+    <path
+      d="M13.6 3.2a1.8 1.8 0 0 1 2.5 0l.7.7a1.8 1.8 0 0 1 0 2.5L7.6 15.6 3.8 16.6l1-3.8z"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinejoin="round"
+    />
+    <path d="M12.2 4.6l3.2 3.2" stroke="currentColor" strokeWidth="1.6" />
+  </svg>
+);

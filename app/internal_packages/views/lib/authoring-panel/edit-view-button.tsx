@@ -1,6 +1,7 @@
 import React from 'react';
 import classnames from 'classnames';
 import { localized } from 'mailspring-exports';
+import { SVGIcons } from 'mailspring-component-kit';
 import { panelSource } from './store';
 import { registerEditButton } from './launch';
 
@@ -24,19 +25,6 @@ function readState(viewId: string): State {
     working: !!(session && session.working),
   };
 }
-
-const PencilIcon = () => (
-  <svg viewBox="0 0 20 20" width="100%" height="100%" aria-hidden="true">
-    <path
-      d="M13.6 3.2a1.8 1.8 0 0 1 2.5 0l.7.7a1.8 1.8 0 0 1 0 2.5L7.6 15.6 3.8 16.6l1-3.8z"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinejoin="round"
-    />
-    <path d="M12.2 4.6l3.2 3.2" stroke="currentColor" strokeWidth="1.6" />
-  </svg>
-);
 
 /**
  * The entry point for changing a View with the authoring agent. The page variant stays
@@ -94,7 +82,7 @@ export class EditViewButton extends React.Component<Props, State> {
         title={working ? localized('The assistant is working on this View') : localized('Edit')}
         aria-label={localized('Edit this View with the assistant')}
       >
-        <PencilIcon />
+        <SVGIcons.Pencil />
         {working && <span className="view-edit-button-dot" aria-hidden="true" />}
       </button>
     );
