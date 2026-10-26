@@ -23,6 +23,7 @@ import { AttendeeStatusIcon, attendeeStatusClass, sortAttendeesByStatus } from '
 import { RepeatOption, frequencyToRepeatOption, repeatLabel } from './repeat-selector';
 import { formatTimezone } from './timezone-selector';
 import { showAsLabel } from './show-as-selector';
+import { canRespondToEvent, openProposeNewTimePopover } from './calendar-rsvp';
 
 interface EventPanelProps {
   event: EventOccurrence;
@@ -144,6 +145,16 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           <div className="event-panel-row">
             <SVGIcons.Repeat className="event-panel-icon" />
             {repeatLabel(this.state.repeat)}
+          </div>
+        )}
+        {canRespondToEvent(event) && (
+          <div className="event-panel-row indented">
+            <button
+              className="btn"
+              onClick={(e) => openProposeNewTimePopover(event, e.currentTarget)}
+            >
+              {localized('Propose a new time') + '...'}
+            </button>
           </div>
         )}
       </div>
