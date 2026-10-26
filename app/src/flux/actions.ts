@@ -564,6 +564,7 @@ export const searchQuerySubmitted = create('searchQuerySubmitted', ActionScopeWi
 export const searchQueryChanged = create('searchQueryChanged', ActionScopeWindow);
 export const searchCompleted = create('searchCompleted', ActionScopeWindow);
 export const remoteSearchResultReceived = create('remoteSearchResultReceived', ActionScopeWindow);
+export const mailsyncProcessExited = create('mailsyncProcessExited', ActionScopeWindow);
 
 // Calendar
 export const focusCalendarEvent = create('focusCalendarEvent', ActionScopeWindow);

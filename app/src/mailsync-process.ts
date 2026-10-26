@@ -133,6 +133,12 @@ export class MailsyncProcess extends EventEmitter {
   _proc: ChildProcess = null;
   _win = null;
 
+  // The bridge registers a client before spawning it, after the account's secrets are read
+  // from the keychain; a message sent in between is lost.
+  get spawned() {
+    return !!this._proc;
+  }
+
   // these must be set before you use the process
   account: Account = null;
   identity: IIdentity = null;

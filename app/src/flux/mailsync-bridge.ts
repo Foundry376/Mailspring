@@ -353,6 +353,7 @@ export default class MailsyncBridge {
       });
     } finally {
       delete this._clients[account.id];
+      Actions.mailsyncProcessExited(resetClient);
       this._resettingAccountIds.delete(account.id);
       process.nextTick(() => {
         this.ensureClients();
@@ -394,6 +395,8 @@ export default class MailsyncBridge {
     client.sync();
     client.on('deltas', this._onIncomingMessages);
     client.on('close', ({ code, error, signal }: MailsyncProcessExit) => {
+      // Also for a client already replaced (restart, reset, relaunch): it answers nothing more.
+      Actions.mailsyncProcessExited(client);
       if (this._clients[account.id] !== client) {
         return;
       }

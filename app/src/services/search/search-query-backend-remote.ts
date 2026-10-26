@@ -25,6 +25,12 @@ export interface RemoteSearchRequest {
 
 class Unsupported extends Error {}
 
+// The local search reads is:read, is:unstarred and before: off the whole thread: every message
+// read, none starred, the newest received before the date. A server matches single messages, so
+// it would add threads the local search excludes: `invoice is:read` returned 4 threads with
+// unread replies on a live Gmail account (2026-10-25).
+const threadLevel = (term: string) => new Unsupported(`${term} applies to the whole thread`);
+
 const textOf = (node: any): string => node.text.token.s;
 
 const dateOf = (node: DateQueryExpression): Date | null =>
@@ -85,10 +91,16 @@ class CriteriaVisitor extends SearchQueryExpressionVisitor {
     ];
   }
   visitUnread(node) {
-    this._result = [node.status ? 'unread' : 'read'];
+    if (!node.status) {
+      throw threadLevel('is:read');
+    }
+    this._result = ['unread'];
   }
   visitStarred(node) {
-    this._result = [node.status ? 'flagged' : 'unflagged'];
+    if (!node.status) {
+      throw threadLevel('is:unstarred');
+    }
+    this._result = ['flagged'];
   }
   visitHasAttachment() {
     // The engine stores no attachment flag a server could be asked about, and the nearest
@@ -102,7 +114,10 @@ class CriteriaVisitor extends SearchQueryExpressionVisitor {
     if (!date) {
       throw new Unsupported(`unparseable date ${textOf(node)}`);
     }
-    this._result = [node.direction === 'before' ? 'before' : 'since', imapDay(date)];
+    if (node.direction === 'before') {
+      throw threadLevel('before:');
+    }
+    this._result = ['since', imapDay(date)];
   }
   visitIn() {
     // A folder is a scope, not a SEARCH key; only top-level `in:` terms can become one.
@@ -158,10 +173,16 @@ class GmailVisitor extends SearchQueryExpressionVisitor {
     this._result = this.quote(textOf(node));
   }
   visitUnread(node) {
-    this._result = node.status ? 'is:unread' : 'is:read';
+    if (!node.status) {
+      throw threadLevel('is:read');
+    }
+    this._result = 'is:unread';
   }
   visitStarred(node) {
-    this._result = node.status ? 'is:starred' : '-is:starred';
+    if (!node.status) {
+      throw threadLevel('is:unstarred');
+    }
+    this._result = 'is:starred';
   }
   visitHasAttachment() {
     this._result = 'has:attachment';
@@ -171,10 +192,12 @@ class GmailVisitor extends SearchQueryExpressionVisitor {
     if (!date) {
       throw new Unsupported(`unparseable date ${textOf(node)}`);
     }
+    if (node.direction === 'before') {
+      throw threadLevel('before:');
+    }
     // Epoch seconds are exact; a bare date is read as midnight Pacific time.
     // https://developers.google.com/workspace/gmail/api/guides/filtering
-    const seconds = Math.floor(date.getTime() / 1000);
-    this._result = `${node.direction === 'before' ? 'before' : 'after'}:${seconds}`;
+    this._result = `after:${Math.floor(date.getTime() / 1000)}`;
   }
   visitIn(node: InQueryExpression) {
     const term = textOf(node);

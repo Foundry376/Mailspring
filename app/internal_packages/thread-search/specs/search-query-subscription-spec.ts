@@ -30,7 +30,7 @@ describe('SearchQuerySubscription', function () {
   beforeEach(function () {
     sent = [];
     unlisten = jasmine.createSpy('unlisten');
-    clients = { a1: {}, a2: {} };
+    clients = { a1: { spawned: true }, a2: { spawned: true } };
     bridge = {
       clients: () => clients,
       sendMessageToAccount: (accountId, packet) => sent.push({ accountId, packet }),
@@ -106,6 +106,12 @@ describe('SearchQuerySubscription', function () {
     expect(sent.map((s) => s.accountId)).toEqual(['a1']);
     sent = [];
     sub.onLastCallbackRemoved();
+    expect(sent.map((s) => s.accountId)).toEqual(['a1']);
+  });
+
+  it('skips an account whose sync process is registered but not yet spawned', function () {
+    clients.a2 = { spawned: false };
+    subscribe('pineapple', ['a1', 'a2']);
     expect(sent.map((s) => s.accountId)).toEqual(['a1']);
   });
 
@@ -191,6 +197,19 @@ describe('SearchQuerySubscription', function () {
       sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: true, threadIds: [] });
       expect(completed).not.toHaveBeenCalled();
       resultsArrive(sub);
+      expect(completed.callCount).toBe(1);
+    });
+
+    it('goes off when the sync process it asked exits without answering', function () {
+      const sub = subscribe('pineapple', ['a1', 'a2']);
+      resultsArrive(sub);
+      const sentTo = { ...clients };
+      clients.a1 = { spawned: true };
+      sub._onSyncProcessExited(clients.a1);
+      expect(completed).not.toHaveBeenCalled();
+      sub._onSyncProcessExited(sentTo.a1);
+      expect(completed).not.toHaveBeenCalled();
+      sub._onSyncProcessExited(sentTo.a2);
       expect(completed.callCount).toBe(1);
     });
 
