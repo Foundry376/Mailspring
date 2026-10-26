@@ -1,22 +1,10 @@
 import React from 'react';
 import classnames from 'classnames';
 import { localized } from 'mailspring-exports';
+import { SVGIcons } from 'mailspring-component-kit';
 import { ViewsNavStore } from '../views-nav';
 import { ViewRegistryEvents, allViews } from '../view-registry';
 import { isPinned, onPinsChanged, setPinned } from './pins';
-
-const PinIcon = ({ filled }: { filled: boolean }) => (
-  <svg viewBox="0 0 20 20" aria-hidden="true">
-    <path
-      d="M7.5 2.5h5l-.8 5 3 3H5.3l3-3z"
-      fill={filled ? 'currentColor' : 'none'}
-      stroke="currentColor"
-      strokeWidth="1.4"
-      strokeLinejoin="round"
-    />
-    <path d="M10 10.5v7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-  </svg>
-);
 
 interface PinViewButtonState {
   viewId: string | null;
@@ -66,7 +54,7 @@ export class PinViewButton extends React.Component<Record<string, unknown>, PinV
         aria-pressed={pinned}
         onClick={() => setPinned(viewId, !pinned)}
       >
-        <PinIcon filled={pinned} />
+        <SVGIcons.Pin filled={pinned} />
       </button>
     );
   }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Actions, ReactDOM, localized } from 'mailspring-exports';
-import { RetinaImg } from 'mailspring-component-kit';
+import { SVGIcons } from 'mailspring-component-kit';
 
 import ActivityList from './activity-list';
 import ActivityEventStore from '../activity-event-store';
@@ -67,12 +67,7 @@ class ActivityListButton extends React.Component<
         }}
       >
         <div className={unreadCountClass}>{this.state.unreadCount}</div>
-        <RetinaImg
-          name="ic-toolbar-native-reminder.png"
-          className={iconClass}
-          mode={RetinaImg.Mode.ContentIsMask}
-          aria-hidden="true"
-        />
+        <SVGIcons.Bell className={iconClass} size={18} />
       </div>
     );
   }

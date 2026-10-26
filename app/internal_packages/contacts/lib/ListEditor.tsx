@@ -1,6 +1,7 @@
 import React from 'react';
 import { isEqual } from 'underscore';
 import { localized } from 'mailspring-exports';
+import { SVGIcons } from 'mailspring-component-kit';
 
 interface ListEditorProps<T> {
   items: T[];
@@ -39,9 +40,7 @@ export class ListEditor<T> extends React.Component<ListEditorProps<T>> {
               style={{ visibility: items.length ? 'visible' : 'hidden' }}
               onClick={() => onChange([...items.slice(0, idx), ...items.slice(idx + 1)])}
             >
-              <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
-                <path d="M1 1 L9 9 M9 1 L1 9" stroke="currentColor" strokeWidth="1.5" />
-              </svg>
+              <SVGIcons.Remove />
             </button>
           </div>
         ))}

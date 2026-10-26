@@ -1,8 +1,7 @@
 import React from 'react';
 import { Store, ContactsPerspective } from './Store';
 import { localized, Actions, AccountStore } from 'mailspring-exports';
-import * as Icons from './SVGIcons';
-import { ListensToFluxStore, BindGlobalCommands } from 'mailspring-component-kit';
+import { ListensToFluxStore, BindGlobalCommands, SVGIcons } from 'mailspring-component-kit';
 import { showGPeopleReadonlyNotice } from './GoogleSupport';
 
 interface AddContactToolbarProps {
@@ -51,7 +50,7 @@ class AddContactToolbarWithData extends React.Component<AddContactToolbarProps> 
             }
             onClick={enabled ? this.onAdd : undefined}
           >
-            <Icons.NewPerson />
+            <SVGIcons.NewPerson />
           </button>
         </BindGlobalCommands>
       </div>

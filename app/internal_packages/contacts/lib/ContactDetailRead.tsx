@@ -1,7 +1,6 @@
 import React from 'react';
 import { Contact, AccountStore, ContactGroup, localized } from 'mailspring-exports';
-import { ContactProfilePhoto } from 'mailspring-component-kit';
-import * as Icons from './SVGIcons';
+import { ContactProfilePhoto, SVGIcons } from 'mailspring-component-kit';
 import { Store } from './Store';
 import { ContactBase, ContactInteractorMetadata } from './ContactInfoMapping';
 import { displayNameForContact } from './ContactDisplayName';
@@ -100,19 +99,23 @@ export const ContactDetailRead = ({
           {emails.length > 0 && (
             <QuickAction
               href={`mailto:${emails[0].value}`}
-              icon={<Icons.Envelope />}
+              icon={<SVGIcons.Envelope />}
               label={localized('Email')}
             />
           )}
           {phones.length > 0 && (
             <QuickAction
               href={`tel:${phones[0].value}`}
-              icon={<Icons.Phone />}
+              icon={<SVGIcons.Phone />}
               label={localized('Call')}
             />
           )}
           {urls.length > 0 && (
-            <QuickAction href={urls[0].value} icon={<Icons.Link />} label={localized('Website')} />
+            <QuickAction
+              href={urls[0].value}
+              icon={<SVGIcons.Link />}
+              label={localized('Website')}
+            />
           )}
         </div>
       )}
@@ -135,7 +138,7 @@ export const ContactDetailRead = ({
                   });
                 }}
               >
-                <Icons.Tag />
+                <SVGIcons.Tag />
                 {label}
               </button>
             );
@@ -147,21 +150,21 @@ export const ContactDetailRead = ({
         <section className="contact-card">
           <h2>{localized('Contact Details')}</h2>
           {emails.map((item, idx) => (
-            <DetailRow key={`e${idx}`} icon={<Icons.Envelope />} type={item.type}>
+            <DetailRow key={`e${idx}`} icon={<SVGIcons.Envelope />} type={item.type}>
               <a href={`mailto:${item.value}`} title={localized('Send email...')}>
                 {item.value}
               </a>
             </DetailRow>
           ))}
           {phones.map((item, idx) => (
-            <DetailRow key={`p${idx}`} icon={<Icons.Phone />} type={item.type}>
+            <DetailRow key={`p${idx}`} icon={<SVGIcons.Phone />} type={item.type}>
               <a href={`tel:${item.value}`} title={localized('Call...')}>
                 {item.value}
               </a>
             </DetailRow>
           ))}
           {addresses.map((item, idx) => (
-            <DetailRow key={`a${idx}`} icon={<Icons.Map />} type={item.type}>
+            <DetailRow key={`a${idx}`} icon={<SVGIcons.Map />} type={item.type}>
               <a
                 className="address"
                 href={`https://maps.google.com/?q=${encodeURIComponent(item.formattedValue)}`}
@@ -171,17 +174,17 @@ export const ContactDetailRead = ({
             </DetailRow>
           ))}
           {birthdays.map((text, idx) => (
-            <DetailRow key={`b${idx}`} icon={<Icons.Crown />} type={localized('Birthday')}>
+            <DetailRow key={`b${idx}`} icon={<SVGIcons.Crown />} type={localized('Birthday')}>
               {text}
             </DetailRow>
           ))}
           {relations.map((item, idx) => (
-            <DetailRow key={`r${idx}`} icon={<Icons.People />} type={item.type}>
+            <DetailRow key={`r${idx}`} icon={<SVGIcons.PeopleFilled />} type={item.type}>
               {item.person}
             </DetailRow>
           ))}
           {urls.map((item, idx) => (
-            <DetailRow key={`u${idx}`} icon={<Icons.Link />} type={item.type}>
+            <DetailRow key={`u${idx}`} icon={<SVGIcons.Link />} type={item.type}>
               <a href={item.value} title={localized('Visit website...')}>
                 {item.value}
               </a>

@@ -1,6 +1,6 @@
 import React from 'react';
 import Rx, { Disposable } from 'rx-lite';
-import { Flexbox } from 'mailspring-component-kit';
+import { Flexbox, SVGIcons } from 'mailspring-component-kit';
 
 import { Template } from './scenario-editor-models';
 
@@ -186,15 +186,11 @@ export default class ScenarioEditorRow extends React.Component<ScenarioEditorRow
       <div className="actions">
         {this.props.removable && (
           <div className="btn" onClick={this.props.onRemove}>
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-              <path d="M1 5h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-            </svg>
+            <SVGIcons.Minus size={10} />
           </div>
         )}
         <div className="btn" onClick={this.props.onInsert}>
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-            <path d="M5 1v8M1 5h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
+          <SVGIcons.Plus size={10} />
         </div>
       </div>
     );

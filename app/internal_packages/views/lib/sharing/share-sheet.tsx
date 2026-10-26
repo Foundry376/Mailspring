@@ -1,7 +1,7 @@
 import React from 'react';
 import { shell } from 'electron';
 import { Actions, localized } from 'mailspring-exports';
-import { CopyButton } from 'mailspring-component-kit';
+import { CopyButton, SVGIcons } from 'mailspring-component-kit';
 import { allViews } from '../view-registry';
 import { acceptedAgentRevision } from '../agent/store';
 import { openPanelWithMessage } from '../authoring-panel';
@@ -49,19 +49,6 @@ interface ShareSheetState {
   notice: string | null;
   busy: boolean;
 }
-
-const OpenPageIcon = () => (
-  <svg viewBox="0 0 20 20" aria-hidden="true">
-    <path
-      d="M11 4h5v5M16 4l-7 7M14 12v3.5a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 3 15.5v-8A1.5 1.5 0 0 1 4.5 6H8"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
 
 function viewOf(viewId: string) {
   return allViews().find((v) => v.id === viewId) || null;
@@ -324,7 +311,7 @@ export class ShareSheet extends React.Component<ShareSheetProps, ShareSheetState
             aria-label={localized('Open Page')}
             onClick={this._onOpenPage}
           >
-            <OpenPageIcon />
+            <SVGIcons.OpenPage />
           </button>
         </div>
         <p className="view-share-fineprint">

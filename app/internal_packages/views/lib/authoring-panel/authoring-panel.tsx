@@ -1,6 +1,7 @@
 import React from 'react';
 import classnames from 'classnames';
 import { DragDropTypes, localized } from 'mailspring-exports';
+import { SVGIcons } from 'mailspring-component-kit';
 import { panelSource } from './store';
 import { Markdown } from './markdown';
 import {
@@ -655,27 +656,10 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
           onClick={this._toggleCollapsed}
           aria-label={this.state.geometry.collapsed ? 'Expand' : 'Minimize'}
         >
-          <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
-            <path
-              d={this.state.geometry.collapsed ? 'M2.5 7.5 6 4l3.5 3.5' : 'M2.5 4.5 6 8l3.5-3.5'}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          {this.state.geometry.collapsed ? <SVGIcons.Expand /> : <SVGIcons.Minimize />}
         </button>
         <button className="ap-icon-btn" onClick={this._close} aria-label="Close">
-          <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true">
-            <path
-              d="M3 3l6 6M9 3l-6 6"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-            />
-          </svg>
+          <SVGIcons.Close />
         </button>
       </div>
     );
