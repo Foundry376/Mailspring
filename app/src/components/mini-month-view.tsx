@@ -10,12 +10,13 @@ import {
   onDayChange,
 } from '../calendar-date';
 import { localized } from '../intl';
+import * as SVGIcons from './svg-icons';
 
 const VISIBLE_WEEKS = 6;
 
 const CHEVRONS = {
-  horizontal: { width: 6, height: 10, previous: 'M5 1L1 5l4 4', next: 'M1 1l4 4-4 4' },
-  vertical: { width: 10, height: 6, previous: 'M1 5l4-4 4 4', next: 'M1 1l4 4 4-4' },
+  horizontal: { previous: SVGIcons.ChevronLeft, next: SVGIcons.ChevronRight },
+  vertical: { previous: SVGIcons.ChevronUp, next: SVGIcons.ChevronDown },
 };
 
 /** A run of `days` days from `first`. */
@@ -115,24 +116,8 @@ export class MiniMonthView extends React.Component<MiniMonthViewProps, MiniMonth
   };
 
   _renderChevron(direction: 'previous' | 'next') {
-    const chevron = CHEVRONS[this.props.arrows];
-    return (
-      <svg
-        aria-hidden="true"
-        width={chevron.width}
-        height={chevron.height}
-        viewBox={`0 0 ${chevron.width} ${chevron.height}`}
-        fill="none"
-      >
-        <path
-          d={chevron[direction]}
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    );
+    const Chevron = CHEVRONS[this.props.arrows][direction];
+    return <Chevron />;
   }
 
   _renderWeek(weekStart: Moment, curMonthNumber: number, weekIndex: number) {

@@ -6,6 +6,7 @@ import { Utils, localized } from 'mailspring-exports';
 import { ScrollRegion } from './scroll-region';
 import { KeyCommandsRegion } from './key-commands-region';
 import { RetinaImg } from './retina-img';
+import * as SVGIcons from './svg-icons';
 
 /**
  * If provided, this function will be called when the add button is clicked,
@@ -448,31 +449,10 @@ class EditableList extends Component<EditableListProps, EditableListState> {
     return (
       <div className="buttons-wrapper">
         <div className="btn-editable-list" onClick={this._onCreateItem}>
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 12 12"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M6 1v10M1 6h10"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-            />
-          </svg>
+          <SVGIcons.Plus size={12} />
         </div>
         <div className={deleteClasses} onClick={this._onDeleteItem}>
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 12 12"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path d="M1 6h10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
+          <SVGIcons.Minus size={12} />
         </div>
       </div>
     );

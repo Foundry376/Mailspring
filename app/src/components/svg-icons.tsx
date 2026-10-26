@@ -268,3 +268,53 @@ export const Remove = () => (
     <path d="M1 1 L9 9 M9 1 L1 9" stroke="currentColor" strokeWidth="1.5" />
   </svg>
 );
+
+// Drawn in pixels, so the 1px margin and 1.5px stroke stay the same at every size.
+export const Plus = ({ size }: { size: number }) => (
+  <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} fill="none">
+    <path
+      d={`M${size / 2} 1v${size - 2}M1 ${size / 2}h${size - 2}`}
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+export const Minus = ({ size }: { size: number }) => (
+  <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} fill="none">
+    <path
+      d={`M1 ${size / 2}h${size - 2}`}
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+function chevron(displayName: string, width: number, height: number, d: string) {
+  const Icon = () => (
+    <svg
+      aria-hidden="true"
+      width={width}
+      height={height}
+      viewBox={`0 0 ${width} ${height}`}
+      fill="none"
+    >
+      <path
+        d={d}
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+  Icon.displayName = displayName;
+  return Icon;
+}
+
+export const ChevronLeft = chevron('ChevronLeft', 6, 10, 'M5 1L1 5l4 4');
+export const ChevronRight = chevron('ChevronRight', 6, 10, 'M1 1l4 4-4 4');
+export const ChevronUp = chevron('ChevronUp', 10, 6, 'M1 5l4-4 4 4');
+export const ChevronDown = chevron('ChevronDown', 10, 6, 'M1 1l4 4 4-4');
