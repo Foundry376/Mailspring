@@ -222,6 +222,41 @@ describe('MailspringCalendar agenda panel', function () {
     expect(panelsIn(calendar.render())[0].props.selectedEvents).toEqual([standup]);
   });
 
+  describe('when the panel is closed', function () {
+    const start = moment([2026, 9, 22, 9]).unix();
+    const standup = { id: `standup-e${start}`, isAllDay: false, start, end: start + 1800 };
+    const closedCalendar = () => {
+      savedConfig({ 'mailspring.calendarAgendaOpen': false });
+      return shownCalendar();
+    };
+
+    it('opens it and saves it open when an event is selected, the same one again too', function () {
+      const set = spyOn(AppEnv.config, 'set');
+      const calendar = closedCalendar();
+
+      calendar._onEventClick({}, standup);
+      expect(calendar.state.agendaOpen).toBe(true);
+      expect(set).toHaveBeenCalledWith('mailspring.calendarAgendaOpen', true);
+
+      calendar.onToggleAgenda();
+      calendar._onEventClick({}, standup);
+      expect(calendar.state.agendaOpen).toBe(true);
+    });
+
+    it('leaves it closed when the selected event moves', function () {
+      const calendar = closedCalendar();
+      calendar.state.selectedEvents = [standup];
+      const set = spyOn(AppEnv.config, 'set');
+      const row = { id: 'standup', isRecurrenceException: () => false };
+
+      calendar._followMove(standup, row, start + 900, 'ics before the move');
+
+      expect(calendar.state.selectedEvents.map((o) => o.id)).toEqual([`standup-e${start + 900}`]);
+      expect(calendar.state.agendaOpen).toBe(false);
+      expect(set).not.toHaveBeenCalled();
+    });
+  });
+
   it('leaves the panel out while there are no calendars to show', function () {
     const calendar: any = new MailspringCalendar({} as any);
     calendar.state.calendarsLoaded = true;
