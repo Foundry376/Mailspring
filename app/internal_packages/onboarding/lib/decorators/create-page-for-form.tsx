@@ -8,6 +8,7 @@ import * as OnboardingActions from '../onboarding-actions';
 import { finalizeAndValidateAccount } from '../onboarding-helpers';
 import FormErrorMessage from '../form-error-message';
 import AccountProviders from '../account-providers';
+import { forgetCertificateIfServerChanged } from '../certificate-review';
 
 let didWarnAboutGmailIMAP = false;
 
@@ -92,6 +93,9 @@ const CreatePageForForm = (FormComponent: React.ComponentType<any> & Record<stri
 
       if (event.target.id.includes('.')) {
         const [parent, key] = event.target.id.split('.');
+        if (parent === 'settings' && next.settings[key] !== val) {
+          forgetCertificateIfServerChanged(next, key);
+        }
         next[parent][key] = val;
       } else {
         next[event.target.id] = val;
@@ -170,11 +174,24 @@ const CreatePageForForm = (FormComponent: React.ComponentType<any> & Record<stri
           OnboardingActions.finishAndAddAccount(validated);
         })
         .catch((err) => {
+          const isBasicForm = FormComponent.displayName === 'AccountBasicSettingsForm';
+          // No credentials have gone to a server whose certificate was rejected. The user
+          // reviews the certificates, and accepting them retries with their fingerprints.
+          if (err.certificates?.length) {
+            this.setState({ submitting: false });
+            OnboardingActions.setAccount(account, { rejectedCertificates: err.certificates });
+            // From the template-based form, Back leads to the full settings, where a wrong
+            // guessed host or username can be corrected if connecting still fails.
+            if (account.provider === 'imap' && isBasicForm) {
+              OnboardingActions.moveToPage('account-settings-imap');
+            }
+            OnboardingActions.moveToPage('account-certificate');
+            return;
+          }
           // If we're connecting from the `basic` settings page with an IMAP account,
           // the settings are from a template. If authentication fails, move the user
           // to the full settings since our guesses may have been wrong.
           // TODO: Potentially show Authentication Errors on this simple screen?
-          const isBasicForm = FormComponent.displayName === 'AccountBasicSettingsForm';
           if (account.provider === 'imap' && isBasicForm) {
             // Advice means a rejected TLS handshake, which "Allow insecure SSL" fixes.
             // Both services, since an IMAP failure short-circuits before SMTP is tested.

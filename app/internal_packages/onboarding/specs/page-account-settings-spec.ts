@@ -2,6 +2,7 @@ import dns from 'dns';
 import { Account, AccountStore } from 'mailspring-exports';
 import * as OnboardingActions from '../lib/onboarding-actions';
 import { AccountBasicSettingsForm } from '../lib/page-account-settings';
+import AccountIMAPSettingsPage from '../lib/page-account-settings-imap';
 
 // Answers the implicit-TLS IMAP and submission SRV queries for `domain` with `target`.
 function stubSrvTarget(domain: string, target: string) {
@@ -71,5 +72,43 @@ describe('AccountBasicSettingsForm submit', function basicSettingsSubmitTests() 
     expect((OnboardingActions.setAccount as jasmine.Spy).mostRecentCall.args[1]).toEqual({
       confirmServers: false,
     });
+  });
+});
+
+describe('IMAP settings page', function imapSettingsPageTests() {
+  function pageWithPins() {
+    const account = new Account({
+      name: 'Test',
+      emailAddress: 'user@proton.me',
+      provider: 'imap',
+      settings: {
+        imap_host: '127.0.0.1',
+        imap_port: 1143,
+        smtp_host: '127.0.0.1',
+        smtp_port: 1025,
+        imap_certificate_sha256: 'aa',
+        smtp_certificate_sha256: 'aa',
+      },
+    } as any);
+    const page = new (AccountIMAPSettingsPage as any)({ account });
+    page.setState = function setState(next) {
+      Object.assign(this.state, next);
+    };
+    return page;
+  }
+
+  it("forgets a service's accepted certificate when its server changes", () => {
+    const page = pageWithPins();
+    page.onFieldChange({ target: { id: 'settings.imap_host', value: 'mail.example.test' } });
+    expect(page.state.account.settings.imap_certificate_sha256).toBeUndefined();
+    expect(page.state.account.settings.smtp_certificate_sha256).toEqual('aa');
+  });
+
+  it('keeps accepted certificates when the server is unchanged', () => {
+    const page = pageWithPins();
+    page.onFieldChange({ target: { id: 'settings.imap_password', value: 'new' } });
+    page.onFieldChange({ target: { id: 'settings.smtp_host', value: '127.0.0.1' } });
+    expect(page.state.account.settings.imap_certificate_sha256).toEqual('aa');
+    expect(page.state.account.settings.smtp_certificate_sha256).toEqual('aa');
   });
 });
