@@ -226,9 +226,8 @@ export class MailspringCalendar extends React.Component<
     this._publishCalendarOptions();
   }
 
-  componentDidUpdate(_prevProps: MailspringCalendarProps, prevState: MailspringCalendarState) {
+  componentDidUpdate() {
     this._publishCalendarOptions();
-    this._openPanelForSelection(prevState);
   }
 
   _panelEvent(): EventOccurrence | null {
@@ -236,14 +235,12 @@ export class MailspringCalendar extends React.Component<
     return selectedEvents.length === 1 ? selectedEvents[0] : null;
   }
 
-  // Opened for an event, the panel stays open when going back to the agenda, as if the toolbar
-  // button had opened it.
-  _openPanelForSelection(prevState: MailspringCalendarState) {
-    const shown = this._panelEvent();
-    const prevShown = prevState.selectedEvents.length === 1 ? prevState.selectedEvents[0] : null;
-    if (shown && shown.id !== prevShown?.id && !this.state.agendaOpen) {
-      this.onToggleAgenda();
-    }
+  // Saved like the toolbar button's toggle, so going back to the agenda leaves the panel open.
+  // Moves and deletes change the selection without going through here.
+  _select(selectedEvents: EventOccurrence[]) {
+    const opensPanel = selectedEvents.length === 1 && !this.state.agendaOpen;
+    this.setState({ selectedEvents, focusedEvent: null, ...(opensPanel && { agendaOpen: true }) });
+    if (opensPanel) AppEnv.config.set(AGENDA_OPEN, true);
   }
 
   _onBackToAgenda = () => {
@@ -293,14 +290,14 @@ export class MailspringCalendar extends React.Component<
     }
   }
 
-  /** The occurrence as its row draws it now; null once a move landed somewhere unpredicted. */
+  /** The occurrence as its row draws it now; null once it's gone or a move landed unpredicted. */
   async _currentOccurrence(occurrence: EventOccurrence): Promise<EventOccurrence | null> {
     const event = await DatabaseStore.find<Event>(
       Event,
       CalendarUtils.parseOccurrenceId(occurrence.id).eventId
     );
-    if (!event) return occurrence;
     const pending = this._pendingMoves.get(occurrence.id);
+    if (!event) return pending ? occurrence : null;
     if (pending && event.ics === pending.staleIcs) return occurrence;
     this._pendingMoves.delete(occurrence.id);
 
@@ -318,7 +315,14 @@ export class MailspringCalendar extends React.Component<
     }).filter((o) => o.id === occurrence.id);
     // An occurrence moved onto another's start shares its id; their slots tell them apart.
     const current = sameId.find((o) => slotOf(o) === slot) || sameId[0];
-    return current || (pending ? null : occurrence);
+    if (current || pending || occurrence.isRecurring) return current || null;
+    // Retimed elsewhere (the editor, another device): a one-off event is still its only occurrence.
+    const all = occurrencesForEvents([event], {
+      startUnix: event.recurrenceStart - 86400,
+      endUnix: event.recurrenceEnd + 86400,
+      ownCalendarAddresses: ownCalendarAddresses(this.state.calendars),
+    });
+    return all.length === 1 ? all[0] : null;
   }
 
   /** An occurrence's id embeds its start; a series exception stored as its own row keeps its id. */
@@ -448,10 +452,7 @@ export class MailspringCalendar extends React.Component<
     // popover was open, it should close when selecting a different event)
     Actions.closePopover();
 
-    this.setState({
-      selectedEvents: next,
-      focusedEvent: null,
-    });
+    this._select(next);
   };
 
   /**
@@ -485,7 +486,7 @@ export class MailspringCalendar extends React.Component<
     // Right-clicking an event that isn't selected selects it first, so the menu acts on what
     // is highlighted - and so pressing Delete afterwards means the same thing.
     if (!isEventSelected(this.state.selectedEvents, occurrence)) {
-      this.setState({ selectedEvents: [occurrence], focusedEvent: null });
+      this._select([occurrence]);
     }
 
     const readOnly = this._isCalendarReadOnly(occurrence.calendarId);
@@ -495,7 +496,7 @@ export class MailspringCalendar extends React.Component<
       onOpen: () =>
         this._isEditable(occurrence)
           ? this._openEventEditor(occurrence)
-          : this.setState({ selectedEvents: [occurrence], focusedEvent: null }),
+          : this._select([occurrence]),
       onDelete: () => this._deleteEvent(occurrence),
       onProposeNewTime: () => openProposeNewTimePopover(occurrence),
     }).displayMenu();
@@ -635,18 +636,9 @@ export class MailspringCalendar extends React.Component<
   // the panel. Clearing the flag here keeps a later unrelated re-render from re-running that scroll.
   _onEventFocused = (occurrence: EventOccurrence) => {
     const { selectedEvents } = this.state;
-    this.setState({
-      // An agenda row Cmd-clicked into the selection is already in it.
-      selectedEvents: isEventSelected(selectedEvents, occurrence) ? selectedEvents : [occurrence],
-      focusedEvent: null,
-    });
+    // An agenda row Cmd-clicked into the selection is already in it.
+    this._select(isEventSelected(selectedEvents, occurrence) ? selectedEvents : [occurrence]);
   };
-
-  _deselect(occurrence: EventOccurrence) {
-    this.setState((state) => ({
-      selectedEvents: state.selectedEvents.filter((o) => o.id !== occurrence.id),
-    }));
-  }
 
   _onDeleteSelectedEvents = async () => {
     if (this.state.selectedEvents.length === 0) {
@@ -720,7 +712,6 @@ export class MailspringCalendar extends React.Component<
         });
         if (master) {
           await this._cancelExceptionOccurrence(master, event);
-          this._deselect(occurrence);
           return;
         }
       }
@@ -744,9 +735,6 @@ export class MailspringCalendar extends React.Component<
         // Non-recurring event or already an exception - delete normally
         await this._deleteEntireEvent(event);
       }
-      // A deleted occurrence left selected would stay in the panel: its row is gone, so nothing
-      // refreshes it away.
-      this._deselect(occurrence);
     } catch (error) {
       console.error('Failed to delete event:', error);
       AppEnv.showErrorDialog({
@@ -1333,8 +1321,10 @@ export class MailspringCalendar extends React.Component<
   }
 
   _onAgendaEventClick = (e: React.MouseEvent, occurrence: EventOccurrence) => {
+    const deselecting =
+      (e.shiftKey || e.metaKey) && isEventSelected(this.state.selectedEvents, occurrence);
     this._onEventClick(e, occurrence);
-    this._revealEvent(occurrence);
+    if (!deselecting) this._revealEvent(occurrence);
   };
 
   _revealEvent = (occurrence: EventOccurrence) => {
@@ -1378,7 +1368,7 @@ export class MailspringCalendar extends React.Component<
           />
           {event && (
             <EventPanel
-              key={event.id}
+              key={CalendarUtils.parseOccurrenceId(event.id).eventId}
               event={event}
               calendar={this.state.calendars.find((c) => c.id === event.calendarId)}
               onBack={this._onBackToAgenda}
