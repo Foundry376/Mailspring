@@ -1,4 +1,5 @@
 import React from 'react';
+import { Utils } from 'mailspring-exports';
 
 interface LineIconProps {
   className?: string;
@@ -80,6 +81,53 @@ export const ArrowUp = lineIcon('ArrowUp', <path d="M12 19V5M6 11l6-6 6 6" />);
 export const ArrowDown = lineIcon('ArrowDown', <path d="M12 5v14M6 13l6 6 6-6" />);
 export const ArrowLeft = lineIcon('ArrowLeft', <path d="M19 12H5M11 6l-6 6 6 6" />);
 export const ArrowRight = lineIcon('ArrowRight', <path d="M5 12h14M13 6l6 6-6 6" />);
+
+/**
+ * The knob is part of the outline, and the rim is notched where the clapper hangs. Its fill is
+ * the sidebar icons' faint gradient, so each instance needs its own gradient and mask ids. The
+ * 1.5 stroke draws 1px at 16px, like the toolbar's other icons.
+ */
+export const Bell = ({ className, size = 16, strokeWidth = 1.5 }: LineIconProps) => {
+  const [id] = React.useState(() => `bell-${Utils.generateTempId()}`);
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <defs>
+        <linearGradient
+          id={`${id}-fill`}
+          gradientUnits="userSpaceOnUse"
+          x1="0"
+          y1="1.5"
+          x2="0"
+          y2="22.5"
+        >
+          <stop offset="0" stopColor="currentColor" stopOpacity="0.02" />
+          <stop offset="1" stopColor="currentColor" stopOpacity="0.14" />
+        </linearGradient>
+        <mask id={`${id}-notch`}>
+          <rect width="24" height="24" fill="#fff" />
+          <rect x="10.125" y="18.75" width="3.75" height="0.75" fill="#000" />
+        </mask>
+      </defs>
+      <path d="M9 18.75A3 3.375 0 0 0 15 18.75" />
+      <path
+        d="M5.625 14.625V9.75A6.375 6.375 0 0 1 10.125 3.66A1.875 1.875 0 0 1 13.875 3.66A6.375 6.375 0 0 1 18.375 9.75V14.625L20.625 16.875V18.75H3.375V16.875Z"
+        fill={`url(#${id}-fill)`}
+        mask={`url(#${id}-notch)`}
+      />
+    </svg>
+  );
+};
 
 export const Check = () => (
   <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
