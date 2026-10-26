@@ -44,6 +44,15 @@ export function myAttendeeEmail(occurrence: EventOccurrence): string | null {
   return null;
 }
 
+/** The answers a guest can give, in the order the menu and the event panel offer them. */
+export function rsvpActions(): [ICSParticipantStatus, string][] {
+  return [
+    ['ACCEPTED', localized('Accept')],
+    ['TENTATIVE', localized('Maybe')],
+    ['DECLINED', localized('Decline')],
+  ];
+}
+
 /** Our current participation status for this occurrence, if we're on the guest list. */
 export function myParticipationStatus(occurrence: EventOccurrence): string | null {
   const me = myAttendeeEmail(occurrence);

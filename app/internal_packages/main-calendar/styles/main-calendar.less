@@ -994,6 +994,42 @@
     color: @text-color-very-subtle;
   }
 
+  .event-panel-card {
+    flex-shrink: 0;
+    margin: 0 10px 10px;
+    padding: 10px 12px;
+    border: 1px solid @border-color-divider;
+    border-radius: 8px;
+    background: @background-secondary;
+  }
+
+  // Your answer is filled as the invitation header fills it.
+  .event-panel-rsvp {
+    display: flex;
+    gap: 6px;
+
+    .btn {
+      flex: 1;
+      min-width: 0;
+      padding: 0 8px;
+    }
+
+    .btn.ACCEPTED {
+      background: @color-success;
+      color: @white;
+    }
+
+    .btn.TENTATIVE {
+      background: @gray-light;
+      color: @white;
+    }
+
+    .btn.DECLINED {
+      background: @color-error;
+      color: @white;
+    }
+  }
+
   .event-panel-calendar-swatch {
     width: 12px;
     height: 12px;

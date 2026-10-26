@@ -48,7 +48,13 @@ import {
 } from './repeat-selector';
 import { formatTimezone } from './timezone-selector';
 import { ShowAsOption, showAsLabel } from './show-as-selector';
-import { canRespondToEvent, openProposeNewTimePopover } from './calendar-rsvp';
+import {
+  canRespondToEvent,
+  myParticipationStatus,
+  openProposeNewTimePopover,
+  respondToCalendarEvent,
+  rsvpActions,
+} from './calendar-rsvp';
 import {
   EventPropertyEdit,
   modifySimpleEvent,
@@ -571,6 +577,33 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
+  // Answering writes our status onto the event, which a read-only calendar refuses.
+  _renderRsvpCard() {
+    const { event, isCalendarReadOnly } = this.props;
+    if (!canRespondToEvent(event)) return null;
+    const answer = myParticipationStatus(event);
+    return (
+      <div
+        className="event-panel-card event-panel-rsvp"
+        role="group"
+        aria-label={localized('Your response')}
+      >
+        {rsvpActions().map(([status, label]) => (
+          <button
+            key={status}
+            className={`btn ${status === answer ? status : ''}`}
+            aria-pressed={status === answer}
+            disabled={isCalendarReadOnly}
+            onClick={() => respondToCalendarEvent(event, status)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  // The card sits under the scrolling rows, so a long event never pushes it out of view.
   render() {
     return (
       <aside className="event-panel" aria-label={localized('Event')}>
@@ -582,6 +615,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           {this._renderNotes()}
           {this._renderCalendar()}
         </ScrollRegion>
+        {this._renderRsvpCard()}
       </aside>
     );
   }
