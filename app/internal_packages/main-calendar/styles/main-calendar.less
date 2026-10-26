@@ -1004,14 +1004,24 @@
   }
 
   // Your answer is filled as the invitation header fills it.
+  // Joined like the toolbar's .button-group.
   .event-panel-rsvp {
     display: flex;
-    gap: 6px;
 
     .btn {
       flex: 1;
       min-width: 0;
       padding: 0 8px;
+
+      &:not(:last-child) {
+        border-right: 0;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+      }
+      &:not(:first-child) {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+      }
     }
 
     .btn.ACCEPTED {

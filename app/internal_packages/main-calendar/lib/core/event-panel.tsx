@@ -584,7 +584,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     const answer = myParticipationStatus(event);
     return (
       <div
-        className="event-panel-card event-panel-rsvp"
+        className="event-panel-card event-panel-rsvp button-group"
         role="group"
         aria-label={localized('Your response')}
       >
