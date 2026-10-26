@@ -104,11 +104,11 @@ export const Cross = () => (
 export const QuestionMark = () => (
   <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
     <path
-      d="M3.5 3.5a1.5 1.5 0 0 1 2.6 1c0 1-1.1 1-1.1 2"
+      d="M3.1 3.7a1.9 1.9 0 1 1 2.9 1.6c-.6.4-1 .8-1 1.5"
       stroke="currentColor"
-      strokeWidth="1.2"
+      strokeWidth="1.5"
       strokeLinecap="round"
     />
-    <circle cx="5" cy="8.5" r="0.75" fill="currentColor" />
+    <circle cx="5" cy="8.7" r="0.85" fill="currentColor" />
   </svg>
 );
