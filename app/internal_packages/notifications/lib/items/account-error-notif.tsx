@@ -96,7 +96,9 @@ export default class AccountErrorNotification extends React.Component<
       const erroredAccount = erroredAccounts[0];
       switch (erroredAccount.syncState) {
         case Account.SYNC_STATE_AUTH_FAILED:
-          title = `Cannot authenticate with ${erroredAccount.emailAddress}`;
+          title = erroredAccount.hasCertificateSyncError()
+            ? localized(`Cannot verify the server for %@`, erroredAccount.emailAddress)
+            : localized(`Cannot authenticate with %@`, erroredAccount.emailAddress);
           actions = [
             {
               label: checkAgainLabel,
