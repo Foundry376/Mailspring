@@ -36,7 +36,6 @@
   height: 100%;
   overflow-y: auto;
   position: relative;
-  background: @background-off-primary;
 
   // Decorates only the title and Create card region; the masks fade it out downward and
   // toward the sides so there is no hard edge. Positioned inside the scroller so it scrolls
@@ -75,39 +74,38 @@
     }
   }
 
+  // Full width with the Activity dashboard's 20px margins, like the app's other root sheets.
   .views-home-content {
     position: relative;
-    max-width: 1080px;
-    margin: 0 auto;
-    padding: 36px 40px 60px;
+    padding: 20px 20px 40px;
   }
 
   h1 {
-    font-size: 26px;
+    font-size: 24px;
     font-weight: @font-weight-semi-bold;
     color: @text-color-heading;
-    margin: 0 0 6px;
+    margin: 0;
   }
 
   h2 {
     font-size: @font-size-large;
     font-weight: @font-weight-semi-bold;
     color: @text-color-heading;
-    margin: 32px 0 12px;
+    margin: 24px 0 10px;
   }
 
   .views-home-intro {
     color: @text-color-subtle;
-    margin: 0 0 32px;
-    max-width: 540px;
+    margin: 6px 0 16px;
+    max-width: 520px;
   }
 
   .views-home-create {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
     width: 100%;
-    padding: 18px 20px;
+    padding: 12px 16px;
     text-align: left;
     background: @background-primary;
     border: 1px solid @border-color-primary;
@@ -126,13 +124,13 @@
 
   .views-home-create-plus {
     flex-shrink: 0;
-    width: 40px;
-    height: 40px;
-    border-radius: 20px;
+    width: 32px;
+    height: 32px;
+    border-radius: 16px;
     background: @accent-primary;
     color: @white;
-    font-size: 26px;
-    line-height: 38px;
+    font-size: 22px;
+    line-height: 30px;
     text-align: center;
   }
 
@@ -165,7 +163,7 @@
     display: flex;
     flex-direction: column;
     gap: 12px;
-    padding: 18px 20px;
+    padding: 12px 16px;
     background: @background-primary;
     border: 1px solid @border-color-primary;
     border-radius: 8px;
@@ -216,8 +214,8 @@
 
   .views-home-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
   }
 
   .views-home-card {
@@ -330,7 +328,7 @@
 // The on-device AI badge in the header (lib/local-model/model-badge.tsx).
 .views-home .views-home-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
 
@@ -341,7 +339,6 @@
 
 .model-badge {
   position: relative;
-  margin-top: 4px;
   flex-shrink: 0;
 
   .model-badge-pill {

@@ -532,6 +532,18 @@ export const popToRootSheet = create('popToRootSheet', ActionScopeWindow);
   */
 export const pushSheet = create('pushSheet', ActionScopeWindow);
 
+/*
+  Public: Replace the Sheet stack maintained by the {WorkspaceStore} in one change, with no
+  push animation. The first sheet must be a root sheet.
+
+  *Scope: Window*
+
+  ```javascript
+  Actions.showSheetStack([WorkspaceStore.Sheet.Views, WorkspaceStore.Sheet.ViewPage])
+  ```
+  */
+export const showSheetStack = create('showSheetStack', ActionScopeWindow);
+
 export const addMailRule = create('addMailRule', ActionScopeWindow);
 export const reorderMailRule = create('reorderMailRule', ActionScopeWindow);
 export const updateMailRule = create('updateMailRule', ActionScopeWindow);

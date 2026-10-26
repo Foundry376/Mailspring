@@ -72,6 +72,7 @@ class WorkspaceStore extends MailspringStore {
   private _preferredLayoutMode: string;
   private _hiddenLocations: { [locationId: string]: SheetLocations[''] };
   private _sheetStack: SheetDeclaration[];
+  private _stackChangeAnimates = true;
   private _shortcuts?: Disposable;
 
   constructor() {
@@ -86,6 +87,7 @@ class WorkspaceStore extends MailspringStore {
     this.listenTo(Actions.popSheet, this.popSheet);
     this.listenTo(Actions.popToRootSheet, this.popToRootSheet);
     this.listenTo(Actions.pushSheet, this.pushSheet);
+    this.listenTo(Actions.showSheetStack, this._onShowSheetStack);
 
     const { windowType } = AppEnv.getLoadSettings();
 
@@ -154,8 +156,29 @@ class WorkspaceStore extends MailspringStore {
 
     this._sheetStack = [];
     this._sheetStack.push(sheet);
-    this.trigger(this);
+    // Switching sections drops the old section's pushed sheets at once. Fading them out
+    // leaves their toolbar, re-rendered for a layout mode it has no columns in, as a blank
+    // bar over the new section's toolbar and window controls.
+    this._triggerUnanimated();
   };
+
+  _onShowSheetStack = (sheets: SheetDeclaration[]) => {
+    if (!sheets[0] || !sheets[0].root) {
+      throw new Error(`Actions.showSheetStack - the first sheet must be a root sheet.`);
+    }
+    this._sheetStack = [...sheets];
+    this._triggerUnanimated();
+  };
+
+  // Listeners run synchronously, so the flag covers exactly this one trigger.
+  _triggerUnanimated() {
+    this._stackChangeAnimates = false;
+    try {
+      this.trigger(this);
+    } finally {
+      this._stackChangeAnimates = true;
+    }
+  }
 
   _onToggleLocationHidden = (location: SheetLocations['']) => {
     if (!location.id) {
@@ -275,6 +298,13 @@ class WorkspaceStore extends MailspringStore {
   //
   sheetStack() {
     return this._sheetStack;
+  }
+
+  // Public: Returns false while observers handle a stack change that should appear without
+  // the push and pop animations.
+  //
+  stackChangeAnimates() {
+    return this._stackChangeAnimates;
   }
 
   // Public: Returns an {Array} of locations that have been hidden.

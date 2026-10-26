@@ -78,6 +78,10 @@ describe('Views in the nav rail', function () {
         stack = [...stack, sheet];
         ViewsNavStore._onWorkspaceChanged();
       });
+      spyOn(Actions, 'showSheetStack').andCallFake((sheets) => {
+        stack = [...sheets];
+        ViewsNavStore._onWorkspaceChanged();
+      });
       spyOn(Actions, 'setFocus');
       ViewsNavStore.showHome();
       stack = [WorkspaceStore.Sheet.Threads];
@@ -110,6 +114,24 @@ describe('Views in the nav rail', function () {
     it('switches between Views by replacing the pushed View', function () {
       ViewsNavStore.showView('board');
       ViewsNavStore.showView('rides');
+      expect(stack).toEqual([WorkspaceStore.Sheet.Views, WorkspaceStore.Sheet.ViewPage]);
+      expect(ViewsNavStore.viewId()).toEqual('rides');
+    });
+
+    it('can open a View with the home beneath it in one unanimated stack change', function () {
+      ViewsNavStore.showView('board', { animate: false });
+      expect(Actions.showSheetStack).toHaveBeenCalledWith([
+        WorkspaceStore.Sheet.Views,
+        WorkspaceStore.Sheet.ViewPage,
+      ]);
+      expect(Actions.pushSheet).not.toHaveBeenCalled();
+      expect(stack).toEqual([WorkspaceStore.Sheet.Views, WorkspaceStore.Sheet.ViewPage]);
+      expect(ViewsNavStore.viewId()).toEqual('board');
+    });
+
+    it('switches between Views without an animation, keeping the pushed sheet', function () {
+      ViewsNavStore.showView('board', { animate: false });
+      ViewsNavStore.showView('rides', { animate: false });
       expect(stack).toEqual([WorkspaceStore.Sheet.Views, WorkspaceStore.Sheet.ViewPage]);
       expect(ViewsNavStore.viewId()).toEqual('rides');
     });

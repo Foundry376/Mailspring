@@ -113,7 +113,7 @@ export class ViewsNavRailSection extends React.Component<Record<string, never>, 
             tooltip={tooltipFor(view)}
             badge={badgeFor(view.id)}
             active={showing && viewId === view.id}
-            onClick={() => ViewsNavStore.showView(view.id)}
+            onClick={() => ViewsNavStore.showView(view.id, { animate: false })}
           />
         ))}
       </NavRailSection>

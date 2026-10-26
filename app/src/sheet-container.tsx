@@ -13,6 +13,7 @@ import { Disposable } from 'rx-core';
 interface SheetContainerState {
   stack: SheetDeclaration[];
   mode: string;
+  animate: boolean;
   error?: string;
 }
 
@@ -73,8 +74,14 @@ export default class SheetContainer extends React.Component<
     return {
       stack: WorkspaceStore.sheetStack(),
       mode: WorkspaceStore.layoutMode(),
+      animate: WorkspaceStore.stackChangeAnimates(),
     };
   }
+
+  // A TransitionGroup's childFactory also reaches sheets that are leaving, so one unanimated
+  // stack change skips both the entering and the exiting transitions.
+  _transitionChild = (child: React.ReactElement) =>
+    React.cloneElement(child, { enter: this.state.animate, exit: this.state.animate });
 
   _onColumnSizeChanged = (sheet: Sheet) => {
     const toolbar = this._toolbarComponents[sheet.props.depth];
@@ -136,7 +143,7 @@ export default class SheetContainer extends React.Component<
         onClick={this._onToolbarDoubleClick}
       >
         <div {...inertWhenStacked(this.state.stack.length > 1)}>{components[0]}</div>
-        <TransitionGroup component={null}>
+        <TransitionGroup component={null} childFactory={this._transitionChild}>
           {components.slice(1).map((comp) => (
             <CSSTransition key={comp.key} classNames="opacity-125ms" timeout={125}>
               {comp}
@@ -199,7 +206,7 @@ export default class SheetContainer extends React.Component<
               aria-label={localized('Email workspace')}
             >
               <div {...inertWhenStacked(totalSheets > 1)}>{sheetComponents[0]}</div>
-              <TransitionGroup component={null}>
+              <TransitionGroup component={null} childFactory={this._transitionChild}>
                 {sheetComponents.slice(1).map((comp) => (
                   <CSSTransition key={comp.key} classNames="sheet-stack" timeout={125}>
                     {comp}
