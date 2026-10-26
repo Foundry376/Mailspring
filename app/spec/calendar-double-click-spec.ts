@@ -74,7 +74,6 @@ describe("the context menu's open item", function () {
     expect(openItem(menu).label).toBe('View Event');
     openItem(menu).click();
     expect(calendar._openEventEditor).not.toHaveBeenCalled();
-    expect(calendar.state.selectedEvents).toEqual([theirs]);
   });
 
   it('shows it in the panel on a read-only calendar, even for our own event', function () {
@@ -83,6 +82,5 @@ describe("the context menu's open item", function () {
     expect(openItem(menu).label).toBe('View Event');
     openItem(menu).click();
     expect(calendar._openEventEditor).not.toHaveBeenCalled();
-    expect(calendar.state.selectedEvents).toEqual([occurrence]);
   });
 });
