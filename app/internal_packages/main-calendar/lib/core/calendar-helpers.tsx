@@ -14,7 +14,10 @@ import {
   CalendarDateUtils,
 } from 'mailspring-exports';
 import { ShowAsOption, defaultShowAs } from './show-as-selector';
-import { MIN_EVENT_DURATION_SECONDS } from './calendar-constants';
+import {
+  MIN_EVENT_DURATION_SECONDS,
+  DEFAULT_TIMED_EVENT_DURATION_SECONDS,
+} from './calendar-constants';
 import { EventOccurrence, coveredDates, isTimed } from './calendar-data-source';
 import { dayFraction } from './week-view-helpers';
 
@@ -554,4 +557,32 @@ export function extractNotesFromDescription(description: string) {
     notes = nextNotes;
   }
   return notes;
+}
+
+/** Anyone on the guest list besides the organizer, whom a change would email. */
+export function hasGuests(event: EventOccurrence): boolean {
+  return event.attendees.some(
+    (a) => !event.organizer || !Utils.emailIsEquivalent(a.email, event.organizer.email)
+  );
+}
+
+/**
+ * Whether the event panel edits this event in place, saving each change as it is made: our own
+ * one-off event without guests on a writable calendar. A repeating event or one with guests needs
+ * a confirmation before it saves, so the popover editor edits those.
+ */
+export function canEditInPanel(event: EventOccurrence, isCalendarReadOnly: boolean): boolean {
+  return !isCalendarReadOnly && event.isMine && !event.isRecurring && !hasGuests(event);
+}
+
+/** The times an event takes when All day is switched: whole days covering it, or 9–10 AM on its first day. */
+export function allDayToggleTimes(event: EventOccurrence, allDay: boolean) {
+  if (allDay) {
+    return {
+      start: CalendarDateUtils.dayStartUnix(event.startDate),
+      end: CalendarDateUtils.nextDayStartUnix(event.endDate),
+    };
+  }
+  const start = CalendarDateUtils.secondsIntoDayUnix(event.startDate, 9 * 3600);
+  return { start, end: start + DEFAULT_TIMED_EVENT_DURATION_SECONDS };
 }

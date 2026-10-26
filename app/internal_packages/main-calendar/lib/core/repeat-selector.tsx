@@ -39,6 +39,24 @@ export function frequencyToRepeatOption(frequency: string | undefined): RepeatOp
   }
 }
 
+/**
+ * Convert a RepeatOption UI value to an RRULE string (or null for 'none').
+ */
+export function repeatOptionToRRule(option: RepeatOption): string | null {
+  switch (option) {
+    case 'daily':
+      return 'FREQ=DAILY';
+    case 'weekly':
+      return 'FREQ=WEEKLY';
+    case 'monthly':
+      return 'FREQ=MONTHLY';
+    case 'yearly':
+      return 'FREQ=YEARLY';
+    default:
+      return null;
+  }
+}
+
 export const RepeatSelector: React.FC<RepeatSelectorProps> = ({ value, onChange }) => {
   return (
     <EventPropertyRow label={localized('repeat:')}>

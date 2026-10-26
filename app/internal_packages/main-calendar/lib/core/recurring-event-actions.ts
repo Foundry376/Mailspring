@@ -103,6 +103,28 @@ export function modifySimpleEvent(options: EventTimeChangeOptions): void {
   Actions.queueTask(task);
 }
 
+export type EventPropertyEdit =
+  | { property: 'summary' | 'location' | 'description' | 'transp'; value: string }
+  | { property: 'rrule'; value: string | null };
+
+/**
+ * Changes one property of a simple (non-recurring) event and queues the syncback task. Every
+ * other property is written back as stored, so editing the title leaves an invitation's
+ * formatted description intact.
+ */
+export function modifySimpleEventProperty(event: Event, edit: EventPropertyEdit): void {
+  const undoData = captureEventSnapshot(event);
+  const ics =
+    edit.property === 'rrule'
+      ? ICSEventHelpers.updateRecurrenceRule(event.ics, edit.value)
+      : ICSEventHelpers.updateEventProperty(event.ics, edit.property, edit.value);
+  event.ics = ICSEventHelpers.bumpEventSequence(ics);
+
+  Actions.queueTask(
+    SyncbackEventTask.forUpdating({ event, undoData, description: localized('Edit event') })
+  );
+}
+
 /**
  * Creates an exception for a single occurrence of a recurring event.
  * Embeds the exception VEVENT inline in the master VCALENDAR and queues a single

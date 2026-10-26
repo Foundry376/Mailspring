@@ -5,6 +5,7 @@ import { Event as MailspringEvent } from '../src/flux/models/event';
 // We use a relative path because the plugin is not registered in mailspring-exports.
 import {
   modifySimpleEvent,
+  modifySimpleEventProperty,
   createOccurrenceException,
   modifyAllOccurrences,
   modifyEventWithRecurringSupport,
@@ -792,5 +793,75 @@ describe('modifyEventWithRecurringSupport', function () {
 
       expect(dialogSpy.calls.length).toBe(0);
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// modifySimpleEventProperty
+// ---------------------------------------------------------------------------
+
+describe('modifySimpleEventProperty', function () {
+  // What Google writes: formatted notes, a location, and a guest list the edit must not touch.
+  const FORMATTED_ICS = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Test//Test//EN',
+    'BEGIN:VEVENT',
+    'UID:formatted-uid@test',
+    'DTSTART:20260301T140000Z',
+    'DTEND:20260301T150000Z',
+    'SUMMARY:Team Lunch',
+    'LOCATION:Conference Room B',
+    'DESCRIPTION:Agenda:<br><b>Budget</b><br><a href="https://example.com/doc">Doc</a>',
+    'TRANSP:OPAQUE',
+    'DTSTAMP:20260101T000000Z',
+    'SEQUENCE:3',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n');
+
+  let queued: jasmine.Spy;
+  beforeEach(function () {
+    queued = spyOn(Actions, 'queueTask');
+    spyOn(SyncbackEventTask, 'forUpdating').andCallFake((opts) => ({ _opts: opts }));
+  });
+
+  const written = (event: MailspringEvent) => CalendarUtils.parseICSString(event.ics).event;
+
+  it('writes only the edited property and revises the event once', function () {
+    const event = makeEvent(FORMATTED_ICS);
+    const before = written(event);
+
+    modifySimpleEventProperty(event, { property: 'summary', value: 'Team Dinner' });
+
+    const after = written(event);
+    expect(after.summary).toBe('Team Dinner');
+    expect(after.description).toBe(before.description);
+    expect(after.location).toBe(before.location);
+    expect(after.component.getFirstPropertyValue('transp')).toBe('OPAQUE');
+    expect(after.component.getFirstPropertyValue('sequence')).toBe(4);
+  });
+
+  it('adds a repeat rule without touching the rest', function () {
+    const event = makeEvent(FORMATTED_ICS);
+    const before = written(event);
+
+    modifySimpleEventProperty(event, { property: 'rrule', value: 'FREQ=WEEKLY' });
+
+    const after = written(event);
+    expect(String(after.component.getFirstPropertyValue('rrule'))).toBe('FREQ=WEEKLY');
+    expect(after.description).toBe(before.description);
+    expect(after.summary).toBe('Team Lunch');
+  });
+
+  it('queues one update that can undo back to the event as it was', function () {
+    const event = makeEvent(FORMATTED_ICS);
+
+    modifySimpleEventProperty(event, { property: 'location', value: 'Room 2' });
+
+    expect(queued.callCount).toBe(1);
+    const { _opts } = queued.mostRecentCall.args[0];
+    expect(_opts.event).toBe(event);
+    expect(_opts.undoData.ics).toBe(FORMATTED_ICS);
   });
 });

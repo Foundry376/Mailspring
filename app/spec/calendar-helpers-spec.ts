@@ -13,7 +13,9 @@ import {
   formatShortTime,
   formatShortTimeRange,
   createCalendarEvent,
+  allDayToggleTimes,
 } from '../internal_packages/main-calendar/lib/core/calendar-helpers';
+import { allDayOccurrence, timedOccurrence } from './fixtures/calendar-view-props';
 import {
   shiftedDayStartUnix,
   dayStartUnix,
@@ -183,6 +185,36 @@ describe('all-day day math at a DST transition', function () {
       const from = calendarDateFromUnix(shiftedDayStartUnix(start, 1));
       expect(calendarDaysBetween(from, calendarDateFromUnix(moved))).toBe(3);
     });
+  });
+});
+
+describe('allDayToggleTimes', function () {
+  const clock = (unix: number) => moment.unix(unix).format('YYYY-MM-DD HH:mm');
+
+  it('turns a timed event into the whole days it covers', function () {
+    // 22:00 to midnight covers one day, not two.
+    const lateEvening = timedOccurrence('a', '2026-06-21T22:00', '2026-06-22T00:00');
+    expect(allDayToggleTimes(lateEvening, true)).toEqual({
+      start: localDay(2026, 6, 21),
+      end: localDay(2026, 6, 22),
+    });
+    const overnight = timedOccurrence('b', '2026-06-21T22:00', '2026-06-23T09:00');
+    expect(allDayToggleTimes(overnight, true)).toEqual({
+      start: localDay(2026, 6, 21),
+      end: localDay(2026, 6, 24),
+    });
+  });
+
+  it('keeps whole days across the fall-back day, which is 25 hours long', function () {
+    const fallBack = timedOccurrence('c', '2026-11-01T10:00', '2026-11-01T11:00');
+    const { start, end } = allDayToggleTimes(fallBack, true);
+    expect([clock(start), clock(end)]).toEqual(['2026-11-01 00:00', '2026-11-02 00:00']);
+  });
+
+  it('turns an all-day event into 9 to 10 AM on its first day, on a spring-forward day too', function () {
+    const springForward = allDayOccurrence('d', '2026-03-08', '2026-03-10');
+    const { start, end } = allDayToggleTimes(springForward, false);
+    expect([clock(start), clock(end)]).toEqual(['2026-03-08 09:00', '2026-03-08 10:00']);
   });
 });
 

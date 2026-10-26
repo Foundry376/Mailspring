@@ -45,30 +45,17 @@ import { AttendeeStatusIcon, attendeeStatusClass, sortAttendeesByStatus } from '
 import { CalendarSelector } from './calendar-selector';
 import { LocationVideoInput } from './location-video-input';
 import { AllDayToggle } from './all-day-toggle';
-import { RepeatSelector, RepeatOption, frequencyToRepeatOption } from './repeat-selector';
+import {
+  RepeatSelector,
+  RepeatOption,
+  frequencyToRepeatOption,
+  repeatOptionToRRule,
+} from './repeat-selector';
 import { AlertSelector, AlertTiming } from './alert-selector';
 import { ShowAsSelector, ShowAsOption, defaultShowAs } from './show-as-selector';
 import { EventPopoverActions } from './event-popover-actions';
 import { TimeZoneSelector } from './timezone-selector';
 import { showRecurringEventDialog } from './recurring-event-dialog';
-
-/**
- * Convert a RepeatOption UI value to an RRULE string (or null for 'none').
- */
-function repeatOptionToRRule(option: RepeatOption): string | null {
-  switch (option) {
-    case 'daily':
-      return 'FREQ=DAILY';
-    case 'weekly':
-      return 'FREQ=WEEKLY';
-    case 'monthly':
-      return 'FREQ=MONTHLY';
-    case 'yearly':
-      return 'FREQ=YEARLY';
-    default:
-      return null;
-  }
-}
 
 interface CalendarEventPopoverProps {
   event: EventOccurrence;
