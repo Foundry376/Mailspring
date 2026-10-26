@@ -11,7 +11,7 @@ import {
   ICSEventHelpers,
   Utils,
 } from 'mailspring-exports';
-import { RetinaImg, ScrollRegion } from 'mailspring-component-kit';
+import { RetinaImg, ScrollRegion, SVGIcons } from 'mailspring-component-kit';
 import { EventOccurrence, EventAttendee, isTimed } from './calendar-data-source';
 import {
   calcEventColors,
@@ -37,55 +37,6 @@ interface EventPanelState {
   /** Read from the event's row: the occurrence doesn't carry it. */
   repeat: RepeatOption;
 }
-
-const icon = (paths: React.ReactNode) => (
-  <svg
-    className="event-panel-icon"
-    viewBox="0 0 24 24"
-    width="16"
-    height="16"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.7"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-  >
-    {paths}
-  </svg>
-);
-
-const CLOCK_ICON = icon(
-  <>
-    <circle cx="12" cy="12" r="8.5" />
-    <path d="M12 7.5V12l3 2" />
-  </>
-);
-const ARROW_ICON = icon(<path d="M5 12h14M13 6l6 6-6 6" />);
-const GLOBE_ICON = icon(
-  <>
-    <circle cx="12" cy="12" r="8.5" />
-    <path d="M3.5 12h17M12 3.5c2.5 2.3 3.5 5.2 3.5 8.5s-1 6.2-3.5 8.5c-2.5-2.3-3.5-5.2-3.5-8.5s1-6.2 3.5-8.5z" />
-  </>
-);
-const REPEAT_ICON = icon(
-  <>
-    <path d="M4 11a7 7 0 0 1 12.5-4.3L19 9M20 13a7 7 0 0 1-12.5 4.3L5 15" />
-    <path d="M19 4.5V9h-4.5M5 19.5V15h4.5" />
-  </>
-);
-const PERSON_ICON = icon(
-  <>
-    <circle cx="12" cy="8" r="3.5" />
-    <path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5" />
-  </>
-);
-const VIDEO_ICON = icon(
-  <>
-    <rect x="3" y="6.5" width="12" height="11" rx="2" />
-    <path d="M15 10.5l6-3.5v10l-6-3.5" />
-  </>
-);
 
 /**
  * An event's details in the calendar's right-hand panel, over the agenda. Rows are an icon and
@@ -159,7 +110,7 @@ export class EventPanel extends React.Component<EventPanelProps, EventPanelState
       return (
         <div className="event-panel-section">
           <div className="event-panel-row">
-            {CLOCK_ICON}
+            <SVGIcons.Clock className="event-panel-icon" />
             <span>{days}</span>
           </div>
           <div className="event-panel-row indented">{localized('All day')}</div>
@@ -169,9 +120,9 @@ export class EventPanel extends React.Component<EventPanelProps, EventPanelState
     return (
       <div className="event-panel-section">
         <div className="event-panel-row">
-          {CLOCK_ICON}
+          <SVGIcons.Clock className="event-panel-icon" />
           <span>{formatShortTime(event.start)}</span>
-          {ARROW_ICON}
+          <SVGIcons.ArrowRight className="event-panel-icon" />
           <span>
             {formatShortTime(event.end)}{' '}
             <span className="event-panel-subtle">
@@ -181,13 +132,13 @@ export class EventPanel extends React.Component<EventPanelProps, EventPanelState
         </div>
         <div className="event-panel-row indented">{days}</div>
         <div className="event-panel-row">
-          {GLOBE_ICON}
+          <SVGIcons.Globe className="event-panel-icon" />
           {/* The zone the times above are shown in, which may not be the event's own. */}
           {formatTimezone(DateUtils.timeZone)}
         </div>
         {this.state.repeat !== 'none' && (
           <div className="event-panel-row">
-            {REPEAT_ICON}
+            <SVGIcons.Repeat className="event-panel-icon" />
             {repeatLabel(this.state.repeat)}
           </div>
         )}
@@ -207,7 +158,7 @@ export class EventPanel extends React.Component<EventPanelProps, EventPanelState
       <div className="event-panel-section">
         {attendees.length > 0 && (
           <div className="event-panel-row top">
-            {PERSON_ICON}
+            <SVGIcons.Person className="event-panel-icon" />
             <div className="event-panel-invitees">
               {sortAttendeesByStatus(attendees).map((a) => (
                 <div key={a.email} className={`event-panel-invitee ${attendeeStatusClass(a)}`}>
@@ -227,7 +178,7 @@ export class EventPanel extends React.Component<EventPanelProps, EventPanelState
         )}
         {location && (
           <div className="event-panel-row">
-            {VIDEO_ICON}
+            <SVGIcons.Video className="event-panel-icon" />
             <span className="event-panel-location">
               {location.startsWith('http') || location.startsWith('tel:') ? (
                 <a href={location}>{location}</a>

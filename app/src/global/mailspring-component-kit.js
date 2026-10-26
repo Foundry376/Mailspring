@@ -106,6 +106,7 @@ lazyLoad('OutlineView', 'outline-view');
 lazyLoad('DateInput', 'date-input');
 lazyLoad('MiniMonthView', 'mini-month-view');
 lazyLoad('SnapScroller', 'snap-scroller');
+lazyLoadWithGetter('SVGIcons', () => require('../components/svg-icons'));
 lazyLoad('DatePicker', 'date-picker');
 lazyLoad('TimePicker', 'time-picker');
 lazyLoad('Table', 'table/table');

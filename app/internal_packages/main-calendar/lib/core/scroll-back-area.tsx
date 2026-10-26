@@ -1,5 +1,6 @@
 import React from 'react';
 import { localized } from 'mailspring-exports';
+import { SVGIcons } from 'mailspring-component-kit';
 import { EventOccurrence, occurrenceStartUnix } from './calendar-data-source';
 
 type Direction = 'up' | 'down' | 'left' | 'right';
@@ -27,11 +28,11 @@ const DAY_CELL = '.month-view-day-cell, [data-calendar-type="day-column"]';
 const DAY_SCROLLER = '.month-view-grid, .calendar-area-wrap';
 const GRID_TOP = '.event-grid-wrap, .month-view-grid';
 
-const ARROWS: { [direction in Direction]: string } = {
-  up: 'M12 19V5M6 11l6-6 6 6',
-  down: 'M12 5v14M6 13l6 6 6-6',
-  left: 'M19 12H5M11 6l-6 6 6 6',
-  right: 'M5 12h14M13 6l6 6-6 6',
+const ARROWS = {
+  up: SVGIcons.ArrowUp,
+  down: SVGIcons.ArrowDown,
+  left: SVGIcons.ArrowLeft,
+  right: SVGIcons.ArrowRight,
 };
 
 /** Each box that clips `el` on its way up to `root`: every ancestor that doesn't overflow visibly. */
@@ -169,6 +170,7 @@ export class ScrollBackArea extends React.Component<ScrollBackAreaProps, ScrollB
     const { direction, left, top } = this.state;
     if (!event || !direction) return null;
     const title = event.title || localized('(No title)');
+    const Arrow = ARROWS[direction];
     return (
       <button
         className="scroll-back-pill"
@@ -176,19 +178,7 @@ export class ScrollBackArea extends React.Component<ScrollBackAreaProps, ScrollB
         title={localized('Scroll back to %@', title)}
         onClick={() => this.props.onReveal(event)}
       >
-        <svg
-          viewBox="0 0 24 24"
-          width="14"
-          height="14"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d={ARROWS[direction]} />
-        </svg>
+        <Arrow size={14} strokeWidth={2} />
         <span className="scroll-back-pill-title">{title}</span>
       </button>
     );
