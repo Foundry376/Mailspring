@@ -8,6 +8,13 @@ const AUTH_FAILURE = {
   signal: 'SIGABRT',
   error: new Error('{"key":"ErrorAuthentication","debuginfo":"loginIfNeeded"}'),
 };
+const CERTIFICATE_FAILURE = {
+  code: null,
+  signal: 'SIGABRT',
+  error: new Error(
+    '{"key":"ErrorCertificate","debuginfo":"syncFoldersAndLabels - fetchAllFolders"}'
+  ),
+};
 
 describe('CrashTracker', () => {
   let now: number;
@@ -43,6 +50,12 @@ describe('CrashTracker', () => {
     expect(tracker.tooManyFailures(ACCOUNT)).toBeFalsy();
     now += 3 * 60 * 1000;
     tracker.recordClientCrash(ACCOUNT, AUTH_FAILURE);
+    expect(tracker.tooManyFailures(ACCOUNT)).toBe(true);
+  });
+
+  it('gives up after two certificate failures, which only reconnecting can resolve', () => {
+    tracker.recordClientCrash(ACCOUNT, CERTIFICATE_FAILURE);
+    tracker.recordClientCrash(ACCOUNT, CERTIFICATE_FAILURE);
     expect(tracker.tooManyFailures(ACCOUNT)).toBe(true);
   });
 
