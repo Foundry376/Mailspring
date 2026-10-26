@@ -13,6 +13,7 @@ interface AgendaContainerProps {
   // Given by the calendar, whose grid shares the selection; the mail sidebar's agenda keeps its own.
   selectedEvents?: EventOccurrence[];
   onEventClick?: (e: React.MouseEvent, event: EventOccurrence) => void;
+  onEventDoubleClick?: (event: EventOccurrence) => void;
 }
 
 interface AgendaContainerState {
@@ -85,6 +86,7 @@ export class AgendaContainer extends React.Component<AgendaContainerProps, Agend
           disabledCalendars={this.state.disabledCalendars}
           selectedEvents={this.props.selectedEvents ?? this.state.selectedEvents}
           onEventClick={this._onEventClick}
+          onEventDoubleClick={this.props.onEventDoubleClick}
           isCalendarReadOnly={this._isCalendarReadOnly}
         />
       </div>

@@ -19,7 +19,10 @@ const DAYS_IN_PANEL = 14;
 export type AgendaPanelProps = Pick<
   MailspringCalendarViewProps,
   'dataSource' | 'disabledCalendars' | 'selectedEvents' | 'onEventClick' | 'isCalendarReadOnly'
->;
+> & {
+  /** Replaces the event's popover, which the agenda opens itself outside the calendar. */
+  onEventDoubleClick?: (event: EventOccurrence) => void;
+};
 
 interface DayEvents {
   date: CalendarDate;
@@ -125,6 +128,10 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
    * multi-day events rendered with day-unique DOM ids.
    */
   _onAgendaEventDoubleClick = (e: React.MouseEvent, event: EventOccurrence) => {
+    if (this.props.onEventDoubleClick) {
+      this.props.onEventDoubleClick(event);
+      return;
+    }
     const eventEl = e.currentTarget as HTMLElement;
     Actions.openPopover(
       <CalendarEventPopover
