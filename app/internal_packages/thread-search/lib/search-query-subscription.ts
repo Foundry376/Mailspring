@@ -12,6 +12,8 @@ import {
   RemoteSearchQueryBackend,
 } from 'mailspring-exports';
 
+type SyncProcess = ReturnType<typeof AppEnv.mailsyncBridge.clients>[string];
+
 class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
   _searchQuery: string;
   _accountIds: string[];
@@ -20,7 +22,8 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
   _searching = false;
   _haveLocalResults = false;
   _parsedQuery = null;
-  _remoteSearches = new Map<string, string>();
+  // searchId -> the account and the sync process the request went to
+  _remoteSearches = new Map<string, { accountId: string; client: SyncProcess }>();
   _remoteThreadIds = new Set<string>();
   _remoteUnlisteners: (() => void)[] = [];
 
@@ -82,7 +85,8 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
       const account = AccountStore.accountForId(accountId);
       // sendMessageToAccount shows the "unable to sync" dialog for an account whose sync
       // process is not running; a search is silent about it and skips the account.
-      if (!account || !this.hasSyncProcess(accountId)) {
+      const client = this.runningSyncProcess(accountId);
+      if (!account || !client) {
         continue;
       }
       const request = RemoteSearchQueryBackend.compile(
@@ -94,7 +98,7 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
         continue;
       }
       const searchId = Utils.generateTempId();
-      this._remoteSearches.set(searchId, accountId);
+      this._remoteSearches.set(searchId, { accountId, client });
       AppEnv.mailsyncBridge.sendMessageToAccount(accountId, {
         type: 'search-remote',
         searchId,
@@ -103,9 +107,9 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
     }
   }
 
-  hasSyncProcess(accountId: string) {
+  runningSyncProcess(accountId: string): SyncProcess | null {
     const client = AppEnv.mailsyncBridge.clients()[accountId];
-    return !!client && client.spawned;
+    return client && client.spawned ? client : null;
   }
 
   _onRemoteSearchResult = (result: {
@@ -129,11 +133,12 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
     this.performLocalSearch();
   };
 
-  // A sync process that exited, crashed or was stopped answers none of the searches it
-  // was sent; without this the searching indicator would stay on until the next search.
-  _onSyncProcessExited = (accountId: string) => {
-    for (const [searchId, searchAccountId] of this._remoteSearches) {
-      if (searchAccountId === accountId) {
+  // A process that exited answers none of the searches it was sent, or the searching
+  // indicator would stay on. Matched by process: a replaced one may exit after its successor
+  // has been sent a search.
+  _onSyncProcessExited = (client: SyncProcess) => {
+    for (const [searchId, sent] of this._remoteSearches) {
+      if (sent.client === client) {
         this._remoteSearches.delete(searchId);
       }
     }
@@ -188,8 +193,8 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
     this._extDisposables.forEach((disposable) => disposable.dispose());
     this._remoteUnlisteners.forEach((unlisten) => unlisten());
     this._remoteUnlisteners = [];
-    for (const [searchId, accountId] of this._remoteSearches) {
-      if (!this.hasSyncProcess(accountId)) {
+    for (const [searchId, { accountId }] of this._remoteSearches) {
+      if (!this.runningSyncProcess(accountId)) {
         continue;
       }
       AppEnv.mailsyncBridge.sendMessageToAccount(accountId, {

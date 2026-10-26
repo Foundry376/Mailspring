@@ -200,12 +200,16 @@ describe('SearchQuerySubscription', function () {
       expect(completed.callCount).toBe(1);
     });
 
-    it('goes off when a sync process exits without answering', function () {
+    it('goes off when the sync process it asked exits without answering', function () {
       const sub = subscribe('pineapple', ['a1', 'a2']);
       resultsArrive(sub);
-      sub._onSyncProcessExited('a1');
+      const sentTo = { ...clients };
+      clients.a1 = { spawned: true };
+      sub._onSyncProcessExited(clients.a1);
       expect(completed).not.toHaveBeenCalled();
-      sub._onSyncProcessExited('a2');
+      sub._onSyncProcessExited(sentTo.a1);
+      expect(completed).not.toHaveBeenCalled();
+      sub._onSyncProcessExited(sentTo.a2);
       expect(completed.callCount).toBe(1);
     });
 
