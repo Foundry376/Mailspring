@@ -12,6 +12,7 @@
   "It was issued by %@, which this computer does not trust.": "It was issued by %@, which this computer does not trust.",
   "It was issued for %@, not %@.": "It was issued for %@, not %@.",
   "Mailspring can't verify this server's identity": "Mailspring can't verify this server's identity",
+  "Cannot authenticate with %@": "Cannot authenticate with %@",
   "Cannot verify the server for %@": "Cannot verify the server for %@",
   "Mailspring can't verify the server for %@. Its certificate is not trusted, which can happen when antivirus or network software intercepts secure connections.": "Mailspring can't verify the server for %@. Its certificate is not trusted, which can happen when antivirus or network software intercepts secure connections.",
   "Mailspring can't verify the server for %@. Its certificate is not trusted, or has changed since you accepted it. Reconnect to review it.": "Mailspring can't verify the server for %@. Its certificate is not trusted, or has changed since you accepted it. Reconnect to review it.",
