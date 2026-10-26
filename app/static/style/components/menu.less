@@ -68,12 +68,23 @@
   }
 
   .item.divider {
-    font-weight: @font-weight-semi-bold;
-    color: @border-color-divider;
-    font-size: @font-size-small;
-    text-transform: uppercase;
-    margin-top: 10px;
+    height: 1px;
+    padding: 0;
+    margin: 4px 0;
+    background-color: @border-color-divider;
     pointer-events: none;
+
+    // Menu.Item divider="Label" renders a section heading instead of a rule.
+    &:not(:empty) {
+      height: auto;
+      margin: 10px 0 0 0;
+      padding-left: @padding-base-horizontal;
+      background-color: transparent;
+      font-weight: @font-weight-semi-bold;
+      color: @border-color-divider;
+      font-size: @font-size-small;
+      text-transform: uppercase;
+    }
   }
 
   .item.checked {

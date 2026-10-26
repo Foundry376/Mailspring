@@ -74,6 +74,17 @@
     .dropdown-menu .menu {
       width: 160px;
     }
+    // Sized to the longest account address, which often won't fit in 160px.
+    .account-selector .menu {
+      width: max-content;
+      min-width: 160px;
+      max-width: 360px;
+      .item {
+        padding-right: @padding-base-horizontal;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+    }
   }
 
   .usage-note {
