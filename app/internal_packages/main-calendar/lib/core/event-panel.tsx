@@ -379,14 +379,10 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         )}
         <div className="event-panel-row">
           <SVGIcons.Repeat className="event-panel-icon" />
-          <select
-            className={this.state.repeat === 'none' ? 'is-placeholder' : undefined}
-            value={this.state.repeat}
-            onChange={this._onRepeatChange}
-          >
+          <select value={this.state.repeat} onChange={this._onRepeatChange}>
             {REPEAT_OPTIONS.map((option) => (
               <option key={option} value={option}>
-                {option === 'none' ? localized('Repeat') : repeatLabel(option)}
+                {option === 'none' ? localized('Does not repeat') : repeatLabel(option)}
               </option>
             ))}
           </select>
