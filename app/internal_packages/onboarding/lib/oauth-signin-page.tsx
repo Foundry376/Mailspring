@@ -163,13 +163,22 @@ export default class OAuthSignInPage extends React.Component<
 
   _onError(err) {
     const isNetworkError = err.message?.includes('Failed to fetch') || err.isNetworkError;
+    let errorMessage = err.message;
+    if (isNetworkError) {
+      errorMessage = localized(
+        'A network error occurred. Please check your internet connection and try again.'
+      );
+    } else if (err.certificates?.length) {
+      // The engine advises reconnecting to review the certificate, which OAuth accounts don't
+      // offer: Gmail and Microsoft always present a trusted certificate.
+      errorMessage = localized(
+        `Mailspring can't verify the server for %@. Its certificate is not trusted, which can happen when antivirus or network software intercepts secure connections.`,
+        this.props.serviceName
+      );
+    }
     this.setState({
       authStage: 'error',
-      errorMessage: isNetworkError
-        ? localized(
-            'A network error occurred. Please check your internet connection and try again.'
-          )
-        : err.message,
+      errorMessage,
       errorLog: err.rawLog,
     });
     // Don't report network errors or user-configuration errors (e.g. account has no mailbox)

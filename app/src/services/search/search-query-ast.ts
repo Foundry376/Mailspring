@@ -368,8 +368,10 @@ export class InQueryExpression extends QueryExpression {
     visitor.visitIn(this);
   }
 
+  // ThreadSearch.categories holds role and path words, so an FTS match would also find
+  // "in:spam" in a label named "Political Spam". Categories are matched by whole name in SQL.
   _computeIsMatchCompatible() {
-    return true;
+    return false;
   }
 
   equals(other: QueryExpression) {
