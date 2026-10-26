@@ -21,19 +21,64 @@ function onPaste(event: React.ClipboardEvent, editor: Editor, next: () => void) 
   }
 }
 
-function buildAutoReplaceHandler({ hrefPrefix = '' } = {}) {
+// Punctuation that commonly follows a URL in prose, e.g. "(see https://example.com)".
+// `;` is left out because it can end a query string.
+const TRAILING_PUNCTUATION = `[)\\]}>.,!?:'"]*`;
+
+// Matches a URL right before the cursor, optionally followed by trailing punctuation.
+// It keeps the `g` flag: slate-auto-replace uses String.match and deletes every
+// captured group it gets back, so the match must come back without groups.
+export const URL_BEFORE_CURSOR_REGEX = new RegExp(
+  `${RegExpUtils.urlRegex().source}${TRAILING_PUNCTUATION}$`,
+  'gi'
+);
+
+// Same idea for email addresses, e.g. "(bob@example.com)" or "mail bob@example.com.".
+// The address still has to start a word, but may be preceded by an opening bracket
+// or quote. None of those characters are valid in the local part.
+export const EMAIL_BEFORE_CURSOR_REGEX = new RegExp(
+  `(?:^|\\s)[(\\[<"]*${RegExpUtils.emailRegex().source}${TRAILING_PUNCTUATION}$`,
+  'g'
+);
+
+export function splitTrailingPunctuation(text: string) {
+  const match = RegExpUtils.urlRegex({ matchStartOfString: true }).exec(text);
+  const link = match ? match[0] : text;
+  return { leading: '', link, trailing: text.slice(link.length) };
+}
+
+export function splitEmailPunctuation(text: string) {
+  const match = RegExpUtils.emailRegex().exec(text);
+  if (!match) return { leading: '', link: text, trailing: '' };
+  const link = match[0];
+  return {
+    leading: text.slice(0, match.index),
+    link,
+    trailing: text.slice(match.index + link.length),
+  };
+}
+
+const BARE_EMAIL_REGEX = new RegExp(`^${RegExpUtils.emailRegex().source}$`);
+
+type LinkSplitter = (text: string) => { leading: string; link: string; trailing: string };
+
+function buildAutoReplaceHandler(hrefPrefix: string, split: LinkSplitter) {
   return function (editor: Editor, e, matches) {
     if (safeActiveMarks(editor.value).find((m) => m.type === LINK_TYPE))
       return editor.insertText(TriggerKeyValues[e.key]);
 
-    const link = matches.before[0];
-    const mark = Mark.create({ type: LINK_TYPE, data: { href: hrefPrefix + matches.before[0] } });
+    const matched = matches.before[0];
+    const { leading, link, trailing } = split(matched);
+    // urlRegex also accepts a scheme-less user@host, which needs mailto: to work.
+    const href = BARE_EMAIL_REGEX.test(link) ? `mailto:${link}` : hrefPrefix + link;
+    const mark = Mark.create({ type: LINK_TYPE, data: { href } });
     return editor
-      .deleteBackward(link.length)
+      .deleteBackward(matched.length)
+      .insertText(leading)
       .addMark(mark)
       .insertText(link)
       .removeMark(mark)
-      .insertText(TriggerKeyValues[e.key]);
+      .insertText(trailing + TriggerKeyValues[e.key]);
   };
 }
 
@@ -148,13 +193,13 @@ const plugins: ComposerEditorPlugin[] = [
   BaseLinkPlugin,
   AutoReplace({
     trigger: (e) => !!TriggerKeyValues[e.key],
-    before: RegExpUtils.emailRegex({ requireStartOrWhitespace: true, matchTailOfString: true }),
-    change: buildAutoReplaceHandler({ hrefPrefix: 'mailto:' }),
+    before: EMAIL_BEFORE_CURSOR_REGEX,
+    change: buildAutoReplaceHandler('mailto:', splitEmailPunctuation),
   }),
   AutoReplace({
     trigger: (e) => !!TriggerKeyValues[e.key],
-    before: RegExpUtils.urlRegex({ matchTailOfString: true }),
-    change: buildAutoReplaceHandler(),
+    before: URL_BEFORE_CURSOR_REGEX,
+    change: buildAutoReplaceHandler('', splitTrailingPunctuation),
   }),
 ];
 
