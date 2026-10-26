@@ -111,6 +111,19 @@ class AutolinkedText extends React.Component<{ text: string }> {
   }
 }
 
+// A select that reads as text, as the toolbar's view picker does, with the caret only on hover.
+const PanelSelect = (props: React.SelectHTMLAttributes<HTMLSelectElement>) => (
+  <span className="event-panel-select">
+    <select {...props} />
+    <RetinaImg
+      name="ic-calendar-down-arrow.png"
+      mode={RetinaImg.Mode.ContentIsMask}
+      style={{ width: 8, height: 5, WebkitMaskSize: 'contain' }}
+      aria-hidden="true"
+    />
+  </span>
+);
+
 function linkOrText(location: string) {
   return location.startsWith('http') || location.startsWith('tel:') ? (
     <a href={location}>{location}</a>
@@ -379,13 +392,13 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         )}
         <div className="event-panel-row">
           <SVGIcons.Repeat className="event-panel-icon" />
-          <select value={this.state.repeat} onChange={this._onRepeatChange}>
+          <PanelSelect value={this.state.repeat} onChange={this._onRepeatChange}>
             {REPEAT_OPTIONS.map((option) => (
               <option key={option} value={option}>
                 {option === 'none' ? localized('Does not repeat') : repeatLabel(option)}
               </option>
             ))}
-          </select>
+          </PanelSelect>
         </div>
       </div>
     );
@@ -555,7 +568,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         )}
         <div className="event-panel-row indented">
           {this._editable() ? (
-            <select
+            <PanelSelect
               value={showAs}
               onChange={(e) => this._saveProperty({ property: 'transp', value: e.target.value })}
             >
@@ -564,7 +577,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
                   {showAsLabel(option)}
                 </option>
               ))}
-            </select>
+            </PanelSelect>
           ) : (
             showAsLabel(showAs)
           )}

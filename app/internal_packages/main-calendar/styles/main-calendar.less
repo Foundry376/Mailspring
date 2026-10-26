@@ -960,6 +960,30 @@
     overflow: hidden;
   }
 
+  .event-panel-select {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+
+    select {
+      appearance: none;
+      field-sizing: content;
+      padding-right: 14px;
+    }
+
+    img.content-mask {
+      position: absolute;
+      right: 0;
+      pointer-events: none;
+      visibility: hidden;
+      background-color: @text-color-very-subtle;
+    }
+
+    &:hover img.content-mask {
+      visibility: visible;
+    }
+  }
+
   .time-picker-wrap {
     width: auto;
 
