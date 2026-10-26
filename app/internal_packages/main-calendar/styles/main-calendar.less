@@ -755,3 +755,149 @@
   }
 }
 
+.calendar-right-panel {
+  position: relative;
+  height: 100%;
+
+  // The agenda under an open event keeps its layout, and so its scroll position.
+  .is-covered {
+    visibility: hidden;
+  }
+}
+
+.event-panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid @border-color-divider;
+  background: @background-primary;
+  font-size: 13px;
+  line-height: 18px;
+  color: @text-color;
+
+  .event-panel-header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 8px 4px 4px;
+  }
+
+  .event-panel-back {
+    height: 24px;
+    padding: 0 8px 0 0;
+    display: flex;
+    align-items: center;
+    font: inherit;
+    color: @text-color;
+
+    img.content-mask {
+      background-color: @text-color;
+    }
+  }
+
+  .event-panel-body {
+    flex: 1;
+    min-height: 0;
+  }
+
+  .event-panel-title {
+    padding: 6px 14px 12px;
+    border-bottom: 1px solid @border-color-divider;
+    font-size: 16px;
+    line-height: 21px;
+    overflow-wrap: anywhere;
+  }
+
+  .event-panel-section {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 10px 14px;
+    border-bottom: 1px solid @border-color-divider;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .event-panel-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 26px;
+
+    &.indented {
+      padding-left: 26px;
+    }
+
+    &.top {
+      align-items: flex-start;
+
+      > .event-panel-icon {
+        margin-top: 5px;
+      }
+    }
+  }
+
+  .event-panel-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: @text-color-very-subtle;
+  }
+
+  .event-panel-subtle {
+    color: @text-color-very-subtle;
+  }
+
+  .event-panel-invitees {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .event-panel-invitee {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0;
+    .attendee-status-colors();
+
+    .attendee-status {
+      width: 16px;
+      height: 16px;
+      margin-top: 1px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+
+  .event-panel-invitee-name,
+  .event-panel-location {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .event-panel-notes {
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+  }
+
+  .event-panel-calendar-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+  }
+}
+
