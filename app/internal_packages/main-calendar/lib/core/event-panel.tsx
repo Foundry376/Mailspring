@@ -182,7 +182,11 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         )}
         {location && (
           <div className="event-panel-row">
-            <SVGIcons.Video className="event-panel-icon" />
+            {CalendarUtils.extractMeetingDomain(location, '') ? (
+              <SVGIcons.Video className="event-panel-icon" />
+            ) : (
+              <SVGIcons.Location className="event-panel-icon" />
+            )}
             <span className="event-panel-location">
               {location.startsWith('http') || location.startsWith('tel:') ? (
                 <a href={location}>{location}</a>
