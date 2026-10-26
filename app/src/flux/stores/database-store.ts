@@ -65,6 +65,15 @@ async function openDatabase(dbPath: string) {
     db.pragma(`main.page_size = 8192`);
     db.pragma(`main.cache_size = 20000`);
     db.pragma(`main.synchronous = NORMAL`);
+
+    // https://www.sqlite.org/mmap.html
+    // Pages inside the mapping are read straight from the OS page cache instead of being
+    // copied into SQLite's cache. The mapping covers the start of the file, not its hottest
+    // pages, so it is sized to SQLite's maximum (SQLITE_MAX_MMAP_SIZE, 2 GB). On Windows a
+    // mapping stops the sync engine from truncating the file; SQLite ignores that failure
+    // (ERROR_USER_MAPPED_FILE in winTruncate) and the file keeps its size until a later
+    // truncate succeeds.
+    db.pragma(`mmap_size = 2147418112`);
     return db;
   } catch (err) {
     handleUnrecoverableDatabaseError(err);
