@@ -400,6 +400,7 @@ export default class MailsyncBridge {
 
       delete this._clients[account.id];
       OnlineStatusStore.onSyncProcessExited(account.id);
+      Actions.mailsyncProcessExited(account.id);
       if (signal === 'SIGTERM') {
         return;
       }

@@ -67,9 +67,7 @@ describe('RemoteSearchQueryBackend', function () {
       expect(compileGmail('to:"Bob Builder"')).toEqual({ gmailRaw: 'to:"Bob Builder"' });
       expect(compileGmail('subject:invoice')).toEqual({ gmailRaw: 'subject:invoice' });
       expect(compileGmail('is:unread')).toEqual({ gmailRaw: 'is:unread' });
-      expect(compileGmail('is:read')).toEqual({ gmailRaw: 'is:read' });
       expect(compileGmail('is:starred')).toEqual({ gmailRaw: 'is:starred' });
-      expect(compileGmail('is:unstarred')).toEqual({ gmailRaw: '-is:starred' });
       expect(compileGmail('has:attachment')).toEqual({ gmailRaw: 'has:attachment' });
     });
 
@@ -107,9 +105,13 @@ describe('RemoteSearchQueryBackend', function () {
       expect(compileGmail('since:"March 5 2024"')).toEqual({
         gmailRaw: `after:${seconds('March 5 2024')}`,
       });
-      expect(compileGmail('before:"March 5 2024"')).toEqual({
-        gmailRaw: `before:${seconds('March 5 2024')}`,
-      });
+    });
+
+    it('leaves terms that apply to the whole thread to the local search', function () {
+      expect(compileGmail('is:read')).toBe(null);
+      expect(compileGmail('is:unstarred')).toBe(null);
+      expect(compileGmail('before:"March 5 2024"')).toBe(null);
+      expect(compileGmail('invoice is:read')).toBe(null);
     });
 
     it('nests AND, OR and NOT', function () {
@@ -130,7 +132,7 @@ describe('RemoteSearchQueryBackend', function () {
       expect(compileGmail('in:"Work Stuff"')).toEqual({ gmailRaw: 'label:"Work Stuff"' });
     });
 
-    it("names a label as Gmail shows it, not as its modified UTF-7 IMAP path", function () {
+    it('names a label as Gmail shows it, not as its modified UTF-7 IMAP path', function () {
       expect(compileGmail('in:Café')).toEqual({ gmailRaw: 'label:"Café"' });
       expect(compileGmail('in:"R&D"')).toEqual({ gmailRaw: 'label:"R&D"' });
       expect(compileGmail('in:"Café/Menü"')).toEqual({ gmailRaw: 'label:"Café/Menü"' });
@@ -172,7 +174,9 @@ describe('RemoteSearchQueryBackend', function () {
       expect(compileGmail('from:alice OR (pineapple NOT pizza)')).toBe(null);
       expect(compileGmail('pineapple NOT in:sent')).toBe(null);
       expect(compileGmail('pineapple NOT (in:trash OR in:sent)')).toBe(null);
-      expect(compileGmail('pineapple NOT in:trash')).toEqual({ gmailRaw: '(pineapple -(in:trash))' });
+      expect(compileGmail('pineapple NOT in:trash')).toEqual({
+        gmailRaw: '(pineapple -(in:trash))',
+      });
       expect(compileGmail('(pineapple) NOT (in:Spam OR in:"[Gmail]/Trash")')).toEqual({
         gmailRaw: '(pineapple -((in:spam OR in:trash)))',
       });
@@ -191,9 +195,7 @@ describe('RemoteSearchQueryBackend', function () {
       expect(compileIMAP('to:bob')).toEqual({ criteria: ['to', 'bob'] });
       expect(compileIMAP('subject:invoice')).toEqual({ criteria: ['subject', 'invoice'] });
       expect(compileIMAP('is:unread')).toEqual({ criteria: ['unread'] });
-      expect(compileIMAP('is:read')).toEqual({ criteria: ['read'] });
       expect(compileIMAP('is:starred')).toEqual({ criteria: ['flagged'] });
-      expect(compileIMAP('is:unstarred')).toEqual({ criteria: ['unflagged'] });
     });
 
     it('leaves has:attachment to the local search', function () {
@@ -203,7 +205,13 @@ describe('RemoteSearchQueryBackend', function () {
 
     it('sends dates as the day they fall on', function () {
       expect(compileIMAP('after:"March 5 2024"')).toEqual({ criteria: ['since', '2024-03-05'] });
-      expect(compileIMAP('before:"March 5 2024"')).toEqual({ criteria: ['before', '2024-03-05'] });
+    });
+
+    it('leaves terms that apply to the whole thread to the local search', function () {
+      expect(compileIMAP('is:read')).toBe(null);
+      expect(compileIMAP('is:unstarred')).toBe(null);
+      expect(compileIMAP('before:"March 5 2024"')).toBe(null);
+      expect(compileIMAP('invoice is:read')).toBe(null);
     });
 
     it('nests AND, OR and NOT', function () {
@@ -293,7 +301,7 @@ describe('RemoteSearchQueryBackend', function () {
     });
 
     it('leaves an unparseable date to the local search', function () {
-      expect(compileIMAP('before:"not a date"')).toBe(null);
+      expect(compileIMAP('after:"not a date"')).toBe(null);
     });
   });
 });

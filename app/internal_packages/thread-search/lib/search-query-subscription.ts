@@ -22,7 +22,7 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
   _parsedQuery = null;
   _remoteSearches = new Map<string, string>();
   _remoteThreadIds = new Set<string>();
-  _remoteUnlisten: () => void = null;
+  _remoteUnlisteners: (() => void)[] = [];
 
   constructor(searchQuery: string, accountIds: string[]) {
     super(null, { emitResultSet: true });
@@ -74,7 +74,10 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
     if (!this._parsedQuery || !AppEnv.mailsyncBridge) {
       return;
     }
-    this._remoteUnlisten = Actions.remoteSearchResultReceived.listen(this._onRemoteSearchResult);
+    this._remoteUnlisteners = [
+      Actions.remoteSearchResultReceived.listen(this._onRemoteSearchResult),
+      Actions.mailsyncProcessExited.listen(this._onSyncProcessExited),
+    ];
     for (const accountId of this._accountIds) {
       const account = AccountStore.accountForId(accountId);
       // sendMessageToAccount shows the "unable to sync" dialog for an account whose sync
@@ -101,7 +104,8 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
   }
 
   hasSyncProcess(accountId: string) {
-    return !!AppEnv.mailsyncBridge.clients()[accountId];
+    const client = AppEnv.mailsyncBridge.clients()[accountId];
+    return !!client && client.spawned;
   }
 
   _onRemoteSearchResult = (result: {
@@ -123,6 +127,17 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
     }
     added.forEach((id) => this._remoteThreadIds.add(id));
     this.performLocalSearch();
+  };
+
+  // A sync process that exited, crashed or was stopped answers none of the searches it
+  // was sent; without this the searching indicator would stay on until the next search.
+  _onSyncProcessExited = (accountId: string) => {
+    for (const [searchId, searchAccountId] of this._remoteSearches) {
+      if (searchAccountId === accountId) {
+        this._remoteSearches.delete(searchId);
+      }
+    }
+    this._completeWhenAnswered();
   };
 
   _createResultAndTrigger() {
@@ -171,9 +186,8 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
   onLastCallbackRemoved() {
     this._connections.forEach((conn) => conn.end());
     this._extDisposables.forEach((disposable) => disposable.dispose());
-    if (this._remoteUnlisten) {
-      this._remoteUnlisten();
-    }
+    this._remoteUnlisteners.forEach((unlisten) => unlisten());
+    this._remoteUnlisteners = [];
     for (const [searchId, accountId] of this._remoteSearches) {
       if (!this.hasSyncProcess(accountId)) {
         continue;
