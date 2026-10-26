@@ -25,7 +25,8 @@ interface AgendaContainerState {
 
 /**
  * An AgendaPanel that loads its own calendars and events and keeps its own selection, for
- * places outside the calendar grid. Double-clicking an event opens its popover from AgendaPanel.
+ * places outside the calendar grid. Double-clicking an event opens its popover from AgendaPanel
+ * unless the host passes onEventDoubleClick.
  */
 export class AgendaContainer extends React.Component<AgendaContainerProps, AgendaContainerState> {
   static displayName = 'AgendaContainer';

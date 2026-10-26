@@ -11,7 +11,6 @@ interface ScrollBackAreaProps {
   /** The axis the view's days run along: across in Day and Week, down in Month. */
   dayAxis: 'horizontal' | 'vertical';
   onReveal: (event: EventOccurrence) => void;
-  /** The grid, which the pill sits over and measures. */
   children: React.ReactNode;
 }
 
@@ -24,7 +23,6 @@ interface ScrollBackAreaState {
 const SELECTED_EVENT = '.calendar-event.selected, .month-view-event.selected';
 // Single days only: Week's all-day row spans every day drawn, showing or not.
 const DAY_CELL = '.month-view-day-cell, [data-calendar-type="day-column"]';
-// The scroller the days move through, and the one under the all-day row in Day and Week.
 const DAY_SCROLLER = '.month-view-grid, .calendar-area-wrap';
 const GRID_TOP = '.event-grid-wrap, .month-view-grid';
 
@@ -35,7 +33,6 @@ const ARROWS = {
   right: SVGIcons.ArrowRight,
 };
 
-/** Each box that clips `el` on its way up to `root`: every ancestor that doesn't overflow visibly. */
 function clipsOf(el: Element, root: Element): DOMRect[] {
   const clips: DOMRect[] = [];
   for (let node = el.parentElement; node && node !== root; node = node.parentElement) {
@@ -59,10 +56,7 @@ function sideOutside(rect: DOMRect, clips: DOMRect[]): Direction | null {
   return vertical;
 }
 
-/**
- * Where the event lies from what the grid shows, or null while some of it is in view. An event
- * outside the days drawn has no element, so its date is compared with the days showing.
- */
+// An event outside the days drawn has no element, so its date is compared with the days showing.
 export function scrolledAwayDirection(
   area: Element,
   event: EventOccurrence,
@@ -86,10 +80,7 @@ export function scrolledAwayDirection(
   return null;
 }
 
-/**
- * Holds the grid, and offers back the event open in the panel while the grid is scrolled away
- * from it: a pill at the top of the grid, its arrow pointing the way the event lies.
- */
+// Wraps the grid so the grid's element exists by the time this mounts and starts watching it.
 export class ScrollBackArea extends React.Component<ScrollBackAreaProps, ScrollBackAreaState> {
   static displayName = 'ScrollBackArea';
 

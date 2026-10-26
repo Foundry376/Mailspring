@@ -231,7 +231,6 @@ export class MailspringCalendar extends React.Component<
     this._openPanelForSelection(prevState);
   }
 
-  /** The event the right-hand panel shows: the selection, when exactly one event is selected. */
   _panelEvent(): EventOccurrence | null {
     const { selectedEvents } = this.state;
     return selectedEvents.length === 1 ? selectedEvents[0] : null;
@@ -403,7 +402,6 @@ export class MailspringCalendar extends React.Component<
     FocusedMomentStore.setFocusedMoment(moment(event.start * 1000), event);
   };
 
-  /** The editor for an event we may change; the panel shows every event, ours or not. */
   _openEventEditor(eventModel: EventOccurrence) {
     const eventEl = document.getElementById(eventModel.id);
     if (!eventEl) {
@@ -1339,7 +1337,6 @@ export class MailspringCalendar extends React.Component<
     this._revealEvent(occurrence);
   };
 
-  /** Scrolls the grid to the event, as View in Calendar does. */
   _revealEvent = (occurrence: EventOccurrence) => {
     Actions.focusCalendarEvent({ id: occurrence.id, start: occurrenceStartUnix(occurrence) });
   };

@@ -7,7 +7,6 @@ interface LineIconProps {
   strokeWidth?: number;
 }
 
-/** An outline icon on a 24-unit grid, drawn in the text colour. */
 function lineIcon(displayName: string, paths: React.ReactNode) {
   const Icon = ({ className, size = 16, strokeWidth = 1.7 }: LineIconProps) => (
     <svg
@@ -82,7 +81,6 @@ export const ArrowDown = lineIcon('ArrowDown', <path d="M12 5v14M6 13l6 6 6-6" /
 export const ArrowLeft = lineIcon('ArrowLeft', <path d="M19 12H5M11 6l-6 6 6 6" />);
 export const ArrowRight = lineIcon('ArrowRight', <path d="M5 12h14M13 6l6 6-6 6" />);
 
-// Drawn for the 10px circle that shows an attendee's answer.
 export const Check = () => (
   <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
     <path

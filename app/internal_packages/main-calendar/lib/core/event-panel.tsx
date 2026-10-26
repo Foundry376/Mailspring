@@ -26,7 +26,7 @@ import { showAsLabel } from './show-as-selector';
 
 interface EventPanelProps {
   event: EventOccurrence;
-  /** The calendar the event is on, for the calendar row; omitted while calendars load. */
+  /** Omitted while calendars load. */
   calendar?: Calendar;
   onBack: () => void;
   /** Buttons the host shows in the header beside "‹ Agenda". */
@@ -38,10 +38,6 @@ interface EventPanelState {
   repeat: RepeatOption;
 }
 
-/**
- * An event's details in the calendar's right-hand panel, over the agenda. Rows are an icon and
- * a value; a field the event leaves empty has no row.
- */
 export class EventPanel extends React.Component<EventPanelProps, EventPanelState> {
   static displayName = 'EventPanel';
 

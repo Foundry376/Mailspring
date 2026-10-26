@@ -2,7 +2,6 @@ import React from 'react';
 import { SVGIcons } from 'mailspring-component-kit';
 import { EventAttendee } from './calendar-data-source';
 
-/** The class an attendee's answer is styled by: accepted, declined, tentative or needs-action. */
 export function attendeeStatusClass(attendee: EventAttendee): string {
   switch (attendee.partstat) {
     case 'ACCEPTED':
@@ -16,7 +15,6 @@ export function attendeeStatusClass(attendee: EventAttendee): string {
   }
 }
 
-/** A tick for accepted, a cross for declined, a question mark for tentative or unanswered. */
 export const AttendeeStatusIcon = ({ attendee }: { attendee: EventAttendee }) => {
   if (attendee.partstat === 'ACCEPTED') return <SVGIcons.Check />;
   if (attendee.partstat === 'DECLINED') return <SVGIcons.Cross />;

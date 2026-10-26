@@ -20,7 +20,6 @@ export type AgendaPanelProps = Pick<
   MailspringCalendarViewProps,
   'dataSource' | 'disabledCalendars' | 'selectedEvents' | 'onEventClick' | 'isCalendarReadOnly'
 > & {
-  /** Replaces the event's popover, which the agenda opens itself outside the calendar. */
   onEventDoubleClick?: (event: EventOccurrence) => void;
 };
 
