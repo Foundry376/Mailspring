@@ -144,17 +144,20 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   _pendingTimes: Times | null = null;
   // Each save is built from the stored event, so it waits until the one before has been written.
   _saving: Promise<void> = Promise.resolve();
+  /** The last times save has been written, so the next refresh shows the event's own times. */
+  _timesSaveLanded = false;
 
   componentDidMount() {
     this._loadEventRow();
   }
 
-  // Any synced change hands the panel a fresh occurrence: times not yet saved, or saved but not
-  // yet back from the sync engine, stay on screen until the event carries them.
+  // Any synced change hands the panel a fresh occurrence. Times not yet saved stay on screen, and
+  // saved ones until they're written: after that the event's own times win, after an undo too.
   componentDidUpdate(prevProps: EventPanelProps) {
     if (prevProps.event !== this.props.event) {
       const { times } = this.state;
-      if (times && !this._pendingTimes && this._storedTimesAre(times)) {
+      if (times && !this._pendingTimes && (this._timesSaveLanded || this._storedTimesAre(times))) {
+        this._timesSaveLanded = false;
         this.setState({ times: null });
       }
       this._loadEventRow();
@@ -197,6 +200,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         if (row) await TaskQueue.waitForPerformLocal(write(row));
       })
       .catch((error) => console.error('Failed to save the event:', error));
+    return this._saving;
   }
 
   _saveProperty(edit: EventPropertyEdit) {
@@ -239,6 +243,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     if (!times) return;
     this._pendingTimes = null;
     const originalOccurrenceStart = occurrenceStartUnix(this.props.event);
+    this._timesSaveLanded = false;
     this._save((row) =>
       modifySimpleEvent({
         event: row,
@@ -247,7 +252,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         newEnd: times.end,
         isAllDay: times.isAllDay,
       })
-    );
+    ).then(() => {
+      if (!this._pendingTimes) this._timesSaveLanded = true;
+    });
   }
 
   // Saved once focus leaves the times, so changing the start and then the end is one save.
