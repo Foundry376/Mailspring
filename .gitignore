@@ -74,6 +74,7 @@ client_secret.json
 **.tar.gz
 **.dll
 /app/mailsync.exe
+/app/icu-tzdata
 /app/mailsync.dSYM
 .idea
 .claude/worktrees/
