@@ -15,6 +15,7 @@ import {
   SyncbackEventTask,
   ICSEventHelpers,
   DatabaseChangeRecord,
+  TaskQueue,
 } from 'mailspring-exports';
 import { KeyCommandsRegion, ResizableRegion } from 'mailspring-component-kit';
 import { CalendarMenuCommands } from '../calendar-menu-commands';
@@ -73,7 +74,12 @@ import {
   CREATE_DRAG_SNAP_SECONDS,
 } from './calendar-drag-utils';
 import { showRecurringEventDialog } from './recurring-event-dialog';
-import { modifyEventWithRecurringSupport, EventTimeChangeOptions } from './recurring-event-actions';
+import {
+  modifyEventWithRecurringSupport,
+  modifySimpleEventChange,
+  EventTimeChangeOptions,
+} from './recurring-event-actions';
+import { UnsentChange } from './unsent-change';
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 const CALENDAR_VIEW = 'mailspring.calendarView';
@@ -157,6 +163,7 @@ interface MailspringCalendarState {
   createDrag: CreateDragState | null;
   /** The event the open editor is creating, kept on the grid until the editor closes. */
   newEvent: EventOccurrence | null;
+  unsentChange: UnsentChange | null;
   readOnlyCalendarIds: Set<string>;
   themeVersion: number;
 }
@@ -205,6 +212,7 @@ export class MailspringCalendar extends React.Component<
       dragState: null,
       createDrag: null,
       newEvent: null,
+      unsentChange: null,
       readOnlyCalendarIds: new Set<string>(),
       themeVersion: 0,
     };
@@ -250,6 +258,27 @@ export class MailspringCalendar extends React.Component<
   };
 
   // The panel's date picker and switch use the same keys for themselves.
+  _onUnsentChange = (unsentChange: UnsentChange | null) => {
+    this.setState({ unsentChange });
+  };
+
+  _sendingUnsentChange: UnsentChange | null = null;
+
+  _sendUnsentChange = async () => {
+    const change = this.state.unsentChange;
+    if (!change || this._sendingUnsentChange === change) return;
+    this._sendingUnsentChange = change;
+    try {
+      const row = await DatabaseStore.find<Event>(Event, change.eventId);
+      if (!row) return;
+      await TaskQueue.waitForPerformLocal(modifySimpleEventChange(row, change));
+      // Kept until it's written, so nothing draws the old values in between.
+      this.setState((s) => (s.unsentChange === change ? { unsentChange: null } : null));
+    } finally {
+      this._sendingUnsentChange = null;
+    }
+  };
+
   _focusInEventPanel() {
     return !!document.activeElement?.closest('.event-panel');
   }
@@ -1376,6 +1405,8 @@ export class MailspringCalendar extends React.Component<
       return null;
     }
     const event = this._panelEvent();
+    const eventId = event && CalendarUtils.parseOccurrenceId(event.id).eventId;
+    const { unsentChange } = this.state;
     return (
       <ResizableRegion
         handle={ResizableRegion.Handle.Left}
@@ -1395,8 +1426,11 @@ export class MailspringCalendar extends React.Component<
           {event && (
             <EventPanel
               ref={this._eventPanel}
-              key={CalendarUtils.parseOccurrenceId(event.id).eventId}
+              key={eventId}
               event={event}
+              unsentChange={unsentChange?.eventId === eventId ? unsentChange : null}
+              onUnsentChange={this._onUnsentChange}
+              onSendUnsentChange={this._sendUnsentChange}
               calendar={this.state.calendars.find((c) => c.id === event.calendarId)}
               isCalendarReadOnly={this._isCalendarReadOnly(event.calendarId)}
               onBack={this._onBackToAgenda}

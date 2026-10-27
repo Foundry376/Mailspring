@@ -1031,6 +1031,46 @@
     background: @background-secondary;
   }
 
+  .event-panel-change {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  // The icon sits level with the first line, the new value.
+  .event-panel-change-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 18px;
+
+    > .event-panel-icon {
+      height: 18px;
+    }
+  }
+
+  .event-panel-change-values {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+
+    > * {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    > s {
+      color: @text-color-very-subtle;
+    }
+  }
+
+  .event-panel-change-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
   // Your answer is filled as the invitation header fills it.
   // Joined like the toolbar's .button-group.
   .event-panel-rsvp {
