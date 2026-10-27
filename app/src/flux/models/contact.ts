@@ -642,15 +642,16 @@ export class Contact extends Model {
     name = name.trim();
 
     // Drop suffixes written after a comma ("Jane Doe, MD", "John Smith, Jr."), which would
-    // otherwise be read as "last name, first name" below. Single letters stay, so that
-    // "Kumar, V" is still a reversed name rather than a roman numeral.
+    // otherwise be read as "last name, first name" below. A single word before the comma
+    // ("Rahman, Md") and single letters ("Kumar, V.") stay, as those are reversed names.
     let suffixMatch: RegExpMatchArray | null;
     while (
       (suffixMatch = name.match(/^(.*\S)\s*,\s*([^,]+)$/)) &&
+      /\s/.test(suffixMatch[1]) &&
       suffixMatch[2]
         .trim()
         .split(/\s+/)
-        .every((word) => word.length > 1 && isNameSuffix(word))
+        .every((word) => word.replace(/\./g, '').length > 1 && isNameSuffix(word))
     ) {
       name = suffixMatch[1];
     }

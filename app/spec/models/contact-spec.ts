@@ -175,6 +175,14 @@ describe('Contact', function () {
     const c5 = new Contact({ name: 'Kumar, V' });
     expect(c5.firstName()).toBe('V');
     expect(c5.lastName()).toBe('Kumar');
+
+    const c6 = new Contact({ name: 'Kumar, V.' });
+    expect(c6.firstName()).toBe('V.');
+    expect(c6.lastName()).toBe('Kumar');
+
+    const c7 = new Contact({ name: 'Rahman, Md' });
+    expect(c7.firstName()).toBe('Md');
+    expect(c7.lastName()).toBe('Rahman');
   });
 
   it('strips dotted suffixes like Ph.D.', function () {
