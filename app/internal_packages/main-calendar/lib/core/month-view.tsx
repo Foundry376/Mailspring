@@ -10,6 +10,7 @@ import { EventOccurrence, EventRangeSubscription } from './calendar-data-source'
 import { MonthViewWeek } from './month-view-week';
 import { WeekBarsLayout, firstVisibleBarIds, layoutWeekBars } from './month-view-helpers';
 import { getEventsWithDragPreview, withNewEventPreview } from './calendar-drag-utils';
+import { withUnsentChange } from './unsent-change';
 import { momentOf } from './calendar-helpers';
 import { WeekdayHeader } from './weekday-header';
 
@@ -192,7 +193,10 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
 
   _renderWeeks = (weekStarts: CalendarDate[], topWeek: CalendarDate) => {
     const events = withNewEventPreview(
-      getEventsWithDragPreview(this.state.events, this.props.dragState),
+      getEventsWithDragPreview(
+        withUnsentChange(this.state.events, this.props.unsentChange),
+        this.props.dragState
+      ),
       this.props.newEventPreview
     );
     const weeks = weekStarts.map((start) =>

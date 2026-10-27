@@ -1,4 +1,6 @@
+import { CalendarUtils } from 'mailspring-exports';
 import { EventChange, EventPropertyEdit } from './recurring-event-actions';
+import { EventOccurrence, coveredDates } from './calendar-data-source';
 
 type Times = NonNullable<EventChange['times']>;
 
@@ -41,4 +43,34 @@ export function unsentEdit(
   property: EventPropertyEdit['property']
 ): EventPropertyEdit | undefined {
   return change?.edits.find((e) => e.property === property);
+}
+
+/** `events` with the change's event drawn as it will be once sent; a new repeat rule isn't. */
+export function withUnsentChange(
+  events: EventOccurrence[],
+  change: UnsentChange | null
+): EventOccurrence[] {
+  if (!change) return events;
+  return events.map((e) =>
+    CalendarUtils.parseOccurrenceId(e.id).eventId === change.eventId ? drawnWith(e, change) : e
+  );
+}
+
+function drawnWith(occurrence: EventOccurrence, change: UnsentChange): EventOccurrence {
+  const edited = (property: 'summary' | 'location' | 'description' | 'transp') =>
+    unsentEdit(change, property)?.value;
+  const transp = edited('transp');
+  const shown = {
+    ...occurrence,
+    title: edited('summary') ?? occurrence.title,
+    location: edited('location') ?? occurrence.location,
+    description: edited('description') ?? occurrence.description,
+    isFree: transp === undefined ? occurrence.isFree : transp === 'TRANSPARENT',
+  };
+  const { times } = change;
+  if (!times) return shown;
+  const dates = coveredDates(times.start, times.end, times.isAllDay);
+  return times.isAllDay
+    ? { ...shown, ...dates, isAllDay: true }
+    : { ...shown, ...dates, isAllDay: false, start: times.start, end: times.end };
 }

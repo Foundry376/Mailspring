@@ -33,6 +33,7 @@ export function calendarViewProps(
     onEventDragStart: () => {},
     dragState: null,
     newEventPreview: null,
+    unsentChange: null,
     readOnlyCalendarIds: new Set(),
     isCalendarReadOnly: () => false,
     paintVersion: '',

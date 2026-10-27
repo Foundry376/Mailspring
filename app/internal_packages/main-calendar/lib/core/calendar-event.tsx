@@ -81,7 +81,8 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
 
   componentDidUpdate(prevProps: CalendarEventProps) {
     this._revealOnFocusGained(prevProps.focused);
-    this._takeFocusIfSelected();
+    // A selected event redrawn mid-blur, as an unsent change is, would take the focus in transit.
+    if (!prevProps.selected) this._takeFocusIfSelected();
   }
 
   // A moved event is re-drawn under a new id, so the focus its old element had falls to <body>;

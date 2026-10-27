@@ -125,6 +125,7 @@ export interface MailspringCalendarViewProps extends EventRendererProps {
   dragState: DragState | null;
   /** The new event being drawn on empty grid space, or being filled in by the open editor. */
   newEventPreview: EventOccurrence | null;
+  unsentChange: UnsentChange | null;
   onEventDragStart: (
     event: EventOccurrence,
     mouseEvent: React.MouseEvent,
@@ -247,7 +248,11 @@ export class MailspringCalendar extends React.Component<
 
   // Saved like the toolbar button's toggle, so going back to the agenda leaves the panel open.
   // Moves and deletes change the selection without going through here.
-  _select(selectedEvents: EventOccurrence[]) {
+  _select(clicked: EventOccurrence[]) {
+    // A clicked bar may draw an unsent change, but the panel compares edits to what's stored.
+    const selectedEvents = clicked.map(
+      (o) => this.state.selectedEvents.find((s) => s.id === o.id) ?? o
+    );
     const opensPanel = selectedEvents.length === 1 && !this.state.agendaOpen;
     this.setState({ selectedEvents, focusedEvent: null, ...(opensPanel && { agendaOpen: true }) });
     if (opensPanel) AppEnv.config.set(AGENDA_OPEN, true);
@@ -257,7 +262,6 @@ export class MailspringCalendar extends React.Component<
     this.setState({ selectedEvents: [], focusedEvent: null });
   };
 
-  // The panel's date picker and switch use the same keys for themselves.
   _onUnsentChange = (unsentChange: UnsentChange | null) => {
     this.setState({ unsentChange });
   };
@@ -279,6 +283,7 @@ export class MailspringCalendar extends React.Component<
     }
   };
 
+  // The panel's date picker and switch use the same keys for themselves.
   _focusInEventPanel() {
     return !!document.activeElement?.closest('.event-panel');
   }
@@ -1351,6 +1356,7 @@ export class MailspringCalendar extends React.Component<
       onEventFocused: this._onEventFocused,
       dragState: this.state.dragState,
       newEventPreview: this._newEventPreview(),
+      unsentChange: this.state.unsentChange,
       onEventDragStart: this._onEventDragStart,
       readOnlyCalendarIds: this.state.readOnlyCalendarIds,
       isCalendarReadOnly: this._isCalendarReadOnly,
