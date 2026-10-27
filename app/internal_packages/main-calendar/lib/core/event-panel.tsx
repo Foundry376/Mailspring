@@ -149,12 +149,21 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     this._loadEventRow();
   }
 
+  // Any synced change hands the panel a fresh occurrence: times not yet saved, or saved but not
+  // yet back from the sync engine, stay on screen until the event carries them.
   componentDidUpdate(prevProps: EventPanelProps) {
     if (prevProps.event !== this.props.event) {
-      this._pendingTimes = null;
-      this.setState({ times: null });
+      const { times } = this.state;
+      if (times && !this._pendingTimes && this._storedTimesAre(times)) {
+        this.setState({ times: null });
+      }
       this._loadEventRow();
     }
+  }
+
+  _storedTimesAre({ start, end, isAllDay }: Times) {
+    const stored = this._storedTimes();
+    return stored.start === start && stored.end === end && stored.isAllDay === isAllDay;
   }
 
   focusTitle() {
@@ -195,8 +204,11 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   }
 
   _times(): Times {
+    return this.state.times || this._storedTimes();
+  }
+
+  _storedTimes(): Times {
     const { event } = this.props;
-    if (this.state.times) return this.state.times;
     return isTimed(event)
       ? { start: event.start, end: event.end, isAllDay: false }
       : {
