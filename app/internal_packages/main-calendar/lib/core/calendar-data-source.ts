@@ -80,6 +80,11 @@ export function occurrenceEndUnix(e: EventOccurrence): number {
   return isTimed(e) ? e.end : CalendarDateUtils.nextDayStartUnix(e.endDate);
 }
 
+/** The times an edit to the occurrence starts from, in the shape it's saved in. */
+export function occurrenceTimes(e: EventOccurrence) {
+  return { start: occurrenceStartUnix(e), end: occurrenceEndUnix(e), isAllDay: !isTimed(e) };
+}
+
 /**
  * The dates an event covers, inclusive, from its start and exclusive end instants.
  *

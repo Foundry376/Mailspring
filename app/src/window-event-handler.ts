@@ -3,31 +3,12 @@ import { shell, ipcRenderer } from 'electron';
 import url from 'url';
 import { localized } from './intl';
 import { developerToolsAvailable } from './developer-tools';
+import DOMUtils from './dom-utils';
 
 let ComponentRegistry = null;
 
 const isIFrame = (node: EventTarget) => {
   return node instanceof HTMLElement && node.tagName === 'IFRAME';
-};
-
-const isTextInput = (node: EventTarget) => {
-  if (!node) {
-    return false;
-  }
-  if (node instanceof Node && node.nodeName === 'WEBVIEW') {
-    return true;
-  }
-  if (node instanceof Node && node.nodeName === 'TEXTAREA') {
-    return true;
-  }
-  const TextInputTypes = ['text', 'email', 'url', '', 'search', 'password', 'number'];
-  if (node instanceof HTMLInputElement && TextInputTypes.includes(node.type)) {
-    return true;
-  }
-  if (node instanceof HTMLElement && node.closest('[contenteditable]')) {
-    return true;
-  }
-  return false;
 };
 
 // Handles low-level events related to the window.
@@ -142,11 +123,11 @@ export default class WindowEventHandler {
       'core:paste': () => webContents.paste(),
       'core:paste-and-match-style': () => webContents.pasteAndMatchStyle(),
       'core:undo': (e: CustomEvent) =>
-        isTextInput(e.target) ? webContents.undo() : getUndoStore().undo(),
+        DOMUtils.isTextInput(e.target) ? webContents.undo() : getUndoStore().undo(),
       'core:redo': (e: CustomEvent) =>
-        isTextInput(e.target) ? webContents.redo() : getUndoStore().redo(),
+        DOMUtils.isTextInput(e.target) ? webContents.redo() : getUndoStore().redo(),
       'core:select-all': (e: CustomEvent) =>
-        isIFrame(e.target) || isTextInput(e.target)
+        isIFrame(e.target) || DOMUtils.isTextInput(e.target)
           ? webContents.selectAll()
           : AppEnv.commands.dispatch('multiselect-list:select-all'),
     });

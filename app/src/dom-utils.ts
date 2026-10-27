@@ -215,6 +215,26 @@ const DOMUtils = {
 
     return defaultValue;
   },
+
+  isTextInput(node: EventTarget) {
+    if (!node) {
+      return false;
+    }
+    if (node instanceof Node && node.nodeName === 'WEBVIEW') {
+      return true;
+    }
+    if (node instanceof Node && node.nodeName === 'TEXTAREA') {
+      return true;
+    }
+    const TextInputTypes = ['text', 'email', 'url', '', 'search', 'password', 'number'];
+    if (node instanceof HTMLInputElement && TextInputTypes.includes(node.type)) {
+      return true;
+    }
+    if (node instanceof HTMLElement && node.closest('[contenteditable]')) {
+      return true;
+    }
+    return false;
+  },
 };
 
 export default DOMUtils;

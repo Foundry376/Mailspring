@@ -27,6 +27,7 @@ import {
   EventAttendee,
   isTimed,
   occurrenceStartUnix,
+  occurrenceTimes,
 } from './calendar-data-source';
 import {
   allDayToggleTimes,
@@ -36,7 +37,7 @@ import {
   extractNotesFromDescription,
   formatShortTime,
   formatShortTimeRange,
-  hasGuests,
+  holdsEdits,
   inclusiveAllDayEnd,
   momentOf,
   shiftEndWithStart,
@@ -197,9 +198,8 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     return canEditInPanel(this.props.event, this.props.isCalendarReadOnly);
   }
 
-  // Guests are emailed on every save, so their event's edits wait for Send update.
   _holdsEdits() {
-    return hasGuests(this.props.event);
+    return holdsEdits(this.props.event, this.props.isCalendarReadOnly);
   }
 
   _eventId() {
@@ -269,14 +269,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   }
 
   _storedTimes(): Times {
-    const { event } = this.props;
-    return isTimed(event)
-      ? { start: event.start, end: event.end, isAllDay: false }
-      : {
-          start: CalendarDateUtils.dayStartUnix(event.startDate),
-          end: CalendarDateUtils.nextDayStartUnix(event.endDate),
-          isAllDay: true,
-        };
+    return occurrenceTimes(this.props.event);
   }
 
   _changeTimes(times: Times) {

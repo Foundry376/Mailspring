@@ -574,6 +574,11 @@ export function canEditInPanel(event: EventOccurrence, isCalendarReadOnly: boole
   return !isCalendarReadOnly && event.isMine && !event.isRecurring;
 }
 
+/** Guests are emailed on every save, so edits to their event wait for Send update. */
+export function holdsEdits(event: EventOccurrence, isCalendarReadOnly: boolean): boolean {
+  return canEditInPanel(event, isCalendarReadOnly) && hasGuests(event);
+}
+
 /** The times an event takes when All day is switched: whole days covering it, or 9–10 AM on its first day. */
 export function allDayToggleTimes(
   { startDate, endDate }: Pick<EventOccurrence, 'startDate' | 'endDate'>,
