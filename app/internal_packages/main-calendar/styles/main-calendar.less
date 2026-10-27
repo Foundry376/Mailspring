@@ -777,6 +777,11 @@
   line-height: 18px;
   color: @text-color;
 
+  // Focused only to keep Esc in the calendar after a field reverts.
+  &:focus {
+    outline: none;
+  }
+
   .event-panel-header {
     flex-shrink: 0;
     display: flex;

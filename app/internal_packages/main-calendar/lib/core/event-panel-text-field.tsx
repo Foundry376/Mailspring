@@ -70,7 +70,8 @@ export class EventPanelTextField extends React.Component<
   _onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
       this._reverting = true;
-      this._field.current?.blur();
+      // Kept in the panel, so the next Esc reaches the calendar's.
+      this._field.current?.closest<HTMLElement>('.event-panel')?.focus();
     } else if (e.key === 'Enter' && !this.props.multiline) {
       this._field.current?.blur();
     }

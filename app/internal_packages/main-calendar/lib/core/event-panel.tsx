@@ -788,7 +788,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   // The card sits under the scrolling rows, so a long event never pushes it out of view.
   render() {
     return (
-      <aside className="event-panel" aria-label={localized('Event')}>
+      <aside className="event-panel" tabIndex={-1} aria-label={localized('Event')}>
         {this._renderHeader()}
         <ScrollRegion className="event-panel-body">
           {this._renderTitle()}

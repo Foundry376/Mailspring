@@ -269,6 +269,11 @@ export class MailspringCalendar extends React.Component<
     this.setState({ selectedEvents: [], focusedEvent: null });
   };
 
+  _onEscape = () => {
+    if (this.state.unsentChange) this.setState({ unsentChange: null });
+    else this._onBackToAgenda();
+  };
+
   _onUnsentChange = (unsentChange: UnsentChange | null) => {
     this.setState({ unsentChange });
   };
@@ -1504,7 +1509,7 @@ export class MailspringCalendar extends React.Component<
         <KeyCommandsRegion
           className="mailspring-calendar"
           localHandlers={{
-            'core:pop-sheet': this._unlessFocusInEventPanel(this._onBackToAgenda),
+            'core:pop-sheet': this._onEscape,
             'core:focus-item': this._unlessFocusInEventPanel(this._onEditSelectedEvent),
             'core:remove-from-view': this._unlessFocusInEventPanel(this._onDeleteSelectedEvents),
             'calendar:move-event-up': () => this._onMoveSelectedEvent('up', false),
