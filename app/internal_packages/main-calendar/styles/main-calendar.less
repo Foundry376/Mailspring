@@ -798,6 +798,22 @@
     }
   }
 
+  .event-panel-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .event-panel-more {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: @text-color-very-subtle;
+  }
+
   .event-panel-body {
     flex: 1;
     min-height: 0;
@@ -898,6 +914,158 @@
   .event-panel-notes {
     white-space: pre-line;
     overflow-wrap: anywhere;
+  }
+
+  // Fields read as text until they're focused, as on the design.
+  input.event-panel-title,
+  input.event-panel-location,
+  textarea.event-panel-notes,
+  .time-picker-wrap input,
+  select {
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: inherit;
+    outline: none;
+
+    &::placeholder {
+      color: @text-color-very-subtle;
+    }
+  }
+
+  input.event-panel-location,
+  textarea.event-panel-notes,
+  .time-picker-wrap input,
+  select {
+    padding: 0;
+    font: inherit;
+  }
+
+  input.event-panel-title {
+    width: 100%;
+    height: auto;
+    box-sizing: border-box;
+    font-family: inherit;
+  }
+
+  input.event-panel-location,
+  textarea.event-panel-notes {
+    width: 100%;
+  }
+
+  textarea.event-panel-notes {
+    display: block;
+    resize: none;
+    overflow: hidden;
+  }
+
+  .event-panel-select {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+
+    select {
+      appearance: none;
+      field-sizing: content;
+      padding-right: 14px;
+    }
+
+    img.content-mask {
+      position: absolute;
+      right: 0;
+      pointer-events: none;
+      visibility: hidden;
+      background-color: @text-color-very-subtle;
+    }
+
+    &:hover img.content-mask {
+      visibility: visible;
+    }
+  }
+
+  .date-picker .day-text {
+    &,
+    &:hover,
+    &.focused {
+      color: inherit;
+    }
+  }
+
+  .time-picker-wrap {
+    width: auto;
+
+    input {
+      width: 5em;
+    }
+  }
+
+  // The All day switch, at the design's 22x12.
+  .slide-switch {
+    flex-shrink: 0;
+    width: 22px;
+    height: 12px;
+    border-radius: 6px;
+    box-shadow: none;
+
+    .handle {
+      top: 1px;
+      left: 1px;
+      width: 10px;
+      height: 10px;
+      border-radius: 5px;
+      box-shadow: none;
+    }
+
+    &.active .handle {
+      left: 11px;
+    }
+  }
+
+  .event-panel-card {
+    flex-shrink: 0;
+    margin: 0 10px 10px;
+    padding: 10px 12px;
+    border: 1px solid @border-color-divider;
+    border-radius: 8px;
+    background: @background-secondary;
+  }
+
+  // Your answer is filled as the invitation header fills it.
+  // Joined like the toolbar's .button-group.
+  .event-panel-rsvp {
+    display: flex;
+
+    .btn {
+      flex: 1;
+      min-width: 0;
+      padding: 0 8px;
+
+      &:not(:last-child) {
+        border-right: 0;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+      }
+      &:not(:first-child) {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+      }
+    }
+
+    .btn.ACCEPTED {
+      background: @color-success;
+      color: @white;
+    }
+
+    .btn.TENTATIVE {
+      background: @gray-light;
+      color: @white;
+    }
+
+    .btn.DECLINED {
+      background: @color-error;
+      color: @white;
+    }
   }
 
   .event-panel-calendar-swatch {

@@ -1,6 +1,11 @@
 import { ICSParticipantStatus, localized } from 'mailspring-exports';
 import { EventOccurrence } from './calendar-data-source';
-import { canRespondToEvent, myParticipationStatus, respondToCalendarEvent } from './calendar-rsvp';
+import {
+  canRespondToEvent,
+  myParticipationStatus,
+  respondToCalendarEvent,
+  rsvpActions,
+} from './calendar-rsvp';
 
 type TemplateItem =
   | { label: string; click: () => void; type?: 'checkbox'; checked?: boolean; enabled?: boolean }
@@ -45,13 +50,7 @@ export class CalendarEventContextMenu {
     }
 
     const current = myParticipationStatus(occurrence);
-    const actions: [ICSParticipantStatus, string][] = [
-      ['ACCEPTED', localized('Accept')],
-      ['TENTATIVE', localized('Maybe')],
-      ['DECLINED', localized('Decline')],
-    ];
-
-    const items: TemplateItem[] = actions.map(([status, label]) => ({
+    const items: TemplateItem[] = rsvpActions().map(([status, label]) => ({
       label,
       type: 'checkbox' as const,
       checked: current === status,

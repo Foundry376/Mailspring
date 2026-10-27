@@ -4,77 +4,288 @@ import {
   isRTL,
   Autolink,
   Calendar,
+  CalendarDateUtils,
   CalendarUtils,
   DatabaseStore,
   DateUtils,
   Event,
   ICSEventHelpers,
+  SyncbackEventTask,
+  TaskQueue,
   Utils,
 } from 'mailspring-exports';
-import { RetinaImg, ScrollRegion, SVGIcons } from 'mailspring-component-kit';
-import { EventOccurrence, EventAttendee, isTimed } from './calendar-data-source';
 import {
+  DatePicker,
+  RetinaImg,
+  ScrollRegion,
+  SVGIcons,
+  Switch,
+  TimePicker,
+} from 'mailspring-component-kit';
+import {
+  EventOccurrence,
+  EventAttendee,
+  isTimed,
+  occurrenceStartUnix,
+} from './calendar-data-source';
+import {
+  allDayToggleTimes,
   calcEventColors,
+  canEditInPanel,
+  clampEnd,
   extractNotesFromDescription,
   formatShortTime,
+  inclusiveAllDayEnd,
   momentOf,
+  shiftEndWithStart,
 } from './calendar-helpers';
 import { AttendeeStatusIcon, attendeeStatusClass, sortAttendeesByStatus } from './attendee-status';
-import { RepeatOption, frequencyToRepeatOption, repeatLabel } from './repeat-selector';
+import {
+  RepeatOption,
+  frequencyToRepeatOption,
+  repeatLabel,
+  repeatOptionToRRule,
+} from './repeat-selector';
 import { formatTimezone } from './timezone-selector';
-import { showAsLabel } from './show-as-selector';
-import { canRespondToEvent, openProposeNewTimePopover } from './calendar-rsvp';
+import { ShowAsOption, showAsLabel } from './show-as-selector';
+import {
+  canRespondToEvent,
+  myParticipationStatus,
+  openProposeNewTimePopover,
+  respondToCalendarEvent,
+  rsvpActions,
+} from './calendar-rsvp';
+import {
+  EventPropertyEdit,
+  modifySimpleEvent,
+  modifySimpleEventProperty,
+} from './recurring-event-actions';
+import { EventPanelTextField } from './event-panel-text-field';
+
+const REPEAT_OPTIONS: RepeatOption[] = ['none', 'daily', 'weekly', 'monthly', 'yearly'];
+const SHOW_AS_OPTIONS: ShowAsOption[] = ['OPAQUE', 'TRANSPARENT'];
 
 interface EventPanelProps {
   event: EventOccurrence;
   /** Omitted while calendars load. */
   calendar?: Calendar;
+  isCalendarReadOnly: boolean;
   onBack: () => void;
+  /** Omitted when the event can't be deleted, which leaves the "…" menu out. */
+  onDelete?: () => void;
   /** Buttons the host shows in the header beside "‹ Agenda". */
   headerActions?: React.ReactNode;
+}
+
+interface Times {
+  start: number;
+  end: number;
+  isAllDay: boolean;
 }
 
 interface EventPanelState {
   /** Read from the event's row: the occurrence doesn't carry it. */
   repeat: RepeatOption;
+  /** Times changed in the panel, shown until the saved event comes back. */
+  times: Times | null;
+}
+
+/** Text with its links live, as notes show when not being edited. */
+class AutolinkedText extends React.Component<{ text: string }> {
+  _el = React.createRef<HTMLDivElement>();
+
+  componentDidMount() {
+    this._autolink();
+  }
+
+  componentDidUpdate() {
+    this._autolink();
+  }
+
+  _autolink() {
+    if (this._el.current) Autolink(this._el.current, { async: false, telAggressiveMatch: true });
+  }
+
+  render() {
+    return <div ref={this._el}>{this.props.text}</div>;
+  }
+}
+
+// A select that reads as text, as the toolbar's view picker does, with the caret only on hover.
+const PanelSelect = (props: React.SelectHTMLAttributes<HTMLSelectElement>) => (
+  <span className="event-panel-select">
+    <select {...props} />
+    <RetinaImg
+      name="ic-calendar-down-arrow.png"
+      mode={RetinaImg.Mode.ContentIsMask}
+      style={{ width: 8, height: 5, WebkitMaskSize: 'contain' }}
+      aria-hidden="true"
+    />
+  </span>
+);
+
+function linkOrText(location: string) {
+  return location.startsWith('http') || location.startsWith('tel:') ? (
+    <a href={location}>{location}</a>
+  ) : (
+    location
+  );
 }
 
 // Pure: the calendar re-renders on every drag move, and the notes are re-parsed on each render.
 export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelState> {
   static displayName = 'EventPanel';
 
-  state: EventPanelState = { repeat: 'none' };
+  state: EventPanelState = { repeat: 'none', times: null };
 
-  _notesRef = React.createRef<HTMLDivElement>();
+  _title = React.createRef<EventPanelTextField>();
+  // Read as well as kept in state: the time picker reports its last change during the same blur
+  // that saves the times, before a setState would land.
+  _pendingTimes: Times | null = null;
+  // Each save is built from the stored event, so it waits until the one before has been written.
+  _saving: Promise<void> = Promise.resolve();
+  /** The last times save has been written, so the next refresh shows the event's own times. */
+  _timesSaveLanded = false;
+  _timesSaveCount = 0;
 
   componentDidMount() {
     this._loadEventRow();
-    this._autolink();
   }
 
+  // Any synced change hands the panel a fresh occurrence. Times not yet saved stay on screen, and
+  // saved ones until they're written: after that the event's own times win, after an undo too.
   componentDidUpdate(prevProps: EventPanelProps) {
     if (prevProps.event !== this.props.event) {
+      const { times } = this.state;
+      if (times && !this._pendingTimes && (this._timesSaveLanded || this._storedTimesAre(times))) {
+        this._timesSaveLanded = false;
+        this.setState({ times: null });
+      }
       this._loadEventRow();
     }
-    this._autolink();
+  }
+
+  _storedTimesAre({ start, end, isAllDay }: Times) {
+    const stored = this._storedTimes();
+    return stored.start === start && stored.end === end && stored.isAllDay === isAllDay;
+  }
+
+  focusTitle() {
+    this._title.current?.focus();
+  }
+
+  async _eventRow() {
+    return DatabaseStore.find<Event>(
+      Event,
+      CalendarUtils.parseOccurrenceId(this.props.event.id).eventId
+    );
   }
 
   async _loadEventRow() {
     const occurrence = this.props.event;
-    const row = await DatabaseStore.find<Event>(
-      Event,
-      CalendarUtils.parseOccurrenceId(occurrence.id).eventId
-    );
+    const row = await this._eventRow();
     if (this.props.event !== occurrence || !row) return;
     this.setState({
       repeat: frequencyToRepeatOption(ICSEventHelpers.getRecurrenceInfo(row.ics).frequency),
     });
   }
 
-  _autolink() {
-    if (!this._notesRef.current) return;
-    Autolink(this._notesRef.current, { async: false, telAggressiveMatch: true });
+  _editable() {
+    return canEditInPanel(this.props.event, this.props.isCalendarReadOnly);
   }
+
+  _save(write: (row: Event) => SyncbackEventTask) {
+    this._saving = this._saving
+      .then(async () => {
+        const row = await this._eventRow();
+        if (row) await TaskQueue.waitForPerformLocal(write(row));
+      })
+      .catch((error) => console.error('Failed to save the event:', error));
+    return this._saving;
+  }
+
+  _saveProperty(edit: EventPropertyEdit) {
+    this._save((row) => modifySimpleEventProperty(row, edit));
+  }
+
+  _times(): Times {
+    return this.state.times || this._storedTimes();
+  }
+
+  _storedTimes(): Times {
+    const { event } = this.props;
+    return isTimed(event)
+      ? { start: event.start, end: event.end, isAllDay: false }
+      : {
+          start: CalendarDateUtils.dayStartUnix(event.startDate),
+          end: CalendarDateUtils.nextDayStartUnix(event.endDate),
+          isAllDay: true,
+        };
+  }
+
+  _changeTimes(times: Times) {
+    this._pendingTimes = times;
+    this.setState({ times });
+  }
+
+  _changeStart = (ms: number) => {
+    const t = this._times();
+    const start = ms / 1000;
+    this._changeTimes({ ...t, start, end: shiftEndWithStart(t.start, t.end, start, t.isAllDay) });
+  };
+
+  _changeEnd = (end: number) => {
+    const t = this._times();
+    this._changeTimes({ ...t, end: clampEnd(t.start, end, t.isAllDay) });
+  };
+
+  _saveTimes() {
+    const times = this._pendingTimes;
+    if (!times) return;
+    this._pendingTimes = null;
+    const originalOccurrenceStart = occurrenceStartUnix(this.props.event);
+    this._timesSaveLanded = false;
+    const save = ++this._timesSaveCount;
+    this._save((row) =>
+      modifySimpleEvent({
+        event: row,
+        originalOccurrenceStart,
+        newStart: times.start,
+        newEnd: times.end,
+        isAllDay: times.isAllDay,
+      })
+    ).then(() => {
+      if (save === this._timesSaveCount && !this._pendingTimes) this._timesSaveLanded = true;
+    });
+  }
+
+  // Saved once focus leaves the times, so changing the start and then the end is one save.
+  _onTimesBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) this._saveTimes();
+  };
+
+  // From the days on screen, which may be picked but not yet saved.
+  _onAllDayChange = () => {
+    const t = this._times();
+    const days = {
+      startDate: CalendarDateUtils.calendarDateFromUnix(t.start),
+      endDate: this._lastDay(t),
+    };
+    this._changeTimes({ ...allDayToggleTimes(days, !t.isAllDay), isAllDay: !t.isAllDay });
+    this._saveTimes();
+  };
+
+  _onRepeatChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const repeat = e.target.value as RepeatOption;
+    this.setState({ repeat });
+    this._saveProperty({ property: 'rrule', value: repeatOptionToRRule(repeat) });
+  };
+
+  _onMore = () => {
+    require('@electron/remote')
+      .Menu.buildFromTemplate([{ label: localized('Delete Event'), click: this.props.onDelete }])
+      .popup({});
+  };
 
   _renderHeader() {
     return (
@@ -97,12 +308,117 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           />
           {localized('Agenda')}
         </button>
-        {this.props.headerActions}
+        <div className="event-panel-actions">
+          {this.props.headerActions}
+          {this.props.onDelete && (
+            <button
+              className="btn-bare event-panel-more"
+              title={localized('More')}
+              aria-label={localized('More')}
+              onClick={this._onMore}
+            >
+              <SVGIcons.More />
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  _renderTitle() {
+    const { event } = this.props;
+    const title = event.title || localized('(No title)');
+    if (this._editable()) {
+      return (
+        <EventPanelTextField
+          ref={this._title}
+          className="event-panel-title"
+          value={event.title}
+          placeholder={localized('New Event')}
+          onSave={(value) =>
+            this._saveProperty({ property: 'summary', value: value || localized('New Event') })
+          }
+        />
+      );
+    }
+    return <div className="event-panel-title">{event.isCancelled ? <s>{title}</s> : title}</div>;
+  }
+
+  /** The last day the times cover: a timed event ending at midnight doesn't reach the next day. */
+  _lastDay({ start, end, isAllDay }: Times) {
+    return CalendarDateUtils.calendarDateFromUnix(
+      isAllDay ? inclusiveAllDayEnd(end) : Math.max(end - 1, start)
+    );
+  }
+
+  _renderEditableWhen() {
+    const t = this._times();
+    const multiDay = CalendarDateUtils.calendarDateFromUnix(t.start) !== this._lastDay(t);
+    const endDatePicker = (
+      <DatePicker
+        value={(t.isAllDay ? inclusiveAllDayEnd(t.end) : t.end) * 1000}
+        onChange={(ms) =>
+          this._changeEnd(
+            t.isAllDay
+              ? CalendarDateUtils.nextDayStartUnix(
+                  CalendarDateUtils.calendarDateFromUnix(ms / 1000)
+                )
+              : ms / 1000
+          )
+        }
+      />
+    );
+    return (
+      <div className="event-panel-section" onBlur={this._onTimesBlur}>
+        <div className="event-panel-row">
+          <SVGIcons.Clock className="event-panel-icon" />
+          <Switch
+            checked={t.isAllDay}
+            onChange={this._onAllDayChange}
+            label={localized('All day')}
+          />
+          {localized('All day')}
+        </div>
+        {!t.isAllDay && (
+          <div className="event-panel-row indented">
+            <TimePicker value={t.start * 1000} onChange={this._changeStart} />
+            <SVGIcons.ArrowRight className="event-panel-icon" />
+            <TimePicker
+              value={t.end * 1000}
+              relativeTo={t.start * 1000}
+              onChange={(ms) => this._changeEnd(ms / 1000)}
+            />
+            <span className="event-panel-subtle">{DateUtils.formatDuration(t.end - t.start)}</span>
+          </div>
+        )}
+        <div className="event-panel-row indented">
+          <DatePicker value={t.start * 1000} onChange={this._changeStart} />
+          {multiDay && <span>–</span>}
+          {multiDay && endDatePicker}
+        </div>
+        {!t.isAllDay && (
+          <div className="event-panel-row">
+            <SVGIcons.Globe className="event-panel-icon" />
+            {/* The zone the times above are shown in, which may not be the event's own. */}
+            {formatTimezone(DateUtils.timeZone)}
+          </div>
+        )}
+        <div className="event-panel-row">
+          <SVGIcons.Repeat className="event-panel-icon" />
+          <PanelSelect value={this.state.repeat} onChange={this._onRepeatChange}>
+            {REPEAT_OPTIONS.map((option) => (
+              <option key={option} value={option}>
+                {option === 'none' ? localized('Does not repeat') : repeatLabel(option)}
+              </option>
+            ))}
+          </PanelSelect>
+        </div>
       </div>
     );
   }
 
   _renderWhen() {
+    if (this._editable()) return this._renderEditableWhen();
     const { event } = this.props;
     const firstDay = momentOf(event.startDate).format('ddd MMM D');
     const days =
@@ -166,9 +482,18 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     return !!organizer && Utils.emailIsEquivalent(attendee.email, organizer.email);
   }
 
+  _renderLocationIcon(location: string) {
+    return CalendarUtils.extractMeetingDomain(location, '') ? (
+      <SVGIcons.Video className="event-panel-icon" />
+    ) : (
+      <SVGIcons.Location className="event-panel-icon" />
+    );
+  }
+
   _renderInviteesAndPlace() {
     const { attendees, location } = this.props.event;
-    if (attendees.length === 0 && !location) return null;
+    const editable = this._editable();
+    if (attendees.length === 0 && !location && !editable) return null;
     return (
       <div className="event-panel-section">
         {attendees.length > 0 && (
@@ -191,21 +516,24 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             </div>
           </div>
         )}
-        {location && (
+        {editable ? (
           <div className="event-panel-row">
-            {CalendarUtils.extractMeetingDomain(location, '') ? (
-              <SVGIcons.Video className="event-panel-icon" />
-            ) : (
-              <SVGIcons.Location className="event-panel-icon" />
-            )}
-            <span className="event-panel-location">
-              {location.startsWith('http') || location.startsWith('tel:') ? (
-                <a href={location}>{location}</a>
-              ) : (
-                location
-              )}
-            </span>
+            {this._renderLocationIcon(location)}
+            <EventPanelTextField
+              className="event-panel-location"
+              value={location}
+              placeholder={localized('Add Location or Video Call')}
+              display={location && linkOrText(location)}
+              onSave={(value) => this._saveProperty({ property: 'location', value })}
+            />
           </div>
+        ) : (
+          location && (
+            <div className="event-panel-row">
+              {this._renderLocationIcon(location)}
+              <span className="event-panel-location">{linkOrText(location)}</span>
+            </div>
+          )
         )}
       </div>
     );
@@ -213,16 +541,31 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   _renderNotes() {
     const notes = extractNotesFromDescription(this.props.event.description).trim();
+    if (this._editable()) {
+      return (
+        <div className="event-panel-section">
+          <EventPanelTextField
+            className="event-panel-notes"
+            multiline
+            value={notes}
+            placeholder={localized('Add notes or URL...')}
+            display={notes && <AutolinkedText text={notes} />}
+            onSave={(value) => this._saveProperty({ property: 'description', value })}
+          />
+        </div>
+      );
+    }
     if (!notes) return null;
     return (
-      <div className="event-panel-section event-panel-notes" ref={this._notesRef}>
-        {notes}
+      <div className="event-panel-section event-panel-notes">
+        <AutolinkedText text={notes} />
       </div>
     );
   }
 
   _renderCalendar() {
     const { event, calendar } = this.props;
+    const showAs: ShowAsOption = event.isFree ? 'TRANSPARENT' : 'OPAQUE';
     return (
       <div className="event-panel-section">
         {calendar && (
@@ -237,30 +580,64 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           </div>
         )}
         <div className="event-panel-row indented">
-          {showAsLabel(event.isFree ? 'TRANSPARENT' : 'OPAQUE')}
+          {this._editable() ? (
+            <PanelSelect
+              value={showAs}
+              onChange={(e) => this._saveProperty({ property: 'transp', value: e.target.value })}
+            >
+              {SHOW_AS_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {showAsLabel(option)}
+                </option>
+              ))}
+            </PanelSelect>
+          ) : (
+            showAsLabel(showAs)
+          )}
         </div>
       </div>
     );
   }
 
+  // Answering writes our status onto the event, which a read-only calendar refuses.
+  _renderRsvpCard() {
+    const { event, isCalendarReadOnly } = this.props;
+    if (!canRespondToEvent(event)) return null;
+    const answer = myParticipationStatus(event);
+    return (
+      <div
+        className="event-panel-card event-panel-rsvp button-group"
+        role="group"
+        aria-label={localized('Your response')}
+      >
+        {rsvpActions().map(([status, label]) => (
+          <button
+            key={status}
+            className={`btn ${status === answer ? status : ''}`}
+            aria-pressed={status === answer}
+            disabled={isCalendarReadOnly}
+            onClick={() => respondToCalendarEvent(event, status)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  // The card sits under the scrolling rows, so a long event never pushes it out of view.
   render() {
-    const { event } = this.props;
     return (
       <aside className="event-panel" aria-label={localized('Event')}>
         {this._renderHeader()}
         <ScrollRegion className="event-panel-body">
-          <div className="event-panel-title">
-            {event.isCancelled ? (
-              <s>{event.title || localized('(No title)')}</s>
-            ) : (
-              event.title || localized('(No title)')
-            )}
-          </div>
+          {this._renderTitle()}
           {this._renderWhen()}
           {this._renderInviteesAndPlace()}
           {this._renderNotes()}
           {this._renderCalendar()}
         </ScrollRegion>
+        {this._renderRsvpCard()}
       </aside>
     );
   }

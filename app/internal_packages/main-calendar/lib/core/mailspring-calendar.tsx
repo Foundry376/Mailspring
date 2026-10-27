@@ -50,6 +50,7 @@ import {
   clampEnd,
   newEventOccurrence,
   NewEventDraft,
+  canEditInPanel,
 } from './calendar-helpers';
 import { Disposable } from 'rx-core';
 import { CalendarEventArgs } from './calendar-event-container';
@@ -188,6 +189,7 @@ export class MailspringCalendar extends React.Component<
   /** Selected occurrences moved here but not yet synced back, by the id they will be drawn under. */
   _pendingMoves = new Map<string, { start: number; staleIcs: string }>();
   _timeGrid = React.createRef<TimeGridView>();
+  _eventPanel = React.createRef<EventPanel>();
 
   constructor(props: MailspringCalendarProps) {
     super(props);
@@ -246,6 +248,17 @@ export class MailspringCalendar extends React.Component<
   _onBackToAgenda = () => {
     this.setState({ selectedEvents: [], focusedEvent: null });
   };
+
+  // The panel's date picker and switch use the same keys for themselves.
+  _focusInEventPanel() {
+    return !!document.activeElement?.closest('.event-panel');
+  }
+
+  _unlessFocusInEventPanel(handler: () => void) {
+    return () => {
+      if (!this._focusInEventPanel()) handler();
+    };
+  }
 
   _publishCalendarOptions() {
     CalendarHeaderStore.setCalendarOptions({
@@ -475,11 +488,25 @@ export class MailspringCalendar extends React.Component<
     return !this._isCalendarReadOnly(occurrence.calendarId) && occurrence.isMine;
   }
 
-  // The click before it already shows the event in the panel.
-  _onEventDoubleClick = (occurrence: EventOccurrence) => {
-    if (this._isEditable(occurrence)) {
+  /** Puts the cursor in the panel's title, or opens the editor for an event the panel can't edit. */
+  _editEvent(occurrence: EventOccurrence) {
+    if (canEditInPanel(occurrence, this._isCalendarReadOnly(occurrence.calendarId))) {
+      this._select([occurrence]);
+      // The panel may only mount with this render.
+      window.requestAnimationFrame(() => this._eventPanel.current?.focusTitle());
+    } else if (this._isEditable(occurrence)) {
       this._openEventEditor(occurrence);
     }
+  }
+
+  // The click before it already shows the event in the panel.
+  _onEventDoubleClick = (occurrence: EventOccurrence) => {
+    this._editEvent(occurrence);
+  };
+
+  _onEditSelectedEvent = () => {
+    const shown = this._panelEvent();
+    if (shown) this._editEvent(shown);
   };
 
   _onEventContextMenu = (occurrence: EventOccurrence) => {
@@ -494,9 +521,7 @@ export class MailspringCalendar extends React.Component<
       occurrence,
       readOnly,
       onOpen: () =>
-        this._isEditable(occurrence)
-          ? this._openEventEditor(occurrence)
-          : this._select([occurrence]),
+        this._isEditable(occurrence) ? this._editEvent(occurrence) : this._select([occurrence]),
       onDelete: () => this._deleteEvent(occurrence),
       onProposeNewTime: () => openProposeNewTimePopover(occurrence),
     }).displayMenu();
@@ -1015,7 +1040,8 @@ export class MailspringCalendar extends React.Component<
     // An event selected from the agenda panel may be off the grid, so the keys don't move it.
     if (
       this.state.selectedEvents.length === 0 ||
-      document.activeElement?.closest('.agenda-panel')
+      document.activeElement?.closest('.agenda-panel') ||
+      this._focusInEventPanel()
     ) {
       return;
     }
@@ -1368,10 +1394,17 @@ export class MailspringCalendar extends React.Component<
           />
           {event && (
             <EventPanel
+              ref={this._eventPanel}
               key={CalendarUtils.parseOccurrenceId(event.id).eventId}
               event={event}
               calendar={this.state.calendars.find((c) => c.id === event.calendarId)}
+              isCalendarReadOnly={this._isCalendarReadOnly(event.calendarId)}
               onBack={this._onBackToAgenda}
+              onDelete={
+                this._isCalendarReadOnly(event.calendarId)
+                  ? undefined
+                  : () => this._deleteEvent(event)
+              }
             />
           )}
         </div>
@@ -1394,8 +1427,9 @@ export class MailspringCalendar extends React.Component<
         <KeyCommandsRegion
           className="mailspring-calendar"
           localHandlers={{
-            'core:pop-sheet': this._onBackToAgenda,
-            'core:remove-from-view': this._onDeleteSelectedEvents,
+            'core:pop-sheet': this._unlessFocusInEventPanel(this._onBackToAgenda),
+            'core:focus-item': this._unlessFocusInEventPanel(this._onEditSelectedEvent),
+            'core:remove-from-view': this._unlessFocusInEventPanel(this._onDeleteSelectedEvents),
             'calendar:move-event-up': () => this._onMoveSelectedEvent('up', false),
             'calendar:move-event-down': () => this._onMoveSelectedEvent('down', false),
             'calendar:move-event-left': () => this._onMoveSelectedEvent('left', false),

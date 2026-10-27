@@ -77,6 +77,15 @@ export const Location = lineIcon(
   </>
 );
 
+export const More = lineIcon(
+  'More',
+  <>
+    <circle cx="6" cy="12" r="1.5" fill="currentColor" stroke="none" />
+    <circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" />
+    <circle cx="18" cy="12" r="1.5" fill="currentColor" stroke="none" />
+  </>
+);
+
 export const ArrowUp = lineIcon('ArrowUp', <path d="M12 19V5M6 11l6-6 6 6" />);
 export const ArrowDown = lineIcon('ArrowDown', <path d="M12 5v14M6 13l6 6 6-6" />);
 export const ArrowLeft = lineIcon('ArrowLeft', <path d="M19 12H5M11 6l-6 6 6 6" />);
