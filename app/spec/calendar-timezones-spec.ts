@@ -85,6 +85,24 @@ describe('resolving a TZID', function () {
     expect(startOf(ics)).toBe('2026-07-01T06:30:00.000Z');
   });
 
+  it('reads Etc/UTC as UTC and writes its values back without a Z', function () {
+    // RFC 5545 section 3.3.5: a value written with a TZID carries no trailing Z.
+    const series = calendar([
+      ...vevent('Etc/UTC', '20260701T120000', ['RRULE:FREQ=WEEKLY;COUNT=4']),
+      'BEGIN:VEVENT',
+      'UID:zone-test@test',
+      'RECURRENCE-ID;TZID=Etc/UTC:20260708T120000',
+      'DTSTART;TZID=Etc/UTC:20260708T150000',
+      'DTEND;TZID=Etc/UTC:20260708T160000',
+      'SUMMARY:Planning, moved',
+      'DTSTAMP:20260101T000000Z',
+      'END:VEVENT',
+    ]);
+    expect(startOf(series)).toBe('2026-07-01T12:00:00.000Z');
+    const shifted = ICSEventHelpers.shiftInlineExceptions(series, 15 * 60 * 1000);
+    expect(shifted).toContain('RECURRENCE-ID;TZID=Etc/UTC:20260708T121500\r\n');
+  });
+
   it("seeds the zone cache ical.js keeps on a file's root component", function () {
     // resolveTimezones relies on this private field to outrank a file's own VTIMEZONE. If an
     // ical.js release renames it, the first spec above fails too; this one says why.

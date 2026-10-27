@@ -2757,6 +2757,26 @@ describe('ICSEventHelpers.createCounterProposal', function () {
       expect(line(ics, 'RECURRENCE-ID')).toBe('RECURRENCE-ID:20260323T130000Z');
     });
 
+    // RFC 5545 section 3.3.5: a value written with a TZID carries no trailing Z, even when the
+    // zone named is UTC.
+    it('names an occurrence of a series zoned Etc/UTC in that zone, without a Z', function () {
+      const etcUtc = RECURRING_INVITE_ICS.replace(
+        'DTSTART:20260302T140000Z',
+        'DTSTART;TZID=Etc/UTC:20260302T140000'
+      );
+      const ics = propose(etcUtc, { recurrenceId: occurrence('2026-03-23T14:00:00Z') });
+      expect(line(ics, 'RECURRENCE-ID')).toBe('RECURRENCE-ID;TZID=Etc/UTC:20260323T140000');
+    });
+
+    it('names an occurrence of a series zoned UTC the way its DTSTART is written', function () {
+      const utc = RECURRING_INVITE_ICS.replace(
+        'DTSTART:20260302T140000Z',
+        'DTSTART;TZID=UTC:20260302T140000'
+      );
+      const ics = propose(utc, { recurrenceId: occurrence('2026-03-23T14:00:00Z') });
+      expect(line(ics, 'RECURRENCE-ID')).toBe('RECURRENCE-ID;TZID=UTC:20260323T140000');
+    });
+
     it('keeps the RECURRENCE-ID of an invitation to a single occurrence', function () {
       const single = RECURRING_INVITE_ICS.replace(
         /BEGIN:VEVENT\r?\nUID:series-invite@test\r?\nDTSTART:20260302[\s\S]*?END:VEVENT\r?\n/,

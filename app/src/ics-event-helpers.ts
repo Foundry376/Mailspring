@@ -1501,12 +1501,18 @@ function nameOccurrence(
 ): void {
   const start = dtstart.getFirstValue() as ICALTime;
   const tzid = dtstart.getParameter('tzid') as string | undefined;
-  const zoned = !start.isDate && !!tzid && ical.TimezoneService.has(tzid);
+  // ical.js writes a value in its utcTimezone with a trailing Z, which a TZID may not carry, and
+  // reads a TZID nothing defines as floating; both are named in UTC instead.
+  const zoned =
+    !start.isDate &&
+    !!tzid &&
+    start.zone !== ical.Timezone.utcTimezone &&
+    start.zone !== ical.Timezone.localTimezone;
   let value: ICALTime;
   if (start.isDate) {
     value = instant.isDate ? instant : dateOnly(ical, instant.toJSDate());
   } else if (zoned) {
-    value = instant.convertToZone(ical.TimezoneService.get(tzid));
+    value = instant.convertToZone(start.zone);
   } else {
     value = instant.convertToZone(ical.Timezone.utcTimezone);
   }
@@ -1716,9 +1722,10 @@ export function expandedEvent(entry: ExpandedOccurrence): ICALEvent {
 
 /**
  * The events and occurrences of a calendar object that overlap `start`..`end` (unix seconds),
- * events first: every one-off VEVENT, and each occurrence of a series in the window, replaced by
- * the inline exception whose RECURRENCE-ID names it and left out where an EXDATE does. An all-day
- * entry's exclusive end is read as the last moment of its final day.
+ * events first: every one-off VEVENT, and each occurrence of a series in the window, left out
+ * where an EXDATE names it. An inline exception that keeps its slot is listed as itself among the
+ * events; one that moved is an occurrence at its new time, with the exception as `item`. An
+ * all-day entry's exclusive end is read as the last moment of its final day.
  *
  * The times are read through parseICSString, so an expansion places a zoned time exactly where
  * every other reader in the app does. This follows ical-expander's between(); the package itself
@@ -1767,18 +1774,22 @@ export function expandBetween(
     for (let i = 0; i < maxIterations; i++) {
       const next = iterator.next();
       if (!next) break;
+      // ical.js substitutes a related exception's own times, so a moved occurrence's start is
+      // not the rule's. Stopping on the moved start alone would end the series at the first
+      // occurrence moved past the window.
+      const instant = next.toJSDate().getTime();
       const occurrence = event.getOccurrenceDetails(next);
       const occurrenceSpan = span(occurrence);
-      if (occurrenceSpan.from > before) break;
-      if (!overlaps(occurrenceSpan)) continue;
+      if (instant > before && occurrenceSpan.from > before) break;
+      if (!overlaps(occurrenceSpan) || excluded.has(instant)) continue;
 
-      const originalStart = occurrence.startDate.toJSDate().getTime();
-      const exception = exceptions.find(
-        (ex) => ex.uid === event.uid && ex.recurrenceId.toJSDate().getTime() === originalStart
+      const start = occurrence.startDate.toJSDate().getTime();
+      const unmoved = exceptions.find(
+        (ex) => ex.uid === event.uid && ex.recurrenceId.toJSDate().getTime() === start
       );
-      if (exception) {
-        shownAsThemselves.push(exception);
-      } else if (!excluded.has(originalStart)) {
+      if (unmoved) {
+        shownAsThemselves.push(unmoved);
+      } else {
         occurrences.push(occurrence);
       }
     }

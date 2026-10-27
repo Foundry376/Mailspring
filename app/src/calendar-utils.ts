@@ -69,11 +69,26 @@ const knownZones = new Map<string, ICALTimezone | null>();
  * file, so it keeps tzdata's forecast too. It is registered under the TZID as written for
  * components detached from their file (an exception copied out of its series), which ical.js
  * resolves through the TimezoneService alone.
+ *
+ * A UTC name gets a zero-offset zone of its own rather than ical.js's utcTimezone: ical.js writes
+ * every value in utcTimezone with a trailing Z, and `TZID=Etc/UTC:20260701T120000Z` is what
+ * RFC 5545 section 3.3.5 forbids. UTC, GMT and Z keep ical.js's own registration, which
+ * ical.js compares by identity.
  */
 function knownZone(tzid: string): ICALTimezone | null {
-  if (UTC_NAMES.includes(tzid.trim().toLowerCase())) return ICAL.Timezone.utcTimezone;
   if (!knownZones.has(tzid)) {
-    const vtimezone = createVTIMEZONEString(tzid, WHOLE_HISTORY, Infinity);
+    const vtimezone = UTC_NAMES.includes(tzid.trim().toLowerCase())
+      ? [
+          'BEGIN:VTIMEZONE',
+          `TZID:${tzid}`,
+          'BEGIN:STANDARD',
+          'DTSTART:16010101T000000',
+          'TZOFFSETFROM:+0000',
+          'TZOFFSETTO:+0000',
+          'END:STANDARD',
+          'END:VTIMEZONE',
+        ].join('\r\n')
+      : createVTIMEZONEString(tzid, WHOLE_HISTORY, Infinity);
     const component = vtimezone
       ? new ICAL.Component(
           ICAL.parse(`BEGIN:VCALENDAR\r\nVERSION:2.0\r\n${vtimezone}\r\nEND:VCALENDAR`)
@@ -82,7 +97,10 @@ function knownZone(tzid: string): ICALTimezone | null {
     knownZones.set(tzid, component ? new ICAL.Timezone({ component, tzid }) : null);
   }
   const zone = knownZones.get(tzid);
-  if (zone && ICAL.TimezoneService.get(tzid) !== zone) ICAL.TimezoneService.register(zone, tzid);
+  const registered = ICAL.TimezoneService.get(tzid);
+  if (zone && registered !== zone && registered !== ICAL.Timezone.utcTimezone) {
+    ICAL.TimezoneService.register(zone, tzid);
+  }
   return zone;
 }
 
