@@ -17,6 +17,7 @@ import {
   DatabaseChangeRecord,
   TaskQueue,
   DOMUtils,
+  WorkspaceStore,
 } from 'mailspring-exports';
 import { KeyCommandsRegion, ResizableRegion } from 'mailspring-component-kit';
 import { CalendarMenuCommands } from '../calendar-menu-commands';
@@ -83,6 +84,7 @@ import {
   EventTimeChangeOptions,
 } from './recurring-event-actions';
 import { UnsentChange, withTimes, withUnsentChange } from './unsent-change';
+import { showUnsentChangeDialog } from './unsent-change-dialog';
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 const CALENDAR_VIEW = 'mailspring.calendarView';
@@ -234,6 +236,8 @@ export class MailspringCalendar extends React.Component<
     this._unlistenDatabase = DatabaseStore.listen(this._onDatabaseChange);
     // Captured, so it runs before the window's own undo handler on <body>.
     document.addEventListener('core:undo', this._ignoreUndoWhileHeld, true);
+    WorkspaceStore.setSectionLeaveGuard(() => this._mayLeave([]));
+    AppEnv.onBeforeUnload(this._onBeforeUnload);
     AppEnv.mailsyncBridge.sendSyncCalendarNow();
     this._themeDisposable = AppEnv.themes.onDidChangeActiveThemes(() => {
       invalidateThemeTextColorCache();
@@ -257,15 +261,19 @@ export class MailspringCalendar extends React.Component<
   }
 
   // Saved like the toolbar button's toggle, so going back to the agenda leaves the panel open.
-  // Moves and deletes change the selection without going through here.
+  // Moves and deletes change the selection without going through here. False when the user
+  // keeps editing a held change instead.
   _select(clicked: EventOccurrence[]) {
     const selectedEvents = clicked.map((o) => this._storedOccurrence(o));
+    if (!this._mayLeave(selectedEvents)) return false;
     const opensPanel = selectedEvents.length === 1 && !this.state.agendaOpen;
     this.setState({ selectedEvents, focusedEvent: null, ...(opensPanel && { agendaOpen: true }) });
     if (opensPanel) AppEnv.config.set(AGENDA_OPEN, true);
+    return true;
   }
 
   _onBackToAgenda = () => {
+    if (!this._mayLeave([])) return;
     this.setState({ selectedEvents: [], focusedEvent: null });
   };
 
@@ -284,15 +292,56 @@ export class MailspringCalendar extends React.Component<
     if (!holdsEdits(stored, this._isCalendarReadOnly(stored.calendarId))) return false;
     const { eventId } = CalendarUtils.parseOccurrenceId(stored.id);
     const { unsentChange } = this.state;
+    if (!this._select([stored])) return true;
+    // Another event's change was just sent or discarded, though state may not show it yet.
     const change = unsentChange?.eventId === eventId ? unsentChange : null;
     this.setState({ unsentChange: withTimes(change, eventId, times, occurrenceTimes(stored)) });
-    this._select([stored]);
     return true;
   }
 
   // Held edits queue no task, so the last undoable action is an older one the user isn't looking at.
   _ignoreUndoWhileHeld = (e: CustomEvent) => {
     if (this.state.unsentChange && !DOMUtils.isTextInput(e.target)) e.stopPropagation();
+  };
+
+  /** Whether showing `next` takes the panel off the event with a held change. */
+  _leavesUnsentChange(next: EventOccurrence[]) {
+    const change = this.state.unsentChange;
+    if (!change || this._sendingUnsentChange === change) return false;
+    return !(
+      next.length === 1 && CalendarUtils.parseOccurrenceId(next[0].id).eventId === change.eventId
+    );
+  }
+
+  /** False when `next` would leave a held change and the user keeps editing it instead. */
+  _mayLeave(next: EventOccurrence[]) {
+    if (!this._leavesUnsentChange(next)) return true;
+    const choice = showUnsentChangeDialog(this.state.unsentChange, this._unsentChangeTitle());
+    if (choice === 'keep-editing') return false;
+    if (choice === 'send') this._sendUnsentChange();
+    else this.setState({ unsentChange: null });
+    return true;
+  }
+
+  _unsentChangeTitle() {
+    const { unsentChange, selectedEvents } = this.state;
+    const event = selectedEvents.find(
+      (o) => CalendarUtils.parseOccurrenceId(o.id).eventId === unsentChange?.eventId
+    );
+    return event?.title ?? '';
+  }
+
+  // Quitting can't be stopped, and the sync engine is stopped once every callback is ready.
+  _onBeforeUnload = (readyToUnload: () => void) => {
+    if (!this._leavesUnsentChange([])) return true;
+    const choice = showUnsentChangeDialog(this.state.unsentChange, this._unsentChangeTitle(), {
+      canKeepEditing: false,
+    });
+    if (choice === 'discard') return true;
+    Promise.race([this._sendUnsentChange(), new Promise((r) => setTimeout(r, 700))]).then(
+      readyToUnload
+    );
+    return false;
   };
 
   _sendingUnsentChange: UnsentChange | null = null;
@@ -343,6 +392,8 @@ export class MailspringCalendar extends React.Component<
     this._unlistenDatabase?.();
     this._unlistenFocusedMoment?.();
     document.removeEventListener('core:undo', this._ignoreUndoWhileHeld, true);
+    WorkspaceStore.setSectionLeaveGuard(null);
+    AppEnv.removeUnloadCallback(this._onBeforeUnload);
   }
 
   _onDatabaseChange = ({ objectClass }: DatabaseChangeRecord<Event>) => {
@@ -363,7 +414,9 @@ export class MailspringCalendar extends React.Component<
     if (this.state.selectedEvents !== selected) return;
     const next = refreshed.filter(Boolean);
     if (next.length !== selected.length || next.some((o, i) => o !== selected[i])) {
-      this.setState({ selectedEvents: next });
+      // Deleted here or elsewhere, its event has nothing left to send the change to.
+      const gone = this._leavesUnsentChange(next) && !this._leavesUnsentChange(selected);
+      this.setState({ selectedEvents: next, ...(gone && { unsentChange: null }) });
     }
   }
 
@@ -471,6 +524,7 @@ export class MailspringCalendar extends React.Component<
 
   onToggleAgenda = () => {
     const agendaOpen = !this.state.agendaOpen;
+    if (!agendaOpen && !this._mayLeave([])) return;
     this.setState({ agendaOpen });
     AppEnv.config.set(AGENDA_OPEN, agendaOpen);
   };
@@ -541,7 +595,7 @@ export class MailspringCalendar extends React.Component<
       this._suppressNextCalendarClick = false;
       return;
     }
-    if (this.state.selectedEvents.length > 0) {
+    if (this.state.selectedEvents.length > 0 && this._mayLeave([])) {
       this.setState({ selectedEvents: [], focusedEvent: null });
     }
     Actions.closePopover();

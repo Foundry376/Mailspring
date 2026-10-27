@@ -1,7 +1,15 @@
-import { Actions, CalendarUtils, DatabaseStore, Event } from 'mailspring-exports';
+import {
+  Actions,
+  CalendarUtils,
+  DatabaseStore,
+  Event,
+  TaskQueue,
+  WorkspaceStore,
+} from 'mailspring-exports';
 import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
 import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
+import * as UnsentChangeDialog from '../internal_packages/main-calendar/lib/core/unsent-change-dialog';
 
 const START = Date.UTC(2026, 9, 27, 15, 0, 0) / 1000;
 const HOUR = 3600;
@@ -179,5 +187,85 @@ describe('Cmd+Z while a change is held', function () {
   it('undoes as usual with nothing held', function () {
     undoFrom(button);
     expect(windowUndo).toHaveBeenCalled();
+  });
+});
+
+describe('leaving an event with a held change', function () {
+  const held = {
+    eventId: 'e1',
+    edits: [],
+    times: { start: START + HOUR, end: START + 2 * HOUR, isAllDay: false },
+  };
+  let queueTask: jasmine.Spy;
+  let dialog: jasmine.Spy;
+  let find: jasmine.Spy;
+  let calendar: any;
+
+  beforeEach(function () {
+    queueTask = spyOn(Actions, 'queueTask');
+    spyOn(TaskQueue, 'waitForPerformLocal').andReturn(Promise.resolve());
+    find = spyOn(DatabaseStore, 'find').andCallFake(() => Promise.resolve(new Event(row.toJSON())));
+    spyOn(AppEnv.config, 'set');
+    dialog = spyOn(UnsentChangeDialog, 'showUnsentChangeDialog');
+    calendar = calendarWith([withGuests]);
+    calendar.state.unsentChange = held;
+  });
+
+  it("drops the change on the dialog's Discard, queueing nothing", async function () {
+    dialog.andReturn('discard');
+    calendar._onBackToAgenda();
+    await settle();
+
+    expect(queueTask).not.toHaveBeenCalled();
+    expect(calendar.state.unsentChange).toBe(null);
+    expect(calendar.state.selectedEvents).toEqual([]);
+  });
+
+  it("queues the held change on the dialog's Send update", async function () {
+    dialog.andReturn('send');
+    calendar._onBackToAgenda();
+    await settle();
+
+    expect(queueTask.calls.length).toBe(1);
+    expect(queueTask.calls[0].args[0].event.recurrenceStart).toBe(START + HOUR);
+    expect(calendar.state.selectedEvents).toEqual([]);
+  });
+
+  it('stays on the event on Keep editing', function () {
+    dialog.andReturn('keep-editing');
+    const other = { ...withoutGuests, id: CalendarUtils.occurrenceId('e2', START) };
+    calendar._select([other]);
+
+    expect(queueTask).not.toHaveBeenCalled();
+    expect(calendar.state.selectedEvents).toEqual([withGuests]);
+    expect(calendar.state.unsentChange).toBe(held);
+  });
+
+  it('asks before switching sections, and Keep editing stays', function () {
+    const calendarSection = { id: 'SpecCalendar', root: true, supportedModes: ['list'] } as any;
+    const mailSection = { id: 'SpecMail', root: true, supportedModes: ['list'] } as any;
+    const saved = WorkspaceStore.sheetStack().slice();
+    spyOn(WorkspaceStore, 'trigger');
+    WorkspaceStore._onSelectRootSheet(calendarSection);
+    // As componentDidMount registers it.
+    WorkspaceStore.setSectionLeaveGuard(() => calendar._mayLeave([]));
+    dialog.andReturn('keep-editing');
+    try {
+      WorkspaceStore._onSelectRootSheet(mailSection);
+      expect(dialog).toHaveBeenCalled();
+      expect(WorkspaceStore.rootSheet()).toBe(calendarSection);
+    } finally {
+      WorkspaceStore.setSectionLeaveGuard(null);
+      (WorkspaceStore as any)._sheetStack = saved;
+    }
+  });
+
+  it('drops the change once its event is gone, without asking', async function () {
+    find.andReturn(Promise.resolve(null));
+    await calendar._refreshSelectedEvents();
+
+    expect(calendar.state.selectedEvents).toEqual([]);
+    expect(calendar.state.unsentChange).toBe(null);
+    expect(dialog).not.toHaveBeenCalled();
   });
 });

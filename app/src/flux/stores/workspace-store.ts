@@ -74,6 +74,7 @@ class WorkspaceStore extends MailspringStore {
   private _sheetStack: SheetDeclaration[];
   private _stackChangeAnimates = true;
   private _shortcuts?: Disposable;
+  private _sectionLeaveGuard: (() => boolean) | null = null;
 
   constructor() {
     super();
@@ -153,6 +154,7 @@ class WorkspaceStore extends MailspringStore {
     if (!sheet.root) {
       throw new Error(`Actions.selectRootSheet - ${sheet} is not registered as a root sheet.`);
     }
+    if (!this._mayLeaveSectionFor(sheet)) return;
 
     this._sheetStack = [];
     this._sheetStack.push(sheet);
@@ -166,6 +168,7 @@ class WorkspaceStore extends MailspringStore {
     if (!sheets[0] || !sheets[0].root) {
       throw new Error(`Actions.showSheetStack - the first sheet must be a root sheet.`);
     }
+    if (!this._mayLeaveSectionFor(sheets[0])) return;
     this._sheetStack = [...sheets];
     this._triggerUnanimated();
   };
@@ -292,6 +295,15 @@ class WorkspaceStore extends MailspringStore {
   //
   rootSheet() {
     return this._sheetStack[0];
+  }
+
+  /** Asked before another section is shown; returning false keeps the current one. */
+  setSectionLeaveGuard(guard: (() => boolean) | null) {
+    this._sectionLeaveGuard = guard;
+  }
+
+  _mayLeaveSectionFor(sheet: SheetDeclaration) {
+    return sheet === this.rootSheet() || this._sectionLeaveGuard?.() !== false;
   }
 
   // Public: Returns an {Array<Sheet>} The stack of sheets
