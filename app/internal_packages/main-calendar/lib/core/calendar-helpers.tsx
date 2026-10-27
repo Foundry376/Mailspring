@@ -576,13 +576,16 @@ export function canEditInPanel(event: EventOccurrence, isCalendarReadOnly: boole
 }
 
 /** The times an event takes when All day is switched: whole days covering it, or 9–10 AM on its first day. */
-export function allDayToggleTimes(event: EventOccurrence, allDay: boolean) {
+export function allDayToggleTimes(
+  { startDate, endDate }: Pick<EventOccurrence, 'startDate' | 'endDate'>,
+  allDay: boolean
+) {
   if (allDay) {
     return {
-      start: CalendarDateUtils.dayStartUnix(event.startDate),
-      end: CalendarDateUtils.nextDayStartUnix(event.endDate),
+      start: CalendarDateUtils.dayStartUnix(startDate),
+      end: CalendarDateUtils.nextDayStartUnix(endDate),
     };
   }
-  const start = CalendarDateUtils.secondsIntoDayUnix(event.startDate, 9 * 3600);
+  const start = CalendarDateUtils.secondsIntoDayUnix(startDate, 9 * 3600);
   return { start, end: start + DEFAULT_TIMED_EVENT_DURATION_SECONDS };
 }

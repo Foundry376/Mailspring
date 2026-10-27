@@ -255,9 +255,14 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     if (!e.currentTarget.contains(e.relatedTarget as Node)) this._saveTimes();
   };
 
+  // From the days on screen, which may be picked but not yet saved.
   _onAllDayChange = () => {
-    const allDay = !this._times().isAllDay;
-    this._changeTimes({ ...allDayToggleTimes(this.props.event, allDay), isAllDay: allDay });
+    const t = this._times();
+    const days = {
+      startDate: CalendarDateUtils.calendarDateFromUnix(t.start),
+      endDate: this._lastDay(t),
+    };
+    this._changeTimes({ ...allDayToggleTimes(days, !t.isAllDay), isAllDay: !t.isAllDay });
     this._saveTimes();
   };
 
