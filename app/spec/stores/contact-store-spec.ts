@@ -1,6 +1,29 @@
 import _ from 'underscore';
 import { Contact } from '../../src/flux/models/contact';
 import ContactStore from '../../src/flux/stores/contact-store';
+import DatabaseStore from '../../src/flux/stores/database-store';
+import { AccountStore } from '../../src/flux/stores/account-store';
+
+describe('ContactStore.searchContacts', () => {
+  it('asks the database for ten matches per account unless told otherwise', async () => {
+    const query: any = {
+      search: () => query,
+      where: () => query,
+      order: () => query,
+      limit: jasmine.createSpy('limit').andCallFake(() => query),
+      then: (callback) => Promise.resolve([]).then(callback),
+    };
+    spyOn(DatabaseStore, 'findAll').andReturn(query);
+    spyOn(AccountStore, 'accounts').andReturn([{ id: 'a' }, { id: 'b' }]);
+    spyOn(AppEnv.config, 'get').andReturn([]);
+
+    await ContactStore.searchContacts('andrew');
+    expect(query.limit).toHaveBeenCalledWith(20);
+
+    await ContactStore.searchContacts('andrew', { limit: 1 });
+    expect(query.limit).toHaveBeenCalledWith(2);
+  });
+});
 
 xdescribe('ContactStore', function () {
   beforeEach(function () {
@@ -65,17 +88,17 @@ xdescribe('ContactStore', function () {
       });
     });
 
-    it('returns no more than 5 by default', () =>
+    it('returns no more than 10 by default', () =>
       waitsForPromise(() => {
         return ContactStore.searchContacts('fi').then((results) => {
-          expect(results.length).toBe(5);
+          expect(results.length).toBe(10);
         });
       }));
 
-    it('can return more than 5 if requested', () =>
+    it('can return more than 10 if requested', () =>
       waitsForPromise(() => {
-        return ContactStore.searchContacts('fi', { limit: 6 }).then((results) => {
-          expect(results.length).toBe(6);
+        return ContactStore.searchContacts('fi', { limit: 11 }).then((results) => {
+          expect(results.length).toBe(11);
         });
       }));
   });
