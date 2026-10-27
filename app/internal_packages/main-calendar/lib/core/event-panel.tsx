@@ -146,6 +146,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   _saving: Promise<void> = Promise.resolve();
   /** The last times save has been written, so the next refresh shows the event's own times. */
   _timesSaveLanded = false;
+  _timesSaveCount = 0;
 
   componentDidMount() {
     this._loadEventRow();
@@ -244,6 +245,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     this._pendingTimes = null;
     const originalOccurrenceStart = occurrenceStartUnix(this.props.event);
     this._timesSaveLanded = false;
+    const save = ++this._timesSaveCount;
     this._save((row) =>
       modifySimpleEvent({
         event: row,
@@ -253,7 +255,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         isAllDay: times.isAllDay,
       })
     ).then(() => {
-      if (!this._pendingTimes) this._timesSaveLanded = true;
+      if (save === this._timesSaveCount && !this._pendingTimes) this._timesSaveLanded = true;
     });
   }
 
