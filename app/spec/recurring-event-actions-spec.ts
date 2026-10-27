@@ -6,6 +6,7 @@ import { Event as MailspringEvent } from '../src/flux/models/event';
 import {
   modifySimpleEvent,
   modifySimpleEventProperty,
+  modifySimpleEventChange,
   createOccurrenceException,
   modifyAllOccurrences,
   modifyEventWithRecurringSupport,
@@ -863,5 +864,34 @@ describe('modifySimpleEventProperty', function () {
     const { _opts } = queued.mostRecentCall.args[0];
     expect(_opts.event).toBe(event);
     expect(_opts.undoData.ics).toBe(FORMATTED_ICS);
+  });
+
+  describe('modifySimpleEventChange', function () {
+    const NEW_START = Date.UTC(2026, 2, 2, 16, 0) / 1000;
+    const NEW_END = Date.UTC(2026, 2, 2, 17, 0) / 1000;
+
+    it('sends the times and every edited property as one update that revises the event once', function () {
+      const event = makeEvent(FORMATTED_ICS);
+      const before = written(event);
+
+      modifySimpleEventChange(event, {
+        times: { start: NEW_START, end: NEW_END, isAllDay: false },
+        edits: [
+          { property: 'summary', value: 'Team Dinner' },
+          { property: 'location', value: 'Room 2' },
+        ],
+      });
+
+      expect(queued.callCount).toBe(1);
+      const after = written(event);
+      expect(after.startDate.toJSDate().getTime() / 1000).toBe(NEW_START);
+      expect(after.endDate.toJSDate().getTime() / 1000).toBe(NEW_END);
+      expect(after.summary).toBe('Team Dinner');
+      expect(after.location).toBe('Room 2');
+      expect(after.description).toBe(before.description);
+      expect(after.component.getFirstPropertyValue('transp')).toBe('OPAQUE');
+      expect(after.component.getFirstPropertyValue('sequence')).toBe(4);
+      expect(queued.mostRecentCall.args[0]._opts.undoData.ics).toBe(FORMATTED_ICS);
+    });
   });
 });

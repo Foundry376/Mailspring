@@ -108,6 +108,18 @@ export type EventPropertyEdit =
   | { property: 'summary' | 'location' | 'description' | 'transp'; value: string }
   | { property: 'rrule'; value: string | null };
 
+/** Edits to one simple event sent as a single update, so its guests get one email. */
+export interface EventChange {
+  times?: { start: number; end: number; isAllDay: boolean };
+  edits: EventPropertyEdit[];
+}
+
+function applyPropertyEdit(ics: string, edit: EventPropertyEdit) {
+  return edit.property === 'rrule'
+    ? ICSEventHelpers.updateRecurrenceRule(ics, edit.value)
+    : ICSEventHelpers.updateEventProperty(ics, edit.property, edit.value);
+}
+
 /**
  * Changes one property of a simple (non-recurring) event and queues the syncback task. Every
  * other property is written back as stored, so editing the title leaves an invitation's
@@ -117,11 +129,18 @@ export function modifySimpleEventProperty(
   event: Event,
   edit: EventPropertyEdit
 ): SyncbackEventTask {
+  return modifySimpleEventChange(event, { edits: [edit] });
+}
+
+/** Writes a change's times and properties to a simple event and queues one syncback task. */
+export function modifySimpleEventChange(event: Event, change: EventChange): SyncbackEventTask {
   const undoData = captureEventSnapshot(event);
-  const ics =
-    edit.property === 'rrule'
-      ? ICSEventHelpers.updateRecurrenceRule(event.ics, edit.value)
-      : ICSEventHelpers.updateEventProperty(event.ics, edit.property, edit.value);
+  let ics = change.edits.reduce(applyPropertyEdit, event.ics);
+  if (change.times) {
+    ics = ICSEventHelpers.updateEventTimes(ics, change.times);
+    event.recurrenceStart = change.times.start;
+    event.recurrenceEnd = change.times.end;
+  }
   event.ics = ICSEventHelpers.bumpEventSequence(ics);
 
   const task = SyncbackEventTask.forUpdating({
