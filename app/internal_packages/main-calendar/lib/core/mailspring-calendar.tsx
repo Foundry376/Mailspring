@@ -249,6 +249,17 @@ export class MailspringCalendar extends React.Component<
     this.setState({ selectedEvents: [], focusedEvent: null });
   };
 
+  // The panel's date picker and switch use the same keys for themselves.
+  _focusInEventPanel() {
+    return !!document.activeElement?.closest('.event-panel');
+  }
+
+  _unlessFocusInEventPanel(handler: () => void) {
+    return () => {
+      if (!this._focusInEventPanel()) handler();
+    };
+  }
+
   _publishCalendarOptions() {
     CalendarHeaderStore.setCalendarOptions({
       view: this.state.view,
@@ -1029,7 +1040,8 @@ export class MailspringCalendar extends React.Component<
     // An event selected from the agenda panel may be off the grid, so the keys don't move it.
     if (
       this.state.selectedEvents.length === 0 ||
-      document.activeElement?.closest('.agenda-panel')
+      document.activeElement?.closest('.agenda-panel') ||
+      this._focusInEventPanel()
     ) {
       return;
     }
@@ -1415,9 +1427,9 @@ export class MailspringCalendar extends React.Component<
         <KeyCommandsRegion
           className="mailspring-calendar"
           localHandlers={{
-            'core:pop-sheet': this._onBackToAgenda,
-            'core:focus-item': this._onEditSelectedEvent,
-            'core:remove-from-view': this._onDeleteSelectedEvents,
+            'core:pop-sheet': this._unlessFocusInEventPanel(this._onBackToAgenda),
+            'core:focus-item': this._unlessFocusInEventPanel(this._onEditSelectedEvent),
+            'core:remove-from-view': this._unlessFocusInEventPanel(this._onDeleteSelectedEvents),
             'calendar:move-event-up': () => this._onMoveSelectedEvent('up', false),
             'calendar:move-event-down': () => this._onMoveSelectedEvent('down', false),
             'calendar:move-event-left': () => this._onMoveSelectedEvent('left', false),
