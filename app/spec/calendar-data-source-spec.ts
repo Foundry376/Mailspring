@@ -336,7 +336,7 @@ describe('occurrence id stability across query ranges', function () {
 });
 
 describe('occurrencesForEvents on a long-running series', function () {
-  // ical-expander steps forward from DTSTART with no way to seek, so the iteration cap bounds
+  // expandBetween steps forward from DTSTART with no way to seek, so the iteration cap bounds
   // how far back a series may begin rather than how much a window costs. At the fixed 100 a
   // weekly meeting that started in 2022 ran out around early 2024 and rendered nothing at all -
   // no error, no gap, just absent from the calendar.

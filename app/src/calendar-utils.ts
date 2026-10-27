@@ -5,6 +5,7 @@ type ICAL = typeof import('ical.js').default;
 type ICALComponent = InstanceType<ICAL['Component']>;
 type ICALProperty = InstanceType<ICAL['Property']>;
 type ICALEvent = InstanceType<ICAL['Event']>;
+type ICALTimezone = InstanceType<ICAL['Timezone']>;
 
 let ICAL: ICAL = null;
 
@@ -53,43 +54,80 @@ export function parseICSString(ics: string) {
   const root = new ICAL.Component(jcalData);
   // Before ICAL.Event: relating the exceptions reads each RECURRENCE-ID, and a value read once
   // keeps the zone it was read with.
-  registerTimezones(root);
+  resolveTimezones(root);
   const event = new ICAL.Event(root.name === 'vevent' ? root : root.getFirstSubcomponent('vevent'));
   return { root, event };
 }
 
 const WHOLE_HISTORY = new Date(Date.UTC(1601, 0, 1));
+const UTC_NAMES = ['utc', 'gmt', 'etc/utc', 'etc/gmt', 'z'];
+const knownZones = new Map<string, ICALTimezone | null>();
 
 /**
- * Registers a VCALENDAR's VTIMEZONEs with the ICAL.js TimezoneService, so `toJSDate()` on a
- * TZID-relative time gives the instant it names, and describes any zone a VEVENT refers to
- * without one. RFC 7809 lets a server omit the VTIMEZONE for an IANA zone, and ical.js has no
- * zone data of its own, so such a value would otherwise read as floating local time. The registry
- * is process-wide, so the synthesised zone describes the zone's whole history: whichever file names
- * it first, a later file's older dates read right. It is written into no file, so it keeps tzdata's
- * forecast too. A file that carries the VTIMEZONE replaces it. An identifier resolveIanaZone cannot
- * place is left alone.
+ * The zone tzdata gives a TZID, or null when resolveIanaZone cannot place it. One zone serves
+ * every file that names it, so it describes the zone's whole history, and it is written into no
+ * file, so it keeps tzdata's forecast too. It is registered under the TZID as written for
+ * components detached from their file (an exception copied out of its series), which ical.js
+ * resolves through the TimezoneService alone.
  */
-function registerTimezones(vcalendar: ICALComponent): void {
-  for (const vtz of vcalendar.getAllSubcomponents('vtimezone')) {
-    // The registry is process-wide and ical.js seeds these three names with UTC itself, so a file
-    // redefining one would move every time read through that name for the rest of the session.
-    if (['UTC', 'GMT', 'Z'].includes(String(vtz.getFirstPropertyValue('tzid')))) continue;
-    ICAL.TimezoneService.register(vtz);
-  }
-
-  for (const vevent of vcalendar.getAllSubcomponents('vevent')) {
-    for (const prop of vevent.getAllProperties()) {
-      const tzid = prop.getParameter('tzid');
-      if (typeof tzid !== 'string' || ICAL.TimezoneService.has(tzid)) continue;
-      const vtimezone = createVTIMEZONEString(tzid, WHOLE_HISTORY, Infinity);
-      if (!vtimezone) continue;
-      ICAL.TimezoneService.register(
-        new ICAL.Component(
+function knownZone(tzid: string): ICALTimezone | null {
+  if (UTC_NAMES.includes(tzid.trim().toLowerCase())) return ICAL.Timezone.utcTimezone;
+  if (!knownZones.has(tzid)) {
+    const vtimezone = createVTIMEZONEString(tzid, WHOLE_HISTORY, Infinity);
+    const component = vtimezone
+      ? new ICAL.Component(
           ICAL.parse(`BEGIN:VCALENDAR\r\nVERSION:2.0\r\n${vtimezone}\r\nEND:VCALENDAR`)
         ).getFirstSubcomponent('vtimezone')
-      );
+      : null;
+    knownZones.set(tzid, component ? new ICAL.Timezone({ component, tzid }) : null);
+  }
+  const zone = knownZones.get(tzid);
+  if (zone && ICAL.TimezoneService.get(tzid) !== zone) ICAL.TimezoneService.register(zone, tzid);
+  return zone;
+}
+
+/**
+ * Settles the zone every TZID in a calendar object reads through, before any of its times is
+ * read: a value keeps the zone it was first read with. This is the one place the app resolves a
+ * TZID, in the order the sync engine does:
+ *
+ * 1. A name tzdata knows (IANA, or a Windows name Outlook writes; see resolveIanaZone) or a UTC
+ *    name reads through moment-timezone's tzdata, whatever VTIMEZONE the file carries. A sender's
+ *    VTIMEZONE is a copy of some zone database as of when it was written, and those go stale:
+ *    Mexico abolished DST in 2022, and invitations still describe it. Thunderbird and
+ *    sabre/vobject resolve a known name from their own tables the same way.
+ * 2. Any other name reads through the file's own VTIMEZONE (RFC 5545 section 3.2.19), which
+ *    ical.js finds itself. It is also registered process-wide as a fallback for detached
+ *    components, but never under a name tzdata knows, so no file can move another's times.
+ * 3. Anything else reads as floating local time.
+ *
+ * ical.js asks the root component's getTimeZoneByID before the TimezoneService
+ * (Time.fromDateTimeString), so step 1 seeds the root's zone cache. That cache is private to
+ * ical.js; calendar-timezones-spec fails if a release renames it.
+ */
+function resolveTimezones(root: ICALComponent): void {
+  const isCalendar = root.name === 'vcalendar';
+  const fileZones = isCalendar ? root.getAllSubcomponents('vtimezone') : [];
+  const components = isCalendar
+    ? root.getAllSubcomponents().filter((c) => c.name !== 'vtimezone')
+    : [root];
+
+  const tzids = new Set(fileZones.map((vtz) => String(vtz.getFirstPropertyValue('tzid'))));
+  for (const component of components) {
+    for (const prop of component.getAllProperties()) {
+      const tzid = prop.getParameter('tzid');
+      if (typeof tzid === 'string') tzids.add(tzid);
     }
+  }
+
+  const rootZoneCache = (root as unknown as { _timezoneCache?: Map<string, ICALTimezone> })
+    ._timezoneCache;
+  for (const tzid of tzids) {
+    const zone = knownZone(tzid);
+    if (zone) rootZoneCache?.set(tzid, zone);
+  }
+  for (const vtz of fileZones) {
+    if (!knownZone(String(vtz.getFirstPropertyValue('tzid')))) ICAL.TimezoneService.register(vtz);
   }
 }
 
@@ -130,7 +168,7 @@ function dataHorizonYear(momentTz): number {
  */
 export function resolveIanaZone(tzId: string): string | null {
   if (!tzId) return null;
-  if (['utc', 'gmt', 'etc/utc', 'etc/gmt', 'z'].includes(tzId.trim().toLowerCase())) return null;
+  if (UTC_NAMES.includes(tzId.trim().toLowerCase())) return null;
   const momentTz = require('moment-timezone');
   if (momentTz.tz.zone(tzId)) return tzId;
   const mapped = findOneIana(tzId);
@@ -173,7 +211,7 @@ const ENUMERATED_YEARS = 10;
  * revise (Asia/Gaza's Ramadan-dependent changes run to 2086), and this component is the authority
  * for readers that honour it.
  *
- * The rules in force at `referenceDate` start in 1970, the anchor vzic and the ical-expander zone
+ * The rules in force at `referenceDate` start in 1970, the anchor vzic and Mozilla's zone
  * database use, rather than at their real first year: ical.js matches a date before the earliest
  * DTSTART to no rule and reads its wall clock as UTC, and a created event's component should look
  * like everyone else's two-rule zone. An earlier `referenceDate` anchors in the year before it, so
