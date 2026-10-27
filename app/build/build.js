@@ -289,6 +289,8 @@ function buildPackagerOptions() {
           'mailsync',
           'mailsync.exe',
           'mailsync.bin',
+          // mailsync reads its time zone data from icu-tzdata/ beside its binary.
+          '**/icu-tzdata/**',
           '*.so',
           '*.so.*',
           '*.dll',
