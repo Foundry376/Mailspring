@@ -13,7 +13,6 @@ import {
   Calendar,
   Utils,
 } from 'mailspring-exports';
-import IcalExpander from 'ical-expander';
 
 /** Participation status values from iCalendar spec */
 export type ParticipationStatus = 'NEEDS-ACTION' | 'ACCEPTED' | 'DECLINED' | 'TENTATIVE' | string;
@@ -380,6 +379,22 @@ function occurrenceFromICS(args: {
     : { ...base, isAllDay: false, start: startUnix, end: endUnix };
 }
 
+/**
+ * The VEVENT an exception row stands for. The engine stores the whole calendar resource on every
+ * row it holds, master included, so it is the one whose RECURRENCE-ID the row names; a resource
+ * holding the exception alone has only that one.
+ */
+function exceptionICSEvent(exception: Event): ICALEvent {
+  const { root, event } = CalendarUtils.parseICSString(exception.ics);
+  const own = root.getAllSubcomponents('vevent').find((vevent) => {
+    const rid = vevent.getFirstPropertyValue('recurrence-id') as ICALTime | null;
+    return rid && rid.toICALString() === exception.recurrenceId;
+  });
+  if (!own) return event;
+  const ICAL: ICAL = require('ical.js');
+  return new ICAL.Event(own);
+}
+
 export function occurrencesForEvents(
   results: Event[],
   {
@@ -417,23 +432,18 @@ export function occurrencesForEvents(
         // 100, which is not a limit on work but on how far back a series may begin: a
         // weekly meeting older than about two years never reached the present, so it
         // expanded to nothing and vanished from the calendar entirely.
-        const icalExpander = new IcalExpander({
-          ics: master.ics,
-          maxIterations: ICSEventHelpers.expansionIterationBudget(
-            master.ics,
-            master.recurrenceStart,
-            endUnix
-          ),
-        });
-        const expanded = icalExpander.between(new Date(startUnix * 1000), new Date(endUnix * 1000));
+        const expanded = ICSEventHelpers.expandBetween(
+          master.ics,
+          master.recurrenceStart,
+          startUnix,
+          endUnix
+        );
 
         const masterIsRecurring = ICSEventHelpers.isRecurringEvent(master.ics);
 
-        [...expanded.events, ...expanded.occurrences].forEach((e) => {
+        expanded.forEach((e) => {
           const start = e.startDate.toJSDate().getTime() / 1000;
-          const end = e.endDate.toJSDate().getTime() / 1000;
-          // For occurrences, the actual event data is in e.item; for events, e is the event itself
-          const item = 'item' in e ? e.item : e;
+          const item = ICSEventHelpers.expandedEvent(e);
           expandedStartTimes.add(start);
 
           occurrences.push(
@@ -499,21 +509,17 @@ export function occurrencesForEvents(
       }
     }
 
-    // Handle standalone exceptions (separate database records)
-    // Only add if their start time wasn't already covered by master expansion
+    // Standalone exception rows, unless the master's expansion already drew them. The start
+    // compared is the row's own VEVENT read here, not its recurrenceStart column: the sync engine
+    // computes that column, and it need not read a zoned time to the same second.
     for (const exception of exceptions) {
-      const start = exception.recurrenceStart;
-      if (expandedStartTimes.has(start)) {
-        // Already covered by master expansion, skip to avoid duplicates
-        continue;
-      }
-
-      // Exception events are single-instance (no RRULE), so parse directly
-      // with ICAL.js instead of using ical-expander (which is for recurrence expansion)
       try {
-        const { event: icsEvent } = CalendarUtils.parseICSString(exception.ics);
+        const icsEvent = exceptionICSEvent(exception);
         const occStart = icsEvent.startDate.toJSDate().getTime() / 1000;
         const occEnd = icsEvent.endDate.toJSDate().getTime() / 1000;
+        if (expandedStartTimes.has(occStart)) {
+          continue;
+        }
 
         // Skip if outside the visible range
         if (occEnd < startUnix || occStart > endUnix) {

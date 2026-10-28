@@ -2,6 +2,16 @@ import ICAL from 'ical.js';
 import * as ICSEventHelpers from '../src/ics-event-helpers';
 import { parseICSString } from '../src/calendar-utils';
 
+/**
+ * `ics` with zone `tz` renamed to a TZID tzdata does not know. parseICSString reads a name tzdata
+ * knows through tzdata whatever VTIMEZONE the object carries, so a spec of a written component
+ * reads its times back under this name, through the component alone.
+ */
+function underUnknownName(ics: string, tz: string): string {
+  const escaped = tz.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return ics.replace(new RegExp(`TZID([:=])${escaped}(?=[:;\\r\\n])`, 'g'), `TZID$1Body of ${tz}`);
+}
+
 // ---------------------------------------------------------------------------
 // Fixtures
 // ---------------------------------------------------------------------------
@@ -373,7 +383,7 @@ describe('ICSEventHelpers.createRecurrenceException', function () {
   // Timezone-aware upsert: TZID-format vs UTC-format RECURRENCE-ID
   // -------------------------------------------------------------------------
   // Regression test for the bug where re-editing a TZID-formatted exception
-  // left a duplicate VEVENT in the ICS, causing ical-expander to pick the old
+  // left a duplicate VEVENT in the ICS, causing the expansion to pick the old
   // one (with the stale summary) and ignore the new one.
   //
   // Root cause: the old string comparison
@@ -419,7 +429,7 @@ describe('ICSEventHelpers.createRecurrenceException', function () {
 
     it('applying a summary edit via applyEditsToException updates only the new exception', function () {
       // This is the exact user-reported scenario: editing the summary of a
-      // TZID-format exception should produce an ICS where ical-expander
+      // TZID-format exception should produce an ICS whose expansion
       // displays the *new* summary, not the old one.
       const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
         RECURRING_WITH_TZID_EXCEPTION_ICS,
@@ -1264,7 +1274,7 @@ describe('ICSEventHelpers.updateEventTimes with all-day events', function () {
 });
 
 // ---------------------------------------------------------------------------
-// Expansion budget. ical-expander iterates forward from DTSTART with no way to seek, so a
+// Expansion budget. expandBetween iterates forward from DTSTART with no way to seek, so a
 // fixed cap is a limit on how far back a series may begin. At 100 a weekly meeting older
 // than about two years expanded to nothing and disappeared from the calendar.
 // ---------------------------------------------------------------------------
@@ -1332,8 +1342,7 @@ describe('ICSEventHelpers.expansionIterationBudget', function () {
 
   it('returns the floor when the series has no usable start', function () {
     // recurrenceStart can be null or non-finite. A NaN budget is worse than a small one:
-    // it survives Math.max/Math.min and ical-expander reads `!this.maxIterations` as no cap,
-    // so an abusive rule iterates unbounded instead of being truncated.
+    // it survives Math.max/Math.min, and a cap compared with NaN is no cap at all.
     // Passed positionally rather than through budgetFor, whose defaults would swallow
     // undefined and quietly test a finite start instead.
     const abusive = series('FREQ=SECONDLY');
@@ -1515,8 +1524,9 @@ describe('a TZID whose VTIMEZONE the server omitted', function () {
     expect(result).toContain('EXDATE;TZID=Europe/Vienna:20260917T170000');
   });
 
-  it('follows the VTIMEZONE a file does carry rather than describing the zone itself', function () {
-    // A deliberately wrong zone in the file: Europe/Vienna at a fixed +05:00, so 17:00 is 12:00Z.
+  it('reads a zone tzdata knows through tzdata, not through a VTIMEZONE that disagrees', function () {
+    // A deliberately wrong zone in the file: Europe/Vienna at a fixed +05:00, which would make
+    // 17:00 12:00Z. tzdata's Vienna makes it 15:00Z.
     const WRONG_OFFSET = VIENNA_NO_VTIMEZONE.replace(
       'BEGIN:VEVENT',
       [
@@ -1531,8 +1541,12 @@ describe('a TZID whose VTIMEZONE the server omitted', function () {
         'BEGIN:VEVENT',
       ].join('\r\n')
     );
-    const result = ICSEventHelpers.removeInlineException(WRONG_OFFSET, '20260917T120000Z');
-    expect(result).not.toContain('RECURRENCE-ID');
+    expect(ICSEventHelpers.removeInlineException(WRONG_OFFSET, '20260917T120000Z')).toContain(
+      'RECURRENCE-ID'
+    );
+    expect(ICSEventHelpers.removeInlineException(WRONG_OFFSET, '20260917T150000Z')).not.toContain(
+      'RECURRENCE-ID'
+    );
   });
 
   it('leaves a TZID moment-timezone does not know exactly as it arrived', function () {
@@ -1658,22 +1672,23 @@ describe('ICSEventHelpers.createVTIMEZONEString', function () {
   // A component is only as good as what a reader computes from it, so these read a date back
   // through it rather than matching its lines.
   const readThrough = (tz: string, reference: string, stamp: string) => {
-    ICAL.TimezoneService.remove(tz);
     const { event } = parseICSString(
-      [
-        'BEGIN:VCALENDAR',
-        'VERSION:2.0',
-        ICSEventHelpers.createVTIMEZONEString(tz, new Date(reference)),
-        'BEGIN:VEVENT',
-        'UID:read-through@test',
-        `DTSTART;TZID=${tz}:${stamp}`,
-        'SUMMARY:Meeting',
-        'DTSTAMP:20240101T000000Z',
-        'END:VEVENT',
-        'END:VCALENDAR',
-      ].join('\r\n')
+      underUnknownName(
+        [
+          'BEGIN:VCALENDAR',
+          'VERSION:2.0',
+          ICSEventHelpers.createVTIMEZONEString(tz, new Date(reference)),
+          'BEGIN:VEVENT',
+          'UID:read-through@test',
+          `DTSTART;TZID=${tz}:${stamp}`,
+          'SUMMARY:Meeting',
+          'DTSTAMP:20240101T000000Z',
+          'END:VEVENT',
+          'END:VCALENDAR',
+        ].join('\r\n'),
+        tz
+      )
     );
-    ICAL.TimezoneService.remove(tz);
     return event.startDate.toJSDate().toISOString();
   };
 
@@ -1795,10 +1810,11 @@ describe('ICSEventHelpers.createVTIMEZONEString', function () {
   });
 
   describe('read back through the VTIMEZONE a created event carries', function () {
-    // ical.js resolves a TZID from the VTIMEZONE in the same object, so what createICSString
-    // writes is what every later read of the event computes from.
+    // A recipient that honours the VTIMEZONE computes every occurrence from what createICSString
+    // writes, so these read the event back through that component alone.
     const occurrenceAt = (ics: string, y: number, m: number, d: number) => {
-      const { event } = parseICSString(ics);
+      const tz = /DTSTART;TZID=([^:]+):/.exec(ics)[1];
+      const { event } = parseICSString(underUnknownName(ics, tz));
       const iterator = event.iterator();
       let next: InstanceType<typeof ICAL.Time>;
       while ((next = iterator.next())) {
@@ -1842,8 +1858,8 @@ describe('ICSEventHelpers.createVTIMEZONEString', function () {
     });
 
     it('reads a February meeting through a zone first registered from a July file', function () {
-      // registerTimezones is process-wide: the first VTIMEZONE-less file to name a zone fixes
-      // its rules for every later one. Anchored at 2024's own transitions, the earliest DTSTART
+      // One zone serves every file that names it, so it must describe the zone's whole history,
+      // whichever file names it first. Anchored at 2024's own transitions, the earliest DTSTART
       // is 10 March, so a February wall clock matches no rule and reads as UTC.
       ICAL.TimezoneService.remove('America/Chicago');
       const withoutVTIMEZONE = (uid: string, dtstart: string) =>
@@ -2062,24 +2078,24 @@ describe('a Windows timezone identifier', function () {
 describe('ICSEventHelpers.createVTIMEZONEString, for zones no single yearly rule describes', function () {
   // Each value is the instant moment-timezone gives the wall clock: what the component must read.
   const readThrough = (tz: string, reference: string, wallClock: string, years?: number) => {
-    ICAL.TimezoneService.remove(tz);
     const vtimezone = ICSEventHelpers.createVTIMEZONEString(tz, new Date(reference), years);
     const { event } = parseICSString(
-      [
-        'BEGIN:VCALENDAR',
-        'VERSION:2.0',
-        vtimezone,
-        'BEGIN:VEVENT',
-        'UID:read-through@test',
-        `DTSTART;TZID=${tz}:${wallClock}`,
-        'DTSTAMP:20240101T000000Z',
-        'END:VEVENT',
-        'END:VCALENDAR',
-      ].join('\r\n')
+      underUnknownName(
+        [
+          'BEGIN:VCALENDAR',
+          'VERSION:2.0',
+          vtimezone,
+          'BEGIN:VEVENT',
+          'UID:read-through@test',
+          `DTSTART;TZID=${tz}:${wallClock}`,
+          'DTSTAMP:20240101T000000Z',
+          'END:VEVENT',
+          'END:VCALENDAR',
+        ].join('\r\n'),
+        tz
+      )
     );
-    const instant = event.startDate.toJSDate().toISOString();
-    ICAL.TimezoneService.remove(tz);
-    return instant;
+    return event.startDate.toJSDate().toISOString();
   };
 
   it("starts Chile's summer time on the Sunday on or after 2 September", function () {
@@ -2309,8 +2325,8 @@ describe('ICSEventHelpers.createVTIMEZONEString, for zones no single yearly rule
   });
 
   it("reads a zone registered from a recent file at an older file's offsets", function () {
-    // registerTimezones is process-wide: whichever file names Tehran first, a 2021 summer meeting
-    // is on the +04:30 Iran abolished in 2022, not today's +03:30.
+    // One zone serves every file that names it: whichever file names Tehran first, a 2021
+    // summer meeting is on the +04:30 Iran abolished in 2022, not today's +03:30.
     ICAL.TimezoneService.remove('Asia/Tehran');
     const withoutVTIMEZONE = (uid: string, dtstart: string) =>
       [
@@ -2498,12 +2514,9 @@ describe('ICSEventHelpers.updateRecurringEventTimes with a new zone', function (
   });
 
   it('still excludes, adds and replaces the same occurrences once expanded', function () {
-    const IcalExpander = require('ical-expander');
-    const expanded = new IcalExpander({ ics: rezoned(), maxIterations: 1000 }).between(
-      new Date('2024-03-14T00:00:00Z'),
-      new Date('2024-03-22T00:00:00Z')
-    );
-    const starts = [...expanded.events, ...expanded.occurrences]
+    const from = Date.parse('2024-03-14T00:00:00Z') / 1000;
+    const to = Date.parse('2024-03-22T00:00:00Z') / 1000;
+    const starts = ICSEventHelpers.expandBetween(rezoned(), from, from, to)
       .map((e) => e.startDate.toJSDate().toISOString())
       .sort();
     expect(starts).toEqual([
@@ -2742,6 +2755,26 @@ describe('ICSEventHelpers.createCounterProposal', function () {
       );
       const ics = propose(unknownZone, { recurrenceId: occurrence('2026-03-23T13:00:00Z') });
       expect(line(ics, 'RECURRENCE-ID')).toBe('RECURRENCE-ID:20260323T130000Z');
+    });
+
+    // RFC 5545 section 3.3.5: a value written with a TZID carries no trailing Z, even when the
+    // zone named is UTC.
+    it('names an occurrence of a series zoned Etc/UTC in that zone, without a Z', function () {
+      const etcUtc = RECURRING_INVITE_ICS.replace(
+        'DTSTART:20260302T140000Z',
+        'DTSTART;TZID=Etc/UTC:20260302T140000'
+      );
+      const ics = propose(etcUtc, { recurrenceId: occurrence('2026-03-23T14:00:00Z') });
+      expect(line(ics, 'RECURRENCE-ID')).toBe('RECURRENCE-ID;TZID=Etc/UTC:20260323T140000');
+    });
+
+    it('names an occurrence of a series zoned UTC the way its DTSTART is written', function () {
+      const utc = RECURRING_INVITE_ICS.replace(
+        'DTSTART:20260302T140000Z',
+        'DTSTART;TZID=UTC:20260302T140000'
+      );
+      const ics = propose(utc, { recurrenceId: occurrence('2026-03-23T14:00:00Z') });
+      expect(line(ics, 'RECURRENCE-ID')).toBe('RECURRENCE-ID;TZID=UTC:20260323T140000');
     });
 
     it('keeps the RECURRENCE-ID of an invitation to a single occurrence', function () {
