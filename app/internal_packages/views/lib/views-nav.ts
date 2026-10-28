@@ -50,10 +50,12 @@ class _ViewsNavStore extends MailspringStore {
     clearFocusedThread();
     if (animate) {
       this._showRoot();
-      Actions.pushSheet(WorkspaceStore.Sheet.ViewPage);
     } else {
       Actions.showSheetStack([WorkspaceStore.Sheet.Views, WorkspaceStore.Sheet.ViewPage]);
     }
+    // Refused while the calendar holds a change the user keeps editing.
+    if (!this.isShowingViews()) return;
+    if (animate) Actions.pushSheet(WorkspaceStore.Sheet.ViewPage);
     this._setViewId(viewId);
   }
 

@@ -229,6 +229,14 @@ describe('FocusedPerspectiveStore', function () {
         expect(Actions.selectRootSheet).toHaveBeenCalledWith(this.threadsSheet);
       });
 
+      it('keeps the mailbox when the section refuses to be left', function () {
+        const saved = AppEnv.savedState.perspective;
+        FocusedPerspectiveStore._setPerspective(this.inboxPerspective);
+        expect(Actions.selectRootSheet).toHaveBeenCalledWith(this.threadsSheet);
+        expect(FocusedPerspectiveStore.current()).toBe(this.userPerspective);
+        expect(AppEnv.savedState.perspective).toBe(saved);
+      });
+
       it('stays in the section for a change made with keepSection', function () {
         FocusedPerspectiveStore._setPerspective(this.inboxPerspective, undefined, {
           keepSection: true,
