@@ -886,6 +886,8 @@ describe('modifySimpleEventProperty', function () {
       const after = written(event);
       expect(after.startDate.toJSDate().getTime() / 1000).toBe(NEW_START);
       expect(after.endDate.toJSDate().getTime() / 1000).toBe(NEW_END);
+      expect(event.recurrenceStart).toBe(NEW_START);
+      expect(event.recurrenceEnd).toBe(NEW_END);
       expect(after.summary).toBe('Team Dinner');
       expect(after.location).toBe('Room 2');
       expect(after.description).toBe(before.description);
