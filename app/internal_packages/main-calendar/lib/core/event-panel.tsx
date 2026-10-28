@@ -323,6 +323,14 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     });
   }
 
+  // Esc closes a date's month, as it leaves a text field, before the calendar's Esc can act.
+  _onTimesKeyDown = (e: React.KeyboardEvent) => {
+    const target = e.target as HTMLElement;
+    if (e.key !== 'Escape' || !target.closest('.date-picker')) return;
+    e.stopPropagation();
+    target.closest<HTMLElement>('.event-panel')?.focus();
+  };
+
   // Saved once focus leaves the times, so changing the start and then the end is one save.
   _onTimesBlur = (e: React.FocusEvent<HTMLDivElement>) => {
     if (!e.currentTarget.contains(e.relatedTarget as Node)) this._saveTimes();
@@ -434,7 +442,11 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       />
     );
     return (
-      <div className="event-panel-section" onBlur={this._onTimesBlur}>
+      <div
+        className="event-panel-section"
+        onBlur={this._onTimesBlur}
+        onKeyDown={this._onTimesKeyDown}
+      >
         <div className="event-panel-row">
           <SVGIcons.Clock className="event-panel-icon" />
           <Switch
