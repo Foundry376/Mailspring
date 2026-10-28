@@ -78,30 +78,11 @@ export interface EventModificationResult {
  */
 export function modifySimpleEvent(options: EventTimeChangeOptions): SyncbackEventTask {
   const { event, newStart, newEnd, isAllDay, description } = options;
-
-  // Capture original state for undo BEFORE modifying
-  const undoData = captureEventSnapshot(event);
-
-  // Update ICS data
-  event.ics = ICSEventHelpers.updateEventTimes(event.ics, {
-    start: newStart,
-    end: newEnd,
-    isAllDay,
-  });
-  event.ics = ICSEventHelpers.bumpEventSequence(event.ics);
-
-  // Update cached fields
-  event.recurrenceStart = newStart;
-  event.recurrenceEnd = newEnd;
-
-  // Queue syncback with undo support
-  const task = SyncbackEventTask.forUpdating({
+  return modifySimpleEventChange(
     event,
-    undoData,
-    description: description || localized('Edit event'),
-  });
-  Actions.queueTask(task);
-  return task;
+    { times: { start: newStart, end: newEnd, isAllDay }, edits: [] },
+    description
+  );
 }
 
 export type EventPropertyEdit =
@@ -133,7 +114,11 @@ export function modifySimpleEventProperty(
 }
 
 /** Writes a change's times and properties to a simple event and queues one syncback task. */
-export function modifySimpleEventChange(event: Event, change: EventChange): SyncbackEventTask {
+export function modifySimpleEventChange(
+  event: Event,
+  change: EventChange,
+  description = localized('Edit event')
+): SyncbackEventTask {
   const undoData = captureEventSnapshot(event);
   let ics = change.edits.reduce(applyPropertyEdit, event.ics);
   if (change.times) {
@@ -143,11 +128,7 @@ export function modifySimpleEventChange(event: Event, change: EventChange): Sync
   }
   event.ics = ICSEventHelpers.bumpEventSequence(ics);
 
-  const task = SyncbackEventTask.forUpdating({
-    event,
-    undoData,
-    description: localized('Edit event'),
-  });
+  const task = SyncbackEventTask.forUpdating({ event, undoData, description });
   Actions.queueTask(task);
   return task;
 }

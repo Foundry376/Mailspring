@@ -4,6 +4,7 @@ import {
   isRTL,
   Autolink,
   Calendar,
+  CalendarDate,
   CalendarDateUtils,
   CalendarUtils,
   DatabaseStore,
@@ -67,6 +68,14 @@ import { EventPanelTextField } from './event-panel-text-field';
 import { UnsentChange, unsentEdit, withEdit, withTimes } from './unsent-change';
 
 const REPEAT_OPTIONS: RepeatOption[] = ['none', 'daily', 'weekly', 'monthly', 'yearly'];
+
+const repeatOptionLabel = (option: RepeatOption) =>
+  option === 'none' ? localized('Does not repeat') : repeatLabel(option);
+
+function daysLabel(first: CalendarDate, last: CalendarDate) {
+  const from = momentOf(first).format('ddd MMM D');
+  return first === last ? from : `${from} – ${momentOf(last).format('ddd MMM D')}`;
+}
 const SHOW_AS_OPTIONS: ShowAsOption[] = ['OPAQUE', 'TRANSPARENT'];
 
 interface EventPanelProps {
@@ -261,7 +270,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   _repeat(): RepeatOption {
     const rrule = this._shown('rrule', repeatOptionToRRule(this.state.repeat));
-    return REPEAT_OPTIONS.find((o) => repeatOptionToRRule(o) === rrule) ?? this.state.repeat;
+    return REPEAT_OPTIONS.find((o) => repeatOptionToRRule(o) === rrule);
   }
 
   _times(): Times {
@@ -464,7 +473,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           <PanelSelect value={this._repeat()} onChange={this._onRepeatChange}>
             {REPEAT_OPTIONS.map((option) => (
               <option key={option} value={option}>
-                {option === 'none' ? localized('Does not repeat') : repeatLabel(option)}
+                {repeatOptionLabel(option)}
               </option>
             ))}
           </PanelSelect>
@@ -476,11 +485,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   _renderWhen() {
     if (this._editable()) return this._renderEditableWhen();
     const { event } = this.props;
-    const firstDay = momentOf(event.startDate).format('ddd MMM D');
-    const days =
-      event.startDate === event.endDate
-        ? firstDay
-        : `${firstDay} – ${momentOf(event.endDate).format('ddd MMM D')}`;
+    const days = daysLabel(event.startDate, event.endDate);
 
     return (
       <div className="event-panel-section">
@@ -657,13 +662,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
-  /** A day and time, naming the day only when it differs from `other`'s. */
   _timesLabel(times: Times, other: Times) {
-    const days = (t: Times) => {
-      const first = momentOf(CalendarDateUtils.calendarDateFromUnix(t.start)).format('ddd MMM D');
-      const last = momentOf(this._lastDay(t)).format('ddd MMM D');
-      return first === last ? first : `${first} – ${last}`;
-    };
+    const days = (t: Times) =>
+      daysLabel(CalendarDateUtils.calendarDateFromUnix(t.start), this._lastDay(t));
     if (times.isAllDay) return days(times);
     const range = formatShortTimeRange(times.start, times.end);
     return days(times) === days(other) ? range : `${days(times)}, ${range}`;
@@ -717,14 +718,12 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           was: showAsLabel(this._storedShowAs()),
         });
       } else {
-        const label = (o: RepeatOption) =>
-          o === 'none' ? localized('Does not repeat') : repeatLabel(o);
         rows.push({
           key: edit.property,
           icon: <SVGIcons.Repeat />,
           label: localized('Repeat'),
-          now: label(this._repeat()),
-          was: label(this.state.repeat),
+          now: repeatOptionLabel(this._repeat()),
+          was: repeatOptionLabel(this.state.repeat),
         });
       }
     }

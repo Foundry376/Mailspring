@@ -1,6 +1,6 @@
 import { CalendarUtils } from 'mailspring-exports';
 import { EventChange, EventPropertyEdit } from './recurring-event-actions';
-import { EventOccurrence, coveredDates } from './calendar-data-source';
+import { EventOccurrence, occurrenceAt } from './calendar-data-source';
 
 type Times = NonNullable<EventChange['times']>;
 
@@ -13,7 +13,10 @@ function unlessEmpty(change: UnsentChange): UnsentChange | null {
   return change.times || change.edits.length ? change : null;
 }
 
-/** The change with `edit` in place of any earlier edit to its property, or without it when it puts back the stored value. */
+/**
+ * The change with `edit` in place of any earlier edit to its property, or without it when it
+ * puts back the stored value.
+ */
 export function withEdit(
   change: UnsentChange | null,
   eventId: string,
@@ -67,10 +70,5 @@ function drawnWith(occurrence: EventOccurrence, change: UnsentChange): EventOccu
     description: edited('description') ?? occurrence.description,
     isFree: transp === undefined ? occurrence.isFree : transp === 'TRANSPARENT',
   };
-  const { times } = change;
-  if (!times) return shown;
-  const dates = coveredDates(times.start, times.end, times.isAllDay);
-  return times.isAllDay
-    ? { ...shown, ...dates, isAllDay: true }
-    : { ...shown, ...dates, isAllDay: false, start: times.start, end: times.end };
+  return change.times ? occurrenceAt(shown, change.times) : shown;
 }

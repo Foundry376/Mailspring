@@ -80,9 +80,17 @@ export function occurrenceEndUnix(e: EventOccurrence): number {
   return isTimed(e) ? e.end : CalendarDateUtils.nextDayStartUnix(e.endDate);
 }
 
-/** The times an edit to the occurrence starts from, in the shape it's saved in. */
 export function occurrenceTimes(e: EventOccurrence) {
   return { start: occurrenceStartUnix(e), end: occurrenceEndUnix(e), isAllDay: !isTimed(e) };
+}
+
+/** The occurrence at other times; an all-day one carries only the dates it covers. */
+export function occurrenceAt(
+  occurrence: EventOccurrence,
+  { start, end, isAllDay }: ReturnType<typeof occurrenceTimes>
+): EventOccurrence {
+  const moved = { ...occurrence, ...coveredDates(start, end, isAllDay) };
+  return isAllDay ? { ...moved, isAllDay: true } : { ...moved, isAllDay: false, start, end };
 }
 
 /**

@@ -261,8 +261,7 @@ export class MailspringCalendar extends React.Component<
   }
 
   // Saved like the toolbar button's toggle, so going back to the agenda leaves the panel open.
-  // Moves and deletes change the selection without going through here. False when the user
-  // keeps editing a held change instead.
+  // Moves and deletes change the selection without going through here.
   _select(clicked: EventOccurrence[]) {
     const selectedEvents = clicked.map((o) => this._storedOccurrence(o));
     if (!this._mayLeave(selectedEvents)) return false;
@@ -304,7 +303,6 @@ export class MailspringCalendar extends React.Component<
     if (this.state.unsentChange && !DOMUtils.isTextInput(e.target)) e.stopPropagation();
   };
 
-  /** Whether showing `next` takes the panel off the event with a held change. */
   _leavesUnsentChange(next: EventOccurrence[]) {
     const change = this.state.unsentChange;
     if (!change || this._sendingUnsentChange === change) return false;
@@ -313,7 +311,6 @@ export class MailspringCalendar extends React.Component<
     );
   }
 
-  /** False when `next` would leave a held change and the user keeps editing it instead. */
   _mayLeave(next: EventOccurrence[]) {
     if (!this._leavesUnsentChange(next)) return true;
     const choice = showUnsentChangeDialog(this.state.unsentChange, this._unsentChangeTitle());
