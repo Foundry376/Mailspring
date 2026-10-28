@@ -103,6 +103,25 @@ describe('resolving a TZID', function () {
     expect(shifted).toContain('RECURRENCE-ID;TZID=Etc/UTC:20260708T121500\r\n');
   });
 
+  it('writes the values of a series zoned UTC with its TZID, never floating', function () {
+    const series = calendar([
+      ...vevent('UTC', '20260701T120000', ['RRULE:FREQ=WEEKLY;COUNT=4']),
+      'BEGIN:VEVENT',
+      'UID:zone-test@test',
+      'RECURRENCE-ID;TZID=UTC:20260708T120000',
+      'DTSTART;TZID=UTC:20260708T150000',
+      'DTEND;TZID=UTC:20260708T160000',
+      'SUMMARY:Planning, moved',
+      'DTSTAMP:20260101T000000Z',
+      'END:VEVENT',
+    ]);
+    const removed = ICSEventHelpers.removeInlineException(series, '20260708T120000Z');
+    expect(removed).not.toContain('RECURRENCE-ID');
+    expect(removed).toContain('EXDATE;TZID=UTC:20260708T120000\r\n');
+    const shifted = ICSEventHelpers.shiftInlineExceptions(series, 15 * 60 * 1000);
+    expect(shifted).toContain('RECURRENCE-ID;TZID=UTC:20260708T121500\r\n');
+  });
+
   it("seeds the zone cache ical.js keeps on a file's root component", function () {
     // resolveTimezones relies on this private field to outrank a file's own VTIMEZONE. If an
     // ical.js release renames it, the first spec above fails too; this one says why.

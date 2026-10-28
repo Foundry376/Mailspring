@@ -233,6 +233,16 @@ function createAllDayEndTime(start: Date, end: Date, ical: ICAL): ICALTime {
 }
 
 /**
+ * Whether a value in `zone` is written with a TZID. ical.js writes its utcTimezone with a
+ * trailing Z and its localTimezone floating, and tells them apart by identity (Event._setTime);
+ * a TZID naming UTC reads through a zone of its own (calendar-utils knownZone), so a test on the
+ * zone's name would write that zone's values with neither a TZID nor a Z.
+ */
+function isNamedZone(zone: ICALTimezone | null | undefined, ical: ICAL): boolean {
+  return !!zone && zone !== ical.Timezone.utcTimezone && zone !== ical.Timezone.localTimezone;
+}
+
+/**
  * Creates an ICAL.Time from a Date, optionally preserving a specific timezone.
  * For timed events, this properly handles timezone conversion.
  *
@@ -252,12 +262,7 @@ function createICALTime(
   }
 
   // For timed events with a timezone to preserve
-  if (
-    preserveZone &&
-    preserveZone.tzid &&
-    preserveZone.tzid !== 'UTC' &&
-    preserveZone.tzid !== 'floating'
-  ) {
+  if (isNamedZone(preserveZone, ical)) {
     // Create the time in UTC first, then convert to the target timezone
     // This ensures the moment in time is preserved correctly
     const utcTime = ical.Time.fromJSDate(date, true); // true = use UTC
@@ -287,7 +292,7 @@ function addExdateProperty(
   zone?: ICALTimezone | null
 ): void {
   const exProp = new ical.Property('exdate', vevent);
-  if (zone && zone.tzid && zone.tzid !== 'UTC' && zone.tzid !== 'floating') {
+  if (isNamedZone(zone, ical)) {
     exProp.setParameter('tzid', zone.tzid);
   }
   exProp.setValue(exdateTime);
@@ -1043,8 +1048,7 @@ export function shiftInlineExceptions(ics: string, deltaMs: number): string {
     }
     const shifted = ical.Time.fromJSDate(new Date(asDate.getTime() + deltaMs), true);
     const zone = value.zone;
-    const zoned = zone && zone.tzid && zone.tzid !== 'UTC' && zone.tzid !== 'floating';
-    return zoned ? shifted.convertToZone(zone) : shifted;
+    return isNamedZone(zone, ical) ? shifted.convertToZone(zone) : shifted;
   };
 
   for (const vevent of vcalendar.getAllSubcomponents('vevent')) {
@@ -1501,13 +1505,9 @@ function nameOccurrence(
 ): void {
   const start = dtstart.getFirstValue() as ICALTime;
   const tzid = dtstart.getParameter('tzid') as string | undefined;
-  // ical.js writes a value in its utcTimezone with a trailing Z, which a TZID may not carry, and
-  // reads a TZID nothing defines as floating; both are named in UTC instead.
-  const zoned =
-    !start.isDate &&
-    !!tzid &&
-    start.zone !== ical.Timezone.utcTimezone &&
-    start.zone !== ical.Timezone.localTimezone;
+  // A series in ical.js's utcTimezone, or under a TZID nothing defines (read floating), is named
+  // in UTC.
+  const zoned = !start.isDate && !!tzid && isNamedZone(start.zone, ical);
   let value: ICALTime;
   if (start.isDate) {
     value = instant.isDate ? instant : dateOnly(ical, instant.toJSDate());
