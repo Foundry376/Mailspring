@@ -305,7 +305,7 @@ export class MailspringCalendar extends React.Component<
 
   _leavesUnsentChange(next: EventOccurrence[]) {
     const change = this.state.unsentChange;
-    if (!change || this._sendingUnsentChange === change) return false;
+    if (!change || this._sending?.change === change) return false;
     return !(
       next.length === 1 && CalendarUtils.parseOccurrenceId(next[0].id).eventId === change.eventId
     );
@@ -330,33 +330,41 @@ export class MailspringCalendar extends React.Component<
 
   // Quitting can't be stopped, and the sync engine is stopped once every callback is ready.
   _onBeforeUnload = (readyToUnload: () => void) => {
-    if (!this._leavesUnsentChange([])) return true;
-    const choice = showUnsentChangeDialog(this.state.unsentChange, this._unsentChangeTitle(), {
-      canKeepEditing: false,
-    });
-    if (choice === 'discard') return true;
-    Promise.race([this._sendUnsentChange(), new Promise((r) => setTimeout(r, 700))]).then(
-      readyToUnload
-    );
+    let sent = this._sending?.done;
+    if (!sent) {
+      if (!this._leavesUnsentChange([])) return true;
+      const choice = showUnsentChangeDialog(this.state.unsentChange, this._unsentChangeTitle(), {
+        canKeepEditing: false,
+      });
+      if (choice === 'discard') {
+        this.setState({ unsentChange: null });
+        return true;
+      }
+      sent = this._sendUnsentChange();
+    }
+    Promise.race([sent, new Promise((r) => setTimeout(r, 700))]).then(readyToUnload, readyToUnload);
     return false;
   };
 
-  _sendingUnsentChange: UnsentChange | null = null;
+  _sending: { change: UnsentChange; done: Promise<void> } | null = null;
 
-  _sendUnsentChange = async () => {
+  _sendUnsentChange = () => {
     const change = this.state.unsentChange;
-    if (!change || this._sendingUnsentChange === change) return;
-    this._sendingUnsentChange = change;
-    try {
-      const row = await DatabaseStore.find<Event>(Event, change.eventId);
-      if (!row) return;
-      await TaskQueue.waitForPerformLocal(modifySimpleEventChange(row, change));
-      // Kept until it's written, so nothing draws the old values in between.
-      this.setState((s) => (s.unsentChange === change ? { unsentChange: null } : null));
-    } finally {
-      this._sendingUnsentChange = null;
-    }
+    if (!change) return Promise.resolve();
+    if (this._sending?.change === change) return this._sending.done;
+    const done = this._writeUnsentChange(change).finally(() => {
+      if (this._sending?.change === change) this._sending = null;
+    });
+    this._sending = { change, done };
+    return done;
   };
+
+  async _writeUnsentChange(change: UnsentChange) {
+    const row = await DatabaseStore.find<Event>(Event, change.eventId);
+    if (row) await TaskQueue.waitForPerformLocal(modifySimpleEventChange(row, change));
+    // Kept until it's written, so nothing draws the old values in between.
+    this.setState((s) => (s.unsentChange === change ? { unsentChange: null } : null));
+  }
 
   // The panel's date picker and switch use the same keys for themselves.
   _focusInEventPanel() {
