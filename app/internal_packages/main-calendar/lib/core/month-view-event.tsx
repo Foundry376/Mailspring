@@ -62,8 +62,19 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
 
   componentDidUpdate(prevProps: MonthViewEventProps) {
     this._revealOnFocusGained(prevProps.focused);
-    this._takeFocusIfSelected();
+    if (prevProps.selected) {
+      cancelAnimationFrame(this._refocusFrame);
+      this._refocusFrame = requestAnimationFrame(() => this._takeFocusIfSelected());
+    } else {
+      this._takeFocusIfSelected();
+    }
   }
+
+  componentWillUnmount() {
+    cancelAnimationFrame(this._refocusFrame);
+  }
+
+  _refocusFrame = 0;
 
   // See CalendarEvent._takeFocusIfSelected.
   _takeFocusIfSelected() {

@@ -91,6 +91,22 @@ export const ArrowDown = lineIcon('ArrowDown', <path d="M12 5v14M6 13l6 6 6-6" /
 export const ArrowLeft = lineIcon('ArrowLeft', <path d="M19 12H5M11 6l-6 6 6 6" />);
 export const ArrowRight = lineIcon('ArrowRight', <path d="M5 12h14M13 6l6 6-6 6" />);
 
+// Lucide's text-cursor, align-left and briefcase.
+export const TextCursor = lineIcon(
+  'TextCursor',
+  <path d="M17 22h-1a4 4 0 0 1-4-4V6a4 4 0 0 1 4-4h1M7 22h1a4 4 0 0 0 4-4v-1M7 2h1a4 4 0 0 1 4 4v1" />
+);
+
+export const AlignLeft = lineIcon('AlignLeft', <path d="M21 6H3M15 12H3M17 18H3" />);
+
+export const BriefcaseOutline = lineIcon(
+  'BriefcaseOutline',
+  <>
+    <path d="M16 20V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+    <rect width="20" height="14" x="2" y="6" rx="2" />
+  </>
+);
+
 /**
  * The knob is part of the outline, and the rim is notched where the clapper hangs. Its fill is
  * the sidebar icons' faint gradient, so each instance needs its own gradient and mask ids. The

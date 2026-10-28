@@ -14,7 +14,7 @@ const occurrence = {
   start: 1_782_000_000,
   end: 1_782_003_600,
 } as TimedOccurrence;
-// The panel edits a one-off event without guests itself; the editor is for the rest.
+// The panel edits a one-off event itself; the editor is for the rest.
 const weekly = { ...occurrence, isRecurring: true } as TimedOccurrence;
 
 describe('double-clicking a calendar event', function () {
@@ -32,7 +32,7 @@ describe('double-clicking a calendar event', function () {
     expect(calendar._openEventEditor).toHaveBeenCalledWith(weekly);
   });
 
-  it('edits a one-off event without guests in the panel instead', function () {
+  it('edits a one-off event in the panel instead', function () {
     const calendar = loadedCalendar();
     calendar._onEventDoubleClick(occurrence);
     expect(calendar._openEventEditor).not.toHaveBeenCalled();

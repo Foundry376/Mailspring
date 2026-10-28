@@ -136,6 +136,15 @@ describe('Views in the nav rail', function () {
       expect(ViewsNavStore.viewId()).toEqual('rides');
     });
 
+    it('opens nothing when the section showing refuses to be left', function () {
+      (Actions.selectRootSheet as unknown as jasmine.Spy).andCallFake(() => {});
+      (Actions.showSheetStack as unknown as jasmine.Spy).andCallFake(() => {});
+      ViewsNavStore.showView('board');
+      ViewsNavStore.showView('board', { animate: false });
+      expect(stack).toEqual([WorkspaceStore.Sheet.Threads]);
+      expect(ViewsNavStore.viewId()).toBe(null);
+    });
+
     it('shows the home, and clears a thread a View had opened', function () {
       spyOn(FocusedContentStore, 'focused').andReturn({ id: 't1' });
       ViewsNavStore.showView('board');

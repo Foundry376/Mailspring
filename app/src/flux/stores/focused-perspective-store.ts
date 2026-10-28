@@ -193,6 +193,13 @@ class FocusedPerspectiveStore extends MailspringStore {
     { keepSection = false }: { keepSection?: boolean } = {}
   ) {
     const wasShowingMail = this.isShowingMail();
+    const desired = perspective.sheet();
+    if (desired && WorkspaceStore.rootSheet() !== desired && (wasShowingMail || !keepSection)) {
+      Actions.selectRootSheet(desired);
+      // Refused while the calendar holds a change the user keeps editing.
+      if (WorkspaceStore.rootSheet() !== desired) return;
+    }
+
     let shouldTrigger = false;
 
     if (!perspective.isEqual(this._current)) {
@@ -212,12 +219,6 @@ class FocusedPerspectiveStore extends MailspringStore {
 
     if (shouldTrigger) {
       this.trigger();
-    }
-
-    const desired = perspective.sheet();
-
-    if (desired && WorkspaceStore.rootSheet() !== desired && (wasShowingMail || !keepSection)) {
-      Actions.selectRootSheet(desired);
     }
 
     if (WorkspaceStore.topSheet() !== WorkspaceStore.Sheet.Threads) {

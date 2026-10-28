@@ -4,6 +4,7 @@ import {
   isRTL,
   Autolink,
   Calendar,
+  CalendarDate,
   CalendarDateUtils,
   CalendarUtils,
   DatabaseStore,
@@ -27,6 +28,7 @@ import {
   EventAttendee,
   isTimed,
   occurrenceStartUnix,
+  occurrenceTimes,
 } from './calendar-data-source';
 import {
   allDayToggleTimes,
@@ -35,6 +37,8 @@ import {
   clampEnd,
   extractNotesFromDescription,
   formatShortTime,
+  formatShortTimeRange,
+  holdsEdits,
   inclusiveAllDayEnd,
   momentOf,
   shiftEndWithStart,
@@ -61,20 +65,29 @@ import {
   modifySimpleEventProperty,
 } from './recurring-event-actions';
 import { EventPanelTextField } from './event-panel-text-field';
+import { UnsentChange, unsentEdit, withEdit, withTimes } from './unsent-change';
 
 const REPEAT_OPTIONS: RepeatOption[] = ['none', 'daily', 'weekly', 'monthly', 'yearly'];
+
+const repeatOptionLabel = (option: RepeatOption) =>
+  option === 'none' ? localized('Does not repeat') : repeatLabel(option);
+
+function daysLabel(first: CalendarDate, last: CalendarDate) {
+  const from = momentOf(first).format('ddd MMM D');
+  return first === last ? from : `${from} – ${momentOf(last).format('ddd MMM D')}`;
+}
 const SHOW_AS_OPTIONS: ShowAsOption[] = ['OPAQUE', 'TRANSPARENT'];
 
 interface EventPanelProps {
   event: EventOccurrence;
-  /** Omitted while calendars load. */
   calendar?: Calendar;
   isCalendarReadOnly: boolean;
   onBack: () => void;
-  /** Omitted when the event can't be deleted, which leaves the "…" menu out. */
   onDelete?: () => void;
-  /** Buttons the host shows in the header beside "‹ Agenda". */
   headerActions?: React.ReactNode;
+  unsentChange: UnsentChange | null;
+  onUnsentChange: (change: UnsentChange | null) => void;
+  onSendUnsentChange: () => void;
 }
 
 interface Times {
@@ -194,6 +207,14 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     return canEditInPanel(this.props.event, this.props.isCalendarReadOnly);
   }
 
+  _holdsEdits() {
+    return holdsEdits(this.props.event, this.props.isCalendarReadOnly);
+  }
+
+  _eventId() {
+    return CalendarUtils.parseOccurrenceId(this.props.event.id).eventId;
+  }
+
   _save(write: (row: Event) => SyncbackEventTask) {
     this._saving = this._saving
       .then(async () => {
@@ -205,22 +226,59 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   }
 
   _saveProperty(edit: EventPropertyEdit) {
-    this._save((row) => modifySimpleEventProperty(row, edit));
+    if (this._holdsEdits()) {
+      const { unsentChange, onUnsentChange } = this.props;
+      onUnsentChange(
+        withEdit(unsentChange, this._eventId(), edit, this._storedValue(edit.property))
+      );
+    } else {
+      this._save((row) => modifySimpleEventProperty(row, edit));
+    }
+  }
+
+  /** As the panel shows it, so an edit that puts it back drops out of the unsent change. */
+  _storedValue(property: EventPropertyEdit['property']): string | null {
+    const { event } = this.props;
+    switch (property) {
+      case 'summary':
+        return event.title;
+      case 'location':
+        return event.location;
+      case 'description':
+        return this._storedNotes();
+      case 'transp':
+        return this._storedShowAs();
+      case 'rrule':
+        return repeatOptionToRRule(this.state.repeat);
+    }
+  }
+
+  _storedNotes() {
+    return extractNotesFromDescription(this.props.event.description).trim();
+  }
+
+  _storedShowAs(): ShowAsOption {
+    return this.props.event.isFree ? 'TRANSPARENT' : 'OPAQUE';
+  }
+
+  _shown(property: Exclude<EventPropertyEdit['property'], 'rrule'>, stored: string): string;
+  _shown(property: 'rrule', stored: string | null): string | null;
+  _shown(property: EventPropertyEdit['property'], stored: string | null) {
+    const edit = unsentEdit(this.props.unsentChange, property);
+    return edit ? edit.value : stored;
+  }
+
+  _repeat(): RepeatOption {
+    const rrule = this._shown('rrule', repeatOptionToRRule(this.state.repeat));
+    return REPEAT_OPTIONS.find((o) => repeatOptionToRRule(o) === rrule);
   }
 
   _times(): Times {
-    return this.state.times || this._storedTimes();
+    return this.state.times || this.props.unsentChange?.times || this._storedTimes();
   }
 
   _storedTimes(): Times {
-    const { event } = this.props;
-    return isTimed(event)
-      ? { start: event.start, end: event.end, isAllDay: false }
-      : {
-          start: CalendarDateUtils.dayStartUnix(event.startDate),
-          end: CalendarDateUtils.nextDayStartUnix(event.endDate),
-          isAllDay: true,
-        };
+    return occurrenceTimes(this.props.event);
   }
 
   _changeTimes(times: Times) {
@@ -243,6 +301,12 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     const times = this._pendingTimes;
     if (!times) return;
     this._pendingTimes = null;
+    if (this._holdsEdits()) {
+      const { unsentChange, onUnsentChange } = this.props;
+      this.setState({ times: null });
+      onUnsentChange(withTimes(unsentChange, this._eventId(), times, this._storedTimes()));
+      return;
+    }
     const originalOccurrenceStart = occurrenceStartUnix(this.props.event);
     this._timesSaveLanded = false;
     const save = ++this._timesSaveCount;
@@ -258,6 +322,14 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       if (save === this._timesSaveCount && !this._pendingTimes) this._timesSaveLanded = true;
     });
   }
+
+  // Esc closes a date's month, as it leaves a text field, before the calendar's Esc can act.
+  _onTimesKeyDown = (e: React.KeyboardEvent) => {
+    const target = e.target as HTMLElement;
+    if (e.key !== 'Escape' || !target.closest('.date-picker')) return;
+    e.stopPropagation();
+    target.closest<HTMLElement>('.event-panel')?.focus();
+  };
 
   // Saved once focus leaves the times, so changing the start and then the end is one save.
   _onTimesBlur = (e: React.FocusEvent<HTMLDivElement>) => {
@@ -277,7 +349,8 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   _onRepeatChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const repeat = e.target.value as RepeatOption;
-    this.setState({ repeat });
+    // An unsent repeat is read from the change, leaving the stored one to compare against.
+    if (!this._holdsEdits()) this.setState({ repeat });
     this._saveProperty({ property: 'rrule', value: repeatOptionToRRule(repeat) });
   };
 
@@ -333,7 +406,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         <EventPanelTextField
           ref={this._title}
           className="event-panel-title"
-          value={event.title}
+          value={this._shown('summary', event.title)}
           placeholder={localized('New Event')}
           onSave={(value) =>
             this._saveProperty({ property: 'summary', value: value || localized('New Event') })
@@ -369,7 +442,11 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       />
     );
     return (
-      <div className="event-panel-section" onBlur={this._onTimesBlur}>
+      <div
+        className="event-panel-section"
+        onBlur={this._onTimesBlur}
+        onKeyDown={this._onTimesKeyDown}
+      >
         <div className="event-panel-row">
           <SVGIcons.Clock className="event-panel-icon" />
           <Switch
@@ -405,10 +482,10 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         )}
         <div className="event-panel-row">
           <SVGIcons.Repeat className="event-panel-icon" />
-          <PanelSelect value={this.state.repeat} onChange={this._onRepeatChange}>
+          <PanelSelect value={this._repeat()} onChange={this._onRepeatChange}>
             {REPEAT_OPTIONS.map((option) => (
               <option key={option} value={option}>
-                {option === 'none' ? localized('Does not repeat') : repeatLabel(option)}
+                {repeatOptionLabel(option)}
               </option>
             ))}
           </PanelSelect>
@@ -420,11 +497,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   _renderWhen() {
     if (this._editable()) return this._renderEditableWhen();
     const { event } = this.props;
-    const firstDay = momentOf(event.startDate).format('ddd MMM D');
-    const days =
-      event.startDate === event.endDate
-        ? firstDay
-        : `${firstDay} – ${momentOf(event.endDate).format('ddd MMM D')}`;
+    const days = daysLabel(event.startDate, event.endDate);
 
     return (
       <div className="event-panel-section">
@@ -494,6 +567,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     const { attendees, location } = this.props.event;
     const editable = this._editable();
     if (attendees.length === 0 && !location && !editable) return null;
+    const shownLocation = this._shown('location', location);
     return (
       <div className="event-panel-section">
         {attendees.length > 0 && (
@@ -518,12 +592,12 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         )}
         {editable ? (
           <div className="event-panel-row">
-            {this._renderLocationIcon(location)}
+            {this._renderLocationIcon(shownLocation)}
             <EventPanelTextField
               className="event-panel-location"
-              value={location}
+              value={shownLocation}
               placeholder={localized('Add Location or Video Call')}
-              display={location && linkOrText(location)}
+              display={shownLocation && linkOrText(shownLocation)}
               onSave={(value) => this._saveProperty({ property: 'location', value })}
             />
           </div>
@@ -540,16 +614,17 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   }
 
   _renderNotes() {
-    const notes = extractNotesFromDescription(this.props.event.description).trim();
+    const notes = this._storedNotes();
     if (this._editable()) {
+      const shownNotes = this._shown('description', notes);
       return (
         <div className="event-panel-section">
           <EventPanelTextField
             className="event-panel-notes"
             multiline
-            value={notes}
+            value={shownNotes}
             placeholder={localized('Add notes or URL...')}
-            display={notes && <AutolinkedText text={notes} />}
+            display={shownNotes && <AutolinkedText text={shownNotes} />}
             onSave={(value) => this._saveProperty({ property: 'description', value })}
           />
         </div>
@@ -565,7 +640,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   _renderCalendar() {
     const { event, calendar } = this.props;
-    const showAs: ShowAsOption = event.isFree ? 'TRANSPARENT' : 'OPAQUE';
+    const showAs = this._storedShowAs();
     return (
       <div className="event-panel-section">
         {calendar && (
@@ -582,7 +657,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         <div className="event-panel-row indented">
           {this._editable() ? (
             <PanelSelect
-              value={showAs}
+              value={this._shown('transp', showAs)}
               onChange={(e) => this._saveProperty({ property: 'transp', value: e.target.value })}
             >
               {SHOW_AS_OPTIONS.map((option) => (
@@ -594,6 +669,102 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           ) : (
             showAsLabel(showAs)
           )}
+        </div>
+      </div>
+    );
+  }
+
+  _timesLabel(times: Times, other: Times) {
+    const days = (t: Times) =>
+      daysLabel(CalendarDateUtils.calendarDateFromUnix(t.start), this._lastDay(t));
+    if (times.isAllDay) return days(times);
+    const range = formatShortTimeRange(times.start, times.end);
+    return days(times) === days(other) ? range : `${days(times)}, ${range}`;
+  }
+
+  _changeRows(change: UnsentChange) {
+    const { event } = this.props;
+    const rows: { key: string; icon: React.ReactNode; label: string; now: string; was: string }[] =
+      [];
+    if (change.times) {
+      const stored = this._storedTimes();
+      rows.push({
+        key: 'times',
+        icon: <SVGIcons.Clock />,
+        label: localized('Time'),
+        now: this._timesLabel(change.times, stored),
+        was: this._timesLabel(stored, change.times),
+      });
+    }
+    for (const edit of change.edits) {
+      if (edit.property === 'summary') {
+        rows.push({
+          key: edit.property,
+          icon: <SVGIcons.TextCursor />,
+          label: localized('Title'),
+          now: edit.value,
+          was: event.title,
+        });
+      } else if (edit.property === 'location') {
+        rows.push({
+          key: edit.property,
+          icon: this._renderLocationIcon(edit.value || event.location),
+          label: localized('Location'),
+          now: edit.value,
+          was: event.location,
+        });
+      } else if (edit.property === 'description') {
+        rows.push({
+          key: edit.property,
+          icon: <SVGIcons.AlignLeft />,
+          label: localized('Notes'),
+          now: edit.value,
+          was: this._storedNotes(),
+        });
+      } else if (edit.property === 'transp') {
+        rows.push({
+          key: edit.property,
+          icon: <SVGIcons.BriefcaseOutline />,
+          label: localized('Show as'),
+          now: showAsLabel(edit.value as ShowAsOption),
+          was: showAsLabel(this._storedShowAs()),
+        });
+      } else {
+        rows.push({
+          key: edit.property,
+          icon: <SVGIcons.Repeat />,
+          label: localized('Repeat'),
+          now: repeatOptionLabel(this._repeat()),
+          was: repeatOptionLabel(this.state.repeat),
+        });
+      }
+    }
+    return rows;
+  }
+
+  _renderUnsentChangeCard() {
+    const change = this.props.unsentChange;
+    if (!change) return null;
+    return (
+      <div className="event-panel-card event-panel-change">
+        {this._changeRows(change).map(({ key, icon, label, now, was }) => (
+          <div key={key} className="event-panel-change-row">
+            <span className="event-panel-icon" role="img" aria-label={label}>
+              {icon}
+            </span>
+            <div className="event-panel-change-values">
+              {now && <span>{now}</span>}
+              {was && <s>{was}</s>}
+            </div>
+          </div>
+        ))}
+        <div className="event-panel-change-buttons">
+          <button className="btn" onClick={() => this.props.onUnsentChange(null)}>
+            {localized('Discard')}
+          </button>
+          <button className="btn btn-emphasis" onClick={this.props.onSendUnsentChange}>
+            {localized('Send update')}
+          </button>
         </div>
       </div>
     );
@@ -628,7 +799,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   // The card sits under the scrolling rows, so a long event never pushes it out of view.
   render() {
     return (
-      <aside className="event-panel" aria-label={localized('Event')}>
+      <aside className="event-panel" tabIndex={-1} aria-label={localized('Event')}>
         {this._renderHeader()}
         <ScrollRegion className="event-panel-body">
           {this._renderTitle()}
@@ -637,6 +808,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           {this._renderNotes()}
           {this._renderCalendar()}
         </ScrollRegion>
+        {this._renderUnsentChangeCard()}
         {this._renderRsvpCard()}
       </aside>
     );

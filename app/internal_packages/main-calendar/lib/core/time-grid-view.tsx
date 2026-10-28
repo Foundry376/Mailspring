@@ -30,6 +30,7 @@ import {
 } from './week-view-helpers';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
 import { getEventsWithDragPreview, withNewEventPreview } from './calendar-drag-utils';
+import { withUnsentChange } from './unsent-change';
 import { WeekdayHeader } from './weekday-header';
 
 const MIN_INTERVAL_HEIGHT = 21;
@@ -245,7 +246,10 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
 
   _eventsWithPreviews() {
     return withNewEventPreview(
-      getEventsWithDragPreview(this.state.events, this.props.dragState),
+      getEventsWithDragPreview(
+        withUnsentChange(this.state.events, this.props.unsentChange),
+        this.props.dragState
+      ),
       this.props.newEventPreview
     );
   }

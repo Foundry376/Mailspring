@@ -78,35 +78,28 @@ export interface EventModificationResult {
  */
 export function modifySimpleEvent(options: EventTimeChangeOptions): SyncbackEventTask {
   const { event, newStart, newEnd, isAllDay, description } = options;
-
-  // Capture original state for undo BEFORE modifying
-  const undoData = captureEventSnapshot(event);
-
-  // Update ICS data
-  event.ics = ICSEventHelpers.updateEventTimes(event.ics, {
-    start: newStart,
-    end: newEnd,
-    isAllDay,
-  });
-  event.ics = ICSEventHelpers.bumpEventSequence(event.ics);
-
-  // Update cached fields
-  event.recurrenceStart = newStart;
-  event.recurrenceEnd = newEnd;
-
-  // Queue syncback with undo support
-  const task = SyncbackEventTask.forUpdating({
+  return modifySimpleEventChange(
     event,
-    undoData,
-    description: description || localized('Edit event'),
-  });
-  Actions.queueTask(task);
-  return task;
+    { times: { start: newStart, end: newEnd, isAllDay }, edits: [] },
+    description
+  );
 }
 
 export type EventPropertyEdit =
   | { property: 'summary' | 'location' | 'description' | 'transp'; value: string }
   | { property: 'rrule'; value: string | null };
+
+/** Edits to one simple event sent as a single update, so its guests get one email. */
+export interface EventChange {
+  times?: { start: number; end: number; isAllDay: boolean };
+  edits: EventPropertyEdit[];
+}
+
+function applyPropertyEdit(ics: string, edit: EventPropertyEdit) {
+  return edit.property === 'rrule'
+    ? ICSEventHelpers.updateRecurrenceRule(ics, edit.value)
+    : ICSEventHelpers.updateEventProperty(ics, edit.property, edit.value);
+}
 
 /**
  * Changes one property of a simple (non-recurring) event and queues the syncback task. Every
@@ -117,18 +110,25 @@ export function modifySimpleEventProperty(
   event: Event,
   edit: EventPropertyEdit
 ): SyncbackEventTask {
+  return modifySimpleEventChange(event, { edits: [edit] });
+}
+
+/** Writes a change's times and properties to a simple event and queues one syncback task. */
+export function modifySimpleEventChange(
+  event: Event,
+  change: EventChange,
+  description = localized('Edit event')
+): SyncbackEventTask {
   const undoData = captureEventSnapshot(event);
-  const ics =
-    edit.property === 'rrule'
-      ? ICSEventHelpers.updateRecurrenceRule(event.ics, edit.value)
-      : ICSEventHelpers.updateEventProperty(event.ics, edit.property, edit.value);
+  let ics = change.edits.reduce(applyPropertyEdit, event.ics);
+  if (change.times) {
+    ics = ICSEventHelpers.updateEventTimes(ics, change.times);
+    event.recurrenceStart = change.times.start;
+    event.recurrenceEnd = change.times.end;
+  }
   event.ics = ICSEventHelpers.bumpEventSequence(ics);
 
-  const task = SyncbackEventTask.forUpdating({
-    event,
-    undoData,
-    description: localized('Edit event'),
-  });
+  const task = SyncbackEventTask.forUpdating({ event, undoData, description });
   Actions.queueTask(task);
   return task;
 }
