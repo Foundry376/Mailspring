@@ -13,7 +13,7 @@ import {
   occurrenceEndUnix,
 } from './calendar-data-source';
 import { CalendarDateUtils } from 'mailspring-exports';
-import { inclusiveAllDayEnd } from './calendar-helpers';
+import { formatTime, inclusiveAllDayEnd } from './calendar-helpers';
 import {
   DEFAULT_TIMED_EVENT_DURATION_SECONDS,
   MIN_EVENT_DURATION_SECONDS,
@@ -470,9 +470,7 @@ export function formatDragPreviewTime(start: number, end: number, isAllDay: bool
     return `${startDate} - ${endDate}`;
   }
 
-  const startTime = moment.unix(start).format('h:mm A');
-  const endTime = moment.unix(end).format('h:mm A');
-  return `${startTime} - ${endTime}`;
+  return `${formatTime(start)} - ${formatTime(end)}`;
 }
 
 /** A press on empty grid space and where the pointer has gone since. */

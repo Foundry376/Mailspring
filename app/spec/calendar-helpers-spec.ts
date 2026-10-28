@@ -12,6 +12,9 @@ import {
   textColorOnFill,
   formatShortTime,
   formatShortTimeRange,
+  formatTime,
+  formatEventTimeRange,
+  formatOccurrenceTime,
   createCalendarEvent,
   allDayToggleTimes,
 } from '../internal_packages/main-calendar/lib/core/calendar-helpers';
@@ -253,6 +256,87 @@ describe('formatShortTime', function () {
   it('shortens a 12-hour locale whose meridiem comes first', function () {
     moment.locale('ko');
     expect(formatShortTime(at(22, 0))).toBe(moment.unix(at(22, 0)).format('A h'));
+  });
+});
+
+describe('formatTime', function () {
+  const at = (hour: number, minute: number) => new Date(2026, 8, 22, hour, minute).getTime() / 1000;
+  afterEach(() => moment.locale('en'));
+
+  it('follows a 12-hour locale', function () {
+    moment.locale('en');
+    expect(formatTime(at(15, 15))).toBe('3:15 PM');
+    expect(formatTime(at(15, 0))).toBe('3:00 PM');
+  });
+
+  it('follows a 24-hour locale', function () {
+    moment.locale('de');
+    expect(formatTime(at(15, 15))).toBe('15:15');
+    expect(formatTime(at(15, 0))).toBe('15:00');
+  });
+
+  it('drops the minutes on the hour only when asked, and only on a 12-hour clock', function () {
+    moment.locale('en');
+    expect(formatTime(at(15, 0), true)).toBe('3 PM');
+    expect(formatTime(at(15, 15), true)).toBe('3:15 PM');
+    moment.locale('de');
+    expect(formatTime(at(15, 0), true)).toBe('15:00');
+  });
+});
+
+describe('formatEventTimeRange', function () {
+  const at = (hour: number, minute: number) => new Date(2026, 8, 22, hour, minute).getTime() / 1000;
+  afterEach(() => moment.locale('en'));
+
+  it('names a shared meridiem once, after the end', function () {
+    moment.locale('en');
+    expect(formatEventTimeRange(at(12, 0), at(13, 0), false)).toBe('12 – 1PM');
+    expect(formatEventTimeRange(at(13, 15), at(14, 30), false)).toBe('1:15 – 2:30PM');
+  });
+
+  it('names both meridiems when they differ', function () {
+    moment.locale('en');
+    expect(formatEventTimeRange(at(11, 30), at(12, 30), false)).toBe('11:30AM – 12:30PM');
+  });
+
+  it('follows a 24-hour locale', function () {
+    moment.locale('de');
+    expect(formatEventTimeRange(at(12, 0), at(13, 0), false)).toBe('12:00 – 13:00');
+  });
+
+  it('gives nothing for an all-day event or one shorter than an hour', function () {
+    moment.locale('en');
+    expect(formatEventTimeRange(at(12, 0), at(13, 0), true)).toBeNull();
+    expect(formatEventTimeRange(at(12, 0), at(12, 59), false)).toBeNull();
+  });
+});
+
+describe('formatOccurrenceTime', function () {
+  afterEach(() => moment.locale('en'));
+
+  it('gives a timed occurrence its day and times', function () {
+    moment.locale('en');
+    const sameDay = timedOccurrence('x', '2026-03-03T15:00:00', '2026-03-03T16:30:00');
+    expect(formatOccurrenceTime(sameDay)).toBe('Tue, Mar 3 \u00B7 3:00 PM - 4:30 PM');
+    const twoDays = timedOccurrence('x', '2026-03-03T15:00:00', '2026-03-04T16:30:00');
+    expect(formatOccurrenceTime(twoDays)).toBe('Mar 3, 3:00 PM - Mar 4, 4:30 PM');
+  });
+
+  it('gives the times in a 24-hour locale', function () {
+    // Built before the locale changes: the fixture's first use of CalendarDateUtils loads
+    // date-utils, which sets moment's locale from navigator.language.
+    const sameDay = timedOccurrence('x', '2026-03-03T15:00:00', '2026-03-03T16:30:00');
+    moment.locale('de');
+    const day = moment('2026-03-03T15:00:00').format('ddd, MMM D');
+    expect(formatOccurrenceTime(sameDay)).toBe(`${day} \u00B7 15:00 - 16:30`);
+  });
+
+  it('gives an all-day occurrence its day, or its first and last days', function () {
+    moment.locale('en');
+    expect(formatOccurrenceTime(allDayOccurrence('x', '2026-03-03'))).toBe('Tue, Mar 3, 2026');
+    expect(formatOccurrenceTime(allDayOccurrence('x', '2026-03-03', '2026-03-05'))).toBe(
+      'Mar 3 - Mar 5, 2026'
+    );
   });
 });
 
