@@ -48,7 +48,7 @@ import { CalendarEmptyState } from './calendar-empty-state';
 import {
   setCalendarColors,
   getColorCacheVersion,
-  getEditableCalendars,
+  defaultCalendarForNewEvent,
   showNoEditableCalendarsError,
   showReadOnlyCalendarError,
   invalidateThemeTextColorCache,
@@ -711,11 +711,11 @@ export class MailspringCalendar extends React.Component<
     clientX: number;
     clientY: number;
   }) {
-    const editableCalendars = getEditableCalendars(
+    const calendar = defaultCalendarForNewEvent(
       this.state.calendars,
       this.state.disabledCalendars || []
     );
-    if (editableCalendars.length === 0) {
+    if (!calendar) {
       showNoEditableCalendarsError();
       return;
     }
@@ -726,8 +726,8 @@ export class MailspringCalendar extends React.Component<
       start: startUnix,
       end: endUnix,
       isAllDay,
-      calendarId: editableCalendars[0].id,
-      accountId: editableCalendars[0].accountId,
+      calendarId: calendar.id,
+      accountId: calendar.accountId,
     };
     this._showNewEvent(id, draft);
 
@@ -1130,8 +1130,11 @@ export class MailspringCalendar extends React.Component<
     if (target.closest('.calendar-event, .month-view-event')) {
       return;
     }
-    const editable = getEditableCalendars(this.state.calendars, this.state.disabledCalendars || []);
-    if (editable.length === 0) {
+    const calendar = defaultCalendarForNewEvent(
+      this.state.calendars,
+      this.state.disabledCalendars || []
+    );
+    if (!calendar) {
       return;
     }
     this._pendingCreateDrag = {
@@ -1139,8 +1142,8 @@ export class MailspringCalendar extends React.Component<
       currentTime: args.time,
       isAllDay: args.containerType === 'all-day-area' || args.containerType === 'month-cell',
       isDragging: false,
-      calendarId: editable[0].id,
-      accountId: editable[0].accountId,
+      calendarId: calendar.id,
+      accountId: calendar.accountId,
     };
   }
 
