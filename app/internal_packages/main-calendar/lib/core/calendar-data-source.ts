@@ -79,6 +79,11 @@ export function occurrenceEndUnix(e: EventOccurrence): number {
   return isTimed(e) ? e.end : CalendarDateUtils.nextDayStartUnix(e.endDate);
 }
 
+/** Where its series' rule puts an occurrence, which moving that occurrence alone doesn't change. */
+export function occurrenceSlot(e: EventOccurrence): number {
+  return e.recurrenceIdStart ?? occurrenceStartUnix(e);
+}
+
 export function occurrenceTimes(e: EventOccurrence) {
   return { start: occurrenceStartUnix(e), end: occurrenceEndUnix(e), isAllDay: !isTimed(e) };
 }
@@ -566,7 +571,7 @@ const UPCOMING_LOOKAHEAD_SECONDS = 366 * 86400;
  * The occurrence of a series that `recurrenceIdStart` names. A moved occurrence is no longer
  * at that instant, so its own VEVENT is read for where it went.
  */
-function occurrenceForRecurrenceId(
+export function occurrenceForRecurrenceId(
   events: Event[],
   recurrenceIdStart: number
 ): EventOccurrence | undefined {
@@ -586,7 +591,7 @@ function occurrenceForRecurrenceId(
     // No rows, or a calendar object that won't parse. occurrencesForEvents handles both.
   }
   return occurrencesForEvents(events, { startUnix: start, endUnix: start + 86400 }).find(
-    (o) => (o.recurrenceIdStart ?? occurrenceStartUnix(o)) === recurrenceIdStart
+    (o) => occurrenceSlot(o) === recurrenceIdStart
   );
 }
 

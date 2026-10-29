@@ -278,6 +278,19 @@ describe('ICSEventHelpers.createRecurrenceException', function () {
     expect(/^\d{8}$/.test(recurrenceId)).toBe(true);
   });
 
+  it("keeps a timed series' RECURRENCE-ID a date-time when one occurrence becomes all-day", function () {
+    const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
+      DAILY_STANDUP_ICS,
+      T_OCC2_START,
+      new Date(2026, 2, 2).getTime() / 1000,
+      new Date(2026, 2, 3).getTime() / 1000,
+      true
+    );
+    expect(recurrenceId).toBe('20260302T060000Z');
+    expect(masterIcs).toContain('RECURRENCE-ID:20260302T060000Z');
+    expect(masterIcs).toContain('DTSTART;VALUE=DATE:20260302');
+  });
+
   it('embeds a RECURRENCE-ID property inside the returned masterIcs', function () {
     const { masterIcs } = ICSEventHelpers.createRecurrenceException(
       DAILY_STANDUP_ICS,

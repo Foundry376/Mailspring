@@ -6,7 +6,13 @@ import {
   CalendarUtils,
   localized,
 } from 'mailspring-exports';
-import { showRecurringEventDialog, RecurringEventOperation } from './recurring-event-dialog';
+import {
+  showRecurringEventDialog,
+  RecurringEventChoice,
+  RecurringEventOperation,
+} from './recurring-event-dialog';
+import { occurrenceForRecurrenceId, occurrenceTimes } from './calendar-data-source';
+import { ShowAsOption } from './show-as-selector';
 
 /**
  * Snapshot of event data for undo support.
@@ -102,18 +108,10 @@ function applyPropertyEdit(ics: string, edit: EventPropertyEdit) {
 }
 
 /**
- * Changes one property of a simple (non-recurring) event and queues the syncback task. Every
+ * Writes a change's times and properties to a simple event and queues one syncback task. Every
  * other property is written back as stored, so editing the title leaves an invitation's
  * formatted description intact.
  */
-export function modifySimpleEventProperty(
-  event: Event,
-  edit: EventPropertyEdit
-): SyncbackEventTask {
-  return modifySimpleEventChange(event, { edits: [edit] });
-}
-
-/** Writes a change's times and properties to a simple event and queues one syncback task. */
 export function modifySimpleEventChange(
   event: Event,
   change: EventChange,
@@ -140,39 +138,55 @@ export function modifySimpleEventChange(
  * Undo reverses the entire master ICS change, removing the inline exception.
  */
 export function createOccurrenceException(options: EventTimeChangeOptions): void {
-  const {
-    event: masterEvent,
+  const { event, originalOccurrenceStart, newStart, newEnd, isAllDay, description } = options;
+  modifyOccurrenceChange(
+    event,
     originalOccurrenceStart,
-    newStart,
-    newEnd,
-    isAllDay,
-    description,
-  } = options;
+    { times: { start: newStart, end: newEnd, isAllDay }, edits: [] },
+    description
+  );
+}
 
-  // Capture master event state for undo BEFORE modifying
-  const masterUndoData = captureEventSnapshot(masterEvent);
-
-  // Embed the exception VEVENT inline in the master VCALENDAR
+/**
+ * Writes a change to one occurrence of a series as its inline exception and queues one syncback
+ * task. A repeat rule belongs to the whole series, so a change carrying one goes to
+ * modifySeriesChange instead.
+ *
+ * @param slot - The occurrence's RECURRENCE-ID instant, where the rule puts it (unix seconds)
+ */
+export function modifyOccurrenceChange(
+  master: Event,
+  slot: number,
+  change: EventChange & Required<Pick<EventChange, 'times'>>,
+  description = localized('Edit occurrence')
+): SyncbackEventTask {
+  const undoData = captureEventSnapshot(master);
+  const { times } = change;
   const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
-    masterEvent.ics,
-    originalOccurrenceStart,
-    newStart,
-    newEnd,
-    isAllDay
+    master.ics,
+    slot,
+    times.start,
+    times.end,
+    times.isAllDay
   );
+  const edited = (property: EventPropertyEdit['property']) =>
+    change.edits.find((e) => e.property === property)?.value ?? undefined;
+  const ics = change.edits.length
+    ? ICSEventHelpers.applyEditsToException(masterIcs, recurrenceId, {
+        summary: edited('summary'),
+        location: edited('location'),
+        description: edited('description'),
+        transparency: edited('transp') as ShowAsOption | undefined,
+      })
+    : masterIcs;
 
-  masterEvent.ics = ICSEventHelpers.bumpEventSequence(masterIcs, recurrenceId);
-  masterEvent.recurrenceStart = newStart;
-  masterEvent.recurrenceEnd = newEnd;
+  master.ics = ICSEventHelpers.bumpEventSequence(ics, recurrenceId);
+  master.recurrenceStart = times.start;
+  master.recurrenceEnd = times.end;
 
-  // Queue a single update task with full undo support
-  Actions.queueTask(
-    SyncbackEventTask.forUpdating({
-      event: masterEvent,
-      undoData: masterUndoData,
-      description: description || localized('Edit occurrence'),
-    })
-  );
+  const task = SyncbackEventTask.forUpdating({ event: master, undoData, description });
+  Actions.queueTask(task);
+  return task;
 }
 
 /**
@@ -181,40 +195,73 @@ export function createOccurrenceException(options: EventTimeChangeOptions): void
  */
 export function modifyAllOccurrences(options: EventTimeChangeOptions): void {
   const { event, originalOccurrenceStart, newStart, newEnd, isAllDay, description } = options;
-
-  // Capture original state for undo BEFORE modifying
-  const undoData = captureEventSnapshot(event);
-
-  // Update the master event's times (shifts entire series)
-  event.ics = ICSEventHelpers.updateRecurringEventTimes(
-    event.ics,
-    originalOccurrenceStart,
-    newStart,
-    newEnd,
-    isAllDay
-  );
-
-  // Shift inline exception RECURRENCE-IDs by the same delta so they remain mapped to
-  // the correct (now-shifted) RRULE-generated slots. Exception DTSTART/DTEND are left
-  // unchanged — the user's explicit exception time (e.g., 2AM) is preserved.
-  const deltaMs = (newStart - originalOccurrenceStart) * 1000;
-  if (deltaMs !== 0) {
-    event.ics = ICSEventHelpers.shiftInlineExceptions(event.ics, deltaMs);
-  }
-  event.ics = ICSEventHelpers.bumpEventSequence(event.ics);
-
-  // Re-parse to get the new master times
-  const { event: icsEvent } = CalendarUtils.parseICSString(event.ics);
-  event.recurrenceStart = icsEvent.startDate.toJSDate().getTime() / 1000;
-  event.recurrenceEnd = icsEvent.endDate.toJSDate().getTime() / 1000;
-
-  // Queue syncback with undo support
-  const task = SyncbackEventTask.forUpdating({
+  modifySeriesChange(
     event,
-    undoData,
-    description: description || localized('Edit recurring event'),
-  });
+    originalOccurrenceStart,
+    { times: { start: newStart, end: newEnd, isAllDay }, edits: [] },
+    description
+  );
+}
+
+/**
+ * Writes a change to every occurrence of a series and queues one syncback task. New times move
+ * the series by however far the occurrence at `slot` moved.
+ *
+ * @param slot - The edited occurrence's RECURRENCE-ID instant, where the rule puts it (unix seconds)
+ */
+export function modifySeriesChange(
+  master: Event,
+  slot: number,
+  change: EventChange,
+  description = localized('Edit recurring event')
+): SyncbackEventTask {
+  const undoData = captureEventSnapshot(master);
+  let ics = change.edits.reduce(applyPropertyEdit, master.ics);
+
+  if (change.times) {
+    const { start, end, isAllDay } = change.times;
+    ics = ICSEventHelpers.updateRecurringEventTimes(ics, slot, start, end, isAllDay);
+    // Exceptions keep their own times; only their RECURRENCE-IDs follow the rule's slots.
+    if (start !== slot) ics = ICSEventHelpers.shiftInlineExceptions(ics, (start - slot) * 1000);
+  }
+  master.ics = ICSEventHelpers.bumpEventSequence(ics);
+
+  const { event: icsEvent } = CalendarUtils.parseICSString(master.ics);
+  master.recurrenceStart = icsEvent.startDate.toJSDate().getTime() / 1000;
+  master.recurrenceEnd = icsEvent.endDate.toJSDate().getTime() / 1000;
+
+  const task = SyncbackEventTask.forUpdating({ event: master, undoData, description });
   Actions.queueTask(task);
+  return task;
+}
+
+export type ChangeScope = Exclude<RecurringEventChoice, 'cancel'>;
+
+/**
+ * Writes a change made to one occurrence and queues one syncback task: to the event itself for a
+ * one-off or an exception stored as its own row, otherwise to the series for `scope`. A change
+ * to a series carries the edited occurrence's `occurrenceSlot`.
+ */
+export function modifyEventChange(
+  row: Event,
+  change: EventChange & { slot?: number },
+  scope: ChangeScope
+): SyncbackEventTask {
+  const { slot } = change;
+  if (slot === undefined || row.isRecurrenceException()) {
+    return modifySimpleEventChange(row, change);
+  }
+  if (scope === 'all-occurrences') {
+    return modifySeriesChange(row, slot, change);
+  }
+  const occurrence = change.times ? null : occurrenceForRecurrenceId([row], slot);
+  if (!change.times && !occurrence) {
+    throw new Error(`No occurrence of ${row.id} at ${slot} to change`);
+  }
+  return modifyOccurrenceChange(row, slot, {
+    ...change,
+    times: change.times ?? occurrenceTimes(occurrence),
+  });
 }
 
 /**

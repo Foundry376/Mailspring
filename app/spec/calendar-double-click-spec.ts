@@ -14,7 +14,6 @@ const occurrence = {
   start: 1_782_000_000,
   end: 1_782_003_600,
 } as TimedOccurrence;
-// The panel edits a one-off event itself; the editor is for the rest.
 const weekly = { ...occurrence, isRecurring: true } as TimedOccurrence;
 
 describe('double-clicking a calendar event', function () {
@@ -22,27 +21,26 @@ describe('double-clicking a calendar event', function () {
     const calendar: any = new MailspringCalendar({} as any);
     calendar.state = { ...calendar.state, calendarsLoaded: true };
     calendar.setState = (update: object) => Object.assign(calendar.state, update);
-    spyOn(calendar, '_openEventEditor');
+    spyOn(AppEnv.config, 'set');
     return calendar;
   }
 
-  it('opens the editor for a repeating event we may change', function () {
+  it('edits a repeating event we may change in the panel', function () {
     const calendar = loadedCalendar();
     calendar._onEventDoubleClick(weekly);
-    expect(calendar._openEventEditor).toHaveBeenCalledWith(weekly);
+    expect(calendar.state.selectedEvents).toEqual([weekly]);
   });
 
-  it('edits a one-off event in the panel instead', function () {
+  it('edits a one-off event in the panel', function () {
     const calendar = loadedCalendar();
     calendar._onEventDoubleClick(occurrence);
-    expect(calendar._openEventEditor).not.toHaveBeenCalled();
     expect(calendar.state.selectedEvents).toEqual([occurrence]);
   });
 
   it("leaves somebody else's meeting to the panel the click opened", function () {
     const calendar = loadedCalendar();
     calendar._onEventDoubleClick({ ...occurrence, isMine: false });
-    expect(calendar._openEventEditor).not.toHaveBeenCalled();
+    expect(calendar.state.selectedEvents).toEqual([]);
   });
 });
 
@@ -56,7 +54,7 @@ describe("the context menu's open item", function () {
       selectedEvents: [occurrence],
     };
     calendar.setState = (update: object) => Object.assign(calendar.state, update);
-    spyOn(calendar, '_openEventEditor');
+    spyOn(AppEnv.config, 'set');
     return calendar;
   }
 
@@ -69,28 +67,19 @@ describe("the context menu's open item", function () {
   const openItem = (menu: CalendarEventContextMenu) =>
     menu.template()[0] as { label: string; click: () => void };
 
-  it('is Edit Event, and opens the editor, for a repeating meeting we organize', function () {
-    const calendar = calendarWith([]);
-    const menu = menuFor(calendar, weekly);
+  it('is Edit Event for a repeating meeting we organize', function () {
+    const menu = menuFor(calendarWith([]), weekly);
     expect(openItem(menu).label).toBe('Edit Event...');
-    openItem(menu).click();
-    expect(calendar._openEventEditor).toHaveBeenCalledWith(weekly);
   });
 
-  it("is View Event, and shows it in the panel, for somebody else's meeting", function () {
-    const calendar = calendarWith([]);
+  it("is View Event for somebody else's meeting", function () {
     const theirs = { ...occurrence, isMine: false } as TimedOccurrence;
-    const menu = menuFor(calendar, theirs);
+    const menu = menuFor(calendarWith([]), theirs);
     expect(openItem(menu).label).toBe('View Event');
-    openItem(menu).click();
-    expect(calendar._openEventEditor).not.toHaveBeenCalled();
   });
 
-  it('shows it in the panel on a read-only calendar, even for our own event', function () {
-    const calendar = calendarWith(['c']);
-    const menu = menuFor(calendar, occurrence);
+  it('is View Event on a read-only calendar, even for our own event', function () {
+    const menu = menuFor(calendarWith(['c']), occurrence);
     expect(openItem(menu).label).toBe('View Event');
-    openItem(menu).click();
-    expect(calendar._openEventEditor).not.toHaveBeenCalled();
   });
 });

@@ -444,6 +444,7 @@ function realignOccurrenceAnchors(
  * @param recurrenceId - The formatted RECURRENCE-ID string (used as a string fallback)
  * @param isAllDay - Whether the event is all-day (affects string-fallback comparison)
  * @param ical - The ICAL library reference
+ * @returns The removed VEVENT, or null when the occurrence had none of its own
  */
 function removeExistingExceptionVevent(
   vcalendar: ICALComponent,
@@ -451,7 +452,7 @@ function removeExistingExceptionVevent(
   recurrenceId: string,
   isAllDay: boolean,
   ical: ICAL
-): void {
+): ICALComponent | null {
   for (const existing of vcalendar.getAllSubcomponents('vevent')) {
     const ridValue = existing.getFirstPropertyValue('recurrence-id') as any;
     if (!ridValue) continue;
@@ -459,7 +460,7 @@ function removeExistingExceptionVevent(
     try {
       if (ridValue.toJSDate().getTime() === targetMs) {
         vcalendar.removeSubcomponent(existing);
-        break;
+        return existing;
       }
     } catch (_) {
       // Fallback: string comparison (e.g., if toJSDate throws for an unknown timezone)
@@ -471,10 +472,11 @@ function removeExistingExceptionVevent(
       const targetFormatted = recurrenceId.replace(/[^0-9TZ]/g, '');
       if (ridFormatted === targetFormatted || ridStr === recurrenceId) {
         vcalendar.removeSubcomponent(existing);
-        break;
+        return existing;
       }
     }
   }
+  return null;
 }
 
 /**
@@ -840,13 +842,16 @@ export function updateEventTimes(ics: string, options: UpdateTimesOptions): stri
  * be PUT to the same resource as a single update task.
  *
  * Upsert semantics: if a VEVENT with the same RECURRENCE-ID already exists in the
- * master VCALENDAR (e.g. re-editing an already-excepted occurrence), it is replaced.
+ * master VCALENDAR (e.g. re-editing an already-excepted occurrence), it is replaced by a copy of
+ * itself, so the occurrence keeps its earlier changes and SEQUENCE counts up from its own, which
+ * Google rejects going backwards.
  *
  * @param masterIcs - The master event's ICS data
  * @param originalOccurrenceStart - The original start time of the occurrence being modified (unix seconds)
  * @param newStart - New start time (unix seconds)
  * @param newEnd - New end time (unix seconds)
- * @param isAllDay - Whether this is an all-day event
+ * @param isAllDay - Whether the new times are all-day. The RECURRENCE-ID keeps the series' own value
+ *   type (RFC 5545 section 3.8.4.4), or the server matches it to no occurrence.
  * @returns Object with updated master ICS (exception embedded inline) and the RECURRENCE-ID string
  */
 export function createRecurrenceException(
@@ -867,7 +872,8 @@ export function createRecurrenceException(
 
   // Create RECURRENCE-ID value from original occurrence start
   const originalDate = new Date(originalOccurrenceStart * 1000);
-  const recurrenceId = isAllDay ? formatDateOnly(originalDate) : formatDateTimeUTC(originalDate);
+  const slotIsDate = !!masterEvent.startDate?.isDate;
+  const recurrenceId = slotIsDate ? formatDateOnly(originalDate) : formatDateTimeUTC(originalDate);
 
   // masterRoot must be a VCALENDAR (not a bare VEVENT) for inline embedding
   const vcalendar = masterRoot.name === 'vcalendar' ? masterRoot : null;
@@ -886,16 +892,18 @@ export function createRecurrenceException(
   // accumulating duplicates. The helper compares by UTC milliseconds so TZID-formatted
   // and UTC-formatted RECURRENCE-IDs are recognised as the same moment.
   const targetMs = originalDate.getTime();
-  if (vcalendar) {
-    removeExistingExceptionVevent(vcalendar, targetMs, recurrenceId, isAllDay, ical);
-  }
+  const existingException = vcalendar
+    ? removeExistingExceptionVevent(vcalendar, targetMs, recurrenceId, slotIsDate, ical)
+    : null;
 
-  // Deep-clone the master VEVENT for the exception.
+  // Deep-clone the existing exception, or else the master VEVENT, for the exception.
   // ical.Component.toJSON() returns a reference to the internal jCal array, NOT a copy.
   // Without JSON.parse/stringify the cloned component shares the same array as the master,
   // so every mutation below (removeAllProperties, updatePropertyWithValue, etc.) silently
   // mutates the master VEVENT too, producing two identical exception VEVENTs and no master.
-  const exceptionVevent = new ical.Component(JSON.parse(JSON.stringify(masterVevent.toJSON())));
+  const exceptionVevent = new ical.Component(
+    JSON.parse(JSON.stringify((existingException || masterVevent).toJSON()))
+  );
 
   // Remove recurrence rule and exclusion dates from the exception (it's a single instance)
   exceptionVevent.removeAllProperties('rrule');
@@ -906,10 +914,11 @@ export function createRecurrenceException(
   // recurrenceId string (which is also UTC via formatDateTimeUTC).
   // Using createICALTime with a named timezone produces a floating-time serialization
   // (no TZID parameter on the property) because updatePropertyWithValue does not auto-set TZID.
-  const recIdTime = isAllDay
+  const recIdTime = slotIsDate
     ? createAllDayTime(originalDate, ical)
     : ical.Time.fromJSDate(originalDate, true); // UTC → serializes as YYYYMMDDTHHMMSSz
-  exceptionVevent.updatePropertyWithValue('recurrence-id', recIdTime);
+  exceptionVevent.removeAllProperties('recurrence-id');
+  exceptionVevent.addPropertyWithValue('recurrence-id', recIdTime);
 
   // Set new times on the exception (preserve timezone)
   const newStartDate = new Date(newStart * 1000);

@@ -573,17 +573,17 @@ export function hasGuests(event: EventOccurrence): boolean {
   );
 }
 
-/**
- * Whether the event panel edits this event in place: our own one-off event on a writable calendar.
- * A repeating event needs its scope chosen before it saves, so the popover editor edits those.
- */
 export function canEditInPanel(event: EventOccurrence, isCalendarReadOnly: boolean): boolean {
-  return !isCalendarReadOnly && event.isMine && !event.isRecurring;
+  return !isCalendarReadOnly && event.isMine;
 }
 
-/** Guests are emailed on every save, so edits to their event wait for Send update. */
+export function asksScope(event: EventOccurrence): boolean {
+  return event.isRecurring && !event.isException;
+}
+
+/** Edits wait in the panel's card when guests are emailed on every save, or for a scope. */
 export function holdsEdits(event: EventOccurrence, isCalendarReadOnly: boolean): boolean {
-  return canEditInPanel(event, isCalendarReadOnly) && hasGuests(event);
+  return canEditInPanel(event, isCalendarReadOnly) && (hasGuests(event) || asksScope(event));
 }
 
 /** The times an event takes when All day is switched: whole days covering it, or 9–10 AM on its first day. */

@@ -11,6 +11,8 @@ import { EventPanel } from '../internal_packages/main-calendar/lib/core/event-pa
 import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
 import * as UnsentChangeDialog from '../internal_packages/main-calendar/lib/core/unsent-change-dialog';
+import { withUnsentChange } from '../internal_packages/main-calendar/lib/core/unsent-change';
+import * as RecurringEventDialog from '../internal_packages/main-calendar/lib/core/recurring-event-dialog';
 
 const START = Date.UTC(2026, 9, 27, 15, 0, 0) / 1000;
 const HOUR = 3600;
@@ -292,6 +294,7 @@ describe('editing in the panel', function () {
       unsentChange,
       onUnsentChange,
       onSendUnsentChange: () => {},
+      onSaveChange: (change) => calendarWith([event])._writeChange(change),
     });
     panel.setState = (update: object) => Object.assign(panel.state, update);
     return panel;
@@ -342,5 +345,190 @@ describe('editing in the panel', function () {
 
     expect(queueTask).not.toHaveBeenCalled();
     expect(onUnsentChange).toHaveBeenCalledWith({ eventId: 'e1', edits: [], times });
+  });
+});
+
+describe('a repeating event', function () {
+  const DAY = 86400;
+  const series = new Event({
+    id: 'r1',
+    accountId: 'a',
+    calendarId: 'c',
+    icsuid: 'r1@test',
+    ics: [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Test//Test//EN',
+      'BEGIN:VEVENT',
+      'UID:r1@test',
+      `DTSTART:${stamp(START)}`,
+      `DTEND:${stamp(START + HOUR)}`,
+      'RRULE:FREQ=DAILY;COUNT=5',
+      'SUMMARY:Interview',
+      'DTSTAMP:20261001T000000Z',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n'),
+    recurrenceStart: START,
+    recurrenceEnd: START + 4 * DAY + HOUR,
+  } as any);
+
+  const occurrenceOn = (day: number): TimedOccurrence => ({
+    ...withoutGuests,
+    id: CalendarUtils.occurrenceId('r1', START + day * DAY),
+    isRecurring: true,
+    start: START + day * DAY,
+    end: START + day * DAY + HOUR,
+  });
+  const first = occurrenceOn(0);
+  const second = occurrenceOn(1);
+  const hourLater = { start: START + HOUR, end: START + 2 * HOUR, isAllDay: false };
+  const heldMove = { eventId: 'r1', slot: START, edits: [], times: hourLater };
+
+  let queueTask: jasmine.Spy;
+  let dialog: jasmine.Spy;
+  let stored: { [id: string]: Event };
+
+  beforeEach(function () {
+    stored = { e1: new Event(row.toJSON()), r1: new Event(series.toJSON()) };
+    queueTask = spyOn(Actions, 'queueTask');
+    spyOn(TaskQueue, 'waitForPerformLocal').andReturn(Promise.resolve());
+    spyOn(DatabaseStore, 'find').andCallFake((_klass, id) => Promise.resolve(stored[id]));
+    spyOn(AppEnv.config, 'set');
+    dialog = spyOn(UnsentChangeDialog, 'showUnsentChangeDialog');
+  });
+
+  // The sync engine writes what was queued, and the selection refreshes from it.
+  async function written(calendar: any) {
+    const { event } = queueTask.mostRecentCall.args[0];
+    stored[event.id] = event;
+    await calendar._refreshSelectedEvents();
+  }
+
+  it('draws a held change on the occurrence it was made to only', function () {
+    const [drawnFirst, drawnSecond] = withUnsentChange([first, second], heldMove);
+    expect((drawnFirst as TimedOccurrence).start).toBe(START + HOUR);
+    expect(drawnSecond).toBe(second);
+  });
+
+  it('asks before leaving for another occurrence of the same series', function () {
+    const calendar = calendarWith([first]);
+    calendar.state.unsentChange = heldMove;
+    dialog.andReturn('keep-editing');
+
+    calendar._select([second]);
+
+    expect(dialog).toHaveBeenCalled();
+    expect(calendar.state.selectedEvents).toEqual([first]);
+  });
+
+  it('holds a drop and an arrow key without guests, asking nothing and queueing nothing', async function () {
+    const recurringDialog = spyOn(RecurringEventDialog, 'showRecurringEventDialog').andReturn(
+      Promise.resolve('cancel')
+    );
+    const calendar = calendarWith([]);
+    await calendar._persistDragChange(droppedAt(first, START + HOUR));
+    calendar._onMoveSelectedEvent('down', false);
+    await settle();
+
+    expect(recurringDialog).not.toHaveBeenCalled();
+    expect(queueTask).not.toHaveBeenCalled();
+    expect(calendar.state.unsentChange).toEqual({
+      eventId: 'r1',
+      slot: START,
+      edits: [],
+      times: { start: START + HOUR + QUARTER, end: START + 2 * HOUR + QUARTER, isAllDay: false },
+    });
+  });
+
+  describe('after Send', function () {
+    it('keeps a one-off selected once a new time and Repeat: Daily make it a series', async function () {
+      const calendar = calendarWith([withGuests]);
+      calendar.state.unsentChange = {
+        eventId: 'e1',
+        edits: [{ property: 'rrule', value: 'FREQ=DAILY' }],
+        times: hourLater,
+      };
+      await calendar._sendUnsentChange();
+      await written(calendar);
+
+      expect(calendar.state.selectedEvents.length).toBe(1);
+      expect(calendar.state.selectedEvents[0].start).toBe(START + HOUR);
+    });
+
+    it('keeps an occurrence selected once moved on its own', async function () {
+      const calendar = calendarWith([first]);
+      calendar.state.unsentChange = heldMove;
+      await calendar._sendUnsentChange('this-occurrence');
+      await written(calendar);
+
+      expect(calendar.state.selectedEvents.length).toBe(1);
+      expect(calendar.state.selectedEvents[0].start).toBe(START + HOUR);
+      expect(calendar.state.selectedEvents[0].isException).toBe(true);
+    });
+
+    it('keeps an occurrence selected once the whole series moved', async function () {
+      const calendar = calendarWith([second]);
+      calendar.state.unsentChange = {
+        ...heldMove,
+        slot: second.start,
+        times: { start: second.start + HOUR, end: second.end + HOUR, isAllDay: false },
+      };
+      await calendar._sendUnsentChange('all-occurrences');
+      await written(calendar);
+
+      expect(calendar.state.selectedEvents.length).toBe(1);
+      expect(calendar.state.selectedEvents[0].start).toBe(second.start + HOUR);
+      expect(calendar.state.selectedEvents[0].isException).toBe(false);
+    });
+
+    it("moves to the series' next occurrence once a new rule drops this one", async function () {
+      const calendar = calendarWith([second]);
+      calendar.state.unsentChange = {
+        eventId: 'r1',
+        slot: second.start,
+        edits: [{ property: 'rrule', value: 'FREQ=WEEKLY' }],
+      };
+      await calendar._sendUnsentChange('all-occurrences');
+      await written(calendar);
+
+      expect(calendar.state.selectedEvents.length).toBe(1);
+      expect(calendar.state.selectedEvents[0].start).toBe(START + 7 * DAY);
+    });
+  });
+
+  it('offers the quit dialog only the scopes a change can go to, returning the one picked', function () {
+    dialog.andCallThrough();
+    const box = spyOn(require('@electron/remote').dialog, 'showMessageBoxSync').andReturn(1);
+    const ask = (edits: any[]) =>
+      UnsentChangeDialog.showUnsentChangeDialog({ ...heldMove, edits }, first, {
+        canKeepEditing: false,
+      });
+
+    expect(ask([])).toBe('all-occurrences');
+    expect(box.mostRecentCall.args[0].buttons).toEqual([
+      'This occurrence only',
+      'All occurrences',
+      'Discard',
+    ]);
+    expect(ask([{ property: 'rrule', value: 'FREQ=WEEKLY' }])).toBe('discard');
+    expect(box.mostRecentCall.args[0].buttons).toEqual(['All occurrences', 'Discard']);
+  });
+
+  it("writes the whole series on the quit dialog's All occurrences", async function () {
+    const calendar = calendarWith([first]);
+    calendar.state.unsentChange = heldMove;
+    dialog.andReturn('all-occurrences');
+    const ready = jasmine.createSpy('readyToUnload');
+
+    expect(calendar._onBeforeUnload(ready)).toBe(false);
+    await settle();
+
+    expect(dialog.mostRecentCall.args[2]).toEqual({ canKeepEditing: false });
+    expect(queueTask.calls.length).toBe(1);
+    const { event } = queueTask.mostRecentCall.args[0];
+    const master = CalendarUtils.parseICSString(event.ics).event;
+    expect(master.startDate.toJSDate().getTime() / 1000).toBe(START + HOUR);
+    expect(ready).toHaveBeenCalled();
   });
 });
