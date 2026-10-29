@@ -1,8 +1,8 @@
-import * as Actions from '../actions';
 import DatabaseStore from './database-store';
 import { AccountStore } from './account-store';
 import ContactStore from './contact-store';
 import { MessageStore } from './message-store';
+import AttachmentStore from './attachment-store';
 import FocusedPerspectiveStore from './focused-perspective-store';
 import FocusedContentStore from './focused-content-store';
 import { localized } from '../../intl';
@@ -229,9 +229,6 @@ class DraftFactory {
   }
 
   async createDraftForForward({ thread, message }: { thread: Thread; message: Message }) {
-    // Start downloading the attachments, if they haven't been already
-    message.files.forEach((f) => Actions.fetchFile(f));
-
     const formatContact = (cs: Contact[]) => {
       const text = cs.map((c) => c.toString()).join(', ');
       return this.useHTML() ? DOMUtils.escapeHTMLCharacters(text) : text;
@@ -245,11 +242,12 @@ class DraftFactory {
     if (message.cc.length > 0) fields.push(`${localized('Cc')}: ${formatContact(message.cc)}`);
 
     const body = await this.prepareBodyForQuoting(message);
+    const files = await AttachmentStore.copyFilesForDraft(message.files);
 
     return this.createDraft({
       subject: Utils.subjectWithPrefix(message.subject, 'Fwd:'),
       from: [this._fromContactForReply(message)],
-      files: message.files,
+      files,
       threadId: thread.id,
       accountId: message.accountId,
       forwardedHeaderMessageId: message.headerMessageId,
@@ -273,9 +271,8 @@ class DraftFactory {
   }
 
   async createDraftForSendAgain(message: Message) {
-    // Reuse the same attachment preparation path as forwarding. This ensures files are
-    // available locally when the duplicated draft is eventually sent.
-    message.files.forEach((file) => Actions.fetchFile(file));
+    // Shares forwarding's attachment path, so the draft owns its copies of the files.
+    const files = await AttachmentStore.copyFilesForDraft(message.files);
 
     const draft = await this.createDraft({
       to: [...message.to],
@@ -283,7 +280,7 @@ class DraftFactory {
       bcc: [...message.bcc],
       from: [...message.from],
       subject: message.subject,
-      files: [...message.files],
+      files,
       accountId: message.accountId,
     });
 

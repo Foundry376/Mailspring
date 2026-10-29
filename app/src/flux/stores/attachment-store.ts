@@ -6,6 +6,7 @@ import MailspringStore from 'mailspring-store';
 import DraftStore from './draft-store';
 import * as Actions from '../actions';
 import { File } from '../models/file';
+import { Message } from '../models/message';
 import * as Utils from '../models/utils';
 import { localized } from '../../intl';
 import {
@@ -48,6 +49,12 @@ class AttachmentStore extends MailspringStore {
     this.listenTo(Actions.addAttachment, this._onAddAttachment);
     this.listenTo(Actions.selectAttachment, this._onSelectAttachment);
     this.listenTo(Actions.removeAttachment, this._onRemoveAttachment);
+    this.listenTo(Actions.destroyDraft, (draft: Message) =>
+      this.deleteFilesOwnedByDraft(draft.files || [])
+    );
+    this.listenTo(Actions.draftDeliverySucceeded, ({ files }: { files: File[] }) =>
+      this.deleteFilesOwnedByDraft(files || [])
+    );
 
     fs.mkdirSync(this._filesDirectory, { recursive: true });
   }
@@ -392,18 +399,39 @@ class AttachmentStore extends MailspringStore {
     });
   }
 
-  async _deleteFile(file: File) {
+  // Synchronous so a closing composer window finishes it: a draft holds only a few files.
+  _deleteFileSync(file: File) {
     // Delete the file, it's preview if present and it's containing folder. We don't
     // delete other arbitrary files in case for some reason other files are saved here.
+    const filePath = this.pathForFile(file);
+    fs.unlinkSync(filePath);
+    if (fs.existsSync(`${filePath}.png`)) {
+      fs.unlinkSync(`${filePath}.png`);
+    }
+    fs.rmdirSync(path.dirname(filePath));
+  }
+
+  async _deleteFile(file: File) {
     try {
-      const filePath = this.pathForFile(file);
-      await fs.unlinkAsync(filePath);
-      if (await fileAccessibleAtPath(`${filePath}.png`)) {
-        await fs.unlinkAsync(`${filePath}.png`);
-      }
-      await fs.rmdirAsync(path.dirname(filePath));
+      this._deleteFileSync(file);
     } catch (err) {
       throw new Error(`Error deleting file file ${file.filename}:\n\n${err.message}`);
+    }
+  }
+
+  // Public: Deletes the files a draft created for itself, once the draft is discarded or sent.
+  // Only those have temporary ids: a file with a synced id belongs to a message, which a draft
+  // made before copyFilesForDraft may still share.
+  deleteFilesOwnedByDraft(files: File[]) {
+    for (const file of files) {
+      if (!Utils.isTempId(file.id)) {
+        continue;
+      }
+      try {
+        this._deleteFileSync(file);
+      } catch (err) {
+        // Already gone, or never written because the attach failed.
+      }
     }
   }
 
@@ -510,6 +538,32 @@ class AttachmentStore extends MailspringStore {
     } catch (err) {
       AppEnv.showErrorDialog(err.message);
     }
+  }
+
+  // Public: Gives a new draft (forward, send again) its own copy of each file, under a new id,
+  // so removing an attachment from the draft or purging the original message's files leaves
+  // the other intact. A file that is not on disk, or fails to copy, is returned unchanged.
+  async copyFilesForDraft(files: File[]): Promise<File[]> {
+    return Promise.all(
+      files.map(async (original) => {
+        const copy = original.clone();
+        copy.id = Utils.generateTempId();
+        copy.messageId = null;
+        try {
+          const sourcePath = await this.resolvePathForFile(original);
+          if (!(await fileAccessibleAtPath(sourcePath))) {
+            return original;
+          }
+          const targetPath = this.pathForFile(copy);
+          await _fs.promises.mkdir(path.dirname(targetPath), { recursive: true });
+          // Copy-on-write clone on APFS, btrfs and ReFS; a plain copy elsewhere.
+          await _fs.promises.copyFile(sourcePath, targetPath, _fs.constants.COPYFILE_FICLONE);
+          return copy;
+        } catch (err) {
+          return original;
+        }
+      })
+    );
   }
 
   _onRemoveAttachment = async (headerMessageId: string, fileToRemove: File) => {

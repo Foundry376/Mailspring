@@ -1,4 +1,7 @@
 import _ from 'underscore';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 
 import {
   File,
@@ -33,6 +36,45 @@ const expectContactsEqual = (a, b) => {
   expect(a.map((c) => c.email).sort()).toEqual(b.map((c) => c.email).sort());
 };
 
+// Points AttachmentStore at a temporary files directory holding the bytes of `files`.
+const useTemporaryFilesDirectory = (files: () => File[]) => {
+  let originalFilesDirectory: string = null;
+  let tmpDir: string = null;
+  beforeEach(() => {
+    originalFilesDirectory = AttachmentStore._filesDirectory;
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mailspring-draft-factory-spec-'));
+    AttachmentStore._filesDirectory = tmpDir;
+    spyOn(AttachmentStore, '_ensurePreviewOfFile');
+    for (const file of files()) {
+      const filePath = AttachmentStore.pathForFile(file);
+      fs.mkdirSync(path.dirname(filePath), { recursive: true });
+      fs.writeFileSync(filePath, `bytes of ${file.id}`);
+    }
+  });
+  afterEach(() => {
+    AttachmentStore._filesDirectory = originalFilesDirectory;
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+};
+
+const expectOwnCopiesOfFiles = (draftFiles: File[], originals: File[]) => {
+  expect(draftFiles.length).toBe(originals.length);
+  draftFiles.forEach((copy, idx) => {
+    const original = originals[idx];
+    expect(copy).not.toBe(original);
+    expect(copy.id).not.toEqual(original.id);
+    expect(copy.messageId).toBe(null);
+    expect(copy.filename).toEqual(original.filename);
+    expect(copy.size).toEqual(original.size);
+    expect(copy.contentType).toEqual(original.contentType);
+    expect(copy.contentId).toEqual(original.contentId);
+    expect(fs.readFileSync(AttachmentStore.pathForFile(copy), 'utf8')).toEqual(
+      `bytes of ${original.id}`
+    );
+    expect(fs.existsSync(AttachmentStore.pathForFile(original))).toBe(true);
+  });
+};
+
 describe('DraftFactory', function draftFactory() {
   beforeEach(() => {
     // Out of the scope of these specs
@@ -44,8 +86,23 @@ describe('DraftFactory', function draftFactory() {
 
     account = AccountStore.accounts()[0];
     const files = [
-      new File({ filename: 'test.jpg', accountId: account.id, id: 'a' }),
-      new File({ filename: 'test.pdj', accountId: account.id, id: 'b' }),
+      new File({
+        filename: 'test.jpg',
+        accountId: account.id,
+        id: 'a',
+        messageId: 'fake-message-with-files',
+        size: 10,
+        contentType: 'image/jpeg',
+        contentId: 'inline-image@mailspring',
+      }),
+      new File({
+        filename: 'test.pdj',
+        accountId: account.id,
+        id: 'b',
+        messageId: 'fake-message-with-files',
+        size: 10,
+        contentType: 'application/pdf',
+      }),
     ];
     files.forEach((file) => {
       downloadData[file.id] = {
@@ -149,9 +206,9 @@ describe('DraftFactory', function draftFactory() {
 
   describe('creating drafts', () => {
     describe('createDraftForSendAgain', () => {
-      it('creates a new editable message with the original contents and recipients', () => {
-        spyOn(Actions, 'fetchFile');
+      useTemporaryFilesDirectory(() => fakeMessageWithFiles.files);
 
+      it('creates a new editable message with the original contents and recipients', () => {
         waitsForPromise(() =>
           DraftFactory.createDraftForSendAgain(fakeMessageWithFiles).then((draft) => {
             expect(draft.threadId).toBeFalsy();
@@ -163,8 +220,7 @@ describe('DraftFactory', function draftFactory() {
             expect(draft.cc).toEqual(fakeMessageWithFiles.cc);
             expect(draft.bcc).toEqual(fakeMessageWithFiles.bcc);
             expect(draft.from).toEqual(fakeMessageWithFiles.from);
-            expect(draft.files).toEqual(fakeMessageWithFiles.files);
-            expect(Actions.fetchFile).toHaveBeenCalled();
+            expectOwnCopiesOfFiles(draft.files, fakeMessageWithFiles.files);
           })
         );
       });
@@ -511,15 +567,31 @@ describe('DraftFactory', function draftFactory() {
         expect(SanitizeTransformer.run).toHaveBeenCalled();
       });
 
-      it('should include the attached files as files', () => {
-        waitsForPromise(() => {
-          return DraftFactory.createDraftForForward({
-            thread: fakeThread,
-            message: fakeMessageWithFiles,
-          }).then((draft) => {
-            expect(draft.files.length).toBe(2);
-            expect(draft.files[0].filename).toBe('test.jpg');
-            expect(draft.files[1].filename).toBe('test.pdj');
+      describe('with attachments', () => {
+        useTemporaryFilesDirectory(() => fakeMessageWithFiles.files);
+
+        it('should attach its own copies of the files', () => {
+          waitsForPromise(() => {
+            return DraftFactory.createDraftForForward({
+              thread: fakeThread,
+              message: fakeMessageWithFiles,
+            }).then((draft) => {
+              expect(draft.files.map((f) => f.filename)).toEqual(['test.jpg', 'test.pdj']);
+              expectOwnCopiesOfFiles(draft.files, fakeMessageWithFiles.files);
+            });
+          });
+        });
+
+        it('should attach the original file when its bytes are not on disk', () => {
+          fs.unlinkSync(AttachmentStore.pathForFile(fakeMessageWithFiles.files[1]));
+          waitsForPromise(() => {
+            return DraftFactory.createDraftForForward({
+              thread: fakeThread,
+              message: fakeMessageWithFiles,
+            }).then((draft) => {
+              expect(draft.files[0].id).not.toEqual('a');
+              expect(draft.files[1]).toBe(fakeMessageWithFiles.files[1]);
+            });
           });
         });
       });

@@ -19,6 +19,7 @@ import SoundRegistry from '../../registries/sound-registry';
 import * as ExtensionRegistry from '../../registries/extension-registry';
 import { localized } from '../../intl';
 import { DatabaseChangeRecord } from './database-change-record';
+import AttachmentStore from './attachment-store';
 
 interface IThreadMessageModelOrId {
   thread?: Thread;
@@ -142,6 +143,7 @@ class DraftStore extends MailspringStore {
             accountId: draft.accountId,
           })
         );
+        AttachmentStore.deleteFilesOwnedByDraft(draft.files);
       } else if (session.changes.isDirty()) {
         promises.push(session.changes.commit());
       }
