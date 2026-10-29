@@ -110,6 +110,9 @@ export default class PreferencesCategoryMapper extends React.Component<
   };
 
   render() {
+    const accounts = AccountStore.accounts();
+    const mappableAccounts = accounts.filter((account) => !rolesAreFixedByServer(account));
+
     return (
       <div className="category-mapper-container">
         <h6>{localized('Default Container Folder (folder/subfolder)')}</h6>
@@ -119,14 +122,19 @@ export default class PreferencesCategoryMapper extends React.Component<
           onBlur={(e) => this._updateContainerFolderDefault()}
           onChange={(e) => this.setState({ containerFolderDefault: e.target.value })}
         />
-        {AccountStore.accounts()
-          .filter((account) => !rolesAreFixedByServer(account))
-          .map((account) => (
-            <div key={account.id}>
-              <div className="account-section-title">{account.label}</div>
-              {SELECTABLE_ROLES.map((role) => this._renderRoleSection(account, role))}
-            </div>
-          ))}
+        {mappableAccounts.length < accounts.length && (
+          <div className="platform-note">
+            {localized(
+              'Gmail accounts must use the standard inbox, sent, trash, spam labels provided by the server.'
+            )}
+          </div>
+        )}
+        {mappableAccounts.map((account) => (
+          <div key={account.id}>
+            <div className="account-section-title">{account.label}</div>
+            {SELECTABLE_ROLES.map((role) => this._renderRoleSection(account, role))}
+          </div>
+        ))}
       </div>
     );
   }
