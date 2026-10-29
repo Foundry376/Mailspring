@@ -439,13 +439,12 @@ function realignOccurrenceAnchors(
  * This implements the "upsert" behaviour: re-editing an existing exception replaces
  * the old VEVENT rather than adding a duplicate.
  *
- * @returns The removed VEVENT, or null when the occurrence had none of its own
- *
  * @param vcalendar - The VCALENDAR component to search within
  * @param targetMs - The expected RECURRENCE-ID moment in UTC milliseconds
  * @param recurrenceId - The formatted RECURRENCE-ID string (used as a string fallback)
  * @param isAllDay - Whether the event is all-day (affects string-fallback comparison)
  * @param ical - The ICAL library reference
+ * @returns The removed VEVENT, or null when the occurrence had none of its own
  */
 function removeExistingExceptionVevent(
   vcalendar: ICALComponent,
@@ -851,7 +850,8 @@ export function updateEventTimes(ics: string, options: UpdateTimesOptions): stri
  * @param originalOccurrenceStart - The original start time of the occurrence being modified (unix seconds)
  * @param newStart - New start time (unix seconds)
  * @param newEnd - New end time (unix seconds)
- * @param isAllDay - Whether this is an all-day event
+ * @param isAllDay - Whether the new times are all-day. The RECURRENCE-ID keeps the series' own value
+ *   type (RFC 5545 section 3.8.4.4), or the server matches it to no occurrence.
  * @returns Object with updated master ICS (exception embedded inline) and the RECURRENCE-ID string
  */
 export function createRecurrenceException(
@@ -872,7 +872,8 @@ export function createRecurrenceException(
 
   // Create RECURRENCE-ID value from original occurrence start
   const originalDate = new Date(originalOccurrenceStart * 1000);
-  const recurrenceId = isAllDay ? formatDateOnly(originalDate) : formatDateTimeUTC(originalDate);
+  const slotIsDate = !!masterEvent.startDate?.isDate;
+  const recurrenceId = slotIsDate ? formatDateOnly(originalDate) : formatDateTimeUTC(originalDate);
 
   // masterRoot must be a VCALENDAR (not a bare VEVENT) for inline embedding
   const vcalendar = masterRoot.name === 'vcalendar' ? masterRoot : null;
@@ -892,7 +893,7 @@ export function createRecurrenceException(
   // and UTC-formatted RECURRENCE-IDs are recognised as the same moment.
   const targetMs = originalDate.getTime();
   const existingException = vcalendar
-    ? removeExistingExceptionVevent(vcalendar, targetMs, recurrenceId, isAllDay, ical)
+    ? removeExistingExceptionVevent(vcalendar, targetMs, recurrenceId, slotIsDate, ical)
     : null;
 
   // Deep-clone the existing exception, or else the master VEVENT, for the exception.
@@ -913,10 +914,9 @@ export function createRecurrenceException(
   // recurrenceId string (which is also UTC via formatDateTimeUTC).
   // Using createICALTime with a named timezone produces a floating-time serialization
   // (no TZID parameter on the property) because updatePropertyWithValue does not auto-set TZID.
-  const recIdTime = isAllDay
+  const recIdTime = slotIsDate
     ? createAllDayTime(originalDate, ical)
     : ical.Time.fromJSDate(originalDate, true); // UTC → serializes as YYYYMMDDTHHMMSSz
-  // Replaced rather than updated: a copied exception's TZID parameter must not stay on a UTC value.
   exceptionVevent.removeAllProperties('recurrence-id');
   exceptionVevent.addPropertyWithValue('recurrence-id', recIdTime);
 
