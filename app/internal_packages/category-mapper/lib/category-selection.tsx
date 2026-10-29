@@ -8,7 +8,6 @@ import {
 import { localized, Label, Utils, imapUtf7 } from 'mailspring-exports';
 
 interface CategorySelectionProps {
-  allowLabels: boolean;
   all: CategoryItem[];
   current: CategoryItem;
   onSelect: (item: CategoryItem) => void;
@@ -89,9 +88,7 @@ export default class CategorySelection extends React.Component<
   };
 
   render() {
-    const placeholder = this.props.allowLabels
-      ? localized('Choose folder or label')
-      : localized('Choose folder');
+    const placeholder = localized('Choose folder');
 
     const headerComponents = [
       <input
