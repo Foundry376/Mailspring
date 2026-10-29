@@ -16,12 +16,18 @@ import {
   updateDragState,
   allDayColumnStartUnix,
   canAttemptMove,
+  formatDragPreviewTime,
 } from '../internal_packages/main-calendar/lib/core/calendar-drag-utils';
 import {
   DEFAULT_DRAG_CONFIG,
   MONTH_VIEW_DRAG_CONFIG,
 } from '../internal_packages/main-calendar/lib/core/calendar-drag-types';
 import { DEFAULT_TIMED_EVENT_DURATION_SECONDS } from '../internal_packages/main-calendar/lib/core/calendar-constants';
+import moment from 'moment';
+import 'moment/locale/de';
+
+// The moment/locale import above switches the global locale as it loads.
+moment.locale('en');
 import {
   EventOccurrence,
   TimedOccurrence,
@@ -964,5 +970,24 @@ describe('canMoveEvent and the organizer', function () {
 
   it('still refuses a cancelled meeting that is ours', function () {
     expect(canMoveEvent(makeOccurrence({ isMine: true, isCancelled: true } as any))).toBe(false);
+  });
+});
+
+describe('formatDragPreviewTime', function () {
+  const at = (hour: number, minute: number) => new Date(2026, 8, 22, hour, minute).getTime() / 1000;
+  afterEach(() => moment.locale('en'));
+
+  it("shows the times of a timed event in the locale's clock", function () {
+    moment.locale('en');
+    expect(formatDragPreviewTime(at(15, 0), at(16, 30), false)).toBe('3:00 PM - 4:30 PM');
+    moment.locale('de');
+    expect(formatDragPreviewTime(at(15, 0), at(16, 30), false)).toBe('15:00 - 16:30');
+  });
+
+  it('shows the day, or first and last days, of an all-day event', function () {
+    moment.locale('en');
+    const day = new Date(2026, 8, 22).getTime() / 1000;
+    expect(formatDragPreviewTime(day, day + 86400, true)).toBe('Sep 22');
+    expect(formatDragPreviewTime(day, day + 2 * 86400, true)).toBe('Sep 22 - Sep 23');
   });
 });

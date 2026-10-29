@@ -390,6 +390,25 @@ const DateUtils = {
   },
 
   /**
+   * The locale's time format (moment's LT), as a 24-hour clock when "Use 24-hour clock" is on:
+   * the meridiem goes, with any suffix it carries (ne's "Aको"), and the hour becomes HH, as in
+   * getTimeFormat. Bracketed literals (gom-latn's "[vazta]") are kept.
+   */
+  localeTimeFormat(): string {
+    const lt = moment.localeData().longDateFormat('LT');
+    if (!AppEnv.config.get('core.workspace.use24HourClock')) {
+      return lt;
+    }
+    return lt
+      .split(/(\[[^\]]*\])/)
+      .map((part) =>
+        part.startsWith('[') ? part : part.replace(/[aA][^\s[]*/g, '').replace(/h+/g, 'HH')
+      )
+      .join('')
+      .trim();
+  },
+
+  /**
    * Return a formatting string for displaying time
    *
    * @param {Date} opts - Object with different properties for customising output

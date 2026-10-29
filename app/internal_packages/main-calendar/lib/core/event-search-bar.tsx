@@ -11,6 +11,7 @@ import {
 } from 'mailspring-exports';
 import { RetinaImg, KeyCommandsRegion, BindGlobalCommands } from 'mailspring-component-kit';
 import { EventOccurrence, occurrencesForEvents, occurrenceStartUnix } from './calendar-data-source';
+import { formatOccurrenceTime } from './calendar-helpers';
 import { Disposable } from 'rx-core';
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
@@ -192,28 +193,6 @@ export class EventSearchBar extends Component<Record<string, unknown>, EventSear
     }
   };
 
-  _formatEventTime = (event: EventOccurrence) => {
-    if (event.isAllDay === true) {
-      const first = moment(CalendarDateUtils.dayStartUnix(event.startDate) * 1000);
-      if (event.startDate === event.endDate) {
-        return first.format('ddd, MMM D, YYYY');
-      }
-      const last = moment(CalendarDateUtils.dayStartUnix(event.endDate) * 1000);
-      return `${first.format('MMM D')} - ${last.format('MMM D, YYYY')}`;
-    }
-
-    const start = moment(event.start * 1000);
-    const end = moment(event.end * 1000);
-
-    if (start.isSame(end, 'day')) {
-      return `${start.format('ddd, MMM D')} \u00B7 ${start.format('h:mm A')} - ${end.format(
-        'h:mm A'
-      )}`;
-    }
-
-    return `${start.format('MMM D, h:mm A')} - ${end.format('MMM D, h:mm A')}`;
-  };
-
   _getCalendarColor = (calendarId: string): string => {
     const calendar = this.state.calendars.get(calendarId);
     if (!calendar) return '#8e44ad'; // Default purple
@@ -297,7 +276,7 @@ export class EventSearchBar extends Component<Record<string, unknown>, EventSear
                       <span className="suggestion-title">
                         {event.title || localized('(No title)')}
                       </span>
-                      <span className="suggestion-time">{this._formatEventTime(event)}</span>
+                      <span className="suggestion-time">{formatOccurrenceTime(event)}</span>
                       {event.location && (
                         <span className="suggestion-location">{event.location}</span>
                       )}

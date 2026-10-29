@@ -1,4 +1,4 @@
-import moment, { Moment } from 'moment';
+import moment from 'moment';
 import React from 'react';
 import {
   Actions,
@@ -38,6 +38,7 @@ import {
   shiftEndWithStart,
   clampEnd,
   extractNotesFromDescription,
+  formatTime,
   NewEventDraft,
 } from './calendar-helpers';
 import { AttendeeStatusIcon, attendeeStatusClass, sortAttendeesByStatus } from './attendee-status';
@@ -739,8 +740,7 @@ class CalendarEventPopoverUnenditable extends React.Component<
 
     const startMoment = moment(event.start * 1000);
     const date = startMoment.format('dddd, MMMM D'); // e.g. Tuesday, February 22
-    const endMoment = moment(event.end * 1000);
-    const timeRange = `${formatTime(startMoment)} - ${formatTime(endMoment)}`;
+    const timeRange = `${formatTime(event.start, true)} - ${formatTime(event.end, true)}`;
     return (
       <div>
         {date}
@@ -844,12 +844,4 @@ class CalendarEventPopoverUnenditable extends React.Component<
       </div>
     );
   }
-}
-
-function formatTime(momentTime: Moment) {
-  const min = momentTime.minutes();
-  if (min === 0) {
-    return momentTime.format('h A');
-  }
-  return momentTime.format('h:mm A');
 }

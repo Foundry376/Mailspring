@@ -332,8 +332,8 @@ export function newEventOccurrence(id: string, draft: NewEventDraft): EventOccur
 
 /**
  * A time as compact as the locale allows: a 12-hour clock drops the space before a trailing
- * meridiem, and ":00" on the hour ("10AM"); a 24-hour clock keeps LT ("10:00"), where a bare "10"
- * would not read as a time.
+ * meridiem, and ":00" on the hour ("10AM"); a 24-hour clock keeps the minutes ("10:00"), where a
+ * bare "10" would not read as a time.
  */
 export function formatShortTime(unix: number): string {
   const time = moment.unix(unix);
@@ -341,7 +341,7 @@ export function formatShortTime(unix: number): string {
 }
 
 function shortTimeFormat(time: moment.Moment): string {
-  const lt = moment.localeData().longDateFormat('LT');
+  const lt = DateUtils.localeTimeFormat();
   // moment's LT uses h for a 12-hour clock and H for a 24-hour one, as in time-picker.tsx
   if (!/h/.test(lt)) {
     return lt;
@@ -355,6 +355,10 @@ function shortTimeFormat(time: moment.Moment): string {
  * Calendar does: "7:30–8:30PM", "11:30AM–12PM".
  */
 export function formatShortTimeRange(startUnix: number, endUnix: number): string {
+  return shortTimeRange(startUnix, endUnix, '–');
+}
+
+function shortTimeRange(startUnix: number, endUnix: number, separator: string): string {
   const start = moment.unix(startUnix);
   const end = moment.unix(endUnix);
   let startFormat = shortTimeFormat(start);
@@ -363,7 +367,39 @@ export function formatShortTimeRange(startUnix: number, endUnix: number): string
   if (/h/.test(startFormat) && start.format('A') === end.format('A')) {
     startFormat = startFormat.replace(separateMeridiem, '');
   }
-  return `${start.format(startFormat)}–${end.format(shortTimeFormat(end))}`;
+  return `${start.format(startFormat)}${separator}${end.format(shortTimeFormat(end))}`;
+}
+
+/**
+ * The locale's time ("3:15 PM", "15:15"), on a 24-hour clock when the user asked for one. With
+ * `dropZeroMinutes` a 12-hour clock shows an hour on the hour as "3 PM"; a 24-hour clock keeps
+ * "15:00", where a bare "15" would not read as a time.
+ */
+export function formatTime(unix: number, dropZeroMinutes = false): string {
+  const time = moment.unix(unix);
+  const lt = DateUtils.localeTimeFormat();
+  if (dropZeroMinutes && /h/.test(lt) && time.minutes() === 0) {
+    return time.format(lt.replace(/[:.]mm/, ''));
+  }
+  return time.format(lt);
+}
+
+/** The line under a search result: the day, or days, and for a timed occurrence its times. */
+export function formatOccurrenceTime(event: EventOccurrence): string {
+  if (event.isAllDay === true) {
+    const first = moment.unix(CalendarDateUtils.dayStartUnix(event.startDate));
+    if (event.startDate === event.endDate) {
+      return first.format('ddd, MMM D, YYYY');
+    }
+    const last = moment.unix(CalendarDateUtils.dayStartUnix(event.endDate));
+    return `${first.format('MMM D')} - ${last.format('MMM D, YYYY')}`;
+  }
+  const start = moment.unix(event.start);
+  const end = moment.unix(event.end);
+  if (start.isSame(end, 'day')) {
+    return `${start.format('ddd, MMM D')} \u00B7 ${formatTime(event.start)} - ${formatTime(event.end)}`;
+  }
+  return `${start.format('MMM D')}, ${formatTime(event.start)} - ${end.format('MMM D')}, ${formatTime(event.end)}`;
 }
 
 /**
@@ -379,39 +415,10 @@ export function formatEventTimeRange(
   if (isAllDay) {
     return null;
   }
-
-  const durationMinutes = (endUnix - startUnix) / 60;
-  if (durationMinutes < 60) {
+  if ((endUnix - startUnix) / 60 < 60) {
     return null;
   }
-
-  const startDate = new Date(startUnix * 1000);
-  const endDate = new Date(endUnix * 1000);
-
-  const formatTime = (date: Date, includeAmPm: boolean) => {
-    let hours = date.getHours();
-    const minutes = date.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    hours = hours % 12;
-    if (hours === 0) hours = 12;
-
-    let timeStr = String(hours);
-    if (minutes > 0) {
-      timeStr += ':' + String(minutes).padStart(2, '0');
-    }
-    if (includeAmPm) {
-      timeStr += ampm;
-    }
-    return timeStr;
-  };
-
-  const startAmPm = startDate.getHours() >= 12 ? 'PM' : 'AM';
-  const endAmPm = endDate.getHours() >= 12 ? 'PM' : 'AM';
-
-  // Only include AM/PM on start time if it differs from end time
-  const includeStartAmPm = startAmPm !== endAmPm;
-
-  return `${formatTime(startDate, includeStartAmPm)} – ${formatTime(endDate, true)}`;
+  return shortTimeRange(startUnix, endUnix, ' – ');
 }
 
 /**

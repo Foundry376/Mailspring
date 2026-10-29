@@ -1,6 +1,13 @@
 import { AccountStore, Actions, DatabaseStore, SyncbackEventTask } from 'mailspring-exports';
 import { Event as MailspringEvent } from '../src/flux/models/event';
 import { CalendarEventPopover } from '../internal_packages/main-calendar/lib/core/calendar-event-popover';
+import React from 'react';
+import ReactDOMServer from 'react-dom/server';
+import moment from 'moment';
+import 'moment/locale/de';
+
+// The moment/locale import above switches the global locale as it loads.
+moment.locale('en');
 import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 import { AllDayToggle } from '../internal_packages/main-calendar/lib/core/all-day-toggle';
 import { ShowAsSelector } from '../internal_packages/main-calendar/lib/core/show-as-selector';
@@ -514,5 +521,33 @@ describe('CalendarEventPopover save path and Show As', function () {
     await popover._createNewEvent();
 
     expect(helpers.createCalendarEvent.mostRecentCall.args[0].transparency).toBe('TRANSPARENT');
+  });
+});
+
+describe('CalendarEventPopover and the clock', function () {
+  const render = () =>
+    ReactDOMServer.renderToStaticMarkup(
+      React.createElement(CalendarEventPopover, {
+        event: makeOccurrence('Planning'),
+        onEdit: () => {},
+        onDelete: () => {},
+      } as any)
+    );
+  // The first render loads date-utils, which sets moment's locale from navigator.language.
+  beforeEach(() => render());
+  afterEach(() => moment.locale('en'));
+
+  it("shows a timed event's hours in a 12-hour locale without the minutes on the hour", function () {
+    moment.locale('en');
+    expect(render()).toContain(
+      `${moment.unix(START).format('h A')} - ${moment.unix(END).format('h A')}`
+    );
+  });
+
+  it("shows a timed event's hours in a 24-hour locale", function () {
+    moment.locale('de');
+    expect(render()).toContain(
+      `${moment.unix(START).format('HH:mm')} - ${moment.unix(END).format('HH:mm')}`
+    );
   });
 });
