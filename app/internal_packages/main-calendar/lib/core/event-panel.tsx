@@ -11,8 +11,6 @@ import {
   DateUtils,
   Event,
   ICSEventHelpers,
-  SyncbackEventTask,
-  TaskQueue,
   Utils,
 } from 'mailspring-exports';
 import {
@@ -23,21 +21,17 @@ import {
   Switch,
   TimePicker,
 } from 'mailspring-component-kit';
-import {
-  EventOccurrence,
-  EventAttendee,
-  isTimed,
-  occurrenceStartUnix,
-  occurrenceTimes,
-} from './calendar-data-source';
+import { EventOccurrence, EventAttendee, isTimed, occurrenceTimes } from './calendar-data-source';
 import {
   allDayToggleTimes,
+  asksScope,
   calcEventColors,
   canEditInPanel,
   clampEnd,
   extractNotesFromDescription,
   formatShortTime,
   formatShortTimeRange,
+  hasGuests,
   holdsEdits,
   inclusiveAllDayEnd,
   momentOf,
@@ -59,13 +53,9 @@ import {
   respondToCalendarEvent,
   rsvpActions,
 } from './calendar-rsvp';
-import {
-  EventPropertyEdit,
-  modifySimpleEvent,
-  modifySimpleEventProperty,
-} from './recurring-event-actions';
+import { ChangeScope, EventPropertyEdit } from './recurring-event-actions';
 import { EventPanelTextField } from './event-panel-text-field';
-import { UnsentChange, unsentEdit, withEdit, withTimes } from './unsent-change';
+import { UnsentChange, emptyChange, unsentEdit, withEdit, withTimes } from './unsent-change';
 
 const REPEAT_OPTIONS: RepeatOption[] = ['none', 'daily', 'weekly', 'monthly', 'yearly'];
 
@@ -87,7 +77,9 @@ interface EventPanelProps {
   headerActions?: React.ReactNode;
   unsentChange: UnsentChange | null;
   onUnsentChange: (change: UnsentChange | null) => void;
-  onSendUnsentChange: () => void;
+  onSendUnsentChange: (scope: ChangeScope) => void;
+  /** Writes a change the panel doesn't hold, resolving once it's written. */
+  onSaveChange: (change: UnsentChange) => Promise<void>;
 }
 
 interface Times {
@@ -211,24 +203,19 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     return holdsEdits(this.props.event, this.props.isCalendarReadOnly);
   }
 
-  _save(write: (row: Event) => SyncbackEventTask) {
+  _save(change: UnsentChange) {
     this._saving = this._saving
-      .then(async () => {
-        const row = await this._eventRow();
-        if (row) await TaskQueue.waitForPerformLocal(write(row));
-      })
+      .then(() => this.props.onSaveChange(change))
       .catch((error) => console.error('Failed to save the event:', error));
     return this._saving;
   }
 
   _saveProperty(edit: EventPropertyEdit) {
+    const { event, unsentChange, onUnsentChange } = this.props;
     if (this._holdsEdits()) {
-      const { unsentChange, onUnsentChange } = this.props;
-      onUnsentChange(
-        withEdit(unsentChange, this.props.event, edit, this._storedValue(edit.property))
-      );
+      onUnsentChange(withEdit(unsentChange, event, edit, this._storedValue(edit.property)));
     } else {
-      this._save((row) => modifySimpleEventProperty(row, edit));
+      this._save({ ...emptyChange(event), edits: [edit] });
     }
   }
 
@@ -303,18 +290,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       onUnsentChange(withTimes(unsentChange, this.props.event, times, this._storedTimes()));
       return;
     }
-    const originalOccurrenceStart = occurrenceStartUnix(this.props.event);
     this._timesSaveLanded = false;
     const save = ++this._timesSaveCount;
-    this._save((row) =>
-      modifySimpleEvent({
-        event: row,
-        originalOccurrenceStart,
-        newStart: times.start,
-        newEnd: times.end,
-        isAllDay: times.isAllDay,
-      })
-    ).then(() => {
+    this._save({ ...emptyChange(this.props.event), times }).then(() => {
       if (save === this._timesSaveCount && !this._pendingTimes) this._timesSaveLanded = true;
     });
   }
@@ -476,17 +454,33 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             {formatTimezone(DateUtils.timeZone)}
           </div>
         )}
+        {/* An occurrence changed on its own takes no scope; its rule is the series'. */}
+        {this.props.event.isException ? (
+          this._renderRepeatLabel()
+        ) : (
+          <div className="event-panel-row">
+            <SVGIcons.Repeat className="event-panel-icon" />
+            <PanelSelect value={this._repeat()} onChange={this._onRepeatChange}>
+              {REPEAT_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {repeatOptionLabel(option)}
+                </option>
+              ))}
+            </PanelSelect>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  _renderRepeatLabel() {
+    return (
+      this.state.repeat !== 'none' && (
         <div className="event-panel-row">
           <SVGIcons.Repeat className="event-panel-icon" />
-          <PanelSelect value={this._repeat()} onChange={this._onRepeatChange}>
-            {REPEAT_OPTIONS.map((option) => (
-              <option key={option} value={option}>
-                {repeatOptionLabel(option)}
-              </option>
-            ))}
-          </PanelSelect>
+          {repeatLabel(this.state.repeat)}
         </div>
-      </div>
+      )
     );
   }
 
@@ -526,12 +520,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             <div className="event-panel-row indented">{localized('All day')}</div>
           </>
         )}
-        {this.state.repeat !== 'none' && (
-          <div className="event-panel-row">
-            <SVGIcons.Repeat className="event-panel-icon" />
-            {repeatLabel(this.state.repeat)}
-          </div>
-        )}
+        {this._renderRepeatLabel()}
         {canRespondToEvent(event) && (
           <div className="event-panel-row indented">
             <button
@@ -754,15 +743,58 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             </div>
           </div>
         ))}
-        <div className="event-panel-change-buttons">
-          <button className="btn" onClick={() => this.props.onUnsentChange(null)}>
-            {localized('Discard')}
-          </button>
-          <button className="btn btn-emphasis" onClick={this.props.onSendUnsentChange}>
-            {localized('Send update')}
-          </button>
-        </div>
+        {asksScope(this.props.event) ? (
+          this._renderScopeButtons(change)
+        ) : (
+          <div className="event-panel-change-buttons">
+            {this._renderDiscardButton()}
+            <button
+              className="btn btn-emphasis"
+              onClick={() => this.props.onSendUnsentChange('this-occurrence')}
+            >
+              {localized('Send update')}
+            </button>
+          </div>
+        )}
       </div>
+    );
+  }
+
+  _renderDiscardButton() {
+    return (
+      <button className="btn" onClick={() => this.props.onUnsentChange(null)}>
+        {localized('Discard')}
+      </button>
+    );
+  }
+
+  // One occurrence can't carry a repeat rule of its own.
+  _renderScopeButtons(change: UnsentChange) {
+    const { event, onSendUnsentChange } = this.props;
+    const seriesOnly = !!unsentEdit(change, 'rrule');
+    return (
+      <>
+        {hasGuests(event) && (
+          <div className="event-panel-subtle">{localized('Guests will be emailed.')}</div>
+        )}
+        <div className="event-panel-change-buttons stacked">
+          {!seriesOnly && (
+            <button
+              className="btn btn-emphasis"
+              onClick={() => onSendUnsentChange('this-occurrence')}
+            >
+              {localized('This occurrence only')}
+            </button>
+          )}
+          <button
+            className={`btn ${seriesOnly ? 'btn-emphasis' : ''}`}
+            onClick={() => onSendUnsentChange('all-occurrences')}
+          >
+            {localized('All occurrences')}
+          </button>
+          {this._renderDiscardButton()}
+        </div>
+      </>
     );
   }
 

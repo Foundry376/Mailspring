@@ -1074,6 +1074,11 @@
     display: flex;
     justify-content: flex-end;
     gap: 8px;
+
+    // A repeating event's scope buttons, full width as the canvas draws them.
+    &.stacked {
+      flex-direction: column;
+    }
   }
 
   // Your answer is filled as the invitation header fills it.

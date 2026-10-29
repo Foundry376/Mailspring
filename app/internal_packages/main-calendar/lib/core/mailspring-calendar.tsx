@@ -552,34 +552,6 @@ export class MailspringCalendar extends React.Component<
     FocusedMomentStore.setFocusedMoment(moment(event.start * 1000), event);
   };
 
-  _openEventEditor(eventModel: EventOccurrence) {
-    const eventEl = document.getElementById(eventModel.id);
-    if (!eventEl) {
-      return;
-    }
-
-    // In day view, events span most of the horizontal width, so opening
-    // the popover to the right/left causes horizontal scrolling. Use
-    // down/up positioning instead for day view.
-    const isDayView = this.state.view === CalendarView.DAY;
-    const direction = isDayView ? 'down' : 'right';
-    const fallbackDirection = isDayView ? 'up' : 'left';
-
-    Actions.openPopover(
-      <CalendarEventPopover
-        event={eventModel}
-        startEditing
-        isCalendarReadOnly={this._isCalendarReadOnly(eventModel.calendarId)}
-      />,
-      {
-        originRect: eventEl.getBoundingClientRect(),
-        direction,
-        fallbackDirection,
-        closeOnAppBlur: false,
-      }
-    );
-  }
-
   _onEventClick = (e: React.MouseEvent, event: EventOccurrence) => {
     let next = [...this.state.selectedEvents];
 
@@ -618,18 +590,15 @@ export class MailspringCalendar extends React.Component<
 
   // A writable calendar and a meeting we organize (RFC 5546 section 2.1.4), as canMoveEvent asks.
   _isEditable(occurrence: EventOccurrence) {
-    return !this._isCalendarReadOnly(occurrence.calendarId) && occurrence.isMine;
+    return canEditInPanel(occurrence, this._isCalendarReadOnly(occurrence.calendarId));
   }
 
-  /** Puts the cursor in the panel's title, or opens the editor for an event the panel can't edit. */
+  /** Puts the cursor in the panel's title. */
   _editEvent(occurrence: EventOccurrence) {
-    if (canEditInPanel(occurrence, this._isCalendarReadOnly(occurrence.calendarId))) {
-      this._select([occurrence]);
-      // The panel may only mount with this render.
-      window.requestAnimationFrame(() => this._eventPanel.current?.focusTitle());
-    } else if (this._isEditable(occurrence)) {
-      this._openEventEditor(occurrence);
-    }
+    if (!this._isEditable(occurrence)) return;
+    this._select([occurrence]);
+    // The panel may only mount with this render.
+    window.requestAnimationFrame(() => this._eventPanel.current?.focusTitle());
   }
 
   // The click before it already shows the event in the panel.
@@ -1548,6 +1517,7 @@ export class MailspringCalendar extends React.Component<
               unsentChange={isUnsentChangeFor(unsentChange, event) ? unsentChange : null}
               onUnsentChange={this._onUnsentChange}
               onSendUnsentChange={this._sendUnsentChange}
+              onSaveChange={this._writeChange}
               calendar={this.state.calendars.find((c) => c.id === event.calendarId)}
               isCalendarReadOnly={this._isCalendarReadOnly(event.calendarId)}
               onBack={this._onBackToAgenda}

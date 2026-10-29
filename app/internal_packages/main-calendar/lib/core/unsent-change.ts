@@ -4,7 +4,10 @@ import { EventOccurrence, occurrenceAt, occurrenceSlot } from './calendar-data-s
 
 type Times = NonNullable<EventChange['times']>;
 
-/** Edits to an event with guests, held until the organizer sends them as one update. */
+/**
+ * Edits made in the panel to one event, held until they're sent as one update when guests would be
+ * emailed or a series needs a scope picked, and otherwise saved straight away.
+ */
 export interface UnsentChange extends EventChange {
   eventId: string;
   /** The occurrence of a series the edits were made to, by its `occurrenceSlot`. */
@@ -20,7 +23,8 @@ export function isUnsentChangeFor(change: UnsentChange | null, occurrence: Event
   );
 }
 
-function emptyChange(occurrence: EventOccurrence): UnsentChange {
+/** A change to this occurrence with nothing in it yet. */
+export function emptyChange(occurrence: EventOccurrence): UnsentChange {
   const { eventId } = CalendarUtils.parseOccurrenceId(occurrence.id);
   return occurrence.isRecurring
     ? { eventId, slot: occurrenceSlot(occurrence), edits: [] }

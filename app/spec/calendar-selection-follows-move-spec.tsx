@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { DatabaseStore, Event } from 'mailspring-exports';
+import { Actions, DatabaseStore, Event, TaskQueue } from 'mailspring-exports';
 import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
 import { CalendarEvent } from '../internal_packages/main-calendar/lib/core/calendar-event';
 import { MonthViewEvent } from '../internal_packages/main-calendar/lib/core/month-view-event';
@@ -100,6 +100,13 @@ async function settle() {
   }
 }
 
+// A series' move waits in the panel until its scope is picked.
+async function sendThisOccurrence(calendar: any) {
+  spyOn(Actions, 'queueTask');
+  spyOn(TaskQueue, 'waitForPerformLocal').andReturn(Promise.resolve());
+  await calendar._sendUnsentChange('this-occurrence');
+}
+
 describe('the selection after an event is moved', function () {
   let modify: jasmine.Spy;
   let row: Event;
@@ -195,6 +202,7 @@ describe('the selection after an event is moved', function () {
   });
 
   it('settles on the moved occurrence, not one of the series already at its new start', async function () {
+    spyOn(AppEnv.config, 'set');
     const wednesday = START + 86400;
     row = eventAt(START - 86400, 'RRULE:FREQ=DAILY');
     const calendar = calendarWith([occurrenceAt(wednesday, { isRecurring: true })]);
@@ -203,6 +211,7 @@ describe('the selection after an event is moved', function () {
       -86400,
       false
     );
+    await sendThisOccurrence(calendar);
     // "This occurrence": Wednesday's slot now holds an exception on Tuesday, at Tuesday's own time.
     row = seriesWithException(START - 86400, 'RRULE:FREQ=DAILY', wednesday, START);
 
@@ -227,6 +236,7 @@ describe('the selection after an event is moved', function () {
   });
 
   it('settles one occurrence moved earlier than the next regular one', async function () {
+    spyOn(AppEnv.config, 'set');
     const inThreeWeeks = START + 21 * 86400;
     const friday = START + 10 * 86400;
     row = eventAt(START, 'RRULE:FREQ=WEEKLY');
@@ -238,6 +248,7 @@ describe('the selection after an event is moved', function () {
       previewEnd: friday + 1800,
       previewIsAllDay: false,
     });
+    await sendThisOccurrence(calendar);
     // Week two's regular occurrence lies past Friday, and the expander stops there.
     row = seriesWithException(START, 'RRULE:FREQ=WEEKLY', inThreeWeeks, friday);
 

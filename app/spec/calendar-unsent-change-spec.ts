@@ -12,6 +12,7 @@ import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/cal
 import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
 import * as UnsentChangeDialog from '../internal_packages/main-calendar/lib/core/unsent-change-dialog';
 import { withUnsentChange } from '../internal_packages/main-calendar/lib/core/unsent-change';
+import * as RecurringEventDialog from '../internal_packages/main-calendar/lib/core/recurring-event-dialog';
 
 const START = Date.UTC(2026, 9, 27, 15, 0, 0) / 1000;
 const HOUR = 3600;
@@ -293,6 +294,7 @@ describe('editing in the panel', function () {
       unsentChange,
       onUnsentChange,
       onSendUnsentChange: () => {},
+      onSaveChange: (change) => calendarWith([event])._writeChange(change),
     });
     panel.setState = (update: object) => Object.assign(panel.state, update);
     return panel;
@@ -418,6 +420,25 @@ describe('a repeating event', function () {
 
     expect(dialog).toHaveBeenCalled();
     expect(calendar.state.selectedEvents).toEqual([first]);
+  });
+
+  it('holds a drop and an arrow key without guests, asking nothing and queueing nothing', async function () {
+    const recurringDialog = spyOn(RecurringEventDialog, 'showRecurringEventDialog').andReturn(
+      Promise.resolve('cancel')
+    );
+    const calendar = calendarWith([]);
+    await calendar._persistDragChange(droppedAt(first, START + HOUR));
+    calendar._onMoveSelectedEvent('down', false);
+    await settle();
+
+    expect(recurringDialog).not.toHaveBeenCalled();
+    expect(queueTask).not.toHaveBeenCalled();
+    expect(calendar.state.unsentChange).toEqual({
+      eventId: 'r1',
+      slot: START,
+      edits: [],
+      times: { start: START + HOUR + QUARTER, end: START + 2 * HOUR + QUARTER, isAllDay: false },
+    });
   });
 
   describe('after Send', function () {
