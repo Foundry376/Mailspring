@@ -9,6 +9,8 @@ interface NewItemButtonProps {
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void;
   /** For callers that need the button itself, e.g. to anchor a popover. */
   buttonRef?: React.RefObject<HTMLButtonElement>;
+  /** Labels of sibling buttons in other sheets, so the button keeps one width as the user switches. */
+  matchWidthOf?: string[];
 }
 
 interface NewItemButtonState {
@@ -61,7 +63,7 @@ export default class NewItemButton extends React.Component<NewItemButtonProps, N
   };
 
   render() {
-    const { label, tabIndex, onClick } = this.props;
+    const { label, tabIndex, onClick, matchWidthOf = [] } = this.props;
     const { compact } = this.state;
     const title = this.props.title || (compact ? label : undefined);
     return (
@@ -79,7 +81,16 @@ export default class NewItemButton extends React.Component<NewItemButtonProps, N
           mode={RetinaImg.Mode.ContentIsMask}
           aria-hidden="true"
         />
-        {!compact && <span className="text">{label}</span>}
+        {!compact && (
+          // Every label shares one grid cell, so the widest sets the width in any language.
+          <span className="text" style={{ display: 'inline-grid', justifyItems: 'center' }}>
+            {[label, ...matchWidthOf].map((text, idx) => (
+              <span key={idx} style={{ gridArea: '1 / 1', visibility: idx ? 'hidden' : undefined }}>
+                {text}
+              </span>
+            ))}
+          </span>
+        )}
       </button>
     );
   }
