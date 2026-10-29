@@ -143,6 +143,7 @@ export class SendDraftTask extends Task {
     Actions.draftDeliverySucceeded({
       headerMessageId: this.draft.headerMessageId,
       accountId: this.draft.accountId,
+      files: this.draft.files,
     });
 
     // Play the sending sound

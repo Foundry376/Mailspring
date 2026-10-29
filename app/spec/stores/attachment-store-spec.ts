@@ -1,7 +1,7 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { AttachmentStore, DraftStore, File } from 'mailspring-exports';
+import { Actions, AttachmentStore, DraftStore, File } from 'mailspring-exports';
 
 describe('AttachmentStore', function () {
   describe('_onAddAttachment', () => {
@@ -200,6 +200,38 @@ describe('AttachmentStore', function () {
         expect(result[0]).toBe(inline);
         expect(result[1]).toBe(pdf);
         expect(AppEnv.showErrorDialog).not.toHaveBeenCalled();
+      });
+    });
+
+    describe('deleteFilesOwnedByDraft', () => {
+      it("deletes the draft's own copies and leaves files that belong to a message", () => {
+        waitsForPromise(async () => {
+          const [copy] = await AttachmentStore.copyFilesForDraft([pdf]);
+          const copyDir = path.dirname(AttachmentStore.pathForFile(copy));
+          fs.writeFileSync(`${AttachmentStore.pathForFile(copy)}.png`, 'preview');
+
+          AttachmentStore.deleteFilesOwnedByDraft([copy, inline]);
+
+          expect(fs.existsSync(copyDir)).toBe(false);
+          expect(fs.readFileSync(AttachmentStore.pathForFile(inline), 'utf8')).toEqual('photo');
+          expect(fs.readFileSync(AttachmentStore.pathForFile(pdf), 'utf8')).toEqual('report');
+        });
+      });
+
+      it('ignores a file that is already gone', () => {
+        const missing = new File({ id: 'local-0000-0000', filename: 'gone.txt' });
+        expect(() => AttachmentStore.deleteFilesOwnedByDraft([missing])).not.toThrow();
+      });
+
+      it('runs when a draft is discarded and when it is sent', () => {
+        spyOn(Actions, 'queueTask');
+        spyOn(AttachmentStore, 'deleteFilesOwnedByDraft');
+
+        Actions.destroyDraft({ id: 'draft-1', headerMessageId: 'h-1', files: [pdf] });
+        expect(AttachmentStore.deleteFilesOwnedByDraft).toHaveBeenCalledWith([pdf]);
+
+        Actions.draftDeliverySucceeded({ headerMessageId: 'h-2', files: [inline] });
+        expect(AttachmentStore.deleteFilesOwnedByDraft).toHaveBeenCalledWith([inline]);
       });
     });
   });
