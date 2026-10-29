@@ -32,6 +32,7 @@ import {
   CalendarDataSource,
   EventOccurrence,
   FocusedEventInfo,
+  focusedEventInfoForEvents,
   isEventSelected,
   occurrencesForEvents,
   ownCalendarAddresses,
@@ -85,7 +86,13 @@ import {
   ChangeScope,
   EventTimeChangeOptions,
 } from './recurring-event-actions';
-import { UnsentChange, isUnsentChangeFor, withTimes, withUnsentChange } from './unsent-change';
+import {
+  UnsentChange,
+  isUnsentChangeFor,
+  unsentEdit,
+  withTimes,
+  withUnsentChange,
+} from './unsent-change';
 import { showUnsentChangeDialog } from './unsent-change-dialog';
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
@@ -371,7 +378,11 @@ export class MailspringCalendar extends React.Component<
     // A new repeat rule or time leaves the one-off fallback in _currentOccurrence nothing to match.
     if (selected) {
       const start = change.times?.start ?? occurrenceStartUnix(selected);
-      this._followMove(selected, row, start, staleIcs);
+      // A new rule may have no occurrence there, so its next one is shown.
+      const landing = unsentEdit(change, 'rrule')
+        ? (focusedEventInfoForEvents([row], start)?.start ?? start)
+        : start;
+      this._followMove(selected, row, landing, staleIcs);
     }
     await TaskQueue.waitForPerformLocal(task);
   };

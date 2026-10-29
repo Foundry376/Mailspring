@@ -481,6 +481,20 @@ describe('a repeating event', function () {
       expect(calendar.state.selectedEvents[0].start).toBe(second.start + HOUR);
       expect(calendar.state.selectedEvents[0].isException).toBe(false);
     });
+
+    it("moves to the series' next occurrence once a new rule drops this one", async function () {
+      const calendar = calendarWith([second]);
+      calendar.state.unsentChange = {
+        eventId: 'r1',
+        slot: second.start,
+        edits: [{ property: 'rrule', value: 'FREQ=WEEKLY' }],
+      };
+      await calendar._sendUnsentChange('all-occurrences');
+      await written(calendar);
+
+      expect(calendar.state.selectedEvents.length).toBe(1);
+      expect(calendar.state.selectedEvents[0].start).toBe(START + 7 * DAY);
+    });
   });
 
   it("writes the whole series on the quit dialog's All occurrences", async function () {
