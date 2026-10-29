@@ -581,6 +581,8 @@ class DraftStore extends MailspringStore {
       return !(f.contentId && !draft.body.includes(`cid:${f.contentId}`));
     });
     if (files.length !== draft.files.length) {
+      // draftDeliverySucceeded only carries the files that are sent, so delete these now.
+      AttachmentStore.deleteFilesOwnedByDraft(draft.files.filter((f) => !files.includes(f)));
       session.changes.add({ files });
     }
 
