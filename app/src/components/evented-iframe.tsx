@@ -146,6 +146,7 @@ export class EventedIFrame extends React.Component<
     doc.removeEventListener('mousedown', this._onIFrameMouseEvent);
     doc.removeEventListener('mousemove', this._onIFrameMouseEvent);
     doc.removeEventListener('mouseup', this._onIFrameMouseEvent);
+    doc.removeEventListener('auxclick', this._onIFrameMouseEvent);
     doc.removeEventListener('contextmenu', this._onIFrameContextualMenu);
     if (node.contentWindow) {
       node.contentWindow.removeEventListener('focus', this._onIFrameFocus);
@@ -164,6 +165,7 @@ export class EventedIFrame extends React.Component<
       doc.addEventListener('mousedown', this._onIFrameMouseEvent);
       doc.addEventListener('mousemove', this._onIFrameMouseEvent);
       doc.addEventListener('mouseup', this._onIFrameMouseEvent);
+      doc.addEventListener('auxclick', this._onIFrameMouseEvent);
       doc.addEventListener('contextmenu', this._onIFrameContextualMenu);
       if (node.contentWindow) {
         node.contentWindow.addEventListener('focus', this._onIFrameFocus);
@@ -271,6 +273,8 @@ export class EventedIFrame extends React.Component<
       new MouseEvent(event.type, {
         ...eventAttrs,
         bubbles: true,
+        button: event.button,
+        buttons: event.buttons,
         clientX: event.clientX + nodeRect.left,
         clientY: event.clientY + nodeRect.top,
         screenX: event.screenX + nodeRect.left,
