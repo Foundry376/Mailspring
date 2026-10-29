@@ -5,6 +5,7 @@ import { Actions } from 'mailspring-exports';
 import { ProposeTimePopover } from '../../src/components/propose-time-popover';
 import { DatePicker } from '../../src/components/date-picker';
 import TimePicker from '../../src/components/time-picker';
+import { use24HourClock } from '../fixtures/use-24-hour-clock';
 
 // 2026-03-10 is clear of the 2026-03-08 transition; the runner's zone is America/Chicago.
 const START = moment('2026-03-10 14:00', 'YYYY-MM-DD HH:mm').unix();
@@ -39,6 +40,12 @@ describe('ProposeTimePopover', function () {
       expect(original()).toBe('Currently Tue, Mar 10 · 2:00 PM – 2:30 PM');
       expect(ReactTestUtils.scryRenderedComponentsWithType(popover, TimePicker).length).toBe(2);
       expect(ReactTestUtils.scryRenderedComponentsWithType(popover, DatePicker).length).toBe(1);
+    });
+
+    it('shows the slot on a 24-hour clock when Use 24-hour clock is on', function () {
+      use24HourClock(true);
+      mount({ start: START, end: END });
+      expect(original()).toBe('Currently Tue, Mar 10 · 14:00 – 14:30');
     });
 
     it('cannot propose the time it already has', function () {

@@ -6,6 +6,7 @@ import 'moment/locale/si';
 import { render, fireEvent, cleanup } from '@testing-library/react';
 
 import TimePicker from '../../src/components/time-picker';
+import { use24HourClock } from '../fixtures/use-24-hour-clock';
 
 // Requiring a locale file makes it the current one, so put the suite back where it was.
 moment.locale('en');
@@ -177,6 +178,28 @@ describe('TimePicker', function timePicker() {
 
       moment.locale('si');
       expect(typeBareFive()).toBe('17:00');
+    });
+  });
+
+  describe('with Use 24-hour clock on, in a 12-hour locale', function () {
+    beforeEach(() => use24HourClock(true));
+
+    it('shows the time and the dropdown on a 24-hour clock', () => {
+      const { input, container } = renderPicker();
+      expect(input.value).toBe('15:00');
+      fireEvent.focus(input);
+      const options = Array.from(container.querySelectorAll('.time-options .option')).map(
+        (o) => o.textContent
+      );
+      expect(options).toContain('15:00');
+    });
+
+    it('reads a bare hour as the hour that was typed', () => {
+      const { onChange, input } = renderPicker();
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value: '2' } });
+      fireEvent.blur(input);
+      expect(lastEmitted(onChange).format('HH:mm')).toBe('02:00');
     });
   });
 

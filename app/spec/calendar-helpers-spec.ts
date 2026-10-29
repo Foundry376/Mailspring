@@ -19,6 +19,7 @@ import {
   allDayToggleTimes,
 } from '../internal_packages/main-calendar/lib/core/calendar-helpers';
 import { allDayOccurrence, timedOccurrence } from './fixtures/calendar-view-props';
+import { use24HourClock } from './fixtures/use-24-hour-clock';
 import {
   shiftedDayStartUnix,
   dayStartUnix,
@@ -372,6 +373,26 @@ describe('formatShortTimeRange', function () {
     expect(formatShortTimeRange(at(9, 0), at(10, 30))).toBe(
       `${formatShortTime(at(9, 0))}–${formatShortTime(at(10, 30))}`
     );
+  });
+});
+
+describe('calendar times with Use 24-hour clock on, in a 12-hour locale', function () {
+  const at = (hour: number, minute: number) => new Date(2026, 8, 22, hour, minute).getTime() / 1000;
+  beforeEach(() => {
+    moment.locale('en');
+    use24HourClock(true);
+  });
+
+  it('formatTime keeps the minutes on the hour', function () {
+    expect(formatTime(at(15, 0), true)).toBe('15:00');
+  });
+
+  it('formatShortTime keeps the minutes on the hour', function () {
+    expect(formatShortTime(at(15, 0))).toBe('15:00');
+  });
+
+  it('formatShortTimeRange writes both ends in full', function () {
+    expect(formatShortTimeRange(at(19, 30), at(20, 30))).toBe('19:30–20:30');
   });
 });
 

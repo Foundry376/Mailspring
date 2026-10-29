@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import moment from 'moment';
 import classnames from 'classnames';
 import { TabGroupContext } from 'mailspring-component-kit';
+import { DateUtils } from 'mailspring-exports';
 
 require('moment-round'); // overrides moment
 
@@ -53,7 +54,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
   }
 
   _valToTimeString(value) {
-    return moment(value).format('LT');
+    return moment(value).format(DateUtils.localeTimeFormat());
   }
 
   _onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -135,7 +136,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
   // moment's LT uses h for a 12-hour clock and H for a 24-hour one. Test the hour token rather
   // than the meridiem: lb writes "H:mm [Auer]" and si writes "a h:mm".
   _isTwelveHourLocale() {
-    return /h/.test(moment.localeData().longDateFormat('LT'));
+    return /h/.test(DateUtils.localeTimeFormat());
   }
 
   /*
@@ -213,7 +214,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
 
       opts.push(
         <div className={className} key={val} onMouseDown={() => this._onSelectOption(val)}>
-          {timeIter.format('LT')}
+          {timeIter.format(DateUtils.localeTimeFormat())}
           {relTxt}
         </div>
       );

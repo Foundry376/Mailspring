@@ -18,7 +18,7 @@ function compactSlot(start: number, end: number, isAllDay: boolean): string {
       ? s.format('ddd, MMM D')
       : `${s.format('ddd, MMM D')} – ${last.format('ddd, MMM D')}`;
   }
-  const time = (m: Moment) => m.format('h:mm A');
+  const time = (m: Moment) => m.format(DateUtils.localeTimeFormat());
   return `${s.format('ddd, MMM D')} · ${time(s)} – ${time(e)}`;
 }
 

@@ -332,8 +332,8 @@ export function newEventOccurrence(id: string, draft: NewEventDraft): EventOccur
 
 /**
  * A time as compact as the locale allows: a 12-hour clock drops the space before a trailing
- * meridiem, and ":00" on the hour ("10AM"); a 24-hour clock keeps LT ("10:00"), where a bare "10"
- * would not read as a time.
+ * meridiem, and ":00" on the hour ("10AM"); a 24-hour clock keeps the minutes ("10:00"), where a
+ * bare "10" would not read as a time.
  */
 export function formatShortTime(unix: number): string {
   const time = moment.unix(unix);
@@ -341,7 +341,7 @@ export function formatShortTime(unix: number): string {
 }
 
 function shortTimeFormat(time: moment.Moment): string {
-  const lt = moment.localeData().longDateFormat('LT');
+  const lt = DateUtils.localeTimeFormat();
   // moment's LT uses h for a 12-hour clock and H for a 24-hour one, as in time-picker.tsx
   if (!/h/.test(lt)) {
     return lt;
@@ -371,12 +371,13 @@ function shortTimeRange(startUnix: number, endUnix: number, separator: string): 
 }
 
 /**
- * The locale's time ("3:15 PM", "15:15"). With `dropZeroMinutes` a 12-hour clock shows an hour on
- * the hour as "3 PM"; a 24-hour clock keeps "15:00", where a bare "15" would not read as a time.
+ * The locale's time ("3:15 PM", "15:15"), on a 24-hour clock when the user asked for one. With
+ * `dropZeroMinutes` a 12-hour clock shows an hour on the hour as "3 PM"; a 24-hour clock keeps
+ * "15:00", where a bare "15" would not read as a time.
  */
 export function formatTime(unix: number, dropZeroMinutes = false): string {
   const time = moment.unix(unix);
-  const lt = moment.localeData().longDateFormat('LT');
+  const lt = DateUtils.localeTimeFormat();
   if (dropZeroMinutes && /h/.test(lt) && time.minutes() === 0) {
     return time.format(lt.replace(/[:.]mm/, ''));
   }
