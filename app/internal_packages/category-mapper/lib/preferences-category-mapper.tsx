@@ -13,11 +13,13 @@ import CategorySelection from './category-selection';
 
 const SELECTABLE_ROLES = ['inbox', 'sent', 'drafts', 'spam', 'archive', 'trash'];
 
-// Gmail's system labels have fixed roles, which the sync engine sets again on every pass, so
-// a role chosen here would not last. Matches the engine's own imap.gmail.com check, which also
-// covers a Google account added as plain IMAP.
+// Gmail's system labels have fixed roles, which the sync engine sets again on every pass on any
+// server advertising X-GM-EXT-1, so a role chosen here would not last. The hosts cover a Google
+// account added as plain IMAP; imap.googlemail.com is Google's older name for the same server.
+const GMAIL_IMAP_HOSTS = ['imap.gmail.com', 'imap.googlemail.com'];
+
 function rolesAreFixedByServer(account: Account) {
-  return account.provider === 'gmail' || account.settings.imap_host === 'imap.gmail.com';
+  return account.provider === 'gmail' || GMAIL_IMAP_HOSTS.includes(account.settings.imap_host);
 }
 
 interface State {
