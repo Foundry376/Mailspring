@@ -439,6 +439,8 @@ function realignOccurrenceAnchors(
  * This implements the "upsert" behaviour: re-editing an existing exception replaces
  * the old VEVENT rather than adding a duplicate.
  *
+ * @returns The removed VEVENT, or null when the occurrence had none of its own
+ *
  * @param vcalendar - The VCALENDAR component to search within
  * @param targetMs - The expected RECURRENCE-ID moment in UTC milliseconds
  * @param recurrenceId - The formatted RECURRENCE-ID string (used as a string fallback)
@@ -451,7 +453,7 @@ function removeExistingExceptionVevent(
   recurrenceId: string,
   isAllDay: boolean,
   ical: ICAL
-): void {
+): ICALComponent | null {
   for (const existing of vcalendar.getAllSubcomponents('vevent')) {
     const ridValue = existing.getFirstPropertyValue('recurrence-id') as any;
     if (!ridValue) continue;
@@ -459,7 +461,7 @@ function removeExistingExceptionVevent(
     try {
       if (ridValue.toJSDate().getTime() === targetMs) {
         vcalendar.removeSubcomponent(existing);
-        break;
+        return existing;
       }
     } catch (_) {
       // Fallback: string comparison (e.g., if toJSDate throws for an unknown timezone)
@@ -471,10 +473,11 @@ function removeExistingExceptionVevent(
       const targetFormatted = recurrenceId.replace(/[^0-9TZ]/g, '');
       if (ridFormatted === targetFormatted || ridStr === recurrenceId) {
         vcalendar.removeSubcomponent(existing);
-        break;
+        return existing;
       }
     }
   }
+  return null;
 }
 
 /**
@@ -840,7 +843,9 @@ export function updateEventTimes(ics: string, options: UpdateTimesOptions): stri
  * be PUT to the same resource as a single update task.
  *
  * Upsert semantics: if a VEVENT with the same RECURRENCE-ID already exists in the
- * master VCALENDAR (e.g. re-editing an already-excepted occurrence), it is replaced.
+ * master VCALENDAR (e.g. re-editing an already-excepted occurrence), it is replaced by a copy of
+ * itself, so the occurrence keeps its earlier changes and SEQUENCE counts up from its own, which
+ * Google rejects going backwards.
  *
  * @param masterIcs - The master event's ICS data
  * @param originalOccurrenceStart - The original start time of the occurrence being modified (unix seconds)
@@ -886,16 +891,18 @@ export function createRecurrenceException(
   // accumulating duplicates. The helper compares by UTC milliseconds so TZID-formatted
   // and UTC-formatted RECURRENCE-IDs are recognised as the same moment.
   const targetMs = originalDate.getTime();
-  if (vcalendar) {
-    removeExistingExceptionVevent(vcalendar, targetMs, recurrenceId, isAllDay, ical);
-  }
+  const existingException = vcalendar
+    ? removeExistingExceptionVevent(vcalendar, targetMs, recurrenceId, isAllDay, ical)
+    : null;
 
-  // Deep-clone the master VEVENT for the exception.
+  // Deep-clone the existing exception, or else the master VEVENT, for the exception.
   // ical.Component.toJSON() returns a reference to the internal jCal array, NOT a copy.
   // Without JSON.parse/stringify the cloned component shares the same array as the master,
   // so every mutation below (removeAllProperties, updatePropertyWithValue, etc.) silently
   // mutates the master VEVENT too, producing two identical exception VEVENTs and no master.
-  const exceptionVevent = new ical.Component(JSON.parse(JSON.stringify(masterVevent.toJSON())));
+  const exceptionVevent = new ical.Component(
+    JSON.parse(JSON.stringify((existingException || masterVevent).toJSON()))
+  );
 
   // Remove recurrence rule and exclusion dates from the exception (it's a single instance)
   exceptionVevent.removeAllProperties('rrule');
@@ -909,7 +916,9 @@ export function createRecurrenceException(
   const recIdTime = isAllDay
     ? createAllDayTime(originalDate, ical)
     : ical.Time.fromJSDate(originalDate, true); // UTC → serializes as YYYYMMDDTHHMMSSz
-  exceptionVevent.updatePropertyWithValue('recurrence-id', recIdTime);
+  // Replaced rather than updated: a copied exception's TZID parameter must not stay on a UTC value.
+  exceptionVevent.removeAllProperties('recurrence-id');
+  exceptionVevent.addPropertyWithValue('recurrence-id', recIdTime);
 
   // Set new times on the exception (preserve timezone)
   const newStartDate = new Date(newStart * 1000);

@@ -10,6 +10,8 @@ import {
   createOccurrenceException,
   modifyAllOccurrences,
   modifyEventWithRecurringSupport,
+  modifyOccurrenceChange,
+  modifySeriesChange,
 } from '../internal_packages/main-calendar/lib/core/recurring-event-actions';
 
 // ---------------------------------------------------------------------------
@@ -895,5 +897,126 @@ describe('modifySimpleEventProperty', function () {
       expect(after.component.getFirstPropertyValue('sequence')).toBe(4);
       expect(queued.mostRecentCall.args[0]._opts.undoData.ics).toBe(FORMATTED_ICS);
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// modifyOccurrenceChange / modifySeriesChange
+// ---------------------------------------------------------------------------
+
+describe('changes to a series', function () {
+  // A weekly series whose second occurrence was already moved and renamed on its own.
+  const SERIES_ICS = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Test//Test//EN',
+    'BEGIN:VEVENT',
+    'UID:series-uid@test',
+    'DTSTART:20260302T150000Z',
+    'DTEND:20260302T160000Z',
+    'RRULE:FREQ=WEEKLY;COUNT=6',
+    'SUMMARY:Interview',
+    'LOCATION:Room 1',
+    'DTSTAMP:20260101T000000Z',
+    'SEQUENCE:2',
+    'END:VEVENT',
+    'BEGIN:VEVENT',
+    'UID:series-uid@test',
+    'RECURRENCE-ID:20260309T150000Z',
+    'DTSTART:20260309T170000Z',
+    'DTEND:20260309T180000Z',
+    'SUMMARY:Interview with Alex',
+    'LOCATION:Room 1',
+    'DTSTAMP:20260101T000000Z',
+    'SEQUENCE:5',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n');
+
+  const unix = (iso: string) => Date.parse(iso) / 1000;
+  const MOVED_SLOT = unix('2026-03-09T15:00:00Z');
+  const THIRD_SLOT = unix('2026-03-16T15:00:00Z');
+
+  let queued: jasmine.Spy;
+  beforeEach(function () {
+    queued = spyOn(Actions, 'queueTask');
+    spyOn(SyncbackEventTask, 'forUpdating').andCallFake((opts) => ({ _opts: opts }));
+  });
+
+  const vevents = (ics: string) =>
+    CalendarUtils.parseICSString(ics).root.getAllSubcomponents('vevent') as any[];
+  const master = (ics: string) => vevents(ics).find((v) => !v.getFirstProperty('recurrence-id'));
+  const at = (ics: string, slot: number) =>
+    vevents(ics).find(
+      (v) => v.getFirstPropertyValue('recurrence-id')?.toJSDate().getTime() / 1000 === slot
+    );
+  const startOf = (vevent: any) =>
+    vevent.getFirstPropertyValue('dtstart').toJSDate().getTime() / 1000;
+
+  it('keeps what an occurrence changed before and counts its SEQUENCE up from its own', function () {
+    const event = makeEvent(SERIES_ICS);
+
+    modifyOccurrenceChange(event, MOVED_SLOT, {
+      times: {
+        start: unix('2026-03-09T18:00:00Z'),
+        end: unix('2026-03-09T19:00:00Z'),
+        isAllDay: false,
+      },
+      edits: [{ property: 'location', value: 'Room 2' }],
+    });
+
+    const occurrence = at(event.ics, MOVED_SLOT);
+    expect(occurrence.getFirstPropertyValue('summary')).toBe('Interview with Alex');
+    expect(occurrence.getFirstPropertyValue('location')).toBe('Room 2');
+    expect(occurrence.getFirstPropertyValue('sequence')).toBe(6);
+    expect(vevents(event.ics).length).toBe(2);
+  });
+
+  it('writes this occurrence only to its own VEVENT, revising it alone', function () {
+    const event = makeEvent(SERIES_ICS);
+    const third = { start: THIRD_SLOT, end: THIRD_SLOT + 3600, isAllDay: false };
+
+    modifyOccurrenceChange(event, THIRD_SLOT, {
+      times: third,
+      edits: [
+        { property: 'summary', value: 'Interview with Jordan' },
+        { property: 'transp', value: 'TRANSPARENT' },
+      ],
+    });
+
+    expect(queued.callCount).toBe(1);
+    const occurrence = at(event.ics, THIRD_SLOT);
+    expect(occurrence.getFirstPropertyValue('summary')).toBe('Interview with Jordan');
+    expect(occurrence.getFirstPropertyValue('transp')).toBe('TRANSPARENT');
+    expect(occurrence.getFirstPropertyValue('location')).toBe('Room 1');
+    expect(startOf(occurrence)).toBe(THIRD_SLOT);
+    expect(occurrence.getFirstPropertyValue('sequence')).toBe(3);
+    const series = master(event.ics);
+    expect(series.getFirstPropertyValue('summary')).toBe('Interview');
+    expect(series.getFirstPropertyValue('sequence')).toBe(2);
+    expect(at(event.ics, MOVED_SLOT).getFirstPropertyValue('sequence')).toBe(5);
+  });
+
+  it("writes all occurrences to the series, moving it and the moved occurrence's slot with it", function () {
+    const event = makeEvent(SERIES_ICS);
+    const hourLater = 3600;
+
+    modifySeriesChange(event, THIRD_SLOT, {
+      times: { start: THIRD_SLOT + hourLater, end: THIRD_SLOT + 2 * hourLater, isAllDay: false },
+      edits: [
+        { property: 'summary', value: 'Interview loop' },
+        { property: 'rrule', value: 'FREQ=DAILY' },
+      ],
+    });
+
+    expect(queued.callCount).toBe(1);
+    const series = master(event.ics);
+    expect(series.getFirstPropertyValue('summary')).toBe('Interview loop');
+    expect(String(series.getFirstPropertyValue('rrule'))).toBe('FREQ=DAILY');
+    expect(startOf(series)).toBe(unix('2026-03-02T16:00:00Z'));
+    expect(series.getFirstPropertyValue('sequence')).toBe(3);
+    const moved = at(event.ics, MOVED_SLOT + hourLater);
+    expect(startOf(moved)).toBe(unix('2026-03-09T17:00:00Z'));
+    expect(moved.getFirstPropertyValue('sequence')).toBe(5);
   });
 });
