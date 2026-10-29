@@ -108,18 +108,10 @@ function applyPropertyEdit(ics: string, edit: EventPropertyEdit) {
 }
 
 /**
- * Changes one property of a simple (non-recurring) event and queues the syncback task. Every
+ * Writes a change's times and properties to a simple event and queues one syncback task. Every
  * other property is written back as stored, so editing the title leaves an invitation's
  * formatted description intact.
  */
-export function modifySimpleEventProperty(
-  event: Event,
-  edit: EventPropertyEdit
-): SyncbackEventTask {
-  return modifySimpleEventChange(event, { edits: [edit] });
-}
-
-/** Writes a change's times and properties to a simple event and queues one syncback task. */
 export function modifySimpleEventChange(
   event: Event,
   change: EventChange,
@@ -243,7 +235,6 @@ export function modifySeriesChange(
   return task;
 }
 
-/** Which occurrences of a series a change made to one of them is sent to. */
 export type ChangeScope = Exclude<RecurringEventChoice, 'cancel'>;
 
 /**

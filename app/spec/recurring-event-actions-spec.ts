@@ -5,11 +5,11 @@ import { Event as MailspringEvent } from '../src/flux/models/event';
 // We use a relative path because the plugin is not registered in mailspring-exports.
 import {
   modifySimpleEvent,
-  modifySimpleEventProperty,
   modifySimpleEventChange,
   createOccurrenceException,
   modifyAllOccurrences,
   modifyEventWithRecurringSupport,
+  modifyEventChange,
   modifyOccurrenceChange,
   modifySeriesChange,
 } from '../internal_packages/main-calendar/lib/core/recurring-event-actions';
@@ -800,10 +800,10 @@ describe('modifyEventWithRecurringSupport', function () {
 });
 
 // ---------------------------------------------------------------------------
-// modifySimpleEventProperty
+// modifySimpleEventChange
 // ---------------------------------------------------------------------------
 
-describe('modifySimpleEventProperty', function () {
+describe('modifySimpleEventChange', function () {
   // What Google writes: formatted notes, a location, and a guest list the edit must not touch.
   const FORMATTED_ICS = [
     'BEGIN:VCALENDAR',
@@ -835,7 +835,7 @@ describe('modifySimpleEventProperty', function () {
     const event = makeEvent(FORMATTED_ICS);
     const before = written(event);
 
-    modifySimpleEventProperty(event, { property: 'summary', value: 'Team Dinner' });
+    modifySimpleEventChange(event, { edits: [{ property: 'summary', value: 'Team Dinner' }] });
 
     const after = written(event);
     expect(after.summary).toBe('Team Dinner');
@@ -849,7 +849,7 @@ describe('modifySimpleEventProperty', function () {
     const event = makeEvent(FORMATTED_ICS);
     const before = written(event);
 
-    modifySimpleEventProperty(event, { property: 'rrule', value: 'FREQ=WEEKLY' });
+    modifySimpleEventChange(event, { edits: [{ property: 'rrule', value: 'FREQ=WEEKLY' }] });
 
     const after = written(event);
     expect(String(after.component.getFirstPropertyValue('rrule'))).toBe('FREQ=WEEKLY');
@@ -860,7 +860,7 @@ describe('modifySimpleEventProperty', function () {
   it('queues one update that can undo back to the event as it was', function () {
     const event = makeEvent(FORMATTED_ICS);
 
-    modifySimpleEventProperty(event, { property: 'location', value: 'Room 2' });
+    modifySimpleEventChange(event, { edits: [{ property: 'location', value: 'Room 2' }] });
 
     expect(queued.callCount).toBe(1);
     const { _opts } = queued.mostRecentCall.args[0];
@@ -868,7 +868,7 @@ describe('modifySimpleEventProperty', function () {
     expect(_opts.undoData.ics).toBe(FORMATTED_ICS);
   });
 
-  describe('modifySimpleEventChange', function () {
+  describe('with new times', function () {
     const NEW_START = Date.UTC(2026, 2, 2, 16, 0) / 1000;
     const NEW_END = Date.UTC(2026, 2, 2, 17, 0) / 1000;
 
@@ -970,6 +970,20 @@ describe('changes to a series', function () {
     expect(occurrence.getFirstPropertyValue('location')).toBe('Room 2');
     expect(occurrence.getFirstPropertyValue('sequence')).toBe(6);
     expect(vevents(event.ics).length).toBe(2);
+  });
+
+  it("keeps a moved occurrence's own time when only its title is saved", function () {
+    const event = makeEvent(SERIES_ICS);
+
+    modifyEventChange(
+      event,
+      { slot: MOVED_SLOT, edits: [{ property: 'summary', value: 'Interview with Jordan' }] },
+      'this-occurrence'
+    );
+
+    const occurrence = at(event.ics, MOVED_SLOT);
+    expect(occurrence.getFirstPropertyValue('summary')).toBe('Interview with Jordan');
+    expect(startOf(occurrence)).toBe(unix('2026-03-09T17:00:00Z'));
   });
 
   it('writes this occurrence only to its own VEVENT, revising it alone', function () {
