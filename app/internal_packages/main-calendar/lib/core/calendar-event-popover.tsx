@@ -26,6 +26,7 @@ import { EventAttendeesInput } from './event-attendees-input';
 import {
   EventOccurrence,
   EventAttendee,
+  occurrenceSlot,
   occurrenceStartUnix,
   occurrenceEndUnix,
 } from './calendar-data-source';
@@ -62,8 +63,6 @@ interface CalendarEventPopoverProps {
   event: EventOccurrence;
   /** When true, the popover opens in edit mode to create a new event */
   isNewEvent?: boolean;
-  /** Open straight into the editor rather than the read-only card. */
-  startEditing?: boolean;
   /** Available calendars (required when isNewEvent is true) */
   calendars?: Calendar[];
   /** Available accounts (required when isNewEvent is true) */
@@ -127,7 +126,7 @@ export class CalendarEventPopover extends React.Component<
       end,
       location,
       title,
-      editing: !!this.props.isNewEvent || !!this.props.startEditing,
+      editing: !!this.props.isNewEvent,
       attendees,
       // Initialize new fields with defaults
       allDay: isAllDay || false,
@@ -217,12 +216,6 @@ export class CalendarEventPopover extends React.Component<
     await this._loadEditDefaults();
     this.setState({ editing: true });
   };
-
-  componentDidMount() {
-    if (this.props.startEditing && !this.props.isNewEvent) {
-      this._loadEditDefaults();
-    }
-  }
 
   componentWillUnmount() {
     this.props.onClosed?.();
@@ -429,14 +422,7 @@ export class CalendarEventPopover extends React.Component<
       recurrenceEnd: masterEvent.recurrenceEnd,
     };
 
-    // The original occurrence start time — i.e., the time the RRULE generates for this slot.
-    // For a first-time exception this equals event.start (the occurrence's normal time).
-    // For a re-edit of an existing exception, event.start is the *moved* time, so we use
-    // recurrenceIdStart instead (the RECURRENCE-ID value = the original unmodified time).
-    // This ensures the upsert in createRecurrenceException finds and replaces the existing
-    // inline exception VEVENT rather than creating a duplicate.
-    const originalOccurrenceStart =
-      this.props.event.recurrenceIdStart ?? occurrenceStartUnix(this.props.event);
+    const originalOccurrenceStart = occurrenceSlot(this.props.event);
 
     // Embed the exception VEVENT inline in the master VCALENDAR with new times
     const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(

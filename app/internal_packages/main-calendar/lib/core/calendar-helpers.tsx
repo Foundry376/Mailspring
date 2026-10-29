@@ -573,15 +573,10 @@ export function hasGuests(event: EventOccurrence): boolean {
   );
 }
 
-/** Whether the event panel edits this event in place: our own event on a writable calendar. */
 export function canEditInPanel(event: EventOccurrence, isCalendarReadOnly: boolean): boolean {
   return !isCalendarReadOnly && event.isMine;
 }
 
-/**
- * An occurrence of a series that hasn't been changed on its own: an edit to it waits until the
- * user picks which occurrences it applies to.
- */
 export function asksScope(event: EventOccurrence): boolean {
   return event.isRecurring && !event.isException;
 }

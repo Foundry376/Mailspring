@@ -14,7 +14,12 @@ import {
 import React from 'react';
 import ICAL from 'ical.js';
 import { ProposeTimePopover } from 'mailspring-component-kit';
-import { EventOccurrence, occurrenceStartUnix, occurrenceEndUnix } from './calendar-data-source';
+import {
+  EventOccurrence,
+  occurrenceSlot,
+  occurrenceStartUnix,
+  occurrenceEndUnix,
+} from './calendar-data-source';
 import { formatCalendarDate } from '../../../../src/calendar-date';
 import { showRecurringEventDialog } from './recurring-event-dialog';
 
@@ -175,7 +180,7 @@ export async function recordAndSendRSVP({
  */
 export function occurrenceRecurrenceId(occurrence: EventOccurrence): ICAL.Time | null {
   if (!occurrence.isRecurring && !occurrence.isException) return null;
-  const originalStart = occurrence.recurrenceIdStart ?? occurrenceStartUnix(occurrence);
+  const originalStart = occurrenceSlot(occurrence);
   return occurrence.isAllDay
     ? ICAL.Time.fromDateString(formatCalendarDate(occurrence.startDate))
     : ICAL.Time.fromJSDate(new Date(originalStart * 1000), true);

@@ -603,7 +603,6 @@ export class MailspringCalendar extends React.Component<
     return canEditInPanel(occurrence, this._isCalendarReadOnly(occurrence.calendarId));
   }
 
-  /** Puts the cursor in the panel's title. */
   _editEvent(occurrence: EventOccurrence) {
     if (!this._isEditable(occurrence)) return;
     this._select([occurrence]);
@@ -1276,10 +1275,7 @@ export class MailspringCalendar extends React.Component<
       // Use shared utility for recurring event support (shows dialog if needed)
       const options: EventTimeChangeOptions = {
         event,
-        // For inline exceptions, use the RECURRENCE-ID value (recurrenceIdStart), NOT the
-        // exception's moved DTSTART (start). Using start would produce the wrong RECURRENCE-ID
-        // in the new exception, causing the upsert to miss the existing one and leave a duplicate.
-        originalOccurrenceStart: occurrence.recurrenceIdStart ?? occStart,
+        originalOccurrenceStart: occurrenceSlot(occurrence),
         newStart,
         newEnd,
         isAllDay: occurrence.isAllDay,
@@ -1345,11 +1341,7 @@ export class MailspringCalendar extends React.Component<
       // Use shared utility for the modification logic (includes undo support)
       const options: EventTimeChangeOptions = {
         event,
-        // For inline exceptions, use the RECURRENCE-ID value (recurrenceIdStart), NOT the
-        // exception's moved DTSTART (start). Using start would produce the wrong RECURRENCE-ID
-        // in the new exception, causing the upsert to miss the existing one and leave a duplicate.
-        originalOccurrenceStart:
-          dragState.event.recurrenceIdStart ?? occurrenceStartUnix(dragState.event),
+        originalOccurrenceStart: occurrenceSlot(dragState.event),
         newStart,
         newEnd,
         isAllDay,
@@ -1502,6 +1494,9 @@ export class MailspringCalendar extends React.Component<
     }
     const event = this._panelEvent();
     const eventId = event && CalendarUtils.parseOccurrenceId(event.id).eventId;
+    // A series' occurrences share an event id, but not a field's just-saved text. The slot
+    // survives a move, so moving an occurrence doesn't remount it.
+    const panelKey = event?.isRecurring ? `${eventId}@${occurrenceSlot(event)}` : eventId;
     const { unsentChange } = this.state;
     return (
       <ResizableRegion
@@ -1522,7 +1517,7 @@ export class MailspringCalendar extends React.Component<
           {event && (
             <EventPanel
               ref={this._eventPanel}
-              key={eventId}
+              key={panelKey}
               event={event}
               unsentChange={isUnsentChangeFor(unsentChange, event) ? unsentChange : null}
               onUnsentChange={this._onUnsentChange}
