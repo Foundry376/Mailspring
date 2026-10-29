@@ -512,6 +512,32 @@ class AttachmentStore extends MailspringStore {
     }
   }
 
+  // Public: Gives a new draft (forward, send again) its own copy of each file, under a new id,
+  // so removing an attachment from the draft or purging the original message's files leaves
+  // the other intact. A file that is not on disk, or fails to copy, is returned unchanged.
+  async copyFilesForDraft(files: File[]): Promise<File[]> {
+    return Promise.all(
+      files.map(async (original) => {
+        const copy = original.clone();
+        copy.id = Utils.generateTempId();
+        copy.messageId = null;
+        try {
+          const sourcePath = await this.resolvePathForFile(original);
+          if (!(await fileAccessibleAtPath(sourcePath))) {
+            return original;
+          }
+          const targetPath = this.pathForFile(copy);
+          await _fs.promises.mkdir(path.dirname(targetPath), { recursive: true });
+          // Copy-on-write clone on APFS, btrfs and ReFS; a plain copy elsewhere.
+          await _fs.promises.copyFile(sourcePath, targetPath, _fs.constants.COPYFILE_FICLONE);
+          return copy;
+        } catch (err) {
+          return original;
+        }
+      })
+    );
+  }
+
   _onRemoveAttachment = async (headerMessageId: string, fileToRemove: File) => {
     if (!fileToRemove) {
       return;
