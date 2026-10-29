@@ -11,6 +11,7 @@ import { EventPanel } from '../internal_packages/main-calendar/lib/core/event-pa
 import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
 import * as UnsentChangeDialog from '../internal_packages/main-calendar/lib/core/unsent-change-dialog';
+import { withUnsentChange } from '../internal_packages/main-calendar/lib/core/unsent-change';
 
 const START = Date.UTC(2026, 9, 27, 15, 0, 0) / 1000;
 const HOUR = 3600;
@@ -342,5 +343,73 @@ describe('editing in the panel', function () {
 
     expect(queueTask).not.toHaveBeenCalled();
     expect(onUnsentChange).toHaveBeenCalledWith({ eventId: 'e1', edits: [], times });
+  });
+});
+
+describe('a repeating event', function () {
+  const DAY = 86400;
+  const series = new Event({
+    id: 'r1',
+    accountId: 'a',
+    calendarId: 'c',
+    icsuid: 'r1@test',
+    ics: [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Test//Test//EN',
+      'BEGIN:VEVENT',
+      'UID:r1@test',
+      `DTSTART:${stamp(START)}`,
+      `DTEND:${stamp(START + HOUR)}`,
+      'RRULE:FREQ=DAILY;COUNT=5',
+      'SUMMARY:Interview',
+      'DTSTAMP:20261001T000000Z',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n'),
+    recurrenceStart: START,
+    recurrenceEnd: START + 4 * DAY + HOUR,
+  } as any);
+
+  const occurrenceOn = (day: number): TimedOccurrence => ({
+    ...withoutGuests,
+    id: CalendarUtils.occurrenceId('r1', START + day * DAY),
+    isRecurring: true,
+    start: START + day * DAY,
+    end: START + day * DAY + HOUR,
+  });
+  const first = occurrenceOn(0);
+  const second = occurrenceOn(1);
+  const hourLater = { start: START + HOUR, end: START + 2 * HOUR, isAllDay: false };
+  const heldMove = { eventId: 'r1', slot: START, edits: [], times: hourLater };
+
+  let queueTask: jasmine.Spy;
+  let dialog: jasmine.Spy;
+  let stored: { [id: string]: Event };
+
+  beforeEach(function () {
+    stored = { e1: new Event(row.toJSON()), r1: new Event(series.toJSON()) };
+    queueTask = spyOn(Actions, 'queueTask');
+    spyOn(TaskQueue, 'waitForPerformLocal').andReturn(Promise.resolve());
+    spyOn(DatabaseStore, 'find').andCallFake((_klass, id) => Promise.resolve(stored[id]));
+    spyOn(AppEnv.config, 'set');
+    dialog = spyOn(UnsentChangeDialog, 'showUnsentChangeDialog');
+  });
+
+  it('draws a held change on the occurrence it was made to only', function () {
+    const [drawnFirst, drawnSecond] = withUnsentChange([first, second], heldMove);
+    expect((drawnFirst as TimedOccurrence).start).toBe(START + HOUR);
+    expect(drawnSecond).toBe(second);
+  });
+
+  it('asks before leaving for another occurrence of the same series', function () {
+    const calendar = calendarWith([first]);
+    calendar.state.unsentChange = heldMove;
+    dialog.andReturn('keep-editing');
+
+    calendar._select([second]);
+
+    expect(dialog).toHaveBeenCalled();
+    expect(calendar.state.selectedEvents).toEqual([first]);
   });
 });

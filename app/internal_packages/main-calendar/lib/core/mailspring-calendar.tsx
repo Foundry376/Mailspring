@@ -37,6 +37,7 @@ import {
   ownCalendarAddresses,
   occurrenceStartUnix,
   occurrenceEndUnix,
+  occurrenceSlot,
   occurrenceTimes,
 } from './calendar-data-source';
 import { CalendarEventContextMenu } from './calendar-event-context-menu';
@@ -83,7 +84,7 @@ import {
   modifySimpleEventChange,
   EventTimeChangeOptions,
 } from './recurring-event-actions';
-import { UnsentChange, withTimes, withUnsentChange } from './unsent-change';
+import { UnsentChange, isUnsentChangeFor, withTimes, withUnsentChange } from './unsent-change';
 import { showUnsentChangeDialog } from './unsent-change-dialog';
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
@@ -289,12 +290,11 @@ export class MailspringCalendar extends React.Component<
   _holdTimes(occurrence: EventOccurrence, times: ReturnType<typeof occurrenceTimes>) {
     const stored = this._storedOccurrence(occurrence);
     if (!holdsEdits(stored, this._isCalendarReadOnly(stored.calendarId))) return false;
-    const { eventId } = CalendarUtils.parseOccurrenceId(stored.id);
     const { unsentChange } = this.state;
     if (!this._select([stored])) return true;
     // Another event's change was just sent or discarded, though state may not show it yet.
-    const change = unsentChange?.eventId === eventId ? unsentChange : null;
-    this.setState({ unsentChange: withTimes(change, eventId, times, occurrenceTimes(stored)) });
+    const change = isUnsentChangeFor(unsentChange, stored) ? unsentChange : null;
+    this.setState({ unsentChange: withTimes(change, stored, times, occurrenceTimes(stored)) });
     return true;
   }
 
@@ -306,9 +306,7 @@ export class MailspringCalendar extends React.Component<
   _leavesUnsentChange(next: EventOccurrence[]) {
     const change = this.state.unsentChange;
     if (!change || this._sending?.change === change) return false;
-    return !(
-      next.length === 1 && CalendarUtils.parseOccurrenceId(next[0].id).eventId === change.eventId
-    );
+    return !(next.length === 1 && isUnsentChangeFor(change, next[0]));
   }
 
   _mayLeave(next: EventOccurrence[]) {
@@ -322,9 +320,7 @@ export class MailspringCalendar extends React.Component<
 
   _unsentChangeTitle() {
     const { unsentChange, selectedEvents } = this.state;
-    const event = selectedEvents.find(
-      (o) => CalendarUtils.parseOccurrenceId(o.id).eventId === unsentChange?.eventId
-    );
+    const event = selectedEvents.find((o) => isUnsentChangeFor(unsentChange, o));
     return event?.title ?? '';
   }
 
@@ -436,8 +432,7 @@ export class MailspringCalendar extends React.Component<
     if (pending && event.ics === pending.staleIcs) return occurrence;
     this._pendingMoves.delete(occurrence.id);
 
-    const slotOf = (o: EventOccurrence) => o.recurrenceIdStart ?? occurrenceStartUnix(o);
-    const slot = slotOf(occurrence);
+    const slot = occurrenceSlot(occurrence);
     const start = pending ? pending.start : occurrenceStartUnix(occurrence);
     // The expander stops at the first regular occurrence past the range, so an exception moved
     // in from a later slot is reached only when the range runs to that slot.
@@ -449,7 +444,7 @@ export class MailspringCalendar extends React.Component<
       ownCalendarAddresses: ownCalendarAddresses(this.state.calendars),
     }).filter((o) => o.id === occurrence.id);
     // An occurrence moved onto another's start shares its id; their slots tell them apart.
-    const current = sameId.find((o) => slotOf(o) === slot) || sameId[0];
+    const current = sameId.find((o) => occurrenceSlot(o) === slot) || sameId[0];
     if (current || pending || occurrence.isRecurring) return current || null;
     // Retimed elsewhere (the editor, another device): a one-off event is still its only occurrence.
     const all = occurrencesForEvents([event], {
@@ -1535,7 +1530,7 @@ export class MailspringCalendar extends React.Component<
               ref={this._eventPanel}
               key={eventId}
               event={event}
-              unsentChange={unsentChange?.eventId === eventId ? unsentChange : null}
+              unsentChange={isUnsentChangeFor(unsentChange, event) ? unsentChange : null}
               onUnsentChange={this._onUnsentChange}
               onSendUnsentChange={this._sendUnsentChange}
               calendar={this.state.calendars.find((c) => c.id === event.calendarId)}

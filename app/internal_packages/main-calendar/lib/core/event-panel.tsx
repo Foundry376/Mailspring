@@ -211,10 +211,6 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     return holdsEdits(this.props.event, this.props.isCalendarReadOnly);
   }
 
-  _eventId() {
-    return CalendarUtils.parseOccurrenceId(this.props.event.id).eventId;
-  }
-
   _save(write: (row: Event) => SyncbackEventTask) {
     this._saving = this._saving
       .then(async () => {
@@ -229,7 +225,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     if (this._holdsEdits()) {
       const { unsentChange, onUnsentChange } = this.props;
       onUnsentChange(
-        withEdit(unsentChange, this._eventId(), edit, this._storedValue(edit.property))
+        withEdit(unsentChange, this.props.event, edit, this._storedValue(edit.property))
       );
     } else {
       this._save((row) => modifySimpleEventProperty(row, edit));
@@ -304,7 +300,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     if (this._holdsEdits()) {
       const { unsentChange, onUnsentChange } = this.props;
       this.setState({ times: null });
-      onUnsentChange(withTimes(unsentChange, this._eventId(), times, this._storedTimes()));
+      onUnsentChange(withTimes(unsentChange, this.props.event, times, this._storedTimes()));
       return;
     }
     const originalOccurrenceStart = occurrenceStartUnix(this.props.event);
