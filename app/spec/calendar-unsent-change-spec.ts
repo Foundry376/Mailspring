@@ -482,4 +482,21 @@ describe('a repeating event', function () {
       expect(calendar.state.selectedEvents[0].isException).toBe(false);
     });
   });
+
+  it("writes the whole series on the quit dialog's All occurrences", async function () {
+    const calendar = calendarWith([first]);
+    calendar.state.unsentChange = heldMove;
+    dialog.andReturn('all-occurrences');
+    const ready = jasmine.createSpy('readyToUnload');
+
+    expect(calendar._onBeforeUnload(ready)).toBe(false);
+    await settle();
+
+    expect(dialog.mostRecentCall.args[2]).toEqual({ canKeepEditing: false });
+    expect(queueTask.calls.length).toBe(1);
+    const { event } = queueTask.mostRecentCall.args[0];
+    const master = CalendarUtils.parseICSString(event.ics).event;
+    expect(master.startDate.toJSDate().getTime() / 1000).toBe(START + HOUR);
+    expect(ready).toHaveBeenCalled();
+  });
 });

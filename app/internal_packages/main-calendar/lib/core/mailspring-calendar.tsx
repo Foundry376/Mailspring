@@ -312,17 +312,16 @@ export class MailspringCalendar extends React.Component<
 
   _mayLeave(next: EventOccurrence[]) {
     if (!this._leavesUnsentChange(next)) return true;
-    const choice = showUnsentChangeDialog(this.state.unsentChange, this._unsentChangeTitle());
+    const choice = showUnsentChangeDialog(this.state.unsentChange, this._unsentChangeEvent());
     if (choice === 'keep-editing') return false;
     if (choice === 'send') this._sendUnsentChange();
     else this.setState({ unsentChange: null });
     return true;
   }
 
-  _unsentChangeTitle() {
+  _unsentChangeEvent() {
     const { unsentChange, selectedEvents } = this.state;
-    const event = selectedEvents.find((o) => isUnsentChangeFor(unsentChange, o));
-    return event?.title ?? '';
+    return selectedEvents.find((o) => isUnsentChangeFor(unsentChange, o));
   }
 
   // Quitting can't be stopped, and the sync engine is stopped once every callback is ready.
@@ -330,14 +329,14 @@ export class MailspringCalendar extends React.Component<
     let sent = this._sending?.done;
     if (!sent) {
       if (!this._leavesUnsentChange([])) return true;
-      const choice = showUnsentChangeDialog(this.state.unsentChange, this._unsentChangeTitle(), {
+      const choice = showUnsentChangeDialog(this.state.unsentChange, this._unsentChangeEvent(), {
         canKeepEditing: false,
       });
       if (choice === 'discard') {
         this.setState({ unsentChange: null });
         return true;
       }
-      sent = this._sendUnsentChange();
+      sent = this._sendUnsentChange(choice === 'send' ? undefined : (choice as ChangeScope));
     }
     Promise.race([sent, new Promise((r) => setTimeout(r, 700))]).then(readyToUnload, readyToUnload);
     return false;
