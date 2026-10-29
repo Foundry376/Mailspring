@@ -1,6 +1,6 @@
 import { getCurrentLocale, localized } from 'mailspring-exports';
 import { ChangeScope, EventPropertyEdit } from './recurring-event-actions';
-import { UnsentChange, unsentEdit } from './unsent-change';
+import { UnsentChange, scopeLabel, scopesFor } from './unsent-change';
 import { EventOccurrence } from './calendar-data-source';
 import { asksScope } from './calendar-helpers';
 
@@ -17,8 +17,7 @@ const changedName = (property: EventPropertyEdit['property']) =>
 
 /**
  * Asks what to do with a held change before leaving its event. Quitting can't be stopped, so
- * there it can't keep editing. A series' change is saved from the panel, where its scope is
- * picked, except on quit, which asks for the scope here.
+ * there it can't keep editing, and a series' scope is asked here rather than in the panel.
  */
 export function showUnsentChangeDialog(
   change: UnsentChange,
@@ -35,12 +34,10 @@ export function showUnsentChangeDialog(
   let message: string;
   let detail: string;
   if (event && asksScope(event)) {
-    const scopes: [UnsentChangeChoice, string][] = [
-      ['this-occurrence', localized('This occurrence only')],
-      ['all-occurrences', localized('All occurrences')],
-    ];
-    // One occurrence can't carry a repeat rule of its own.
-    if (unsentEdit(change, 'rrule')) scopes.shift();
+    const scopes = scopesFor(change).map((scope): [UnsentChangeChoice, string] => [
+      scope,
+      scopeLabel(scope),
+    ]);
     choices = [...(canKeepEditing ? [] : scopes), ['discard', localized('Discard')]];
     message = localized('"%@" has unsaved changes.', title);
     detail = canKeepEditing

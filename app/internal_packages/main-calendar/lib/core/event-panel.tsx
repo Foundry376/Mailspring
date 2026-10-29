@@ -55,7 +55,15 @@ import {
 } from './calendar-rsvp';
 import { ChangeScope, EventPropertyEdit } from './recurring-event-actions';
 import { EventPanelTextField } from './event-panel-text-field';
-import { UnsentChange, emptyChange, unsentEdit, withEdit, withTimes } from './unsent-change';
+import {
+  UnsentChange,
+  emptyChange,
+  scopeLabel,
+  scopesFor,
+  unsentEdit,
+  withEdit,
+  withTimes,
+} from './unsent-change';
 
 const REPEAT_OPTIONS: RepeatOption[] = ['none', 'daily', 'weekly', 'monthly', 'yearly'];
 
@@ -78,7 +86,6 @@ interface EventPanelProps {
   unsentChange: UnsentChange | null;
   onUnsentChange: (change: UnsentChange | null) => void;
   onSendUnsentChange: (scope: ChangeScope) => void;
-  /** Writes a change the panel doesn't hold, resolving once it's written. */
   onSaveChange: (change: UnsentChange) => Promise<void>;
 }
 
@@ -768,30 +775,23 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
-  // One occurrence can't carry a repeat rule of its own.
   _renderScopeButtons(change: UnsentChange) {
     const { event, onSendUnsentChange } = this.props;
-    const seriesOnly = !!unsentEdit(change, 'rrule');
     return (
       <>
         {hasGuests(event) && (
           <div className="event-panel-subtle">{localized('Guests will be emailed.')}</div>
         )}
         <div className="event-panel-change-buttons stacked">
-          {!seriesOnly && (
+          {scopesFor(change).map((scope, i) => (
             <button
-              className="btn btn-emphasis"
-              onClick={() => onSendUnsentChange('this-occurrence')}
+              key={scope}
+              className={`btn ${i === 0 ? 'btn-emphasis' : ''}`}
+              onClick={() => onSendUnsentChange(scope)}
             >
-              {localized('This occurrence only')}
+              {scopeLabel(scope)}
             </button>
-          )}
-          <button
-            className={`btn ${seriesOnly ? 'btn-emphasis' : ''}`}
-            onClick={() => onSendUnsentChange('all-occurrences')}
-          >
-            {localized('All occurrences')}
-          </button>
+          ))}
           {this._renderDiscardButton()}
         </div>
       </>

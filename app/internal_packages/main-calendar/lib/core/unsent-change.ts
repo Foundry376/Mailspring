@@ -1,20 +1,15 @@
-import { CalendarUtils } from 'mailspring-exports';
-import { EventChange, EventPropertyEdit } from './recurring-event-actions';
+import { CalendarUtils, localized } from 'mailspring-exports';
+import { ChangeScope, EventChange, EventPropertyEdit } from './recurring-event-actions';
 import { EventOccurrence, occurrenceAt, occurrenceSlot } from './calendar-data-source';
 
 type Times = NonNullable<EventChange['times']>;
 
-/**
- * Edits made in the panel to one event, held until they're sent as one update when guests would be
- * emailed or a series needs a scope picked, and otherwise saved straight away.
- */
+/** Edits made in the panel to one event, sent as one update. */
 export interface UnsentChange extends EventChange {
   eventId: string;
-  /** The occurrence of a series the edits were made to, by its `occurrenceSlot`. */
   slot?: number;
 }
 
-/** Whether `change` was made to this occurrence, which a series shares its event with. */
 export function isUnsentChangeFor(change: UnsentChange | null, occurrence: EventOccurrence) {
   return (
     !!change &&
@@ -23,12 +18,22 @@ export function isUnsentChangeFor(change: UnsentChange | null, occurrence: Event
   );
 }
 
-/** A change to this occurrence with nothing in it yet. */
 export function emptyChange(occurrence: EventOccurrence): UnsentChange {
   const { eventId } = CalendarUtils.parseOccurrenceId(occurrence.id);
   return occurrence.isRecurring
     ? { eventId, slot: occurrenceSlot(occurrence), edits: [] }
     : { eventId, edits: [] };
+}
+
+/** The occurrences a series' change may go to: one occurrence can't carry a repeat rule of its own. */
+export function scopesFor(change: UnsentChange): ChangeScope[] {
+  return unsentEdit(change, 'rrule') ? ['all-occurrences'] : ['this-occurrence', 'all-occurrences'];
+}
+
+export function scopeLabel(scope: ChangeScope) {
+  return scope === 'this-occurrence'
+    ? localized('This occurrence only')
+    : localized('All occurrences');
 }
 
 function unlessEmpty(change: UnsentChange): UnsentChange | null {

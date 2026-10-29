@@ -497,6 +497,24 @@ describe('a repeating event', function () {
     });
   });
 
+  it('offers the quit dialog only the scopes a change can go to, returning the one picked', function () {
+    dialog.andCallThrough();
+    const box = spyOn(require('@electron/remote').dialog, 'showMessageBoxSync').andReturn(1);
+    const ask = (edits: any[]) =>
+      UnsentChangeDialog.showUnsentChangeDialog({ ...heldMove, edits }, first, {
+        canKeepEditing: false,
+      });
+
+    expect(ask([])).toBe('all-occurrences');
+    expect(box.mostRecentCall.args[0].buttons).toEqual([
+      'This occurrence only',
+      'All occurrences',
+      'Discard',
+    ]);
+    expect(ask([{ property: 'rrule', value: 'FREQ=WEEKLY' }])).toBe('discard');
+    expect(box.mostRecentCall.args[0].buttons).toEqual(['All occurrences', 'Discard']);
+  });
+
   it("writes the whole series on the quit dialog's All occurrences", async function () {
     const calendar = calendarWith([first]);
     calendar.state.unsentChange = heldMove;
