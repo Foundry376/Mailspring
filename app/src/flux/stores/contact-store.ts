@@ -37,7 +37,7 @@ class ContactStore extends MailspringStore {
   // Returns an {Array} of matching {Contact} models
   //
   searchContacts(_search: string, options: { limit?: number } = {}) {
-    const limit = Math.max(options.limit ? options.limit : 5, 0);
+    const limit = Math.max(options.limit ? options.limit : 10, 0);
     const search = _search.toLowerCase();
 
     const accountCount = AccountStore.accounts().length;
