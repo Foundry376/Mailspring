@@ -7,12 +7,18 @@ import {
   Category,
   Actions,
   ChangeRoleMappingTask,
-  Folder,
 } from 'mailspring-exports';
 
 import CategorySelection from './category-selection';
 
 const SELECTABLE_ROLES = ['inbox', 'sent', 'drafts', 'spam', 'archive', 'trash'];
+
+// Gmail's system labels have fixed roles, which the sync engine sets again on every pass, so
+// a role chosen here would not last. Matches the engine's own imap.gmail.com check, which also
+// covers a Google account added as plain IMAP.
+function rolesAreFixedByServer(account: Account) {
+  return account.provider === 'gmail' || account.settings.imap_host === 'imap.gmail.com';
+}
 
 interface State {
   assignments: {
@@ -89,23 +95,14 @@ export default class PreferencesCategoryMapper extends React.Component<
       // Account may not have completed an initial sync yet
       return false;
     }
-    if (account.provider === 'gmail' && role === 'archive') {
-      return false;
-    }
-
-    let all = this.state.all[account.id];
-    const allowLabels = account.usesLabels() && role !== 'trash' && role !== 'spam';
-    if (!allowLabels) all = all.filter((c) => c instanceof Folder);
-
     return (
       <div className="role-section" key={`${account.id}-${role}`}>
         <div className="col-left">{Category.LocalizedStringForRole[role]}:</div>
         <div className="col-right">
           <CategorySelection
-            all={all}
+            all={this.state.all[account.id]}
             current={assignments[role]}
             onSelect={(category) => this._onCategorySelection(account, role, category)}
-            allowLabels={allowLabels}
           />
         </div>
       </div>
@@ -122,12 +119,14 @@ export default class PreferencesCategoryMapper extends React.Component<
           onBlur={(e) => this._updateContainerFolderDefault()}
           onChange={(e) => this.setState({ containerFolderDefault: e.target.value })}
         />
-        {AccountStore.accounts().map((account) => (
-          <div key={account.id}>
-            <div className="account-section-title">{account.label}</div>
-            {SELECTABLE_ROLES.map((role) => this._renderRoleSection(account, role))}
-          </div>
-        ))}
+        {AccountStore.accounts()
+          .filter((account) => !rolesAreFixedByServer(account))
+          .map((account) => (
+            <div key={account.id}>
+              <div className="account-section-title">{account.label}</div>
+              {SELECTABLE_ROLES.map((role) => this._renderRoleSection(account, role))}
+            </div>
+          ))}
       </div>
     );
   }
