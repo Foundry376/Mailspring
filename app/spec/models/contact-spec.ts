@@ -157,6 +157,39 @@ describe('Contact', function () {
     expect(c3.fullName()).toBe('Ricky Bobby von Smith (Awesome Employee)');
   });
 
+  it('does not mistake a suffix after a comma for last, first', function () {
+    const c1 = new Contact({ name: 'Jane Doe, MD' });
+    expect(c1.firstName()).toBe('Jane');
+    expect(c1.lastName()).toBe('Doe');
+
+    const c2 = new Contact({ name: 'John Smith, Jr.' });
+    expect(c2.fullName()).toBe('John Smith');
+
+    const c3 = new Contact({ name: 'Jane Doe, M.D., Ph.D.' });
+    expect(c3.fullName()).toBe('Jane Doe');
+
+    const c4 = new Contact({ name: 'Doe, John, Jr.' });
+    expect(c4.firstName()).toBe('John');
+    expect(c4.lastName()).toBe('Doe');
+
+    const c5 = new Contact({ name: 'Kumar, V' });
+    expect(c5.firstName()).toBe('V');
+    expect(c5.lastName()).toBe('Kumar');
+
+    const c6 = new Contact({ name: 'Kumar, V.' });
+    expect(c6.firstName()).toBe('V.');
+    expect(c6.lastName()).toBe('Kumar');
+
+    const c7 = new Contact({ name: 'Rahman, Md' });
+    expect(c7.firstName()).toBe('Md');
+    expect(c7.lastName()).toBe('Rahman');
+  });
+
+  it('strips dotted suffixes like Ph.D.', function () {
+    const c1 = new Contact({ name: 'John Smith Ph.D.' });
+    expect(c1.lastName()).toBe('Smith');
+  });
+
   it('should properly return `You` as the display name for the current user', function () {
     const c1 = new Contact({ name: ' Test Monkey', email: this.account.emailAddress });
     expect(c1.displayName()).toBe('You (tester@mailspring.com)');
