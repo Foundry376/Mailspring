@@ -396,6 +396,13 @@ describe('a repeating event', function () {
     dialog = spyOn(UnsentChangeDialog, 'showUnsentChangeDialog');
   });
 
+  // The sync engine writes what was queued, and the selection refreshes from it.
+  async function written(calendar: any) {
+    const { event } = queueTask.mostRecentCall.args[0];
+    stored[event.id] = event;
+    await calendar._refreshSelectedEvents();
+  }
+
   it('draws a held change on the occurrence it was made to only', function () {
     const [drawnFirst, drawnSecond] = withUnsentChange([first, second], heldMove);
     expect((drawnFirst as TimedOccurrence).start).toBe(START + HOUR);
@@ -411,5 +418,47 @@ describe('a repeating event', function () {
 
     expect(dialog).toHaveBeenCalled();
     expect(calendar.state.selectedEvents).toEqual([first]);
+  });
+
+  describe('after Send', function () {
+    it('keeps a one-off selected once a new time and Repeat: Daily make it a series', async function () {
+      const calendar = calendarWith([withGuests]);
+      calendar.state.unsentChange = {
+        eventId: 'e1',
+        edits: [{ property: 'rrule', value: 'FREQ=DAILY' }],
+        times: hourLater,
+      };
+      await calendar._sendUnsentChange();
+      await written(calendar);
+
+      expect(calendar.state.selectedEvents.length).toBe(1);
+      expect(calendar.state.selectedEvents[0].start).toBe(START + HOUR);
+    });
+
+    it('keeps an occurrence selected once moved on its own', async function () {
+      const calendar = calendarWith([first]);
+      calendar.state.unsentChange = heldMove;
+      await calendar._sendUnsentChange('this-occurrence');
+      await written(calendar);
+
+      expect(calendar.state.selectedEvents.length).toBe(1);
+      expect(calendar.state.selectedEvents[0].start).toBe(START + HOUR);
+      expect(calendar.state.selectedEvents[0].isException).toBe(true);
+    });
+
+    it('keeps an occurrence selected once the whole series moved', async function () {
+      const calendar = calendarWith([second]);
+      calendar.state.unsentChange = {
+        ...heldMove,
+        slot: second.start,
+        times: { start: second.start + HOUR, end: second.end + HOUR, isAllDay: false },
+      };
+      await calendar._sendUnsentChange('all-occurrences');
+      await written(calendar);
+
+      expect(calendar.state.selectedEvents.length).toBe(1);
+      expect(calendar.state.selectedEvents[0].start).toBe(second.start + HOUR);
+      expect(calendar.state.selectedEvents[0].isException).toBe(false);
+    });
   });
 });

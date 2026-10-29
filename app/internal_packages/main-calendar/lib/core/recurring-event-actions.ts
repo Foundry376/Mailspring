@@ -6,7 +6,12 @@ import {
   CalendarUtils,
   localized,
 } from 'mailspring-exports';
-import { showRecurringEventDialog, RecurringEventOperation } from './recurring-event-dialog';
+import {
+  showRecurringEventDialog,
+  RecurringEventChoice,
+  RecurringEventOperation,
+} from './recurring-event-dialog';
+import { occurrenceForRecurrenceId, occurrenceTimes } from './calendar-data-source';
 import { ShowAsOption } from './show-as-selector';
 
 /**
@@ -236,6 +241,36 @@ export function modifySeriesChange(
   const task = SyncbackEventTask.forUpdating({ event: master, undoData, description });
   Actions.queueTask(task);
   return task;
+}
+
+/** Which occurrences of a series a change made to one of them is sent to. */
+export type ChangeScope = Exclude<RecurringEventChoice, 'cancel'>;
+
+/**
+ * Writes a change made to one occurrence and queues one syncback task: to the event itself for a
+ * one-off or an exception stored as its own row, otherwise to the series for `scope`. A change
+ * to a series carries the edited occurrence's `occurrenceSlot`.
+ */
+export function modifyEventChange(
+  row: Event,
+  change: EventChange & { slot?: number },
+  scope: ChangeScope
+): SyncbackEventTask {
+  const { slot } = change;
+  if (slot === undefined || row.isRecurrenceException()) {
+    return modifySimpleEventChange(row, change);
+  }
+  if (scope === 'all-occurrences') {
+    return modifySeriesChange(row, slot, change);
+  }
+  const occurrence = change.times ? null : occurrenceForRecurrenceId([row], slot);
+  if (!change.times && !occurrence) {
+    throw new Error(`No occurrence of ${row.id} at ${slot} to change`);
+  }
+  return modifyOccurrenceChange(row, slot, {
+    ...change,
+    times: change.times ?? occurrenceTimes(occurrence),
+  });
 }
 
 /**

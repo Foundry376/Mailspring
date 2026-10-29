@@ -81,7 +81,8 @@ import {
 import { showRecurringEventDialog } from './recurring-event-dialog';
 import {
   modifyEventWithRecurringSupport,
-  modifySimpleEventChange,
+  modifyEventChange,
+  ChangeScope,
   EventTimeChangeOptions,
 } from './recurring-event-actions';
 import { UnsentChange, isUnsentChangeFor, withTimes, withUnsentChange } from './unsent-change';
@@ -344,23 +345,37 @@ export class MailspringCalendar extends React.Component<
 
   _sending: { change: UnsentChange; done: Promise<void> } | null = null;
 
-  _sendUnsentChange = () => {
+  _sendUnsentChange = (scope: ChangeScope = 'this-occurrence') => {
     const change = this.state.unsentChange;
     if (!change) return Promise.resolve();
     if (this._sending?.change === change) return this._sending.done;
-    const done = this._writeUnsentChange(change).finally(() => {
+    const done = this._writeUnsentChange(change, scope).finally(() => {
       if (this._sending?.change === change) this._sending = null;
     });
     this._sending = { change, done };
     return done;
   };
 
-  async _writeUnsentChange(change: UnsentChange) {
-    const row = await DatabaseStore.find<Event>(Event, change.eventId);
-    if (row) await TaskQueue.waitForPerformLocal(modifySimpleEventChange(row, change));
+  async _writeUnsentChange(change: UnsentChange, scope: ChangeScope) {
+    await this._writeChange(change, scope);
     // Kept until it's written, so nothing draws the old values in between.
     this.setState((s) => (s.unsentChange === change ? { unsentChange: null } : null));
   }
+
+  /** Writes a change made in the panel, keeping its occurrence selected wherever it lands. */
+  _writeChange = async (change: UnsentChange, scope: ChangeScope = 'this-occurrence') => {
+    const selected = this.state.selectedEvents.find((o) => isUnsentChangeFor(change, o));
+    const row = await DatabaseStore.find<Event>(Event, change.eventId);
+    if (!row) return;
+    const staleIcs = row.ics;
+    const task = modifyEventChange(row, change, scope);
+    // A new repeat rule or time leaves the one-off fallback in _currentOccurrence nothing to match.
+    if (selected) {
+      const start = change.times?.start ?? occurrenceStartUnix(selected);
+      this._followMove(selected, row, start, staleIcs);
+    }
+    await TaskQueue.waitForPerformLocal(task);
+  };
 
   // The panel's date picker and switch use the same keys for themselves.
   _focusInEventPanel() {

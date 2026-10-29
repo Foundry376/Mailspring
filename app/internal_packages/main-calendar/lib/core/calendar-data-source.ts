@@ -571,7 +571,7 @@ const UPCOMING_LOOKAHEAD_SECONDS = 366 * 86400;
  * The occurrence of a series that `recurrenceIdStart` names. A moved occurrence is no longer
  * at that instant, so its own VEVENT is read for where it went.
  */
-function occurrenceForRecurrenceId(
+export function occurrenceForRecurrenceId(
   events: Event[],
   recurrenceIdStart: number
 ): EventOccurrence | undefined {
