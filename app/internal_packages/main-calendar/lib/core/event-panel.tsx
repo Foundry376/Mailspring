@@ -50,7 +50,6 @@ import { ShowAsOption, showAsLabel } from './show-as-selector';
 import {
   canRespondToEvent,
   myParticipationStatus,
-  openProposeNewTimePopover,
   respondToCalendarEvent,
   rsvpActions,
 } from './calendar-rsvp';
@@ -205,6 +204,10 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   _canEdit(field: PanelField) {
     return editableFields(this.props.event, this.props.isCalendarReadOnly).has(field);
+  }
+
+  _proposes() {
+    return !this.props.event.isMine && this._canEdit('times');
   }
 
   _holdsEdits() {
@@ -423,23 +426,29 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         }
       />
     );
+    // A proposal keeps the event all-day or timed, so a guest's clock heads the first row instead.
+    const allDaySwitch = this._canEdit('allDay');
+    const clock = <SVGIcons.Clock className="event-panel-icon" />;
     return (
       <div
         className="event-panel-section"
         onBlur={this._onTimesBlur}
         onKeyDown={this._onTimesKeyDown}
       >
-        <div className="event-panel-row">
-          <SVGIcons.Clock className="event-panel-icon" />
-          <Switch
-            checked={t.isAllDay}
-            onChange={this._onAllDayChange}
-            label={localized('All day')}
-          />
-          {localized('All day')}
-        </div>
+        {allDaySwitch && (
+          <div className="event-panel-row">
+            {clock}
+            <Switch
+              checked={t.isAllDay}
+              onChange={this._onAllDayChange}
+              label={localized('All day')}
+            />
+            {localized('All day')}
+          </div>
+        )}
         {!t.isAllDay && (
-          <div className="event-panel-row indented">
+          <div className={`event-panel-row ${allDaySwitch ? 'indented' : ''}`}>
+            {!allDaySwitch && clock}
             <TimePicker value={t.start * 1000} onChange={this._changeStart} />
             <SVGIcons.ArrowRight className="event-panel-icon" />
             <TimePicker
@@ -450,11 +459,15 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             <span className="event-panel-subtle">{DateUtils.formatDuration(t.end - t.start)}</span>
           </div>
         )}
-        <div className="event-panel-row indented">
+        <div className={`event-panel-row ${allDaySwitch || !t.isAllDay ? 'indented' : ''}`}>
+          {!allDaySwitch && t.isAllDay && clock}
           <DatePicker value={t.start * 1000} onChange={this._changeStart} />
           {multiDay && <span>–</span>}
           {multiDay && endDatePicker}
         </div>
+        {!allDaySwitch && t.isAllDay && (
+          <div className="event-panel-row indented">{localized('All day')}</div>
+        )}
         {!t.isAllDay && (
           <div className="event-panel-row">
             <SVGIcons.Globe className="event-panel-icon" />
@@ -463,7 +476,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           </div>
         )}
         {/* An occurrence changed on its own takes no scope; its rule is the series'. */}
-        {this.props.event.isException ? (
+        {this.props.event.isException || !this._canEdit('repeat') ? (
           this._renderRepeatLabel()
         ) : (
           <div className="event-panel-row">
@@ -475,6 +488,11 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
                 </option>
               ))}
             </PanelSelect>
+          </div>
+        )}
+        {this._proposes() && !this.props.unsentChange && (
+          <div className="event-panel-row indented event-panel-subtle">
+            {localized('Change the time to propose a new one to the organizer.')}
           </div>
         )}
       </div>
@@ -529,16 +547,6 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           </>
         )}
         {this._renderRepeatLabel()}
-        {canRespondToEvent(event) && (
-          <div className="event-panel-row indented">
-            <button
-              className="btn"
-              onClick={(e) => openProposeNewTimePopover(event, e.currentTarget)}
-            >
-              {localized('Propose a new time') + '...'}
-            </button>
-          </div>
-        )}
       </div>
     );
   }
@@ -751,7 +759,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             </div>
           </div>
         ))}
-        {asksScope(this.props.event) ? (
+        {change.proposal ? (
+          this._renderProposalActions(change)
+        ) : asksScope(this.props.event) ? (
           this._renderScopeButtons(change)
         ) : (
           <div className="event-panel-change-buttons">
@@ -773,6 +783,34 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       <button className="btn" onClick={() => this.props.onUnsentChange(null)}>
         {localized('Discard')}
       </button>
+    );
+  }
+
+  _renderProposalActions(change: UnsentChange) {
+    const { onUnsentChange, onSendUnsentChange } = this.props;
+    return (
+      <>
+        <textarea
+          className="event-panel-proposal-note"
+          rows={3}
+          value={change.proposal.note}
+          placeholder={localized('Add a note for the organizer (optional)')}
+          onChange={(e) => onUnsentChange({ ...change, proposal: { note: e.target.value } })}
+          onKeyDown={(e) => {
+            // Kept in the panel, so the next Esc reaches the calendar's.
+            if (e.key === 'Escape') e.currentTarget.closest<HTMLElement>('.event-panel')?.focus();
+          }}
+        />
+        <div className="event-panel-change-buttons">
+          {this._renderDiscardButton()}
+          <button
+            className="btn btn-emphasis"
+            onClick={() => onSendUnsentChange('this-occurrence')}
+          >
+            {localized('Send proposal')}
+          </button>
+        </div>
+      </>
     );
   }
 
@@ -801,8 +839,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   // Answering writes our status onto the event, which a read-only calendar refuses.
   _renderRsvpCard() {
-    const { event, isCalendarReadOnly } = this.props;
-    if (!canRespondToEvent(event)) return null;
+    const { event, isCalendarReadOnly, unsentChange } = this.props;
+    // A proposal takes the card's place until it's sent or discarded.
+    if (!canRespondToEvent(event) || unsentChange) return null;
     const answer = myParticipationStatus(event);
     return (
       <div
