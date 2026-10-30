@@ -92,6 +92,25 @@ describe('AttachmentStore', function () {
       });
       waitsFor(() => this.files.length === 2);
     });
+
+    it('records the name it writes the file under', () => {
+      const targets: string[] = [];
+      spyOn(AttachmentStore, '_copyToInternalPath').andCallFake((originPath, targetPath) => {
+        targets.push(targetPath);
+        return Promise.resolve();
+      });
+
+      AttachmentStore._onAddAttachment({ headerMessageId: 'draft-1', filePath: '/tmp/CON.txt' });
+
+      waitsFor(() => this.files.length === 1);
+      runs(() => {
+        const [file] = this.files;
+        expect(file.filename).toEqual('CON.txt');
+        expect(file.localFilename).toEqual('_CON.txt');
+        expect(path.basename(targets[0])).toEqual('_CON.txt');
+        expect(file.toJSON().localFilename).toEqual('_CON.txt');
+      });
+    });
   });
 
   describe('copyFilesForDraft', () => {
@@ -178,6 +197,25 @@ describe('AttachmentStore', function () {
         const [copy] = await AttachmentStore.copyFilesForDraft([pdf]);
         expect(copy.id).not.toEqual(pdf.id);
         expect(fs.readFileSync(AttachmentStore.pathForFile(copy), 'utf8')).toEqual('report');
+      });
+    });
+
+    it('records the name it writes the copy under', () => {
+      const spaced = new File({
+        id: 'spaced-file-id',
+        accountId: 'account-1',
+        messageId: 'message-1',
+        filename: 'notes.txt ',
+        size: 5,
+      });
+      writeFile(AttachmentStore.pathForFile(spaced), 'notes');
+
+      waitsForPromise(async () => {
+        const [copy] = await AttachmentStore.copyFilesForDraft([spaced]);
+        expect(copy.filename).toEqual('notes.txt ');
+        expect(copy.localFilename).toEqual('notes.txt');
+        expect(path.basename(AttachmentStore.pathForFile(copy))).toEqual('notes.txt');
+        expect(fs.readFileSync(AttachmentStore.pathForFile(copy), 'utf8')).toEqual('notes');
       });
     });
 
