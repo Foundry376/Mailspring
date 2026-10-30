@@ -151,6 +151,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   state: EventPanelState = { repeat: 'none', times: null };
 
   _title = React.createRef<EventPanelTextField>();
+  _when = React.createRef<HTMLDivElement>();
   // Read as well as kept in state: the time picker reports its last change during the same blur
   // that saves the times, before a setState would land.
   _pendingTimes: Times | null = null;
@@ -184,6 +185,10 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   focusTitle() {
     this._title.current?.focus();
+  }
+
+  focusTimes() {
+    this._when.current?.querySelector('input')?.focus();
   }
 
   async _eventRow() {
@@ -431,6 +436,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     const clock = <SVGIcons.Clock className="event-panel-icon" />;
     return (
       <div
+        ref={this._when}
         className="event-panel-section"
         onBlur={this._onTimesBlur}
         onKeyDown={this._onTimesKeyDown}

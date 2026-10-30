@@ -42,11 +42,7 @@ import {
   occurrenceTimes,
 } from './calendar-data-source';
 import { CalendarEventContextMenu } from './calendar-event-context-menu';
-import {
-  openProposeNewTimePopover,
-  offerCounterInsteadOfMove,
-  proposeNewTimeForCalendarEvent,
-} from './calendar-rsvp';
+import { offerCounterInsteadOfMove, proposeNewTimeForCalendarEvent } from './calendar-rsvp';
 import { CalendarView, DEFAULT_TIMED_EVENT_DURATION_SECONDS } from './calendar-constants';
 import { CalendarEmptyState } from './calendar-empty-state';
 import {
@@ -302,6 +298,8 @@ export class MailspringCalendar extends React.Component<
   _holdTimes(occurrence: EventOccurrence, times: ReturnType<typeof occurrenceTimes>) {
     const stored = this._storedOccurrence(occurrence);
     if (!holdsEdits(stored, this._isCalendarReadOnly(stored.calendarId))) return false;
+    // A proposal keeps the event all-day or timed, so a guest's drag across the rows is dropped.
+    if (this._proposes(stored) && times.isAllDay !== stored.isAllDay) return true;
     const { unsentChange } = this.state;
     if (!this._select([stored])) return true;
     // Another event's change was just sent or discarded, though state may not show it yet.
@@ -619,6 +617,19 @@ export class MailspringCalendar extends React.Component<
     return editableFields(occurrence, this._isCalendarReadOnly(occurrence.calendarId)).has('title');
   }
 
+  /** A guest's change to the times is held as a proposal to the organizer. */
+  _proposes(occurrence: EventOccurrence) {
+    return (
+      !occurrence.isMine &&
+      editableFields(occurrence, this._isCalendarReadOnly(occurrence.calendarId)).has('times')
+    );
+  }
+
+  _proposeNewTime(occurrence: EventOccurrence) {
+    if (!this._select([occurrence])) return;
+    window.requestAnimationFrame(() => this._eventPanel.current?.focusTimes());
+  }
+
   _editEvent(occurrence: EventOccurrence) {
     if (!this._isEditable(occurrence)) return;
     this._select([occurrence]);
@@ -650,7 +661,7 @@ export class MailspringCalendar extends React.Component<
       onOpen: () =>
         this._isEditable(occurrence) ? this._editEvent(occurrence) : this._select([occurrence]),
       onDelete: () => this._deleteEvent(occurrence),
-      onProposeNewTime: () => openProposeNewTimePopover(occurrence),
+      onProposeNewTime: () => this._proposeNewTime(occurrence),
     }).displayMenu();
   };
 
@@ -1034,10 +1045,12 @@ export class MailspringCalendar extends React.Component<
       config
     );
 
-    // A guest's drag starts so the attempt can be seen; once it is one, offer the counter instead.
+    // A drag of an event we neither organize nor can propose for starts so the attempt can be
+    // seen; once it is one, explain instead.
     if (
       newDragState.isDragging &&
-      !canMoveEvent(newDragState.event, this._isCalendarReadOnly(newDragState.event.calendarId))
+      !canMoveEvent(newDragState.event, this._isCalendarReadOnly(newDragState.event.calendarId)) &&
+      !this._proposes(newDragState.event)
     ) {
       this._pendingDragState = null;
       this.setState({ dragState: null });
@@ -1183,7 +1196,10 @@ export class MailspringCalendar extends React.Component<
       return;
     }
 
-    if (!canMoveEvent(occurrence, this._isCalendarReadOnly(occurrence.calendarId))) {
+    if (
+      !canMoveEvent(occurrence, this._isCalendarReadOnly(occurrence.calendarId)) &&
+      !this._proposes(occurrence)
+    ) {
       if (canAttemptMove(occurrence, this._isCalendarReadOnly(occurrence.calendarId))) {
         offerCounterInsteadOfMove(occurrence);
       }
