@@ -132,6 +132,22 @@ export function modifySimpleEventChange(
 }
 
 /**
+ * Writes a guest's own settings to their copy of an invitation. The SEQUENCE stays: only the
+ * organizer revises a meeting (RFC 5546 section 2.1.4).
+ */
+export function modifyGuestCopy(
+  event: Event,
+  edits: EventPropertyEdit[],
+  description = localized('Edit event')
+): SyncbackEventTask {
+  const undoData = captureEventSnapshot(event);
+  event.ics = edits.reduce(applyPropertyEdit, event.ics);
+  const task = SyncbackEventTask.forUpdating({ event, undoData, description });
+  Actions.queueTask(task);
+  return task;
+}
+
+/**
  * Creates an exception for a single occurrence of a recurring event.
  * Embeds the exception VEVENT inline in the master VCALENDAR and queues a single
  * update task (RFC 4791 §4.1 compliant — same UID must share the same resource).

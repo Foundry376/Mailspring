@@ -247,7 +247,8 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   _saveProperty(edit: EventPropertyEdit) {
     const { event, unsentChange, onUnsentChange } = this.props;
-    if (this._holdsEdits()) {
+    // A guest's Show as is their own, so it saves rather than joining the proposal.
+    if (this._holdsEdits() && !this._proposes()) {
       onUnsentChange(withEdit(unsentChange, event, edit, this._storedValue(edit.property)));
     } else {
       this._save({ ...emptyChange(event), edits: [edit] });

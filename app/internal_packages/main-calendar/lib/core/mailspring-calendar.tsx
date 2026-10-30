@@ -83,6 +83,7 @@ import { showRecurringEventDialog } from './recurring-event-dialog';
 import {
   modifyEventWithRecurringSupport,
   modifyEventChange,
+  modifyGuestCopy,
   ChangeScope,
   EventTimeChangeOptions,
 } from './recurring-event-actions';
@@ -388,7 +389,10 @@ export class MailspringCalendar extends React.Component<
     const row = await DatabaseStore.find<Event>(Event, change.eventId);
     if (!row) return;
     const staleIcs = row.ics;
-    const task = modifyEventChange(row, change, scope);
+    const task =
+      selected && !selected.isMine
+        ? modifyGuestCopy(row, change.edits)
+        : modifyEventChange(row, change, scope);
     // A new repeat rule or time leaves the one-off fallback in _currentOccurrence nothing to match.
     if (selected) {
       const start = change.times?.start ?? occurrenceStartUnix(selected);

@@ -587,13 +587,15 @@ const PANEL_FIELDS: PanelField[] = [
 ];
 
 /**
- * What the event panel lets you change: all of an event you organize, the time of an invitation
- * as a proposal to its organizer, nothing on a read-only calendar.
+ * What the event panel lets you change: all of an event you organize; on an invitation, its time
+ * as a proposal to the organizer and your own Show as; nothing on a read-only calendar.
  */
 export function editableFields(event: EventOccurrence, isCalendarReadOnly: boolean) {
   if (isCalendarReadOnly) return new Set<PanelField>();
   if (event.isMine) return new Set(PANEL_FIELDS);
-  return new Set<PanelField>(canRespondToEvent(event) && !event.isCancelled ? ['times'] : []);
+  return new Set<PanelField>(
+    canRespondToEvent(event) && !event.isCancelled ? ['times', 'showAs'] : []
+  );
 }
 
 export function asksScope(event: EventOccurrence): boolean {
