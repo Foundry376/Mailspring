@@ -25,8 +25,9 @@ const guestMeeting: TimedOccurrence = {
   end: START + 3600,
 } as TimedOccurrence;
 
-// Dragging and the arrow keys share one rule: a guest cannot move a meeting, and is told so
-// with the counter-proposal on offer. The component is driven unmounted, setState redirected.
+// Dragging and the arrow keys share one rule: a meeting we neither organize nor are invited to
+// can't be moved, and we're told so. (A guest's move is a proposal, held in the event panel.)
+// The component is driven unmounted, setState redirected.
 // The grid's hit-test result, as CalendarEventContainer passes it, with the pointer at (x, y).
 const moveTo = (time: number, x: number, y: number) =>
   ({ time, x, y, containerType: 'day', mouseEvent: { clientX: x, clientY: y } }) as any;
