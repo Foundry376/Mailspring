@@ -843,29 +843,51 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
-  // Answering writes our status onto the event, which a read-only calendar refuses.
-  _renderRsvpCard() {
-    const { event, isCalendarReadOnly, unsentChange } = this.props;
-    // A proposal takes the card's place until it's sent or discarded.
-    if (!canRespondToEvent(event) || unsentChange) return null;
-    const answer = myParticipationStatus(event);
+  _renderCancelledCard() {
+    const { event } = this.props;
+    if (!event.isCancelled) return null;
     return (
-      <div
-        className="event-panel-card event-panel-rsvp button-group"
-        role="group"
-        aria-label={localized('Your response')}
-      >
-        {rsvpActions().map(([status, label]) => (
-          <button
-            key={status}
-            className={`btn ${status === answer ? status : ''}`}
-            aria-pressed={status === answer}
-            disabled={isCalendarReadOnly}
-            onClick={() => respondToCalendarEvent(event, status)}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="event-panel-card">
+        {event.organizer && !event.isMine
+          ? localized('This event has been cancelled by %@', event.organizer.email)
+          : localized('This event has been cancelled')}
+      </div>
+    );
+  }
+
+  // Answering writes our status onto the event, which a read-only calendar refuses; on someone
+  // else's calendar the answer is only emailed (recordAndSendRSVP).
+  _renderRsvpCard() {
+    const { event, calendar, isCalendarReadOnly, unsentChange } = this.props;
+    // A proposal takes the card's place until it's sent or discarded.
+    if (!canRespondToEvent(event) || event.isCancelled || unsentChange) return null;
+    const answer = myParticipationStatus(event);
+    const savedTo =
+      calendar && !isCalendarReadOnly && !CalendarUtils.isSomeoneElsesCalendar(calendar);
+    return (
+      <div className="event-panel-card event-panel-rsvp-card">
+        <div
+          className="event-panel-rsvp button-group"
+          role="group"
+          aria-label={localized('Your response')}
+        >
+          {rsvpActions().map(([status, label]) => (
+            <button
+              key={status}
+              className={`btn ${status === answer ? status : ''}`}
+              aria-pressed={status === answer}
+              disabled={isCalendarReadOnly}
+              onClick={() => respondToCalendarEvent(event, status)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {savedTo && (
+          <div className="event-panel-subtle">
+            {localized('Your response will be saved to %@', calendar.name)}
+          </div>
+        )}
       </div>
     );
   }
@@ -883,6 +905,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           {this._renderCalendar()}
         </ScrollRegion>
         {this._renderUnsentChangeCard()}
+        {this._renderCancelledCard()}
         {this._renderRsvpCard()}
       </aside>
     );
