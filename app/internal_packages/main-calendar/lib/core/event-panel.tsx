@@ -50,6 +50,8 @@ import { ShowAsOption, showAsLabel } from './show-as-selector';
 import {
   canRespondToEvent,
   myParticipationStatus,
+  proposedTimesFor,
+  ProposedTime,
   respondToCalendarEvent,
   rsvpActions,
 } from './calendar-rsvp';
@@ -95,11 +97,20 @@ interface Times {
   isAllDay: boolean;
 }
 
+interface ChangeRow {
+  key: string;
+  icon: React.ReactNode;
+  label: string;
+  now: string;
+  was: string;
+}
+
 interface EventPanelState {
   /** Read from the event's row: the occurrence doesn't carry it. */
   repeat: RepeatOption;
   /** Times changed in the panel, shown until the saved event comes back. */
   times: Times | null;
+  proposals: ProposedTime[];
 }
 
 /** Text with its links live, as notes show when not being edited. */
@@ -148,7 +159,7 @@ function linkOrText(location: string) {
 export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelState> {
   static displayName = 'EventPanel';
 
-  state: EventPanelState = { repeat: 'none', times: null };
+  state: EventPanelState = { repeat: 'none', times: null, proposals: [] };
 
   _title = React.createRef<EventPanelTextField>();
   _when = React.createRef<HTMLDivElement>();
@@ -163,6 +174,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   componentDidMount() {
     this._loadEventRow();
+    this._loadProposals();
   }
 
   // Any synced change hands the panel a fresh occurrence. Times not yet saved stay on screen, and
@@ -175,6 +187,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         this.setState({ times: null });
       }
       this._loadEventRow();
+      this._loadProposals();
     }
   }
 
@@ -205,6 +218,12 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     this.setState({
       repeat: frequencyToRepeatOption(ICSEventHelpers.getRecurrenceInfo(row.ics).frequency),
     });
+  }
+
+  async _loadProposals() {
+    const occurrence = this.props.event;
+    const proposals = await proposedTimesFor(occurrence);
+    if (this.props.event === occurrence) this.setState({ proposals });
   }
 
   _canEdit(field: PanelField) {
@@ -691,8 +710,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   _changeRows(change: UnsentChange) {
     const { event } = this.props;
-    const rows: { key: string; icon: React.ReactNode; label: string; now: string; was: string }[] =
-      [];
+    const rows: ChangeRow[] = [];
     if (change.times) {
       const stored = this._storedTimes();
       rows.push({
@@ -749,22 +767,53 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     return rows;
   }
 
+  _renderChangeRow = ({ key, icon, label, now, was }: ChangeRow) => (
+    <div key={key} className="event-panel-change-row">
+      <span className="event-panel-icon" role="img" aria-label={label}>
+        {icon}
+      </span>
+      <div className="event-panel-change-values">
+        {now && <span>{now}</span>}
+        {was && <s>{was}</s>}
+      </div>
+    </div>
+  );
+
+  _renderProposalCards() {
+    if (this.props.unsentChange || !this._canEdit('times')) return null;
+    const stored = this._storedTimes();
+    return this.state.proposals.map((proposal) => (
+      <div key={proposal.from.email} className="event-panel-card event-panel-change">
+        <div>{localized('%@ proposed this new time.', proposal.from.name)}</div>
+        {this._renderChangeRow({
+          key: 'times',
+          icon: <SVGIcons.Clock />,
+          label: localized('Time'),
+          now: this._timesLabel(proposal, stored),
+          was: this._timesLabel(stored, proposal),
+        })}
+        {proposal.note && <div className="event-panel-subtle">{proposal.note}</div>}
+        <div className="event-panel-change-buttons">
+          <button className="btn btn-emphasis" onClick={() => this._useProposedTime(proposal)}>
+            {localized('Use this time')}
+          </button>
+        </div>
+      </div>
+    ));
+  }
+
+  // Held like any change to a meeting with guests, so the guests are emailed only on Send update.
+  _useProposedTime({ start, end, isAllDay }: ProposedTime) {
+    const { event, onUnsentChange } = this.props;
+    onUnsentChange(withTimes(null, event, { start, end, isAllDay }, this._storedTimes()));
+  }
+
   _renderUnsentChangeCard() {
     const change = this.props.unsentChange;
     if (!change) return null;
     return (
       <div className="event-panel-card event-panel-change">
-        {this._changeRows(change).map(({ key, icon, label, now, was }) => (
-          <div key={key} className="event-panel-change-row">
-            <span className="event-panel-icon" role="img" aria-label={label}>
-              {icon}
-            </span>
-            <div className="event-panel-change-values">
-              {now && <span>{now}</span>}
-              {was && <s>{was}</s>}
-            </div>
-          </div>
-        ))}
+        {this._changeRows(change).map(this._renderChangeRow)}
         {change.proposal ? (
           this._renderProposalActions(change)
         ) : asksScope(this.props.event) ? (
@@ -905,6 +954,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           {this._renderCalendar()}
         </ScrollRegion>
         {this._renderUnsentChangeCard()}
+        {this._renderProposalCards()}
         {this._renderCancelledCard()}
         {this._renderRsvpCard()}
       </aside>
