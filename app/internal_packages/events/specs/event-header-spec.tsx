@@ -272,10 +272,10 @@ describe('EventHeader for an invitation to one occurrence of a series', function
 
   let queueTask: jasmine.Spy;
 
-  // Clicks Decline and returns the ICS of the reply that was queued.
+  // Clicks No and returns the ICS of the reply that was queued.
   function declineAndGetReply(text: ReturnType<typeof render>): string {
     const decline = ReactTestUtils.scryRenderedDOMComponentsWithClass(text.header, 'btn-rsvp').find(
-      (button) => button.textContent === 'Decline'
+      (button) => button.textContent === 'No'
     );
     ReactTestUtils.Simulate.click(decline);
     return queueTask.mostRecentCall.args[0].ics;
@@ -291,10 +291,10 @@ describe('EventHeader for an invitation to one occurrence of a series', function
     queueTask = spyOn(Actions, 'queueTask');
   });
 
-  // Clicks Accept and returns the ICS written to our calendar copy.
+  // Clicks Yes and returns the ICS written to our calendar copy.
   function acceptAndGetWrite(text: ReturnType<typeof render>): string {
     const accept = ReactTestUtils.scryRenderedDOMComponentsWithClass(text.header, 'btn-rsvp').find(
-      (button) => button.textContent === 'Accept'
+      (button) => button.textContent === 'Yes'
     );
     ReactTestUtils.Simulate.click(accept);
     const write = queueTask.calls
@@ -473,7 +473,7 @@ describe('EventHeader answering an invitation', function () {
     mount({ events: [synced], calendars: [mine] });
     runs(() => {
       expect(title()).toBe('Kickoff (moved)');
-      click('Accept');
+      click('Yes');
       const reply = queued[0] as EventRSVPTask;
       expect(reply instanceof EventRSVPTask).toBe(true);
       expect(reply.toJSON().to).toBe('ada@example.com');
@@ -509,7 +509,7 @@ describe('EventHeader answering an invitation', function () {
         'US On Call',
         'brian@example.com',
       ]);
-      click('Accept');
+      click('Yes');
       const write = queued[1] as SyncbackEventTask;
       expect(write.calendarId).toBe(mine.id);
       expect(write.event.ics).not.toContain('METHOD');
@@ -527,7 +527,7 @@ describe('EventHeader answering an invitation', function () {
       expect(
         ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'event-view-in-calendar').length
       ).toBe(0);
-      click('Decline');
+      click('No');
       expect(queued.length).toBe(1);
       expect(queued[0] instanceof EventRSVPTask).toBe(true);
     });
@@ -540,7 +540,7 @@ describe('EventHeader answering an invitation', function () {
     runs(() => {
       expect(title()).toBe('Kickoff (moved)');
       expect(destination().textContent).toContain('only be emailed to the organizer');
-      click('Accept');
+      click('Yes');
       expect(queued.length).toBe(1);
     });
   });

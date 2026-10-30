@@ -653,9 +653,9 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     }
 
     const actions: [ICSParticipantStatus, string][] = [
-      ['ACCEPTED', localized('Accept')],
+      ['ACCEPTED', localized('Yes')],
+      ['DECLINED', localized('No')],
       ['TENTATIVE', localized('Maybe')],
-      ['DECLINED', localized('Decline')],
     ];
 
     return (

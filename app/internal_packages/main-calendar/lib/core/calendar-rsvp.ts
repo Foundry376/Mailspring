@@ -58,9 +58,9 @@ export function myAttendeeEmail(occurrence: EventOccurrence): string | null {
 /** The answers a guest can give, in the order the menu and the event panel offer them. */
 export function rsvpActions(): [ICSParticipantStatus, string][] {
   return [
-    ['ACCEPTED', localized('Accept')],
+    ['ACCEPTED', localized('Yes')],
+    ['DECLINED', localized('No')],
     ['TENTATIVE', localized('Maybe')],
-    ['DECLINED', localized('Decline')],
   ];
 }
 
