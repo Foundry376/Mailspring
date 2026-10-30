@@ -424,7 +424,14 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         />
       );
     }
-    return <div className="event-panel-title">{event.isCancelled ? <s>{title}</s> : title}</div>;
+    if (!event.isCancelled) return <div className="event-panel-title">{title}</div>;
+    // Only the organizer cancels a meeting (RFC 5546 section 3.2.5), so the badge needn't say who.
+    return (
+      <div className="event-panel-title cancelled">
+        <s>{title}</s>
+        <span className="event-panel-cancelled">{localized('Cancelled')}</span>
+      </div>
+    );
   }
 
   /** The last day the times cover: a timed event ending at midnight doesn't reach the next day. */
@@ -893,18 +900,6 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
-  _renderCancelledCard() {
-    const { event } = this.props;
-    if (!event.isCancelled) return null;
-    return (
-      <div className="event-panel-card">
-        {event.organizer && !event.isMine
-          ? localized('This event has been cancelled by %@', event.organizer.email)
-          : localized('This event has been cancelled')}
-      </div>
-    );
-  }
-
   // Answering writes our status onto the event, which a read-only calendar refuses; on someone
   // else's calendar the answer is only emailed (recordAndSendRSVP).
   _renderRsvpCard() {
@@ -956,7 +951,6 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         </ScrollRegion>
         {this._renderUnsentChangeCard()}
         {this._renderProposalCards()}
-        {this._renderCancelledCard()}
         {this._renderRsvpCard()}
       </aside>
     );

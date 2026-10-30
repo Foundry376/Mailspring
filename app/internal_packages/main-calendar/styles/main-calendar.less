@@ -832,6 +832,26 @@
     overflow-wrap: anywhere;
   }
 
+  .event-panel-title.cancelled {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  // Centred on the title's first line.
+  .event-panel-cancelled {
+    flex-shrink: 0;
+    margin-top: ((21px - 18px) / 2);
+    padding: 0 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 18px;
+    font-weight: @font-weight-semi-bold;
+    color: @white;
+    background: @color-error;
+  }
+
   .event-panel-section {
     display: flex;
     flex-direction: column;
