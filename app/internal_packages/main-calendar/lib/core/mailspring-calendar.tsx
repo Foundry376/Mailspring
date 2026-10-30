@@ -56,7 +56,7 @@ import {
   clampEnd,
   newEventOccurrence,
   NewEventDraft,
-  canEditInPanel,
+  editableFields,
   holdsEdits,
 } from './calendar-helpers';
 import { Disposable } from 'rx-core';
@@ -600,7 +600,7 @@ export class MailspringCalendar extends React.Component<
 
   // A writable calendar and a meeting we organize (RFC 5546 section 2.1.4), as canMoveEvent asks.
   _isEditable(occurrence: EventOccurrence) {
-    return canEditInPanel(occurrence, this._isCalendarReadOnly(occurrence.calendarId));
+    return editableFields(occurrence, this._isCalendarReadOnly(occurrence.calendarId)).has('title');
   }
 
   _editEvent(occurrence: EventOccurrence) {

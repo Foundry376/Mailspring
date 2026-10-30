@@ -573,8 +573,21 @@ export function hasGuests(event: EventOccurrence): boolean {
   );
 }
 
-export function canEditInPanel(event: EventOccurrence, isCalendarReadOnly: boolean): boolean {
-  return !isCalendarReadOnly && event.isMine;
+export type PanelField = 'title' | 'times' | 'allDay' | 'repeat' | 'location' | 'notes' | 'showAs';
+
+const PANEL_FIELDS: PanelField[] = [
+  'title',
+  'times',
+  'allDay',
+  'repeat',
+  'location',
+  'notes',
+  'showAs',
+];
+
+/** What the event panel lets you change: all of an event you organize, nothing on a read-only calendar. */
+export function editableFields(event: EventOccurrence, isCalendarReadOnly: boolean) {
+  return new Set<PanelField>(!isCalendarReadOnly && event.isMine ? PANEL_FIELDS : []);
 }
 
 export function asksScope(event: EventOccurrence): boolean {
@@ -583,7 +596,7 @@ export function asksScope(event: EventOccurrence): boolean {
 
 /** Edits wait in the panel's card when guests are emailed on every save, or for a scope. */
 export function holdsEdits(event: EventOccurrence, isCalendarReadOnly: boolean): boolean {
-  return canEditInPanel(event, isCalendarReadOnly) && (hasGuests(event) || asksScope(event));
+  return !isCalendarReadOnly && event.isMine && (hasGuests(event) || asksScope(event));
 }
 
 /** The times an event takes when All day is switched: whole days covering it, or 9–10 AM on its first day. */

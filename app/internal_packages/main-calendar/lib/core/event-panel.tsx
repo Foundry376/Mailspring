@@ -26,8 +26,8 @@ import {
   allDayToggleTimes,
   asksScope,
   calcEventColors,
-  canEditInPanel,
   clampEnd,
+  editableFields,
   extractNotesFromDescription,
   formatShortTime,
   formatShortTimeRange,
@@ -35,6 +35,7 @@ import {
   holdsEdits,
   inclusiveAllDayEnd,
   momentOf,
+  PanelField,
   shiftEndWithStart,
 } from './calendar-helpers';
 import { AttendeeStatusIcon, attendeeStatusClass, sortAttendeesByStatus } from './attendee-status';
@@ -202,8 +203,8 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     });
   }
 
-  _editable() {
-    return canEditInPanel(this.props.event, this.props.isCalendarReadOnly);
+  _canEdit(field: PanelField) {
+    return editableFields(this.props.event, this.props.isCalendarReadOnly).has(field);
   }
 
   _holdsEdits() {
@@ -382,7 +383,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   _renderTitle() {
     const { event } = this.props;
     const title = event.title || localized('(No title)');
-    if (this._editable()) {
+    if (this._canEdit('title')) {
       return (
         <EventPanelTextField
           ref={this._title}
@@ -492,7 +493,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   }
 
   _renderWhen() {
-    if (this._editable()) return this._renderEditableWhen();
+    if (this._canEdit('times')) return this._renderEditableWhen();
     const { event } = this.props;
     const days = daysLabel(event.startDate, event.endDate);
 
@@ -557,7 +558,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   _renderInviteesAndPlace() {
     const { attendees, location } = this.props.event;
-    const editable = this._editable();
+    const editable = this._canEdit('location');
     if (attendees.length === 0 && !location && !editable) return null;
     const shownLocation = this._shown('location', location);
     return (
@@ -607,7 +608,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   _renderNotes() {
     const notes = this._storedNotes();
-    if (this._editable()) {
+    if (this._canEdit('notes')) {
       const shownNotes = this._shown('description', notes);
       return (
         <div className="event-panel-section">
@@ -647,7 +648,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           </div>
         )}
         <div className="event-panel-row indented">
-          {this._editable() ? (
+          {this._canEdit('showAs') ? (
             <PanelSelect
               value={this._shown('transp', showAs)}
               onChange={(e) => this._saveProperty({ property: 'transp', value: e.target.value })}
