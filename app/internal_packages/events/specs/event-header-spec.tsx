@@ -520,7 +520,7 @@ describe('EventHeader answering an invitation', function () {
     mount({ events: [], calendars: [mine] });
     runs(() => {
       expect(Array.from(destination().querySelectorAll('span')).map((n) => n.textContent)).toEqual([
-        'Accepting will add this event to',
+        'This event is not on your calendar. Respond Yes or Maybe to add it to',
         'brian@example.com',
       ]);
       expect(destination().querySelector('select')).toBe(null);

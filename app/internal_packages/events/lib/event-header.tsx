@@ -701,7 +701,9 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       const choices = this.state.addToChoices || [];
       return (
         <div className="event-rsvp-destination">
-          <span>{localized('Accepting will add this event to')}</span>
+          <span>
+            {localized('This event is not on your calendar. Respond Yes or Maybe to add it to')}
+          </span>
           {choices.length > 1 ? (
             <select
               className="event-rsvp-calendar-picker"
