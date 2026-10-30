@@ -894,7 +894,9 @@
   }
 
   .event-panel-subtle {
-    color: @text-color-very-subtle;
+    font-size: 12px;
+    line-height: 16px;
+    color: fadeout(@text-color, 35%);
   }
 
   .event-panel-invitees {
@@ -971,6 +973,7 @@
     width: 100%;
     height: auto;
     box-sizing: border-box;
+    border-bottom: 1px solid @border-color-divider;
     font-family: inherit;
   }
 
@@ -1056,6 +1059,11 @@
     background: @background-secondary;
   }
 
+  .event-panel-answer {
+    gap: 8px;
+    background: color-mix(in srgb, @accent-primary 6%, @background-primary);
+  }
+
   .event-panel-change {
     display: flex;
     flex-direction: column;
@@ -1101,20 +1109,40 @@
   }
 
   .event-panel-proposal-note {
+    display: block;
     width: 100%;
-    resize: vertical;
+    height: 62px;
+    padding: 6px 8px;
+    box-sizing: border-box;
+    border: 1px solid @border-color-divider;
+    border-radius: 6px;
+    background: @background-primary;
+    outline: none;
+    resize: none;
+    font: inherit;
+    color: inherit;
+
+    &:focus {
+      border-color: @accent-primary;
+    }
   }
 
-  .event-panel-rsvp-card {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+  // Someone's own words, so it reads as text rather than as subtext.
+  .event-panel-proposed-note {
+    padding-left: 8px;
+    border-left: 3px solid color-mix(in srgb, @accent-primary 28%, @background-primary);
+  }
+
+  // 2px from the time row, against the section's usual gap.
+  .event-panel-proposal-hint {
+    margin-bottom: -2px;
   }
 
   // Your answer is filled as the invitation header fills it.
   // Joined like the toolbar's .button-group.
   .event-panel-rsvp {
     display: flex;
+    gap: 0;
 
     .btn {
       flex: 1;

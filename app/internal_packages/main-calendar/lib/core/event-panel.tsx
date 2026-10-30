@@ -468,6 +468,11 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         onBlur={this._onTimesBlur}
         onKeyDown={this._onTimesKeyDown}
       >
+        {this._proposes() && !this.props.unsentChange && (
+          <div className="event-panel-subtle event-panel-proposal-hint">
+            {localized('Edit the time to propose a new one.')}
+          </div>
+        )}
         {allDaySwitch && (
           <div className="event-panel-row">
             {clock}
@@ -521,11 +526,6 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
                 </option>
               ))}
             </PanelSelect>
-          </div>
-        )}
-        {this._proposes() && !this.props.unsentChange && (
-          <div className="event-panel-row indented event-panel-subtle">
-            {localized('Change the time to propose a new one to the organizer.')}
           </div>
         )}
       </div>
@@ -787,11 +787,14 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     </div>
   );
 
-  _renderProposalCards() {
+  _renderProposals() {
     if (this.props.unsentChange || !this._canEdit('times')) return null;
     const stored = this._storedTimes();
     return this.state.proposals.map((proposal) => (
-      <div key={proposal.from.email} className="event-panel-card event-panel-change">
+      <div
+        key={proposal.from.email}
+        className="event-panel-section event-panel-answer event-panel-change"
+      >
         <div>{localized('%@ proposed this new time.', proposal.from.name)}</div>
         {this._renderChangeRow({
           key: 'times',
@@ -800,7 +803,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           now: this._timesLabel(proposal, stored),
           was: this._timesLabel(stored, proposal),
         })}
-        {proposal.note && <div className="event-panel-subtle">{proposal.note}</div>}
+        {proposal.note && (
+          <div className="event-panel-notes event-panel-proposed-note">{proposal.note}</div>
+        )}
         <div className="event-panel-change-buttons">
           <button className="btn btn-emphasis" onClick={() => this._useProposedTime(proposal)}>
             {localized('Use this time')}
@@ -902,15 +907,18 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   // Answering writes our status onto the event, which a read-only calendar refuses; on someone
   // else's calendar the answer is only emailed (recordAndSendRSVP).
-  _renderRsvpCard() {
+  _renderRsvp() {
     const { event, calendar, isCalendarReadOnly, unsentChange } = this.props;
-    // A proposal takes the card's place until it's sent or discarded.
+    // Hidden while a proposal waits, so an answer and a new time aren't sent at once.
     if (!canRespondToEvent(event) || event.isCancelled || unsentChange) return null;
     const answer = myParticipationStatus(event);
     const savedTo =
       calendar && !isCalendarReadOnly && !CalendarUtils.isSomeoneElsesCalendar(calendar);
     return (
-      <div className="event-panel-card event-panel-rsvp-card">
+      <div className="event-panel-section event-panel-answer">
+        {savedTo && (
+          <div className="event-panel-subtle">{localized('Saved to %@', calendar.name)}</div>
+        )}
         <div
           className="event-panel-rsvp button-group"
           role="group"
@@ -928,11 +936,6 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             </button>
           ))}
         </div>
-        {savedTo && (
-          <div className="event-panel-subtle">
-            {localized('Your response will be saved to %@', calendar.name)}
-          </div>
-        )}
       </div>
     );
   }
@@ -944,14 +947,14 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         {this._renderHeader()}
         <ScrollRegion className="event-panel-body">
           {this._renderTitle()}
+          {this._renderRsvp()}
+          {this._renderProposals()}
           {this._renderWhen()}
           {this._renderInviteesAndPlace()}
           {this._renderNotes()}
           {this._renderCalendar()}
         </ScrollRegion>
         {this._renderUnsentChangeCard()}
-        {this._renderProposalCards()}
-        {this._renderRsvpCard()}
       </aside>
     );
   }
