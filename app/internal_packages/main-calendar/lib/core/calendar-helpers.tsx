@@ -12,6 +12,8 @@ import {
   TaskQueue,
   localized,
   CalendarDateUtils,
+  CalendarUtils,
+  DraftFactory,
 } from 'mailspring-exports';
 import { ShowAsOption, defaultShowAs } from './show-as-selector';
 import {
@@ -429,6 +431,22 @@ export function getEditableCalendars(
   disabledCalendars: string[]
 ): Calendar[] {
   return calendars.filter((c) => !c.readOnly && !disabledCalendars.includes(c.id));
+}
+
+/**
+ * The calendar a new event starts on: one of the user's own in the account Mail would send a new
+ * message from, so an invitation goes out from that address, else the first editable one.
+ */
+export function defaultCalendarForNewEvent(
+  calendars: Calendar[],
+  disabledCalendars: string[]
+): Calendar | null {
+  const editable = getEditableCalendars(calendars, disabledCalendars);
+  const account = DraftFactory._accountForNewDraft();
+  const own = editable.find(
+    (c) => c.accountId === account.id && !CalendarUtils.isSomeoneElsesCalendar(c)
+  );
+  return own || editable[0] || null;
 }
 
 /**
