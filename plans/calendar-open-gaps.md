@@ -16,10 +16,6 @@ the code before planning from it, and delete it here when it lands.
   PARTSTAT to the calendar copy and also queue an `EventRSVPTask` reply. On Google the write already
   makes Google email the organizer, so an outside organizer gets both, and a Google organizer ignores
   the emailed one. Seen live 2026-10-15.
-- **Times are always 12-hour.** `formatTime` in `calendar-event-popover.tsx`, `formatEventTimeRange`
-  (`calendar-helpers.tsx`), the drag tooltip (`calendar-drag-utils.ts`) and search results
-  (`event-search-bar.tsx`) hardcode AM/PM, so 24-hour locales see "10 AM". `formatShortTime` already
-  follows the locale.
 - **New events go on an arbitrary calendar.** The editor, drag-to-create and the quick-event box all
   take the first writable calendar (`getEditableCalendars(...)[0]`), so with several accounts a
   meeting can go out from the wrong address. It should default to Mail's "Send new messages from"
@@ -52,18 +48,17 @@ the code before planning from it, and delete it here when it lands.
   SEQUENCE, as undo and redo send, is untested.
 - **Keyboard.** Enter does not open the selected event, and New Event (`core:add-item`) has no default
   key. On hold until the event card moves into a sidebar.
+- **Notes formatting.** The event panel shows a description as plain text:
+  `extractNotesFromDescription` (`calendar-helpers.tsx`) flattens the HTML Google writes (bold,
+  lists, links) into lines, and only bare URLs come back as links. Showing the formatting, from
+  sanitized HTML or from Markdown in a plain-text description, is open.
 - **CalDAV server address.** Hosts are discovered through the identity server
   (`DAVWorker.cpp`, `resolve-dav-hosts`); there is no setting to enter one by hand.
 
 ## Sync engine
 
-- **Removed exceptions linger.** When a server re-serves a series without one of its exception VEVENTs,
-  the stale exception row is never deleted: both sync paths in `DAVWorker` only upsert, and rows are
-  removed only when a whole resource disappears.
-- **DURATION is ignored.** An event with DURATION and no DTEND is stored as zero-length:
-  icalendarlib doesn't parse DURATION and `Event::endOf` falls back to DTSTART.
-- **Microsoft calendars.** Onboarding requests Graph calendar scopes, but the engine has no Graph
-  calendar sync. Whether Outlook/Office 365 accounts get a CalDAV host from discovery is unverified.
+- **Microsoft calendars.** Outlook.com and Office 365 calendars sync and save edits through Microsoft
+  Graph, but answering an invitation does not go through Graph yet.
 
 ## Not built
 
