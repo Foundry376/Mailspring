@@ -73,7 +73,7 @@ class AttachmentStore extends MailspringStore {
       id.substr(0, 2),
       id.substr(2, 2),
       id,
-      file.safeDisplayName()
+      file.localFilename || file.safeDisplayName()
     );
     if (!filePath.startsWith(this._filesDirectory + path.sep)) {
       return null;
@@ -524,6 +524,7 @@ class AttachmentStore extends MailspringStore {
         messageId: null,
         contentId: inline ? Utils.generateContentId() : null,
       });
+      file.localFilename = file.safeDisplayName();
 
       await _fs.promises.mkdir(path.dirname(this.pathForFile(file)), { recursive: true });
       await this._copyToInternalPath(filePath, this.pathForFile(file));
@@ -549,6 +550,7 @@ class AttachmentStore extends MailspringStore {
         const copy = original.clone();
         copy.id = Utils.generateTempId();
         copy.messageId = null;
+        copy.localFilename = copy.safeDisplayName();
         try {
           const sourcePath = await this.resolvePathForFile(original);
           if (!(await fileAccessibleAtPath(sourcePath))) {

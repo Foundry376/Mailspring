@@ -19,6 +19,10 @@ Public: File model represents an email attachment.
 `contentId`: {AttributeString} If this file is an inline attachment, contentId
 is a string that matches a cid:<value> found in the HTML body of a {Message}.
 
+`localFilename`: {AttributeString} The name the client wrote the file's bytes under in its
+directory, so the sync engine reads a draft's attachment without re-deriving the name. Files
+the sync engine wrote have none.
+
 This class also inherits attributes from {Model}
 
 Section: Models
@@ -43,6 +47,9 @@ export class File extends Model {
     contentId: Attributes.String({
       modelKey: 'contentId',
     }),
+    localFilename: Attributes.String({
+      modelKey: 'localFilename',
+    }),
   };
 
   public filename: string;
@@ -50,6 +57,7 @@ export class File extends Model {
   public contentType: string;
   public messageId: string;
   public contentId: string;
+  public localFilename: string;
 
   constructor(data: AttributeValues<typeof File.attributes>) {
     super(data);
