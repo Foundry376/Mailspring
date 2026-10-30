@@ -4,10 +4,14 @@ import { EventOccurrence, occurrenceAt, occurrenceSlot } from './calendar-data-s
 
 type Times = NonNullable<EventChange['times']>;
 
-/** Edits made in the panel to one event, sent as one update. */
+/**
+ * Edits made in the panel to one event, sent as one update; or, on an invitation, the new time
+ * a guest proposes to the organizer, with their note.
+ */
 export interface UnsentChange extends EventChange {
   eventId: string;
   slot?: number;
+  proposal?: { note: string };
 }
 
 export function isUnsentChangeFor(change: UnsentChange | null, occurrence: EventOccurrence) {
@@ -18,11 +22,15 @@ export function isUnsentChangeFor(change: UnsentChange | null, occurrence: Event
   );
 }
 
+// Only the organizer changes a meeting (RFC 5546 section 2.1.4); a guest's change proposes one.
 export function emptyChange(occurrence: EventOccurrence): UnsentChange {
   const { eventId } = CalendarUtils.parseOccurrenceId(occurrence.id);
-  return occurrence.isRecurring
-    ? { eventId, slot: occurrenceSlot(occurrence), edits: [] }
-    : { eventId, edits: [] };
+  return {
+    eventId,
+    ...(occurrence.isRecurring && { slot: occurrenceSlot(occurrence) }),
+    edits: [],
+    ...(!occurrence.isMine && { proposal: { note: '' } }),
+  };
 }
 
 /** The occurrences a series' change may go to: one occurrence can't carry a repeat rule of its own. */

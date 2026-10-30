@@ -42,7 +42,11 @@ import {
   occurrenceTimes,
 } from './calendar-data-source';
 import { CalendarEventContextMenu } from './calendar-event-context-menu';
-import { openProposeNewTimePopover, offerCounterInsteadOfMove } from './calendar-rsvp';
+import {
+  openProposeNewTimePopover,
+  offerCounterInsteadOfMove,
+  proposeNewTimeForCalendarEvent,
+} from './calendar-rsvp';
 import { CalendarView, DEFAULT_TIMED_EVENT_DURATION_SECONDS } from './calendar-constants';
 import { CalendarEmptyState } from './calendar-empty-state';
 import {
@@ -363,9 +367,21 @@ export class MailspringCalendar extends React.Component<
   };
 
   async _writeUnsentChange(change: UnsentChange, scope: ChangeScope) {
-    await this._writeChange(change, scope);
+    if (change.proposal) await this._sendProposal(change);
+    else await this._writeChange(change, scope);
     // Kept until it's written, so nothing draws the old values in between.
     this.setState((s) => (s.unsentChange === change ? { unsentChange: null } : null));
+  }
+
+  // Nothing is written to our copy: the event moves only if the organizer accepts.
+  async _sendProposal(change: UnsentChange) {
+    const { times, proposal } = change;
+    const occurrence = this.state.selectedEvents.find((o) => isUnsentChangeFor(change, o));
+    await proposeNewTimeForCalendarEvent(occurrence, {
+      start: new Date(times.start * 1000),
+      end: new Date(times.end * 1000),
+      comment: proposal.note.trim(),
+    });
   }
 
   /** Writes a change made in the panel, keeping its occurrence selected wherever it lands. */
