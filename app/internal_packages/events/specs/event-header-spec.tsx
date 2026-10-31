@@ -11,6 +11,7 @@ import {
   Actions,
   AttachmentStore,
   Calendar,
+  CalendarUtils,
   Contact,
   DatabaseStore,
   Event,
@@ -24,7 +25,7 @@ import {
   Thread,
   Utils,
 } from 'mailspring-exports';
-import { EventHeader, renderLocation } from '../lib/event-header';
+import { EventHeader, renderLocation, repeatSummary } from '../lib/event-header';
 
 // A LOCATION as Zoom rooms write it: the join URL, then the rooms booked for the meeting.
 const ZOOM_WITH_ROOMS =
@@ -519,13 +520,26 @@ describe('EventHeader answering an invitation', function () {
     });
   });
 
+  it('names the account beside a calendar named something else, in one sentence', function () {
+    mount({ events: [], calendars: [shared] });
+    runs(() => {
+      expect(destination().textContent).toBe(
+        'Accepting will add this event to US On Call (brian@example.com)'
+      );
+    });
+  });
+
+  it('names a calendar called after the account once', function () {
+    mount({ events: [], calendars: [mine] });
+    runs(() => {
+      expect(destination().textContent).toBe('Accepting will add this event to brian@example.com');
+    });
+  });
+
   it('only emails a decline when the invitation is on no calendar', function () {
     mount({ events: [], calendars: [mine] });
     runs(() => {
-      expect(Array.from(destination().querySelectorAll('span')).map((n) => n.textContent)).toEqual([
-        'Accepting will add this event to',
-        'brian@example.com',
-      ]);
+      expect(destination().textContent).toBe('Accepting will add this event to brian@example.com');
       expect(destination().querySelector('select')).toBe(null);
       expect(
         ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'event-view-in-calendar').length
@@ -1135,5 +1149,37 @@ describe('EventHeader for an invitation a later email revised', function () {
       accept();
       expect((queued[1] as SyncbackEventTask).event.ics).not.toContain('EXDATE');
     });
+  });
+});
+
+describe('EventHeader repeat summary', function () {
+  const summary = (rrule?: string) =>
+    repeatSummary(
+      CalendarUtils.parseICSString(
+        [
+          'BEGIN:VCALENDAR',
+          'BEGIN:VEVENT',
+          'UID:r@test',
+          'DTSTART:20261103T150000Z',
+          ...(rrule ? [`RRULE:${rrule}`] : []),
+          'END:VEVENT',
+          'END:VCALENDAR',
+        ].join('\r\n')
+      ).event
+    );
+
+  it('says how often a series repeats', function () {
+    expect(summary('FREQ=WEEKLY;BYDAY=TU')).toBe('Every Week');
+    expect(summary('FREQ=DAILY;COUNT=5')).toBe('Every Day');
+    expect(summary('FREQ=YEARLY')).toBe('Every Year');
+  });
+
+  it('says only that it repeats when the rule is not one of the Repeat menu choices', function () {
+    expect(summary('FREQ=WEEKLY;INTERVAL=2')).toBe('Repeats');
+    expect(summary('FREQ=HOURLY')).toBe('Repeats');
+  });
+
+  it('says nothing for a single event', function () {
+    expect(summary()).toBe(null);
   });
 });

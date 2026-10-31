@@ -24,6 +24,7 @@ import {
   SyncbackEventTask,
   DatabaseStore,
   RegExpUtils,
+  Utils,
 } from 'mailspring-exports';
 import ICAL from 'ical.js';
 import {
@@ -79,6 +80,21 @@ export function renderLocation(location: string | undefined): React.ReactNode {
   }
   if (cursor < location.length) nodes.push(location.slice(cursor));
   return nodes;
+}
+
+/** How often a series repeats, in the words the event editor's Repeat menu uses. */
+export function repeatSummary(event: ICAL.Event): string | null {
+  const rrule = event.component.getFirstPropertyValue('rrule') as ICAL.Recur | null;
+  if (!rrule) return null;
+  const every: { [freq: string]: string } = {
+    DAILY: localized('Every Day'),
+    WEEKLY: localized('Every Week'),
+    MONTHLY: localized('Every Month'),
+    YEARLY: localized('Every Year'),
+  };
+  return (rrule.interval || 1) === 1 && every[rrule.freq]
+    ? every[rrule.freq]
+    : localized('Repeats');
 }
 
 /**
@@ -509,6 +525,9 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
             <div>
               <div className="event-time">{time}</div>
             </div>
+            {repeatSummary(icsEvent) && (
+              <div className="event-repeat">{repeatSummary(icsEvent)}</div>
+            )}
             <div className="event-location">{renderLocation(icsEvent.location)}</div>
             {this.state.isOnCalendar && (
               <div className="event-view-in-calendar">
@@ -789,27 +808,38 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
 
     if (rsvp.problem === 'not-on-a-calendar' && addTo) {
       const choices = this.state.addToChoices || [];
+      const account = AccountStore.accountForId(this.props.message.accountId);
+      // A Google primary calendar is named after the account; other servers' names, such as
+      // Yahoo's username, don't say which account the event lands in.
+      const inAccount =
+        account && !Utils.emailIsEquivalent(addTo.name, account.emailAddress)
+          ? `(${account.emailAddress})`
+          : '';
+      if (choices.length <= 1) {
+        return (
+          <div className="event-rsvp-destination">
+            {[localized('Accepting will add this event to'), addTo.name, inAccount]
+              .filter(Boolean)
+              .join(' ')}
+          </div>
+        );
+      }
       return (
         <div className="event-rsvp-destination">
           <span>{localized('Accepting will add this event to')}</span>
-          {choices.length > 1 ? (
-            <select
-              className="event-rsvp-calendar-picker"
-              value={addTo.id}
-              aria-label={localized('Calendar to add this event to')}
-              onChange={(e) =>
-                this.setState({ addTo: choices.find((c) => c.id === e.target.value) })
-              }
-            >
-              {choices.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <span>{addTo.name}</span>
-          )}
+          <select
+            className="event-rsvp-calendar-picker"
+            value={addTo.id}
+            aria-label={localized('Calendar to add this event to')}
+            onChange={(e) => this.setState({ addTo: choices.find((c) => c.id === e.target.value) })}
+          >
+            {choices.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          {inAccount && <span>{inAccount}</span>}
         </div>
       );
     }
