@@ -204,6 +204,21 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   }
 
   /**
+   * Focuses the field last edited, for Keep editing. A click that leaves the panel moves focus to
+   * what it hit on mousedown, before the calendar asks, so the field can't be read from focus.
+   */
+  returnToField() {
+    const field = this._lastFocused;
+    if (field && field.isConnected && this._el.current?.contains(field)) field.focus();
+  }
+
+  _lastFocused: HTMLElement | null = null;
+
+  _onFocus = (e: React.FocusEvent<HTMLElement>) => {
+    this._lastFocused = e.target;
+  };
+
+  /**
    * Saves the field being edited, as leaving it would, while the panel still shows its event.
    * Removing a focused field doesn't blur it, and React drops events while it unmounts, so the
    * calendar calls this before the panel shows another event or goes away. Resolves once the
@@ -880,7 +895,13 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   // The card sits under the scrolling rows, so a long event never pushes it out of view.
   render() {
     return (
-      <aside ref={this._el} className="event-panel" tabIndex={-1} aria-label={localized('Event')}>
+      <aside
+        ref={this._el}
+        className="event-panel"
+        tabIndex={-1}
+        aria-label={localized('Event')}
+        onFocus={this._onFocus}
+      >
         {this._renderHeader()}
         <ScrollRegion className="event-panel-body">
           {this._renderTitle()}

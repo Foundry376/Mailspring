@@ -423,6 +423,19 @@ describe('editing in the panel', function () {
       expect(panel.commitEdits()).toBe(null);
     });
 
+    it('returns to the field last edited once a click has moved focus away', function () {
+      const title = host.querySelector('input.event-panel-title') as HTMLInputElement;
+      title.focus();
+      const clicked = document.createElement('div');
+      clicked.tabIndex = -1;
+      document.body.appendChild(clicked);
+      clicked.focus();
+      panel.returnToField();
+
+      expect(document.activeElement).toBe(title);
+      clicked.remove();
+    });
+
     it('leaves focus elsewhere alone', function () {
       const outside = document.createElement('input');
       document.body.appendChild(outside);
@@ -489,11 +502,9 @@ describe('leaving the panel while a field is being edited', function () {
 
   it('returns to the field being edited when the user keeps editing', function () {
     spyOn(UnsentChangeDialog, 'showUnsentChangeDialog').andReturn('keep-editing');
-    const field = document.createElement('input');
-    document.body.appendChild(field);
-    field.focus();
+    const returnToField = jasmine.createSpy('returnToField');
+    calendar._eventPanel = { current: { commitEdits, returnToField } };
     commitEdits.andCallFake(() => {
-      field.blur();
       calendar.state.unsentChange = {
         eventId: 'e1',
         edits: [{ property: 'summary', value: 'Interview with Alex' }],
@@ -503,8 +514,7 @@ describe('leaving the panel while a field is being edited', function () {
     spyOn(calendar, '_leavesUnsentChange').andReturn(true);
 
     expect(calendar._mayLeave([])).toBe(false);
-    expect(document.activeElement).toBe(field);
-    field.remove();
+    expect(returnToField).toHaveBeenCalled();
   });
 
   it('offers to send a change the field joins as the window closes', function () {

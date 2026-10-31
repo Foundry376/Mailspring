@@ -336,13 +336,11 @@ export class MailspringCalendar extends React.Component<
   }
 
   _mayLeave(next: EventOccurrence[]) {
-    // Committing blurs the field being edited, which Keep editing returns to.
-    const editing = document.activeElement;
     this._commitPanelEdits(next);
     if (!this._leavesUnsentChange(next)) return true;
     const choice = showUnsentChangeDialog(this.state.unsentChange, this._unsentChangeEvent());
     if (choice === 'keep-editing') {
-      if (editing instanceof HTMLElement && editing.isConnected) editing.focus();
+      this._eventPanel.current?.returnToField();
       return false;
     }
     if (choice === 'send') this._sendUnsentChange();
