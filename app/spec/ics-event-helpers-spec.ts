@@ -3385,6 +3385,50 @@ END:VCALENDAR`
     const result = ICSEventHelpers.updateAttendeeStatus(INVITE_ICS, 'me@example.com', 'ACCEPTED');
     expect(result).not.toContain('DTSTAMP:20260101T000000Z');
   });
+
+  it("drops Yahoo's record of the earlier answer, which Yahoo then derives from PARTSTAT", function () {
+    const yahooCopy = INVITE_ICS.replace(
+      'SEQUENCE:0',
+      'SEQUENCE:0\nSTATUS:CONFIRMED\nX-YAHOO-USER-STATUS:TENTATIVE\nX-YAHOO-EVENT-STATUS:BUSY'
+    );
+    const result = ICSEventHelpers.updateAttendeeStatus(yahooCopy, 'me@example.com', 'ACCEPTED');
+    expect(result).not.toContain('X-YAHOO-USER-STATUS');
+    expect(result).toContain('X-YAHOO-EVENT-STATUS:BUSY');
+  });
+});
+
+describe('ICSEventHelpers.attendeeStatuses', function () {
+  it("reads one attendee's PARTSTAT from every VEVENT that lists them", function () {
+    const series = INVITE_ICS.replace(
+      'END:VCALENDAR',
+      [
+        'BEGIN:VEVENT',
+        'UID:invite-uid@test',
+        'RECURRENCE-ID:20260308T140000Z',
+        'DTSTART:20260308T150000Z',
+        'DTSTAMP:20260101T000000Z',
+        'ATTENDEE;PARTSTAT=DECLINED:mailto:ME@example.com',
+        'END:VEVENT',
+        'BEGIN:VEVENT',
+        'UID:invite-uid@test',
+        'RECURRENCE-ID:20260315T140000Z',
+        'DTSTART:20260315T150000Z',
+        'DTSTAMP:20260101T000000Z',
+        'ATTENDEE:mailto:me@example.com',
+        'END:VEVENT',
+        'END:VCALENDAR',
+      ].join('\n')
+    );
+    expect(ICSEventHelpers.attendeeStatuses(series, 'me@example.com')).toEqual([
+      'NEEDS-ACTION',
+      'DECLINED',
+      'NEEDS-ACTION',
+    ]);
+  });
+
+  it('is empty when the address is not an attendee', function () {
+    expect(ICSEventHelpers.attendeeStatuses(INVITE_ICS, 'nobody@example.com')).toEqual([]);
+  });
 });
 
 describe('ICSEventHelpers.stripITIPMethod', function () {

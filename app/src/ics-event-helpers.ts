@@ -1665,8 +1665,26 @@ function setAttendeePartstat(
     // RFC 5546 section 3.2 breaks ties at equal SEQUENCE on DTSTAMP, so only a changed
     // component gets a new one.
     vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
+    // Yahoo's own record of our answer. Written back unchanged, it keeps the event unanswered
+    // in Yahoo and adds a second STATUS:TENTATIVE; removed, Yahoo derives it from PARTSTAT
+    // (measured on Yahoo CalDAV, October 2026).
+    vevent.removeAllProperties('x-yahoo-user-status');
   }
   return changed;
+}
+
+/** The PARTSTAT of one attendee in each VEVENT that lists them. */
+export function attendeeStatuses(ics: string, email: string): string[] {
+  const { root } = parseICSString(ics);
+  const vevents =
+    root.name === 'vevent' ? [root] : (root.getAllSubcomponents('vevent') as ICALComponent[]);
+  const target = email.toLowerCase();
+  return vevents.flatMap((vevent) =>
+    vevent
+      .getAllProperties('attendee')
+      .filter((a) => a.getValues().some((v) => emailFromParticipantURI(String(v)) === target))
+      .map((a) => String(a.getParameter('partstat') || 'NEEDS-ACTION').toUpperCase())
+  );
 }
 
 /**

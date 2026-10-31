@@ -808,6 +808,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
             event: write.event,
             calendarId: write.calendar.id,
             accountId,
+            answer: write.answer,
           })
     );
   }

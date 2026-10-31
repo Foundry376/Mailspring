@@ -513,6 +513,7 @@ describe('EventHeader answering an invitation', function () {
       const write = queued[1] as SyncbackEventTask;
       expect(write.calendarId).toBe(mine.id);
       expect(write.event.ics).not.toContain('METHOD');
+      expect(write.createdAnswer).toEqual({ email: 'brian@example.com', status: 'ACCEPTED' });
     });
   });
 

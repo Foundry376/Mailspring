@@ -164,3 +164,80 @@ describe('an answer refused because our copy changed on the server', function ()
     expect(dialog.mostRecentCall.args[0].message).toContain('no longer exists');
   });
 });
+
+describe('an invitation added to our calendar as we answer it', function () {
+  let queued: SyncbackEventTask[];
+  let storedIcs: string | null;
+
+  // What Yahoo CalDAV stores for a new resource: our answer reset, its own record of it added.
+  const YAHOO_RESET = ics({ partstat: 'NEEDS-ACTION' }).replace(
+    'END:VEVENT',
+    'X-YAHOO-USER-STATUS:TENTATIVE\r\nSTATUS:TENTATIVE\r\nEND:VEVENT'
+  );
+
+  const createTask = (answer: any = { email: ME, status: 'ACCEPTED' }) => {
+    const task = SyncbackEventTask.forCreating({
+      event: event(ics({ partstat: 'ACCEPTED' })),
+      calendarId: 'cal-1',
+      accountId: 'acct-1',
+      answer,
+    });
+    // The engine hands the new row's id back on the task.
+    task.event.id = 'engine-id';
+    return task;
+  };
+
+  beforeEach(function () {
+    storedIcs = null;
+    spyOn(DatabaseStore, 'find').andCallFake((klass, id) =>
+      Promise.resolve(id === 'engine-id' && storedIcs ? event(storedIcs, id) : null)
+    );
+    spyOn(AppEnv.mailsyncBridge, 'sendSyncCalendarNow');
+    queued = [];
+    spyOn(Actions, 'queueTask').andCallFake((t) => queued.push(t));
+  });
+
+  it('keeps the answer out of the field the engine reads to skip a Graph write', function () {
+    const task = createTask();
+    expect(task.rsvp).toBeUndefined();
+    expect(task.createdAnswer).toEqual({ email: ME, status: 'ACCEPTED' });
+  });
+
+  it('answers again on the copy the server stored when it reset our answer', async function () {
+    storedIcs = YAHOO_RESET;
+    await createTask().onSuccess();
+
+    expect(queued.length).toBe(1);
+    expect(queued[0].event.id).toBe('engine-id');
+    const written = unfolded(queued[0].event.ics);
+    expect(written).toContain(`PARTSTAT=ACCEPTED:mailto:${ME}`);
+    expect(written).not.toContain('X-YAHOO-USER-STATUS');
+    expect(queued[0].rsvp).toEqual({ email: ME, status: 'ACCEPTED', retried: true });
+  });
+
+  it('writes nothing more when the server kept the answer', async function () {
+    storedIcs = ics({ partstat: 'ACCEPTED' });
+    await createTask().onSuccess();
+    expect(queued.length).toBe(0);
+  });
+
+  it('writes nothing more for an ordinary new event', async function () {
+    storedIcs = YAHOO_RESET;
+    const task = SyncbackEventTask.forCreating({
+      event: event(ics()),
+      calendarId: 'cal-1',
+      accountId: 'acct-1',
+    });
+    task.event.id = 'engine-id';
+    await task.onSuccess();
+    expect(DatabaseStore.find).not.toHaveBeenCalled();
+    expect(queued.length).toBe(0);
+  });
+
+  it('writes nothing when the row is gone or no longer lists us', async function () {
+    await createTask().onSuccess();
+    storedIcs = YAHOO_RESET.replace(`mailto:${ME}`, 'mailto:someone@example.com');
+    await createTask().onSuccess();
+    expect(queued.length).toBe(0);
+  });
+});

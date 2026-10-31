@@ -62,6 +62,11 @@ export class SyncbackEventTask extends Task {
     rsvp: Attributes.Obj({
       modelKey: 'rsvp',
     }),
+    // Not `rsvp`: the engine leaves a Graph write carrying one to its EventRSVPTask, and this
+    // write adds the event.
+    createdAnswer: Attributes.Obj({
+      modelKey: 'createdAnswer',
+    }),
   };
 
   event: Event;
@@ -70,20 +75,26 @@ export class SyncbackEventTask extends Task {
   newData?: EventSnapshot;
   taskDescription?: string;
   rsvp?: RSVPAnswer;
+  /** On a write that adds an invitation to our calendar, the answer it records. */
+  createdAnswer?: RSVPAnswer;
 
   static forCreating({
     event,
     calendarId,
     accountId,
+    answer,
   }: {
     event: Event;
     calendarId: string;
     accountId: string;
+    /** Set when the event is an invitation we are adding as we answer it. */
+    answer?: RSVPAnswer;
   }) {
     return new SyncbackEventTask({
       event,
       calendarId,
       accountId,
+      createdAnswer: answer,
       // Creating events cannot be undone via this mechanism
       // (would need DestroyEventTask)
     });
@@ -215,6 +226,27 @@ export class SyncbackEventTask extends Task {
   // rows included. This pass picks up whatever else the server changed on the calendar.
   async onSuccess() {
     AppEnv.mailsyncBridge.sendSyncCalendarNow(this.accountId);
+    if (this.createdAnswer) await this._answerAgainIfServerReset();
+  }
+
+  /**
+   * Yahoo CalDAV stores a new resource with our ATTENDEE at PARTSTAT=NEEDS-ACTION whatever the
+   * PUT said, and keeps an answer only when it is written over the stored resource (measured
+   * October 2026; SCHEDULE-AGENT=CLIENT, METHOD and STATUS make no difference). The engine's
+   * read-back stored the server's copy, so a copy that lost our answer is given it again.
+   */
+  async _answerAgainIfServerReset() {
+    const stored = await DatabaseStore.find<Event>(Event, this.event.id);
+    if (!stored) return;
+    const { email, status } = this.createdAnswer;
+    if (ICSEventHelpers.attendeeStatuses(stored.ics, email).every((s) => s === status)) return;
+    const ics = ICSEventHelpers.updateAttendeeStatus(stored.ics, email, status);
+    if (!ics) return;
+    const event = stored.clone();
+    event.ics = ics;
+    Actions.queueTask(
+      SyncbackEventTask.forAnswering({ event, answer: { email, status, retried: true } })
+    );
   }
 
   // Keys from TaskProcessor::perform{Local,Remote}SyncbackEvent and DAVWorker::writeAndResyncEvent.
