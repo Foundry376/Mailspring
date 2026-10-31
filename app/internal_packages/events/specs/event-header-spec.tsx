@@ -1075,16 +1075,19 @@ describe('EventHeader for an invitation a later email revised', function () {
   });
 
   afterEach(function () {
-    Object.values(paths).forEach((p) => fs.unlinkSync(p));
+    Object.values(paths).forEach((p) => fs.rmSync(p, { force: true }));
   });
 
   // The revision arrives with its body undownloaded, and with it once the body is fetched.
-  function mount(found: Message[]) {
+  // `bodies` stands in for the query that emits again as each fetched body arrives.
+  function mount(found: Message[], bodies = Rx.Observable.just(found)) {
     spyOn(EventHeader.prototype, '_otherInvitationEmails').andReturn(
       Promise.resolve(found.map((m) => Object.assign(m.clone(), { body: null, files: [] })))
     );
     spyOn(Rx.Observable, 'fromQuery').andCallFake((query: { _klass: unknown }) =>
-      Rx.Observable.just(query._klass === Message ? found : query._klass === Calendar ? [mine] : [])
+      query._klass === Message
+        ? bodies
+        : Rx.Observable.just(query._klass === Calendar ? [mine] : [])
     );
     header = ReactTestUtils.renderIntoDocument(
       <EventHeader
@@ -1158,6 +1161,44 @@ describe('EventHeader for an invitation a later email revised', function () {
         ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'event-cancelled').length
       ).toBe(1);
       expect(ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'btn-rsvp').length).toBe(0);
+    });
+  });
+
+  it('shows a re-invitation whose email arrives after a cancellation of the series', function () {
+    const reinviteFile = new File({ id: 'f-reinvite', filename: 'invite.ics' });
+    paths[reinviteFile.id] = path.join(os.tmpdir(), `event-header-f-reinvite-${process.pid}.ics`);
+    fs.writeFileSync(
+      paths[revisedFile.id],
+      invitation(...SERIES, 'STATUS:CANCELLED', 'DTSTAMP:20261031T021507Z', 'SEQUENCE:1').replace(
+        'METHOD:REQUEST',
+        'METHOD:CANCEL'
+      )
+    );
+    fs.writeFileSync(
+      paths[reinviteFile.id],
+      invitation(...SERIES, 'DTSTAMP:20261031T030000Z', 'SEQUENCE:2')
+    );
+    const reinvite = new Message({
+      id: 'm-reinvite',
+      accountId: 'a1',
+      threadId: 't-reinvite',
+      date: new Date(Date.UTC(2026, 9, 31, 3, 0)),
+      files: [reinviteFile],
+    } as any);
+    const bodies = new Rx.Subject<Message[]>();
+    mount([revision, reinvite], bodies);
+    runs(() => bodies.onNext([revision]));
+    waitsFor(() => header.state.icsMethod === 'cancel');
+    runs(() => bodies.onNext([revision, reinvite]));
+    waitsFor(() => header.state.icsMethod === 'request');
+    runs(() => {
+      expect(notice().textContent).toContain('updated after this email was sent');
+      expect(
+        ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'event-cancelled').length
+      ).toBe(0);
+      expect(
+        ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'btn-rsvp').length
+      ).toBeGreaterThan(0);
     });
   });
 

@@ -361,12 +361,17 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     return otherInvitationEmails(this.props.message, title);
   }
 
+  // Runs again as each candidate's body arrives, so every result replaces the last; null puts
+  // back this email's own invitation.
   _onEmailedVersions(ownIcs: string, others: EmailedInvitation[]) {
     let newest: ReturnType<typeof newestInvitation>;
     let event: ICAL.Event;
     try {
-      newest = newestInvitation({ ics: ownIcs, message: this.props.message }, others);
-      if (!newest) return;
+      newest = newestInvitation({ ics: ownIcs, message: this.props.message }, others) || {
+        ics: ownIcs,
+        cancelled: false,
+        message: null,
+      };
       event = CalendarUtils.parseICSString(newest.ics).event;
     } catch (e) {
       console.warn(`EventHeader: Could not read a later copy of this invitation: ${e.message}`);
@@ -376,8 +381,9 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       inviteIcs: newest.ics,
       inviteEvent: event,
       newerInvitation: newest.message || undefined,
+      // Only an emailed REQUEST looks for later versions.
+      icsMethod: newest.cancelled ? 'cancel' : 'request',
     };
-    if (newest.cancelled) next.icsMethod = 'cancel';
     // A calendar copy shown in place of the invitation stays shown.
     if (this.state.icsEvent === this.state.inviteEvent) next.icsEvent = event;
     this.setState(next as EventHeaderState);
