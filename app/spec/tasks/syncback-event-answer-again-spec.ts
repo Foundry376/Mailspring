@@ -115,7 +115,7 @@ describe('an answer refused because our copy changed on the server', function ()
     await done;
     expect(unlisten).toHaveBeenCalled();
     expect(queued.length).toBe(0);
-    expect(dialog.mostRecentCall.args[0].message).toContain('changed by another client');
+    expect(dialog.mostRecentCall.args[0].message).toContain('changed since it was last loaded');
   });
 
   it('stops waiting once the copy arrives', async function () {
@@ -139,22 +139,28 @@ describe('an answer refused because our copy changed on the server', function ()
       key: 'etag-conflict',
       debuginfo: '',
     });
-    expect(AppEnv.mailsyncBridge.sendSyncCalendarNow).not.toHaveBeenCalled();
+    expect(DatabaseStore.listen).not.toHaveBeenCalled();
+    expect(AppEnv.mailsyncBridge.sendSyncCalendarNow).toHaveBeenCalledWith('acct-1');
+    expect(queued.length).toBe(0);
     expect(dialog).toHaveBeenCalled();
   });
 
-  it('leaves an ordinary edit that conflicts to the user', async function () {
+  it('does not make an ordinary edit that conflicts again', async function () {
     await SyncbackEventTask.forUpdating({ event: event(ics()) }).onError({
       key: 'etag-conflict',
       debuginfo: '',
     });
-    expect(AppEnv.mailsyncBridge.sendSyncCalendarNow).not.toHaveBeenCalled();
+    expect(DatabaseStore.listen).not.toHaveBeenCalled();
+    expect(AppEnv.mailsyncBridge.sendSyncCalendarNow).toHaveBeenCalledWith('acct-1');
+    expect(queued.length).toBe(0);
     expect(dialog).toHaveBeenCalled();
   });
 
   it('does not retry an answer refused for another reason', async function () {
     await answerTask().onError({ key: 'not-found', debuginfo: '' });
-    expect(AppEnv.mailsyncBridge.sendSyncCalendarNow).not.toHaveBeenCalled();
+    expect(DatabaseStore.listen).not.toHaveBeenCalled();
+    expect(AppEnv.mailsyncBridge.sendSyncCalendarNow).toHaveBeenCalledWith('acct-1');
+    expect(queued.length).toBe(0);
     expect(dialog.mostRecentCall.args[0].message).toContain('no longer exists');
   });
 });

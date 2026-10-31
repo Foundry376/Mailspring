@@ -218,14 +218,17 @@ export class SyncbackEventTask extends Task {
   }
 
   // Keys from TaskProcessor::perform{Local,Remote}SyncbackEvent and DAVWorker::writeAndResyncEvent.
-  // Only the network ones (etag-conflict, no-calendar, not-found) leave the rejected edit on screen.
+  // The network ones (etag-conflict, no-calendar, not-found) fail after the local phase stored the
+  // edit, so the calendar is re-read to put the server's copy back on screen.
   async onError({ key, debuginfo }: { key: string; debuginfo: string }) {
     if (key === 'etag-conflict' && this.rsvp && !this.rsvp.retried) {
       if (await this._answerAgainOnCurrentCopy()) return;
     }
+    AppEnv.mailsyncBridge.sendSyncCalendarNow(this.accountId);
     const messages: { [key: string]: string } = {
+      // The server's copy need not be another client's: our own earlier write changes it too.
       'etag-conflict': localized(
-        'This event was changed by another client. Refresh the calendar and make your change again.'
+        "This event changed since it was last loaded, so your change wasn't saved. The calendar has been refreshed. Please make your change again."
       ),
       'ics-incomplete': localized(
         'This series already has modified occurrences on the server. Refresh the calendar and edit it again.'
