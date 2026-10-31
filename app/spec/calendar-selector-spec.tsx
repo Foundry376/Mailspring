@@ -11,6 +11,7 @@ const CALENDARS = [
   { id: 'c1', accountId: 'a1', name: 'Calendar', readOnly: false },
   { id: 'c2', accountId: 'a2', name: 'Calendar', readOnly: false },
   { id: 'c3', accountId: 'a2', name: 'Family', readOnly: false },
+  { id: 'c4', accountId: 'a2', name: 'ben@icloud.com', readOnly: false },
 ] as any[];
 
 describe('CalendarSelector', function () {
@@ -38,6 +39,11 @@ describe('CalendarSelector', function () {
     );
   });
 
+  it('leaves the account off a calendar named after it', function () {
+    const { container } = renderSelector('c4');
+    expect(container.querySelector('.calendar-selector-account')).toBe(null);
+  });
+
   it('lists the calendars under their accounts', function () {
     const { container } = renderSelector('c1');
     const groups = Array.from(container.querySelectorAll('optgroup')).map((g) => [
@@ -46,7 +52,7 @@ describe('CalendarSelector', function () {
     ]);
     expect(groups).toEqual([
       ['ben@outlook.com', ['Calendar']],
-      ['ben@icloud.com', ['Calendar', 'Family']],
+      ['ben@icloud.com', ['Calendar', 'Family', 'ben@icloud.com']],
     ]);
   });
 

@@ -47,7 +47,7 @@ export function CalendarSelector({
       <div className="calendar-selector-dot" style={{ backgroundColor: selectedColor }} />
       <div className="calendar-selector-value" aria-hidden="true">
         <span className="calendar-selector-name">{selected?.name}</span>
-        {selected && (
+        {selected && selected.name !== accountLabelFor(selected.accountId) && (
           <span className="calendar-selector-account">{accountLabelFor(selected.accountId)}</span>
         )}
         <span className="calendar-selector-chevron">
