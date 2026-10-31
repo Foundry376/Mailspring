@@ -450,9 +450,14 @@ export function occurrencesForEvents(
 
   // A read-only copy is one nobody can act on, such as a holiday calendar subscribed from
   // several accounts, so it is drawn only where no other copy of that UID has the same start.
-  // Writable copies come first so every one of them is drawn.
+  // Writable copies come first so every one of them is drawn. Read-only ones go in calendar order,
+  // so the same copy, and its color, is drawn whatever order the rows were read in.
   const isReadOnly = (rows: Event[]) => readOnlyCalendarIds.has(rows[0].calendarId);
-  const series = [...seriesRows.values()].sort((a, b) => +isReadOnly(a) - +isReadOnly(b));
+  const series = [...seriesRows.values()].sort(
+    (a, b) =>
+      +isReadOnly(a) - +isReadOnly(b) ||
+      (isReadOnly(a) ? a[0].calendarId.localeCompare(b[0].calendarId) : 0)
+  );
   const occurrences: EventOccurrence[] = [];
   const drawn = new Set<string>();
   for (const rows of series) {

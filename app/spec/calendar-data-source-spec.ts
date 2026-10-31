@@ -273,6 +273,17 @@ describe('occurrencesForEvents with one meeting on several calendars', function 
       expect(occs.map((o) => o.calendarId)).toEqual(['holidays-1']);
     });
 
+    it('draws the same copy of a holiday whatever order its rows come in', function () {
+      const readOnlyCalendarIds = new Set(['holidays-1', 'holidays-2']);
+      const drawn = (calendarIds: string[]) =>
+        occurrencesForEvents(
+          calendarIds.map((c) => copyOn(holiday, c)),
+          { ...november, readOnlyCalendarIds }
+        ).map((o) => o.calendarId);
+      expect(drawn(['holidays-2', 'holidays-1'])).toEqual(['holidays-1']);
+      expect(drawn(['holidays-1', 'holidays-2'])).toEqual(['holidays-1']);
+    });
+
     it('draws a meeting on our calendar rather than its read-only copy', function () {
       const ics = icsFor('DTSTART:20261110T140000Z', 'DTEND:20261110T150000Z');
       const occs = occurrencesForEvents(
