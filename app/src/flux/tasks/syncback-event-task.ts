@@ -252,7 +252,7 @@ export class SyncbackEventTask extends Task {
    * when that copy did not arrive or no longer lists us.
    */
   async _answerAgainOnCurrentCopy(): Promise<boolean> {
-    const current = await this._nextCopyOfEvent();
+    const current = (await this._storedServerCopy()) || (await this._nextCopyOfEvent());
     if (!current) return false;
     const { email, status, occurrenceIcs } = this.rsvp;
     const ics = occurrenceIcs
@@ -265,6 +265,14 @@ export class SyncbackEventTask extends Task {
       SyncbackEventTask.forAnswering({ event, answer: { ...this.rsvp, retried: true } })
     );
     return true;
+  }
+
+  // The engine stores the server's copy over our refused write before it reports the conflict
+  // (DAVWorker::writeAndResyncEvent). Null when the row still holds what this task wrote, as when
+  // that read-back failed.
+  async _storedServerCopy(): Promise<Event | null> {
+    const stored = await DatabaseStore.find<Event>(Event, this.event.id);
+    return stored && stored.ics !== this.event.ics ? stored : null;
   }
 
   // Asks the engine to re-read the calendar, and resolves with the event as that sync stores it.
