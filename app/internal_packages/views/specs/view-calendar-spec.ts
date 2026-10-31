@@ -107,6 +107,7 @@ describe('Views calendar API', function () {
         calendarIds: ['c1'],
         attendee: 'Boss@Example.com',
       });
+      expect(r.startUnix).toBe(new Date(2026, 9, 1).getTime() / 1000);
       expect(r.calendarIds).toEqual(['c1']);
       expect(r.attendee).toBe('boss@example.com');
       expect(r.includeDeclined).toBe(false);
@@ -305,6 +306,19 @@ describe('Views calendar API', function () {
 
       const bad = await errorFrom(() => createEvent('spec', WRITE, { ...base, end: base.start }));
       expect(bad.code).toBe('invalid');
+    });
+
+    it('reads a date without a time as that day here, not in UTC', async () => {
+      await createEvent('spec', WRITE, {
+        calendarId: 'c1',
+        title: 'Aunt Jess visiting',
+        start: '2026-12-17',
+        end: '2026-12-18',
+        isAllDay: true,
+      });
+      const created = (Actions.queueTask as any as jasmine.Spy).mostRecentCall.args[0];
+      expect(created.event.ics).toContain('DTSTART;VALUE=DATE:20261217');
+      expect(created.event.ics).toContain('DTEND;VALUE=DATE:20261218');
     });
 
     it('edits a whole event with undo but not one occurrence of a series', async () => {

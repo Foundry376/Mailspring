@@ -146,8 +146,18 @@ function check<S extends z.ZodTypeAny>(schema: S, value: any): z.infer<S> {
 const Status = z.enum(['accepted', 'tentative', 'declined']);
 const PARTSTAT = { accepted: 'ACCEPTED', tentative: 'TENTATIVE', declined: 'DECLINED' };
 
+/**
+ * A date a View passed. `new Date('2026-12-17')` is UTC midnight, the previous evening west of
+ * Greenwich; a date without a time means that day here, as `new Date('2026-12-17T00:00')` does.
+ */
+export function dateFromInput(v: unknown): Date {
+  return new Date(
+    typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? `${v}T00:00` : (v as any)
+  );
+}
+
 const DateInput = z.union([z.string(), z.number()]).transform((v, ctx) => {
-  const d = new Date(v);
+  const d = dateFromInput(v);
   if (isNaN(d.getTime())) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'must be a date' });
     return z.NEVER;
@@ -338,7 +348,7 @@ export async function showInCalendar(grant: ViewGrant, params: { id?: string; da
     });
     return {};
   }
-  const d = new Date(params.date);
+  const d = dateFromInput(params.date);
   if (isNaN(d.getTime())) throw new ViewError('invalid', 'date must be a date');
   ipcRenderer.send('command', 'application:show-calendar');
   FocusedMomentStore.setFocusedMoment(moment(d));

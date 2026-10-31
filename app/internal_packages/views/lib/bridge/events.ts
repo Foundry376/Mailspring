@@ -9,7 +9,7 @@ import {
 } from '../../../main-calendar/lib/core/calendar-data-source';
 import type { ViewGrant } from './grant';
 import { ViewError } from './errors';
-import { calendarsQuery } from './calendar';
+import { calendarsQuery, dateFromInput } from './calendar';
 
 const MAX_RANGE_DAYS = 400;
 const MAX_EVENTS = 2000;
@@ -33,8 +33,8 @@ export function parseRange({
   attendee,
   includeDeclined,
 }: any): EventRange {
-  const startUnix = Math.floor(new Date(start).getTime() / 1000);
-  const endUnix = Math.floor(new Date(end).getTime() / 1000);
+  const startUnix = Math.floor(dateFromInput(start).getTime() / 1000);
+  const endUnix = Math.floor(dateFromInput(end).getTime() / 1000);
   if (!startUnix || !endUnix || endUnix <= startUnix) {
     throw new ViewError('invalid', 'start and end must be dates, with end after start');
   }
