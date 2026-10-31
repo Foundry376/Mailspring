@@ -821,21 +821,33 @@ export class MailspringCalendar extends React.Component<
       return;
     }
     const skipped = selected.length - deletable.length;
+    // Deleting an invitation declines it; nothing here is one when every event is ours.
+    const ours = deletable.every((o) => o.isMine);
+    let message: string;
+    if (!ours) {
+      message = localized('Delete or decline these events?');
+    } else if (deletable.length === 1) {
+      message = localized('Delete this event?');
+    } else {
+      message = localized('Delete these events?');
+    }
 
     // Show initial confirmation dialog
     const response = require('@electron/remote').dialog.showMessageBoxSync({
       type: 'warning',
       buttons: [localized('Delete'), localized('Cancel')],
-      message: localized('Delete or decline these events?'),
+      message,
       detail: skipped
         ? localized(
             "%1$@ of the %2$@ selected events will be deleted. The rest are on read-only calendars and can't be changed.",
             deletable.length,
             selected.length
           )
-        : localized(
-            `Are you sure you want to delete or decline invitations for the selected event(s)?`
-          ),
+        : ours
+          ? localized('Are you sure you want to delete the selected event(s)?')
+          : localized(
+              `Are you sure you want to delete or decline invitations for the selected event(s)?`
+            ),
     });
 
     if (response !== 0) {
