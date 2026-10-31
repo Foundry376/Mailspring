@@ -3656,8 +3656,24 @@ END:VCALENDAR`;
     expect(ics).toContain('TRIGGER:-PT10M');
   });
 
-  it('adds no reminder to a new event without a trigger', function () {
-    expect(ICSEventHelpers.createICSString(NEW_EVENT)).not.toContain('VALARM');
+  it('marks a new event without a trigger as having no reminder', function () {
+    const ics = ICSEventHelpers.createICSString(NEW_EVENT);
+    const [alarm, ...rest] = alarmsOf(ics);
+
+    expect(rest.length).toBe(0);
+    expect(alarm.getFirstPropertyValue('action')).toBe('NONE');
+    expect(ics).toContain('TRIGGER;VALUE=DATE-TIME:19760401T005545Z');
+    expect(ICSEventHelpers.getAlarmTrigger(ics)).toBe(null);
+  });
+
+  it('reads the placeholder another client wrote as no reminder, and replaces it with one', function () {
+    const marked = ICSEventHelpers.createICSString(NEW_EVENT);
+    const reminded = ICSEventHelpers.updateAlarm(marked, '-PT15M');
+    const [alarm, ...rest] = alarmsOf(reminded);
+
+    expect(rest.length).toBe(0);
+    expect(alarm.getFirstPropertyValue('action')).toBe('DISPLAY');
+    expect(ICSEventHelpers.getAlarmTrigger(reminded)).toBe('-PT15M');
   });
 
   it("reads the first reminder's offset, however it is spelled", function () {
@@ -3699,8 +3715,13 @@ END:VCALENDAR`;
     expect(ics).toContain('TRIGGER:-P1W');
   });
 
-  it('removes every reminder for none', function () {
-    expect(ICSEventHelpers.updateAlarm(REMINDED_ICS, null)).not.toContain('VALARM');
+  it('replaces every reminder with the placeholder for none', function () {
+    const ics = ICSEventHelpers.updateAlarm(REMINDED_ICS, null);
+    const [alarm, ...rest] = alarmsOf(ics);
+
+    expect(rest.length).toBe(0);
+    expect(alarm.getFirstPropertyValue('action')).toBe('NONE');
+    expect(ICSEventHelpers.getAlarmTrigger(ics)).toBe(null);
   });
 
   it("sets the reminder of a series' moved occurrences with the series'", function () {
@@ -3720,7 +3741,8 @@ END:VCALENDAR`;
     expect(exception).not.toContain('TRIGGER:-P0DT0H30M0S');
 
     const [, cleared] = vevents(ICSEventHelpers.updateAlarm(masterIcs, null));
-    expect(cleared).not.toContain('VALARM');
+    expect(cleared).not.toContain('ACTION:DISPLAY');
+    expect(cleared).toContain('ACTION:NONE');
   });
 
   it("sets one occurrence's reminder without touching the series'", function () {
@@ -3736,7 +3758,8 @@ END:VCALENDAR`;
     });
     const [master, exception] = ics.split('BEGIN:VEVENT').slice(1);
 
-    expect(master).toContain('VALARM');
-    expect(exception).not.toContain('VALARM');
+    expect(master).toContain('ACTION:DISPLAY');
+    expect(exception).not.toContain('ACTION:DISPLAY');
+    expect(exception).toContain('ACTION:NONE');
   });
 });

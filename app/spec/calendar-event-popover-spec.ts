@@ -609,7 +609,10 @@ END:VEVENT`
 
     popover._saveAllOccurrences(event);
 
-    expect(queued[0].event.ics).not.toContain('VALARM');
+    const ics = queued[0].event.ics;
+    expect(ics).not.toContain('ACTION:DISPLAY');
+    expect(ics).toContain('ACTION:NONE');
+    expect(ICSEventHelpers.getAlarmTrigger(ics)).toBe(null);
   });
 
   it("changes only the occurrence's reminder when one occurrence is edited", async function () {

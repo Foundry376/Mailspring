@@ -57,8 +57,9 @@ export interface CreateEventOptions {
   attendees?: Array<{ email: string; name?: string; role?: string }>;
   recurrenceRule?: string;
   transparency?: Transparency;
-  /** A TRIGGER duration such as "-PT10M" for a reminder; none is added when omitted. */
-  alarmTrigger?: string;
+  /** A TRIGGER duration such as "-PT10M" for a reminder; omitted, the event is marked as
+   * having none (see setAlarm). */
+  alarmTrigger?: string | null;
 }
 
 /**
@@ -610,9 +611,7 @@ export function createICSString(options: CreateEventOptions): string {
     setTransparency(vevent, options.transparency);
   }
 
-  if (options.alarmTrigger) {
-    setAlarm(vevent, options.alarmTrigger, ical);
-  }
+  setAlarm(vevent, options.alarmTrigger || null, ical);
 
   // Set timestamp
   vevent.addPropertyWithValue('dtstamp', nowUTC(ical));
@@ -1420,13 +1419,35 @@ export function updateAttendees(
 }
 
 /**
+ * An alarm that says the event has none. Google applies the calendar's default reminders to an
+ * event with no VALARM (measured October 2026: `reminders.useDefault` is true and the read-back
+ * carries the default), and takes this one as "no reminder". It is the placeholder Apple's
+ * clients write for None (draft-daboo-valarm-extensions section 11), iCloud stores it as written,
+ * Yahoo drops it, and RFC 5545 section 3.8.6.1 has other readers ignore an ACTION they don't know.
+ */
+function addNoAlarmPlaceholder(vevent: ICALComponent, ical: ICAL): void {
+  const alarm = new ical.Component('valarm');
+  alarm.addPropertyWithValue('action', 'NONE');
+  alarm.addProperty(new ical.Property(['trigger', {}, 'date-time', '1976-04-01T00:55:45Z']));
+  vevent.addSubcomponent(alarm);
+}
+
+function isNoAlarmPlaceholder(alarm: ICALComponent): boolean {
+  return String(alarm.getFirstPropertyValue('action') || '').toUpperCase() === 'NONE';
+}
+
+/**
  * Points a VEVENT's first VALARM at `trigger`, adding a DISPLAY alarm when it has none, or removes
- * every VALARM for null. The editor shows only the first, so any others are left as they are.
+ * every VALARM for null and marks the event as having none. The editor shows only the first, so
+ * any others are left as they are.
  */
 function setAlarm(vevent: ICALComponent, trigger: string | null, ical: ICAL): void {
+  const placeholders = vevent.getAllSubcomponents('valarm').filter(isNoAlarmPlaceholder);
+  placeholders.forEach((alarm) => vevent.removeSubcomponent(alarm));
   const alarms = vevent.getAllSubcomponents('valarm');
   if (!trigger) {
     alarms.forEach((alarm) => vevent.removeSubcomponent(alarm));
+    addNoAlarmPlaceholder(vevent, ical);
     return;
   }
   let alarm = alarms[0];
@@ -1443,14 +1464,16 @@ function setAlarm(vevent: ICALComponent, trigger: string | null, ical: ICAL): vo
 }
 
 /**
- * The first VEVENT's first VALARM TRIGGER, or null when it has none. An offset from the start is
- * normalized, so Google's "-P0DT0H10M0S" reads "-PT10M"; a trigger at a set time or relative to
- * the end comes back as written.
+ * The first VEVENT's first VALARM TRIGGER, or null when it has none or is marked as having none
+ * (see addNoAlarmPlaceholder). An offset from the start is normalized, so Google's
+ * "-P0DT0H10M0S" reads "-PT10M"; a trigger at a set time or relative to the end comes back as
+ * written.
  */
 export function getAlarmTrigger(ics: string): string | null {
   const ical = getICAL();
   const { event } = parseICSString(ics);
-  const trigger = event.component.getFirstSubcomponent('valarm')?.getFirstProperty('trigger');
+  const alarm = event.component.getAllSubcomponents('valarm').find((a) => !isNoAlarmPlaceholder(a));
+  const trigger = alarm?.getFirstProperty('trigger');
   if (!trigger) return null;
   const value = trigger.getFirstValue();
   if (value instanceof ical.Duration && trigger.getParameter('related') !== 'END') {

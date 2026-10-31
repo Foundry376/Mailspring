@@ -536,7 +536,7 @@ export function queueNewCalendarEvent(options: CreateCalendarEventOptions): {
     attendees: options.attendees,
     recurrenceRule: options.recurrenceRule,
     transparency: options.transparency ?? defaultShowAs(options.isAllDay),
-    alarmTrigger: alarmTrigger || undefined,
+    alarmTrigger,
   });
 
   const event = new Event({
