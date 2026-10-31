@@ -337,7 +337,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     let newest: ReturnType<typeof newestInvitation>;
     let event: ICAL.Event;
     try {
-      newest = newestInvitation(ownIcs, others);
+      newest = newestInvitation({ ics: ownIcs, message: this.props.message }, others);
       if (!newest) return;
       event = CalendarUtils.parseICSString(newest.ics).event;
     } catch (e) {
@@ -347,7 +347,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     const next: Partial<EventHeaderState> = {
       inviteIcs: newest.ics,
       inviteEvent: event,
-      newerInvitation: newest.message,
+      newerInvitation: newest.message || undefined,
     };
     // A calendar copy shown in place of the invitation stays shown.
     if (this.state.icsEvent === this.state.inviteEvent) next.icsEvent = event;

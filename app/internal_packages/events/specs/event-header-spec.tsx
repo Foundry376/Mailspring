@@ -1092,6 +1092,7 @@ describe('EventHeader for an invitation a later email revised', function () {
           new Message({
             id: 'm-own',
             accountId: 'a1',
+            date: new Date(Date.UTC(2026, 9, 31, 2, 11)),
             from: [new Contact({ email: 'ada@example.com' })],
           })
         }

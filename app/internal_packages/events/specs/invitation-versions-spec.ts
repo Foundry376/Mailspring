@@ -71,6 +71,8 @@ const OCCURRENCE_RESENT = invitation('REQUEST', MOVED('20261031T021522Z'));
 const email = (id: string, minute: number) =>
   new Message({ id, accountId: 'a1', date: new Date(Date.UTC(2026, 9, 31, 2, minute)) } as any);
 
+const own = (ics: string, minute = 11) => ({ message: email('m-own', minute), ics });
+
 const vevents = (ics: string) =>
   ics
     .replace(/\r\n[ \t]/g, '')
@@ -86,7 +88,7 @@ describe('newestInvitation', function () {
   ];
 
   it('assembles the series and its moved occurrence from the emails that revised them', function () {
-    const newest = newestInvitation(ORIGINAL, updates);
+    const newest = newestInvitation(own(ORIGINAL), updates);
     const [master, moved, ...rest] = vevents(newest.ics);
     expect(rest.length).toBe(0);
     expect(master).toContain(EXDATE);
@@ -100,23 +102,23 @@ describe('newestInvitation', function () {
   });
 
   it('names the email the series came from when only the series was revised', function () {
-    const newest = newestInvitation(ORIGINAL, [updates[1]]);
+    const newest = newestInvitation(own(ORIGINAL), [updates[1]]);
     expect(vevents(newest.ics).length).toBe(1);
     expect(newest.message.id).toBe('m-series');
   });
 
   it('is null when no other email revised the invitation', function () {
     expect(
-      newestInvitation(SERIES_CANCELLED_ONE, [{ message: email('m0', 11), ics: ORIGINAL }])
+      newestInvitation(own(SERIES_CANCELLED_ONE, 15), [{ message: email('m0', 11), ics: ORIGINAL }])
     ).toBe(null);
-    expect(newestInvitation(ORIGINAL, [])).toBe(null);
+    expect(newestInvitation(own(ORIGINAL), [])).toBe(null);
     const sameRevision = { message: email('m-copy', 12), ics: ORIGINAL };
-    expect(newestInvitation(ORIGINAL, [sameRevision])).toBe(null);
+    expect(newestInvitation(own(ORIGINAL), [sameRevision])).toBe(null);
   });
 
   it('breaks a tie in SEQUENCE on DTSTAMP', function () {
     const restamped = invitation('REQUEST', series(0, '20261031T030000Z'));
-    const newest = newestInvitation(ORIGINAL, [{ message: email('m1', 30), ics: restamped }]);
+    const newest = newestInvitation(own(ORIGINAL), [{ message: email('m1', 30), ics: restamped }]);
     expect(vevents(newest.ics)[0]).toContain('DTSTAMP:20261031T030000Z');
   });
 
@@ -130,15 +132,44 @@ describe('newestInvitation', function () {
       },
       { message: email('m-garbled', 23), ics: 'not a calendar' },
     ];
-    expect(newestInvitation(ORIGINAL, others)).toBe(null);
+    expect(newestInvitation(own(ORIGINAL), others)).toBe(null);
   });
 
   it('answers an invitation to one occurrence from mail about that occurrence alone', function () {
-    const own = invitation('REQUEST', MOVED('20261031T021320Z'));
-    expect(newestInvitation(own, [updates[1]])).toBe(null);
-    const newest = newestInvitation(own, updates);
+    const occurrence = own(invitation('REQUEST', MOVED('20261031T021320Z')), 13);
+    expect(newestInvitation(occurrence, [updates[1]])).toBe(null);
+    const newest = newestInvitation(occurrence, updates);
     expect(vevents(newest.ics).length).toBe(1);
     expect(vevents(newest.ics)[0]).toContain('DTSTAMP:20261031T021522Z');
     expect(newest.message.id).toBe('m-resent');
+  });
+
+  it("takes an earlier email's moved occurrence but names no update when none was sent later", function () {
+    const newest = newestInvitation(own(SERIES_CANCELLED_ONE, 15), [updates[0]]);
+    expect(vevents(newest.ics).length).toBe(2);
+    expect(newest.message).toBe(null);
+  });
+
+  it('drops an occurrence the series cancelled or moved away from', function () {
+    const MOVED_17 = MOVED('20261031T021320Z').map((l) => l.replace('20261110', '20261117'));
+    const cancelled = newestInvitation(own(ORIGINAL), [
+      { message: email('m-moved-17', 13), ics: invitation('REQUEST', MOVED_17) },
+      updates[1],
+    ]);
+    expect(vevents(cancelled.ics).length).toBe(1);
+    expect(cancelled.message.id).toBe('m-series');
+
+    const rescheduled = invitation(
+      'REQUEST',
+      series(2, '20261031T030000Z').map((l) =>
+        l.replace('T090000', 'T093000').replace('T100000', 'T103000')
+      )
+    );
+    const moved = newestInvitation(own(ORIGINAL), [
+      updates[0],
+      { message: email('m-rescheduled', 30), ics: rescheduled },
+    ]);
+    expect(vevents(moved.ics).length).toBe(1);
+    expect(moved.message.id).toBe('m-rescheduled');
   });
 });

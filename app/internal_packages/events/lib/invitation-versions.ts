@@ -33,6 +33,16 @@ function isNewerRevision(a: ICAL.Component, b: ICAL.Component): boolean {
   return stamp(a) > stamp(b);
 }
 
+/** Whether the series still holds the occurrence at `key`: in its rule and not cancelled. */
+function holdsOccurrence(series: ICAL.Component, key: string): boolean {
+  const iterator = new ICAL.Event(series).iterator();
+  for (let start = iterator.next(); start; start = iterator.next()) {
+    const at = start.toJSDate().getTime();
+    if (at >= Number(key)) return at === Number(key);
+  }
+  return false;
+}
+
 function referencedZones(vevent: ICAL.Component): string[] {
   return vevent
     .getAllProperties()
@@ -44,17 +54,18 @@ function referencedZones(vevent: ICAL.Component): string[] {
  * The invitation as its organizer last sent it: the newest VEVENT for the series and for each of
  * its occurrences across every emailed REQUEST for its UID. Organizers revise these piecemeal:
  * Google mails a moved occurrence as a REQUEST holding that occurrence alone, and a cancelled
- * one as the series again with an EXDATE. An invitation to one occurrence takes nothing from
- * mail about other occurrences.
+ * one as the series again with an EXDATE, without the moved occurrence. An invitation to one
+ * occurrence takes nothing from mail about other occurrences, and an occurrence the series no
+ * longer holds (cancelled, or left behind when the series moved) keeps no override.
  *
- * @returns null when `ownIcs` already holds the newest of each; else the assembled invitation and
- *   the latest email it took from.
+ * @returns null when `own` already holds the newest of each; else the assembled invitation and
+ *   the latest email it took from that was sent after `own`, if any was.
  */
 export function newestInvitation(
-  ownIcs: string,
+  own: EmailedInvitation,
   others: EmailedInvitation[]
-): { ics: string; message: Message } | null {
-  const { root, event } = CalendarUtils.parseICSString(ownIcs);
+): { ics: string; message: Message | null } | null {
+  const { root, event } = CalendarUtils.parseICSString(own.ics);
   const uid = event.uid;
   const chosen = new Map<string, { vevent: ICAL.Component; from?: EmailedInvitation }>();
   for (const vevent of root.getAllSubcomponents('vevent')) {
@@ -84,6 +95,11 @@ export function newestInvitation(
     }
   }
 
+  const series = chosen.get('');
+  for (const key of [...chosen.keys()]) {
+    if (key && series && !holdsOccurrence(series.vevent, key)) chosen.delete(key);
+  }
+
   const taken = [...chosen.values()].filter((c) => c.from).map((c) => c.from);
   if (!taken.length) return null;
 
@@ -104,8 +120,9 @@ export function newestInvitation(
     root.addSubcomponent(new ICAL.Component(vevent.toJSON()));
   }
 
-  const latest = taken.reduce((a, b) => (b.message.date > a.message.date ? b : a));
-  return { ics: root.toString(), message: latest.message };
+  const later = taken.filter((t) => t.message.date > own.message.date);
+  const latest = later.reduce((a, b) => (!a || b.message.date > a.message.date ? b : a), null);
+  return { ics: root.toString(), message: latest && latest.message };
 }
 
 /**
