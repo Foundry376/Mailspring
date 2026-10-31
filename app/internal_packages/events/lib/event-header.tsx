@@ -843,10 +843,8 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     if (rsvp.problem === 'not-on-a-calendar' && addTo) {
       const choices = this.state.addToChoices || [];
       const account = AccountStore.accountForId(this.props.message.accountId);
-      // A Google primary calendar is named after the account; other servers' names, such as
-      // Yahoo's username, don't say which account the event lands in.
       const inAccount =
-        account && !Utils.emailIsEquivalent(addTo.name, account.emailAddress)
+        account && !CalendarUtils.isNamedAfterAccount(addTo, account)
           ? `(${account.emailAddress})`
           : '';
       if (choices.length <= 1) {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Account, localized } from 'mailspring-exports';
+import { Calendar, CalendarUtils, Account, localized } from 'mailspring-exports';
 import { SVGIcons } from 'mailspring-component-kit';
 import { calcColor, getEditableCalendars } from './calendar-helpers';
 
@@ -31,6 +31,7 @@ export function CalendarSelector({
   const selected = calendars.find((c) => c.id === selectedCalendarId);
   const accountLabelFor = (accountId: string) =>
     accounts.find((a) => a.id === accountId)?.label || accountId;
+  const selectedAccount = selected && accounts.find((a) => a.id === selected.accountId);
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const calendarId = e.target.value;
@@ -47,8 +48,8 @@ export function CalendarSelector({
       <div className="calendar-selector-dot" style={{ backgroundColor: selectedColor }} />
       <div className="calendar-selector-value" aria-hidden="true">
         <span className="calendar-selector-name">{selected?.name}</span>
-        {selected && selected.name !== accountLabelFor(selected.accountId) && (
-          <span className="calendar-selector-account">{accountLabelFor(selected.accountId)}</span>
+        {selectedAccount && !CalendarUtils.isNamedAfterAccount(selected, selectedAccount) && (
+          <span className="calendar-selector-account">{selectedAccount.label}</span>
         )}
         <span className="calendar-selector-chevron">
           <SVGIcons.ChevronDown />

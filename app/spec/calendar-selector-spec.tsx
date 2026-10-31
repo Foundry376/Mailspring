@@ -4,8 +4,8 @@ import { CalendarSelector } from '../internal_packages/main-calendar/lib/core/ca
 
 // Every account has a calendar named "Calendar", as Outlook, iCloud and Fastmail all create one.
 const ACCOUNTS = [
-  { id: 'a1', label: 'ben@outlook.com' },
-  { id: 'a2', label: 'ben@icloud.com' },
+  { id: 'a1', label: 'ben@outlook.com', emailAddress: 'ben@outlook.com' },
+  { id: 'a2', label: 'ben@icloud.com', emailAddress: 'ben@icloud.com' },
 ] as any[];
 const CALENDARS = [
   { id: 'c1', accountId: 'a1', name: 'Calendar', readOnly: false },
@@ -41,6 +41,19 @@ describe('CalendarSelector', function () {
 
   it('leaves the account off a calendar named after it', function () {
     const { container } = renderSelector('c4');
+    expect(container.querySelector('.calendar-selector-account')).toBe(null);
+  });
+
+  it('leaves the account off a calendar named after its address when it has another label', function () {
+    const { container } = render(
+      <CalendarSelector
+        calendars={[{ id: 'g1', accountId: 'g', name: 'ben@company.com', readOnly: false } as any]}
+        accounts={[{ id: 'g', label: 'Work', emailAddress: 'ben@company.com' } as any]}
+        disabledCalendars={[]}
+        selectedCalendarId="g1"
+        onChange={() => {}}
+      />
+    );
     expect(container.querySelector('.calendar-selector-account')).toBe(null);
   });
 
