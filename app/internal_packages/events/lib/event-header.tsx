@@ -82,19 +82,47 @@ export function renderLocation(location: string | undefined): React.ReactNode {
   return nodes;
 }
 
-/** How often a series repeats, in the words the event editor's Repeat menu uses. */
+const WEEKDAYS = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+
+/** A rule's frequency and the weekdays a weekly one lists, or null for any other rule. */
+function repeatEvery(rrule: ICAL.Recur): string | null {
+  const interval = rrule.interval || 1;
+  const byDay = (rrule.parts.BYDAY as string[] | undefined) || [];
+  const others = Object.keys(rrule.parts).filter((part) => part !== 'BYDAY');
+  if (others.length || !byDay.every((day) => WEEKDAYS.includes(day))) return null;
+
+  if (byDay.length) {
+    if (rrule.freq !== 'WEEKLY') return null;
+    const days = WEEKDAYS.filter((day) => byDay.includes(day))
+      .map((day) => moment.weekdaysShort(WEEKDAYS.indexOf(day)))
+      .join(', ');
+    return interval === 1
+      ? localized('Every %@', days)
+      : localized('Every %1$@ weeks on %2$@', interval, days);
+  }
+  const every: { [freq: string]: [string, (n: number) => string] } = {
+    DAILY: [localized('Every Day'), (n) => localized('Every %@ days', n)],
+    WEEKLY: [localized('Every Week'), (n) => localized('Every %@ weeks', n)],
+    MONTHLY: [localized('Every Month'), (n) => localized('Every %@ months', n)],
+    YEARLY: [localized('Every Year'), (n) => localized('Every %@ years', n)],
+  };
+  if (!every[rrule.freq]) return null;
+  const [once, many] = every[rrule.freq];
+  return interval === 1 ? once : many(interval);
+}
+
+/** How often a series repeats and when it ends, or only that it repeats for a rule this can't
+ * put in a few words (such as the second Tuesday of each month). */
 export function repeatSummary(event: ICAL.Event): string | null {
   const rrule = event.component.getFirstPropertyValue('rrule') as ICAL.Recur | null;
   if (!rrule) return null;
-  const every: { [freq: string]: string } = {
-    DAILY: localized('Every Day'),
-    WEEKLY: localized('Every Week'),
-    MONTHLY: localized('Every Month'),
-    YEARLY: localized('Every Year'),
-  };
-  return (rrule.interval || 1) === 1 && every[rrule.freq]
-    ? every[rrule.freq]
-    : localized('Repeats');
+  const every = repeatEvery(rrule);
+  if (!every) return localized('Repeats');
+  if (rrule.count) return localized('%1$@, %2$@ times', every, rrule.count);
+  if (rrule.until) {
+    return localized('%1$@, until %2$@', every, moment(rrule.until.toJSDate()).format('ll'));
+  }
+  return every;
 }
 
 /**

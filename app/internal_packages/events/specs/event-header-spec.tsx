@@ -1190,13 +1190,29 @@ describe('EventHeader repeat summary', function () {
     );
 
   it('says how often a series repeats', function () {
-    expect(summary('FREQ=WEEKLY;BYDAY=TU')).toBe('Every Week');
-    expect(summary('FREQ=DAILY;COUNT=5')).toBe('Every Day');
+    expect(summary('FREQ=WEEKLY')).toBe('Every Week');
     expect(summary('FREQ=YEARLY')).toBe('Every Year');
+    expect(summary('FREQ=WEEKLY;INTERVAL=2')).toBe('Every 2 weeks');
+    expect(summary('FREQ=MONTHLY;INTERVAL=3')).toBe('Every 3 months');
   });
 
-  it('says only that it repeats when the rule is not one of the Repeat menu choices', function () {
-    expect(summary('FREQ=WEEKLY;INTERVAL=2')).toBe('Repeats');
+  it('names the days a weekly series falls on', function () {
+    expect(summary('FREQ=WEEKLY;BYDAY=TU')).toBe('Every Tue');
+    expect(summary('FREQ=WEEKLY;BYDAY=WE,MO')).toBe('Every Mon, Wed');
+    expect(summary('FREQ=WEEKLY;INTERVAL=2;BYDAY=MO,FR')).toBe('Every 2 weeks on Mon, Fri');
+  });
+
+  it('says when a series ends', function () {
+    expect(summary('FREQ=DAILY;COUNT=5')).toBe('Every Day, 5 times');
+    expect(summary('FREQ=WEEKLY;BYDAY=TU;UNTIL=20261201T120000Z')).toBe(
+      'Every Tue, until Dec 1, 2026'
+    );
+  });
+
+  it('says only that it repeats when the rule takes more than a few words', function () {
+    expect(summary('FREQ=MONTHLY;BYDAY=2TU')).toBe('Repeats');
+    expect(summary('FREQ=MONTHLY;BYMONTHDAY=1,15')).toBe('Repeats');
+    expect(summary('FREQ=DAILY;BYDAY=MO,TU,WE,TH,FR')).toBe('Repeats');
     expect(summary('FREQ=HOURLY')).toBe('Repeats');
   });
 
