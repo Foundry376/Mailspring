@@ -211,8 +211,8 @@ export class SyncbackEventTask extends Task {
     return localized('Saving event...');
   }
 
-  // The engine's read-back after the PUT (DAVWorker::writeAndResyncEvent) updates only this row.
-  // A series' exception rows, and any exception this write added, arrive with the next full sync.
+  // The engine stores the written resource's rows itself (DAVWorker::storeServerCopy), exception
+  // rows included. This pass picks up whatever else the server changed on the calendar.
   async onSuccess() {
     AppEnv.mailsyncBridge.sendSyncCalendarNow(this.accountId);
   }
