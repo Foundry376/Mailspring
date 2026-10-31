@@ -419,6 +419,7 @@ describe('planRSVPWrite', function () {
     const write = plan();
     if (write.kind !== 'create') throw new Error(`expected a create, got ${write.kind}`);
     expect(write.calendar.id).toBe(MINE.id);
+    expect(write.answer).toEqual({ email: 'brian@example.com', status: 'ACCEPTED' });
     expect(write.event.calendarId).toBe(MINE.id);
     expect(write.event.icsuid).toBe('meeting-uid@example.com');
     expect(write.event.recurrenceStart).toBe(Date.UTC(2026, 2, 1, 14) / 1000);

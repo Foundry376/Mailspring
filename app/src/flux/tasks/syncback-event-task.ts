@@ -62,6 +62,11 @@ export class SyncbackEventTask extends Task {
     rsvp: Attributes.Obj({
       modelKey: 'rsvp',
     }),
+    /** The answer a new copy of an invitation was created with, which Yahoo resets on create
+     * and the engine then writes again (DAVWorker::writeAndResyncEvent). */
+    createdAnswer: Attributes.Obj({
+      modelKey: 'createdAnswer',
+    }),
   };
 
   event: Event;
@@ -70,20 +75,24 @@ export class SyncbackEventTask extends Task {
   newData?: EventSnapshot;
   taskDescription?: string;
   rsvp?: RSVPAnswer;
+  createdAnswer?: RSVPAnswer;
 
   static forCreating({
     event,
     calendarId,
     accountId,
+    answer,
   }: {
     event: Event;
     calendarId: string;
     accountId: string;
+    answer?: RSVPAnswer;
   }) {
     return new SyncbackEventTask({
       event,
       calendarId,
       accountId,
+      createdAnswer: answer,
       // Creating events cannot be undone via this mechanism
       // (would need DestroyEventTask)
     });

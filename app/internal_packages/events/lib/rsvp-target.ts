@@ -145,7 +145,7 @@ export function resolveAddTo({
 
 export type RSVPWrite =
   | { kind: 'update'; event: Event; answer: RSVPAnswer }
-  | { kind: 'create'; event: Event; calendar: Calendar };
+  | { kind: 'create'; event: Event; calendar: Calendar; answer: RSVPAnswer };
 
 /**
  * The calendar write that records an answer, beside the emailed REPLY: our PARTSTAT on our own
@@ -203,7 +203,7 @@ export function planRSVPWrite({
     recurrenceStart: Math.round(inviteEvent.startDate.toJSDate().getTime() / 1000),
     recurrenceEnd: Math.round(inviteEvent.endDate.toJSDate().getTime() / 1000),
   });
-  return { kind: 'create', event, calendar: addTo };
+  return { kind: 'create', event, calendar: addTo, answer: { email: myEmail, status } };
 }
 
 /** Why a counter-proposal that arrived by email may not be applied to our copy. */
