@@ -416,6 +416,13 @@ describe('planRSVPWrite', function () {
     expect(write.answer).toEqual({ email: 'brian@example.com', status: 'ACCEPTED' });
   });
 
+  it('adds one marked free so that Yahoo, which reads X-YAHOO-EVENT-STATUS, keeps it free', function () {
+    const free = INVITE_ICS.replace('SUMMARY:Kickoff', 'SUMMARY:Kickoff\r\nTRANSP:TRANSPARENT');
+    const write = plan({ inviteIcs: free });
+    expect(write.event.ics).toContain('TRANSP:TRANSPARENT');
+    expect(write.event.ics).toContain('X-YAHOO-EVENT-STATUS:FREE');
+  });
+
   it('adds a tentative one too', function () {
     expect(plan({ status: 'TENTATIVE' }).kind).toBe('create');
   });

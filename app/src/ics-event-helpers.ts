@@ -607,7 +607,7 @@ export function createICSString(options: CreateEventOptions): string {
   }
 
   if (options.transparency) {
-    vevent.addPropertyWithValue('transp', options.transparency);
+    setTransparency(vevent, options.transparency);
   }
 
   if (options.alarmTrigger) {
@@ -1012,7 +1012,7 @@ export function applyEditsToException(
     nameOrganizer(vcalendar, edits.organizer);
   }
   if (edits.transparency) {
-    exceptionVevent.updatePropertyWithValue('transp', edits.transparency);
+    setTransparency(exceptionVevent, edits.transparency);
   }
   if (edits.alarmTrigger !== undefined) {
     setAlarm(exceptionVevent, edits.alarmTrigger, ical);
@@ -1765,6 +1765,29 @@ export function getEventTimezone(ics: string): string | null {
 }
 
 /**
+ * Sets TRANSP, and X-YAHOO-EVENT-STATUS beside it. Yahoo CalDAV ignores TRANSP and derives it
+ * from that property, BUSY when it is absent, on create and on update (measured October 2026).
+ * Google and iCloud store the property as written.
+ */
+function setTransparency(vevent: ICALComponent, transparency: string): void {
+  vevent.updatePropertyWithValue('transp', transparency);
+  const free = transparency.toUpperCase() === 'TRANSPARENT';
+  vevent.updatePropertyWithValue('x-yahoo-event-status', free ? 'FREE' : 'BUSY');
+}
+
+/** Pairs each VEVENT's TRANSP with the X-YAHOO-EVENT-STATUS Yahoo reads it from. */
+export function matchYahooTransparency(ics: string): string {
+  const { root } = parseICSString(ics);
+  const vevents =
+    root.name === 'vevent' ? [root] : (root.getAllSubcomponents('vevent') as ICALComponent[]);
+  for (const vevent of vevents) {
+    const transp = vevent.getFirstPropertyValue('transp');
+    if (transp) setTransparency(vevent, String(transp));
+  }
+  return root.toString();
+}
+
+/**
  * Updates a specific property in the event's ICS data
  */
 export function updateEventProperty(
@@ -1786,7 +1809,7 @@ export function updateEventProperty(
       event.location = value;
       break;
     case 'transp':
-      event.component.updatePropertyWithValue('transp', value);
+      setTransparency(event.component, value);
       break;
   }
 

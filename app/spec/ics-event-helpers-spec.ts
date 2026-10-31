@@ -3606,6 +3606,49 @@ describe('TRANSP, the Show As of an event', function () {
     );
     expect(transpsOf(ics)).toEqual([null, 'TRANSPARENT']);
   });
+
+  describe('on Yahoo, which reads it from X-YAHOO-EVENT-STATUS', function () {
+    const yahooOf = (ics: string) =>
+      ics
+        .split('BEGIN:VEVENT')
+        .slice(1)
+        .map((v) => (/^X-YAHOO-EVENT-STATUS:(.*)$/m.exec(v) || [])[1] || null);
+
+    it('is written beside TRANSP on a new event', function () {
+      const free = { ...createOptions, transparency: 'TRANSPARENT' as const };
+      expect(yahooOf(ICSEventHelpers.createICSString(free))).toEqual(['FREE']);
+      const busy = { ...createOptions, transparency: 'OPAQUE' as const };
+      expect(yahooOf(ICSEventHelpers.createICSString(busy))).toEqual(['BUSY']);
+    });
+
+    it("replaces the value Yahoo's own copy carries when Show As changes", function () {
+      const synced = SIMPLE_ICS.replace(
+        'SEQUENCE:0',
+        'SEQUENCE:0\nTRANSP:OPAQUE\nX-YAHOO-EVENT-STATUS:BUSY'
+      );
+      const ics = ICSEventHelpers.updateEventProperty(synced, 'transp', 'TRANSPARENT');
+      expect(yahooOf(ics)).toEqual(['FREE']);
+    });
+
+    it('follows TRANSP on the named exception only', function () {
+      const ics = ICSEventHelpers.applyEditsToException(
+        RECURRING_WITH_EXCEPTION_ICS,
+        '20260302T060000Z',
+        { transparency: 'TRANSPARENT' }
+      );
+      expect(yahooOf(ics)).toEqual([null, 'FREE']);
+    });
+
+    it('is matched to the TRANSP an emailed invitation carries', function () {
+      const invite = RECURRING_WITH_EXCEPTION_ICS.replace(
+        'END:VEVENT',
+        'TRANSP:TRANSPARENT\nEND:VEVENT'
+      );
+      const ics = ICSEventHelpers.matchYahooTransparency(invite);
+      expect(transpsOf(ics)).toEqual(['TRANSPARENT', null]);
+      expect(yahooOf(ics)).toEqual(['FREE', null]);
+    });
+  });
 });
 
 describe('ICSEventHelpers reminders', function () {

@@ -198,7 +198,7 @@ export function planRSVPWrite({
     calendarId: addTo.id,
     accountId,
     // A stored event must not carry the invitation's METHOD (RFC 4791 section 4.1).
-    ics: ICSEventHelpers.stripITIPMethod(answered),
+    ics: ICSEventHelpers.matchYahooTransparency(ICSEventHelpers.stripITIPMethod(answered)),
     icsuid: inviteEvent.uid,
     recurrenceStart: Math.round(inviteEvent.startDate.toJSDate().getTime() / 1000),
     recurrenceEnd: Math.round(inviteEvent.endDate.toJSDate().getTime() / 1000),
