@@ -236,7 +236,7 @@ export class SyncbackEventTask extends Task {
     const messages: { [key: string]: string } = {
       // The server's copy need not be another client's: our own earlier write changes it too.
       'etag-conflict': localized(
-        "This event changed since it was last loaded, so your change wasn't saved. The event has been reloaded. Please make your change again."
+        "This event changed since it was last loaded, so your change wasn't saved. Please make your change again on its latest version."
       ),
       'ics-incomplete': localized(
         'This series already has modified occurrences on the server. Refresh the calendar and edit it again.'
