@@ -1,6 +1,7 @@
 // Import directly from the source file; the plugin isn't registered in mailspring-exports.
 import {
   firstVisibleBarIds,
+  lanesThatFit,
   layoutWeekBars,
 } from '../internal_packages/main-calendar/lib/core/month-view-helpers';
 import {
@@ -66,6 +67,31 @@ function barFor(layout: ReturnType<typeof layoutWeekBars>, id: string) {
     }
   );
 }
+
+// A week row is a 1px bottom border, a 32px day header and a 4px bottom inset around the bars,
+// which stack 20px lanes 2px apart.
+describe('lanesThatFit', function () {
+  it('counts only lanes that fit whole, so the last one can always show "+N more"', function () {
+    // 122px is the row at an 860px window: 85px of bars, a px short of a fourth lane.
+    expect(lanesThatFit(122)).toBe(3);
+    expect(lanesThatFit(123)).toBe(4);
+    expect(lanesThatFit(144)).toBe(4);
+    expect(lanesThatFit(145)).toBe(5);
+  });
+
+  it('never cuts the last lane off, at any height', function () {
+    for (let height = 60; height <= 400; height++) {
+      const lanes = lanesThatFit(height);
+      expect(lanes * 20 + (lanes - 1) * 2).not.toBeGreaterThan(height - 37);
+      expect((lanes + 1) * 20 + lanes * 2).toBeGreaterThan(height - 37);
+    }
+  });
+
+  it('keeps one lane in a row too short for it, so a full day still shows "+N more"', function () {
+    expect(lanesThatFit(0)).toBe(1);
+    expect(lanesThatFit(40)).toBe(1);
+  });
+});
 
 describe('layoutWeekBars', function () {
   it('draws a three-day all-day event as one bar across its columns', function () {
