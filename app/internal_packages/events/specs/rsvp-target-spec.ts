@@ -391,6 +391,19 @@ describe('planRSVPWrite', function () {
     expect(myLine(synced.ics)).toContain('PARTSTAT=NEEDS-ACTION');
   });
 
+  it("keeps our copy's newer details rather than the email's when answering on it", function () {
+    const revised = synced.clone();
+    revised.ics = synced.ics
+      .replace('SUMMARY:Kickoff', 'SUMMARY:Kickoff\r\nSEQUENCE:2')
+      .replace('DTSTART:20260301T140000Z', 'DTSTART:20260301T160000Z');
+    const rsvp = resolveRSVPTarget({ events: [revised], calendars: [MINE], addresses: ADDRESSES });
+    const write = plan({ rsvp });
+    expect(write.kind).toBe('update');
+    expect(write.event.ics).toContain('DTSTART:20260301T160000Z');
+    expect(write.event.ics).toContain('SEQUENCE:2');
+    expect(myLine(write.event.ics)).toContain('PARTSTAT=ACCEPTED');
+  });
+
   it('writes nothing when our copy no longer lists us', function () {
     const withoutMe = synced.clone();
     withoutMe.ics = synced.ics.replace(/ATTENDEE[^\r\n]*brian@example.com\r\n/, '');

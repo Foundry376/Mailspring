@@ -18,6 +18,7 @@ import {
   ICSEventHelpers,
   ICSParticipantStatus,
   Message,
+  Thread,
   Event,
   EventRSVPTask,
   SyncbackEventTask,
@@ -34,6 +35,12 @@ import {
   CounterProposalProblem,
   RSVPTargetResolution,
 } from './rsvp-target';
+import {
+  EmailedInvitation,
+  newestInvitation,
+  otherInvitationEmails,
+  readEmailedInvitations,
+} from './invitation-versions';
 
 import { findOneIana } from 'windows-iana';
 
@@ -109,11 +116,14 @@ interface EventHeaderProps {
 
 interface EventHeaderState {
   /**
-   * The invitation as mailed; the REPLY is built from it (RFC 5546 section 3.2.3). Google
-   * rewrites ORGANIZER on a shared calendar's copy to an `@group.calendar.google.com` id.
+   * The invitation as mailed, revised by any later email about it; the REPLY is built from it
+   * (RFC 5546 section 3.2.3). Google rewrites ORGANIZER on a shared calendar's copy to an
+   * `@group.calendar.google.com` id.
    */
   inviteIcs?: string;
   inviteEvent?: ICAL.Event;
+  /** The latest email that revised this invitation, when one did. */
+  newerInvitation?: Message;
   /** Set when the emailed invitation is about one occurrence of a series, in unix seconds. */
   inviteRecurrenceIdStart?: number;
   icsMethod?: 'reply' | 'request' | 'cancel' | 'counter';
@@ -155,6 +165,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     icsMethod: undefined,
     inviteIcs: undefined,
     inviteEvent: undefined,
+    newerInvitation: undefined,
     inviteRecurrenceIdStart: undefined,
     syncedIcs: undefined,
     isOnCalendar: false,
@@ -169,11 +180,15 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
 
   _mounted = false;
   _subscription: Rx.IDisposable;
+  _versionsSubscription: Rx.IDisposable;
 
   componentWillUnmount() {
     this._mounted = false;
     if (this._subscription) {
       this._subscription.dispose();
+    }
+    if (this._versionsSubscription) {
+      this._versionsSubscription.dispose();
     }
   }
 
@@ -232,6 +247,10 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
         : undefined,
     });
 
+    if (normalizedMethod === 'request') {
+      this._watchForNewerVersions(data, event);
+    }
+
     if (this._subscription) {
       this._subscription.dispose();
     }
@@ -264,6 +283,65 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
         if (this._mounted) this._onCalendarCopies(calEvents, calendars, nearby, copy, window);
       });
   }
+
+  /**
+   * Organizers mail each revision of an invitation separately, so the one in this email can be
+   * stale. Its later emails are found, their bodies fetched when they haven't been, and the
+   * invitation shown and answered becomes the newest they add up to. Accepting a stale one would
+   * add the organizer's old times to our calendar.
+   */
+  async _watchForNewerVersions(ownIcs: string, ownEvent: ICAL.Event) {
+    const candidates = await this._otherInvitationEmails(ownEvent.summary);
+    if (!candidates.length || !this._mounted) return;
+    const undownloaded = candidates.filter((m) => m.body === null);
+    if (undownloaded.length) {
+      Actions.fetchBodies(undownloaded);
+    }
+    if (this._versionsSubscription) {
+      this._versionsSubscription.dispose();
+    }
+    this._versionsSubscription = Rx.Observable.fromQuery(
+      DatabaseStore.findAll<Message>(Message).where([
+        Message.attributes.id.in(candidates.map((m) => m.id)),
+      ])
+    )
+      .flatMapLatest((messages: Message[]) =>
+        Rx.Observable.fromPromise(readEmailedInvitations(messages))
+      )
+      .subscribe((others: EmailedInvitation[]) => {
+        if (this._mounted) this._onEmailedVersions(ownIcs, others);
+      });
+  }
+
+  _otherInvitationEmails(title: string): Promise<Message[]> {
+    return otherInvitationEmails(this.props.message, title);
+  }
+
+  _onEmailedVersions(ownIcs: string, others: EmailedInvitation[]) {
+    let newest: ReturnType<typeof newestInvitation>;
+    let event: ICAL.Event;
+    try {
+      newest = newestInvitation(ownIcs, others);
+      if (!newest) return;
+      event = CalendarUtils.parseICSString(newest.ics).event;
+    } catch (e) {
+      console.warn(`EventHeader: Could not read a later copy of this invitation: ${e.message}`);
+      return;
+    }
+    const next: Partial<EventHeaderState> = {
+      inviteIcs: newest.ics,
+      inviteEvent: event,
+      newerInvitation: newest.message,
+    };
+    // A calendar copy shown in place of the invitation stays shown.
+    if (this.state.icsEvent === this.state.inviteEvent) next.icsEvent = event;
+    this.setState(next as EventHeaderState);
+  }
+
+  _onViewNewerInvitation = async () => {
+    const thread = await DatabaseStore.find<Thread>(Thread, this.state.newerInvitation.threadId);
+    if (thread) Actions.popoutThread(thread);
+  };
 
   /** Which copy of the invitation is ours to answer, and its VEVENT for this invitation. */
   _copyFor(calEvents: Event[], calendars: Calendar[]): CalendarCopy {
@@ -437,6 +515,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
                 <a onClick={this._onViewInCalendar}>{localized('View in Calendar')}</a>
               </div>
             )}
+            {icsMethod === 'request' && this._renderNewerInvitation()}
             {icsMethod === 'request' && this._renderConflicts()}
             {icsMethod === 'cancel'
               ? this._renderCancellation()
@@ -447,6 +526,16 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
                   : this._renderSenderResponse()}
           </div>
         </div>
+      </div>
+    );
+  }
+
+  _renderNewerInvitation() {
+    if (!this.state.newerInvitation) return false;
+    return (
+      <div className="event-newer-invitation">
+        {localized('This invitation was updated after this email was sent.')}{' '}
+        <a onClick={this._onViewNewerInvitation}>{localized('View the update')}</a>
       </div>
     );
   }
