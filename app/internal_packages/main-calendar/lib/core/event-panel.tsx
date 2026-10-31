@@ -29,6 +29,7 @@ import {
   calcEventColors,
   canEditInPanel,
   clampEnd,
+  endFromTypedTime,
   extractNotesFromDescription,
   formatShortTimeRange,
   formatTime,
@@ -478,7 +479,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
               <TimePicker
                 value={t.end * 1000}
                 relativeTo={t.start * 1000}
-                onChange={(ms) => this._changeEnd(ms / 1000)}
+                onChange={(ms) => this._changeEnd(endFromTypedTime(t.start, ms / 1000))}
               />
               <span className="event-panel-subtle">
                 {DateUtils.formatDuration(t.end - t.start)}

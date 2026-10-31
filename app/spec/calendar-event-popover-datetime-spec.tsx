@@ -6,6 +6,7 @@ import TimePicker from '../src/components/time-picker';
 import { DatePicker } from '../src/components/date-picker';
 import { CalendarEventPopover } from '../internal_packages/main-calendar/lib/core/calendar-event-popover';
 import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
+import { endFromTypedTime } from '../internal_packages/main-calendar/lib/core/calendar-helpers';
 
 const EVENT_DAY = '2026-03-10';
 const TARGET_DAY = '2026-03-17';
@@ -55,7 +56,7 @@ function renderTimeFields() {
       />
       <TimePicker
         value={popover.state.end * 1000}
-        onChange={(ts) => popover.updateEnd(ts / 1000)}
+        onChange={(ts) => popover.updateEnd(endFromTypedTime(popover.state.start, ts / 1000))}
       />
     </div>
   );
@@ -117,6 +118,20 @@ describe('CalendarEventPopover time fields', function () {
 
     expect(dayAndTime(popover.state.start)).toBe(`${EVENT_DAY} 15:00`);
     expect(dayAndTime(popover.state.end)).toBe(`${EVENT_DAY} 16:00`);
+  });
+
+  it('reads an end time before the start as the next morning', () => {
+    const { popover, startInput, endInput } = renderTimeFields();
+
+    fireEvent.focus(startInput);
+    fireEvent.change(startInput, { target: { value: '10:00pm' } });
+    fireEvent.blur(startInput);
+    fireEvent.focus(endInput);
+    fireEvent.change(endInput, { target: { value: '1:00 am' } });
+    fireEvent.blur(endInput);
+
+    expect(dayAndTime(popover.state.start)).toBe(`${EVENT_DAY} 22:00`);
+    expect(dayAndTime(popover.state.end)).toBe('2026-03-11 01:00');
   });
 
   it('still carries the end along when the start time is genuinely edited', () => {

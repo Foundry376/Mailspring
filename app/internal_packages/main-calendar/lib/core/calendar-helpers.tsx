@@ -296,6 +296,18 @@ export function clampEnd(startUnix: number, endUnix: number, isAllDay: boolean):
 }
 
 /**
+ * The end a timed event takes from its end time field. The field keeps the end's date, so a time
+ * before the start ("1:00 AM" after a 10 PM start) means the next day's; the day is added in
+ * `timeZone`, the zone the field shows, so the wall clock survives a DST change.
+ * @returns The new end, as a unix timestamp
+ */
+export function endFromTypedTime(startUnix: number, endUnix: number, timeZone?: string): number {
+  const end = timeZone ? momentTz.tz(endUnix * 1000, timeZone) : moment.unix(endUnix);
+  const nextDayIfBefore = endUnix < startUnix ? end.add(1, 'day').unix() : endUnix;
+  return clampEnd(startUnix, nextDayIfBefore, false);
+}
+
+/**
  * The zone an editor's time fields read in: the event's zone, or the machine's when tzdata
  * cannot place it (an Outlook display name), since a save then keeps the instant shown.
  */

@@ -38,6 +38,7 @@ import {
   inclusiveAllDayEnd,
   shiftEndWithStart,
   clampEnd,
+  endFromTypedTime,
   extractNotesFromDescription,
   formatTime,
   fieldZone,
@@ -676,7 +677,7 @@ export class CalendarEventPopover extends React.Component<
                 <TimePicker
                   value={end * 1000}
                   timeZone={zone}
-                  onChange={(ts) => this.updateEnd(ts / 1000)}
+                  onChange={(ts) => this.updateEnd(endFromTypedTime(start, ts / 1000, zone))}
                 />
               )}
             </EventPropertyRow>
