@@ -455,6 +455,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     ipcRenderer.send('command', 'application:show-calendar', {
       icsuid: this.state.icsEvent.uid,
       accountId: this.props.message.accountId,
+      calendarId: this.state.rsvp?.target?.event.calendarId,
       recurrenceIdStart: this.state.inviteRecurrenceIdStart,
     });
   };

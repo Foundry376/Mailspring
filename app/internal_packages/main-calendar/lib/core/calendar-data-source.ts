@@ -423,18 +423,19 @@ export function occurrencesForEvents(
 ) {
   const occurrences: EventOccurrence[] = [];
 
-  // Group events by icsUID to handle master/exception relationships
-  const eventsByUid = new Map<string, Event[]>();
+  // A series is its master plus exception rows on one calendar. The same UID can sit on several
+  // calendars at once (the organizer's and a guest's account, a room, a colleague's calendar),
+  // and each copy is drawn on its own: its exceptions are judged against its own master.
+  const seriesRows = new Map<string, Event[]>();
   for (const event of results) {
-    const uid = event.icsuid;
-    if (!eventsByUid.has(uid)) {
-      eventsByUid.set(uid, []);
+    const key = `${event.calendarId}:${event.icsuid}`;
+    if (!seriesRows.has(key)) {
+      seriesRows.set(key, []);
     }
-    eventsByUid.get(uid).push(event);
+    seriesRows.get(key).push(event);
   }
 
-  // Process each group of events with the same UID
-  for (const [, events] of eventsByUid) {
+  for (const [, events] of seriesRows) {
     // Separate master from exceptions
     const master = events.find((e) => !e.recurrenceId);
     const exceptions = events.filter((e) => e.recurrenceId);
@@ -484,7 +485,7 @@ export function occurrencesForEvents(
         // Fallback: show the master event as a single occurrence so it doesn't vanish.
         // Push it only when rs/re are finite — null/non-finite derive to NaN or 1970 dates
         // that render nowhere. Guard the push, not the iteration: a bad master must still
-        // fall through to this UID's standalone exceptions below.
+        // fall through to this series' standalone exceptions below.
         if (Number.isFinite(master.recurrenceStart) && Number.isFinite(master.recurrenceEnd)) {
           const isAllDay = master.recurrenceEnd - master.recurrenceStart >= 82800;
           const { startDate, endDate } = coveredDates(
