@@ -122,10 +122,9 @@ describe('newestInvitation', function () {
     expect(vevents(newest.ics)[0]).toContain('DTSTAMP:20261031T030000Z');
   });
 
-  it('takes nothing from replies, cancellations or other events', function () {
+  it('takes nothing from replies or other events', function () {
     const others = [
       { message: email('m-reply', 20), ics: SERIES_CANCELLED_ONE.replace('REQUEST', 'REPLY') },
-      { message: email('m-cancel', 21), ics: SERIES_CANCELLED_ONE.replace('REQUEST', 'CANCEL') },
       {
         message: email('m-other', 22),
         ics: SERIES_CANCELLED_ONE.replace(/standup@google.com/g, 'retro@google.com'),
@@ -171,5 +170,82 @@ describe('newestInvitation', function () {
     ]);
     expect(vevents(moved.ics).length).toBe(1);
     expect(moved.message.id).toBe('m-rescheduled');
+  });
+
+  describe('cancellations', function () {
+    // An organizer that mails a cancelled occurrence as a CANCEL holding it, as Outlook does.
+    const OCCURRENCE_17 = (sequence: number, dtstamp: string) => [
+      'RECURRENCE-ID;TZID=America/Chicago:20261117T090000',
+      'DTSTART;TZID=America/Chicago:20261117T090000',
+      'DTEND;TZID=America/Chicago:20261117T100000',
+      `DTSTAMP:${dtstamp}`,
+      `SEQUENCE:${sequence}`,
+    ];
+    const CANCEL_17 = invitation('CANCEL', [
+      ...OCCURRENCE_17(1, '20261031T021500Z'),
+      'STATUS:CANCELLED',
+    ]);
+    const cancel17 = { message: email('m-cancel-17', 15), ics: CANCEL_17 };
+
+    it('removes a cancelled occurrence from the series, with its override', function () {
+      const MOVED_17 = invitation('REQUEST', [
+        ...OCCURRENCE_17(1, '20261031T021300Z').filter((l) => !l.startsWith('DTSTART')),
+        'DTSTART;TZID=America/Chicago:20261117T103000',
+      ]);
+      const newest = newestInvitation(own(ORIGINAL), [
+        { message: email('m-moved-17', 13), ics: MOVED_17 },
+        { ...cancel17, ics: CANCEL_17.replace('SEQUENCE:1', 'SEQUENCE:2') },
+      ]);
+      const [master, ...rest] = vevents(newest.ics);
+      expect(rest.length).toBe(0);
+      expect(master).toContain(EXDATE);
+      expect(newest.cancelled).toBe(false);
+      expect(newest.message.id).toBe('m-cancel-17');
+    });
+
+    it('lets a later invitation to a cancelled occurrence restore it', function () {
+      const reinvited = invitation('REQUEST', OCCURRENCE_17(2, '20261031T030000Z'));
+      const newest = newestInvitation(own(ORIGINAL), [
+        cancel17,
+        { message: email('m-reinvite', 30), ics: reinvited },
+      ]);
+      const [master, occurrence, ...rest] = vevents(newest.ics);
+      expect(rest.length).toBe(0);
+      expect(master).not.toContain('EXDATE');
+      expect(occurrence).toContain('SEQUENCE:2');
+      expect(newest.message.id).toBe('m-reinvite');
+    });
+
+    it('ignores a cancelled occurrence the series was revised after', function () {
+      expect(
+        newestInvitation(own(invitation('REQUEST', series(2, '20261031T030000Z')), 30), [cancel17])
+      ).toBe(null);
+    });
+
+    it('reports the event cancelled by a later cancellation of the series', function () {
+      const cancelled = invitation('CANCEL', [
+        ...series(1, '20261031T021500Z'),
+        'STATUS:CANCELLED',
+      ]);
+      const newest = newestInvitation(own(ORIGINAL), [
+        updates[0],
+        { message: email('m-cancel', 20), ics: cancelled },
+      ]);
+      expect(newest.cancelled).toBe(true);
+      expect(vevents(newest.ics).length).toBe(1);
+      expect(newest.message.id).toBe('m-cancel');
+    });
+
+    it('ignores a cancellation of the series older than this invitation', function () {
+      const cancelled = invitation('CANCEL', [
+        ...series(1, '20261031T021500Z'),
+        'STATUS:CANCELLED',
+      ]);
+      expect(
+        newestInvitation(own(invitation('REQUEST', series(2, '20261031T030000Z')), 30), [
+          { message: email('m-cancel', 20), ics: cancelled },
+        ])
+      ).toBe(null);
+    });
   });
 });

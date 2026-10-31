@@ -349,6 +349,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       inviteEvent: event,
       newerInvitation: newest.message || undefined,
     };
+    if (newest.cancelled) next.icsMethod = 'cancel';
     // A calendar copy shown in place of the invitation stays shown.
     if (this.state.icsEvent === this.state.inviteEvent) next.icsEvent = event;
     this.setState(next as EventHeaderState);
@@ -534,7 +535,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
                 <a onClick={this._onViewInCalendar}>{localized('View in Calendar')}</a>
               </div>
             )}
-            {icsMethod === 'request' && this._renderNewerInvitation()}
+            {this._renderNewerInvitation()}
             {icsMethod === 'request' && this._renderConflicts()}
             {icsMethod === 'cancel'
               ? this._renderCancellation()
@@ -551,10 +552,15 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
 
   _renderNewerInvitation() {
     if (!this.state.newerInvitation) return false;
+    const cancelled = this.state.icsMethod === 'cancel';
     return (
       <div className="event-newer-invitation">
-        {localized('This invitation was updated after this email was sent.')}{' '}
-        <a onClick={this._onViewNewerInvitation}>{localized('View the update')}</a>
+        {cancelled
+          ? localized('This invitation was cancelled after this email was sent.')
+          : localized('This invitation was updated after this email was sent.')}{' '}
+        <a onClick={this._onViewNewerInvitation}>
+          {cancelled ? localized('View the cancellation') : localized('View the update')}
+        </a>
       </div>
     );
   }

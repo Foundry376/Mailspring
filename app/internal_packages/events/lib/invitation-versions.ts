@@ -16,6 +16,14 @@ export interface EmailedInvitation {
   message: Message;
 }
 
+/** One VEVENT of an invitation, the email it came from when not this one, and whether that
+ * email cancelled it. */
+interface Revision {
+  vevent: ICAL.Component;
+  from?: EmailedInvitation;
+  cancelled?: boolean;
+}
+
 /** Where a VEVENT sits in its series: the RECURRENCE-ID instant, or '' for the series itself. */
 function occurrenceKey(vevent: ICAL.Component): string {
   const rid = vevent.getFirstPropertyValue('recurrence-id') as ICAL.Time | null;
@@ -50,24 +58,34 @@ function referencedZones(vevent: ICAL.Component): string[] {
     .filter((tzid): tzid is string => !!tzid);
 }
 
+function withoutCancelledOccurrence(series: ICAL.Component, cancellation: ICAL.Component) {
+  const rid = cancellation.getFirstProperty('recurrence-id');
+  if (!holdsOccurrence(series, occurrenceKey(cancellation))) return;
+  const [, params, type, value] = rid.toJSON();
+  series.addProperty(new ICAL.Property(['exdate', params, type, value]));
+}
+
 /**
  * The invitation as its organizer last sent it: the newest VEVENT for the series and for each of
- * its occurrences across every emailed REQUEST for its UID. Organizers revise these piecemeal:
- * Google mails a moved occurrence as a REQUEST holding that occurrence alone, and a cancelled
- * one as the series again with an EXDATE, without the moved occurrence. An invitation to one
- * occurrence takes nothing from mail about other occurrences, and an occurrence the series no
- * longer holds (cancelled, or left behind when the series moved) keeps no override.
+ * its occurrences across every emailed REQUEST and CANCEL for its UID. Organizers revise these
+ * piecemeal: Google mails a moved occurrence as a REQUEST holding that occurrence alone, and a
+ * cancelled one as the series again with an EXDATE, without the moved occurrence; others mail a
+ * CANCEL holding that occurrence. An invitation to one occurrence takes nothing from mail about
+ * other occurrences, and an occurrence the series no longer holds (cancelled, or left behind when
+ * the series moved) keeps no override. A cancellation counts only where it is newer than what it
+ * cancels, so a later REQUEST re-invites.
  *
- * @returns null when `own` already holds the newest of each; else the assembled invitation and
- *   the latest email it took from that was sent after `own`, if any was.
+ * @returns null when `own` already holds the newest of each; else the assembled invitation,
+ *   whether it is cancelled outright, and the latest email it took from that was sent after
+ *   `own`, if any was.
  */
 export function newestInvitation(
   own: EmailedInvitation,
   others: EmailedInvitation[]
-): { ics: string; message: Message | null } | null {
+): { ics: string; cancelled: boolean; message: Message | null } | null {
   const { root, event } = CalendarUtils.parseICSString(own.ics);
   const uid = event.uid;
-  const chosen = new Map<string, { vevent: ICAL.Component; from?: EmailedInvitation }>();
+  const chosen = new Map<string, Revision>();
   for (const vevent of root.getAllSubcomponents('vevent')) {
     if (vevent.getFirstPropertyValue('uid') === uid) chosen.set(occurrenceKey(vevent), { vevent });
   }
@@ -81,26 +99,42 @@ export function newestInvitation(
     } catch (e) {
       continue;
     }
-    const method = otherRoot.getFirstPropertyValue('method');
-    if (method && String(method).toUpperCase() !== 'REQUEST') continue;
+    const method = String(otherRoot.getFirstPropertyValue('method') || 'REQUEST').toUpperCase();
+    if (method !== 'REQUEST' && method !== 'CANCEL') continue;
     for (const vevent of otherRoot.getAllSubcomponents('vevent')) {
       if (vevent.getFirstPropertyValue('uid') !== uid) continue;
       const key = occurrenceKey(vevent);
       const current = chosen.get(key);
       if (current ? !isNewerRevision(vevent, current.vevent) : aboutOneOccurrence) continue;
-      chosen.set(key, { vevent, from: other });
+      chosen.set(key, { vevent, from: other, cancelled: method === 'CANCEL' });
     }
     for (const vtimezone of otherRoot.getAllSubcomponents('vtimezone')) {
       zones.set(String(vtimezone.getFirstPropertyValue('tzid')), vtimezone);
     }
   }
 
+  // A cancelled occurrence goes from the series as an EXDATE unless the series was revised since.
   const series = chosen.get('');
-  for (const key of [...chosen.keys()]) {
-    if (key && series && !holdsOccurrence(series.vevent, key)) chosen.delete(key);
+  const applied: EmailedInvitation[] = [];
+  for (const [key, revision] of [...chosen.entries()]) {
+    if (!key || !series) continue;
+    if (
+      revision.cancelled &&
+      !series.cancelled &&
+      !isNewerRevision(series.vevent, revision.vevent)
+    ) {
+      withoutCancelledOccurrence(series.vevent, revision.vevent);
+      applied.push(revision.from);
+    }
+    if (revision.cancelled || series.cancelled || !holdsOccurrence(series.vevent, key)) {
+      chosen.delete(key);
+    }
   }
+  const cancelled = [...chosen.values()].some((r) => r.cancelled);
 
-  const taken = [...chosen.values()].filter((c) => c.from).map((c) => c.from);
+  const taken = [...chosen.values(), ...applied.map((from) => ({ from }))]
+    .filter((c) => c.from)
+    .map((c) => c.from);
   if (!taken.length) return null;
 
   for (const vevent of root.getAllSubcomponents('vevent')) {
@@ -122,7 +156,7 @@ export function newestInvitation(
 
   const later = taken.filter((t) => t.message.date > own.message.date);
   const latest = later.reduce((a, b) => (!a || b.message.date > a.message.date ? b : a), null);
-  return { ics: root.toString(), message: latest && latest.message };
+  return { ics: root.toString(), cancelled, message: latest && latest.message };
 }
 
 /**

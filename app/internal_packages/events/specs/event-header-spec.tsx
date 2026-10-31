@@ -1141,6 +1141,26 @@ describe('EventHeader for an invitation a later email revised', function () {
     runs(() => expect(popout.mostRecentCall.args[0]).toBe(thread));
   });
 
+  it('shows the event cancelled when a later email cancelled the series', function () {
+    fs.writeFileSync(
+      paths[revisedFile.id],
+      invitation(...SERIES, 'STATUS:CANCELLED', 'DTSTAMP:20261031T021507Z', 'SEQUENCE:1').replace(
+        'METHOD:REQUEST',
+        'METHOD:CANCEL'
+      )
+    );
+    mount([revision]);
+    waitsFor(() => !!notice());
+    runs(() => {
+      expect(notice().textContent).toContain('cancelled after this email was sent');
+      expect(notice().textContent).toContain('View the cancellation');
+      expect(
+        ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'event-cancelled').length
+      ).toBe(1);
+      expect(ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'btn-rsvp').length).toBe(0);
+    });
+  });
+
   it('answers this email when no other revised it', function () {
     const older = Object.assign(revision.clone(), { id: 'm-older' });
     fs.writeFileSync(paths[revisedFile.id], invitation(...SERIES, 'DTSTAMP:20261001T000000Z'));
