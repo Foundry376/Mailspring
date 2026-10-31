@@ -863,6 +863,16 @@
     }
   }
 
+  // Times and dates break between their parts, rather than clipping, in a narrow panel.
+  .event-panel-wrap {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 10px;
+  }
+
   .event-panel-icon {
     width: 16px;
     height: 16px;
@@ -990,6 +1000,8 @@
   }
 
   .date-picker .day-text {
+    white-space: nowrap;
+
     &,
     &:hover,
     &.focused {

@@ -458,20 +458,26 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         </div>
         {!t.isAllDay && (
           <div className="event-panel-row indented">
-            <TimePicker value={t.start * 1000} onChange={this._changeStart} />
-            <SVGIcons.ArrowRight className="event-panel-icon" />
-            <TimePicker
-              value={t.end * 1000}
-              relativeTo={t.start * 1000}
-              onChange={(ms) => this._changeEnd(ms / 1000)}
-            />
-            <span className="event-panel-subtle">{DateUtils.formatDuration(t.end - t.start)}</span>
+            <div className="event-panel-wrap">
+              <TimePicker value={t.start * 1000} onChange={this._changeStart} />
+              <SVGIcons.ArrowRight className="event-panel-icon" />
+              <TimePicker
+                value={t.end * 1000}
+                relativeTo={t.start * 1000}
+                onChange={(ms) => this._changeEnd(ms / 1000)}
+              />
+              <span className="event-panel-subtle">
+                {DateUtils.formatDuration(t.end - t.start)}
+              </span>
+            </div>
           </div>
         )}
         <div className="event-panel-row indented">
-          <DatePicker value={t.start * 1000} onChange={this._changeStart} />
-          {multiDay && <span>–</span>}
-          {multiDay && endDatePicker}
+          <div className="event-panel-wrap">
+            <DatePicker value={t.start * 1000} onChange={this._changeStart} />
+            {multiDay && <span>–</span>}
+            {multiDay && endDatePicker}
+          </div>
         </div>
         {!t.isAllDay && (
           <div className="event-panel-row">
@@ -521,14 +527,14 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           <>
             <div className="event-panel-row">
               <SVGIcons.Clock className="event-panel-icon" />
-              <span>{formatShortTime(event.start)}</span>
-              <SVGIcons.ArrowRight className="event-panel-icon" />
-              <span>
-                {formatShortTime(event.end)}{' '}
+              <div className="event-panel-wrap">
+                <span>{formatShortTime(event.start)}</span>
+                <SVGIcons.ArrowRight className="event-panel-icon" />
+                <span>{formatShortTime(event.end)}</span>
                 <span className="event-panel-subtle">
                   {DateUtils.formatDuration(event.end - event.start)}
                 </span>
-              </span>
+              </div>
             </div>
             <div className="event-panel-row indented">{days}</div>
             <div className="event-panel-row">
