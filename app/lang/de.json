@@ -1158,7 +1158,7 @@
   "This account has no editable calendars. We can't create an event for you. Please make sure you have an editable calendar with your account provider.": "Dieses Konto hat keine bearbeitbaren Kalender. Wir können keinen Termin für Sie erstellen. Bitte stellen Sie sicher, dass Sie bei Ihrem Kontoanbieter einen bearbeitbaren Kalender haben.",
   "This account is invalid or Mailspring could not find the Inbox or All Mail folder. %@": "Dieses Konto ist ungültig oder Mailspring konnte den Ordner \"Posteingang\" oder \"Alle E-Mails\" nicht finden. %@",
   "This calendar is read-only, so its events can't be changed or deleted.": "Dieser Kalender ist schreibgeschützt, daher können seine Termine nicht geändert oder gelöscht werden.",
-  "This event changed since it was last loaded, so your change wasn't saved. The calendar has been refreshed. Please make your change again.": "Dieser Termin hat sich seit dem letzten Laden geändert, daher wurde Ihre Änderung nicht gespeichert. Der Kalender wurde aktualisiert. Bitte nehmen Sie Ihre Änderung erneut vor.",
+  "This event changed since it was last loaded, so your change wasn't saved. The event has been reloaded. Please make your change again.": "Dieser Termin hat sich seit dem letzten Laden geändert, daher wurde Ihre Änderung nicht gespeichert. Der Termin wurde neu geladen. Bitte nehmen Sie Ihre Änderung erneut vor.",
   "This event has been cancelled": "Dieser Termin wurde abgesagt",
   "This event has been cancelled by %@": "Dieser Termin wurde von %@ abgesagt",
   "This event has no organizer, so there's nobody to propose a new time to.": "Dieser Termin hat keinen Organisator, daher gibt es niemanden, dem Sie eine neue Zeit vorschlagen könnten.",

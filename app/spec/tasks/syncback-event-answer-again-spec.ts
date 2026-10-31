@@ -140,7 +140,7 @@ describe('an answer refused because our copy changed on the server', function ()
       debuginfo: '',
     });
     expect(DatabaseStore.listen).not.toHaveBeenCalled();
-    expect(AppEnv.mailsyncBridge.sendSyncCalendarNow).toHaveBeenCalledWith('acct-1');
+    expect(AppEnv.mailsyncBridge.sendSyncCalendarNow).not.toHaveBeenCalled();
     expect(queued.length).toBe(0);
     expect(dialog).toHaveBeenCalled();
   });
@@ -151,7 +151,7 @@ describe('an answer refused because our copy changed on the server', function ()
       debuginfo: '',
     });
     expect(DatabaseStore.listen).not.toHaveBeenCalled();
-    expect(AppEnv.mailsyncBridge.sendSyncCalendarNow).toHaveBeenCalledWith('acct-1');
+    expect(AppEnv.mailsyncBridge.sendSyncCalendarNow).not.toHaveBeenCalled();
     expect(queued.length).toBe(0);
     expect(dialog).toHaveBeenCalled();
   });
@@ -159,7 +159,7 @@ describe('an answer refused because our copy changed on the server', function ()
   it('does not retry an answer refused for another reason', async function () {
     await answerTask().onError({ key: 'not-found', debuginfo: '' });
     expect(DatabaseStore.listen).not.toHaveBeenCalled();
-    expect(AppEnv.mailsyncBridge.sendSyncCalendarNow).toHaveBeenCalledWith('acct-1');
+    expect(AppEnv.mailsyncBridge.sendSyncCalendarNow).not.toHaveBeenCalled();
     expect(queued.length).toBe(0);
     expect(dialog.mostRecentCall.args[0].message).toContain('no longer exists');
   });
