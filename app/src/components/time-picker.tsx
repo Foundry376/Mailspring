@@ -12,7 +12,8 @@ const INTERVAL: [any, string] = [30, 'minutes'];
 type TimePickerProps = {
   value?: number;
   onChange?: (ms: number) => void;
-  /** The start an end field follows: its list begins there, and the arrow keys stop there. */
+  /** The start an end field follows: its list begins there, the arrow keys stop there, and a
+   * time typed before it is the next day's. */
   relativeTo?: number;
   /** The IANA zone the time is shown and typed in; the machine's own when omitted. */
   timeZone?: string;
@@ -139,9 +140,18 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
         hour += 12;
       }
       // 'h:ma' has no date tokens, so only the time of day is taken from the text.
-      const next = this._moment(this.props.value)
-        .set({ hour, minute: parsedMoment.minute(), second: 0, millisecond: 0 })
-        .valueOf();
+      const typed = this._moment(this.props.value).set({
+        hour,
+        minute: parsedMoment.minute(),
+        second: 0,
+        millisecond: 0,
+      });
+      // An end field reads a time before its start as the next day's ("1:00 AM" after a 10 PM
+      // start). The day is added on the field's clock, so the wall clock survives a DST change.
+      if (this.props.relativeTo && typed.valueOf() < this.props.relativeTo) {
+        typed.add(1, 'day');
+      }
+      const next = typed.valueOf();
       if (next !== this.props.value) {
         this._emittedText = rawText;
         this.props.onChange(next);

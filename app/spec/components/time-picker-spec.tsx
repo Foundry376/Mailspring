@@ -157,6 +157,45 @@ describe('TimePicker', function timePicker() {
     expect(onChange.callCount).toBe(1);
   });
 
+  describe('as an end field', () => {
+    const at = (day: string, time: string) =>
+      moment(`${day} ${time}`, 'YYYY-MM-DD HH:mm').valueOf();
+    const typeEnd = (start: number, end: number, text: string, timeZone?: string) => {
+      const onChange = jasmine.createSpy('onChange');
+      const { container } = render(
+        <TimePicker value={end} relativeTo={start} timeZone={timeZone} onChange={onChange} />
+      );
+      const input = container.querySelector('input');
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value: text } });
+      fireEvent.blur(input);
+      return onChange.mostRecentCall.args[0];
+    };
+
+    it('reads a time before the start as the next day’s', () => {
+      const end = typeEnd(at(EVENT_DAY, '22:00'), at(EVENT_DAY, '23:00'), '1:00am');
+      expect(moment(end).format('YYYY-MM-DD HH:mm')).toBe('2026-03-11 01:00');
+    });
+
+    it('leaves a time after the start on its day', () => {
+      const end = typeEnd(at(EVENT_DAY, '10:00'), at(EVENT_DAY, '11:00'), '11:30am');
+      expect(moment(end).format('YYYY-MM-DD HH:mm')).toBe(`${EVENT_DAY} 11:30`);
+    });
+
+    it('keeps the wall clock when the next day is across a DST change', () => {
+      // Sunday 2026-03-08 springs forward at 2 AM, so 3 AM that day is 23 hours after Saturday's.
+      const end = typeEnd(at('2026-03-07', '23:00'), at('2026-03-07', '23:30'), '3:00am');
+      expect(moment(end).format('YYYY-MM-DD HH:mm')).toBe('2026-03-08 03:00');
+    });
+
+    it('adds the day in the zone the field shows', () => {
+      // 10 PM to 11 PM in Los Angeles, which is midnight to 1 AM in Chicago.
+      const start = Date.UTC(2026, 5, 23, 5);
+      const end = typeEnd(start, Date.UTC(2026, 5, 23, 6), '1:00am', 'America/Los_Angeles');
+      expect(end).toBe(Date.UTC(2026, 5, 23, 8));
+    });
+  });
+
   it('emits milliseconds from the arrow keys', () => {
     const { onChange, input } = renderPicker();
 
