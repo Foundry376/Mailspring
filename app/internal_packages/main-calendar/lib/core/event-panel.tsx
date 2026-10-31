@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import {
   localized,
   isRTL,
@@ -150,6 +151,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   state: EventPanelState = { repeat: 'none', times: null };
 
+  _el = React.createRef<HTMLElement>();
   _title = React.createRef<EventPanelTextField>();
   // Read as well as kept in state: the time picker reports its last change during the same blur
   // that saves the times, before a setState would land.
@@ -184,6 +186,21 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   focusTitle() {
     this._title.current?.focus();
+  }
+
+  /**
+   * Saves the field being edited, as leaving it would, while the panel still shows its event.
+   * Removing a focused field doesn't blur it, and React drops events while it unmounts, so the
+   * calendar calls this before the panel shows another event or goes away. Resolves once the
+   * panel's saves have been written.
+   */
+  commitEdits() {
+    const focused = document.activeElement;
+    if (focused instanceof HTMLElement && this._el.current?.contains(focused)) {
+      // Flushed, so a change held for Send update is in the calendar's state on return.
+      ReactDOM.flushSync(() => focused.blur());
+    }
+    return this._saving;
   }
 
   async _eventRow() {
@@ -304,8 +321,10 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     });
   }
 
-  // Esc closes a date's month, as it leaves a text field, before the calendar's Esc can act.
+  // Enter saves, after the picker it's pressed in has taken its text. Esc closes a date's month,
+  // as it leaves a text field, before the calendar's Esc can act.
   _onTimesKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') this._saveTimes();
     const target = e.target as HTMLElement;
     if (e.key !== 'Escape' || !target.closest('.date-picker')) return;
     e.stopPropagation();
@@ -827,7 +846,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   // The card sits under the scrolling rows, so a long event never pushes it out of view.
   render() {
     return (
-      <aside className="event-panel" tabIndex={-1} aria-label={localized('Event')}>
+      <aside ref={this._el} className="event-panel" tabIndex={-1} aria-label={localized('Event')}>
         {this._renderHeader()}
         <ScrollRegion className="event-panel-body">
           {this._renderTitle()}
