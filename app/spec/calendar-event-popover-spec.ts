@@ -511,6 +511,120 @@ describe('CalendarEventPopover save path and Show As', function () {
   });
 });
 
+describe('CalendarEventPopover save path and the alert', function () {
+  const REMINDED_ICS = FORTNIGHTLY_ICS.replace(
+    'END:VEVENT',
+    `BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Planning
+TRIGGER:-P0DT0H30M0S
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Planning
+TRIGGER:-P1D
+END:VALARM
+END:VEVENT`
+  );
+  let queued: any[];
+
+  beforeEach(function () {
+    queued = [];
+    spyOn(Actions, 'queueTask').andCallFake((task) => queued.push(task));
+    spyOn(SyncbackEventTask, 'forUpdating').andCallFake((opts) => opts);
+  });
+
+  const triggersOf = (ics: string) => ics.match(/^TRIGGER:.*$/gm) || [];
+
+  const createdWith = async (popover: any) => {
+    const helpers = require('../internal_packages/main-calendar/lib/core/calendar-helpers');
+    spyOn(helpers, 'createCalendarEvent').andReturn(Promise.resolve());
+    spyOn(Actions, 'closePopover');
+    await popover._createNewEvent();
+    return helpers.createCalendarEvent.mostRecentCall.args[0];
+  };
+
+  const newEventPopover = (isAllDay: boolean) => {
+    const popover: any = new CalendarEventPopover({
+      event: makeOccurrence('', { isAllDay } as any),
+      isNewEvent: true,
+    } as any);
+    popover.setState = (update: object) => Object.assign(popover.state, update);
+    return popover;
+  };
+
+  it('creates a timed event with a reminder ten minutes before', async function () {
+    expect((await createdWith(newEventPopover(false))).alarmTrigger).toBe('-PT10M');
+  });
+
+  it('creates an all-day event with no reminder until one is picked', async function () {
+    const popover = newEventPopover(false);
+    popover.updateAllDay(true);
+    expect(popover.state.alert).toBe('none');
+    expect((await createdWith(popover)).alarmTrigger).toBe(undefined);
+  });
+
+  it('creates the event with the reminder the user picked', async function () {
+    const popover = newEventPopover(false);
+    popover.updateAlert('1day');
+    popover.updateAllDay(true);
+    expect((await createdWith(popover)).alarmTrigger).toBe('-P1D');
+  });
+
+  it("shows an event's first reminder", async function () {
+    const popover = await openEditor(makeEvent(REMINDED_ICS), 'Planning');
+    expect(popover.state.alert).toBe('30min');
+  });
+
+  it('shows a reminder no option describes as custom', async function () {
+    const ics = REMINDED_ICS.replace('TRIGGER:-P0DT0H30M0S', 'TRIGGER:-PT20M');
+    const popover = await openEditor(makeEvent(ics), 'Planning');
+    expect(popover.state.alert).toBe('custom');
+  });
+
+  it('leaves the reminders as they were when the alert was not touched', async function () {
+    const event = makeEvent(REMINDED_ICS);
+    const popover = await openEditor(event, 'Planning');
+    popover.updateField('title', 'Planning (renamed)');
+
+    popover._saveAllOccurrences(event);
+
+    expect(triggersOf(queued[0].event.ics)).toEqual(['TRIGGER:-P0DT0H30M0S', 'TRIGGER:-P1D']);
+  });
+
+  it('moves the first reminder when the alert changes', async function () {
+    const event = makeEvent(REMINDED_ICS);
+    const popover = await openEditor(event, 'Planning');
+    popover.updateAlert('1hour');
+
+    popover._saveAllOccurrences(event);
+
+    expect(triggersOf(queued[0].event.ics)).toEqual(['TRIGGER:-PT1H', 'TRIGGER:-P1D']);
+  });
+
+  it('removes the reminders when the alert changes to none', async function () {
+    const event = makeEvent(REMINDED_ICS);
+    const popover = await openEditor(event, 'Planning');
+    popover.updateAlert('none');
+
+    popover._saveAllOccurrences(event);
+
+    expect(queued[0].event.ics).not.toContain('VALARM');
+  });
+
+  it("changes only the occurrence's reminder when one occurrence is edited", async function () {
+    const event = makeEvent(REMINDED_ICS);
+    const popover = await openEditor(event, 'Planning');
+    popover.updateAlert('5min');
+
+    await popover._saveOccurrenceException(event);
+
+    const [master, exception] = queued[0].event.ics.split('BEGIN:VEVENT').slice(1);
+    expect(triggersOf(master)).toEqual(['TRIGGER:-P0DT0H30M0S', 'TRIGGER:-P1D']);
+    expect(triggersOf(exception)).toEqual(['TRIGGER:-PT5M', 'TRIGGER:-P1D']);
+  });
+});
+
 describe('CalendarEventPopover and the time zone picker', function () {
   // 2 PM in Chicago, the zone scripts/test.js pins.
   const TWO_PM = Date.UTC(2026, 2, 3, 20, 0) / 1000;

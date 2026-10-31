@@ -57,6 +57,8 @@ export interface CreateEventOptions {
   attendees?: Array<{ email: string; name?: string; role?: string }>;
   recurrenceRule?: string;
   transparency?: Transparency;
+  /** A TRIGGER duration such as "-PT10M" for a reminder; none is added when omitted. */
+  alarmTrigger?: string;
 }
 
 /**
@@ -608,6 +610,10 @@ export function createICSString(options: CreateEventOptions): string {
     vevent.addPropertyWithValue('transp', options.transparency);
   }
 
+  if (options.alarmTrigger) {
+    setAlarm(vevent, options.alarmTrigger, ical);
+  }
+
   // Set timestamp
   vevent.addPropertyWithValue('dtstamp', nowUTC(ical));
 
@@ -967,6 +973,8 @@ export function applyEditsToException(
     attendees?: AttendeeInput[];
     organizer?: Organizer;
     transparency?: Transparency;
+    /** See updateAlarm; undefined leaves the exception's alarms alone. */
+    alarmTrigger?: string | null;
   }
 ): string {
   const ical = getICAL();
@@ -1005,6 +1013,9 @@ export function applyEditsToException(
   }
   if (edits.transparency) {
     exceptionVevent.updatePropertyWithValue('transp', edits.transparency);
+  }
+  if (edits.alarmTrigger !== undefined) {
+    setAlarm(exceptionVevent, edits.alarmTrigger, ical);
   }
 
   exceptionVevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
@@ -1405,6 +1416,59 @@ export function updateAttendees(
   // Update DTSTAMP
   vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
 
+  return root.toString();
+}
+
+/**
+ * Points a VEVENT's first VALARM at `trigger`, adding a DISPLAY alarm when it has none, or removes
+ * every VALARM for null. The editor shows only the first, so any others are left as they are.
+ */
+function setAlarm(vevent: ICALComponent, trigger: string | null, ical: ICAL): void {
+  const alarms = vevent.getAllSubcomponents('valarm');
+  if (!trigger) {
+    alarms.forEach((alarm) => vevent.removeSubcomponent(alarm));
+    return;
+  }
+  let alarm = alarms[0];
+  if (!alarm) {
+    alarm = new ical.Component('valarm');
+    alarm.addPropertyWithValue('action', 'DISPLAY');
+    // RFC 5545 section 3.6.6 requires a DESCRIPTION on a DISPLAY alarm.
+    alarm.addPropertyWithValue('description', vevent.getFirstPropertyValue('summary') || '');
+    vevent.addSubcomponent(alarm);
+  }
+  // A new property drops VALUE=DATE-TIME and RELATED=END from the trigger it replaces.
+  alarm.removeAllProperties('trigger');
+  alarm.addPropertyWithValue('trigger', ical.Duration.fromString(trigger));
+}
+
+/**
+ * The first VEVENT's first VALARM TRIGGER, or null when it has none. An offset from the start is
+ * normalized, so Google's "-P0DT0H10M0S" reads "-PT10M"; a trigger at a set time or relative to
+ * the end comes back as written.
+ */
+export function getAlarmTrigger(ics: string): string | null {
+  const ical = getICAL();
+  const { event } = parseICSString(ics);
+  const trigger = event.component.getFirstSubcomponent('valarm')?.getFirstProperty('trigger');
+  if (!trigger) return null;
+  const value = trigger.getFirstValue();
+  if (value instanceof ical.Duration && trigger.getParameter('related') !== 'END') {
+    return ical.Duration.fromSeconds(value.toSeconds()).toString();
+  }
+  return String(value);
+}
+
+/** Sets the first VEVENT's reminder to `trigger` (see setAlarm), or removes its reminders for null. */
+export function updateAlarm(ics: string, trigger: string | null): string {
+  const ical = getICAL();
+  const { root } = parseICSString(ics);
+  const vevent = root.name === 'vevent' ? root : root.getFirstSubcomponent('vevent');
+  if (!vevent) {
+    throw new Error('Invalid ICS: no VEVENT component found');
+  }
+  setAlarm(vevent, trigger, ical);
+  vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
   return root.toString();
 }
 

@@ -500,6 +500,7 @@ export interface CreateCalendarEventOptions {
   recurrenceRule?: string;
   timezone?: string;
   transparency?: ShowAsOption;
+  alarmTrigger?: string;
 }
 
 /** The account, as the ORGANIZER the ICS helpers name once an event has guests. */
@@ -529,6 +530,7 @@ export async function createCalendarEvent(options: CreateCalendarEventOptions): 
     attendees: options.attendees,
     recurrenceRule: options.recurrenceRule,
     transparency: options.transparency ?? defaultShowAs(options.isAllDay),
+    alarmTrigger: options.alarmTrigger,
   });
 
   const event = new Event({
