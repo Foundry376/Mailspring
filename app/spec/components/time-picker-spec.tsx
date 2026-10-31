@@ -154,6 +154,17 @@ describe('TimePicker', function timePicker() {
     expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe(`${EVENT_DAY} 15:30`);
   });
 
+  it('stops the arrow keys at the start an end field follows', () => {
+    const start = moment(`${EVENT_DAY} 10:15`, 'YYYY-MM-DD HH:mm').valueOf();
+    const end = moment(`${EVENT_DAY} 10:30`, 'YYYY-MM-DD HH:mm').valueOf();
+    const onChange = jasmine.createSpy('onChange');
+    const { container } = render(<TimePicker value={end} relativeTo={start} onChange={onChange} />);
+
+    fireEvent.keyDown(container.querySelector('input'), { key: 'ArrowUp' });
+
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   // date-utils.ts runs moment.locale(navigator.language) at startup, so a German or Japanese
   // user's field renders and accepts 24-hour text.
   describe('in a 24-hour locale', () => {

@@ -12,6 +12,7 @@ const INTERVAL: [any, string] = [30, 'minutes'];
 type TimePickerProps = {
   value?: number;
   onChange?: (ms: number) => void;
+  /** The start an end field follows: its list begins there, and the arrow keys stop there. */
   relativeTo?: number;
   /** The IANA zone the time is shown and typed in; the machine's own when omitted. */
   timeZone?: string;
@@ -86,6 +87,10 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
       newT = newT.add(...INTERVAL);
     }
     if (this._moment(this.props.value).day() !== newT.day()) {
+      return;
+    }
+    // A typed end before the start is read as the next day's; a step down never means that.
+    if (this.props.relativeTo && newT.valueOf() <= this.props.relativeTo) {
       return;
     }
     this._gotoScrollStartOnUpdate = true;

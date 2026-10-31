@@ -676,6 +676,7 @@ export class CalendarEventPopover extends React.Component<
               {!allDay && (
                 <TimePicker
                   value={end * 1000}
+                  relativeTo={start * 1000}
                   timeZone={zone}
                   onChange={(ts) => this.updateEnd(endFromTypedTime(start, ts / 1000, zone))}
                 />
