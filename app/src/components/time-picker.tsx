@@ -20,7 +20,8 @@ type TimePickerProps = {
 };
 type TimePickerState = {
   rawText: any;
-  focused: boolean;
+  /** Whether the list of times shows: while the field has focus, until Enter picks one. */
+  optionsOpen: boolean;
 };
 
 export default class TimePicker extends React.Component<TimePickerProps, TimePickerState> {
@@ -42,7 +43,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
   constructor(props) {
     super(props);
     this.state = {
-      focused: false,
+      optionsOpen: false,
       rawText: this._valToTimeString(props.value),
     };
   }
@@ -76,8 +77,10 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
       event.preventDefault();
       this._onArrow(event.key);
     } else if (event.key === 'Enter') {
-      // Committed here, not only on blur: the event panel has no TabGroup to move focus on.
+      // Committed here, not only on blur: the event panel has no TabGroup to move focus on, so
+      // the list closes here too.
       this._saveIfValid(this.state.rawText);
+      this.setState({ optionsOpen: false });
       this.context?.shiftFocus(1);
     }
   };
@@ -98,18 +101,19 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
       return;
     }
     this._gotoScrollStartOnUpdate = true;
+    this.setState({ optionsOpen: true });
     this.props.onChange(newT.valueOf());
   }
 
   _onFocus = () => {
-    this.setState({ focused: true });
+    this.setState({ optionsOpen: true });
     this._gotoScrollStartOnUpdate = true;
     const el = ReactDOM.findDOMNode(this.refs.input) as HTMLInputElement;
     el.setSelectionRange(0, el.value.length);
   };
 
   _onBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-    this.setState({ focused: false });
+    this.setState({ optionsOpen: false });
     if (
       event.relatedTarget &&
       Array.from((event.relatedTarget as Element).classList).includes('time-options')
@@ -121,7 +125,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
 
   _onRawTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     this._emittedText = null;
-    this.setState({ rawText: event.target.value });
+    this.setState({ rawText: event.target.value, optionsOpen: true });
   };
 
   _saveIfValid(rawText = '') {
@@ -212,7 +216,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
   }
 
   _renderTimeOptions() {
-    if (!this.state.focused) {
+    if (!this.state.optionsOpen) {
       return false;
     }
 

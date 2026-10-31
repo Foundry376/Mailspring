@@ -146,6 +146,20 @@ describe('TimePicker', function timePicker() {
     expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe(`${EVENT_DAY} 16:30`);
   });
 
+  it('closes its list of times on Enter, where nothing moves focus on, and opens it to typing', () => {
+    const { container, input } = renderPicker();
+    const listed = () => !!container.querySelector('.time-options');
+
+    fireEvent.focus(input);
+    expect(listed()).toBe(true);
+    fireEvent.change(input, { target: { value: '4:30pm' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(listed()).toBe(false);
+
+    fireEvent.change(input, { target: { value: '5pm' } });
+    expect(listed()).toBe(true);
+  });
+
   it('commits a time once when Enter moves focus before the new value arrives', () => {
     const { onChange, input } = renderPicker();
 
