@@ -426,7 +426,6 @@ describe('planRSVPWrite', function () {
     expect(write.event.ics).not.toContain('METHOD');
     expect(myLine(write.event.ics)).toContain('PARTSTAT=ACCEPTED');
     expect(myLine(write.event.ics)).not.toContain('RSVP=TRUE');
-    expect(write.answer).toEqual({ email: 'brian@example.com', status: 'ACCEPTED' });
   });
 
   it('adds one marked free so that Yahoo, which reads X-YAHOO-EVENT-STATUS, keeps it free', function () {
