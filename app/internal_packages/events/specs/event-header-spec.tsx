@@ -25,7 +25,7 @@ import {
   Thread,
   Utils,
 } from 'mailspring-exports';
-import { EventHeader, renderLocation, repeatSummary } from '../lib/event-header';
+import { EventHeader, organizerName, renderLocation, repeatSummary } from '../lib/event-header';
 
 // A LOCATION as Zoom rooms write it: the join URL, then the rooms booked for the meeting.
 const ZOOM_WITH_ROOMS =
@@ -1259,5 +1259,36 @@ describe('EventHeader repeat summary', function () {
 
   it('says nothing for a single event', function () {
     expect(summary()).toBe(null);
+  });
+});
+
+describe('EventHeader organizer name', function () {
+  const named = (organizer: string) =>
+    organizerName(
+      CalendarUtils.parseICSString(
+        [
+          'BEGIN:VCALENDAR',
+          'BEGIN:VEVENT',
+          'UID:o@test',
+          organizer,
+          'END:VEVENT',
+          'END:VCALENDAR',
+        ].join('\r\n')
+      ).event
+    );
+
+  it("names iCloud's organizer, not the relay address its invitations come from", function () {
+    expect(
+      named(
+        'ORGANIZER;CN=Ben Tester;EMAIL=ben@example.com:mailto:2_GU4DGMZQGI4DGNJYGMZTAMRYGNI@imip.me.com'
+      )
+    ).toBe('Ben Tester');
+    expect(named('ORGANIZER;EMAIL=ben@example.com:mailto:2_GU4DGMZQGI4D@imip.me.com')).toBe(
+      'ben@example.com'
+    );
+  });
+
+  it('falls back to the address', function () {
+    expect(named('ORGANIZER:mailto:Mark@Example.com')).toBe('mark@example.com');
   });
 });

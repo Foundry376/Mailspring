@@ -128,6 +128,20 @@ export function repeatSummary(event: ICAL.Event): string | null {
 }
 
 /**
+ * Who organizes an event, as a guest would name them. iCloud mails invitations from a relay
+ * address (`2_…@imip.me.com`) that replies must go to, with the person's name in CN and their
+ * address in EMAIL.
+ */
+export function organizerName(event: ICAL.Event): string | null {
+  const organizer = event.component.getFirstProperty('organizer');
+  if (!organizer) return null;
+  const named = organizer.getParameter('cn') || organizer.getParameter('email');
+  return named
+    ? String(named)
+    : CalendarUtils.emailFromParticipantURI(String(organizer.getFirstValue()));
+}
+
+/**
  * The VEVENT of a synced calendar object that an invitation is about. An invitation for one
  * occurrence of a series names it by RECURRENCE-ID; the object's first VEVENT is the series.
  *
@@ -783,15 +797,15 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
 
   _renderCancellation() {
     const { icsEvent, copyBehind, rsvp, inviteRecurrenceIdStart } = this.state;
-    const organizerEmail = CalendarUtils.emailFromParticipantURI(icsEvent.organizer);
+    const organizer = organizerName(icsEvent);
     // Our copy of a cancelled meeting stays where the server didn't apply the cancellation.
     const removable = copyBehind && rsvp && rsvp.target && inviteRecurrenceIdStart === undefined;
 
     return (
       <div className="event-actions event-cancelled">
         <span className="cancelled-notice">
-          {organizerEmail
-            ? localized('This event has been cancelled by %@', organizerEmail)
+          {organizer
+            ? localized('This event has been cancelled by %@', organizer)
             : localized('This event has been cancelled')}
         </span>
         {removable && (
