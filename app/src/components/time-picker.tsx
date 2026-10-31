@@ -71,6 +71,8 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
       event.preventDefault();
       this._onArrow(event.key);
     } else if (event.key === 'Enter') {
+      // Committed here, not only on blur: the event panel has no TabGroup to move focus on.
+      this._saveIfValid(this.state.rawText);
       this.context?.shiftFocus(1);
     }
   };
@@ -118,9 +120,8 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
     if (rawText.trim() === this._valToTimeString(this.props.value)) {
       return;
     }
-    // Locale-aware am/pm parsing!!
-    const parsedMoment = moment(rawText, 'h:ma');
-    if (parsedMoment.isValid()) {
+    const parsedMoment = this._parse(rawText);
+    if (parsedMoment) {
       let hour = parsedMoment.hour();
       if (this._shouldAddTwelve(rawText) && hour < 12) {
         hour += 12;
@@ -137,6 +138,15 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
     // Nothing was emitted, so props.value will not change and componentDidUpdate will not
     // re-derive the text. Put the field back on the time it is meant to be showing.
     this.setState({ rawText: this._valToTimeString(this.props.value) });
+  }
+
+  // Locale-aware am/pm parsing. moment's forgiving parse stops at the first time it reads, so a
+  // digit left over ("10:15 PM1:00 AM") makes the entry invalid. Words are not: many locales
+  // write them around the time ("15:30 Auer", "오후 3:30") and 'h:ma' leaves them unread.
+  _parse(rawText: string): Moment | null {
+    const parsed = moment(rawText, 'h:ma');
+    const leftover = parsed.parsingFlags().unusedInput.some((s) => /\p{Nd}/u.test(s));
+    return parsed.isValid() && !leftover ? parsed : null;
   }
 
   // moment's LT uses h for a 12-hour clock and H for a 24-hour one. Test the hour token rather
@@ -243,7 +253,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
     const className = classnames({
       'time-picker': true,
       'no-select-end': true,
-      invalid: !moment(this.state.rawText, 'h:ma').isValid(),
+      invalid: !this._parse(this.state.rawText),
     });
     return (
       <div className="time-picker-wrap">

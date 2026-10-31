@@ -114,6 +114,38 @@ describe('TimePicker', function timePicker() {
     expect(input.value).toBe(moment(VALUE).format('LT'));
   });
 
+  it('refuses text with more than one time in it', () => {
+    const { onChange, input } = renderPicker();
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: '10:15 PM1:00 AM' } });
+    expect(input.classList.contains('invalid')).toBe(true);
+    fireEvent.blur(input);
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(input.value).toBe(moment(VALUE).format('LT'));
+  });
+
+  it('accepts a time with spaces around it', () => {
+    const { onChange, input } = renderPicker();
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: ' 4:30 pm ' } });
+    fireEvent.blur(input);
+
+    expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe(`${EVENT_DAY} 16:30`);
+  });
+
+  it('commits the typed time on Enter', () => {
+    const { onChange, input } = renderPicker();
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: '4:30pm' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe(`${EVENT_DAY} 16:30`);
+  });
+
   it('emits milliseconds from the arrow keys', () => {
     const { onChange, input } = renderPicker();
 
@@ -171,6 +203,17 @@ describe('TimePicker', function timePicker() {
       fireEvent.blur(input);
       return lastEmitted(onChange).format('HH:mm');
     };
+
+    it('accepts the words a locale writes around the time', () => {
+      moment.locale('lb');
+      const { onChange, input } = renderPicker();
+
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value: '16:30 Auer' } });
+      fireEvent.blur(input);
+
+      expect(lastEmitted(onChange).format('HH:mm')).toBe('16:30');
+    });
 
     it('reads the hour token rather than the meridiem', () => {
       moment.locale('lb');
