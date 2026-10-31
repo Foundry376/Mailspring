@@ -1,5 +1,5 @@
 import { Message } from 'mailspring-exports';
-import { newestInvitation } from '../lib/invitation-versions';
+import { copyIsBehind, newestInvitation } from '../lib/invitation-versions';
 
 // The shapes Google mailed for one weekly series (October 2026): the invitation, then the
 // 10 November meeting moved to 10:30 as a REQUEST about that occurrence alone, then the series
@@ -247,5 +247,57 @@ describe('newestInvitation', function () {
         ])
       ).toBe(null);
     });
+  });
+});
+
+describe('copyIsBehind', function () {
+  // Our calendar's copy: what the invitation became when we added it, without METHOD.
+  const stored = (...lines: string[][]) =>
+    invitation('REQUEST', ...lines).replace('METHOD:REQUEST\r\n', '');
+  const at = (hour: string, sequence: number, dtstamp: string, ...extra: string[]) => [
+    `DTSTART;TZID=America/Chicago:20261103T${hour}0000`,
+    `DTEND;TZID=America/Chicago:20261103T${hour}3000`,
+    `DTSTAMP:${dtstamp}`,
+    `SEQUENCE:${sequence}`,
+    ...extra,
+  ];
+  const ADDED = stored(at('16', 0, '20261031T212451Z'));
+  const MOVED_LATER = invitation('REQUEST', at('17', 1, '20261031T213418Z'));
+
+  it('is behind a later revision that moved the meeting, as iCloud leaves it', function () {
+    expect(copyIsBehind(ADDED, MOVED_LATER)).toBe(true);
+  });
+
+  it('is behind it at the same SEQUENCE, which Yahoo raises on our own writes', function () {
+    expect(copyIsBehind(stored(at('16', 1, '20261031T212451Z')), MOVED_LATER)).toBe(true);
+  });
+
+  it('is behind a later cancellation', function () {
+    const cancelled = invitation('CANCEL', at('16', 1, '20261031T213418Z', 'STATUS:CANCELLED'));
+    expect(copyIsBehind(ADDED, cancelled)).toBe(true);
+  });
+
+  it('is behind a moved occurrence it holds no override for', function () {
+    const weekly = stored(series(0, '20261031T021135Z'));
+    expect(copyIsBehind(weekly, OCCURRENCE_MOVED)).toBe(true);
+    expect(
+      copyIsBehind(
+        stored(series(0, '20261031T021135Z'), MOVED('20261031T021320Z')),
+        OCCURRENCE_MOVED
+      )
+    ).toBe(false);
+  });
+
+  it('is current once the server applied the revision, whatever its DTSTAMP', function () {
+    expect(copyIsBehind(stored(at('17', 1, '20261031T210000Z')), MOVED_LATER)).toBe(false);
+  });
+
+  it('is current when it is the newer one', function () {
+    expect(copyIsBehind(stored(at('17', 2, '20261031T220000Z')), MOVED_LATER)).toBe(false);
+  });
+
+  it("can't be ordered without a SEQUENCE, as Exchange's copies come over Graph", function () {
+    const graph = ADDED.replace('SEQUENCE:0\r\n', '');
+    expect(copyIsBehind(graph, MOVED_LATER)).toBe(false);
   });
 });

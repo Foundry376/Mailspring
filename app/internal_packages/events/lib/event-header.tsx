@@ -22,6 +22,7 @@ import {
   Event,
   EventRSVPTask,
   SyncbackEventTask,
+  DestroyEventTask,
   DatabaseStore,
   RegExpUtils,
   Utils,
@@ -37,6 +38,7 @@ import {
   RSVPTargetResolution,
 } from './rsvp-target';
 import {
+  copyIsBehind,
   EmailedInvitation,
   newestInvitation,
   otherInvitationEmails,
@@ -171,10 +173,13 @@ interface EventHeaderState {
   /** Set when the emailed invitation is about one occurrence of a series, in unix seconds. */
   inviteRecurrenceIdStart?: number;
   icsMethod?: 'reply' | 'request' | 'cancel' | 'counter';
-  /** The synced copy's VEVENT for this invitation when there is one, else the invitation. */
+  /** What is shown: the synced copy's VEVENT for this invitation, unless the copy is behind it. */
   icsEvent?: ICAL.Event;
-  /** The synced calendar object `icsEvent` came from. */
+  /** Our synced calendar object for this invitation, and its VEVENT the invitation is about. */
   syncedIcs?: string;
+  syncedEvent?: ICAL.Event;
+  /** Whether that copy missed a revision the invitation holds, which answering brings it up to. */
+  copyBehind?: boolean;
   isOnCalendar?: boolean;
   /** Which calendar copy of this event, if any, our response will be written to. */
   rsvp?: RSVPTargetResolution;
@@ -212,6 +217,8 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     newerInvitation: undefined,
     inviteRecurrenceIdStart: undefined,
     syncedIcs: undefined,
+    syncedEvent: undefined,
+    copyBehind: false,
     isOnCalendar: false,
     rsvp: undefined,
     counterProblem: undefined,
@@ -384,9 +391,21 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       // Only an emailed REQUEST looks for later versions.
       icsMethod: newest.cancelled ? 'cancel' : 'request',
     };
-    // A calendar copy shown in place of the invitation stays shown.
-    if (this.state.icsEvent === this.state.inviteEvent) next.icsEvent = event;
-    this.setState(next as EventHeaderState);
+    this.setState({ ...next, ...this._shownFor({ ...this.state, ...next }) } as EventHeaderState);
+  }
+
+  /** The calendar copy is shown in place of the invitation, unless it is behind it. */
+  _shownFor(state: EventHeaderState): Pick<EventHeaderState, 'icsEvent' | 'copyBehind'> {
+    const { syncedEvent, syncedIcs, inviteIcs, inviteEvent } = state;
+    let copyBehind = false;
+    if (syncedEvent) {
+      try {
+        copyBehind = copyIsBehind(syncedIcs, inviteIcs);
+      } catch (e) {
+        console.warn(`EventHeader: Could not compare the invitation with our copy: ${e.message}`);
+      }
+    }
+    return { copyBehind, icsEvent: syncedEvent && !copyBehind ? syncedEvent : inviteEvent };
   }
 
   _onViewNewerInvitation = async () => {
@@ -473,21 +492,22 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       addTo: addTo ? addTo.addTo : undefined,
       addToChoices: addTo ? addTo.choices : undefined,
       isOnCalendar: calEvents.length > 0,
+      syncedIcs: display ? display.ics : undefined,
+      syncedEvent: synced || undefined,
     };
-    if (display) {
-      if (synced) next.icsEvent = synced;
-      next.syncedIcs = display.ics;
-    }
-    this.setState(next as EventHeaderState);
+    this.setState({ ...next, ...this._shownFor({ ...this.state, ...next }) } as EventHeaderState);
   }
 
   /**
    * What the REPLY is built from: the calendar copy when there is one, except for an
-   * invitation to one occurrence, which the emailed copy describes alone.
+   * invitation to one occurrence, which the emailed copy describes alone, and a copy behind
+   * the invitation, whose SEQUENCE the organizer would read as an answer to an old revision.
    */
   _replyIcs(): string {
-    const { inviteIcs, inviteRecurrenceIdStart, syncedIcs } = this.state;
-    return inviteRecurrenceIdStart === undefined && syncedIcs ? syncedIcs : inviteIcs;
+    const { inviteIcs, inviteRecurrenceIdStart, syncedIcs, copyBehind } = this.state;
+    return inviteRecurrenceIdStart === undefined && syncedIcs && !copyBehind
+      ? syncedIcs
+      : inviteIcs;
   }
 
   /** This account's own address plus any aliases, used to recognise our own calendar. */
@@ -762,8 +782,10 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
   }
 
   _renderCancellation() {
-    const { icsEvent } = this.state;
+    const { icsEvent, copyBehind, rsvp, inviteRecurrenceIdStart } = this.state;
     const organizerEmail = CalendarUtils.emailFromParticipantURI(icsEvent.organizer);
+    // Our copy of a cancelled meeting stays where the server didn't apply the cancellation.
+    const removable = copyBehind && rsvp && rsvp.target && inviteRecurrenceIdStart === undefined;
 
     return (
       <div className="event-actions event-cancelled">
@@ -772,9 +794,21 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
             ? localized('This event has been cancelled by %@', organizerEmail)
             : localized('This event has been cancelled')}
         </span>
+        {removable && (
+          <div className="btn btn-large btn-rsvp" onClick={this._onRemoveCancelled}>
+            {localized('Remove from %@', rsvp.target.calendar.name)}
+          </div>
+        )}
       </div>
     );
   }
+
+  _onRemoveCancelled = () => {
+    const { rsvp } = this.state;
+    if (rsvp && rsvp.target) {
+      Actions.queueTask(DestroyEventTask.forRemoving({ events: [rsvp.target.event] }));
+    }
+  };
 
   _renderRSVP() {
     const { icsEvent, inflight } = this.state;
@@ -841,7 +875,12 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     if (rsvp.target) {
       return (
         <div className="event-rsvp-destination">
-          {localized('Your response will be saved to %@', rsvp.target.calendar.name)}
+          {this.state.copyBehind
+            ? localized(
+                '%@ still has an earlier version of this event. Your response will update it.',
+                rsvp.target.calendar.name
+              )
+            : localized('Your response will be saved to %@', rsvp.target.calendar.name)}
         </div>
       );
     }
@@ -944,7 +983,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
 
   // Not undoable: the REPLY already sent cannot be retracted (iTIP has no way to).
   _writeRSVPToCalendar(status: ICSParticipantStatus) {
-    const { rsvp, addTo, inviteIcs, inviteEvent } = this.state;
+    const { rsvp, addTo, inviteIcs, inviteEvent, copyBehind } = this.state;
     const { accountId } = this.props.message;
     // _onRSVP has already built the REPLY from this attendee, so it exists.
     const me = CalendarUtils.selfParticipant(inviteEvent, accountId);
@@ -956,6 +995,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       inviteIcs,
       inviteEvent,
       accountId,
+      copyBehind,
     });
     if (!write) return;
     Actions.queueTask(

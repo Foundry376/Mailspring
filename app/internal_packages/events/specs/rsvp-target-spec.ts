@@ -404,6 +404,19 @@ describe('planRSVPWrite', function () {
     expect(myLine(write.event.ics)).toContain('PARTSTAT=ACCEPTED');
   });
 
+  it('brings a copy that is behind the invitation up to it', function () {
+    const stale = synced.clone();
+    stale.ics = synced.ics.replace('DTSTART:20260301T140000Z', 'DTSTART:20260301T120000Z');
+    const rsvp = resolveRSVPTarget({ events: [stale], calendars: [MINE], addresses: ADDRESSES });
+    const write = plan({ rsvp, copyBehind: true });
+    if (write.kind !== 'update') throw new Error(`expected an update, got ${write.kind}`);
+    expect(write.event.id).toBe('e-mine');
+    expect(write.event.ics).toContain('DTSTART:20260301T140000Z');
+    expect(write.event.ics).not.toContain('METHOD');
+    expect(write.event.recurrenceStart).toBe(Date.UTC(2026, 2, 1, 14) / 1000);
+    expect(myLine(write.event.ics)).toContain('PARTSTAT=ACCEPTED');
+  });
+
   it('writes nothing when our copy no longer lists us', function () {
     const withoutMe = synced.clone();
     withoutMe.ics = synced.ics.replace(/ATTENDEE[^\r\n]*brian@example.com\r\n/, '');
@@ -542,6 +555,23 @@ describe('planRSVPWrite', function () {
       expect(synced).toContain('DTSTART:20260915T160000Z');
       expect(myLines(synced)[0]).toContain('PARTSTAT=ACCEPTED');
       expect(myLines(synced)[0]).not.toContain('RSVP=TRUE');
+    });
+
+    it('replaces our override of that occurrence when it is behind the invitation', function () {
+      const copy = copyWith(occurrence('Huddle (as synced)', '20260915T160000Z'));
+      const write = plan({
+        rsvp: resolveRSVPTarget({ events: [copy], calendars: [MINE], addresses: ADDRESSES }),
+        inviteIcs: OCCURRENCE_INVITE,
+        inviteEvent: occurrenceEvent,
+        copyBehind: true,
+      });
+      const vevents = write.event.ics
+        .replace(/\r\n[ \t]/g, '')
+        .split('BEGIN:VEVENT')
+        .slice(1);
+      expect(vevents.length).toBe(2);
+      expect(vevents[1]).toContain('DTSTART:20260915T150000Z');
+      expect(myLines(vevents[1])[0]).toContain('PARTSTAT=ACCEPTED');
     });
 
     it('stores the emailed occurrence as an exception when our copy has none for it', function () {

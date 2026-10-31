@@ -1724,15 +1724,17 @@ export function updateAttendeeStatus(ics: string, email: string, partstat: strin
 /**
  * Answers an invitation to one occurrence of a series on our stored copy: PARTSTAT changes on
  * the VEVENT that RECURRENCE-ID names and nowhere else, and when the copy has no VEVENT for that
- * occurrence the emailed one is stored as its exception. A Google organizer acts on this write
- * rather than on the emailed REPLY, so writing the master would answer for every occurrence.
- * Null when the address is not an attendee of the occurrence.
+ * occurrence the emailed one is stored as its exception, as it is in place of the copy's own with
+ * `replace`. A Google organizer acts on this write rather than on the emailed REPLY, so writing
+ * the master would answer for every occurrence. Null when the address is not an attendee of the
+ * occurrence.
  */
 export function updateOccurrenceAttendeeStatus(
   calendarIcs: string,
   occurrenceIcs: string,
   email: string,
-  partstat: string
+  partstat: string,
+  { replace = false }: { replace?: boolean } = {}
 ): string | null {
   const ical = getICAL();
   const { root } = parseICSString(calendarIcs);
@@ -1751,12 +1753,13 @@ export function updateOccurrenceAttendeeStatus(
     const rid = vevent.getFirstPropertyValue('recurrence-id') as ICALTime | null;
     return !!rid && rid.toJSDate().getTime() === namedInstant;
   });
-  if (existing) {
+  if (existing && !replace) {
     return setAttendeePartstat(existing, target, partstat, ical) ? root.toString() : null;
   }
 
   const exception = new ical.Component(invited.toJSON());
   if (!setAttendeePartstat(exception, target, partstat, ical)) return null;
+  if (existing) root.removeSubcomponent(existing);
   root.addSubcomponent(exception);
   // The emailed occurrence may sit in a zone the copy has no VTIMEZONE for yet.
   syncVTimezones(root, ical, recurrenceId.toJSDate());

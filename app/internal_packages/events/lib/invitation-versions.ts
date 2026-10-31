@@ -41,6 +41,57 @@ function isNewerRevision(a: ICAL.Component, b: ICAL.Component): boolean {
   return stamp(a) > stamp(b);
 }
 
+/** What a guest sees of a VEVENT: when it happens and whether it's on, what and where it is. */
+function guestView(vevent: ICAL.Component): string {
+  const event = new ICAL.Event(vevent);
+  const instants = (name: string) =>
+    vevent
+      .getAllProperties(name)
+      .flatMap((p) => p.getValues())
+      .map((t: ICAL.Time) => t.toJSDate().getTime())
+      .sort();
+  return JSON.stringify([
+    event.startDate && event.startDate.toJSDate().getTime(),
+    event.startDate && event.startDate.isDate,
+    event.endDate && event.endDate.toJSDate().getTime(),
+    String(vevent.getFirstPropertyValue('rrule') || ''),
+    instants('exdate'),
+    instants('rdate'),
+    String(vevent.getFirstPropertyValue('status') || 'CONFIRMED').toUpperCase(),
+    event.summary || '',
+    event.location || '',
+  ]);
+}
+
+/**
+ * Whether our calendar copy of an invitation missed a revision its organizer emailed: iCloud and
+ * Yahoo don't apply the invitations an outside organizer mails, so a copy added from one stays as
+ * it was (measured October 2026). The copy is behind where the invitation holds a newer revision
+ * of one of its VEVENTs that a guest would see differently. Google and Exchange apply each
+ * revision themselves; Exchange's copies, read over Graph, carry no SEQUENCE and are never behind.
+ */
+export function copyIsBehind(copyIcs: string, inviteIcs: string): boolean {
+  const copy = CalendarUtils.parseICSString(copyIcs);
+  const invite = CalendarUtils.parseICSString(inviteIcs);
+  const uid = invite.event.uid;
+  const copyVevents = new Map<string, ICAL.Component>();
+  for (const vevent of copy.root.getAllSubcomponents('vevent')) {
+    if (vevent.getFirstPropertyValue('uid') === uid) copyVevents.set(occurrenceKey(vevent), vevent);
+  }
+  const copySeries = copyVevents.get('');
+  if (!copySeries || !copySeries.hasProperty('sequence')) return false;
+
+  return invite.root.getAllSubcomponents('vevent').some((vevent) => {
+    if (vevent.getFirstPropertyValue('uid') !== uid) return false;
+    // An occurrence the copy holds no override for is compared with the series it comes from.
+    const counterpart = copyVevents.get(occurrenceKey(vevent));
+    return (
+      isNewerRevision(vevent, counterpart || copySeries) &&
+      (!counterpart || guestView(vevent) !== guestView(counterpart))
+    );
+  });
+}
+
 /** Whether the series still holds the occurrence at `key`: in its rule and not cancelled. */
 function holdsOccurrence(series: ICAL.Component, key: string): boolean {
   const iterator = new ICAL.Event(series).iterator();
