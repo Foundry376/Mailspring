@@ -40,6 +40,8 @@ import {
   clampEnd,
   extractNotesFromDescription,
   formatTime,
+  fieldZone,
+  sameWallClockIn,
   NewEventDraft,
 } from './calendar-helpers';
 import { AttendeeStatusIcon, attendeeStatusClass, sortAttendeesByStatus } from './attendee-status';
@@ -516,6 +518,17 @@ export class CalendarEventPopover extends React.Component<
     this.setState({ end: clampEnd(this.state.start, end, this.state.allDay) });
   };
 
+  // The fields keep the wall clock they show, so picking a zone says where that time is.
+  updateTimezone = (timezone: string): void => {
+    const from = fieldZone(this.state.timezone);
+    const to = fieldZone(timezone);
+    this.setState({
+      timezone,
+      start: sameWallClockIn(this.state.start, from, to),
+      end: sameWallClockIn(this.state.end, from, to),
+    });
+  };
+
   updateCalendar = (calendarId: string, accountId: string): void => {
     this.setState({ selectedCalendarId: calendarId, selectedAccountId: accountId });
   };
@@ -538,6 +551,8 @@ export class CalendarEventPopover extends React.Component<
     } = this.state;
 
     const notes = extractNotesFromDescription(description);
+    // All-day dates are the machine's days, whatever zone was picked for a timed event.
+    const zone = allDay ? undefined : fieldZone(timezone);
 
     return (
       <div className="calendar-event-popover editing" tabIndex={0}>
@@ -582,15 +597,24 @@ export class CalendarEventPopover extends React.Component<
 
             {/* Start/End times using property rows */}
             <EventPropertyRow label={localized('starts:')}>
-              <DatePicker value={start * 1000} onChange={(ts) => this.updateStart(ts / 1000)} />
+              <DatePicker
+                value={start * 1000}
+                timeZone={zone}
+                onChange={(ts) => this.updateStart(ts / 1000)}
+              />
               {!allDay && (
-                <TimePicker value={start * 1000} onChange={(ts) => this.updateStart(ts / 1000)} />
+                <TimePicker
+                  value={start * 1000}
+                  timeZone={zone}
+                  onChange={(ts) => this.updateStart(ts / 1000)}
+                />
               )}
             </EventPropertyRow>
 
             <EventPropertyRow label={localized('ends:')}>
               <DatePicker
                 value={(allDay ? inclusiveAllDayEnd(end) : end) * 1000}
+                timeZone={zone}
                 onChange={(ts) =>
                   this.updateEnd(
                     allDay
@@ -602,15 +626,15 @@ export class CalendarEventPopover extends React.Component<
                 }
               />
               {!allDay && (
-                <TimePicker value={end * 1000} onChange={(ts) => this.updateEnd(ts / 1000)} />
+                <TimePicker
+                  value={end * 1000}
+                  timeZone={zone}
+                  onChange={(ts) => this.updateEnd(ts / 1000)}
+                />
               )}
             </EventPropertyRow>
 
-            {/* Time zone selector */}
-            <TimeZoneSelector
-              value={timezone}
-              onChange={(value) => this.updateField('timezone', value)}
-            />
+            {!allDay && <TimeZoneSelector value={timezone} onChange={this.updateTimezone} />}
 
             {/* Repeat selector */}
             <RepeatSelector

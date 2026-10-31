@@ -79,6 +79,35 @@ describe('DatePicker', function datePicker() {
     expect(lastEmitted(onChange).valueOf()).toBe(Date.UTC(2026, 10, 1, 6, 30));
   });
 
+  describe('in a zone other than the machine’s', () => {
+    // 1 AM in Tokyo on 2026-03-11 is 10 AM on 2026-03-10 in Chicago.
+    const VALUE_IN_TOKYO = Date.UTC(2026, 2, 10, 16, 0);
+    const renderInTokyo = () => {
+      const onChange = jasmine.createSpy('onChange');
+      const { container } = render(
+        <DatePicker value={VALUE_IN_TOKYO} timeZone="Asia/Tokyo" onChange={onChange} />
+      );
+      return {
+        onChange,
+        container,
+        picker: container.querySelector('.date-picker') as HTMLElement,
+      };
+    };
+
+    it('shows the day of that zone', () => {
+      const { container } = renderInTokyo();
+      expect(container.querySelector('.day-text').textContent).toContain('Mar 11');
+    });
+
+    it('keeps that zone’s clock time when a day is picked', () => {
+      const { onChange, container, picker } = renderInTokyo();
+
+      pickDay(container, picker, '2026-03-20');
+
+      expect(onChange.mostRecentCall.args[0]).toBe(Date.UTC(2026, 2, 19, 16, 0));
+    });
+  });
+
   it('keeps the clock time when an arrow key moves the day', () => {
     const { onChange, picker } = renderPicker();
 

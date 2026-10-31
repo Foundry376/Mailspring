@@ -1,4 +1,12 @@
-import { AccountStore, Actions, DatabaseStore, SyncbackEventTask } from 'mailspring-exports';
+import {
+  AccountStore,
+  Actions,
+  DatabaseStore,
+  ICSEventHelpers,
+  SyncbackEventTask,
+} from 'mailspring-exports';
+import TimePicker from '../src/components/time-picker';
+import { DatePicker } from '../src/components/date-picker';
 import { Event as MailspringEvent } from '../src/flux/models/event';
 import { CalendarEventPopover } from '../internal_packages/main-calendar/lib/core/calendar-event-popover';
 import React from 'react';
@@ -11,6 +19,7 @@ moment.locale('en');
 import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 import { AllDayToggle } from '../internal_packages/main-calendar/lib/core/all-day-toggle';
 import { ShowAsSelector } from '../internal_packages/main-calendar/lib/core/show-as-selector';
+import { TimeZoneSelector } from '../internal_packages/main-calendar/lib/core/timezone-selector';
 
 // A fortnightly Tue/Thu meeting that ends in June. Every part of this rule beyond FREQ is
 // something the five-value Repeat control cannot express.
@@ -182,13 +191,13 @@ describe('CalendarEventPopover save path and the recurrence rule', function () {
     const event = makeEvent(BERLIN_ICS);
     const popover = await openEditor(event, 'Standup');
     expect(popover.state.timezone).toBe('Europe/Berlin');
-    popover.updateField('timezone', 'America/Chicago');
+    popover.updateTimezone('America/Chicago');
 
     popover._saveAllOccurrences(event);
 
     const ics = queued[0].event.ics;
-    expect(ics).toContain('DTSTART;TZID=America/Chicago:20260303T080000');
-    expect(ics).toContain('EXDATE;TZID=America/Chicago:20260310T080000');
+    expect(ics).toContain('DTSTART;TZID=America/Chicago:20260303T150000');
+    expect(ics).toContain('EXDATE;TZID=America/Chicago:20260310T150000');
     expect(ics).toContain('TZID:America/Chicago');
     expect(ics).not.toContain('TZID:Europe/Berlin');
   });
@@ -499,6 +508,73 @@ describe('CalendarEventPopover save path and Show As', function () {
     await popover._createNewEvent();
 
     expect(helpers.createCalendarEvent.mostRecentCall.args[0].transparency).toBe('TRANSPARENT');
+  });
+});
+
+describe('CalendarEventPopover and the time zone picker', function () {
+  // 2 PM in Chicago, the zone scripts/test.js pins.
+  const TWO_PM = Date.UTC(2026, 2, 3, 20, 0) / 1000;
+  const HALF_THREE = Date.UTC(2026, 2, 3, 21, 30) / 1000;
+
+  const newEventPopover = () => {
+    const popover: any = new CalendarEventPopover({
+      event: makeOccurrence('', { isRecurring: false, start: TWO_PM, end: HALF_THREE }),
+      isNewEvent: true,
+    } as any);
+    popover.setState = (update: object) => Object.assign(popover.state, update);
+    return popover;
+  };
+
+  /** Every element of these types in the editor's rendered tree. */
+  const elementsOf = (popover: any, types: any[]) => {
+    const found: any[] = [];
+    const visit = (node: any) => {
+      if (!node || typeof node !== 'object') return;
+      if (Array.isArray(node)) return node.forEach(visit);
+      if (types.includes(node.type)) found.push(node);
+      visit(node.props && node.props.children);
+    };
+    visit(popover.renderEditable());
+    return found;
+  };
+  const pickerZones = (popover: any) =>
+    elementsOf(popover, [TimePicker, DatePicker]).map((el) => el.props.timeZone);
+
+  it('keeps the times shown when another zone is picked', function () {
+    const popover = newEventPopover();
+    popover.updateTimezone('America/Los_Angeles');
+
+    expect(popover.state.start).toBe(Date.UTC(2026, 2, 3, 22, 0) / 1000);
+    expect(popover.state.end).toBe(Date.UTC(2026, 2, 3, 23, 30) / 1000);
+    expect(pickerZones(popover)).toEqual(Array(4).fill('America/Los_Angeles'));
+  });
+
+  it('creates the event at the time shown, in the zone picked', async function () {
+    const helpers = require('../internal_packages/main-calendar/lib/core/calendar-helpers');
+    spyOn(helpers, 'createCalendarEvent').andReturn(Promise.resolve());
+    spyOn(Actions, 'closePopover');
+    const popover = newEventPopover();
+    popover.updateTimezone('America/Los_Angeles');
+
+    await popover._createNewEvent();
+
+    const ics = ICSEventHelpers.createICSString(helpers.createCalendarEvent.mostRecentCall.args[0]);
+    expect(ics).toContain('DTSTART;TZID=America/Los_Angeles:20260303T140000');
+    expect(ics).toContain('DTEND;TZID=America/Los_Angeles:20260303T153000');
+  });
+
+  it("shows an event's times in its own zone when it is edited", async function () {
+    const popover = await openEditor(makeEvent(BERLIN_ICS), 'Standup');
+    expect(pickerZones(popover)).toEqual(Array(4).fill('Europe/Berlin'));
+  });
+
+  it('shows all-day dates in the machine’s days, with no zone to pick', function () {
+    const popover = newEventPopover();
+    popover.updateTimezone('Asia/Tokyo');
+    popover.updateAllDay(true);
+
+    expect(pickerZones(popover)).toEqual([undefined, undefined]);
+    expect(elementsOf(popover, [TimeZoneSelector]).length).toBe(0);
   });
 });
 

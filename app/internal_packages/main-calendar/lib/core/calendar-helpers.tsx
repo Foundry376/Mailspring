@@ -1,4 +1,5 @@
 import moment, { Moment } from 'moment';
+import momentTz from 'moment-timezone';
 import {
   CalendarDate,
   Utils,
@@ -292,6 +293,20 @@ export function clampEnd(startUnix: number, endUnix: number, isAllDay: boolean):
     ? CalendarDateUtils.nextDayStartUnix(CalendarDateUtils.calendarDateFromUnix(startUnix))
     : startUnix + MIN_EVENT_DURATION_SECONDS;
   return Math.max(endUnix, floor);
+}
+
+/**
+ * The zone an editor's time fields read in: the event's zone, or the machine's when tzdata
+ * cannot place it (an Outlook display name), since a save then keeps the instant shown.
+ */
+export function fieldZone(timezone: string): string {
+  return CalendarUtils.resolveIanaZone(timezone) || DateUtils.timeZone;
+}
+
+/** The instant whose wall clock in `toZone` is the one `unix` shows in `fromZone`. */
+export function sameWallClockIn(unix: number, fromZone: string, toZone: string): number {
+  const wallClock = momentTz.tz(unix * 1000, fromZone).format('YYYY-MM-DDTHH:mm:ss');
+  return momentTz.tz(wallClock, toZone).unix();
 }
 
 /** The fields of a new event that the grid draws, as its editor would save them. */

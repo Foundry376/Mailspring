@@ -203,6 +203,41 @@ describe('TimePicker', function timePicker() {
     });
   });
 
+  describe('in a zone other than the machine’s', () => {
+    // 3 PM in Chicago on EVENT_DAY is 1 PM in Los Angeles.
+    const renderInLosAngeles = () => {
+      const onChange = jasmine.createSpy('onChange');
+      const { container } = render(
+        <TimePicker value={VALUE} timeZone="America/Los_Angeles" onChange={onChange} />
+      );
+      return { onChange, container, input: container.querySelector('input') as HTMLInputElement };
+    };
+
+    it('shows the wall clock of that zone', () => {
+      const { input } = renderInLosAngeles();
+      expect(input.value).toBe('1:00 PM');
+    });
+
+    it('reads a typed time as that zone’s', () => {
+      const { onChange, input } = renderInLosAngeles();
+
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value: '2:00 pm' } });
+      fireEvent.blur(input);
+
+      expect(onChange.mostRecentCall.args[0]).toBe(Date.UTC(2026, 2, 10, 21, 0));
+    });
+
+    it('lists the times of that zone’s day', () => {
+      const { onChange, input, container } = renderInLosAngeles();
+
+      fireEvent.focus(input);
+      fireEvent.mouseDown(container.querySelector('.time-options .option') as HTMLElement);
+
+      expect(onChange.mostRecentCall.args[0]).toBe(Date.UTC(2026, 2, 10, 7, 0));
+    });
+  });
+
   it('emits milliseconds from the dropdown', () => {
     const { onChange, input, container } = renderPicker();
 
