@@ -20,7 +20,7 @@ export interface WeekBarsLayout {
 
 // From nylas-calendar.less: the week's bottom border, .month-view-day-header's height and
 // .month-view-week-bars' bottom inset, then @month-view-event-height and the bars' row-gap.
-const WEEK_CHROME_HEIGHT = 1 + 32 + 4;
+const WEEK_CHROME_HEIGHT = 1 + 32 + 2;
 const LANE_HEIGHT = 20;
 const LANE_GAP = 2;
 
