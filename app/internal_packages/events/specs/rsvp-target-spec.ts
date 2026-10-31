@@ -429,11 +429,11 @@ describe('planRSVPWrite', function () {
     expect(myLine(write.event.ics)).not.toContain('RSVP=TRUE');
   });
 
-  it('adds one marked free so that Yahoo, which reads X-YAHOO-EVENT-STATUS, keeps it free', function () {
+  it('adds one marked free so that Yahoo, which reads X-YAHOO-USER-STATUS, keeps it free', function () {
     const free = INVITE_ICS.replace('SUMMARY:Kickoff', 'SUMMARY:Kickoff\r\nTRANSP:TRANSPARENT');
     const write = plan({ inviteIcs: free });
     expect(write.event.ics).toContain('TRANSP:TRANSPARENT');
-    expect(write.event.ics).toContain('X-YAHOO-EVENT-STATUS:FREE');
+    expect(write.event.ics).toContain('X-YAHOO-USER-STATUS:FREE');
   });
 
   it('adds a tentative one too', function () {

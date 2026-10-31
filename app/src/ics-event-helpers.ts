@@ -1777,17 +1777,17 @@ export function getEventTimezone(ics: string): string | null {
 }
 
 /**
- * Sets TRANSP, and X-YAHOO-EVENT-STATUS beside it. Yahoo CalDAV ignores TRANSP and derives it
- * from that property, BUSY when it is absent, on create and on update (measured October 2026).
- * Google and iCloud store the property as written.
+ * Sets TRANSP, and X-YAHOO-USER-STATUS beside it. Yahoo CalDAV ignores TRANSP and derives it
+ * from that property, BUSY when it is absent, on create and on update; it ignores
+ * X-YAHOO-EVENT-STATUS (measured October 2026). Google and iCloud store the property as written.
  */
 function setTransparency(vevent: ICALComponent, transparency: string): void {
   vevent.updatePropertyWithValue('transp', transparency);
   const free = transparency.toUpperCase() === 'TRANSPARENT';
-  vevent.updatePropertyWithValue('x-yahoo-event-status', free ? 'FREE' : 'BUSY');
+  vevent.updatePropertyWithValue('x-yahoo-user-status', free ? 'FREE' : 'BUSY');
 }
 
-/** Pairs each VEVENT's TRANSP with the X-YAHOO-EVENT-STATUS Yahoo reads it from. */
+/** Pairs each VEVENT's TRANSP with the X-YAHOO-USER-STATUS Yahoo reads it from. */
 export function matchYahooTransparency(ics: string): string {
   const { root } = parseICSString(ics);
   const vevents =

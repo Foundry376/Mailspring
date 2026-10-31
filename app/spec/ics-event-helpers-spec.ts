@@ -3563,12 +3563,12 @@ describe('TRANSP, the Show As of an event', function () {
     expect(transpsOf(ics)).toEqual([null, 'TRANSPARENT']);
   });
 
-  describe('on Yahoo, which reads it from X-YAHOO-EVENT-STATUS', function () {
+  describe('on Yahoo, which reads it from X-YAHOO-USER-STATUS', function () {
     const yahooOf = (ics: string) =>
       ics
         .split('BEGIN:VEVENT')
         .slice(1)
-        .map((v) => (/^X-YAHOO-EVENT-STATUS:(.*)$/m.exec(v) || [])[1] || null);
+        .map((v) => (/^X-YAHOO-USER-STATUS:(.*)$/m.exec(v) || [])[1] || null);
 
     it('is written beside TRANSP on a new event', function () {
       const free = { ...createOptions, transparency: 'TRANSPARENT' as const };
@@ -3580,7 +3580,7 @@ describe('TRANSP, the Show As of an event', function () {
     it("replaces the value Yahoo's own copy carries when Show As changes", function () {
       const synced = SIMPLE_ICS.replace(
         'SEQUENCE:0',
-        'SEQUENCE:0\nTRANSP:OPAQUE\nX-YAHOO-EVENT-STATUS:BUSY'
+        'SEQUENCE:0\nTRANSP:OPAQUE\nX-YAHOO-USER-STATUS:BUSY'
       );
       const ics = ICSEventHelpers.updateEventProperty(synced, 'transp', 'TRANSPARENT');
       expect(yahooOf(ics)).toEqual(['FREE']);
