@@ -6,6 +6,7 @@ import {
   showNoEditableCalendarsError,
   createCalendarEvent,
 } from './core/calendar-helpers';
+import { alertTrigger, defaultAlert } from './core/alert-selector';
 
 interface QuickEventPopoverState {
   start: Moment | null;
@@ -65,6 +66,8 @@ export class QuickEventPopover extends React.Component<
       isAllDay: false,
       calendarId: calendar.id,
       accountId: calendar.accountId,
+      // The editor's default, which a quick-added event has no field to change
+      alarmTrigger: alertTrigger(defaultAlert(false)) || undefined,
     });
   };
 
