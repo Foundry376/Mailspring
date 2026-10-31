@@ -34,6 +34,9 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
   };
 
   _gotoScrollStartOnUpdate = false;
+  // The text last emitted. Enter commits it and then moves focus, and the blur that follows comes
+  // before the parent's batched update reaches props.value, so it would emit the same time again.
+  _emittedText: string | null = null;
 
   constructor(props) {
     super(props);
@@ -116,13 +119,17 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
   };
 
   _onRawTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    this._emittedText = null;
     this.setState({ rawText: event.target.value });
   };
 
   _saveIfValid(rawText = '') {
     // Compare the rendered text, not the parsed instant: re-parsing an ambiguous fall-back
     // wall clock re-resolves it to the earlier offset.
-    if (rawText.trim() === this._valToTimeString(this.props.value)) {
+    if (
+      rawText.trim() === this._valToTimeString(this.props.value) ||
+      rawText === this._emittedText
+    ) {
       return;
     }
     const parsedMoment = this._parse(rawText);
@@ -136,6 +143,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
         .set({ hour, minute: parsedMoment.minute(), second: 0, millisecond: 0 })
         .valueOf();
       if (next !== this.props.value) {
+        this._emittedText = rawText;
         this.props.onChange(next);
         return;
       }

@@ -146,6 +146,17 @@ describe('TimePicker', function timePicker() {
     expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe(`${EVENT_DAY} 16:30`);
   });
 
+  it('commits a time once when Enter moves focus before the new value arrives', () => {
+    const { onChange, input } = renderPicker();
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: '4:30pm' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    fireEvent.blur(input);
+
+    expect(onChange.callCount).toBe(1);
+  });
+
   it('emits milliseconds from the arrow keys', () => {
     const { onChange, input } = renderPicker();
 
