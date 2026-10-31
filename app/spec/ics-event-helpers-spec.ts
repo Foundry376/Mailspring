@@ -3703,6 +3703,26 @@ END:VCALENDAR`;
     expect(ICSEventHelpers.updateAlarm(REMINDED_ICS, null)).not.toContain('VALARM');
   });
 
+  it("sets the reminder of a series' moved occurrences with the series'", function () {
+    const { masterIcs } = ICSEventHelpers.createRecurrenceException(
+      REMINDED_ICS,
+      Date.UTC(2026, 2, 10, 14) / 1000,
+      Date.UTC(2026, 2, 10, 15) / 1000,
+      Date.UTC(2026, 2, 10, 16) / 1000,
+      false
+    );
+    const vevents = (ics: string) => ics.split('BEGIN:VEVENT').slice(1);
+    expect(vevents(masterIcs).length).toBe(2);
+
+    const [master, exception] = vevents(ICSEventHelpers.updateAlarm(masterIcs, '-PT1H'));
+    expect(master).toContain('TRIGGER:-PT1H');
+    expect(exception).toContain('TRIGGER:-PT1H');
+    expect(exception).not.toContain('TRIGGER:-P0DT0H30M0S');
+
+    const [, cleared] = vevents(ICSEventHelpers.updateAlarm(masterIcs, null));
+    expect(cleared).not.toContain('VALARM');
+  });
+
   it("sets one occurrence's reminder without touching the series'", function () {
     const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
       REMINDED_ICS,

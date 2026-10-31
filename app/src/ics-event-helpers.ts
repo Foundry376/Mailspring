@@ -1459,16 +1459,23 @@ export function getAlarmTrigger(ics: string): string | null {
   return String(value);
 }
 
-/** Sets the first VEVENT's reminder to `trigger` (see setAlarm), or removes its reminders for null. */
+/**
+ * Sets the event's reminder to `trigger` (see setAlarm), or removes its reminders for null. A
+ * series' moved occurrences take it too, as Google Calendar and Apple Calendar do for a reminder
+ * changed on all events.
+ */
 export function updateAlarm(ics: string, trigger: string | null): string {
   const ical = getICAL();
   const { root } = parseICSString(ics);
-  const vevent = root.name === 'vevent' ? root : root.getFirstSubcomponent('vevent');
-  if (!vevent) {
+  const vevents = root.name === 'vevent' ? [root] : root.getAllSubcomponents('vevent');
+  if (!vevents.length) {
     throw new Error('Invalid ICS: no VEVENT component found');
   }
-  setAlarm(vevent, trigger, ical);
-  vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
+  const uid = vevents[0].getFirstPropertyValue('uid');
+  for (const vevent of vevents.filter((v) => v.getFirstPropertyValue('uid') === uid)) {
+    setAlarm(vevent, trigger, ical);
+    vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
+  }
   return root.toString();
 }
 
