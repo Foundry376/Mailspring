@@ -10,7 +10,12 @@ import {
   CalendarDateUtils,
 } from 'mailspring-exports';
 import { RetinaImg, KeyCommandsRegion, BindGlobalCommands } from 'mailspring-component-kit';
-import { EventOccurrence, occurrencesForEvents, occurrenceStartUnix } from './calendar-data-source';
+import {
+  EventOccurrence,
+  occurrencesForEvents,
+  occurrenceStartUnix,
+  readOnlyCalendarIds,
+} from './calendar-data-source';
 import { formatOccurrenceTime } from './calendar-helpers';
 import { Disposable } from 'rx-core';
 
@@ -110,6 +115,7 @@ export class EventSearchBar extends Component<Record<string, unknown>, EventSear
       const suggestions = occurrencesForEvents(events, {
         startUnix: moment().add(-2, 'years').unix(),
         endUnix: moment().add(2, 'years').unix(),
+        readOnlyCalendarIds: readOnlyCalendarIds([...this.state.calendars.values()]),
       });
 
       // Sort by start date, closest to now first

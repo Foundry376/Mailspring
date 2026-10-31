@@ -228,6 +228,10 @@ export function ownCalendarAddresses(calendars: Calendar[]): Map<string, string>
   );
 }
 
+export function readOnlyCalendarIds(calendars: Calendar[]): Set<string> {
+  return new Set(calendars.filter((c) => c.readOnly).map((c) => c.id));
+}
+
 /** Strip mailto: prefix from email addresses (common in iCalendar data) */
 function normalizeEmail(email: string): string {
   return email.replace(/^mailto:/i, '');
@@ -258,6 +262,7 @@ export class CalendarDataSource {
           startUnix,
           endUnix,
           ownCalendarAddresses: ownCalendarAddresses(cals),
+          readOnlyCalendarIds: readOnlyCalendarIds(cals),
         }),
       })
     );
@@ -419,10 +424,15 @@ export function occurrencesForEvents(
     startUnix,
     endUnix,
     ownCalendarAddresses = new Map<string, string>(),
-  }: { startUnix: number; endUnix: number; ownCalendarAddresses?: Map<string, string> }
+    readOnlyCalendarIds = new Set<string>(),
+  }: {
+    startUnix: number;
+    endUnix: number;
+    ownCalendarAddresses?: Map<string, string>;
+    /** Copies on these calendars are left out where another copy already draws that occurrence. */
+    readOnlyCalendarIds?: Set<string>;
+  }
 ) {
-  const occurrences: EventOccurrence[] = [];
-
   // A series is its master plus exception rows on one calendar. The same UID can sit on several
   // calendars at once (the organizer's and a guest's account, a room, a colleague's calendar),
   // and each copy is drawn on its own: its exceptions are judged against its own master.
@@ -435,134 +445,164 @@ export function occurrencesForEvents(
     seriesRows.get(key).push(event);
   }
 
-  for (const [, events] of seriesRows) {
-    // Separate master from exceptions
-    const master = events.find((e) => !e.recurrenceId);
-    const exceptions = events.filter((e) => e.recurrenceId);
-
-    // Track occurrence start times generated from master expansion
-    // to avoid duplicates when exceptions are in the same ICS file
-    const expandedStartTimes = new Set<number>();
-
-    // Expand the master event's ICS (handles exceptions in same ICS file)
-    if (master) {
-      try {
-        // The budget is derived from the series' own frequency rather than fixed. It was
-        // 100, which is not a limit on work but on how far back a series may begin: a
-        // weekly meeting older than about two years never reached the present, so it
-        // expanded to nothing and vanished from the calendar entirely.
-        const expanded = ICSEventHelpers.expandBetween(
-          master.ics,
-          master.recurrenceStart,
-          startUnix,
-          endUnix
-        );
-
-        const masterIsRecurring = ICSEventHelpers.isRecurringEvent(master.ics);
-
-        expanded.forEach((e) => {
-          const start = e.startDate.toJSDate().getTime() / 1000;
-          const item = ICSEventHelpers.expandedEvent(e);
-          expandedStartTimes.add(start);
-
-          occurrences.push(
-            occurrenceFromICS({
-              // Key on the occurrence start, not the expansion index: idx depends on the query
-              // range, so the same occurrence got a different id per view — breaking selection
-              // (and React keys) when switching views. The start is stable across ranges.
-              id: CalendarUtils.occurrenceId(master.id, start),
-              event: master,
-              item,
-              startTime: e.startDate,
-              endTime: e.endDate,
-              ownCalendarAddresses,
-              isRecurring: masterIsRecurring,
-            })
-          );
-        });
-      } catch (err) {
-        console.error(`Failed to expand ICS for event ${master.id}:`, err);
-        // Fallback: show the master event as a single occurrence so it doesn't vanish.
-        // Push it only when rs/re are finite — null/non-finite derive to NaN or 1970 dates
-        // that render nowhere. Guard the push, not the iteration: a bad master must still
-        // fall through to this series' standalone exceptions below.
-        if (Number.isFinite(master.recurrenceStart) && Number.isFinite(master.recurrenceEnd)) {
-          const isAllDay = master.recurrenceEnd - master.recurrenceStart >= 82800;
-          const { startDate, endDate } = coveredDates(
-            master.recurrenceStart,
-            master.recurrenceEnd,
-            isAllDay
-          );
-
-          // Expansion failed, so there's no DATE flag to read — isAllDay fell back on
-          // duration above. A recurring master's columns can hold one occurrence's span, so
-          // a series can misread as all-day here.
-          const errorBase: OccurrenceBase = {
-            id: `${master.id}-e0`,
-            accountId: master.accountId,
-            calendarId: master.calendarId,
-            title: '(Error expanding event)',
-            location: '',
-            description: '',
-            startDate,
-            endDate,
-            isCancelled: false,
-            isPending: false,
-            isMine: true,
-            isException: false,
-            isRecurring: false,
-            organizer: null,
-            attendees: [],
-          };
-          occurrences.push(
-            isAllDay
-              ? { ...errorBase, isAllDay: true }
-              : {
-                  ...errorBase,
-                  isAllDay: false,
-                  start: master.recurrenceStart,
-                  end: master.recurrenceEnd,
-                }
-          );
-        }
-      }
+  // A read-only copy is one nobody can act on, such as a holiday calendar subscribed from
+  // several accounts, so it is drawn only where no other copy of that UID has the same start.
+  // Writable copies come first so every one of them is drawn.
+  const isReadOnly = (rows: Event[]) => readOnlyCalendarIds.has(rows[0].calendarId);
+  const series = [...seriesRows.values()].sort((a, b) => +isReadOnly(a) - +isReadOnly(b));
+  const occurrences: EventOccurrence[] = [];
+  const drawn = new Set<string>();
+  for (const rows of series) {
+    for (const occurrence of seriesOccurrences(rows, {
+      startUnix,
+      endUnix,
+      ownCalendarAddresses,
+    })) {
+      const key = `${rows[0].icsuid}:${occurrenceStartUnix(occurrence)}`;
+      if (isReadOnly(rows) && drawn.has(key)) continue;
+      drawn.add(key);
+      occurrences.push(occurrence);
     }
+  }
+  return occurrences;
+}
 
-    // Standalone exception rows, unless the master's expansion already drew them. The start
-    // compared is the row's own VEVENT read here, not its recurrenceStart column: the sync engine
-    // computes that column, and it need not read a zoned time to the same second.
-    for (const exception of exceptions) {
-      try {
-        const icsEvent = exceptionICSEvent(exception);
-        const occStart = icsEvent.startDate.toJSDate().getTime() / 1000;
-        const occEnd = icsEvent.endDate.toJSDate().getTime() / 1000;
-        if (expandedStartTimes.has(occStart)) {
-          continue;
-        }
+/** The occurrences one calendar's rows for a UID draw: its master's expansion and its exceptions. */
+function seriesOccurrences(
+  events: Event[],
+  {
+    startUnix,
+    endUnix,
+    ownCalendarAddresses,
+  }: { startUnix: number; endUnix: number; ownCalendarAddresses: Map<string, string> }
+): EventOccurrence[] {
+  const occurrences: EventOccurrence[] = [];
 
-        // Skip if outside the visible range
-        if (occEnd < startUnix || occStart > endUnix) {
-          continue;
-        }
+  // Separate master from exceptions
+  const master = events.find((e) => !e.recurrenceId);
+  const exceptions = events.filter((e) => e.recurrenceId);
+
+  // Track occurrence start times generated from master expansion
+  // to avoid duplicates when exceptions are in the same ICS file
+  const expandedStartTimes = new Set<number>();
+
+  // Expand the master event's ICS (handles exceptions in same ICS file)
+  if (master) {
+    try {
+      // The budget is derived from the series' own frequency rather than fixed. It was
+      // 100, which is not a limit on work but on how far back a series may begin: a
+      // weekly meeting older than about two years never reached the present, so it
+      // expanded to nothing and vanished from the calendar entirely.
+      const expanded = ICSEventHelpers.expandBetween(
+        master.ics,
+        master.recurrenceStart,
+        startUnix,
+        endUnix
+      );
+
+      const masterIsRecurring = ICSEventHelpers.isRecurringEvent(master.ics);
+
+      expanded.forEach((e) => {
+        const start = e.startDate.toJSDate().getTime() / 1000;
+        const item = ICSEventHelpers.expandedEvent(e);
+        expandedStartTimes.add(start);
 
         occurrences.push(
           occurrenceFromICS({
-            id: `${exception.id}-e0`,
-            event: exception,
-            item: icsEvent,
-            startTime: icsEvent.startDate,
-            endTime: icsEvent.endDate,
-            isRecurring: true, // exceptions only exist for a series
-            isException: true,
+            // Key on the occurrence start, not the expansion index: idx depends on the query
+            // range, so the same occurrence got a different id per view — breaking selection
+            // (and React keys) when switching views. The start is stable across ranges.
+            id: CalendarUtils.occurrenceId(master.id, start),
+            event: master,
+            item,
+            startTime: e.startDate,
+            endTime: e.endDate,
             ownCalendarAddresses,
+            isRecurring: masterIsRecurring,
           })
         );
-      } catch (err) {
-        console.error(`Failed to parse ICS for exception ${exception.id}:`, err);
+      });
+    } catch (err) {
+      console.error(`Failed to expand ICS for event ${master.id}:`, err);
+      // Fallback: show the master event as a single occurrence so it doesn't vanish.
+      // Push it only when rs/re are finite — null/non-finite derive to NaN or 1970 dates
+      // that render nowhere. Guard the push, not the iteration: a bad master must still
+      // fall through to this series' standalone exceptions below.
+      if (Number.isFinite(master.recurrenceStart) && Number.isFinite(master.recurrenceEnd)) {
+        const isAllDay = master.recurrenceEnd - master.recurrenceStart >= 82800;
+        const { startDate, endDate } = coveredDates(
+          master.recurrenceStart,
+          master.recurrenceEnd,
+          isAllDay
+        );
+
+        // Expansion failed, so there's no DATE flag to read — isAllDay fell back on
+        // duration above. A recurring master's columns can hold one occurrence's span, so
+        // a series can misread as all-day here.
+        const errorBase: OccurrenceBase = {
+          id: `${master.id}-e0`,
+          accountId: master.accountId,
+          calendarId: master.calendarId,
+          title: '(Error expanding event)',
+          location: '',
+          description: '',
+          startDate,
+          endDate,
+          isCancelled: false,
+          isPending: false,
+          isMine: true,
+          isException: false,
+          isRecurring: false,
+          organizer: null,
+          attendees: [],
+        };
+        occurrences.push(
+          isAllDay
+            ? { ...errorBase, isAllDay: true }
+            : {
+                ...errorBase,
+                isAllDay: false,
+                start: master.recurrenceStart,
+                end: master.recurrenceEnd,
+              }
+        );
       }
     }
   }
 
+  // Standalone exception rows, unless the master's expansion already drew them. The start
+  // compared is the row's own VEVENT read here, not its recurrenceStart column: the sync engine
+  // computes that column, and it need not read a zoned time to the same second.
+  for (const exception of exceptions) {
+    try {
+      const icsEvent = exceptionICSEvent(exception);
+      const occStart = icsEvent.startDate.toJSDate().getTime() / 1000;
+      const occEnd = icsEvent.endDate.toJSDate().getTime() / 1000;
+      if (expandedStartTimes.has(occStart)) {
+        continue;
+      }
+
+      // Skip if outside the visible range
+      if (occEnd < startUnix || occStart > endUnix) {
+        continue;
+      }
+
+      occurrences.push(
+        occurrenceFromICS({
+          id: `${exception.id}-e0`,
+          event: exception,
+          item: icsEvent,
+          startTime: icsEvent.startDate,
+          endTime: icsEvent.endDate,
+          isRecurring: true, // exceptions only exist for a series
+          isException: true,
+          ownCalendarAddresses,
+        })
+      );
+    } catch (err) {
+      console.error(`Failed to parse ICS for exception ${exception.id}:`, err);
+    }
+  }
   return occurrences;
 }
 

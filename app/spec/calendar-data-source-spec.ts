@@ -256,6 +256,41 @@ describe('occurrencesForEvents with one meeting on several calendars', function 
     ]);
   });
 
+  describe('when some copies are on read-only calendars', function () {
+    const holiday = icsFor('DTSTART;VALUE=DATE:20261111', 'DTEND;VALUE=DATE:20261112');
+    const november = {
+      startUnix: unix('2026-11-01T00:00:00Z'),
+      endUnix: unix('2026-12-01T00:00:00Z'),
+    };
+    const copyOn = (ics: string, calendarId: string) =>
+      makeEvent(ics, { id: `${calendarId}-row`, calendarId });
+
+    it('draws a holiday subscribed from several accounts once', function () {
+      const occs = occurrencesForEvents(
+        [copyOn(holiday, 'holidays-1'), copyOn(holiday, 'holidays-2')],
+        { ...november, readOnlyCalendarIds: new Set(['holidays-1', 'holidays-2']) }
+      );
+      expect(occs.map((o) => o.calendarId)).toEqual(['holidays-1']);
+    });
+
+    it('draws a meeting on our calendar rather than its read-only copy', function () {
+      const ics = icsFor('DTSTART:20261110T140000Z', 'DTEND:20261110T150000Z');
+      const occs = occurrencesForEvents(
+        [copyOn(ics, 'colleague'), copyOn(ics, 'mine'), copyOn(ics, 'guest')],
+        { ...november, readOnlyCalendarIds: new Set(['colleague']) }
+      );
+      expect(occs.map((o) => o.calendarId)).toEqual(['mine', 'guest']);
+    });
+
+    it('still draws a read-only copy that is the only one', function () {
+      const occs = occurrencesForEvents([copyOn(holiday, 'holidays-1')], {
+        ...november,
+        readOnlyCalendarIds: new Set(['holidays-1']),
+      });
+      expect(occs.length).toBe(1);
+    });
+  });
+
   // The engine stores the whole resource on every row, so the moved occurrence sits inline too.
   const seriesWithMove = [
     ...weekly.split('\n').slice(0, -1),
