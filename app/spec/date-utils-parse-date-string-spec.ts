@@ -24,6 +24,25 @@ describe('DateUtils.parseDateString', function () {
     expect(Math.abs(start.diff(moment(), 'days'))).toBeLessThan(7);
   });
 
+  it('starts a day named without a time at 9 AM, for an hour', function () {
+    const { leftoverText, start, end } = DateUtils.parseDateString('Coffee Monday');
+    expect(leftoverText).toBe('Coffee');
+    expect(start.day()).toBe(1);
+    expect(start.format('HH:mm:ss')).toBe('09:00:00');
+    expect(end.diff(start, 'minutes')).toBe(60);
+
+    const tomorrow = DateUtils.parseDateString('Dentist tomorrow').start;
+    expect(tomorrow.format('YYYY-MM-DD HH:mm')).toBe(
+      `${moment().add(1, 'day').format('YYYY-MM-DD')} 09:00`
+    );
+  });
+
+  it('takes a time named after the day', function () {
+    const { start } = DateUtils.parseDateString('Coffee Monday at 3pm');
+    expect(start.day()).toBe(1);
+    expect(start.format('HH:mm')).toBe('15:00');
+  });
+
   it('reads 12am, which chrono numbers hour 0', function () {
     const { leftoverText, start } = DateUtils.parseDateString('Dinner tomorrow at 12am');
     expect(leftoverText).toBe('Dinner');

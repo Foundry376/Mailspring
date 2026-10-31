@@ -353,9 +353,11 @@ const DateUtils = {
           results[val].month(month - 1); // moment zero-indexes month
           results[val].date(day);
 
+          // A day named without a time ("Coffee Monday") starts at 9 AM. Chrono fills in the
+          // current time of day, which isn't a time anyone meant.
           if (!gotTime[val]) {
-            results[val].hour(hour);
-            results[val].minute(minute);
+            results[val].hour(9);
+            results[val].minute(0);
           }
 
           results.leftoverText = results.leftoverText.replace(item.text, '');
