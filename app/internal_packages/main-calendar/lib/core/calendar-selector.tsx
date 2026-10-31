@@ -1,5 +1,6 @@
 import React from 'react';
-import { Calendar, Account } from 'mailspring-exports';
+import { Calendar, Account, localized } from 'mailspring-exports';
+import { SVGIcons } from 'mailspring-component-kit';
 import { calcColor, getEditableCalendars } from './calendar-helpers';
 
 interface CalendarSelectorProps {
@@ -27,6 +28,9 @@ export function CalendarSelector({
   }
 
   const selectedColor = calcColor(selectedCalendarId);
+  const selected = calendars.find((c) => c.id === selectedCalendarId);
+  const accountLabelFor = (accountId: string) =>
+    accounts.find((a) => a.id === accountId)?.label || accountId;
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const calendarId = e.target.value;
@@ -36,17 +40,25 @@ export function CalendarSelector({
     }
   };
 
+  // Accounts often each have a calendar named "Calendar", so the closed control names the account
+  // too. The select lies invisibly over that text, keeping the native menu and its account groups.
   return (
     <div className="calendar-selector">
       <div className="calendar-selector-dot" style={{ backgroundColor: selectedColor }} />
-      <select value={selectedCalendarId} onChange={handleChange}>
+      <div className="calendar-selector-value" aria-hidden="true">
+        <span className="calendar-selector-name">{selected?.name}</span>
+        {selected && (
+          <span className="calendar-selector-account">{accountLabelFor(selected.accountId)}</span>
+        )}
+        <span className="calendar-selector-chevron">
+          <SVGIcons.ChevronDown />
+        </span>
+      </div>
+      <select value={selectedCalendarId} onChange={handleChange} aria-label={localized('Calendar')}>
         {Object.keys(calsByAccountId).map((accountId) => {
           const cals = calsByAccountId[accountId];
-          const account = accounts.find((a) => a.id === accountId);
-          const accountLabel = account ? account.label : accountId;
-
           return (
-            <optgroup key={accountId} label={accountLabel}>
+            <optgroup key={accountId} label={accountLabelFor(accountId)}>
               {cals.map((cal) => (
                 <option key={cal.id} value={cal.id}>
                   {cal.name}

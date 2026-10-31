@@ -298,6 +298,7 @@
   // Calendar Selector (for new events)
   // ============================================
   .calendar-selector {
+    position: relative;
     display: flex;
     align-items: center;
     padding: @padding-small-vertical @padding-base-horizontal;
@@ -312,25 +313,51 @@
       border: 1px solid fade(@black, 15%);
     }
 
-    select {
+    .calendar-selector-value {
       flex: 1;
-      background: transparent;
-      border: none;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
       color: @text-color;
       font-size: @font-size-small;
-      cursor: pointer;
       padding: 2px 4px;
       border-radius: @border-radius-small;
+      white-space: nowrap;
+    }
+
+    .calendar-selector-name {
+      flex-shrink: 0;
+    }
+
+    .calendar-selector-account {
       min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: @text-color-very-subtle;
+    }
 
-      &:hover {
-        background-color: @background-secondary;
-      }
+    .calendar-selector-chevron {
+      display: flex;
+      margin-left: auto;
+      color: @text-color-very-subtle;
+    }
 
-      &:focus {
-        outline: none;
-        box-shadow: 0 0 0 2px rgb(from @accent-primary r g b / 40%);
-      }
+    select {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      opacity: 0;
+      cursor: pointer;
+      font-size: @font-size-small;
+    }
+
+    &:hover .calendar-selector-value {
+      background-color: @background-secondary;
+    }
+
+    &:has(select:focus) .calendar-selector-value {
+      box-shadow: 0 0 0 2px rgb(from @accent-primary r g b / 40%);
     }
   }
 
