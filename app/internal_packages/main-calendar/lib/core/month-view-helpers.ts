@@ -18,6 +18,21 @@ export interface WeekBarsLayout {
   hiddenCountByDay: number[];
 }
 
+// From nylas-calendar.less: the week's bottom border, .month-view-day-header's height and
+// .month-view-week-bars' bottom inset, then @month-view-event-height and the bars' row-gap.
+const WEEK_CHROME_HEIGHT = 1 + 32 + 2;
+const LANE_HEIGHT = 20;
+const LANE_GAP = 2;
+
+/**
+ * The lanes a week row `weekHeight` px tall shows in full. A lane cut off at the bottom would hide
+ * "+N more" when that lane holds it, so only whole lanes count, and there's always one.
+ */
+export function lanesThatFit(weekHeight: number) {
+  const barsHeight = weekHeight - WEEK_CHROME_HEIGHT;
+  return Math.max(1, Math.floor((barsHeight + LANE_GAP) / (LANE_HEIGHT + LANE_GAP)));
+}
+
 /** The day's `data-calendar-start`/`-end`: what the drag hit-test reads off a cell, a bar or "+N more". */
 export function dayBoundsUnix(first: Moment, last: Moment = first) {
   return { start: first.clone().startOf('day').unix(), end: last.clone().endOf('day').unix() };

@@ -6,16 +6,19 @@ describe('SyncbackEventTask', () => {
 
     beforeEach(() => {
       showErrorDialog = spyOn(AppEnv, 'showErrorDialog');
+      spyOn(AppEnv.mailsyncBridge, 'sendSyncCalendarNow');
     });
 
-    it('tells the user what to do when the server holds a newer copy', () => {
+    it('refreshes the calendar and says so when the server holds a newer copy', () => {
       const task = new SyncbackEventTask({ accountId: 'account-1' } as any);
 
       task.onError({ key: 'etag-conflict', debuginfo: 'Event was modified by another client.' });
 
       const [{ title, message }, { detail }] = showErrorDialog.mostRecentCall.args;
       expect(title).toBe('Unable to save event');
-      expect(message).toContain('changed by another client');
+      expect(message).toContain('changed since it was last loaded');
+      expect(message).toContain('The calendar has been refreshed');
+      expect(AppEnv.mailsyncBridge.sendSyncCalendarNow).toHaveBeenCalledWith('account-1');
       expect(detail).toBe('Event was modified by another client.');
     });
 

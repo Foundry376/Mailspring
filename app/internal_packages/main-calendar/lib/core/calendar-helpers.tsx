@@ -1,4 +1,5 @@
 import moment, { Moment } from 'moment';
+import momentTz from 'moment-timezone';
 import {
   CalendarDate,
   Utils,
@@ -294,6 +295,32 @@ export function clampEnd(startUnix: number, endUnix: number, isAllDay: boolean):
   return Math.max(endUnix, floor);
 }
 
+/**
+ * The end a timed event takes from its end time field. The field keeps the end's date, so a time
+ * before the start ("1:00 AM" after a 10 PM start) means the next day's; the day is added in
+ * `timeZone`, the zone the field shows, so the wall clock survives a DST change.
+ * @returns The new end, as a unix timestamp
+ */
+export function endFromTypedTime(startUnix: number, endUnix: number, timeZone?: string): number {
+  const end = timeZone ? momentTz.tz(endUnix * 1000, timeZone) : moment.unix(endUnix);
+  const nextDayIfBefore = endUnix < startUnix ? end.add(1, 'day').unix() : endUnix;
+  return clampEnd(startUnix, nextDayIfBefore, false);
+}
+
+/**
+ * The zone an editor's time fields read in: the event's zone, or the machine's when tzdata
+ * cannot place it (an Outlook display name), since a save then keeps the instant shown.
+ */
+export function fieldZone(timezone: string): string {
+  return CalendarUtils.resolveIanaZone(timezone) || DateUtils.timeZone;
+}
+
+/** The instant whose wall clock in `toZone` is the one `unix` shows in `fromZone`. */
+export function sameWallClockIn(unix: number, fromZone: string, toZone: string): number {
+  const wallClock = momentTz.tz(unix * 1000, fromZone).format('YYYY-MM-DDTHH:mm:ss');
+  return momentTz.tz(wallClock, toZone).unix();
+}
+
 /** The fields of a new event that the grid draws, as its editor would save them. */
 export interface NewEventDraft {
   title: string;
@@ -485,6 +512,7 @@ export interface CreateCalendarEventOptions {
   recurrenceRule?: string;
   timezone?: string;
   transparency?: ShowAsOption;
+  alarmTrigger?: string;
 }
 
 /** The account, as the ORGANIZER the ICS helpers name once an event has guests. */
@@ -514,6 +542,7 @@ export async function createCalendarEvent(options: CreateCalendarEventOptions): 
     attendees: options.attendees,
     recurrenceRule: options.recurrenceRule,
     transparency: options.transparency ?? defaultShowAs(options.isAllDay),
+    alarmTrigger: options.alarmTrigger,
   });
 
   const event = new Event({

@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import moment from 'moment';
+import moment, { Moment } from 'moment-timezone';
 import classnames from 'classnames';
 import { TabGroupContext } from 'mailspring-component-kit';
 import { DateUtils } from 'mailspring-exports';
@@ -13,6 +13,8 @@ type TimePickerProps = {
   value?: number;
   onChange?: (ms: number) => void;
   relativeTo?: number;
+  /** The IANA zone the time is shown and typed in; the machine's own when omitted. */
+  timeZone?: string;
 };
 type TimePickerState = {
   rawText: any;
@@ -45,7 +47,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
   }
 
   componentDidUpdate(prevProps: TimePickerProps) {
-    if (prevProps.value !== this.props.value) {
+    if (prevProps.value !== this.props.value || prevProps.timeZone !== this.props.timeZone) {
       this.setState({ rawText: this._valToTimeString(this.props.value) });
     }
     if (this._gotoScrollStartOnUpdate) {
@@ -53,8 +55,12 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
     }
   }
 
-  _valToTimeString(value) {
-    return moment(value).format(DateUtils.localeTimeFormat());
+  _moment(ms: number): Moment {
+    return this.props.timeZone ? moment.tz(ms, this.props.timeZone) : moment(ms);
+  }
+
+  _valToTimeString(value: number) {
+    return this._moment(value).format(DateUtils.localeTimeFormat());
   }
 
   _onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -65,19 +71,21 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
       event.preventDefault();
       this._onArrow(event.key);
     } else if (event.key === 'Enter') {
+      // Committed here, not only on blur: the event panel has no TabGroup to move focus on.
+      this._saveIfValid(this.state.rawText);
       this.context?.shiftFocus(1);
     }
   };
 
   _onArrow(key) {
-    let newT = moment(this.props.value);
+    let newT = this._moment(this.props.value);
     newT = newT.round(...INTERVAL);
     if (key === 'ArrowUp') {
       newT = newT.subtract(...INTERVAL);
     } else if (key === 'ArrowDown') {
       newT = newT.add(...INTERVAL);
     }
-    if (moment(this.props.value).day() !== newT.day()) {
+    if (this._moment(this.props.value).day() !== newT.day()) {
       return;
     }
     this._gotoScrollStartOnUpdate = true;
@@ -112,25 +120,33 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
     if (rawText.trim() === this._valToTimeString(this.props.value)) {
       return;
     }
-    // Locale-aware am/pm parsing!!
-    const parsedMoment = moment(rawText, 'h:ma');
-    if (parsedMoment.isValid()) {
-      if (this._shouldAddTwelve(rawText) && parsedMoment.hour() < 12) {
-        parsedMoment.hour(parsedMoment.hour() + 12);
+    const parsedMoment = this._parse(rawText);
+    if (parsedMoment) {
+      let hour = parsedMoment.hour();
+      if (this._shouldAddTwelve(rawText) && hour < 12) {
+        hour += 12;
       }
-      // 'h:ma' has no date tokens, so moment fills y/m/d from today.
-      const valueMoment = moment(this.props.value);
-      parsedMoment.year(valueMoment.year());
-      parsedMoment.dayOfYear(valueMoment.dayOfYear());
-
-      if (parsedMoment.valueOf() !== this.props.value) {
-        this.props.onChange(parsedMoment.valueOf());
+      // 'h:ma' has no date tokens, so only the time of day is taken from the text.
+      const next = this._moment(this.props.value)
+        .set({ hour, minute: parsedMoment.minute(), second: 0, millisecond: 0 })
+        .valueOf();
+      if (next !== this.props.value) {
+        this.props.onChange(next);
         return;
       }
     }
     // Nothing was emitted, so props.value will not change and componentDidUpdate will not
     // re-derive the text. Put the field back on the time it is meant to be showing.
     this.setState({ rawText: this._valToTimeString(this.props.value) });
+  }
+
+  // Locale-aware am/pm parsing. moment's forgiving parse stops at the first time it reads, so a
+  // digit left over ("10:15 PM1:00 AM") makes the entry invalid. Words are not: many locales
+  // write them around the time ("15:30 Auer", "오후 3:30") and 'h:ma' leaves them unread.
+  _parse(rawText: string): Moment | null {
+    const parsed = moment(rawText, 'h:ma');
+    const leftover = parsed.parsingFlags().unusedInput.some((s) => /\p{Nd}/u.test(s));
+    return parsed.isValid() && !leftover ? parsed : null;
   }
 
   // moment's LT uses h for a 12-hour clock and H for a 24-hour one. Test the hour token rather
@@ -177,26 +193,26 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
       return false;
     }
 
-    const enteredMoment = moment(this.props.value);
+    const enteredMoment = this._moment(this.props.value);
 
-    const roundedMoment = moment(enteredMoment);
+    const roundedMoment = enteredMoment.clone();
     roundedMoment.ceil(...INTERVAL);
 
-    const firstVisibleMoment = moment(roundedMoment);
+    const firstVisibleMoment = roundedMoment.clone();
     firstVisibleMoment.add(...INTERVAL);
 
-    let startVal = moment(this.props.value).startOf('day').valueOf();
+    let startVal = this._moment(this.props.value).startOf('day').valueOf();
     startVal = Math.max(startVal, this.props.relativeTo || 0);
 
-    const startMoment = moment(startVal);
+    const startMoment = this._moment(startVal);
     if (this.props.relativeTo) {
       startMoment.ceil(...INTERVAL).add(...INTERVAL);
     }
-    const endMoment = moment(startVal).endOf('day');
+    const endMoment = this._moment(startVal).endOf('day');
     const opts = [];
 
     const relStart = moment(this.props.relativeTo);
-    const timeIter = moment(startMoment);
+    const timeIter = startMoment.clone();
     while (timeIter.isSameOrBefore(endMoment)) {
       const val = timeIter.valueOf();
       const className = classnames({
@@ -237,7 +253,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
     const className = classnames({
       'time-picker': true,
       'no-select-end': true,
-      invalid: !moment(this.state.rawText, 'h:ma').isValid(),
+      invalid: !this._parse(this.state.rawText),
     });
     return (
       <div className="time-picker-wrap">

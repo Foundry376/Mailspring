@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import {
   localized,
   isRTL,
@@ -28,9 +29,10 @@ import {
   calcEventColors,
   canEditInPanel,
   clampEnd,
+  endFromTypedTime,
   extractNotesFromDescription,
-  formatShortTime,
   formatShortTimeRange,
+  formatTime,
   hasGuests,
   holdsEdits,
   inclusiveAllDayEnd,
@@ -73,6 +75,20 @@ const repeatOptionLabel = (option: RepeatOption) =>
 function daysLabel(first: CalendarDate, last: CalendarDate) {
   const from = momentOf(first).format('ddd MMM D');
   return first === last ? from : `${from} – ${momentOf(last).format('ddd MMM D')}`;
+}
+
+const formatDay = (day: CalendarDate) =>
+  momentOf(day).format(DateUtils.DATE_FORMAT_llll_NO_TIME).trim();
+
+// As the date pickers show them, so an event that can't be edited reads like one that can.
+function renderDays(first: CalendarDate, last: CalendarDate) {
+  return (
+    <div className="event-panel-wrap">
+      <span>{formatDay(first)}</span>
+      {first !== last && <span>–</span>}
+      {first !== last && <span>{formatDay(last)}</span>}
+    </div>
+  );
 }
 const SHOW_AS_OPTIONS: ShowAsOption[] = ['OPAQUE', 'TRANSPARENT'];
 
@@ -150,6 +166,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   state: EventPanelState = { repeat: 'none', times: null };
 
+  _el = React.createRef<HTMLElement>();
   _title = React.createRef<EventPanelTextField>();
   // Read as well as kept in state: the time picker reports its last change during the same blur
   // that saves the times, before a setState would land.
@@ -184,6 +201,21 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   focusTitle() {
     this._title.current?.focus();
+  }
+
+  /**
+   * Saves the field being edited, as leaving it would, while the panel still shows its event.
+   * Removing a focused field doesn't blur it, and React drops events while it unmounts, so the
+   * calendar calls this before the panel shows another event or goes away. Resolves once the
+   * panel's saves have been written.
+   */
+  commitEdits() {
+    const focused = document.activeElement;
+    if (focused instanceof HTMLElement && this._el.current?.contains(focused)) {
+      // Flushed, so a change held for Send update is in the calendar's state on return.
+      ReactDOM.flushSync(() => focused.blur());
+    }
+    return this._saving;
   }
 
   async _eventRow() {
@@ -304,8 +336,10 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     });
   }
 
-  // Esc closes a date's month, as it leaves a text field, before the calendar's Esc can act.
+  // Enter saves, after the picker it's pressed in has taken its text. Esc closes a date's month,
+  // as it leaves a text field, before the calendar's Esc can act.
   _onTimesKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') this._saveTimes();
     const target = e.target as HTMLElement;
     if (e.key !== 'Escape' || !target.closest('.date-picker')) return;
     e.stopPropagation();
@@ -439,20 +473,26 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         </div>
         {!t.isAllDay && (
           <div className="event-panel-row indented">
-            <TimePicker value={t.start * 1000} onChange={this._changeStart} />
-            <SVGIcons.ArrowRight className="event-panel-icon" />
-            <TimePicker
-              value={t.end * 1000}
-              relativeTo={t.start * 1000}
-              onChange={(ms) => this._changeEnd(ms / 1000)}
-            />
-            <span className="event-panel-subtle">{DateUtils.formatDuration(t.end - t.start)}</span>
+            <div className="event-panel-wrap">
+              <TimePicker value={t.start * 1000} onChange={this._changeStart} />
+              <SVGIcons.ArrowRight className="event-panel-icon" />
+              <TimePicker
+                value={t.end * 1000}
+                relativeTo={t.start * 1000}
+                onChange={(ms) => this._changeEnd(endFromTypedTime(t.start, ms / 1000))}
+              />
+              <span className="event-panel-subtle">
+                {DateUtils.formatDuration(t.end - t.start)}
+              </span>
+            </div>
           </div>
         )}
         <div className="event-panel-row indented">
-          <DatePicker value={t.start * 1000} onChange={this._changeStart} />
-          {multiDay && <span>–</span>}
-          {multiDay && endDatePicker}
+          <div className="event-panel-wrap">
+            <DatePicker value={t.start * 1000} onChange={this._changeStart} />
+            {multiDay && <span>–</span>}
+            {multiDay && endDatePicker}
+          </div>
         </div>
         {!t.isAllDay && (
           <div className="event-panel-row">
@@ -494,7 +534,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   _renderWhen() {
     if (this._editable()) return this._renderEditableWhen();
     const { event } = this.props;
-    const days = daysLabel(event.startDate, event.endDate);
+    const days = renderDays(event.startDate, event.endDate);
 
     return (
       <div className="event-panel-section">
@@ -502,14 +542,15 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           <>
             <div className="event-panel-row">
               <SVGIcons.Clock className="event-panel-icon" />
-              <span>{formatShortTime(event.start)}</span>
-              <SVGIcons.ArrowRight className="event-panel-icon" />
-              <span>
-                {formatShortTime(event.end)}{' '}
+              <div className="event-panel-wrap">
+                {/* As the time pickers show them. */}
+                <span>{formatTime(event.start)}</span>
+                <SVGIcons.ArrowRight className="event-panel-icon" />
+                <span>{formatTime(event.end)}</span>
                 <span className="event-panel-subtle">
                   {DateUtils.formatDuration(event.end - event.start)}
                 </span>
-              </span>
+              </div>
             </div>
             <div className="event-panel-row indented">{days}</div>
             <div className="event-panel-row">
@@ -522,7 +563,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           <>
             <div className="event-panel-row">
               <SVGIcons.Clock className="event-panel-icon" />
-              <span>{days}</span>
+              {days}
             </div>
             <div className="event-panel-row indented">{localized('All day')}</div>
           </>
@@ -798,9 +839,17 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
-  // Answering writes our status onto the event, which a read-only calendar refuses.
+  // Answering writes our status onto the event, which a read-only calendar refuses. A cancelled
+  // event says so where the answers would be.
   _renderRsvpCard() {
     const { event, isCalendarReadOnly } = this.props;
+    if (event.isCancelled) {
+      return (
+        <div className="event-panel-card event-panel-subtle">
+          {localized('This event has been cancelled')}
+        </div>
+      );
+    }
     if (!canRespondToEvent(event)) return null;
     const answer = myParticipationStatus(event);
     return (
@@ -827,7 +876,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   // The card sits under the scrolling rows, so a long event never pushes it out of view.
   render() {
     return (
-      <aside className="event-panel" tabIndex={-1} aria-label={localized('Event')}>
+      <aside ref={this._el} className="event-panel" tabIndex={-1} aria-label={localized('Event')}>
         {this._renderHeader()}
         <ScrollRegion className="event-panel-body">
           {this._renderTitle()}

@@ -231,6 +231,124 @@ describe('occurrencesForEvents when expansion fails', function () {
   });
 });
 
+describe('occurrencesForEvents with one meeting on several calendars', function () {
+  const unix = (iso: string) => new Date(iso).getTime() / 1000;
+  const june = { startUnix: unix('2026-06-01T00:00:00Z'), endUnix: unix('2026-07-01T00:00:00Z') };
+  const weekly = icsFor('DTSTART:20260601T140000Z', 'DTEND:20260601T150000Z', 'RRULE:FREQ=WEEKLY');
+  const movedICS = icsFor(
+    'DTSTART:20260622T130000Z',
+    'DTEND:20260622T140000Z',
+    'RECURRENCE-ID:20260622T140000Z'
+  );
+
+  it("draws each calendar's copy of a one-off meeting", function () {
+    const ics = icsFor('DTSTART:20260610T140000Z', 'DTEND:20260610T150000Z');
+    const organizers = makeEvent(ics, { id: 'google-row' });
+    const guests = makeEvent(ics, {
+      id: 'outlook-row',
+      accountId: 'account-2',
+      calendarId: 'calendar-2',
+    });
+    const occs = occurrencesForEvents([organizers, guests], june);
+    expect(occs.map((o) => [o.id, o.accountId, o.calendarId])).toEqual([
+      [`google-row-e${unix('2026-06-10T14:00:00Z')}`, 'account-1', 'calendar-1'],
+      [`outlook-row-e${unix('2026-06-10T14:00:00Z')}`, 'account-2', 'calendar-2'],
+    ]);
+  });
+
+  describe('when some copies are on read-only calendars', function () {
+    const holiday = icsFor('DTSTART;VALUE=DATE:20261111', 'DTEND;VALUE=DATE:20261112');
+    const november = {
+      startUnix: unix('2026-11-01T00:00:00Z'),
+      endUnix: unix('2026-12-01T00:00:00Z'),
+    };
+    const copyOn = (ics: string, calendarId: string) =>
+      makeEvent(ics, { id: `${calendarId}-row`, calendarId });
+
+    it('draws a holiday subscribed from several accounts once', function () {
+      const occs = occurrencesForEvents(
+        [copyOn(holiday, 'holidays-1'), copyOn(holiday, 'holidays-2')],
+        { ...november, readOnlyCalendarIds: new Set(['holidays-1', 'holidays-2']) }
+      );
+      expect(occs.map((o) => o.calendarId)).toEqual(['holidays-1']);
+    });
+
+    it('draws a meeting on our calendar rather than its read-only copy', function () {
+      const ics = icsFor('DTSTART:20261110T140000Z', 'DTEND:20261110T150000Z');
+      const occs = occurrencesForEvents(
+        [copyOn(ics, 'colleague'), copyOn(ics, 'mine'), copyOn(ics, 'guest')],
+        { ...november, readOnlyCalendarIds: new Set(['colleague']) }
+      );
+      expect(occs.map((o) => o.calendarId)).toEqual(['mine', 'guest']);
+    });
+
+    it('still draws a read-only copy that is the only one', function () {
+      const occs = occurrencesForEvents([copyOn(holiday, 'holidays-1')], {
+        ...november,
+        readOnlyCalendarIds: new Set(['holidays-1']),
+      });
+      expect(occs.length).toBe(1);
+    });
+  });
+
+  // The engine stores the whole resource on every row, so the moved occurrence sits inline too.
+  const seriesWithMove = [
+    ...weekly.split('\n').slice(0, -1),
+    ...movedICS.split('\n').slice(3),
+  ].join('\n');
+  const MOVED = unix('2026-06-22T13:00:00Z');
+  const startsOn = (occs: EventOccurrence[], calendarId: string) =>
+    occs
+      .filter((o) => o.calendarId === calendarId)
+      .map(occurrenceStartUnix)
+      .sort();
+
+  it("draws each calendar's copy of a series, its moved occurrence once", function () {
+    const rows = ['calendar-1', 'calendar-2'].flatMap((calendarId) => [
+      makeEvent(seriesWithMove, {
+        id: `${calendarId}-master`,
+        calendarId,
+        recurrenceStart: unix('2026-06-01T14:00:00Z'),
+      }),
+      makeEvent(seriesWithMove, {
+        id: `${calendarId}-moved`,
+        calendarId,
+        recurrenceId: '20260622T140000Z',
+        recurrenceStart: MOVED,
+      }),
+    ]);
+    const occs = occurrencesForEvents(rows, june);
+    const expected = [
+      unix('2026-06-01T14:00:00Z'),
+      unix('2026-06-08T14:00:00Z'),
+      unix('2026-06-15T14:00:00Z'),
+      MOVED,
+      unix('2026-06-29T14:00:00Z'),
+    ];
+    expect(startsOn(occs, 'calendar-1')).toEqual(expected);
+    expect(startsOn(occs, 'calendar-2')).toEqual(expected);
+  });
+
+  it("keeps a calendar's lone exception when another calendar's series draws that slot", function () {
+    // Calendar 2 was invited to the one occurrence, so it holds that exception and no master.
+    const series = makeEvent(seriesWithMove, {
+      id: 'series',
+      recurrenceStart: unix('2026-06-01T14:00:00Z'),
+    });
+    const lone = makeEvent(movedICS, {
+      id: 'lone',
+      calendarId: 'calendar-2',
+      recurrenceId: '20260622T140000Z',
+      recurrenceStart: MOVED,
+    });
+    const occs = occurrencesForEvents([series, lone], june);
+    expect(occs.filter((o) => occurrenceStartUnix(o) === MOVED).map((o) => o.id)).toEqual([
+      `series-e${MOVED}`,
+      'lone-e0',
+    ]);
+  });
+});
+
 describe('eventCoversDate', function () {
   // What the month and agenda day cells filter on. Fed straight from occurrencesForEvents so
   // the fixtures are shapes the app actually produces.

@@ -346,6 +346,7 @@ export async function showInCalendar(grant: ViewGrant, params: { id?: string; da
     ipcRenderer.send('command', 'application:show-calendar', {
       icsuid: event.icsuid,
       accountId: event.accountId,
+      calendarId: event.calendarId,
       recurrenceIdStart,
     });
     return {};

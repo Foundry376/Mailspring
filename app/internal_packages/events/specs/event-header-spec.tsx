@@ -11,7 +11,9 @@ import {
   Actions,
   AttachmentStore,
   Calendar,
+  CalendarUtils,
   Contact,
+  DatabaseStore,
   Event,
   EventRSVPTask,
   File,
@@ -20,9 +22,10 @@ import {
   Rx,
   SyncbackEventTask,
   Task,
+  Thread,
   Utils,
 } from 'mailspring-exports';
-import { EventHeader, renderLocation } from '../lib/event-header';
+import { EventHeader, renderLocation, repeatSummary } from '../lib/event-header';
 
 // A LOCATION as Zoom rooms write it: the join URL, then the rooms booked for the meeting.
 const ZOOM_WITH_ROOMS =
@@ -513,16 +516,30 @@ describe('EventHeader answering an invitation', function () {
       const write = queued[1] as SyncbackEventTask;
       expect(write.calendarId).toBe(mine.id);
       expect(write.event.ics).not.toContain('METHOD');
+      expect(write.createdAnswer).toEqual({ email: 'brian@example.com', status: 'ACCEPTED' });
+    });
+  });
+
+  it('names the account beside a calendar named something else, in one sentence', function () {
+    mount({ events: [], calendars: [shared] });
+    runs(() => {
+      expect(destination().textContent).toBe(
+        'Accepting will add this event to US On Call (brian@example.com)'
+      );
+    });
+  });
+
+  it('names a calendar called after the account once', function () {
+    mount({ events: [], calendars: [mine] });
+    runs(() => {
+      expect(destination().textContent).toBe('Accepting will add this event to brian@example.com');
     });
   });
 
   it('only emails a decline when the invitation is on no calendar', function () {
     mount({ events: [], calendars: [mine] });
     runs(() => {
-      expect(Array.from(destination().querySelectorAll('span')).map((n) => n.textContent)).toEqual([
-        'Accepting will add this event to',
-        'brian@example.com',
-      ]);
+      expect(destination().textContent).toBe('Accepting will add this event to brian@example.com');
       expect(destination().querySelector('select')).toBe(null);
       expect(
         ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'event-view-in-calendar').length
@@ -996,5 +1013,173 @@ describe('EventHeader answering an invitation', function () {
         expect(queued.length).toBe(0);
       });
     });
+  });
+});
+
+describe('EventHeader for an invitation a later email revised', function () {
+  const invitation = (...lines: string[]) =>
+    [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Test//Test//EN',
+      'METHOD:REQUEST',
+      'BEGIN:VEVENT',
+      'UID:standup@example.com',
+      'SUMMARY:Standup',
+      'ORGANIZER:mailto:ada@example.com',
+      'ATTENDEE;PARTSTAT=ACCEPTED:mailto:ada@example.com',
+      'ATTENDEE;RSVP=TRUE;PARTSTAT=NEEDS-ACTION:mailto:brian@example.com',
+      ...lines,
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+  const SERIES = ['DTSTART:20261103T150000Z', 'DTEND:20261103T160000Z', 'RRULE:FREQ=WEEKLY'];
+  const ORIGINAL = invitation(...SERIES, 'DTSTAMP:20261031T021135Z', 'SEQUENCE:0');
+  const EXDATE = 'EXDATE:20261117T150000Z';
+  const REVISED = invitation(...SERIES, EXDATE, 'DTSTAMP:20261031T021507Z', 'SEQUENCE:1');
+
+  const account = new Account({ id: 'a1', emailAddress: 'brian@example.com' });
+  const mine = new Calendar({ id: 'cal-mine', accountId: 'a1', name: 'Home' } as any);
+  const ownFile = new File({ id: 'f-own', filename: 'invite.ics' });
+  const revisedFile = new File({ id: 'f-revised', filename: 'invite.ics' });
+  const revision = new Message({
+    id: 'm-revised',
+    accountId: 'a1',
+    threadId: 't-revised',
+    date: new Date(Date.UTC(2026, 9, 31, 2, 15)),
+    files: [revisedFile],
+  } as any);
+  const paths: { [fileId: string]: string } = {};
+
+  let header: EventHeader;
+  let queued: Task[];
+  let fetchBodies: jasmine.Spy;
+
+  beforeEach(function () {
+    for (const [file, ics] of [
+      [ownFile, ORIGINAL],
+      [revisedFile, REVISED],
+    ] as const) {
+      paths[file.id] = path.join(os.tmpdir(), `event-header-${file.id}-${process.pid}.ics`);
+      fs.writeFileSync(paths[file.id], ics);
+    }
+    spyOn(AttachmentStore, 'pathForFile').andCallFake((file: File) => paths[file.id]);
+    spyOn(AccountStore, 'accountForId').andReturn(account);
+    spyOn(AccountStore, 'aliases').andReturn([]);
+    spyOn(AccountStore, 'accountForEmail').andCallFake((email: string) =>
+      Utils.emailIsEquivalent(email, account.emailAddress) ? account : null
+    );
+    queued = [];
+    spyOn(Actions, 'queueTask').andCallFake((task: Task) => queued.push(task));
+    fetchBodies = spyOn(Actions, 'fetchBodies');
+  });
+
+  afterEach(function () {
+    Object.values(paths).forEach((p) => fs.unlinkSync(p));
+  });
+
+  // The revision arrives with its body undownloaded, and with it once the body is fetched.
+  function mount(found: Message[]) {
+    spyOn(EventHeader.prototype, '_otherInvitationEmails').andReturn(
+      Promise.resolve(found.map((m) => Object.assign(m.clone(), { body: null, files: [] })))
+    );
+    spyOn(Rx.Observable, 'fromQuery').andCallFake((query: { _klass: unknown }) =>
+      Rx.Observable.just(query._klass === Message ? found : query._klass === Calendar ? [mine] : [])
+    );
+    header = ReactTestUtils.renderIntoDocument(
+      <EventHeader
+        message={
+          new Message({
+            id: 'm-own',
+            accountId: 'a1',
+            from: [new Contact({ email: 'ada@example.com' })],
+          })
+        }
+        file={ownFile}
+      />
+    ) as unknown as EventHeader;
+    waitsFor(() => !!header.state.rsvp);
+  }
+
+  const notice = () =>
+    ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'event-newer-invitation')[0];
+
+  function accept() {
+    const button = ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'btn-rsvp').find(
+      (n) => n.textContent === 'Accept'
+    );
+    ReactTestUtils.Simulate.click(button);
+  }
+
+  it('fetches the revision, says it exists, and answers it rather than this email', function () {
+    mount([revision]);
+    waitsFor(() => !!notice());
+    runs(() => {
+      expect(fetchBodies.mostRecentCall.args[0].map((m: Message) => m.id)).toEqual(['m-revised']);
+      expect(notice().textContent).toContain('updated after this email was sent');
+      accept();
+      const reply = queued[0] as EventRSVPTask;
+      const write = queued[1] as SyncbackEventTask;
+      expect(reply.ics).toContain(EXDATE);
+      expect(write.calendarId).toBe(mine.id);
+      expect(write.event.ics).toContain(EXDATE);
+      expect(write.event.ics).toContain('SEQUENCE:1');
+    });
+  });
+
+  it('opens the revision from the notice', function () {
+    const thread = new Thread({ id: 't-revised', accountId: 'a1' } as any);
+    spyOn(DatabaseStore, 'find').andCallFake((klass: unknown, id: string) =>
+      Promise.resolve(klass === Thread && id === 't-revised' ? thread : null)
+    );
+    const popout = spyOn(Actions, 'popoutThread');
+    mount([revision]);
+    waitsFor(() => !!notice());
+    runs(() => ReactTestUtils.Simulate.click(notice().querySelector('a')));
+    waitsFor(() => popout.callCount > 0);
+    runs(() => expect(popout.mostRecentCall.args[0]).toBe(thread));
+  });
+
+  it('answers this email when no other revised it', function () {
+    const older = Object.assign(revision.clone(), { id: 'm-older' });
+    fs.writeFileSync(paths[revisedFile.id], invitation(...SERIES, 'DTSTAMP:20261001T000000Z'));
+    mount([older]);
+    runs(() => {
+      expect(notice()).toBe(undefined);
+      accept();
+      expect((queued[1] as SyncbackEventTask).event.ics).not.toContain('EXDATE');
+    });
+  });
+});
+
+describe('EventHeader repeat summary', function () {
+  const summary = (rrule?: string) =>
+    repeatSummary(
+      CalendarUtils.parseICSString(
+        [
+          'BEGIN:VCALENDAR',
+          'BEGIN:VEVENT',
+          'UID:r@test',
+          'DTSTART:20261103T150000Z',
+          ...(rrule ? [`RRULE:${rrule}`] : []),
+          'END:VEVENT',
+          'END:VCALENDAR',
+        ].join('\r\n')
+      ).event
+    );
+
+  it('says how often a series repeats', function () {
+    expect(summary('FREQ=WEEKLY;BYDAY=TU')).toBe('Every Week');
+    expect(summary('FREQ=DAILY;COUNT=5')).toBe('Every Day');
+    expect(summary('FREQ=YEARLY')).toBe('Every Year');
+  });
+
+  it('says only that it repeats when the rule is not one of the Repeat menu choices', function () {
+    expect(summary('FREQ=WEEKLY;INTERVAL=2')).toBe('Repeats');
+    expect(summary('FREQ=HOURLY')).toBe('Repeats');
+  });
+
+  it('says nothing for a single event', function () {
+    expect(summary()).toBe(null);
   });
 });

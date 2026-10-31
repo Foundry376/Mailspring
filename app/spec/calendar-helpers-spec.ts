@@ -9,6 +9,7 @@ import {
   inclusiveAllDayEnd,
   shiftEndWithStart,
   clampEnd,
+  endFromTypedTime,
   textColorOnFill,
   formatShortTime,
   formatShortTimeRange,
@@ -81,6 +82,39 @@ describe('shiftEndWithStart', function () {
     expect(shiftEndWithStart(start, localDay(2026, 6, 23), start, true)).toBe(
       localDay(2026, 6, 23)
     );
+  });
+});
+
+describe('endFromTypedTime', function () {
+  const at = (year: number, month: number, day: number, hours: number) =>
+    localDay(year, month, day) + hours * 3600;
+
+  it('reads an end time before the start as the next day’s', function () {
+    expect(endFromTypedTime(at(2026, 6, 22, 22), at(2026, 6, 22, 1))).toBe(at(2026, 6, 23, 1));
+  });
+
+  it('leaves an end time after the start on its day', function () {
+    expect(endFromTypedTime(at(2026, 6, 22, 10), at(2026, 6, 22, 11))).toBe(at(2026, 6, 22, 11));
+  });
+
+  it('keeps the wall clock when the next day is across a DST change', function () {
+    // Sunday 2026-03-08 springs forward at 2 AM, so 3 AM that day is 23 hours after Saturday's.
+    const end = endFromTypedTime(at(2026, 3, 7, 23), at(2026, 3, 7, 3));
+    expect(moment.unix(end).format('YYYY-MM-DD HH:mm')).toBe('2026-03-08 03:00');
+  });
+
+  it('adds the day in the zone the field shows', function () {
+    // 10 PM to 1 AM in Los Angeles, which is midnight to 3 AM in Chicago.
+    const start = Date.UTC(2026, 5, 23, 5) / 1000;
+    const typedEnd = Date.UTC(2026, 5, 22, 8) / 1000;
+    expect(endFromTypedTime(start, typedEnd, 'America/Los_Angeles')).toBe(
+      Date.UTC(2026, 5, 23, 8) / 1000
+    );
+  });
+
+  it('still holds the minimum duration', function () {
+    const start = at(2026, 6, 22, 10);
+    expect(endFromTypedTime(start, start)).toBe(start + MIN_EVENT);
   });
 });
 
