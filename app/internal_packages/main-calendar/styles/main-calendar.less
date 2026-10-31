@@ -871,6 +871,10 @@
     flex-wrap: wrap;
     align-items: center;
     column-gap: 10px;
+
+    > * {
+      white-space: nowrap;
+    }
   }
 
   .event-panel-icon {
@@ -1000,8 +1004,6 @@
   }
 
   .date-picker .day-text {
-    white-space: nowrap;
-
     &,
     &:hover,
     &.focused {

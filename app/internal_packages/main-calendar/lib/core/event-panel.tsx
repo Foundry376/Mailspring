@@ -30,8 +30,8 @@ import {
   canEditInPanel,
   clampEnd,
   extractNotesFromDescription,
-  formatShortTime,
   formatShortTimeRange,
+  formatTime,
   hasGuests,
   holdsEdits,
   inclusiveAllDayEnd,
@@ -74,6 +74,20 @@ const repeatOptionLabel = (option: RepeatOption) =>
 function daysLabel(first: CalendarDate, last: CalendarDate) {
   const from = momentOf(first).format('ddd MMM D');
   return first === last ? from : `${from} – ${momentOf(last).format('ddd MMM D')}`;
+}
+
+const formatDay = (day: CalendarDate) =>
+  momentOf(day).format(DateUtils.DATE_FORMAT_llll_NO_TIME).trim();
+
+// As the date pickers show them, so an event that can't be edited reads like one that can.
+function renderDays(first: CalendarDate, last: CalendarDate) {
+  return (
+    <div className="event-panel-wrap">
+      <span>{formatDay(first)}</span>
+      {first !== last && <span>–</span>}
+      {first !== last && <span>{formatDay(last)}</span>}
+    </div>
+  );
 }
 const SHOW_AS_OPTIONS: ShowAsOption[] = ['OPAQUE', 'TRANSPARENT'];
 
@@ -519,7 +533,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   _renderWhen() {
     if (this._editable()) return this._renderEditableWhen();
     const { event } = this.props;
-    const days = daysLabel(event.startDate, event.endDate);
+    const days = renderDays(event.startDate, event.endDate);
 
     return (
       <div className="event-panel-section">
@@ -528,9 +542,10 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             <div className="event-panel-row">
               <SVGIcons.Clock className="event-panel-icon" />
               <div className="event-panel-wrap">
-                <span>{formatShortTime(event.start)}</span>
+                {/* As the time pickers show them. */}
+                <span>{formatTime(event.start)}</span>
                 <SVGIcons.ArrowRight className="event-panel-icon" />
-                <span>{formatShortTime(event.end)}</span>
+                <span>{formatTime(event.end)}</span>
                 <span className="event-panel-subtle">
                   {DateUtils.formatDuration(event.end - event.start)}
                 </span>
@@ -547,7 +562,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           <>
             <div className="event-panel-row">
               <SVGIcons.Clock className="event-panel-icon" />
-              <span>{days}</span>
+              {days}
             </div>
             <div className="event-panel-row indented">{localized('All day')}</div>
           </>
