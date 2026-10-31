@@ -425,12 +425,15 @@ export function occurrencesForEvents(
     endUnix,
     ownCalendarAddresses = new Map<string, string>(),
     readOnlyCalendarIds = new Set<string>(),
+    include = () => true,
   }: {
     startUnix: number;
     endUnix: number;
     ownCalendarAddresses?: Map<string, string>;
     /** Copies on these calendars are left out where another copy already draws that occurrence. */
     readOnlyCalendarIds?: Set<string>;
+    /** Which occurrences to draw. One left out doesn't stand in for a read-only copy. */
+    include?: (occurrence: EventOccurrence) => boolean;
   }
 ) {
   // A series is its master plus exception rows on one calendar. The same UID can sit on several
@@ -459,7 +462,7 @@ export function occurrencesForEvents(
       ownCalendarAddresses,
     })) {
       const key = `${rows[0].icsuid}:${occurrenceStartUnix(occurrence)}`;
-      if (isReadOnly(rows) && drawn.has(key)) continue;
+      if ((isReadOnly(rows) && drawn.has(key)) || !include(occurrence)) continue;
       drawn.add(key);
       occurrences.push(occurrence);
     }

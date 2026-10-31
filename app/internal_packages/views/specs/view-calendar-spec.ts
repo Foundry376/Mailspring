@@ -159,6 +159,37 @@ describe('Views calendar API', function () {
       expect(out.map((e) => e.calendarId).sort()).toEqual(['c1', 'c2', 'hol1']);
     });
 
+    it('lists the read-only copy of an occurrence when the range leaves out the copy before it', () => {
+      const range = parseRange({ start: '2026-10-12T00:00:00Z', end: '2026-10-13T00:00:00Z' });
+      const row = (id: string, calendarId: string, ics: string) =>
+        new Event({ id, accountId: 'a1', calendarId, ics, icsuid: 'abc@example.com' } as any);
+      const declined = invitationICS().replace(
+        `PARTSTAT=NEEDS-ACTION:mailto:${ME}`,
+        `PARTSTAT=DECLINED:mailto:${ME}`
+      );
+      const accepted = invitationICS().replace(
+        `PARTSTAT=NEEDS-ACTION:mailto:${ME}`,
+        `PARTSTAT=ACCEPTED:mailto:${ME}`
+      );
+      const events = [row('mine', 'c1', declined), row('shared', 'ro', accepted)];
+      const calendars = [
+        new Calendar({ id: 'c1', accountId: 'a1' } as any),
+        new Calendar({ id: 'ro', accountId: 'a1', readOnly: true } as any),
+      ];
+      expect(serializeEvents(WRITE, events, calendars, range).map((e) => e.calendarId)).toEqual([
+        'ro',
+      ]);
+      const onlyShared = parseRange({
+        start: '2026-10-12T00:00:00Z',
+        end: '2026-10-13T00:00:00Z',
+        calendarIds: ['ro'],
+        includeDeclined: true,
+      });
+      expect(
+        serializeEvents(WRITE, events, calendars, onlyShared).map((e) => e.calendarId)
+      ).toEqual(['ro']);
+    });
+
     it('merges busy time, ignoring declined, cancelled and all-day events', () => {
       const range = parseRange({ start: '2026-10-12T00:00:00Z', end: '2026-10-13T00:00:00Z' });
       const result = freeBusy(

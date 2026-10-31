@@ -132,17 +132,20 @@ export function serializeEvents(
   range: EventRange
 ) {
   const needle = range.search && range.search.toLowerCase();
+  // Filtered before read-only copies are collapsed, so a copy the range leaves out (one we
+  // declined, or on another calendar) doesn't hide the copy it does include.
+  const serialized = new Map<EventOccurrence, SerializedOccurrence>();
+  const include = (o: EventOccurrence) => {
+    const text = [o.title, o.location, o.description];
+    if (needle && !text.some((s) => (s || '').toLowerCase().includes(needle))) return false;
+    serialized.set(o, serializeOccurrence(o));
+    return matchesRange(serialized.get(o), range);
+  };
   return occurrencesForEvents(
     events.filter((e) => isAccountAllowed(grant.scope, e.accountId)),
-    { ...range, readOnlyCalendarIds: readOnlyCalendarIds(calendars) }
+    { ...range, readOnlyCalendarIds: readOnlyCalendarIds(calendars), include }
   )
-    .filter(
-      (o) =>
-        !needle ||
-        [o.title, o.location, o.description].some((s) => (s || '').toLowerCase().includes(needle))
-    )
-    .map(serializeOccurrence)
-    .filter((e) => matchesRange(e, range))
+    .map((o) => serialized.get(o))
     .slice(0, MAX_EVENTS)
     .sort((a, b) => a.start.localeCompare(b.start));
 }
