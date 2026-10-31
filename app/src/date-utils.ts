@@ -319,19 +319,22 @@ const DateUtils = {
     const parsed = getChrono().parse(dateLikeString);
     const gotTime = { start: false, end: false };
     const gotDay = { start: false, end: false };
-    const now = moment();
+    // Events start on the minute: createICSString writes the seconds into DTSTART.
+    const now = moment().startOf('minute');
     const results = { start: moment(now), end: moment(now), leftoverText: dateLikeString };
     for (const item of parsed) {
       for (const val of ['start', 'end']) {
-        if (!item[val]) {
+        const components = item[val];
+        if (!components) {
           continue;
         }
-        const { day: knownDay, weekday: knownWeekday, hour: knownHour } = item[val].knownValues;
-        const { year, month, day, hour, minute } = Object.assign(
-          item[val].knownValues,
-          item[val].impliedValues
-        );
-        if (!gotTime[val] && knownHour) {
+        const year = components.get('year');
+        const month = components.get('month');
+        const day = components.get('day');
+        const hour = components.get('hour');
+        const minute = components.get('minute');
+
+        if (!gotTime[val] && components.isCertain('hour')) {
           gotTime[val] = true;
           results[val].minute(minute);
           results[val].hour(hour);
@@ -344,7 +347,7 @@ const DateUtils = {
 
           results.leftoverText = results.leftoverText.replace(item.text, '');
         }
-        if (!gotDay[val] && (knownDay || knownWeekday)) {
+        if (!gotDay[val] && (components.isCertain('day') || components.isCertain('weekday'))) {
           gotDay[val] = true;
           results[val].year(year);
           results[val].month(month - 1); // moment zero-indexes month
@@ -359,6 +362,7 @@ const DateUtils = {
         }
       }
     }
+    results.leftoverText = results.leftoverText.replace(/\s+/g, ' ').trim();
 
     // Make the event a default 1 hour long if it looks like the end date
     // wasn't assigned, or if it's before the start date.
