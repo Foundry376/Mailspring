@@ -838,9 +838,17 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
-  // Answering writes our status onto the event, which a read-only calendar refuses.
+  // Answering writes our status onto the event, which a read-only calendar refuses. A cancelled
+  // event says so where the answers would be.
   _renderRsvpCard() {
     const { event, isCalendarReadOnly } = this.props;
+    if (event.isCancelled) {
+      return (
+        <div className="event-panel-card event-panel-subtle">
+          {localized('This event has been cancelled')}
+        </div>
+      );
+    }
     if (!canRespondToEvent(event)) return null;
     const answer = myParticipationStatus(event);
     return (

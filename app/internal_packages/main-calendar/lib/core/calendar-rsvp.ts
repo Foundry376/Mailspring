@@ -23,8 +23,12 @@ import {
 import { formatCalendarDate } from '../../../../src/calendar-date';
 import { showRecurringEventDialog } from './recurring-event-dialog';
 
-/** Whether this occurrence is an invitation we can answer, rather than one we sent. */
+/**
+ * Whether this occurrence is an invitation we can answer, rather than one we sent or one its
+ * organizer cancelled, which leaves nothing to answer or counter (RFC 5546 section 3.2.5).
+ */
 export function canRespondToEvent(occurrence: EventOccurrence): boolean {
+  if (occurrence.isCancelled) return false;
   const me = myAttendeeEmail(occurrence);
   if (!me) return false;
 
