@@ -399,6 +399,30 @@ describe('editing in the panel', function () {
       expect(document.activeElement).not.toBe(title);
     });
 
+    it('gives nothing to wait for once its saves are written', async function () {
+      let written: () => void;
+      panel = ReactDOM.render(
+        React.createElement(EventPanel, {
+          event: withoutGuests,
+          isCalendarReadOnly: false,
+          onBack: () => {},
+          unsentChange: null,
+          onUnsentChange,
+          onSendUnsentChange: () => {},
+          onSaveChange: () => new Promise<void>((resolve) => (written = resolve)),
+        }),
+        host
+      ) as any;
+      expect(panel.commitEdits()).toBe(null);
+
+      panel._save({ eventId: 'e1', edits: [{ property: 'summary', value: 'Interview' }] });
+      expect(panel.commitEdits()).not.toBe(null);
+      await settle();
+      written();
+      await settle();
+      expect(panel.commitEdits()).toBe(null);
+    });
+
     it('leaves focus elsewhere alone', function () {
       const outside = document.createElement('input');
       document.body.appendChild(outside);
@@ -456,6 +480,11 @@ describe('leaving the panel while a field is being edited', function () {
     await settle();
 
     expect(readyToUnload).toHaveBeenCalled();
+  });
+
+  it('lets the window close at once when the panel has nothing to save', function () {
+    commitEdits.andReturn(null);
+    expect(calendar._onBeforeUnload(() => {})).toBe(true);
   });
 
   it('offers to send a change the field joins as the window closes', function () {

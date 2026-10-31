@@ -172,6 +172,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   _pendingTimes: Times | null = null;
   // Each save is built from the stored event, so it waits until the one before has been written.
   _saving: Promise<void> = Promise.resolve();
+  _savesUnwritten = 0;
   /** The last times save has been written, so the next refresh shows the event's own times. */
   _timesSaveLanded = false;
   _timesSaveCount = 0;
@@ -206,15 +207,15 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
    * Saves the field being edited, as leaving it would, while the panel still shows its event.
    * Removing a focused field doesn't blur it, and React drops events while it unmounts, so the
    * calendar calls this before the panel shows another event or goes away. Resolves once the
-   * panel's saves have been written.
+   * panel's saves have been written; null when none is left to write.
    */
-  commitEdits() {
+  commitEdits(): Promise<void> | null {
     const focused = document.activeElement;
     if (focused instanceof HTMLElement && this._el.current?.contains(focused)) {
       // Flushed, so a change held for Send update is in the calendar's state on return.
       ReactDOM.flushSync(() => focused.blur());
     }
-    return this._saving;
+    return this._savesUnwritten ? this._saving : null;
   }
 
   async _eventRow() {
@@ -242,9 +243,13 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   }
 
   _save(change: UnsentChange) {
+    this._savesUnwritten += 1;
     this._saving = this._saving
       .then(() => this.props.onSaveChange(change))
-      .catch((error) => console.error('Failed to save the event:', error));
+      .catch((error) => console.error('Failed to save the event:', error))
+      .finally(() => {
+        this._savesUnwritten -= 1;
+      });
     return this._saving;
   }
 
