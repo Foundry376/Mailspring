@@ -561,7 +561,7 @@ END:VEVENT`
     const popover = newEventPopover(false);
     popover.updateAllDay(true);
     expect(popover.state.alert).toBe('none');
-    expect((await createdWith(popover)).alarmTrigger).toBe(undefined);
+    expect((await createdWith(popover)).alarmTrigger).toBe(null);
   });
 
   it('creates the event with the reminder the user picked', async function () {

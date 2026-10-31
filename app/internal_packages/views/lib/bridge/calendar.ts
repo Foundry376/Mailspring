@@ -6,7 +6,6 @@ import {
   CalendarUtils,
   Contact,
   DatabaseStore,
-  DateUtils,
   DestroyEventTask,
   Event,
   ICSEventHelpers,
@@ -21,6 +20,7 @@ import { ViewError } from './errors';
 import moment from 'moment';
 import FocusedMomentStore from '../../../main-calendar/lib/core/focused-moment-store';
 import { recordAndSendRSVP } from '../../../main-calendar/lib/core/calendar-rsvp';
+import { queueNewCalendarEvent } from '../../../main-calendar/lib/core/calendar-helpers';
 
 /**
  * Calendar reads beyond events, and the calendar writes Views may make. Every write goes
@@ -229,30 +229,17 @@ export async function createEvent(viewId: string, grant: ViewGrant, params: any)
     people: others,
   });
 
-  const icsuid = ICSEventHelpers.generateUID();
-  const ics = ICSEventHelpers.createICSString({
-    uid: icsuid,
+  const { event } = queueNewCalendarEvent({
     summary: input.title,
     start: input.start,
     end: input.end,
     isAllDay: !!input.isAllDay,
-    timezone: DateUtils.timeZone,
+    calendarId: calendar.id,
+    accountId: calendar.accountId,
     description: input.description,
     location: input.location,
     attendees: input.attendees,
   });
-  const event = new Event({
-    calendarId: calendar.id,
-    accountId: calendar.accountId,
-    ics,
-    icsuid,
-    recurrenceStart: Math.floor(input.start.getTime() / 1000),
-    recurrenceEnd: Math.floor(input.end.getTime() / 1000),
-  });
-  event.title = input.title;
-  Actions.queueTask(
-    SyncbackEventTask.forCreating({ event, calendarId: calendar.id, accountId: calendar.accountId })
-  );
   return { eventId: event.id };
 }
 

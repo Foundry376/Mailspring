@@ -17,6 +17,7 @@ import {
   DraftFactory,
 } from 'mailspring-exports';
 import { ShowAsOption, defaultShowAs } from './show-as-selector';
+import { alertTrigger, defaultAlert } from './alert-selector';
 import {
   MIN_EVENT_DURATION_SECONDS,
   DEFAULT_TIMED_EVENT_DURATION_SECONDS,
@@ -512,7 +513,8 @@ export interface CreateCalendarEventOptions {
   recurrenceRule?: string;
   timezone?: string;
   transparency?: ShowAsOption;
-  alarmTrigger?: string;
+  /** The reminder's TRIGGER, null for none; omitted, the editor's default for the event. */
+  alarmTrigger?: string | null;
 }
 
 /** The account, as the ORGANIZER the ICS helpers name once an event has guests. */
@@ -523,12 +525,16 @@ export function organizerForAccount(
   return account ? { email: account.emailAddress, name: account.name } : undefined;
 }
 
-/**
- * Create a new calendar event, queue the syncback task, and focus the event.
- * Shared by CalendarEventPopover and QuickEventPopover.
- */
-export async function createCalendarEvent(options: CreateCalendarEventOptions): Promise<void> {
+/** Builds a new calendar event and queues its creation. */
+export function queueNewCalendarEvent(options: CreateCalendarEventOptions): {
+  event: Event;
+  task: SyncbackEventTask;
+} {
   const icsuid = ICSEventHelpers.generateUID();
+  const alarmTrigger =
+    options.alarmTrigger === undefined
+      ? alertTrigger(defaultAlert(options.isAllDay))
+      : options.alarmTrigger;
   const ics = ICSEventHelpers.createICSString({
     uid: icsuid,
     summary: options.summary,
@@ -542,7 +548,7 @@ export async function createCalendarEvent(options: CreateCalendarEventOptions): 
     attendees: options.attendees,
     recurrenceRule: options.recurrenceRule,
     transparency: options.transparency ?? defaultShowAs(options.isAllDay),
-    alarmTrigger: options.alarmTrigger,
+    alarmTrigger: alarmTrigger || undefined,
   });
 
   const event = new Event({
@@ -561,7 +567,12 @@ export async function createCalendarEvent(options: CreateCalendarEventOptions): 
     accountId: options.accountId,
   });
   Actions.queueTask(task);
+  return { event, task };
+}
 
+/** Creates a new calendar event and focuses it once the server has it. */
+export async function createCalendarEvent(options: CreateCalendarEventOptions): Promise<void> {
+  const { event, task } = queueNewCalendarEvent(options);
   try {
     await TaskQueue.waitForPerformRemote(task);
     Actions.focusCalendarEvent({ id: event.id, start: event.recurrenceStart });

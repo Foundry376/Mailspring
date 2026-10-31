@@ -540,7 +540,7 @@ export class CalendarEventPopover extends React.Component<
       recurrenceRule: repeatOptionToRRule(repeat) || undefined,
       timezone,
       transparency: showAs,
-      alarmTrigger: alertTrigger(alert) || undefined,
+      alarmTrigger: alertTrigger(alert),
     });
   };
 

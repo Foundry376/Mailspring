@@ -264,6 +264,9 @@ describe('Views calendar API', function () {
       await createEvent('spec', WRITE, base);
       expect(dialog).not.toHaveBeenCalled();
       expect((Actions.queueTask as any as jasmine.Spy).callCount).toBe(1);
+      // The calendar editor's default reminder, which a timed event gets wherever it is created.
+      const created = (Actions.queueTask as any as jasmine.Spy).mostRecentCall.args[0];
+      expect(created.event.ics).toContain('TRIGGER:-PT10M');
 
       await createEvent('spec', WRITE, { ...base, attendees: [{ email: 'guest@example.com' }] });
       expect(dialog).toHaveBeenCalled();
