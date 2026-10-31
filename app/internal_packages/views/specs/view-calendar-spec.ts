@@ -10,7 +10,7 @@ import {
 } from 'mailspring-exports';
 import { FULL_GRANT } from '../../../src/services/mail-access/grant';
 import { ViewGrant, ViewPermission } from '../lib/bridge/grant';
-import { freeBusy, parseRange } from '../lib/bridge/events';
+import { freeBusy, parseRange, serializeEvents } from '../lib/bridge/events';
 import {
   createEvent,
   deleteEvent,
@@ -131,6 +131,32 @@ describe('Views calendar API', function () {
       expect(parseOccurrenceId('8f2a-e-86400')).toEqual({ eventId: '8f2a', start: -86400 });
       expect(parseOccurrenceId('8f2a-e0').eventId).toBe('8f2a');
       expect(parseOccurrenceId('8f2a')).toEqual({ eventId: '8f2a', start: null });
+    });
+
+    it("lists a holiday subscribed from two accounts once, and each account's copy of a meeting", () => {
+      const range = parseRange({ start: '2026-10-12T00:00:00Z', end: '2026-10-13T00:00:00Z' });
+      const row = (
+        id: string,
+        accountId: string,
+        calendarId: string,
+        ics: string,
+        icsuid: string
+      ) => new Event({ id, accountId, calendarId, ics, icsuid } as any);
+      const holiday = invitationICS({ attendees: [] }).replace('abc@example.com', 'holiday@x');
+      const events = [
+        row('h1', 'a1', 'hol1', holiday, 'holiday@x'),
+        row('h2', 'a2', 'hol2', holiday, 'holiday@x'),
+        row('m1', 'a1', 'c1', invitationICS(), 'abc@example.com'),
+        row('m2', 'a2', 'c2', invitationICS(), 'abc@example.com'),
+      ];
+      const calendars = [
+        new Calendar({ id: 'hol1', accountId: 'a1', readOnly: true } as any),
+        new Calendar({ id: 'hol2', accountId: 'a2', readOnly: true } as any),
+        new Calendar({ id: 'c1', accountId: 'a1' } as any),
+        new Calendar({ id: 'c2', accountId: 'a2' } as any),
+      ];
+      const out = serializeEvents(WRITE, events, calendars, range);
+      expect(out.map((e) => e.calendarId).sort()).toEqual(['c1', 'c2', 'hol1']);
     });
 
     it('merges busy time, ignoring declined, cancelled and all-day events', () => {

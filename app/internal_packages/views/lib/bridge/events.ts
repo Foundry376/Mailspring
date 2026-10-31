@@ -1,13 +1,15 @@
-import { CalendarUtils, Contact, DatabaseStore, Event } from 'mailspring-exports';
+import { Calendar, CalendarUtils, Contact, DatabaseStore, Event } from 'mailspring-exports';
 import { isAccountAllowed } from '../../../../src/services/mail-access/grant';
 import {
   occurrencesForEvents,
+  readOnlyCalendarIds,
   occurrenceStartUnix,
   occurrenceEndUnix,
   EventOccurrence,
 } from '../../../main-calendar/lib/core/calendar-data-source';
 import type { ViewGrant } from './grant';
 import { ViewError } from './errors';
+import { calendarsQuery } from './calendar';
 
 const MAX_RANGE_DAYS = 400;
 const MAX_EVENTS = 2000;
@@ -123,11 +125,16 @@ function matchesRange(e: SerializedOccurrence, range: EventRange) {
   return true;
 }
 
-export function serializeEvents(grant: ViewGrant, events: Event[], range: EventRange) {
+export function serializeEvents(
+  grant: ViewGrant,
+  events: Event[],
+  calendars: Calendar[],
+  range: EventRange
+) {
   const needle = range.search && range.search.toLowerCase();
   return occurrencesForEvents(
     events.filter((e) => isAccountAllowed(grant.scope, e.accountId)),
-    range
+    { ...range, readOnlyCalendarIds: readOnlyCalendarIds(calendars) }
   )
     .filter(
       (o) =>
@@ -181,7 +188,8 @@ export function freeBusy(events: SerializedOccurrence[], range: EventRange) {
 export async function eventsForExtraction(grant: ViewGrant, range: EventRange) {
   const seen = new Set<string>();
   const out = [];
-  for (const e of serializeEvents(grant, await eventQuery(range), range)) {
+  const events = serializeEvents(grant, await eventQuery(range), await calendarsQuery(), range);
+  for (const e of events) {
     if (seen.has(e.eventId) || e.status === 'CANCELLED') continue;
     seen.add(e.eventId);
     out.push({
