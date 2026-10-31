@@ -37,6 +37,30 @@ describe('DateUtils.parseDateString', function () {
     );
   });
 
+  describe('on a Saturday', function () {
+    beforeEach(function () {
+      spyOn(moment, 'now').andReturn(new Date(2026, 9, 31, 15, 0).getTime());
+    });
+
+    it('takes a weekday already past this week as next week', function () {
+      const { start, end } = DateUtils.parseDateString('Lunch Friday at 1pm');
+      expect(start.format('YYYY-MM-DD HH:mm')).toBe('2026-11-06 13:00');
+      expect(end.format('YYYY-MM-DD HH:mm')).toBe('2026-11-06 14:00');
+      expect(DateUtils.parseDateString('Lunch Thursday').start.format('YYYY-MM-DD')).toBe(
+        '2026-11-05'
+      );
+    });
+
+    it('keeps today and a weekday asked for in the past', function () {
+      expect(DateUtils.parseDateString('Lunch Saturday').start.format('YYYY-MM-DD')).toBe(
+        '2026-10-31'
+      );
+      expect(DateUtils.parseDateString('Lunch last Friday').start.format('YYYY-MM-DD')).toBe(
+        '2026-10-30'
+      );
+    });
+  });
+
   it('takes a time named after the day', function () {
     const { start } = DateUtils.parseDateString('Coffee Monday at 3pm');
     expect(start.day()).toBe(1);

@@ -316,11 +316,11 @@ const DateUtils = {
     start: Moment;
     end: Moment;
   } {
-    const parsed = getChrono().parse(dateLikeString);
-    const gotTime = { start: false, end: false };
-    const gotDay = { start: false, end: false };
     // Events start on the minute: createICSString writes the seconds into DTSTART.
     const now = moment().startOf('minute');
+    const parsed = getChrono().parse(dateLikeString, now.toDate());
+    const gotTime = { start: false, end: false };
+    const gotDay = { start: false, end: false };
     const results = { start: moment(now), end: moment(now), leftoverText: dateLikeString };
     for (const item of parsed) {
       for (const val of ['start', 'end']) {
@@ -352,6 +352,16 @@ const DateUtils = {
           results[val].year(year);
           results[val].month(month - 1); // moment zero-indexes month
           results[val].date(day);
+
+          // Chrono reads a bare weekday as the nearest one, up to three days back; an event
+          // named for "Friday" on a Saturday means next Friday.
+          const bareWeekday =
+            components.isCertain('weekday') &&
+            !components.isCertain('day') &&
+            !/^(last|past|previous)\b/i.test(item.text);
+          if (bareWeekday && results[val].isBefore(now, 'day')) {
+            results[val].add(7, 'days');
+          }
 
           // A day named without a time ("Coffee Monday") starts at 9 AM. Chrono fills in the
           // current time of day, which isn't a time anyone meant.
