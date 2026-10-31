@@ -487,6 +487,26 @@ describe('leaving the panel while a field is being edited', function () {
     expect(calendar._onBeforeUnload(() => {})).toBe(true);
   });
 
+  it('returns to the field being edited when the user keeps editing', function () {
+    spyOn(UnsentChangeDialog, 'showUnsentChangeDialog').andReturn('keep-editing');
+    const field = document.createElement('input');
+    document.body.appendChild(field);
+    field.focus();
+    commitEdits.andCallFake(() => {
+      field.blur();
+      calendar.state.unsentChange = {
+        eventId: 'e1',
+        edits: [{ property: 'summary', value: 'Interview with Alex' }],
+      };
+      return null;
+    });
+    spyOn(calendar, '_leavesUnsentChange').andReturn(true);
+
+    expect(calendar._mayLeave([])).toBe(false);
+    expect(document.activeElement).toBe(field);
+    field.remove();
+  });
+
   it('offers to send a change the field joins as the window closes', function () {
     const dialog = spyOn(UnsentChangeDialog, 'showUnsentChangeDialog').andReturn('discard');
     const held = { eventId: 'e1', edits: [{ property: 'summary', value: 'Interview with Alex' }] };
