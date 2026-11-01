@@ -16,6 +16,28 @@ describe('Local Harper grammar checking', () => {
     });
   });
 
+  it('learns words locally, preserves grammar checks, and forgets removed words', () => {
+    waitsForPromise({ timeout: 20000 }, async () => {
+      const text = 'This is a example. I recieved your speling message.';
+      const spelling = (errors) =>
+        errors
+          .filter((e) => e.category === 'Spelling')
+          .map((e) => text.slice(e.offset, e.offset + e.length));
+      expect(spelling(await backend.check(text))).toContain('recieved');
+      config['core.composing.grammarCheckLearnedWords'] = ['recieved'];
+      const learned = await backend.check(text);
+      expect(spelling(learned)).not.toContain('recieved');
+      expect(spelling(learned)).toContain('speling');
+      expect(learned.some((e) => e.ruleId === 'AnA')).toBe(true);
+      backend.dispose();
+      expect(spelling(await backend.check(text))).not.toContain('recieved');
+      config['core.composing.grammarCheckLearnedWords'] = ['speling'];
+      expect(spelling(await backend.check(text))).toContain('recieved');
+      config['core.composing.grammarCheckLearnedWords'] = [];
+      expect(spelling(await backend.check(text))).toContain('speling');
+    });
+  });
+
   it('checks real text locally with UTF-16 ranges and actionable replacements', () => {
     waitsForPromise(async () => {
       const text = '😀 This is a example. This is is wrong.';

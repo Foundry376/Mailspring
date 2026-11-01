@@ -168,7 +168,7 @@ export default class WindowEventHandler {
       }
     });
 
-    // Handle context menu for all editable areas with native spellcheck
+    // Standard editing actions. Spelling suggestions are provided by Harper in the composer.
     webContents.on('context-menu', (event, params) => {
       // Only handle if we're in an editable area
       if (!params.isEditable) {
@@ -177,33 +177,6 @@ export default class WindowEventHandler {
 
       const { Menu, MenuItem } = require('@electron/remote');
       const menu = new Menu();
-
-      // Add spelling suggestions if there's a misspelled word
-      if (params.misspelledWord) {
-        if (params.dictionarySuggestions && params.dictionarySuggestions.length > 0) {
-          for (const suggestion of params.dictionarySuggestions) {
-            menu.append(
-              new MenuItem({
-                label: suggestion,
-                click: () => webContents.replaceMisspelling(suggestion),
-              })
-            );
-          }
-        } else {
-          menu.append(new MenuItem({ label: localized('No Guesses Found'), enabled: false }));
-        }
-        menu.append(new MenuItem({ type: 'separator' }));
-
-        menu.append(
-          new MenuItem({
-            label: localized('Learn Spelling'),
-            click: () => {
-              webContents.session.addWordToSpellCheckerDictionary(params.misspelledWord);
-            },
-          })
-        );
-        menu.append(new MenuItem({ type: 'separator' }));
-      }
 
       // Add standard edit menu items using editFlags from Electron
       menu.append(

@@ -238,6 +238,7 @@ export type VirtualDOMUtils = typeof import('../virtual-dom-utils').default;
 export const VirtualDOMUtils: VirtualDOMUtils;
 export type Spellchecker = typeof import('../spellchecker').default;
 export const Spellchecker: Spellchecker;
+export const HarperDictionary: typeof import('../harper-dictionary').HarperDictionary;
 export type MessageUtils = typeof import('../flux/models/message-utils').default;
 export const MessageUtils: MessageUtils;
 

@@ -9,9 +9,10 @@ global.fetch = (url, options) => {
 };
 
 let linter;
+let dictionaryKey = '[]';
 let pending = Promise.resolve();
 
-async function check({ text, locale, enabledRules, disabledRules }) {
+async function check({ text, locale, enabledRules, disabledRules, learnedWords = [] }) {
   // Native import() must stay in JavaScript; TypeScript targets CommonJS.
   if (!linter) {
     const { LocalLinter } = await import('harper.js');
@@ -21,6 +22,12 @@ async function check({ text, locale, enabledRules, disabledRules }) {
   }
   const dialects = { 'en-us': 0, 'en-gb': 1, 'en-au': 2, 'en-ca': 3, 'en-in': 4 };
   await linter.setDialect(dialects[locale] ?? 0);
+  const nextDictionaryKey = JSON.stringify(learnedWords);
+  if (dictionaryKey !== nextDictionaryKey) {
+    await linter.clearWords();
+    await linter.importWords(learnedWords);
+    dictionaryKey = nextDictionaryKey;
+  }
   const config = await linter.getDefaultLintConfig();
   for (const rule of enabledRules) {
     if (Object.prototype.hasOwnProperty.call(config, rule)) config[rule] = true;

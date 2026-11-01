@@ -124,6 +124,7 @@ export default class MailspringWindow extends EventEmitter {
       resizable,
       titleBarStyle,
       webPreferences: {
+        spellcheck: false,
         nodeIntegration: true,
         contextIsolation: false,
         webviewTag: true,

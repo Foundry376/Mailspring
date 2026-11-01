@@ -1,6 +1,8 @@
 import React from 'react';
 import { Editor, Decoration, Mark, Point, Text } from 'slate';
+import { findDOMRange } from 'slate-react';
 import { localized } from 'mailspring-exports';
+import { HarperDictionary } from '../../harper-dictionary';
 import { ComposerEditorPlugin, ComposerEditorPluginTopLevelComponentProps } from './types';
 
 export const GRAMMAR_ERROR_MARK = 'grammar-error';
@@ -37,10 +39,17 @@ let grammarCheckStore: GrammarCheckStoreAPI | null = null;
 
 export function setGrammarCheckStore(store: GrammarCheckStoreAPI) {
   grammarCheckStore = store;
+  requestInitialCheckForAllDrafts();
 }
 
 export function clearGrammarCheckStore() {
   grammarCheckStore = null;
+}
+
+export function registerGrammarEditor(draftId: string, editor: Editor) {
+  latestEditorByDraft.set(draftId, editor);
+  previousDocumentByDraft.set(draftId, editor.value.document);
+  requestInitialCheckForDraft(draftId);
 }
 
 // --- Draft cleanup (called by main.ts on send/destroy) ---
@@ -76,15 +85,15 @@ export function clearAllGrammarDecorations() {
 
 // --- Schedule a deferred grammar check for a draft ---
 // Cancels any pending timer for the draft, then fires checkDirtyBlocks + applyGrammarDecorations
-// after delayMs. `start` defaults to now and is stored so onChange can throttle rapid keystrokes.
-function _scheduleCheck(draftId: string, editor: Editor, delayMs: number, start = Date.now()) {
+// after delayMs.
+function _scheduleCheck(draftId: string, editor: Editor, delayMs: number) {
   const existing = debounceTimers.get(draftId);
   if (existing) clearTimeout(existing.timer);
   const timer = setTimeout(() => {
     debounceTimers.delete(draftId);
     if (!grammarCheckStore) return;
     grammarCheckStore.checkDirtyBlocks(draftId).then((completed) => {
-      if (!completed) return; // superseded by a newer check — it will apply its own decorations
+      if (!completed || latestEditorByDraft.get(draftId) !== editor) return;
       if (composingWeakmap.get(editor)) {
         // The user is mid-composition (e.g. composing an accented character via a
         // dead key/compose sequence). Applying decorations now would change the
@@ -101,7 +110,7 @@ function _scheduleCheck(draftId: string, editor: Editor, delayMs: number, start 
       }
     });
   }, delayMs);
-  debounceTimers.set(draftId, { timer, start });
+  debounceTimers.set(draftId, { timer });
 }
 
 // --- Trigger an immediate check on a draft's current content ---
@@ -131,7 +140,7 @@ const composingWeakmap = new WeakMap<object, number>();
 
 // --- Per-draft dirty paragraph tracking state ---
 const previousDocumentByDraft = new Map<string, any>();
-const debounceTimers = new Map<string, { timer: ReturnType<typeof setTimeout>; start: number }>();
+const debounceTimers = new Map<string, { timer: ReturnType<typeof setTimeout> }>();
 const latestEditorByDraft = new Map<string, Editor>();
 // Drafts whose decorations finished computing while composition was in progress —
 // applied once composition ends (see onCompositionEnd below).
@@ -273,6 +282,7 @@ function applyGrammarDecorations(editor: Editor, draftId: string) {
               replacements: error.replacements,
               ruleId: error.ruleId,
               category: error.category,
+              word: blockErrors.text.slice(error.offset, error.offset + error.length),
             },
           }),
         })
@@ -282,20 +292,12 @@ function applyGrammarDecorations(editor: Editor, draftId: string) {
 
   // Compare with existing decorations to avoid unnecessary re-renders
   const previous = value.get('decorations') as any;
-  if (previous && previous.size === decorations.length) {
-    const table: { [key: string]: boolean } = {};
-    previous.forEach((d: any) => {
-      table[`${d.anchor.key}:${d.anchor.offset}-${d.focus.key}:${d.focus.offset}`] = true;
-    });
-    let changed = false;
-    for (const d of decorations) {
-      if (!table[`${d.anchor.key}:${d.anchor.offset}-${d.focus.key}:${d.focus.offset}`]) {
-        changed = true;
-        break;
-      }
-    }
-    if (!changed) return;
-  }
+  if (
+    previous &&
+    previous.size === decorations.length &&
+    previous.every((decoration: Decoration, i: number) => decoration.equals(decorations[i]))
+  )
+    return;
 
   // Apply decorations without affecting undo/redo
   editor.withoutSaving(() => {
@@ -344,6 +346,8 @@ function getMarkData(mark: any) {
     message: g('message') as string,
     shortMessage: g('shortMessage') as string,
     ruleId: g('ruleId') as string,
+    category: g('category') as string,
+    word: g('word') as string,
     // Slate may store the array as an Immutable List; normalise to plain array
     replacements: (repsRaw && repsRaw.toArray ? repsRaw.toArray() : repsRaw || []) as string[],
   };
@@ -352,7 +356,7 @@ function getMarkData(mark: any) {
 // --- Right-click context menu for a grammar error span ---
 function showGrammarContextMenu(mark: any, editor: Editor) {
   const { Menu, MenuItem } = require('@electron/remote');
-  const { message, shortMessage, ruleId, replacements } = getMarkData(mark);
+  const { message, shortMessage, ruleId, replacements, category, word } = getMarkData(mark);
 
   const menu = new Menu();
 
@@ -373,6 +377,14 @@ function showGrammarContextMenu(mark: any, editor: Editor) {
   }
 
   menu.append(new MenuItem({ type: 'separator' }));
+  if (category === 'Spelling' && word) {
+    menu.append(
+      new MenuItem({
+        label: localized('Learn Spelling'),
+        click: () => HarperDictionary.learn(word),
+      })
+    );
+  }
   menu.append(
     new MenuItem({
       label: localized('Ignore rule'),
@@ -445,32 +457,31 @@ function FloatingCorrectionPopover({ editor, value }: ComposerEditorPluginTopLev
   if (!decorations || !decorations.size) return null;
 
   const cursorPoint = { key: value.selection.anchor.key, offset: value.selection.anchor.offset };
-  let grammarMark: any = null;
+  let grammarDecoration: Decoration = null;
   decorations.forEach((d: any) => {
     if (d.mark.type !== GRAMMAR_ERROR_MARK) return;
     if (isPointInDecoration(value.document, cursorPoint, d)) {
-      grammarMark = d.mark;
+      grammarDecoration = d;
     }
   });
-  if (!grammarMark) return null;
+  if (!grammarDecoration) return null;
 
-  const sel = document.getSelection();
-  if (!sel || !sel.rangeCount) return null;
-
-  const range = sel.getRangeAt(0);
+  // The browser selection can lag behind Slate during a render. Anchor to the
+  // error's own range so the popover appears on the first click or keyboard move.
+  const range = findDOMRange(grammarDecoration as any);
+  if (!range) return null;
   const startEl = range.startContainer.parentElement;
   if (!startEl) return null;
 
-  const target = startEl.closest('[data-grammar-error]');
-  if (!target) return null;
-
-  const parent = target.closest('.RichEditor-content') as HTMLElement;
+  const parent = startEl.closest('.RichEditor-content') as HTMLElement;
   if (!parent) return null;
 
   const parentRect = parent.getBoundingClientRect();
-  const targetRect = target.getBoundingClientRect();
+  const targetRect = range.getBoundingClientRect();
 
-  const { message, shortMessage, replacements, ruleId } = getMarkData(grammarMark);
+  const { message, shortMessage, replacements, ruleId, category, word } = getMarkData(
+    grammarDecoration.mark
+  );
 
   return (
     <div
@@ -503,6 +514,15 @@ function FloatingCorrectionPopover({ editor, value }: ComposerEditorPluginTopLev
         </div>
       )}
       <div className="grammar-actions">
+        {category === 'Spelling' && word && (
+          <button
+            className="btn btn-small"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => HarperDictionary.learn(word)}
+          >
+            {localized('Learn Spelling')}
+          </button>
+        )}
         <button
           className="btn btn-small btn-dismiss"
           onMouseDown={(e) => {
@@ -540,15 +560,11 @@ function onChange(editor: Editor, next: () => void) {
 
   const draftId = draft.headerMessageId;
 
-  // Per-draft throttle: don't diff on every keystroke if changes are very rapid
-  const now = Date.now();
-  const existing = debounceTimers.get(draftId);
-  if (existing && now - existing.start < 300) {
-    return next();
-  }
-
   const currDoc = editor.value.document;
   const prevDoc = previousDocumentByDraft.get(draftId);
+  // Selection and decoration changes do not need another check. Always record
+  // text changes, including the final keystroke inside the debounce interval.
+  if (currDoc === prevDoc) return next();
 
   if (prevDoc) {
     // Diff blocks to find which paragraphs changed
@@ -578,10 +594,7 @@ function onChange(editor: Editor, next: () => void) {
 
   previousDocumentByDraft.set(draftId, currDoc);
 
-  // Per-draft debounce: cancel only this draft's pending timer.
-  // Pass `now` (captured at the top of onChange) as the start time so the next
-  // onChange call can throttle itself via the 200ms guard above.
-  _scheduleCheck(draftId, editor, 800, now);
+  _scheduleCheck(draftId, editor, 800);
 
   return next();
 }

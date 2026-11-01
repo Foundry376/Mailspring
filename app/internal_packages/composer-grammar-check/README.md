@@ -18,6 +18,16 @@ text, but its heuristic can skip short sentences with spelling mistakes, so it
 is optional. An explicit non-English language returns no grammar results;
 `auto` is not multilingual grammar checking.
 
+Harper is the composer's only spelling checker; Electron's native spellchecker is
+disabled. Use **Learn Spelling** on a Harper spelling error to accept that word.
+Edit or remove learned words under Preferences → General → Composing → Harper
+learned words (one word per line, then **Save words**). The list is stored locally
+as `core.composing.grammarCheckLearnedWords` and loaded into Harper's dictionary.
+Saving the list rechecks open drafts, so removing a word restores its spelling
+warnings without restarting. Grammar checks remain active for learned words.
+Existing draft text is checked when the editor opens, and text edits are checked
+after an 800 ms pause.
+
 Advanced configuration uses comma-separated **Harper rule names**, not old
 LanguageTool rule IDs:
 

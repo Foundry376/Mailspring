@@ -1,4 +1,10 @@
-import { localized, Actions, ComponentRegistry, GrammarCheckPluginAPI } from 'mailspring-exports';
+import {
+  localized,
+  Actions,
+  ComponentRegistry,
+  GrammarCheckPluginAPI,
+  HarperDictionary,
+} from 'mailspring-exports';
 import { HasTutorialTip } from 'mailspring-component-kit';
 import { GrammarCheckToggle } from './grammar-check-toggle';
 import { GrammarCheckStore } from './grammar-check-store';
@@ -46,6 +52,9 @@ export function activate(state = {}) {
       }
     }),
     AppEnv.config.onDidChange('core.composing.grammarCheckLanguage', () => {
+      requestInitialCheckForAllDrafts();
+    }),
+    AppEnv.config.onDidChange(HarperDictionary.configKey, () => {
       requestInitialCheckForAllDrafts();
     }),
   ];

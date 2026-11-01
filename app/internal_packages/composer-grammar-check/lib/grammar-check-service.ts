@@ -1,4 +1,5 @@
 import { checkWithHarper, stopHarper } from './harper-loader';
+import { HarperDictionary } from 'mailspring-exports';
 
 export interface GrammarError {
   offset: number;
@@ -53,6 +54,7 @@ export class HarperBackend {
       locale,
       enabledRules: [...this._rules('Enabled')],
       disabledRules: [...this._rules('Disabled')],
+      learnedWords: HarperDictionary.words(),
     });
   }
 }

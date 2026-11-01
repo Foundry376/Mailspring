@@ -197,7 +197,8 @@ export default {
           },
           spellcheck: {
             type: 'boolean',
-            default: true,
+            default: false,
+            advanced: true,
             title: localized('Check messages for spelling'),
           },
           grammarCheck: {
@@ -219,8 +220,15 @@ export default {
             ],
             title: localized('Harper language'),
           },
+          grammarCheckLearnedWords: {
+            type: 'array',
+            default: [],
+            items: { type: 'string' },
+            advanced: true,
+          },
           spellcheckDefaultLanguage: {
             type: 'string',
+            advanced: true,
             default: '',
             enum: [
               '',

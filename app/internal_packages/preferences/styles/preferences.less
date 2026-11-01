@@ -125,6 +125,28 @@
     max-width: 800px;
     margin: 0 auto;
 
+    .harper-dictionary {
+      textarea {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        resize: vertical;
+        padding: @padding-small-vertical @padding-small-horizontal;
+        background: @input-bg;
+        color: @text-color;
+        border: 1px solid @input-border-color;
+        border-radius: @border-radius-base;
+      }
+
+      .harper-dictionary-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: @padding-small-horizontal;
+        margin-top: @padding-base-vertical;
+      }
+    }
+
     .local-data {
       .btn {
         margin: 4px 0 0 8px;

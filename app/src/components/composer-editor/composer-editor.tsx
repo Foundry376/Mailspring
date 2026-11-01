@@ -9,7 +9,6 @@ import { InlineStyleTransformer, SanitizeTransformer } from 'mailspring-exports'
 import os from 'os';
 import path from 'path';
 import fs from 'fs';
-import { debounce } from 'underscore';
 
 import { KeyCommandsRegion } from '../key-commands-region';
 import ComposerEditorToolbar from './composer-editor-toolbar';
@@ -17,6 +16,7 @@ import { schema, plugins, convertFromHTML, convertToHTML, convertToPlainText } f
 import { lastUnquotedNode, removeQuotedText, isQuoteNode } from './base-block-plugins';
 import { UNEDITABLE_TYPE } from './uneditable-plugins';
 import { changes as InlineAttachmentChanges } from './inline-attachment-plugins';
+import { registerGrammarEditor, cleanupDraft } from './grammar-check-plugins';
 
 // Returns a reason string if the document needs recovery, or null if it's fine.
 function getDocumentBrokenReason(value: Value): string | null {
@@ -87,32 +87,12 @@ interface ComposerEditorProps {
   onUpdatedSlateEditor?: (editor: Editor | null) => void;
 }
 
-interface ComposerEditorState {
-  isTyping: boolean;
-}
-
-export class ComposerEditor extends React.Component<ComposerEditorProps, ComposerEditorState> {
+export class ComposerEditor extends React.Component<ComposerEditorProps> {
   // Public API
 
   _pluginKeyHandlers = {};
   _mounted = false;
   editor: Editor | null = null;
-  state: ComposerEditorState = { isTyping: false };
-
-  // True between compositionstart and compositionend (IME input, dead keys). The
-  // spellCheck attribute must not change while a composition is in progress:
-  // toggling it already caused swallowed keystrokes (#2578) and selection resets
-  // (#2644), and in the middle of a composition it can break the IME session.
-  // Keydowns during a composition never reach onKeyDown (Slate stops them), so
-  // without this flag the debounce below would re-enable spellcheck 800ms after
-  // the composition started, in the middle of it.
-  _isComposing = false;
-
-  _onDoneTyping = debounce(() => {
-    if (this._mounted && !this._isComposing) {
-      this.setState({ isTyping: false });
-    }
-  }, 800);
 
   constructor(props) {
     super(props);
@@ -136,6 +116,8 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
 
   componentDidMount() {
     this._mounted = true;
+    const draftId = this.props.propsForPlugins?.draft?.headerMessageId;
+    if (draftId) registerGrammarEditor(draftId, this.editor);
     this.props.onUpdatedSlateEditor && this.props.onUpdatedSlateEditor(this.editor);
 
     // This is a bit of a hack. The toolbar requires access to the Editor model,
@@ -146,6 +128,8 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
 
   componentWillUnmount() {
     this._mounted = false;
+    const draftId = this.props.propsForPlugins?.draft?.headerMessageId;
+    if (draftId) cleanupDraft(draftId);
     this.props.onUpdatedSlateEditor && this.props.onUpdatedSlateEditor(null);
 
     // We need to explicitly blur the editor so that it saves a new selection (null)
@@ -191,65 +175,6 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
     if (!this.props.value.selection.isFocused) {
       this.focus();
     }
-  };
-
-  onKeyDown = (event, editor: Editor, next: () => void) => {
-    // When the user types, disable spellcheck to avoid performance issues.
-    // After they stop typing for 800ms, re-enable it.
-    //
-    // IMPORTANT: We use requestAnimationFrame to defer the setState call because
-    // changing the spellCheck attribute on a contenteditable element synchronously
-    // during a key event can cause Chromium to lose focus or interfere with event
-    // processing, resulting in "swallowed" keystrokes (especially Enter and Backspace).
-    // By deferring to the next frame, we ensure the key event is fully processed
-    // before React re-renders and changes the spellCheck attribute.
-    //
-    // Navigation keys (Home, End, arrow keys, etc.) do not produce text and do not
-    // benefit from disabling spellcheck. More importantly, toggling spellCheck on a
-    // contenteditable causes Chromium to reset the cursor/selection, which means the
-    // first Home/End press after 800ms of inactivity would be "eaten" by the spellCheck
-    // re-render. We skip the isTyping transition for these keys to avoid that.
-    const isNavigationKey = [
-      'Home',
-      'End',
-      'ArrowLeft',
-      'ArrowRight',
-      'ArrowUp',
-      'ArrowDown',
-      'PageUp',
-      'PageDown',
-    ].includes(event.key);
-
-    // Slate stops keydowns while it is composing, so reaching this point means no
-    // composition is in progress, even if compositionend was never fired.
-    this._isComposing = false;
-
-    // The keydown that starts a composition is followed by compositionstart in
-    // the same task, so the composition is already in progress when this frame
-    // callback runs. Skip the toggle in that case.
-    if (!isNavigationKey && !this.state.isTyping) {
-      requestAnimationFrame(() => {
-        if (this._mounted && !this.state.isTyping && !this._isComposing) {
-          this.setState({ isTyping: true });
-        }
-      });
-    }
-    if (!isNavigationKey) {
-      this._onDoneTyping();
-    }
-    return next();
-  };
-
-  onCompositionStart = (_event, _editor: Editor, next: () => void) => {
-    this._isComposing = true;
-    return next();
-  };
-
-  onCompositionEnd = (_event, _editor: Editor, next: () => void) => {
-    this._isComposing = false;
-    // Re-enable spellcheck 800ms after the composition ends, if no typing follows.
-    this._onDoneTyping();
-    return next();
   };
 
   onCopy = (event, editor: Editor, next: () => void) => {
@@ -442,13 +367,10 @@ export class ComposerEditor extends React.Component<ComposerEditorProps, Compose
               if (onDrop) onDrop(e as React.DragEvent<any>);
               if (!e.isPropagationStopped()) next();
             }}
-            onKeyDown={this.onKeyDown as any}
-            onCompositionStart={this.onCompositionStart as any}
-            onCompositionEnd={this.onCompositionEnd as any}
             onCut={this.onCut as any}
             onCopy={this.onCopy as any}
             onPaste={this.onPaste as any}
-            spellCheck={!this.state.isTyping && AppEnv.config.get('core.composing.spellcheck')}
+            spellCheck={false}
             plugins={plugins as any as Plugin[]}
             propsForPlugins={propsForPlugins}
           />
