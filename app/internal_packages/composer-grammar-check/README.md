@@ -10,7 +10,8 @@ issues, including when Electron's native spellchecker is disabled.
 Harper is enabled by default; use the composer button or composing preference to
 toggle it. Harper only checks **English**. Choose American, British, Australian,
 Canadian, or Indian English under Preferences → General → Composing → Harper
-language. Changing it rechecks open drafts. American English is the default. The setting is stored as
+language. Changing it rechecks open drafts. American English is the default.
+The setting is stored as
 `core.composing.grammarCheckLanguage` (`en-US`, `en-GB`, `en-AU`, `en-CA`, or
 `en-IN`); `en` also selects American English. Automatic (`auto`) isolates English
 text, but its heuristic can skip short sentences with spelling mistakes, so it
