@@ -220,6 +220,12 @@ export default {
             ],
             title: localized('Harper language'),
           },
+          grammarCheckPreset: {
+            type: 'string',
+            default: 'recommended',
+            enum: ['essentials', 'recommended', 'everything'],
+            advanced: true,
+          },
           grammarCheckLearnedWords: {
             type: 'array',
             default: [],

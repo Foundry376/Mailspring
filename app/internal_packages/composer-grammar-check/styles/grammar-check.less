@@ -55,14 +55,16 @@
   .grammar-actions {
     border-top: 1px solid @border-color-divider;
     padding-top: 6px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
 
     .btn-dismiss {
-      font-size: 11px;
       color: @text-color-subtle;
       background: transparent;
       border: none;
       cursor: pointer;
-      padding: 2px 4px;
 
       &:hover {
         color: @text-color;

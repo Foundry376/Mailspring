@@ -419,7 +419,7 @@
   "Mailspring is syncing this thread and its attachments to the cloud. For long threads, this may take a moment.": "Mailspring is syncing this thread and its attachments to the cloud. For long threads, this may take a moment.",
   "Mailspring is unable to sync %@": "Mailspring is unable to sync %@",
   "Mailspring reset the local cache for %@ in %@ seconds. Your mailbox will now begin to sync again.": "Mailspring reset the local cache for %@ in %@ seconds. Your mailbox will now begin to sync again.",
-  "Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.": "Mailspring shows you everything about your contacts right inside your inbox. See LinkedIn profiles, Twitter bios, message history, and more.",
+  "See who is on a conversation and open your sidebar views right inside your inbox.": "See who is on a conversation and open your sidebar views right inside your inbox.",
   "Mailspring was unable to create or delete the LaunchAgent file at %@.": "Mailspring was unable to create or delete the LaunchAgent file at %@.",
   "Mailspring was unable to modify your keymaps at %@.": "Mailspring was unable to modify your keymaps at %@.",
   "Mailspring was unable to read the contents of your templates directory (%@). You may want to delete this folder or ensure filesystem permissions are set correctly.": "Mailspring was unable to read the contents of your templates directory (%@). You may want to delete this folder or ensure filesystem permissions are set correctly.",
@@ -1015,5 +1015,14 @@
   "then": "then",
   "these instructions": "these instructions",
   "threads": "threads",
-  "week": "week"
+  "week": "week",
+  "Essentials: mistakes only": "Essentials: mistakes only",
+  "Recommended: Harper defaults": "Recommended: Harper defaults",
+  "Everything: includes style suggestions": "Everything: includes style suggestions",
+  "Harper rules": "Harper rules",
+  "Could not load Harper rules.": "Could not load Harper rules.",
+  "%1$@ of %2$@ rules enabled": "%1$@ of %2$@ rules enabled",
+  "Reset %@ custom rules": "Reset %@ custom rules",
+  "Search Harper rules": "Search Harper rules",
+  "Search rules": "Search rules"
 }

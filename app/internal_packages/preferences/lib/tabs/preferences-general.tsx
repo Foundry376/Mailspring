@@ -7,6 +7,7 @@ import WorkspaceSection from './workspace-section';
 import SendingSection from './sending-section';
 import LanguageSection from './language-section';
 import HarperDictionarySection from './harper-dictionary-section';
+import HarperRulesSection from './harper-rules-section';
 import { ConfigLike, ConfigSchemaLike } from '../types';
 
 class PreferencesGeneral extends React.Component<{
@@ -94,6 +95,7 @@ class PreferencesGeneral extends React.Component<{
               keyPath="core.composing"
               config={this.props.config}
             />
+            <HarperRulesSection config={this.props.config} />
             <HarperDictionarySection config={this.props.config} />
           </div>
         </div>

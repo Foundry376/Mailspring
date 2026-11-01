@@ -444,6 +444,8 @@ export class EventedIFrame extends React.Component<
     }
     // Services menu appears here automatically
 
-    menu.popup({});
+    // Events inside the iframe report coordinates relative to it, and never reach the window.
+    const iframeRect = (ReactDOM.findDOMNode(this) as HTMLElement).getBoundingClientRect();
+    menu.popup({ x: iframeRect.left + event.clientX, y: iframeRect.top + event.clientY });
   };
 }

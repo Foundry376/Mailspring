@@ -587,6 +587,13 @@ body.platform-win32.window-type-default {
 
 // LINUX
 
+@linux-toolbar-btn-height: 23px;
+@linux-toolbar-btn-width: 40px;
+@linux-window-control-size: 20px;
+@linux-glyph-close: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 3l6 6M9 3l-6 6' stroke='black' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+@linux-glyph-minimize: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M3 6h6' stroke='black' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+@linux-glyph-maximize: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Crect x='3' y='3' width='6' height='6' rx='1' fill='none' stroke='black' stroke-width='1.5'/%3E%3C/svg%3E");
+
 body.platform-linux {
   .item-compose {
     order: -101;
@@ -623,47 +630,32 @@ body.platform-linux {
         background: fade(@text-color, 18%);
       }
     }
+
+    .btn-ghost,
+    .btn-bare {
+      height: @linux-toolbar-btn-height;
+      min-width: @linux-toolbar-btn-height;
+    }
+    .mode-toggle,
+    .agenda-toggle {
+      min-width: @linux-toolbar-btn-width;
+      margin-left: 0;
+      margin-right: 6px;
+      border-radius: 6px;
+      background: fade(@text-color, 8%);
+      &:hover,
+      &:focus-visible {
+        background: fade(@text-color, 12%);
+      }
+    }
     .button-group .btn.btn-toolbar:not(:first-child) {
       border-left: 1px solid fade(@text-color, 10%);
     }
   }
 
-  // linux gumdrops are bigger (15px) and hover states are per-button
-  // instead of for the entire set.
-  .toolbar-window-controls {
-    button {
-      width: 15px;
-      height: 15px;
-      margin: 4px;
-      background-size: 15px 60px;
-      &:hover {
-        background-position: 0 -15px;
-      }
-      &:active {
-        background-position: 0 -30px;
-      }
-    }
-    .close {
-      background-image: url('images/application-frame/close-linux.png');
-    }
-    .minimize {
-      background-image: url('images/application-frame/minimize-linux.png');
-    }
-    .maximize {
-      background-image: url('images/application-frame/maximize-linux.png');
-    }
-    &.alt-true {
-      .maximize {
-        background-image: url('images/application-frame/maximize-linux.png');
-      }
-    }
-  }
-
   &.is-blurred {
-    .toolbar-window-controls {
-      button {
-        background-position: 0 -45px;
-      }
+    .toolbar-window-controls button {
+      opacity: 0.55;
     }
 
     .sheet-toolbar-container {
@@ -674,6 +666,45 @@ body.platform-linux {
         box-shadow: none;
       }
     }
+  }
+}
+
+// Flat circular controls to match the headerbar. Glyphs are masks so they follow the theme, and
+// :where() keeps the specificity low enough for themes that draw their own controls to win.
+:where(body.platform-linux) .toolbar-window-controls {
+  width: (@linux-window-control-size + 6px) * 3;
+  min-width: (@linux-window-control-size + 6px) * 3;
+
+  button {
+    position: relative;
+    width: @linux-window-control-size;
+    height: @linux-window-control-size;
+    margin: 0 3px;
+    border-radius: 50%;
+    color: @text-color;
+    background-color: fade(@text-color, 8%);
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-color: currentColor;
+      -webkit-mask: no-repeat center / 12px 12px;
+    }
+    &:hover {
+      background-color: fade(@text-color, 14%);
+    }
+    &:active {
+      background-color: fade(@text-color, 20%);
+    }
+  }
+  .close::after {
+    -webkit-mask-image: @linux-glyph-close;
+  }
+  .minimize::after {
+    -webkit-mask-image: @linux-glyph-minimize;
+  }
+  .maximize::after {
+    -webkit-mask-image: @linux-glyph-maximize;
   }
 }
 

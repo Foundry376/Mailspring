@@ -1,5 +1,5 @@
 import { checkWithHarper, stopHarper } from './harper-loader';
-import { HarperDictionary } from 'mailspring-exports';
+import { HarperDictionary, HarperRules } from 'mailspring-exports';
 
 export interface GrammarError {
   offset: number;
@@ -26,19 +26,9 @@ export class HarperBackend {
   }
 
   addDisabledRule(ruleId: string) {
-    const rules = this._rules('Disabled');
-    rules.add(ruleId);
-    AppEnv.config.set('core.composing.grammarCheckDisabledRules', [...rules].join(','));
-  }
-
-  private _rules(kind: 'Enabled' | 'Disabled'): Set<string> {
-    const value = AppEnv.config.get(`core.composing.grammarCheck${kind}Rules`) as string;
-    return new Set(
-      (value || '')
-        .split(',')
-        .map((rule) => rule.trim())
-        .filter(Boolean)
-    );
+    const disabled = HarperRules.disabled();
+    disabled.add(ruleId);
+    AppEnv.config.set(HarperRules.disabledKey, [...disabled].join(','));
   }
 
   async check(text: string, _messageId?: string, language?: string): Promise<GrammarError[]> {
@@ -52,8 +42,9 @@ export class HarperBackend {
     return checkWithHarper({
       text,
       locale,
-      enabledRules: [...this._rules('Enabled')],
-      disabledRules: [...this._rules('Disabled')],
+      preset: HarperRules.preset(),
+      enabledRules: [...HarperRules.enabled()],
+      disabledRules: [...HarperRules.disabled()],
       learnedWords: HarperDictionary.words(),
     });
   }

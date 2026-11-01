@@ -88,6 +88,32 @@ describe('Local Harper grammar checking', () => {
     });
   });
 
+  it('applies presets, and per-rule overrides on top of them', () => {
+    waitsForPromise(async () => {
+      const ruleIds = async (text: string) =>
+        (await backend.check(text, '', 'en')).map((e) => e.ruleId);
+      const contraction = "I don't know.";
+      const wordiness = 'It is a very good idea, you know, a good idea.';
+
+      expect(await ruleIds(contraction)).not.toContain('AvoidContractions');
+
+      config['core.composing.grammarCheckPreset'] = 'everything';
+      expect(await ruleIds(contraction)).toContain('AvoidContractions');
+      expect(await ruleIds('I bought apples, pears, and plums.')).not.toContain('NoOxfordComma');
+      expect(await ruleIds('He sneaked in.')).not.toContain('PreferSnuck');
+      expect(await ruleIds('You have another thing coming.')).not.toContain('AnotherThinkComing');
+
+      config['core.composing.grammarCheckPreset'] = 'essentials';
+      const essentials = await ruleIds('I recieved the the report.');
+      expect(essentials).toContain('SpellCheck');
+      expect(essentials).toContain('RepeatedWords');
+      expect(await ruleIds(wordiness)).not.toContain('Excellent');
+
+      config['core.composing.grammarCheckDisabledRules'] = 'SpellCheck';
+      expect(await ruleIds('I recieved it.')).not.toContain('SpellCheck');
+    });
+  });
+
   it('uses auto English isolation', () => {
     waitsForPromise(async () => {
       expect(

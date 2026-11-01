@@ -1,0 +1,73 @@
+@import 'ui-variables';
+
+.styled-menu-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  -webkit-app-region: no-drag;
+}
+
+.styled-menu {
+  position: fixed;
+  box-sizing: border-box;
+  min-width: 190px;
+  max-width: 420px;
+  max-height: calc(~'100vh - 16px');
+  padding: 5px;
+  overflow-y: auto;
+  color: @text-color;
+  font-size: @font-size-small;
+  background: @background-primary;
+  border: 1px solid fade(@text-color, 12%);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.styled-menu-item {
+  display: flex;
+  align-items: center;
+  height: 28px;
+  padding: 0 8px 0 4px;
+  border-radius: 5px;
+  white-space: nowrap;
+  cursor: default;
+
+  &.active {
+    background: fade(@text-color, 10%);
+  }
+  &.disabled {
+    color: @text-color-very-subtle;
+  }
+}
+
+.styled-menu-check {
+  flex-shrink: 0;
+  width: 18px;
+  text-align: center;
+}
+
+.styled-menu-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.styled-menu-shortcut {
+  flex-shrink: 0;
+  margin-left: 24px;
+  color: @text-color-subtle;
+  font-size: @font-size-smaller;
+}
+
+.styled-menu-arrow {
+  flex-shrink: 0;
+  margin-left: 16px;
+  color: @text-color-subtle;
+}
+
+.styled-menu-separator {
+  height: 1px;
+  margin: 5px 6px;
+  background: fade(@text-color, 12%);
+}

@@ -28,19 +28,28 @@ warnings without restarting. Grammar checks remain active for learned words.
 Existing draft text is checked when the editor opens, and text edits are checked
 after an 800 ms pause.
 
-Advanced configuration uses comma-separated **Harper rule names**, not old
-LanguageTool rule IDs:
+Choose which rules run under Preferences → General → Composing → Harper rules. A
+preset sets the base rules, and `core.composing.grammarCheckPreset` stores it:
 
-- `core.composing.grammarCheckEnabledRules` turns individual rules on in addition
-  to Harper's defaults.
-- `core.composing.grammarCheckDisabledRules` turns individual rules off. The
-  context menu's ignore-rule action saves here. Disabled rules win over enabled
-  rules. Unknown names (including legacy LanguageTool IDs) are ignored.
-- `SpellCheck` is enabled by default and follows the same rule settings as other
-  checks.
+- **Essentials** (`essentials`) keeps Harper's default rules except the Style and
+  Redundancy, Word Choice and Usage, Regionalisms and Dialect, and Miscellaneous
+  groups. `SpellCheck` and `RepeatedWords` always stay on.
+- **Recommended** (`recommended`, the default) matches Harper's own defaults.
+- **Everything** (`everything`) adds the rules Harper leaves off. It skips the
+  alternatives that contradict a default rule, such as `NoOxfordComma`, because
+  running both flags a phrase whichever way it is written.
 
-Configuration is read for each check; remove a disabled name to restore its
-default behavior on subsequent edits. Checks use plain text, not Markdown.
+Rules and groups can also be switched individually. These overrides are stored as
+comma-separated **Harper rule names**, not old LanguageTool rule IDs:
+
+- `core.composing.grammarCheckEnabledRules` turns rules on in addition to the preset.
+- `core.composing.grammarCheckDisabledRules` turns rules off. **Ignore rule** in the
+  popover and context menu saves here. Disabled rules win over enabled rules. Unknown
+  names (including legacy LanguageTool IDs) are ignored.
+
+Overrides survive a preset change until they are reset, so ignored rules stay
+ignored. Turning on a rule with an opposite turns the opposite off. Changing any of
+these settings rechecks open drafts. Checks use plain text, not Markdown.
 Harper returns UTF-16 offsets matching the composer's text ranges.
 
 The native dynamic imports live in `harper-worker.js` because the TypeScript

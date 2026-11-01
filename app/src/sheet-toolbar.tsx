@@ -12,6 +12,7 @@ import * as Utils from './flux/models/utils';
 import { Disposable } from 'rx-core';
 import { isWaylandSession } from './browser/is-wayland';
 import { SheetDepthContext } from './sheet-context';
+import { StyledMenu } from './styled-menu';
 
 let Category = null;
 let FocusedPerspectiveStore = null;
@@ -182,9 +183,14 @@ class ToolbarWindowControls extends React.Component<Record<string, unknown>, { a
 class ToolbarMenuControl extends React.Component {
   static displayName = 'ToolbarMenuControl';
 
-  _onOpenMenu = () => {
+  _onOpenMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
     const { applicationMenu } = require('@electron/remote').getGlobal('application');
-    applicationMenu.menu.popup({});
+    if (process.platform !== 'linux') {
+      applicationMenu.menu.popup({});
+      return;
+    }
+    const { right, bottom } = event.currentTarget.getBoundingClientRect();
+    StyledMenu.fromRemote(applicationMenu.menu).popup({ x: right, y: bottom + 4 });
   };
 
   render() {

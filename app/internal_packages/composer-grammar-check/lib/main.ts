@@ -4,10 +4,12 @@ import {
   ComponentRegistry,
   GrammarCheckPluginAPI,
   HarperDictionary,
+  HarperRules,
 } from 'mailspring-exports';
 import { HasTutorialTip } from 'mailspring-component-kit';
 import { GrammarCheckToggle } from './grammar-check-toggle';
 import { GrammarCheckStore } from './grammar-check-store';
+import { harperRuleCatalog } from './harper-loader';
 
 const {
   setGrammarCheckStore,
@@ -34,6 +36,7 @@ export function activate(state = {}) {
 
   GrammarCheckStore.activate();
   setGrammarCheckStore(GrammarCheckStore);
+  HarperRules.registerCatalogLoader(harperRuleCatalog);
 
   this._actionDisposables = [
     Actions.sendDraft.listen((headerMessageId: string) => _onDraftClosed(headerMessageId)),
@@ -54,9 +57,9 @@ export function activate(state = {}) {
     AppEnv.config.onDidChange('core.composing.grammarCheckLanguage', () => {
       requestInitialCheckForAllDrafts();
     }),
-    AppEnv.config.onDidChange(HarperDictionary.configKey, () => {
-      requestInitialCheckForAllDrafts();
-    }),
+    ...[HarperDictionary.configKey, ...HarperRules.configKeys].map((key) =>
+      AppEnv.config.onDidChange(key, () => requestInitialCheckForAllDrafts())
+    ),
   ];
 
   ComponentRegistry.register(GrammarCheckToggleWithTip, { role: 'Composer:ActionButton' });
@@ -71,6 +74,7 @@ export function deactivate() {
 
   // Disconnect the Slate plugin so no new decorations can be applied after this point.
   clearGrammarCheckStore();
+  HarperRules.registerCatalogLoader(null);
 
   if (this._actionDisposables) {
     for (const unsub of this._actionDisposables) unsub();

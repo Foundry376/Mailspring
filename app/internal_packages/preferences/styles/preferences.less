@@ -125,6 +125,73 @@
     max-width: 800px;
     margin: 0 auto;
 
+    .harper-rules {
+      margin-bottom: @padding-large-vertical;
+
+      select {
+        display: block;
+      }
+
+      input[type='search'] {
+        box-sizing: border-box;
+      }
+
+      .harper-rules-summary {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: @padding-small-horizontal;
+        margin: @padding-base-vertical 0;
+        color: @text-color-subtle;
+      }
+
+      .harper-rules-groups {
+        max-height: 320px;
+        margin-top: @padding-base-vertical;
+        overflow-y: auto;
+        border: 1px solid @input-border-color;
+        border-radius: @border-radius-base;
+      }
+
+      details + details {
+        border-top: 1px solid @border-color-divider;
+      }
+
+      summary {
+        display: flex;
+        align-items: center;
+        gap: @padding-small-horizontal;
+        padding: @padding-small-vertical @padding-small-horizontal;
+        cursor: default;
+
+        .harper-group-label {
+          flex: 1;
+          min-width: 0;
+        }
+        .harper-group-count {
+          color: @text-color-subtle;
+          font-variant-numeric: tabular-nums;
+        }
+      }
+
+      .harper-rule {
+        display: flex;
+        align-items: flex-start;
+        gap: @padding-small-horizontal;
+        padding: @padding-small-vertical @padding-small-horizontal
+          @padding-small-vertical (@padding-small-horizontal * 2);
+
+        input[type='checkbox'] {
+          flex-shrink: 0;
+          margin: 3px 0 0 0;
+        }
+        small {
+          display: block;
+          color: @text-color-subtle;
+        }
+      }
+    }
+
     .harper-dictionary {
       textarea {
         display: block;

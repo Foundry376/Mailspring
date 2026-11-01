@@ -5,6 +5,10 @@
 import './promise-extensions';
 import './safe-shell';
 
+import { installStyledMenus } from './styled-menu';
+
+if (process.platform === 'linux') installStyledMenus();
+
 import AppEnvClass from './app-env';
 window.AppEnv = new AppEnvClass();
 AppEnv.startRootWindow();

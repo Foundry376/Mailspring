@@ -17,6 +17,7 @@ interface GrammarErrorInfo {
   replacements: string[];
   ruleId: string;
   category: string;
+  categoryName: string;
 }
 
 interface BlockCheckResult {
@@ -150,17 +151,23 @@ const pendingApplyByDraft = new Set<string>();
 function underlineColorForCategory(category: string): string {
   switch (category) {
     case 'Spelling':
-    case 'TYPOS':
+    case 'Typo':
+    case 'Repetition':
       return '#e74c3c';
-    case 'STYLE':
-    case 'REDUNDANCY':
+    case 'Style':
+    case 'Redundancy':
+    case 'Readability':
+    case 'Enhancement':
       return '#f39c12';
-    case 'GRAMMAR':
-    case 'PUNCTUATION':
-    case 'CASING':
     default:
       return '#3498db';
   }
+}
+
+// Other rules also report category 'Spelling', but flag phrases like "to loose" that a
+// dictionary entry cannot accept.
+function canLearnSpelling(ruleId: string, word: string) {
+  return ruleId === 'SpellCheck' && !!word;
 }
 
 // --- Offset-to-Slate mapping ---
@@ -282,6 +289,7 @@ function applyGrammarDecorations(editor: Editor, draftId: string) {
               replacements: error.replacements,
               ruleId: error.ruleId,
               category: error.category,
+              categoryName: error.categoryName,
               word: blockErrors.text.slice(error.offset, error.offset + error.length),
             },
           }),
@@ -347,6 +355,7 @@ function getMarkData(mark: any) {
     shortMessage: g('shortMessage') as string,
     ruleId: g('ruleId') as string,
     category: g('category') as string,
+    categoryName: g('categoryName') as string,
     word: g('word') as string,
     // Slate may store the array as an Immutable List; normalise to plain array
     replacements: (repsRaw && repsRaw.toArray ? repsRaw.toArray() : repsRaw || []) as string[],
@@ -356,7 +365,7 @@ function getMarkData(mark: any) {
 // --- Right-click context menu for a grammar error span ---
 function showGrammarContextMenu(mark: any, editor: Editor) {
   const { Menu, MenuItem } = require('@electron/remote');
-  const { message, shortMessage, ruleId, replacements, category, word } = getMarkData(mark);
+  const { message, shortMessage, ruleId, replacements, word } = getMarkData(mark);
 
   const menu = new Menu();
 
@@ -377,7 +386,7 @@ function showGrammarContextMenu(mark: any, editor: Editor) {
   }
 
   menu.append(new MenuItem({ type: 'separator' }));
-  if (category === 'Spelling' && word) {
+  if (canLearnSpelling(ruleId, word)) {
     menu.append(
       new MenuItem({
         label: localized('Learn Spelling'),
@@ -479,7 +488,7 @@ function FloatingCorrectionPopover({ editor, value }: ComposerEditorPluginTopLev
   const parentRect = parent.getBoundingClientRect();
   const targetRect = range.getBoundingClientRect();
 
-  const { message, shortMessage, replacements, ruleId, category, word } = getMarkData(
+  const { message, shortMessage, replacements, ruleId, categoryName, word } = getMarkData(
     grammarDecoration.mark
   );
 
@@ -494,7 +503,7 @@ function FloatingCorrectionPopover({ editor, value }: ComposerEditorPluginTopLev
       }}
     >
       <div className="grammar-message">
-        <strong>{shortMessage || localized('Grammar')}</strong>
+        <strong>{shortMessage || categoryName || localized('Grammar')}</strong>
         <p>{message}</p>
       </div>
       {replacements.length > 0 && (
@@ -508,13 +517,13 @@ function FloatingCorrectionPopover({ editor, value }: ComposerEditorPluginTopLev
                 applyReplacement(editor, replacement);
               }}
             >
-              {replacement}
+              {replacement || localized('Remove')}
             </button>
           ))}
         </div>
       )}
       <div className="grammar-actions">
-        {category === 'Spelling' && word && (
+        {canLearnSpelling(ruleId, word) && (
           <button
             className="btn btn-small"
             onMouseDown={(e) => e.preventDefault()}

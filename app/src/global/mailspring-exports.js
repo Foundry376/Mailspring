@@ -203,6 +203,7 @@ lazyLoad(`MenuHelpers`, 'menu-helpers');
 lazyLoad(`VirtualDOMUtils`, 'virtual-dom-utils');
 lazyLoad(`Spellchecker`, 'spellchecker');
 lazyLoadWithGetter(`HarperDictionary`, () => require('../harper-dictionary').HarperDictionary);
+lazyLoadWithGetter(`HarperRules`, () => require('../harper-rules').HarperRules);
 lazyLoad(`MessageUtils`, 'flux/models/message-utils');
 
 // Services

@@ -6,7 +6,7 @@ const pending = new Map();
 
 // A Node worker keeps WASM startup and linting off the renderer's event loop and
 // out of its document CSP. The worker only loads bundled code and an inline WASM binary.
-exports.checkWithHarper = function (request) {
+function requestFromHarper(request) {
   if (!worker) {
     // Electron renderers do not provide Node's worker platform. Construct the
     // worker in the main process via the app's existing remote bridge.
@@ -16,12 +16,12 @@ exports.checkWithHarper = function (request) {
         : require('worker_threads');
     const current = new Worker(path.join(__dirname, 'harper-worker.js'));
     worker = current;
-    worker.on('message', ({ id, errors, error }) => {
+    worker.on('message', ({ id, result, error }) => {
       const callback = pending.get(id);
       if (!callback) return;
       pending.delete(id);
       if (error) callback.reject(new Error(error));
-      else callback.resolve(errors);
+      else callback.resolve(result);
       if (pending.size === 0 && worker === current) current.unref();
     });
     const fail = (error) => {
@@ -41,7 +41,10 @@ exports.checkWithHarper = function (request) {
     worker.ref();
     worker.postMessage({ id, ...request });
   });
-};
+}
+
+exports.checkWithHarper = requestFromHarper;
+exports.harperRuleCatalog = () => requestFromHarper({ type: 'catalog' });
 
 exports.stopHarper = function () {
   const current = worker;
