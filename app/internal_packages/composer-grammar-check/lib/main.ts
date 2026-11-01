@@ -3,8 +3,13 @@ import { HasTutorialTip } from 'mailspring-component-kit';
 import { GrammarCheckToggle } from './grammar-check-toggle';
 import { GrammarCheckStore } from './grammar-check-store';
 
-const { setGrammarCheckStore, clearGrammarCheckStore, cleanupDraft, clearAllGrammarDecorations } =
-  GrammarCheckPluginAPI;
+const {
+  setGrammarCheckStore,
+  clearGrammarCheckStore,
+  cleanupDraft,
+  clearAllGrammarDecorations,
+  requestInitialCheckForAllDrafts,
+} = GrammarCheckPluginAPI;
 
 const GrammarCheckToggleWithTip = HasTutorialTip(GrammarCheckToggle, {
   title: localized('Check your grammar'),
@@ -32,14 +37,18 @@ export function activate(state = {}) {
     }),
   ];
 
-  this._configDisposable = AppEnv.config.onDidChange(
-    'core.composing.grammarCheck',
-    ({ newValue }) => {
+  this._configDisposables = [
+    AppEnv.config.onDidChange('core.composing.grammarCheck', ({ newValue }) => {
       if (!newValue) {
         clearAllGrammarDecorations();
+      } else {
+        requestInitialCheckForAllDrafts();
       }
-    }
-  );
+    }),
+    AppEnv.config.onDidChange('core.composing.grammarCheckLanguage', () => {
+      requestInitialCheckForAllDrafts();
+    }),
+  ];
 
   ComponentRegistry.register(GrammarCheckToggleWithTip, { role: 'Composer:ActionButton' });
 }
@@ -59,9 +68,9 @@ export function deactivate() {
     this._actionDisposables = null;
   }
 
-  if (this._configDisposable) {
-    this._configDisposable.dispose();
-    this._configDisposable = null;
+  if (this._configDisposables) {
+    for (const disposable of this._configDisposables) disposable.dispose();
+    this._configDisposables = null;
   }
 
   GrammarCheckStore.deactivate();

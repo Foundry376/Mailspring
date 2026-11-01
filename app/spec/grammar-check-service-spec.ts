@@ -66,14 +66,63 @@ describe('Local Harper grammar checking', () => {
     });
   });
 
-  it('uses auto English isolation and does not duplicate native spellchecking', () => {
+  it('uses auto English isolation', () => {
     waitsForPromise(async () => {
-      expect((await backend.check('This is a example.')).some((e) => e.ruleId === 'AnA')).toBe(
-        true
-      );
+      expect(
+        (await backend.check('This is a example.', '', 'auto')).some((e) => e.ruleId === 'AnA')
+      ).toBe(true);
+    });
+  });
+
+  it('reports spelling mistakes with UTF-16 ranges and correction suggestions', () => {
+    waitsForPromise(async () => {
+      const text = '😀 I recieved your message yesterday. This is a speling mistake.';
+      for (const language of [undefined, 'en-US']) {
+        const errors = await backend.check(text, '', language);
+        for (const [typo, replacement] of [
+          ['recieved', 'received'],
+          ['speling', 'spelling'],
+        ]) {
+          const error = errors.find(
+            (e) => e.category === 'Spelling' && e.offset === text.indexOf(typo)
+          );
+          expect(error).toBeDefined();
+          expect(error.ruleId).toBe('SpellCheck');
+          expect(error.issueType).toBe('misspelling');
+          expect(text.slice(error.offset, error.offset + error.length)).toBe(typo);
+          expect(error.replacements).toContain(replacement);
+        }
+      }
+    });
+  });
+
+  it('honors disabling spelling checks and restores them on subsequent checks', () => {
+    waitsForPromise(async () => {
+      const text = 'I recieved your message yesterday.';
+      backend.addDisabledRule('SpellCheck');
       config['core.composing.grammarCheckEnabledRules'] = 'SpellCheck';
-      const errors = await backend.check('The xyzzyplugh arrived.', '', 'en');
-      expect(errors.some((error) => error.category === 'Spelling')).toBe(false);
+      expect((await backend.check(text)).some((e) => e.category === 'Spelling')).toBe(false);
+      config['core.composing.grammarCheckDisabledRules'] = '';
+      config['core.composing.grammarCheckEnabledRules'] = '';
+      expect((await backend.check(text)).some((e) => e.category === 'Spelling')).toBe(true);
+    });
+  });
+
+  it('uses the configured English dialect and allows per-check overrides', () => {
+    waitsForPromise(async () => {
+      const text = 'The colour is beautiful.';
+      config['core.composing.grammarCheckLanguage'] = 'en-GB';
+      expect((await backend.check(text)).some((e) => e.category === 'Spelling')).toBe(false);
+      config['core.composing.grammarCheckLanguage'] = 'en-US';
+      const errors = await backend.check(text);
+      const spelling = errors.find((e) => e.category === 'Spelling');
+      expect(spelling).toBeDefined();
+      expect(spelling.replacements).toContain('color');
+      expect((await backend.check(text, '', 'en-GB')).some((e) => e.category === 'Spelling')).toBe(
+        false
+      );
+      config['core.composing.grammarCheckLanguage'] = 'en_GB';
+      expect((await backend.check(text)).some((e) => e.category === 'Spelling')).toBe(false);
     });
   });
 });

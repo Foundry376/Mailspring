@@ -1,5 +1,5 @@
 import React from 'react';
-import { localized, Message, DraftEditingSession, GrammarCheckPluginAPI } from 'mailspring-exports';
+import { localized, Message, DraftEditingSession } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import { GrammarCheckStore } from './grammar-check-store';
 
@@ -24,9 +24,6 @@ export class GrammarCheckToggle extends React.Component<{
     const next = !current;
 
     AppEnv.config.set('core.composing.grammarCheck', next);
-    if (next) {
-      GrammarCheckPluginAPI.requestInitialCheckForDraft(this.props.draft.headerMessageId);
-    }
   };
 
   render() {

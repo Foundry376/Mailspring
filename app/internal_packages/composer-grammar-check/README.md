@@ -4,15 +4,18 @@ The composer uses [Harper](https://writewithharper.com/), pinned to `harper.js` 
 The JavaScript package includes the grammar engine, rules, and dictionary as WASM.
 The loader imports the package's `binaryInlined` entry point: its data URL is local,
 not a CDN or model download. No draft text, message ID, identity, or subscription
-is sent to a service. Electron's native spellchecker still handles spelling.
+is sent to a service. Harper reports spelling issues alongside grammar and style
+issues, including when Electron's native spellchecker is disabled.
 
-Enable grammar checking using the existing composer button or the composing
-preference. Harper only checks **English**. The legacy
-`core.composing.grammarCheckLanguage` setting accepts `auto` (the default: isolate
-English text), `en`, and English locale codes. American English is the default;
-`en-GB`, `en-AU`, `en-CA`, and `en-IN` select Harper's other dialects. An explicit
-non-English language returns no grammar results; `auto` is not multilingual
-grammar checking, and its English detection is heuristic.
+Harper is enabled by default; use the composer button or composing preference to
+toggle it. Harper only checks **English**. Choose American, British, Australian,
+Canadian, or Indian English under Preferences → General → Composing → Harper
+language. Changing it rechecks open drafts. American English is the default. The setting is stored as
+`core.composing.grammarCheckLanguage` (`en-US`, `en-GB`, `en-AU`, `en-CA`, or
+`en-IN`); `en` also selects American English. Automatic (`auto`) isolates English
+text, but its heuristic can skip short sentences with spelling mistakes, so it
+is optional. An explicit non-English language returns no grammar results;
+`auto` is not multilingual grammar checking.
 
 Advanced configuration uses comma-separated **Harper rule names**, not old
 LanguageTool rule IDs:
@@ -22,8 +25,8 @@ LanguageTool rule IDs:
 - `core.composing.grammarCheckDisabledRules` turns individual rules off. The
   context menu's ignore-rule action saves here. Disabled rules win over enabled
   rules. Unknown names (including legacy LanguageTool IDs) are ignored.
-- `SpellCheck` stays off regardless of these settings, to avoid duplicating the
-  native spellchecker.
+- `SpellCheck` is enabled by default and follows the same rule settings as other
+  checks.
 
 Configuration is read for each check; remove a disabled name to restore its
 default behavior on subsequent edits. Checks use plain text, not Markdown.

@@ -121,6 +121,11 @@ export function requestInitialCheckForDraft(draftId: string) {
   _scheduleCheck(draftId, editor, 300);
 }
 
+export function requestInitialCheckForAllDrafts() {
+  if (!grammarCheckStore?.isEnabled()) return;
+  latestEditorByDraft.forEach((_editor, draftId) => requestInitialCheckForDraft(draftId));
+}
+
 // --- IME composition tracking ---
 const composingWeakmap = new WeakMap<object, number>();
 
@@ -135,6 +140,7 @@ const pendingApplyByDraft = new Set<string>();
 // --- Category to underline color mapping ---
 function underlineColorForCategory(category: string): string {
   switch (category) {
+    case 'Spelling':
     case 'TYPOS':
       return '#e74c3c';
     case 'STYLE':
@@ -589,6 +595,7 @@ export const GrammarCheckPluginAPI = {
   cleanupDraft,
   clearAllGrammarDecorations,
   requestInitialCheckForDraft,
+  requestInitialCheckForAllDrafts,
 };
 
 // --- Export Slate plugin array ---

@@ -202,8 +202,22 @@ export default {
           },
           grammarCheck: {
             type: 'boolean',
-            default: false,
-            title: localized('Check messages for grammar'),
+            default: true,
+            title: localized('Check English spelling and grammar with Harper'),
+          },
+          grammarCheckLanguage: {
+            type: 'string',
+            default: 'en-US',
+            enum: ['en-US', 'en-GB', 'en-AU', 'en-CA', 'en-IN', 'auto'],
+            enumLabels: [
+              localized('American English'),
+              localized('British English'),
+              localized('Australian English'),
+              localized('Canadian English'),
+              localized('Indian English'),
+              localized('Automatic (English only)'),
+            ],
+            title: localized('Harper language'),
           },
           spellcheckDefaultLanguage: {
             type: 'string',

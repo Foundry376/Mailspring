@@ -28,8 +28,6 @@ async function check({ text, locale, enabledRules, disabledRules }) {
   for (const rule of disabledRules) {
     if (Object.prototype.hasOwnProperty.call(config, rule)) config[rule] = false;
   }
-  // Electron's native spellchecker owns spelling; Harper owns grammar and style.
-  config.SpellCheck = false;
   await linter.setLintConfig(config);
   const descriptions = await linter.getLintDescriptions();
   const groups = await linter.organizedLints(text, {
@@ -41,7 +39,6 @@ async function check({ text, locale, enabledRules, disabledRules }) {
     for (const lint of lints) {
       try {
         const category = lint.lint_kind();
-        if (category === 'Spelling') continue;
         const span = lint.span();
         const offset = span.start;
         const length = span.end - span.start;
@@ -66,7 +63,7 @@ async function check({ text, locale, enabledRules, disabledRules }) {
           ruleDescription: descriptions[ruleId] || ruleId,
           category,
           categoryName: lint.lint_kind_pretty(),
-          issueType: 'grammar',
+          issueType: category === 'Spelling' ? 'misspelling' : 'grammar',
           sentence: text,
           contextText: text,
           contextOffset: offset,

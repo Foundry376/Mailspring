@@ -42,7 +42,7 @@ export class HarperBackend {
 
   async check(text: string, _messageId?: string, language?: string): Promise<GrammarError[]> {
     const requestedLanguage =
-      language || (AppEnv.config.get('core.composing.grammarCheckLanguage') as string) || 'auto';
+      language || (AppEnv.config.get('core.composing.grammarCheckLanguage') as string) || 'en-US';
     const locale = requestedLanguage.toLowerCase().replace('_', '-');
     // "auto" means English detection, not multilingual grammar checking.
     if (locale !== 'auto' && locale !== 'en' && !locale.startsWith('en-')) return [];
