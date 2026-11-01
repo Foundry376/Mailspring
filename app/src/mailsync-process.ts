@@ -215,10 +215,6 @@ export class MailsyncProcess extends EventEmitter {
       GMAIL_CLIENT_SECRET: GMAIL_CLIENT_SECRET,
       IDENTITY_SERVER: 'unknown',
     });
-    if (process.type === 'renderer') {
-      const rootURLForServer = require('./flux/mailspring-api-request').rootURLForServer;
-      env.IDENTITY_SERVER = rootURLForServer('identity');
-    }
 
     const args = [`--mode`, mode];
     if (this.verbose) {
@@ -243,7 +239,7 @@ export class MailsyncProcess extends EventEmitter {
     if (this.account && this._proc.stdout) {
       this._proc.stdout.once('data', () => {
         const rs = new Readable();
-        rs.push(`${JSON.stringify(this.account)}\n${JSON.stringify(this.identity)}\n`);
+        rs.push(`${JSON.stringify(this.account)}\nnull\n`);
         rs.push(null);
         rs.pipe(this._proc.stdin, { end: false });
       });
@@ -362,18 +358,6 @@ export class MailsyncProcess extends EventEmitter {
             // failures.
             (error as any).isUserError =
               isRecognizedMailsyncError && !AMBIGUOUS_MAILSYNC_ERRORS.has(response.error);
-            // Every classified error thrown here shares this one call site, so
-            // without an explicit fingerprint Sentry's stack-based grouping
-            // collapses unrelated failures (bad credentials, TLS errors, unknown
-            // mailsync error codes, etc.) into a single unactionable issue keyed
-            // off whichever message happened to report first. Group by the raw
-            // mailsync error code instead, which is what actually distinguishes
-            // one failure mode from another (see error-logger-extensions/sentry-error-reporter.js).
-            (error as any).fingerprint = [
-              'mailsync-classified-error',
-              response.error || 'unrecognized',
-              response.error_service || 'none',
-            ];
             return reject(error);
           }
         } catch (err) {

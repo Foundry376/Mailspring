@@ -3,67 +3,13 @@ import querystring from 'querystring';
 
 // Static components
 
-const FB_SHARE = (
-  <img
-    src="https://www.getmailspring.com/signature-assets/fb.gif"
-    width="13"
-    height="13"
-    alt="Facebook"
-  />
-);
-
-const MEDIUM_SHARE = (
-  <img
-    src="https://www.getmailspring.com/signature-assets/medium.gif"
-    width="13"
-    height="13"
-    alt="Medium"
-  />
-);
-
-const GITHUB_SHARE = (
-  <img
-    src="https://www.getmailspring.com/signature-assets/github.gif"
-    width="13"
-    height="13"
-    alt="Github"
-  />
-);
-
-const YOUTUBE_SHARE = (
-  <img
-    src="https://www.getmailspring.com/signature-assets/youtube.gif"
-    width="13"
-    height="13"
-    alt="YouTube"
-  />
-);
-
-const TWITTER_SHARE = (
-  <img
-    src="https://www.getmailspring.com/signature-assets/twitter.gif"
-    width="13"
-    height="13"
-    alt="Twitter"
-  />
-);
-const LINKEDIN_SHARE = (
-  <img
-    src="https://www.getmailspring.com/signature-assets/linkedin.gif"
-    width="13"
-    height="13"
-    alt="LinkedIn"
-  />
-);
-
-const INSTAGRAM_SHARE = (
-  <img
-    src="https://www.getmailspring.com/signature-assets/instagram.gif"
-    width="13"
-    height="13"
-    alt="Instagram"
-  />
-);
+const FB_SHARE = 'Facebook';
+const MEDIUM_SHARE = 'Medium';
+const GITHUB_SHARE = 'GitHub';
+const YOUTUBE_SHARE = 'YouTube';
+const TWITTER_SHARE = 'Twitter';
+const LINKEDIN_SHARE = 'LinkedIn';
+const INSTAGRAM_SHARE = 'Instagram';
 
 function widthAndHeightForPhotoURL(
   photoURL,

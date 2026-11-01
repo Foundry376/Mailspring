@@ -5,12 +5,10 @@ import { ViewPageRoot, ViewsRoot } from './views-root';
 import { createSidebarViewComponent } from './sidebar-view';
 import { ViewsNavRailSection } from './nav/views-nav-rail';
 import { PinViewButton } from './nav/pin-view-button';
-import { ShareViewButton, registerInstallLinks, unregisterInstallLinks } from './sharing';
 import { startTrackingBadges, stopTrackingBadges } from './nav/badges';
 import { reloadMountedView, hostsFor } from './authoring/hosts';
 import { watchViewFolders } from './authoring/watcher';
 import { ViewAuthoring } from './authoring';
-import { registerAuthoringPanel, unregisterAuthoringPanel } from './authoring-panel';
 import { captureThumbnailsOnRender } from './home/thumbnails';
 
 let sidebarComponents = [];
@@ -101,11 +99,6 @@ export function activate() {
   ComponentRegistry.register(PinViewButton, {
     location: WorkspaceStore.Location.ViewPageContent.Toolbar,
   });
-  ComponentRegistry.register(ShareViewButton, {
-    location: WorkspaceStore.Location.ViewPageContent.Toolbar,
-  });
-  registerInstallLinks();
-  registerAuthoringPanel();
   ComponentRegistry.register(ViewsNavRailSection, { role: 'NavRail:Section' });
   stopThumbnails = captureThumbnailsOnRender();
 
@@ -140,7 +133,4 @@ export function deactivate() {
   ComponentRegistry.unregister(ViewsRoot);
   ComponentRegistry.unregister(ViewPageRoot);
   ComponentRegistry.unregister(PinViewButton);
-  ComponentRegistry.unregister(ShareViewButton);
-  unregisterInstallLinks();
-  unregisterAuthoringPanel();
 }

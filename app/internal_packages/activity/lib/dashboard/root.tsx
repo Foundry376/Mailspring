@@ -16,13 +16,11 @@ import {
   MetricEmptyNote,
   MetricGraph,
   MetricsBySubjectTable,
-  MetricsByLinkTable,
   MetricBuckets,
   MetricBucket,
 } from './metrics-components';
 
-import ShareButton from './share-button';
-import { LINK_TRACKING_ID, OPEN_TRACKING_ID } from '../plugin-helpers';
+import { OPEN_TRACKING_ID } from '../plugin-helpers';
 import { exportCsv } from '../csv-export';
 import { forEachMessageIn } from '../message-scan';
 import LoadingCover from './loading-cover';
@@ -118,20 +116,6 @@ function hourLabels() {
   );
 }
 
-/** A message that links to the same URL twice still counts once toward that link's send total. */
-function dedupeLinksByUrl(links: { url: string; click_count: number }[]) {
-  const byUrl = new Map<string, { url: string; click_count: number }>();
-  for (const link of links) {
-    const existing = byUrl.get(link.url);
-    if (existing) {
-      existing.click_count += link.click_count || 0;
-    } else {
-      byUrl.set(link.url, { url: link.url, click_count: link.click_count || 0 });
-    }
-  }
-  return Array.from(byUrl.values());
-}
-
 /**
  * Accumulated while scanning a thread's messages oldest-first. `outbound`
  * threads are ones you started; the reply fields on them describe the other
@@ -143,7 +127,6 @@ interface ThreadStatEntry {
   tracked: boolean;
   hasReply: boolean;
   opened: boolean;
-  clicked: boolean;
   /** Unix seconds of the first message seen; for outbound threads, when you sent it. */
   startedAt: number;
   /** Seconds from your first message to the first reply, for outbound threads. */
@@ -161,7 +144,6 @@ function newThreadStat(outbound: boolean, subject: string, startedAt: number): T
     tracked: false,
     hasReply: false,
     opened: false,
-    clicked: false,
     receivedAny: false,
     youReplied: false,
   };
@@ -171,17 +153,7 @@ export interface SubjectStatsEntry {
   subject: string;
   count: number;
   opens: number;
-  clicks: number;
   replies: number;
-}
-
-export interface LinkStatsEntry {
-  url: string;
-  /** Sent messages containing the link. */
-  count: number;
-  /** Sent messages in which the link was clicked at least once. */
-  messagesClicked: number;
-  clicks: number;
 }
 
 /** A rate and the counts behind it, e.g. 84 of 100 tracked messages opened. */
@@ -197,9 +169,7 @@ interface DelayMetric {
 
 interface RootState {
   loading: boolean;
-  version: number;
   metricsBySubjectLine: SubjectStatsEntry[];
-  metricsByLink: LinkStatsEntry[];
   firstOpenBuckets: MetricBucket[];
   openRateByHour: MetricBucket[];
   openRateByWeekday: MetricBucket[];
@@ -210,8 +180,6 @@ interface RootState {
     percentUsingTracking: number;
     opened: RateMetric;
     openedByDay: (number | null)[];
-    linkClicked: RateMetric;
-    linkClickedByDay: (number | null)[];
     replied: RateMetric;
     repliedByDay: (number | null)[];
     /** Inbound threads you answered, and how quickly. */
@@ -257,7 +225,6 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
 
   getLoadingState({ timespan }: RootProps): RootState {
     return {
-      version: 0,
       loading: true,
       metrics: {
         receivedByDay: Array(timespan.days).fill(0),
@@ -266,8 +233,6 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
         percentUsingTracking: 0,
         opened: { hits: 0, total: 0 },
         openedByDay: Array(timespan.days).fill(null),
-        linkClicked: { hits: 0, total: 0 },
-        linkClickedByDay: Array(timespan.days).fill(null),
         replied: { hits: 0, total: 0 },
         repliedByDay: Array(timespan.days).fill(null),
         youReplied: { hits: 0, total: 0 },
@@ -275,7 +240,6 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
         theirResponseTime: { buckets: [] },
       },
       metricsBySubjectLine: [],
-      metricsByLink: [],
       firstOpenBuckets: [],
       openRateByHour: [],
       openRateByWeekday: [],
@@ -320,12 +284,8 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
     const openTracking = { hits: 0, total: 0 };
     const openTrackedByDay = zerosByDay();
     const openedByDay = zerosByDay();
-    const linkTracking = { hits: 0, total: 0 };
-    const linkTrackedByDay = zerosByDay();
-    const linkClickedByDay = zerosByDay();
     const threadStats = new Map<string, ThreadStatEntry>();
     const threadStartDay = new Map<string, number>();
-    const byLink: { [url: string]: LinkStatsEntry } = {};
     const firstOpenDelaysAll: number[] = [];
     const yourReplyDelays: number[] = [];
     const trackedByHour = Array(24).fill(0);
@@ -403,30 +363,6 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
           firstOpenDelaysAll.push(...firstOpenDelays(message, openM.open_data || []));
         }
       }
-      const linkM = message.metadataForPluginId(LINK_TRACKING_ID);
-      if (linkM && linkM.tracked && linkM.links instanceof Array) {
-        stats.tracked = true;
-        linkTracking.total += 1;
-        linkTrackedByDay[dayIdx] += 1;
-        if (linkM.links.some((l) => l.click_count > 0)) {
-          stats.clicked = true;
-          linkTracking.hits += 1;
-          linkClickedByDay[dayIdx] += 1;
-        }
-        for (const link of dedupeLinksByUrl(linkM.links)) {
-          byLink[link.url] = byLink[link.url] || {
-            url: link.url,
-            count: 0,
-            messagesClicked: 0,
-            clicks: 0,
-          };
-          byLink[link.url].count += 1;
-          byLink[link.url].clicks += link.click_count || 0;
-          if (link.click_count > 0) {
-            byLink[link.url].messagesClicked += 1;
-          }
-        }
-      }
     };
     await forEachMessageIn(accountIds, startUnix, endUnix, tallyMessage, isStale);
     if (isStale()) {
@@ -465,13 +401,11 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
         subject,
         count: 0,
         opens: 0,
-        clicks: 0,
         replies: 0,
       });
       entry.count += 1;
       entry.replies += stats.hasReply ? 1 : 0;
       entry.opens += stats.opened ? 1 : 0;
-      entry.clicks += stats.clicked ? 1 : 0;
     }
 
     const rate = (hits: number, count: number) => hits / count;
@@ -484,11 +418,6 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
           b.count - a.count
       );
 
-    const byLinkSorted = Object.values(byLink).sort(
-      (a, b) =>
-        rate(b.messagesClicked, b.count) - rate(a.messagesClicked, a.count) || b.clicks - a.clicks
-    );
-
     // Hold the loading state long enough that the reveal reads as deliberate
     // rather than flickering on fast scans.
     const animationDelay = Math.max(0, metricsComputeStarted + MINIMUM_THINKING_TIME - Date.now());
@@ -500,9 +429,7 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
       const replyCount = (n: number) => localized('%@ replies', n);
       this.setState({
         loading: false,
-        version: this.state.version + 1,
         metricsBySubjectLine: bySubjectSorted,
-        metricsByLink: byLinkSorted,
         firstOpenBuckets: delayBuckets(firstOpenDelaysAll, (n) => localized('%@ first opens', n)),
         openRateByHour: rateBuckets(hourLabels(), trackedByHour, openedByHour),
         openRateByWeekday: rateBuckets(weekdayLabels(), trackedByWeekday, openedByWeekday),
@@ -512,13 +439,9 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
             localized('%@ messages', n)
           ),
           sentByDay,
-          percentUsingTracking: Math.round(
-            (Math.max(openTracking.total, linkTracking.total) / (sentTotal || 1)) * 100
-          ),
+          percentUsingTracking: Math.round((openTracking.total / (sentTotal || 1)) * 100),
           opened: openTracking,
           openedByDay: rateByDay(openedByDay, openTrackedByDay),
-          linkClicked: linkTracking,
-          linkClickedByDay: rateByDay(linkClickedByDay, linkTrackedByDay),
           replied,
           repliedByDay: rateByDay(repliedByDay, startedByDay),
           youReplied,
@@ -547,25 +470,18 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
 
     exportCsv(
       'report.csv',
-      ['Sent', 'From', 'To', 'Cc', 'Bcc', 'Date', 'Subject', 'Opens', 'Clicks'],
+      ['Sent', 'From', 'To', 'Cc', 'Bcc', 'Date', 'Subject', 'Opens'],
       (write) =>
         this._forEachMessageIn(accountIds, startDate.unix(), endDate.unix(), (message) => {
           let sent = 'false';
           let opens: string | number = '';
-          let clicks: string | number = '';
 
           if (message.isFromMe()) {
             sent = 'true';
             opens = 'off';
-            clicks = 'off';
             const openM = message.metadataForPluginId(OPEN_TRACKING_ID);
             if (openM) {
               opens = openM.open_count;
-            }
-
-            const linkM = message.metadataForPluginId(LINK_TRACKING_ID);
-            if (linkM && linkM.tracked && linkM.links instanceof Array) {
-              clicks = linkM.links.reduce((s, l) => s + l.click_count, 0);
             }
           }
 
@@ -578,7 +494,6 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
             message.date,
             message.subject,
             opens,
-            clicks,
           ]);
         })
     );
@@ -592,11 +507,9 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
     const {
       metrics,
       metricsBySubjectLine,
-      metricsByLink,
       firstOpenBuckets,
       openRateByHour,
       openRateByWeekday,
-      version,
       loading,
     } = this.state;
     const { timespan } = this.props;
@@ -672,24 +585,12 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
           </MetricCard>
         </div>
 
-        <h3 className="section-title">{localized('Read Receipts and Link Tracking')}</h3>
+        <h3 className="section-title">{localized('Historical Read Receipts')}</h3>
         {lowTrackingUsage && (
           <div className="usage-note">
             {localizedReactFragment(
-              `These features were %@ of the messages you sent
-            in this time period, so these numbers do not reflect all of your activity. To enable
-            read receipts and link tracking on emails you send, click the %@ or link tracking %@ icons in the composer.`,
-              lowTrackingPhrase,
-              <RetinaImg
-                name="icon-activity-mailopen.png"
-                className="hidden-on-web"
-                mode={RetinaImg.Mode.ContentDark}
-              />,
-              <RetinaImg
-                name="icon-activity-linkopen.png"
-                className="hidden-on-web"
-                mode={RetinaImg.Mode.ContentDark}
-              />
+              'Read receipts were %@ of the messages you sent in this time period. These historical numbers do not reflect all of your activity. New messages are not tracked.',
+              lowTrackingPhrase
             )}
           </div>
         )}
@@ -706,22 +607,6 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
             <MetricGraph
               loading={loading}
               values={metrics.openedByDay}
-              left={axisLeft}
-              right={axisRight}
-            />
-          </MetricCard>
-          <MetricCard
-            title={localized('Link Click Rate')}
-            value={`${percentOf(metrics.linkClicked)}%`}
-            detail={localized(
-              '%@ of %@ tracked messages had a link clicked',
-              count(metrics.linkClicked.hits),
-              count(metrics.linkClicked.total)
-            )}
-          >
-            <MetricGraph
-              loading={loading}
-              values={metrics.linkClickedByDay}
               left={axisLeft}
               right={axisRight}
             />
@@ -771,29 +656,13 @@ export default class ActivityReports extends React.Component<RootProps, RootStat
           </MetricCard>
         </div>
 
-        <h3 className="section-title">{localized('Best Links')}</h3>
-        <div className="metric-grid">
-          <MetricCard title={localized('Links with the Highest Click Rate')} full>
-            {metricsByLink.length === 0 ? (
-              <MetricEmptyNote>
-                {localized(
-                  'Send messages with link tracking enabled to see which links recipients click most.'
-                )}
-              </MetricEmptyNote>
-            ) : (
-              <MetricsByLinkTable data={metricsByLink} />
-            )}
-          </MetricCard>
-        </div>
-
-        <div className="report-actions hidden-on-web">
+        <div className="report-actions">
           <div className="btn" onClick={this._onLearnMore}>
             {localized('Learn More')}
           </div>
           <div className="btn" onClick={this._onExport}>
             {localized('Export Raw Data')}
           </div>
-          <ShareButton key={version} />
         </div>
       </div>
     );

@@ -2,9 +2,7 @@ import React from 'react';
 import path from 'path';
 import fs from 'fs';
 import { RetinaImg, Flexbox, ConfigPropContainer } from 'mailspring-component-kit';
-import { localized, AccountStore, IdentityStore, Account } from 'mailspring-exports';
-import * as OnboardingActions from './onboarding-actions';
-import NewsletterSignup from './newsletter-signup';
+import { localized, AccountStore, Account } from 'mailspring-exports';
 
 // NOTE: Temporarily copied from preferences module
 class AppearanceModeOption extends React.Component<{
@@ -139,12 +137,6 @@ class InitialPreferencesOptions extends React.Component<
               </option>
             ))}
           </select>
-          <div style={{ paddingTop: 20 }}>
-            <NewsletterSignup
-              emailAddress={this.props.account.emailAddress}
-              name={this.props.account.name}
-            />
-          </div>
         </div>
       </div>
     );
@@ -197,11 +189,7 @@ class InitialPreferencesPage extends React.Component<
   }
 
   _onFinished = () => {
-    if (IdentityStore.hasProFeatures()) {
-      require('electron').ipcRenderer.send('account-setup-successful');
-    } else {
-      OnboardingActions.moveToPage('initial-subscription');
-    }
+    require('electron').ipcRenderer.send('account-setup-successful');
   };
 }
 

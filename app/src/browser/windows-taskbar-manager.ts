@@ -1,5 +1,6 @@
 import { app, ipcMain, nativeImage, NativeImage } from 'electron';
 import { localized } from '../intl';
+import pkg from '../utils/package';
 import Application from './application';
 import { onFromMailspringWindows } from './trusted-ipc';
 
@@ -47,7 +48,7 @@ class WindowsTaskbarManager {
               title: localized('Inbox'),
               description: localized('Open your inbox'),
               program: process.execPath,
-              args: 'mailspring://open-inbox',
+              args: `${pkg.name}://open-inbox`,
               iconPath: process.execPath,
               iconIndex: 0,
             },
@@ -59,7 +60,7 @@ class WindowsTaskbarManager {
               title: localized('Preferences'),
               description: localized('Open Mailspring preferences'),
               program: process.execPath,
-              args: 'mailspring://open-preferences',
+              args: `${pkg.name}://open-preferences`,
               iconPath: process.execPath,
               iconIndex: 0,
             },

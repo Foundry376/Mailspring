@@ -23,7 +23,7 @@ export default class AccountSelector extends React.Component<{
 
     return (
       <DropdownMenu
-        className="account-selector hidden-on-web"
+        className="account-selector"
         attachment={DropdownMenu.Attachment.RightEdge}
         intitialSelectionItem={options[itemIdx]}
         defaultSelectedIndex={itemIdx}

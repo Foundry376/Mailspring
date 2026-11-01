@@ -54,6 +54,9 @@ class PreferencesGeneral extends React.Component<{
   };
 
   render() {
+    const { enabledForRepeatedTrackingEvents: _tracking, ...notificationProperties } =
+      this.props.configSchema.properties.notifications.properties;
+
     return (
       <div className="container-general">
         <div className="two-columns-flexbox">
@@ -96,7 +99,10 @@ class PreferencesGeneral extends React.Component<{
         <div className="two-columns-flexbox" style={{ paddingTop: 30 }}>
           <div style={{ flex: 1 }}>
             <ConfigSchemaItem
-              configSchema={this.props.configSchema.properties.notifications}
+              configSchema={{
+                ...this.props.configSchema.properties.notifications,
+                properties: notificationProperties,
+              }}
               keyName={localized('Notifications')}
               keyPath="core.notifications"
               config={this.props.config}

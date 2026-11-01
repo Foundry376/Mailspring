@@ -1,6 +1,6 @@
 import React from 'react';
 import { RetinaImg } from 'mailspring-component-kit';
-import { localizedReactFragment } from 'mailspring-exports';
+import { localized } from 'mailspring-exports';
 
 const ActivityListEmptyState = function ActivityListEmptyState() {
   return (
@@ -10,13 +10,7 @@ const ActivityListEmptyState = function ActivityListEmptyState() {
         name="activity-list-empty.png"
         mode={RetinaImg.Mode.ContentIsMask}
       />
-      <div className="text">
-        {localizedReactFragment(
-          'Enable read receipts %@ or link tracking %@ to see notifications here.',
-          <RetinaImg name="icon-activity-mailopen.png" mode={RetinaImg.Mode.ContentDark} />,
-          <RetinaImg name="icon-activity-linkopen.png" mode={RetinaImg.Mode.ContentDark} />
-        )}
-      </div>
+      <div className="text">{localized('No historical read receipt activity.')}</div>
     </div>
   );
 };

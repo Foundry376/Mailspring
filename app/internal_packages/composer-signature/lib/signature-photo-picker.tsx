@@ -1,6 +1,7 @@
 import React from 'react';
 import { webUtils } from 'electron';
-import { localized, MailspringAPIRequest, IdentityStore, Utils } from 'mailspring-exports';
+import { pathToFileURL } from 'url';
+import { localized } from 'mailspring-exports';
 import { RetinaImg, DropZone } from 'mailspring-component-kit';
 
 const MAX_IMAGE_RES = 250;
@@ -63,9 +64,8 @@ export default class SignaturePhotoPicker extends React.Component<
       return;
     }
 
-    // attach the image to the DOM and resize it to be no more than 300px x 300px,
-    // then save it as a data URL
     const img = new Image();
+    img.onerror = () => AppEnv.showErrorDialog(localized('Unable to read this image.'));
     img.onload = () => {
       let scale = Math.min(MAX_IMAGE_RES / img.width, MAX_IMAGE_RES / img.height, 1);
       const scaleDesired = scale;
@@ -98,71 +98,45 @@ export default class SignaturePhotoPicker extends React.Component<
       // png, gif, svg stay in PNG format, everything else gets converted to
       // a JPG with lossy compression
       if (ext === 'png' || ext === 'gif' || ext === 'svg') {
-        source.toBlob(
-          (blob) => this._onChooseImageBlob(blob, source.width, source.height),
-          'image/png'
-        );
+        source.toBlob((blob) => this._onChooseImageBlob(blob), 'image/png');
       } else {
-        source.toBlob(
-          (blob) => this._onChooseImageBlob(blob, source.width, source.height),
-          'image/jpg',
-          0.65
-        );
+        source.toBlob((blob) => this._onChooseImageBlob(blob), 'image/jpeg', 0.65);
       }
     };
-    img.src = `file://${filepath}`;
+    img.src = pathToFileURL(filepath).href;
   };
 
-  _onChooseImageBlob = async (blob: Blob, width: number, height: number) => {
+  _onChooseImageBlob = async (blob: Blob) => {
     this.setState({ isUploading: true });
-
-    const ext = { 'image/jpg': 'jpg', 'image/png': 'png' }[blob.type];
-
-    // The server stores assets at `{identityId}/{filename}` and the public URL encodes
-    // that key, so re-using a filename overwrites the previous upload in place — which
-    // rewrites the image in every already-sent email and, for teams sharing one
-    // Mailspring ID, clobbers other people's uploads (every fresh install's default
-    // signature has the id `initial`). Each upload gets a unique name instead.
-    const filename = `sig-${this.props.id}-${Utils.generateTempId().replace('local-', '')}.${ext}`;
-    let link = null;
-
     try {
-      link = await MailspringAPIRequest.postStaticAsset({ filename, blob });
+      const value = await new Promise<string>((resolve, reject) => {
+        if (!blob) {
+          reject(new Error('Unable to encode image'));
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+      });
+      if (this._isMounted) {
+        this.props.onChange({ target: { value, id: 'photoURL' } });
+      }
     } catch (err) {
-      AppEnv.showErrorDialog(
-        localized(
-          `Sorry, we couldn't save your signature image to Mailspring's servers. Please try again.\n\n(%@)`,
-          err.toString()
-        )
-      );
-      return;
+      AppEnv.showErrorDialog(localized('Unable to read this image.'));
+    } finally {
+      if (this._isMounted) this.setState({ isUploading: false });
     }
-    if (!this._isMounted) return;
-    this.setState({ isUploading: false });
-
-    this.props.onChange({
-      target: { value: `${link}?t=${Date.now()}&msw=${width}&msh=${height}`, id: 'photoURL' },
-    });
   };
 
   render() {
-    const { data, resolvedURL } = this.props;
+    const { resolvedURL } = this.props;
     const { isDropping, isUploading } = this.state;
-
-    let source = data.photoURL || '';
-    if (!['gravatar', 'company', ''].includes(source)) {
-      source = 'custom';
-    }
-
-    // we don't display the <input> for data URLs because they can be
-    // long and the UI becomes slow.
-    const isMailspringURL = resolvedURL && resolvedURL.includes('getmailspring.com');
-    const isUploadEnabled = IdentityStore.identity() !== null;
 
     const dropNote =
       resolvedURL && resolvedURL !== ''
         ? localized('Click to replace')
-        : localized('Click to upload');
+        : localized('Choose an image from your computer');
 
     const emptyPlaceholderURL =
       ' data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFoAAABaCAMAAAAPdrEwAAAAWlBMVEUAAACZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmb09q6AAAAHXRSTlMA5joH1zxJ+yUtA6pxM5hkFrVPRkDvV7+3toqIfkj9t0gAAADfSURBVFjD7dXLbsMgEIXhAZOAMfie9Hre/zXrRqVS7cgbz6KJziexmcUvhJBGiIiIiIjoGZg9cgj2HE2n+bw2zdN5TsfTtWxVy6mPp62s5RfX9GLV0lGK3gFo9NKhqcrohIWp1B6kQ1tGwQNwMSul4wB0ZZaAy6jyIOWm3pZhHoOopT+xcL38UktHh29D1E9PHjfvt7+SNdMtflxlNHiLeunelLRpPYBOL33FX5egln7FyqCVDh5rnVL6Axu+1khnadyGaTXStVT3aKyCZE/32AT847W7Q4iIiIiI6PF9AVm2Jjrl81jZAAAAAElFTkSuQmCC';
@@ -171,69 +145,44 @@ export default class SignaturePhotoPicker extends React.Component<
       <div className="field photo-picker">
         <label htmlFor="photoURL">Picture</label>
         <div style={{ display: 'flex' }}>
-          {isUploadEnabled && (
-            <div>
-              <DropZone
-                onClick={this._onChooseImage}
-                onDragStateChange={({ isDropping }) => this.setState({ isDropping })}
-                onDrop={(e) =>
-                  this._onChooseImageFilePath(webUtils.getPathForFile(e.dataTransfer.files[0]))
-                }
-                shouldAcceptDrop={(e) => (e as any).dataTransfer.types.includes('Files')}
-                style={{
-                  backgroundImage: !isUploading && `url(${resolvedURL || emptyPlaceholderURL})`,
-                }}
-                className={`photo-well ${isDropping && 'dropping'}`}
-              >
-                {isUploading && (
-                  <RetinaImg
-                    style={{ width: 14, height: 14 }}
-                    name="inline-loading-spinner.gif"
-                    mode={RetinaImg.Mode.ContentPreserve}
-                  />
-                )}
-              </DropZone>
-            </div>
-          )}
-          <div className="photo-options">
-            <select
-              id="photoURL"
-              tabIndex={-1}
-              value={source || ''}
-              onChange={this.props.onChange}
-              style={{ display: 'block' }}
+          <div>
+            <DropZone
+              onClick={this._onChooseImage}
+              onDragStateChange={({ isDropping }) => this.setState({ isDropping })}
+              onDrop={(e) =>
+                this._onChooseImageFilePath(webUtils.getPathForFile(e.dataTransfer.files[0]))
+              }
+              shouldAcceptDrop={(e) => (e as any).dataTransfer.types.includes('Files')}
+              style={{
+                backgroundImage: !isUploading && `url(${resolvedURL || emptyPlaceholderURL})`,
+              }}
+              className={`photo-well ${isDropping && 'dropping'}`}
             >
-              <option value="">{localized('None')}</option>
-              <option value="gravatar">{localized('Gravatar Profile Photo')}</option>
-              <option value="company">{localized('Company / Domain Logo')}</option>
-              <option disabled>──────────</option>
-              <option value="custom">{localized('Custom Image…')}</option>
-            </select>
-            {source === 'custom' &&
-              (isMailspringURL ? (
-                <a
-                  className="btn"
-                  onClick={() => this.props.onChange({ target: { value: '', id: 'photoURL' } })}
-                >
-                  {localized('Remove')}
-                </a>
-              ) : (
-                <>
-                  <label htmlFor="photoURL" className="sr-only">
-                    {localized('Photo URL')}
-                  </label>
-                  <input
-                    type="url"
-                    id="photoURL"
-                    placeholder="http://"
-                    value={data.photoURL === 'custom' ? '' : data.photoURL}
-                    onChange={this.props.onChange}
-                  />
-                </>
-              ))}
+              {isUploading && (
+                <RetinaImg
+                  style={{ width: 14, height: 14 }}
+                  name="inline-loading-spinner.gif"
+                  mode={RetinaImg.Mode.ContentPreserve}
+                />
+              )}
+            </DropZone>
+          </div>
+          <div className="photo-options">
+            <button type="button" className="btn" id="photoURL" onClick={this._onChooseImage}>
+              {localized('Choose an image')}
+            </button>
+            {resolvedURL && (
+              <button
+                type="button"
+                className="btn"
+                onClick={() => this.props.onChange({ target: { value: '', id: 'photoURL' } })}
+              >
+                {localized('Remove')}
+              </button>
+            )}
           </div>
         </div>
-        {isUploadEnabled && <div className="drop-note">{dropNote}</div>}
+        <div className="drop-note">{dropNote}</div>
       </div>
     );
   }

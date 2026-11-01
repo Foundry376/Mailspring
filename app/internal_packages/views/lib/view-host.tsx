@@ -4,12 +4,7 @@ import { localized } from 'mailspring-exports';
 import { ViewBridge } from './view-bridge';
 import { registerHost } from './authoring/hosts';
 import { ViewDiagnostics, isFailure, reportFromGuest } from './authoring/diagnostics';
-import {
-  ApiCompatibility,
-  CURRENT_API_VERSION,
-  compatibility,
-  rebuildRequest,
-} from './api-version';
+import { ApiCompatibility, CURRENT_API_VERSION, compatibility } from './api-version';
 import { ViewRegistryEvents, ViewsChange, allViews } from './view-registry';
 import {
   CONSENTED_PERMISSIONS,
@@ -261,7 +256,7 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     const { viewId, placement } = this.props;
     const compat = this._readCompat();
     // Out-of-range Views never load: their code may call APIs this build doesn't have, or
-    // rely on behavior it no longer has. The card offers a rebuild instead.
+    // rely on behavior it no longer has.
     if (compat.result !== 'ok') {
       this.setState({ compat, status: 'running', consent: null });
       return;
@@ -368,12 +363,6 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     this.setState({ status: 'closed' });
   };
 
-  _onRebuild = () => {
-    // Required lazily: the panel package requires this module through the Views root.
-    const { openPanelWithMessage } = require('./authoring-panel');
-    openPanelWithMessage(this.props.viewId, rebuildRequest(this.state.compat.version));
-  };
-
   _onRemove = () => {
     const { removeView } = require('./home/view-actions');
     const view = allViews().find((v) => v.id === this.props.viewId);
@@ -393,15 +382,10 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
         </div>
         <div className="view-host-cover-detail">
           {tooOld
-            ? localized('Rebuild it with AI to update it, or remove it.')
+            ? localized('Update this View’s local files to the current View API, or remove it.')
             : localized('Update Mailspring to use it.')}
         </div>
         <div className="view-host-cover-actions">
-          {tooOld && (
-            <button className="btn btn-emphasis" onClick={this._onRebuild}>
-              {localized('Rebuild with AI')}
-            </button>
-          )}
           <button className="btn" onClick={this._onRemove}>
             {localized('Remove')}
           </button>

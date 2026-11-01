@@ -5,8 +5,6 @@ import OnboardingStore from './onboarding-store';
 import PageTopBar from './page-top-bar';
 
 import WelcomePage from './page-welcome';
-import TutorialPage from './page-tutorial';
-import AuthenticatePage from './page-authenticate';
 import AccountChoosePage from './page-account-choose';
 import AccountSettingsPage from './page-account-settings';
 import AccountSettingsPageGmail from './page-account-settings-gmail';
@@ -14,15 +12,12 @@ import AccountSettingsPageO365 from './page-account-settings-o365';
 import AccountSettingsPageIMAP from './page-account-settings-imap';
 import AccountOnboardingSuccess from './page-account-onboarding-success';
 import InitialPreferencesPage from './page-initial-preferences';
-import InitialSubscriptionPage from './page-initial-subscription';
 import AccountSettingsPageOutlook from './page-account-settings-outlook';
 import AccountCertificatePage from './page-account-certificate';
 import { RejectedCertificate } from './certificate-review';
 
 const PageComponents = {
   welcome: WelcomePage,
-  tutorial: TutorialPage,
-  authenticate: AuthenticatePage,
   'account-choose': AccountChoosePage,
   'account-settings': AccountSettingsPage,
   'account-settings-gmail': AccountSettingsPageGmail,
@@ -32,7 +27,6 @@ const PageComponents = {
   'account-certificate': AccountCertificatePage,
   'account-onboarding-success': AccountOnboardingSuccess,
   'initial-preferences': InitialPreferencesPage,
-  'initial-subscription': InitialSubscriptionPage,
 };
 
 interface OnboardingRootState {

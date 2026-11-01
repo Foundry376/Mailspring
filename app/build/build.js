@@ -4,6 +4,7 @@
 /* eslint quote-props: 0 */
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const os = require('os');
 const util = require('util');
 const { execSync, spawn: childSpawn } = require('child_process');
@@ -210,55 +211,10 @@ function runTranspilers({ buildPath }) {
   });
 }
 
-async function runUploadSourceMapsToSentry({ buildPath }) {
-  const { SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_PROJECT } = process.env;
+async function runRemoveSourceMaps({ buildPath }) {
   const mapFiles = glob.sync('**/*.js.map', { cwd: buildPath });
-
-  const cleanup = () => {
-    mapFiles.forEach((relPath) => fs.unlinkSync(path.join(buildPath, relPath)));
-    console.log(`---> Cleaned up ${mapFiles.length} source map files`);
-  };
-
-  if (!SENTRY_AUTH_TOKEN || !SENTRY_ORG || !SENTRY_PROJECT) {
-    console.log(
-      '---> Skipping Sentry source map upload (set SENTRY_AUTH_TOKEN, SENTRY_ORG, SENTRY_PROJECT to enable)'
-    );
-    cleanup();
-    return;
-  }
-
-  let SentryCli;
-  try {
-    SentryCli = require('@sentry/cli');
-  } catch (e) {
-    console.log('---> @sentry/cli not found, skipping source map upload');
-    cleanup();
-    return;
-  }
-
-  console.log('---> Uploading source maps to Sentry');
-
-  try {
-    const commitHash = execSync('git rev-parse HEAD').toString().trim().substr(0, 8);
-    const version = `${packageJSON.version}-${commitHash}`;
-    const cli = new SentryCli(null, {
-      authToken: SENTRY_AUTH_TOKEN,
-      org: SENTRY_ORG,
-      project: SENTRY_PROJECT,
-    });
-    await cli.releases.new(version);
-    await cli.releases.uploadSourceMaps(version, {
-      include: [buildPath],
-      urlPrefix: 'app:///',
-      rewrite: true,
-    });
-    await cli.releases.finalize(version);
-    console.log(`---> Source maps uploaded to Sentry release ${version}`);
-  } catch (err) {
-    console.error(`---> Sentry source map upload failed: ${err.message}`);
-  } finally {
-    cleanup();
-  }
+  mapFiles.forEach((relPath) => fs.unlinkSync(path.join(buildPath, relPath)));
+  console.log(`---> Cleaned up ${mapFiles.length} source map files`);
 }
 
 function buildPackagerOptions() {
@@ -267,7 +223,7 @@ function buildPackagerOptions() {
     appVersion: packageJSON.version,
     platform,
     protocols: [
-      { name: 'Mailspring Protocol', schemes: ['mailspring'] },
+      { name: `${packageJSON.productName} Protocol`, schemes: [packageJSON.name] },
       { name: 'Mailto Protocol', schemes: ['mailto'] },
     ],
     dir: appDir,
@@ -279,7 +235,7 @@ function buildPackagerOptions() {
       win32: path.resolve(appDir, 'build', 'resources', 'win', 'mailspring-square.ico'),
       linux: undefined,
     }[platform],
-    name: { darwin: 'Mailspring', win32: 'Mailspring', linux: 'mailspring' }[platform],
+    name: platform === 'darwin' ? packageJSON.productName : packageJSON.name,
     appCopyright: `Copyright (C) 2014-${new Date().getFullYear()} Foundry 376, LLC. All rights reserved.`,
     derefSymlinks: false,
     asar: {
@@ -377,7 +333,7 @@ function buildPackagerOptions() {
             // cannot match to a profile scoped to that binary.
             // Note: electron-osx-sign passes the .app bundle path (not the
             // inner executable path) when signing the top-level app bundle.
-            const isMainExecutable = filePath.endsWith('/Mailspring.app');
+            const isMainExecutable = filePath.endsWith(`/${packageJSON.productName}.app`);
             return {
               hardenedRuntime: true,
               entitlements: path.resolve(
@@ -401,9 +357,9 @@ function buildPackagerOptions() {
       : undefined,
     win32metadata: {
       CompanyName: 'Foundry 376, LLC',
-      FileDescription: 'Mailspring',
+      FileDescription: packageJSON.productName,
       LegalCopyright: `Copyright (C) 2014-${new Date().getFullYear()} Foundry 376, LLC. All rights reserved.`,
-      ProductName: 'Mailspring',
+      ProductName: packageJSON.productName,
     },
     // NOTE: The following plist keys can NOT be set in the extra.plist since
     // they are manually overridden by electron-packager based on this config:
@@ -412,17 +368,18 @@ function buildPackagerOptions() {
     extendInfo: path.resolve(appDir, 'build', 'resources', 'mac', 'extra.plist'),
     extraResource:
       platform === 'darwin'
-        ? [path.resolve(appDir, 'build', 'resources', 'mac', 'new-mail.mp3'), fmHelperPath]
-            .filter(Boolean)
+        ? [path.resolve(appDir, 'build', 'resources', 'mac', 'new-mail.mp3'), fmHelperPath].filter(
+            Boolean
+          )
         : undefined,
-    appBundleId: 'com.mailspring.mailspring',
+    appBundleId: 'com.bettermailspring.bettermailspring',
     afterCopy: [
       runCopyPlatformSpecificResources,
       runWriteCommitHashIntoPackage,
       runUpdateSandboxHelperPermissions,
       runCopySymlinkedPackages,
       runTranspilers,
-      runUploadSourceMapsToSentry,
+      runRemoveSourceMaps,
     ],
   };
 }
@@ -450,22 +407,22 @@ async function runPackager() {
 }
 
 async function createMacZip() {
-  const zipPath = path.join(outputDir, 'Mailspring.zip');
+  const zipPath = path.join(outputDir, `${packageJSON.productName}.zip`);
   if (fs.existsSync(zipPath)) {
     fs.unlinkSync(zipPath);
   }
-  const cwd = path.join(outputDir, `Mailspring-darwin-${arch}`);
+  const cwd = path.join(outputDir, `${packageJSON.productName}-darwin-${arch}`);
   await spawn({
     cmd: 'zip',
-    args: ['-9', '-y', '-r', '-9', '-X', zipPath, 'Mailspring.app'],
+    args: ['-9', '-y', '-r', '-9', '-X', zipPath, `${packageJSON.productName}.app`],
     opts: { cwd },
   });
   console.log(`>> Created ${zipPath}`);
 }
 
-function writeFromTemplate(filePath, data) {
+function writeFromTemplate(filePath, data, filename = path.basename(filePath).replace('.in', '')) {
   const template = _.template(String(fs.readFileSync(filePath)));
-  const finishedPath = path.join(outputDir, path.basename(filePath).replace('.in', ''));
+  const finishedPath = path.join(outputDir, filename);
   writeFileEnsureDir(finishedPath, template(data));
   return finishedPath;
 }
@@ -475,7 +432,7 @@ const linuxArch = { ia32: 'i386', x64: 'amd64', arm64: 'arm64' }[process.arch];
 async function createDebInstaller() {
   if (!linuxArch) throw new Error(`Unsupported arch ${process.arch}`);
 
-  const contentsDir = path.join(outputDir, `mailspring-linux-${process.arch}`);
+  const contentsDir = path.join(outputDir, `${packageJSON.name}-linux-${process.arch}`);
   const linuxAssetsDir = path.resolve(path.join(buildDir, 'resources', 'linux'));
 
   // `du` failures (e.g. permission errors) are non-fatal — fall back to a
@@ -496,28 +453,45 @@ async function createDebInstaller() {
     description: packageJSON.description,
     productName: packageJSON.productName,
     desktopName: packageJSON.desktopName || `${packageJSON.name}.desktop`,
-    linuxShareDir: '/usr/share/mailspring',
+    linuxShareDir: `/usr/share/${packageJSON.name}`,
     arch: linuxArch,
     section: 'mail',
     maintainer: 'Mailspring Team <support@getmailspring.com>',
     installedSize,
   };
   writeFromTemplate(path.join(linuxAssetsDir, 'debian', 'control.in'), data);
-  writeFromTemplate(path.join(linuxAssetsDir, 'Mailspring.desktop.in'), data);
-  writeFromTemplate(path.join(linuxAssetsDir, 'mailspring.metainfo.xml.in'), data);
+  writeFromTemplate(
+    path.join(linuxAssetsDir, 'Mailspring.desktop.in'),
+    data,
+    packageJSON.desktopName
+  );
+  writeFromTemplate(
+    path.join(linuxAssetsDir, 'mailspring.metainfo.xml.in'),
+    data,
+    `${packageJSON.name}.metainfo.xml`
+  );
 
   const icon = path.join(appDir, 'build', 'resources', 'linux', 'icons', '512.png');
   await spawn({
     cmd: path.join(appDir, 'script', 'mkdeb'),
-    args: [packageJSON.version, linuxArch, icon, linuxAssetsDir, contentsDir, outputDir],
+    args: [
+      packageJSON.version,
+      linuxArch,
+      icon,
+      linuxAssetsDir,
+      contentsDir,
+      outputDir,
+      packageJSON.name,
+      packageJSON.desktopName,
+    ],
   });
-  console.log(`Created ${outputDir}/mailspring-${packageJSON.version}-${linuxArch}.deb`);
+  console.log(`Created ${outputDir}/${packageJSON.name}-${packageJSON.version}-${linuxArch}.deb`);
 }
 
 async function createRpmInstaller() {
   if (!linuxArch) throw new Error(`Unsupported arch ${process.arch}`);
 
-  const contentsDir = path.join(outputDir, `mailspring-linux-${process.arch}`);
+  const contentsDir = path.join(outputDir, `${packageJSON.name}-linux-${process.arch}`);
   const linuxAssetsDir = path.resolve(path.join(buildDir, 'resources', 'linux'));
   const rpmDir = path.join(outputDir, 'rpm');
   if (fs.existsSync(rpmDir)) {
@@ -530,23 +504,87 @@ async function createRpmInstaller() {
     description: packageJSON.description,
     productName: packageJSON.productName,
     desktopName: packageJSON.desktopName || `${packageJSON.name}.desktop`,
-    linuxShareDir: '/usr/local/share/mailspring',
+    linuxShareDir: `/usr/share/${packageJSON.name}`,
     linuxAssetsDir,
     contentsDir,
   };
 
-  writeFromTemplate(path.join(linuxAssetsDir, 'redhat', 'mailspring.spec.in'), templateData);
-  writeFromTemplate(path.join(linuxAssetsDir, 'Mailspring.desktop.in'), templateData);
-  writeFromTemplate(path.join(linuxAssetsDir, 'mailspring.metainfo.xml.in'), templateData);
+  writeFromTemplate(
+    path.join(linuxAssetsDir, 'redhat', 'mailspring.spec.in'),
+    templateData,
+    `${packageJSON.name}.spec`
+  );
+  writeFromTemplate(
+    path.join(linuxAssetsDir, 'Mailspring.desktop.in'),
+    templateData,
+    packageJSON.desktopName
+  );
+  writeFromTemplate(
+    path.join(linuxAssetsDir, 'mailspring.metainfo.xml.in'),
+    templateData,
+    `${packageJSON.name}.metainfo.xml`
+  );
 
   await spawn({
     cmd: path.join(appDir, 'script', 'mkrpm'),
-    args: [outputDir, contentsDir, linuxAssetsDir],
+    args: [outputDir, contentsDir, linuxAssetsDir, packageJSON.name, packageJSON.desktopName],
   });
   console.log(`Created rpm package in ${rpmDir}`);
 }
 
+async function createArchInstaller() {
+  const archName = { x64: 'x86_64', arm64: 'aarch64' }[arch];
+  if (!archName) throw new Error(`Unsupported Arch Linux architecture: ${arch}`);
+
+  const linuxAssetsDir = path.join(buildDir, 'resources', 'linux');
+  const contentsName = `${packageJSON.name}-linux-${arch}`;
+  const archiveName = `${packageJSON.name}-${packageJSON.version}-${archName}.tar.gz`;
+  const data = { ...packageJSON, arch: archName, contentsName, archiveName };
+  writeFromTemplate(
+    path.join(linuxAssetsDir, 'Mailspring.desktop.in'),
+    data,
+    packageJSON.desktopName
+  );
+  writeFromTemplate(
+    path.join(linuxAssetsDir, 'mailspring.metainfo.xml.in'),
+    data,
+    `${packageJSON.name}.metainfo.xml`
+  );
+
+  const archDir = path.join(outputDir, 'arch');
+  fs.mkdirSync(archDir, { recursive: true });
+  const archivePath = path.join(archDir, archiveName);
+  await spawn({
+    cmd: 'tar',
+    args: [
+      '-czf',
+      archivePath,
+      '-C',
+      outputDir,
+      contentsName,
+      packageJSON.desktopName,
+      `${packageJSON.name}.metainfo.xml`,
+      '-C',
+      linuxAssetsDir,
+      'icons',
+    ],
+  });
+  const hash = crypto.createHash('sha256');
+  for await (const chunk of fs.createReadStream(archivePath)) hash.update(chunk);
+  const checksum = hash.digest('hex');
+  writeFromTemplate(
+    path.join(linuxAssetsDir, 'arch', 'PKGBUILD.in'),
+    { ...data, checksum },
+    'arch/PKGBUILD'
+  );
+  // Repacking a prebuilt app does not require its runtime dependencies on the build host.
+  await spawn({ cmd: 'makepkg', args: ['--force', '--nodeps'], opts: { cwd: archDir } });
+  console.log(`Created Arch Linux package in ${archDir}`);
+}
+
 async function main() {
+  const archPackage = process.argv.includes('--arch-package');
+  if (archPackage && platform !== 'linux') throw new Error('Arch packaging requires Linux');
   await runPackager();
 
   if (process.argv.includes('--skip-installers')) {
@@ -556,6 +594,8 @@ async function main() {
 
   if (platform === 'darwin') {
     await createMacZip();
+  } else if (archPackage) {
+    await createArchInstaller();
   } else if (platform === 'linux') {
     await createDebInstaller();
     await createRpmInstaller();

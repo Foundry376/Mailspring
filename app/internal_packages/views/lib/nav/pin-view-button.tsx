@@ -18,7 +18,7 @@ export class PinViewButton extends React.Component<Record<string, unknown>, PinV
   _unlisteners: (() => void)[] = [];
   state = this.stateFromStores();
 
-  // A View the agent hasn't built yet has nothing to pin.
+  // A View without code has nothing to pin.
   stateFromStores(): PinViewButtonState {
     const viewId = ViewsNavStore.viewId();
     const view = viewId && allViews().find((v) => v.id === viewId);

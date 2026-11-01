@@ -9,34 +9,20 @@ import { ViewManifest, ViewRegistryEvents, allViews } from '../view-registry';
 import { isPinned, onPinsChanged, setPinned } from '../nav/pins';
 import { ViewBadgeEvents, badgeFor } from '../nav/badges';
 import { openView } from '../authoring';
-import { createUnbuiltView } from '../authoring/revisions';
-import { openPanelForView } from '../authoring-panel';
 import { Starter, installStarter, listStarters } from './starters';
 import { ThumbnailEvents, thumbnailPath } from './thumbnails';
 import { removeView } from './view-actions';
 import { ModelBadge } from '../local-model/model-badge';
-import { canShare, openShareSheet } from '../sharing';
-import { AgentActions, AgentSessionStore, newViewId } from '../agent/store';
-import { homeUsageLine } from '../agent/quota';
 
 // The header's grid-paper backdrop. Alternatives are defined in views-home.less:
 // 'grid-major' (24px with stronger lines every 96px) and 'grid-accent' (the same in the
 // accent color).
 const BACKDROP_VARIANT = 'grid-fine';
 
-// Building happens remotely; running happens here. Said wherever a View gets created.
-const CLOUD_NOTE = () =>
-  localized(
-    "When you build a view, example emails and screenshots you explicitly share are sent to Mailspring's servers. Once built, views are entirely private and use Apple Intelligence or open models to extract data and summarize mail locally on your computer."
-  );
-
 interface ViewsHomeState {
   views: ViewManifest[];
   starters: Starter[];
   thumbnailStamps: { [viewId: string]: number };
-  creating: boolean;
-  name: string;
-  request: string;
   notice: string | null;
 }
 
@@ -57,10 +43,7 @@ function showError(err: Error) {
   AppEnv.showErrorDialog({ title: localized('Views'), message: err.message });
 }
 
-/**
- * The Views home: the user's Views, the starters that ship with the app, and the entry point
- * for building a new View with the authoring agent.
- */
+/** The user's local Views and the starters that ship with the app. */
 export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeState> {
   static displayName = 'ViewsHome';
 
@@ -68,9 +51,6 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
 
   state: ViewsHomeState = {
     ...this._load(),
-    creating: false,
-    name: '',
-    request: '',
     notice: null,
   };
 
@@ -84,10 +64,8 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
       () => ViewRegistryEvents.removeListener('changed', reload),
       () => ThumbnailEvents.removeListener('changed', reload),
       () => ViewBadgeEvents.removeListener('changed', rerender),
-      AgentSessionStore.listen(() => this.forceUpdate()),
       onPinsChanged(() => this.forceUpdate()),
     ];
-    AgentActions.refreshUsage();
   }
 
   componentWillUnmount() {
@@ -100,28 +78,6 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
     views.forEach((v) => (thumbnailStamps[v.id] = thumbnailStamp(v.id)));
     return { views, starters: listStarters(), thumbnailStamps };
   }
-
-  _onCreate = (e: React.FormEvent) => {
-    e.preventDefault();
-    const notice = AgentSessionStore.newBuildUpgradeNotice();
-    if (notice) {
-      AgentSessionStore.showUpgradeForNotice(notice);
-      return;
-    }
-    const name = this.state.name.trim();
-    const request = this.state.request.trim();
-    if (!name || !request) return;
-    try {
-      const viewId = newViewId(name);
-      createUnbuiltView(viewId, name);
-      AgentActions.start({ viewId, name, request });
-    } catch (err) {
-      showError(err);
-      return;
-    }
-    // The authoring panel that just opened is all the feedback this needs.
-    this.setState({ creating: false, name: '', request: '', notice: null });
-  };
 
   _onAddStarter = (starter: Starter) => {
     try {
@@ -149,88 +105,6 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
     }
   }
 
-  _renderUsage() {
-    const usage = AgentSessionStore.accountUsage();
-    const line = usage ? homeUsageLine(usage) : null;
-    return line ? <div className="views-home-usage">{line}</div> : null;
-  }
-
-  _renderCreate() {
-    const { creating, name, request } = this.state;
-    const mustUpgrade = !!AgentSessionStore.newBuildUpgradeNotice();
-    const incomplete = !name.trim() || !request.trim();
-
-    if (!creating) {
-      return (
-        <button
-          className="views-home-create"
-          onClick={() => this.setState({ creating: true, notice: null })}
-        >
-          <div className="views-home-create-plus">+</div>
-          <div>
-            <div className="views-home-create-title">{localized('Create a View')}</div>
-            <div className="views-home-create-subtitle">
-              {localized(
-                "Describe your view, share example emails, and Mailspring's AI builds it with you."
-              )}
-            </div>
-          </div>
-        </button>
-      );
-    }
-
-    return (
-      <form className="views-home-create-form" onSubmit={this._onCreate}>
-        <div className="views-home-create-title">{localized('Create a View')}</div>
-        <label>
-          {localized('Name')}
-          <input
-            type="text"
-            autoFocus
-            maxLength={60}
-            placeholder={localized('e.g. Receipts')}
-            value={name}
-            onChange={(e) => this.setState({ name: e.target.value })}
-          />
-        </label>
-        <label>
-          {localized('What should it show?')}
-          <textarea
-            rows={4}
-            placeholder={localized(
-              'e.g. Chart what I spend on Uber and Lyft each month, with a list of recent rides.'
-            )}
-            value={request}
-            onChange={(e) => this.setState({ request: e.target.value })}
-          />
-        </label>
-        <div className="views-home-create-note">{CLOUD_NOTE()}</div>
-        <div className="views-home-create-actions">
-          <button
-            type="button"
-            className="btn"
-            onClick={() => this.setState({ creating: false, name: '', request: '' })}
-          >
-            {localized('Cancel')}
-          </button>
-          {mustUpgrade ? (
-            <button type="submit" className="btn btn-emphasis">
-              {localized('Start Building')}
-            </button>
-          ) : (
-            <button
-              type="submit"
-              className={classnames('btn', 'btn-emphasis', { 'btn-disabled': incomplete })}
-              disabled={incomplete}
-            >
-              {localized('Start Building')}
-            </button>
-          )}
-        </div>
-      </form>
-    );
-  }
-
   _renderThumbnail(view: ViewManifest) {
     const stamp = this.state.thumbnailStamps[view.id];
     if (stamp) {
@@ -248,13 +122,6 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
   }
 
   _renderBadges(view: { placement: string; id?: string; built?: boolean }) {
-    const session = view.id ? AgentSessionStore.session(view.id) : null;
-    // A revision held until the user returns to the View, or a question for them.
-    const waiting =
-      session &&
-      AgentSessionStore.activeViewId() !== view.id &&
-      (!!session.pendingRequest || session.revisions.some((r) => r.status === 'applying'));
-    const building = !waiting && session && session.working;
     return (
       <div className="views-home-badges">
         {view.built !== false && (
@@ -265,12 +132,8 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
         {view.id && badgeFor(view.id) && (
           <span className="views-home-badge count">{badgeFor(view.id)}</span>
         )}
-        {building && <span className="views-home-badge working">{localized('Building…')}</span>}
-        {waiting && (
-          <span className="views-home-badge working">{localized('Waiting for you')}</span>
-        )}
-        {view.built === false && !building && !waiting && (
-          <span className="views-home-badge">{localized('Not built yet')}</span>
+        {view.built === false && (
+          <span className="views-home-badge">{localized('Missing View.jsx')}</span>
         )}
       </div>
     );
@@ -308,11 +171,6 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
               {isPinned(view.id) ? localized('Unpin') : localized('Pin')}
             </button>
           )}
-          {canShare(view.id) && (
-            <button className="btn" onClick={() => openShareSheet(view.id)}>
-              {localized('Share')}
-            </button>
-          )}
           {declaredCredentials(view.id).length > 0 && (
             <button className="btn" onClick={() => openManageCredentials(view.id)}>
               {localized('Credentials')}
@@ -328,9 +186,7 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
     );
   }
 
-  // Its chat is the only way back to a View the agent hasn't built yet, so the card leads there.
   _renderUnbuiltCard(view: ViewManifest) {
-    const openChat = () => openPanelForView(view.id).catch(showError);
     return (
       <div key={view.id} className="views-home-card">
         {this._renderThumbnail(view)}
@@ -340,13 +196,10 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
             {this._renderBadges(view)}
           </div>
           <div className="views-home-card-description">
-            {localized('Open its chat to see how it’s going or keep building.')}
+            {localized('Add View.jsx to this View’s local folder to use it.')}
           </div>
         </div>
         <div className="views-home-card-actions">
-          <button className="btn" onClick={openChat}>
-            {localized('Open Chat')}
-          </button>
           <button className="btn" onClick={() => this._guard(() => removeView(view))}>
             {localized('Remove')}
           </button>
@@ -404,8 +257,6 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
             )}
           </p>
 
-          {this._renderCreate()}
-          {this._renderUsage()}
           {notice && <div className="views-home-notice">{notice}</div>}
 
           <h2>{localized('Your Views')}</h2>
@@ -415,7 +266,7 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
             </div>
           ) : (
             <div className="views-home-empty">
-              {localized('You have no Views yet. Create one, or start from a starter below.')}
+              {localized('You have no Views yet. Add a starter below to get started.')}
             </div>
           )}
 

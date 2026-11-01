@@ -14,7 +14,7 @@ export const CURRENT_API_VERSION = '2026-10-20';
 /**
  * The oldest API this build still runs. Raise it only when dropping a shim, or when a change
  * can't be shimmed: 2026-10-20 changed `ai.generate`'s parameters, the calendar event keys and
- * the count dimensions, so older Views are offered a rebuild instead of running broken.
+ * the count dimensions, so older Views must be updated rather than running broken.
  */
 export const MIN_SUPPORTED_API_VERSION = '2026-10-20';
 
@@ -61,14 +61,4 @@ export function shimsFor(version: string, shims: ApiShim[] = SHIMS): string[] {
 export function withApiVersion<T extends object>(manifest: T): T {
   if (manifest && (manifest as any).apiVersion) return manifest;
   return { ...(manifest || ({} as T)), apiVersion: CURRENT_API_VERSION };
-}
-
-/** The message the authoring panel offers when a View is too old to run. */
-export function rebuildRequest(version: string) {
-  return (
-    `This View was built for Mailspring View API ${version}, which this version of Mailspring ` +
-    `no longer runs. Please update it to API ${CURRENT_API_VERSION}: set "apiVersion": ` +
-    `"${CURRENT_API_VERSION}" in manifest.json and adjust any calls that changed, keeping the ` +
-    `View's behavior the same.`
-  );
 }

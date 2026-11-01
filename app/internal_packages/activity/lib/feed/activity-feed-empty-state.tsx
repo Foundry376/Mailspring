@@ -1,8 +1,6 @@
 import React from 'react';
-import { localized, Actions } from 'mailspring-exports';
+import { localized } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
-
-const OPEN_ICON = 'mailspring://open-tracking/assets/icon-composer-eye@2x.png';
 
 export function ActivityFeedEmptyState({ hasTrackedMessages }: { hasTrackedMessages: boolean }) {
   return (
@@ -12,48 +10,14 @@ export function ActivityFeedEmptyState({ hasTrackedMessages }: { hasTrackedMessa
         name="activity-list-empty.png"
         mode={RetinaImg.Mode.ContentIsMask}
       />
-      <h3>
-        {hasTrackedMessages
-          ? localized('No opens or clicks yet')
-          : localized('See who opens your email and clicks your links')}
-      </h3>
+      <h3>{localized('No historical read receipts')}</h3>
       <p className="lead">
         {hasTrackedMessages
-          ? localized(
-              'Your tracked messages will show up here as soon as a recipient opens one or clicks a link.'
-            )
+          ? localized('No recorded opens match this time range.')
           : localized(
-              'Read receipts and link tracking are on by default for the messages you compose. Every open, click, and reply on a tracked message shows up here.'
+              'Read receipts from previously tracked messages appear here. New messages are not tracked.'
             )}
       </p>
-      <ol className="steps">
-        <li>
-          <span className="step-text">{localized('Compose a new message or reply.')}</span>
-        </li>
-        <li>
-          <span className="step-text">{localized('Check that the read receipts icon')}</span>
-          <span className="step-icon">
-            <RetinaImg url={OPEN_ICON} mode={RetinaImg.Mode.ContentIsMask} />
-          </span>
-          <span className="step-text">{localized('and the link tracking icon')}</span>
-          <span className="step-icon">
-            <RetinaImg name="icon-composer-linktracking.png" mode={RetinaImg.Mode.ContentIsMask} />
-          </span>
-          <span className="step-text">
-            {localized('in the composer toolbar are blue. Click either one to turn it on or off.')}
-          </span>
-        </li>
-        <li>
-          <span className="step-text">
-            {localized(
-              'Send it. Opens and clicks appear here, in the message itself, and as notifications.'
-            )}
-          </span>
-        </li>
-      </ol>
-      <div className="btn btn-emphasis" onClick={() => Actions.composeNewBlankDraft()}>
-        {localized('Compose a message')}
-      </div>
     </div>
   );
 }

@@ -6,7 +6,7 @@
   "isOptional": true,
 
   "title": "Grammar Check",
-  "description": "Check grammar in the composer using a LanguageTool-compatible backend.",
+  "description": "Check English grammar privately on this device using Harper. No account or subscription required.",
   "icon": "./icon.png",
 
   "license": "GPL-3.0",

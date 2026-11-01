@@ -1,6 +1,10 @@
 import React, { Component } from 'react';
 import { Thread } from 'mailspring-exports';
-import { ListensToObservable, InjectedComponentSet } from 'mailspring-component-kit';
+import {
+  ListensToObservable,
+  InjectedComponentSet,
+  BindGlobalCommands,
+} from 'mailspring-component-kit';
 import ThreadListStore from './thread-list-store';
 
 export const ToolbarRole = 'ThreadActionsToolbarButton';
@@ -34,7 +38,21 @@ function InjectsToolbarButtons(
         thread: items[0],
       };
       const injectedButtons = (
-        <InjectedComponentSet key="injected" matching={{ roles }} exposedProps={exposedProps} />
+        <BindGlobalCommands
+          key="injected"
+          commands={
+            items.length === 1
+              ? {
+                  'core:copy-mailbox-link': () =>
+                    navigator.clipboard
+                      .writeText(items[0].getMailboxPermalink())
+                      .catch((err) => console.error('Failed to copy to clipboard:', err)),
+                }
+              : {}
+          }
+        >
+          <InjectedComponentSet matching={{ roles }} exposedProps={exposedProps} />
+        </BindGlobalCommands>
       );
       return (
         <ToolbarComponent items={items} selection={selection} injectedButtons={injectedButtons} />

@@ -1,5 +1,5 @@
 import { Message } from 'mailspring-exports';
-import { LINK_TRACKING_ID, OPEN_TRACKING_ID } from '../plugin-helpers';
+import { OPEN_TRACKING_ID } from '../plugin-helpers';
 import { forEachMessageIn } from '../message-scan';
 
 export interface EngagementStats {
@@ -11,12 +11,11 @@ export interface EngagementStats {
   /** Distinct recipients folded into this entry (1 unless grouped by domain). */
   contacts: number;
   sent: number;
-  /** Sent messages carrying open or link tracking; engagement is only measurable on these. */
+  /** Sent messages carrying open tracking; engagement is only measurable on these. */
   tracked: number;
-  /** Sent messages this recipient opened or clicked at least once. */
+  /** Sent messages this recipient opened at least once. */
   engaged: number;
   opens: number;
-  clicks: number;
   replies: number;
   /** Most opens of a single message, counting opens more than a minute apart. */
   maxOpensOfOneMessage: number;
@@ -34,7 +33,7 @@ export interface EngagementStats {
   firstOpenDelays: number[];
 }
 
-export type ActivityKind = 'open' | 'click' | 'reply';
+export type ActivityKind = 'open' | 'reply';
 
 /** Opens closer together than this are one sitting, not renewed interest. */
 const OPEN_BURST_SECONDS = 60;
@@ -50,7 +49,6 @@ function emptyStats(key: string, name: string, email: string, domain: string): E
     tracked: 0,
     engaged: 0,
     opens: 0,
-    clicks: 0,
     replies: 0,
     maxOpensOfOneMessage: 0,
     lastSentAt: 0,
@@ -190,8 +188,7 @@ export async function computeRecipientEngagement(
       threadRecipients.set(message.threadId, wroteTo);
 
       const openMetadata = message.metadataForPluginId(OPEN_TRACKING_ID);
-      const linkMetadata = message.metadataForPluginId(LINK_TRACKING_ID);
-      if (openMetadata || (linkMetadata && linkMetadata.tracked)) {
+      if (openMetadata) {
         recipientKeys.forEach((k) => (byKey.get(k).tracked += 1));
       }
 
@@ -206,15 +203,6 @@ export async function computeRecipientEngagement(
           );
           stats.firstOpenDelays.push(Math.max(0, Math.min(...times) - messageUnix));
           noteActivity(stats, Math.max(...times), 'open', message);
-          engagedKeys.add(key);
-        }
-      }
-      if (linkMetadata && linkMetadata.links) {
-        const clicks = linkMetadata.links.flatMap((l) => l.click_data || []);
-        for (const [key, times] of eventsByRecipient(recipientKeys, clicks)) {
-          const stats = byKey.get(key);
-          stats.clicks += times.length;
-          noteActivity(stats, Math.max(...times), 'click', message);
           engagedKeys.add(key);
         }
       }
@@ -241,7 +229,6 @@ export function groupEngagementByDomain(recipients: EngagementStats[]): Engageme
     d.tracked += r.tracked;
     d.engaged += r.engaged;
     d.opens += r.opens;
-    d.clicks += r.clicks;
     d.replies += r.replies;
     d.maxOpensOfOneMessage = Math.max(d.maxOpensOfOneMessage, r.maxOpensOfOneMessage);
     if (r.lastSentAt >= d.lastSentAt) {

@@ -1,23 +1,9 @@
-import {
-  Account,
-  AccountStore,
-  Contact,
-  ExtensionRegistry,
-  Message,
-  SendDraftTask,
-} from 'mailspring-exports';
-import OpenTrackingComposerExtension from '../lib/open-tracking-composer-extension';
+import { Account, AccountStore, Contact, Message, SendDraftTask } from 'mailspring-exports';
 import { PLUGIN_ID as OPEN_PLUGIN_ID } from '../lib/open-tracking-constants';
-import LinkTrackingComposerExtension from '../../link-tracking/lib/link-tracking-composer-extension';
-import { PLUGIN_ID as LINK_PLUGIN_ID } from '../../link-tracking/lib/link-tracking-constants';
 import { recipientIsUnknowable } from '../../activity/lib/activity-events';
+import { activate, deactivate } from '../lib/main';
 
 const accountId = 'graph-spec-account';
-
-function decodeOpenToken(html: string) {
-  const token = html.match(/\/o\/([A-Za-z0-9_-]+)\.png/)[1];
-  return JSON.parse(atob(token.replace(/-/g, '+').replace(/_/g, '/')));
-}
 
 function trackedDraft(recipients: string[]) {
   const draft = new Message({
@@ -31,54 +17,44 @@ function trackedDraft(recipients: string[]) {
     bcc: [],
   });
   draft.directlyAttachMetadata(OPEN_PLUGIN_ID, { open_count: 0 });
-  draft.directlyAttachMetadata(LINK_PLUGIN_ID, { tracked: true });
   return draft;
 }
 
-describe('Tracking for accounts that send through Microsoft Graph', () => {
-  beforeEach(() => {
-    ExtensionRegistry.Composer.register(OpenTrackingComposerExtension);
-    ExtensionRegistry.Composer.register(LinkTrackingComposerExtension);
-  });
+describe('Local sending and historical read receipts', () => {
+  beforeEach(activate);
+  afterEach(deactivate);
 
-  afterEach(() => {
-    ExtensionRegistry.Composer.unregister(OpenTrackingComposerExtension);
-    ExtensionRegistry.Composer.unregister(LinkTrackingComposerExtension);
-  });
-
-  it('sends each recipient their own body when the account sends over SMTP', () => {
-    spyOn(AccountStore, 'accountForId').andReturn(
-      new Account({ id: accountId, provider: 'office365', settings: {} } as any)
-    );
-    const task = SendDraftTask.forSending(trackedDraft(['a@example.com', 'b@example.com']));
-
-    expect(Object.keys(task.perRecipientBodies).sort()).toEqual([
-      'a@example.com',
-      'b@example.com',
-      'self',
-    ]);
-    expect(decodeOpenToken(task.perRecipientBodies['a@example.com']).recipient).toEqual(
-      'a@example.com'
-    );
-    expect(task.draft.metadataForPluginId(OPEN_PLUGIN_ID).shared_body).toBeUndefined();
-    expect(task.draft.metadataForPluginId(LINK_PLUGIN_ID).shared_body).toBeUndefined();
-  });
-
-  it('sends one tracked body to everyone, an untracked one for the Sent copy, and records that when the account sends through Graph', () => {
-    spyOn(AccountStore, 'accountForId').andReturn(
-      new Account({ id: accountId, provider: 'office365', settings: { graph_send: true } } as any)
-    );
-    const task = SendDraftTask.forSending(trackedDraft(['a@example.com', 'b@example.com']));
-
-    expect(task.perRecipientBodies).toEqual({
-      self: '<p>Hello <a href="https://example.com/page">page</a></p>',
+  for (const graphSend of [false, true]) {
+    it(`preserves HTML and original links without tracking for ${graphSend ? 'Graph' : 'SMTP'}`, () => {
+      spyOn(AccountStore, 'accountForId').andReturn(
+        new Account({
+          id: accountId,
+          provider: 'office365',
+          settings: { graph_send: graphSend },
+        } as any)
+      );
+      const draft = trackedDraft(['a@example.com', 'b@example.com']);
+      const body = draft.body;
+      const task = SendDraftTask.forSending(draft);
+      expect(task.draft.body).toBe(body);
+      expect(task.perRecipientBodies).toBeUndefined();
     });
-    expect(decodeOpenToken(task.draft.body).recipient).toBeUndefined();
-    expect(task.draft.body).toContain('/link/tracked@example.test/0?redirect=');
-    expect(task.draft.body).not.toContain('&recipient=');
-    expect(task.draft.metadataForPluginId(OPEN_PLUGIN_ID).shared_body).toBe(true);
-    expect(task.draft.metadataForPluginId(LINK_PLUGIN_ID).shared_body).toBe(true);
-  });
+    it(`preserves plaintext without tracking for ${graphSend ? 'Graph' : 'SMTP'}`, () => {
+      spyOn(AccountStore, 'accountForId').andReturn(
+        new Account({
+          id: accountId,
+          provider: 'office365',
+          settings: { graph_send: graphSend },
+        } as any)
+      );
+      const draft = trackedDraft(['a@example.com']);
+      draft.plaintext = true;
+      draft.body = 'Hello https://example.com/page';
+      const task = SendDraftTask.forSending(draft);
+      expect(task.draft.body).toBe('Hello https://example.com/page');
+      expect(task.perRecipientBodies).toBeUndefined();
+    });
+  }
 
   describe('recipientIsUnknowable', () => {
     const message = (n: number) =>

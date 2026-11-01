@@ -45,20 +45,7 @@
   }
 }
 
-.company-profile {
-  padding-top: 20px;
-  border-top: 1px solid @border-color-divider;
-  .company-logo {
-    margin-left: 12px;
-    float: right;
-    max-width: 60px;
-    max-height: 44px;
-    border-radius: @border-radius-small;
-  }
-}
-
-.participant-profile,
-.company-profile {
+.participant-profile {
   margin-bottom: 22px;
 
   .larger {
@@ -69,20 +56,6 @@
     position: absolute;
     left: calc(~'50% - 25px');
     top: -31px;
-  }
-
-  .social-profiles-wrap {
-    margin-bottom: @spacing-standard;
-  }
-  .social-profile-item {
-    margin: 0 10px;
-    cursor: pointer;
-    &:first-child {
-      margin-left: 0;
-    }
-    &:last-child {
-      margin-right: 0;
-    }
   }
 
   .personal-info {
@@ -103,28 +76,10 @@
     }
   }
 
-  .additional-info {
-    margin-top: 10px;
-    font-size: 12px;
-    clear: both;
-    p {
-      margin-bottom: 16px;
-    }
-    .icon-row {
-      margin-bottom: 8px;
-      a.plain {
-        color: @text-color;
-      }
-    }
-    .bio {
-      color: @text-color-very-subtle;
-    }
-  }
 }
 
 body.platform-win32 {
-  .participant-profile,
-  .company-profile {
+  .participant-profile {
     border-radius: 0;
     .profile-photo {
       border-radius: 0;
@@ -132,24 +87,5 @@ body.platform-win32 {
   }
   .related-threads {
     border-radius: 0;
-  }
-}
-
-.feature-usage-modal.contact-profiles {
-  @send-later-color: #777ff0;
-  .feature-header {
-    @from: @send-later-color;
-    @to: lighten(@send-later-color, 10%);
-    background: linear-gradient(to top, @from, @to);
-  }
-  .feature-name {
-    color: @send-later-color;
-  }
-  .pro-description {
-    li {
-      &:before {
-        color: @send-later-color;
-      }
-    }
   }
 }

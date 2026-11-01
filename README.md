@@ -1,4 +1,21 @@
-# 💌 Mailspring
+# 💌 BetterMailspring
+
+BetterMailspring is a personal, local-first fork of Mailspring. It uses a separate
+`bettermailspring` package and executable, `BetterMailspring.desktop`, and
+`BetterMailspring` profile directory (`BetterMailspring-dev` in development).
+It does not install updates from the official Mailspring release feed.
+
+## Arch Linux packaging
+
+After installing the development dependencies with `npm install`, run
+`npm run build:arch` on Arch Linux with `base-devel` installed. This packages the
+app and runs `makepkg` without installing anything. The generated `PKGBUILD`,
+checksummed source archive, and `.pkg.tar.zst` package are in `app/dist/arch/`.
+The package declares its runtime dependencies and does not replace or conflict
+with official Mailspring. Build on the target architecture: x86_64 or aarch64.
+
+The upstream project information below describes Mailspring, not the completion
+status of this fork's local-only conversion.
 
 **Mailspring is a new version of Nylas Mail maintained by one of the original authors. It's faster, leaner, and shipping today!** It replaces the JavaScript sync code in Nylas Mail with a new C++ sync engine based on [Mailcore2](https://github.com/MailCore/mailcore2). It uses roughly half the RAM and CPU of Nylas Mail and idles with almost zero "CPU Wakes", which translates to great battery life. It also has an entirely revamped composer and other great new features.
 

@@ -1,4 +1,4 @@
 
 ## Open Tracking
 
-Adds tracking pixels to messages and tracks whether they have been opened.
+Displays historical read-receipt metadata already stored with messages. This package does not add tracking pixels to outgoing messages or contact a tracking service.

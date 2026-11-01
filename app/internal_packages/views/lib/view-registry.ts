@@ -14,7 +14,7 @@ export interface ViewManifest {
   apiVersion: string;
   dir: string;
   source: ViewSource;
-  /** False until the View has a View.jsx: the agent is still building it. */
+  /** False until the local View folder has a View.jsx. */
   built: boolean;
   /** The raw manifest.json, for placement-specific options (e.g. `sidebar`). */
   json: any;

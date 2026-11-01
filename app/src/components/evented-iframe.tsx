@@ -6,20 +6,12 @@
  */
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {
-  Utils,
-  localized,
-  IdentityStore,
-  MailspringAPIRequest,
-  SearchableComponentStore,
-} from 'mailspring-exports';
+import { Utils, localized, SearchableComponentStore } from 'mailspring-exports';
 import IFrameSearcher from '../searchable-components/iframe-searcher';
 import url from 'url';
 import _ from 'underscore';
 import path from 'path';
 import fs from 'fs';
-
-const { rootURLForServer } = MailspringAPIRequest;
 
 type EventedIFrameProps = {
   searchable?: boolean;
@@ -224,23 +216,6 @@ export class EventedIFrame extends React.Component<
       }
 
       e.preventDefault();
-
-      // If this is a link to our billing site, attempt single sign on instead of
-      // just following the link directly
-      if (rawHref.startsWith(rootURLForServer('identity'))) {
-        const path = rawHref.split(rootURLForServer('identity')).pop();
-        IdentityStore.fetchSingleSignOnURL(path, { source: 'SingleSignOnEmail' }).then(
-          (href) => {
-            AppEnv.windowEventHandler.openLink({ href, metaKey: e.metaKey });
-          },
-          () => {
-            // No identity is set (eg. the user is signed out) - fall back to opening
-            // the link directly rather than dropping the click on the floor.
-            AppEnv.windowEventHandler.openLink({ href: rawHref, metaKey: e.metaKey });
-          }
-        );
-        return;
-      }
 
       // It's important to send the raw `href` here instead of the target.
       // The `target` comes from the document context of the iframe, which

@@ -5,7 +5,6 @@ import { ScrollRegion } from 'mailspring-component-kit';
 import { trackedMessagesQuery } from '../activity-data-source';
 import * as ActivityActions from '../activity-actions';
 import { ActivityEvent, eventsForMessages, foldRepeatedEvents } from '../activity-events';
-import { LINK_TRACKING_ID, OPEN_TRACKING_ID } from '../plugin-helpers';
 import { Timespan, timespanEndsNow } from '../timespan';
 import { exportActivityEventsCsv } from './feed-csv-export';
 import { ActivityFeedFilters, ActivityFeedToolbar } from './activity-feed-toolbar';
@@ -13,7 +12,7 @@ import { ActivityFeedTable } from './activity-feed-table';
 import { ActivityFeedEmptyState } from './activity-feed-empty-state';
 
 /**
- * Opens and clicks happen after a message is sent, so a message sent before the
+ * Opens happen after a message is sent, so a message sent before the
  * selected timespan can still have events inside it. Event timestamps are not
  * queryable (they live in the metadata JSON), so the message query reaches this
  * far back before the timespan start and events are filtered by timestamp.
@@ -32,7 +31,7 @@ interface ActivityFeedState {
 }
 
 /**
- * Chronological list of every open and click within the selected timespan,
+ * Chronological list of every open within the selected timespan,
  * with search, filtering, grouping, and CSV export. The message query is live,
  * so new events appear as they arrive.
  */
@@ -48,7 +47,6 @@ export default class ActivityFeed extends React.Component<ActivityFeedProps, Act
     events: [],
     filters: {
       search: '',
-      kind: 'all',
       collapseRepeats: true,
       groupBy: 'none',
     },
@@ -107,18 +105,12 @@ export default class ActivityFeed extends React.Component<ActivityFeedProps, Act
    * and count describe the earliest and total occurrences within the range.
    */
   _filteredEvents(): ActivityEvent[] {
-    const { search, kind, collapseRepeats } = this.state.filters;
+    const { search, collapseRepeats } = this.state.filters;
     const { timespan } = this.props;
     const start = timespan.startDate.unix();
     const end = timespanEndsNow(timespan) ? Infinity : timespan.endDate.unix();
 
     let events = this.state.events.filter((e) => e.timestamp >= start && e.timestamp <= end);
-
-    if (kind === 'open') {
-      events = events.filter((e) => e.pluginId === OPEN_TRACKING_ID);
-    } else if (kind === 'click') {
-      events = events.filter((e) => e.pluginId === LINK_TRACKING_ID);
-    }
 
     const terms = search.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
     if (terms.length) {
@@ -127,7 +119,6 @@ export default class ActivityFeed extends React.Component<ActivityFeedProps, Act
           e.recipient ? e.recipient.displayName() : '',
           e.recipientEmail || '',
           e.subject || '',
-          e.linkUrl || '',
         ]
           .join(' ')
           .toLocaleLowerCase();
@@ -145,7 +136,7 @@ export default class ActivityFeed extends React.Component<ActivityFeedProps, Act
     const { messages, filters } = this.state;
     const loaded = messages !== null;
     const events = loaded ? this._filteredEvents() : [];
-    const hasFilters = !!filters.search.trim() || filters.kind !== 'all';
+    const hasFilters = !!filters.search.trim();
 
     let body: React.ReactNode = null;
     if (!loaded) {

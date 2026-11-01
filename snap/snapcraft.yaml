@@ -1,6 +1,6 @@
-name: mailspring
+name: bettermailspring
 license: GPL-3.0
-adopt-info: mailspring
+adopt-info: bettermailspring
 
 confinement: strict
 base: core24
@@ -11,20 +11,20 @@ platforms:
   arm64:
 
 parts:
-  mailspring:
+  bettermailspring:
     plugin: nil
     override-pull: |
-      deb="$(ls $CRAFT_PROJECT_DIR/app/dist/mailspring-*.deb)"
+      deb="$(ls $CRAFT_PROJECT_DIR/app/dist/bettermailspring-*.deb)"
       craftctl set version="$(basename "$deb" | grep -Eo "[0-9]+.[0-9]+.[0-9]+")"
       dpkg -x "$deb" "$CRAFT_PART_SRC"
     override-build: |
       cp -a "$CRAFT_PART_SRC"/* "$CRAFT_PART_INSTALL"
       craftctl default
-      sed -i 's|Icon=mailspring|Icon=/usr/share/pixmaps/mailspring\.png|' \
-        $CRAFT_PART_INSTALL/usr/share/applications/Mailspring.desktop
+      sed -i 's|Icon=bettermailspring|Icon=/usr/share/pixmaps/bettermailspring\.png|' \
+        $CRAFT_PART_INSTALL/usr/share/applications/BetterMailspring.desktop
     prime:
-      - -usr/share/mailspring/chrome-sandbox
-    parse-info: [usr/share/metainfo/mailspring.metainfo.xml]
+      - -usr/share/bettermailspring/chrome-sandbox
+    parse-info: [usr/share/metainfo/bettermailspring.metainfo.xml]
     stage-packages:
       - libxkbfile1
       - libsasl2-2
@@ -49,10 +49,10 @@ parts:
       - usr/lib/*/libsecret-*
 
 apps:
-  mailspring:
-    command: usr/bin/mailspring --no-sandbox
-    common-id: mailspring
-    desktop: usr/share/applications/Mailspring.desktop
+  bettermailspring:
+    command: usr/bin/bettermailspring --no-sandbox
+    common-id: bettermailspring
+    desktop: usr/share/applications/BetterMailspring.desktop
     extensions: [gnome]
     environment:
       HOME: $SNAP_USER_COMMON

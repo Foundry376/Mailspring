@@ -3,8 +3,8 @@ import path from 'path';
 
 /**
  * A View's mock-data.json: invented mail, calendar and AI answers that the View renders in mock
- * mode instead of the user's own. It lets a View be screenshotted for its card or for sharing
- * without anyone (an on-device agent, a cloud agent, or the person viewing the share) seeing
+ * mode instead of the user's own. It lets a View be screenshotted for its card
+ * without anyone (an on-device agent or a cloud agent) seeing
  * the user's mail. The format is documented for authors in docs/plans/views-api.md (§5.1).
  *
  * The file describes threads with their messages, events and calendars in the loose shapes an

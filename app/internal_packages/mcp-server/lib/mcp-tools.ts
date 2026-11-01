@@ -66,10 +66,8 @@ const FILTER_DESCRIPTION =
   '("a@b.com") or a domain ("uber.com", matching subdomains too). Example: ' +
   '{and:[{from:["uber.com","lyft.com"]},{date:{after:"2026-01-01"}}]}';
 
-// Plugin IDs used by the built-in open-tracking and link-tracking packages
-// (see app/internal_packages/open-tracking/package.json and link-tracking/package.json).
+// Plugin ID used by the built-in open-tracking package.
 const OPEN_TRACKING_ID = 'open-tracking';
-const LINK_TRACKING_ID = 'link-tracking';
 
 // Plugin ID used by the built-in send-later package
 // (see app/internal_packages/send-later/package.json).
@@ -87,19 +85,8 @@ interface OpenTrackingMetadata {
   open_data: { recipient: string; timestamp: number }[];
 }
 
-interface LinkTrackingMetadata {
-  uid: string;
-  links: {
-    url: string;
-    redirect_url: string;
-    click_count: number;
-    click_data: { recipient: string; timestamp: number }[];
-  }[];
-}
-
 function messageTrackingSummary(message: Message) {
   const openMeta = message.metadataForPluginId(OPEN_TRACKING_ID) as OpenTrackingMetadata | null;
-  const linkMeta = message.metadataForPluginId(LINK_TRACKING_ID) as LinkTrackingMetadata | null;
 
   const opens = openMeta
     ? {
@@ -111,20 +98,7 @@ function messageTrackingSummary(message: Message) {
       }
     : null;
 
-  const links = linkMeta
-    ? {
-        links: (linkMeta.links || []).map((l) => ({
-          url: l.url,
-          clickCount: l.click_count || 0,
-          events: (l.click_data || []).map((c) => ({
-            recipient: c.recipient,
-            timestamp: c.timestamp,
-          })),
-        })),
-      }
-    : null;
-
-  return { opens, links };
+  return { opens };
 }
 
 // ── Attachment viewing (get_attachment) ──────────────────────────────────
@@ -714,12 +688,12 @@ export function registerTools(server: McpServer) {
     }
   );
 
-  // ── Tracking Tools (open-tracking / link-tracking plugins) ──
+  // ── Tracking Tools (open-tracking plugin) ──
 
   defineTool(
     server,
     'get_message_tracking',
-    'Get open-tracking and link-tracking data for a single sent message: total open count, per-recipient open timestamps, and per-link click counts with per-recipient click timestamps.',
+    'Get locally stored historical read receipts for a single sent message: total open count and per-recipient open timestamps. New messages are not tracked.',
     { messageId: z.string().describe('The message ID') },
     'read',
     async ({ messageId }) => {
@@ -728,9 +702,9 @@ export function registerTools(server: McpServer) {
         return errorResult(`Message '${messageId}' not found`);
       }
 
-      const { opens, links } = messageTrackingSummary(message);
-      if (!opens && !links) {
-        return errorResult(`Message '${messageId}' has no open-tracking or link-tracking data`);
+      const { opens } = messageTrackingSummary(message);
+      if (!opens) {
+        return errorResult(`Message '${messageId}' has no open-tracking data`);
       }
 
       return textResult({
@@ -740,7 +714,6 @@ export function registerTools(server: McpServer) {
         date: message.date,
         accountId: message.accountId,
         opens,
-        links,
       });
     }
   );
@@ -748,45 +721,26 @@ export function registerTools(server: McpServer) {
   defineTool(
     server,
     'list_tracked_messages',
-    'List sent messages that have open-tracking and/or link-tracking enabled, along with their open/click data. Use sentAfter/sentBefore to bound by send date (e.g. "everything sent this month") and openedAfter to filter by when the open/click activity itself happened (e.g. "opened today"). Answers questions like "which of my emails have been opened today" or "every email I sent this month with link tracking".',
+    'List previously tracked sent messages and their locally stored historical read receipts. New messages are not tracked. Use sentAfter/sentBefore to bound by send date and openedAfter to filter by when a recorded open happened.',
     {
       accountId: z.string().optional().describe('Restrict to a single account'),
-      trackingType: z
-        .enum(['opens', 'links', 'either'])
-        .optional()
-        .default('either')
-        .describe('Only include messages with open-tracking, link-tracking, or either (default)'),
       sentAfter: z.string().optional().describe('ISO 8601 date - only messages sent after this'),
       sentBefore: z.string().optional().describe('ISO 8601 date - only messages sent before this'),
       openedAfter: z
         .string()
         .optional()
         .describe(
-          'ISO 8601 date - only include messages with an open or link-click event at/after this time (filters on activity time, not send date)'
+          'ISO 8601 date - only include messages with an open event at/after this time (filters on activity time, not send date)'
         ),
       minOpens: z
         .number()
         .optional()
         .describe('Only include messages with at least this many total opens'),
-      minClicks: z
-        .number()
-        .optional()
-        .describe('Only include messages with at least this many total link clicks'),
       limit: z.number().optional().default(50).describe('Max results to return (default 50)'),
       offset: z.number().optional().default(0).describe('Offset for pagination'),
     },
     'read',
-    async ({
-      accountId,
-      trackingType,
-      sentAfter,
-      sentBefore,
-      openedAfter,
-      minOpens,
-      minClicks,
-      limit,
-      offset,
-    }) => {
+    async ({ accountId, sentAfter, sentBefore, openedAfter, minOpens, limit, offset }) => {
       if (accountId) {
         const err = checkAccountAccess(accountId);
         if (err) return errorResult(err);
@@ -805,16 +759,9 @@ export function registerTools(server: McpServer) {
         return errorResult(`Invalid openedAfter date: '${openedAfter}'`);
       }
 
-      const pluginIds =
-        trackingType === 'opens'
-          ? [OPEN_TRACKING_ID]
-          : trackingType === 'links'
-            ? [LINK_TRACKING_ID]
-            : [OPEN_TRACKING_ID, LINK_TRACKING_ID];
-
       let dbQuery = DatabaseStore.findAll<Message>(Message)
         .where([Message.attributes.draft.equal(false)])
-        .where(Message.attributes.pluginMetadata.containsAny(pluginIds))
+        .where(Message.attributes.pluginMetadata.contains(OPEN_TRACKING_ID))
         .distinct()
         .order(Message.attributes.date.descending());
 
@@ -830,7 +777,7 @@ export function registerTools(server: McpServer) {
 
       const messages = await dbQuery;
 
-      // Metadata contents (open/click timestamps) aren't queryable in SQL,
+      // Metadata contents (open timestamps) aren't queryable in SQL,
       // so activity-based filters — and folder-level access filtering — are
       // applied in-memory after the bounded fetch above.
       let candidates = (await allowedMessages(messages)).map((m) => ({
@@ -842,19 +789,10 @@ export function registerTools(server: McpServer) {
         if (minOpens !== undefined && (!tracking.opens || tracking.opens.count < minOpens)) {
           return false;
         }
-        if (minClicks !== undefined) {
-          const totalClicks = tracking.links
-            ? tracking.links.links.reduce((sum, l) => sum + l.clickCount, 0)
-            : 0;
-          if (totalClicks < minClicks) return false;
-        }
         if (openedAfterTs !== undefined) {
           const hasRecentOpen =
             !!tracking.opens && tracking.opens.events.some((e) => e.timestamp >= openedAfterTs);
-          const hasRecentClick =
-            !!tracking.links &&
-            tracking.links.links.some((l) => l.events.some((e) => e.timestamp >= openedAfterTs));
-          if (!hasRecentOpen && !hasRecentClick) return false;
+          if (!hasRecentOpen) return false;
         }
         return true;
       });
@@ -870,98 +808,9 @@ export function registerTools(server: McpServer) {
         date: message.date,
         accountId: message.accountId,
         opens: tracking.opens,
-        links: tracking.links,
       }));
 
       return textResult({ total, messages: results });
-    }
-  );
-
-  defineTool(
-    server,
-    'get_top_links',
-    'Rank links from link-tracking-enabled sent messages by total click count, across a time range. Answers questions like "what are my highest performing links" or "which links get clicked the most".',
-    {
-      accountId: z.string().optional().describe('Restrict to a single account'),
-      sentAfter: z
-        .string()
-        .optional()
-        .describe('ISO 8601 date - only consider messages sent after this'),
-      sentBefore: z
-        .string()
-        .optional()
-        .describe('ISO 8601 date - only consider messages sent before this'),
-      limit: z
-        .number()
-        .optional()
-        .default(10)
-        .describe('Max number of links to return (default 10)'),
-    },
-    'read',
-    async ({ accountId, sentAfter, sentBefore, limit }) => {
-      if (accountId) {
-        const err = checkAccountAccess(accountId);
-        if (err) return errorResult(err);
-      }
-
-      const sentAfterDate = sentAfter ? new Date(sentAfter) : undefined;
-      if (sentAfterDate && isNaN(sentAfterDate.getTime())) {
-        return errorResult(`Invalid sentAfter date: '${sentAfter}'`);
-      }
-      const sentBeforeDate = sentBefore ? new Date(sentBefore) : undefined;
-      if (sentBeforeDate && isNaN(sentBeforeDate.getTime())) {
-        return errorResult(`Invalid sentBefore date: '${sentBefore}'`);
-      }
-
-      let dbQuery = DatabaseStore.findAll<Message>(Message)
-        .where([Message.attributes.draft.equal(false)])
-        .where(Message.attributes.pluginMetadata.contains(LINK_TRACKING_ID))
-        .distinct()
-        .order(Message.attributes.date.descending());
-
-      if (accountId) {
-        dbQuery = dbQuery.where({ accountId });
-      } else {
-        const allowedIds = getAllowedAccountIds(AccountStore.accounts().map((a) => a.id));
-        dbQuery = dbQuery.where(Message.attributes.accountId.in(allowedIds));
-      }
-      if (sentAfterDate)
-        dbQuery = dbQuery.where(Message.attributes.date.greaterThan(sentAfterDate));
-      if (sentBeforeDate) dbQuery = dbQuery.where(Message.attributes.date.lessThan(sentBeforeDate));
-
-      const messages = await dbQuery;
-
-      const linkRows: {
-        url: string;
-        clickCount: number;
-        uniqueRecipients: number;
-        messageId: string;
-        threadId: string;
-        subject: string;
-        date: Date;
-        accountId: string;
-      }[] = [];
-
-      for (const message of await allowedMessages(messages)) {
-        const { links } = messageTrackingSummary(message);
-        if (!links) continue;
-        for (const link of links.links) {
-          linkRows.push({
-            url: link.url,
-            clickCount: link.clickCount,
-            uniqueRecipients: new Set(link.events.map((e) => e.recipient)).size,
-            messageId: message.id,
-            threadId: message.threadId,
-            subject: message.subject,
-            date: message.date,
-            accountId: message.accountId,
-          });
-        }
-      }
-
-      linkRows.sort((a, b) => b.clickCount - a.clickCount);
-
-      return textResult(linkRows.slice(0, limit || 10));
     }
   );
 

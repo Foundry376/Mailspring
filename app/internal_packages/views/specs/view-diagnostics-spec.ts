@@ -10,7 +10,6 @@ import {
   locationOf,
   reportFromGuest,
 } from '../lib/authoring/diagnostics';
-import { relayableDiagnostics, summarizeOutcome } from '../lib/agent/tools';
 
 const VIEW_ID = 'diag-spec';
 
@@ -252,83 +251,5 @@ describe('View diagnostics', function () {
       expect(outcome.status).toBe('timeout');
       expect(outcome.diagnostics.map((d) => d.kind)).toEqual(['bridge-error']);
     });
-  });
-});
-
-describe('View diagnostics relay', function () {
-  const SOURCE = ['export default function View() {', `  return ${'x'.repeat(300)};`, '}'].join(
-    '\n'
-  );
-
-  it('relays host-written messages and locations, trimmed', function () {
-    const out: any[] = relayableDiagnostics([
-      record({
-        kind: 'compile-error',
-        message: 'Unexpected token (2:9)',
-        location: { line: 2, column: 9 },
-      }),
-      record({ kind: 'crash', message: 'c'.repeat(600) }),
-      record({ kind: 'hang', message: 'stuck' }),
-      record({ kind: 'consent', message: 'declined' }),
-    ]);
-    expect(out[0]).toEqual({
-      kind: 'compile-error',
-      message: 'Unexpected token (2:9)',
-      location: { line: 2, column: 9 },
-    });
-    expect(out[1].message.length).toBe(501);
-    expect(out.slice(2)).toEqual([
-      { kind: 'hang', message: 'stuck' },
-      { kind: 'consent', message: 'declined' },
-    ]);
-  });
-
-  it('trims the quoted source line and keeps the column inside it', function () {
-    const [out]: any[] = relayableDiagnostics(
-      [record({ kind: 'runtime-error', stack: 'ReferenceError: x\n at View.jsx:2:9999' })],
-      SOURCE
-    );
-    expect(out.error).toBe('ReferenceError');
-    expect(out.location).toEqual({ line: 2, column: SOURCE.split('\n')[1].length + 1 });
-    expect(out.source.length).toBe(201);
-  });
-
-  it('omits the permission of a bridge error that has none', function () {
-    const [out]: any[] = relayableDiagnostics([
-      record({ kind: 'bridge-error', method: 'mail.query', code: 'invalid' }),
-    ]);
-    expect(out).toEqual({ kind: 'bridge-error', method: 'mail.query', code: 'invalid' });
-  });
-
-  it('summarizes an outcome for the revision list', function () {
-    expect(summarizeOutcome('ok', [])).toBe('Rendered without errors');
-    expect(summarizeOutcome('timeout', [])).toBe('Did not finish rendering');
-    expect(summarizeOutcome('failed', [record({ kind: 'bridge-error', message: 'x' })])).toBe(
-      'Failed'
-    );
-    expect(
-      summarizeOutcome('failed', [
-        record({
-          kind: 'compile-error',
-          message: 'Unexpected token (2:9)\nmore',
-          location: { line: 2, column: 9 },
-        }),
-      ])
-    ).toBe('compile-error at View.jsx:2: Unexpected token (2:9)');
-  });
-
-  it('names the failure rather than a bridge error that preceded it', function () {
-    expect(
-      summarizeOutcome('failed', [
-        record({ kind: 'bridge-error', message: 'mail.query: invalid' }),
-        record({ kind: 'runtime-error', message: 'x is undefined' }),
-      ])
-    ).toBe('runtime-error: x is undefined');
-  });
-
-  it('names a declined consent', function () {
-    expect(
-      summarizeOutcome('failed', [record({ kind: 'consent', message: 'The user did not allow' })])
-    ).toBe('consent: The user did not allow');
   });
 });

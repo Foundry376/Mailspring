@@ -7,10 +7,9 @@ import { narrowApprovalToCurrent } from '../consent';
 
 /**
  * A View is its folder under <configDir>/views/<viewId>/, and every revision is written there
- * directly: an edit is live as soon as it's applied. A View the user asked the agent to build
- * starts as a folder with only a manifest, so it has a home card before its first revision. Before the first revision of each request
- * the authoring agent works on, the folder is copied to a checkpoint under
- * <configDir>/views-checkpoints/<viewId>/, and reverting restores the newest one.
+ * directly: an edit is live as soon as it's applied. A folder with only a manifest has a home
+ * card before its first revision. Explicit checkpoints are stored under
+ * <configDir>/views-checkpoints/<viewId>/; reverting restores the newest one.
  */
 
 // Matches MAX_VIEW_SOURCE_BYTES in view-sessions.ts; larger files would be refused there.
@@ -115,7 +114,7 @@ export function readViewBundle(viewId: string): ViewRevision | null {
   return view && view.built ? readBundle(view.dir) : null;
 }
 
-/** Creates a View with no code yet, for the agent to build. */
+/** Creates a local View folder with a manifest, ready for code. */
 export function createUnbuiltView(viewId: string, name: string) {
   writeBundle(viewDirFor(viewId), {
     manifest: withApiVersion({ name, placement: 'page', permissions: [] }),

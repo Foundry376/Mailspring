@@ -1,12 +1,11 @@
 import React from 'react';
 import moment from 'moment';
-import { shell } from 'electron';
 import { localized, DateUtils, Actions, Contact } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 
 import ActivityEventStore from '../activity-event-store';
 import { ActivityEvent, eventCountLabel } from '../activity-events';
-import { configForPluginId, LINK_TRACKING_ID } from '../plugin-helpers';
+import { configForPluginId } from '../plugin-helpers';
 import { GroupBy } from './activity-feed-toolbar';
 
 function compactTimeString(date: Date) {
@@ -49,12 +48,6 @@ function composeTo(event: ActivityEvent) {
   Actions.composeNewDraftToRecipient(contact);
 }
 
-function openExternalLink(url: string) {
-  if (/^(https?:|mailto:)/i.test(url)) {
-    shell.openExternal(url);
-  }
-}
-
 function RecipientLink({ event }: { event: ActivityEvent }) {
   const email = event.recipientEmail;
   const label = recipientLabel(event);
@@ -86,14 +79,6 @@ function SubjectLink({ event }: { event: ActivityEvent }) {
   );
 }
 
-function ExternalLink({ url }: { url: string }) {
-  return (
-    <a className="link" title={url} onClick={() => openExternalLink(url)}>
-      {url}
-    </a>
-  );
-}
-
 interface EventGroup {
   key: string;
   events: ActivityEvent[];
@@ -118,7 +103,6 @@ function groupEvents(events: ActivityEvent[], groupBy: GroupBy): EventGroup[] {
 function EventRow({ event, groupBy }: { event: ActivityEvent; groupBy: GroupBy }) {
   const date = new Date(event.timestamp * 1000);
   const config = configForPluginId(event.pluginId);
-  const isClick = event.pluginId === LINK_TRACKING_ID;
 
   return (
     <tr className="event-row">
@@ -139,7 +123,7 @@ function EventRow({ event, groupBy }: { event: ActivityEvent; groupBy: GroupBy }
           name={config.iconName}
           mode={RetinaImg.Mode.ContentPreserve}
         />
-        <span className="verb">{isClick ? localized('Clicked') : localized('Opened')}</span>
+        <span className="verb">{localized('Opened')}</span>
         {event.occurrences > 1 && (
           <span
             className="occurrences"
@@ -148,7 +132,6 @@ function EventRow({ event, groupBy }: { event: ActivityEvent; groupBy: GroupBy }
             {`${event.occurrences}×`}
           </span>
         )}
-        {isClick && <ExternalLink url={event.linkUrl} />}
       </td>
       {groupBy !== 'message' && (
         <td className="subject">
@@ -223,7 +206,7 @@ export function ActivityFeedTable({
   ].filter(Boolean);
 
   const eventKey = (e: ActivityEvent) =>
-    `${e.messageId}-${e.pluginId}-${e.timestamp}-${e.recipientEmail}-${e.linkUrl || ''}`;
+    `${e.messageId}-${e.pluginId}-${e.timestamp}-${e.recipientEmail}`;
 
   const rows: React.ReactNode[] = [];
   if (groupBy === 'none') {

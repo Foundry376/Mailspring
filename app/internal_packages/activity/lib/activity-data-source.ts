@@ -1,8 +1,8 @@
 import { Rx, Message, DatabaseStore } from 'mailspring-exports';
-import { OPEN_TRACKING_ID, LINK_TRACKING_ID } from './plugin-helpers';
+import { OPEN_TRACKING_ID } from './plugin-helpers';
 
 /**
- * Sent messages carrying open- or link-tracking metadata, newest first.
+ * Sent messages carrying open-tracking metadata, newest first.
  * Bounds must be Date objects: the query subscription re-evaluates deltas in
  * memory by comparing `message.date` directly to these values.
  */
@@ -19,7 +19,7 @@ export function trackedMessagesQuery({
 }) {
   let query = DatabaseStore.findAll<Message>(Message)
     .order(Message.attributes.date.descending())
-    .where(Message.attributes.pluginMetadata.containsAny([OPEN_TRACKING_ID, LINK_TRACKING_ID]))
+    .where(Message.attributes.pluginMetadata.contains(OPEN_TRACKING_ID))
     .where(Message.attributes.draft.equal(false))
     .distinct();
   if (limit !== undefined) {

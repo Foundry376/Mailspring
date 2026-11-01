@@ -323,7 +323,7 @@ session.changes.addPluginMetadata('my-plugin', {
 });
 ```
 
-This is useful for tracking plugin state (e.g., "link tracking is enabled for this draft").
+This is useful for tracking plugin state (e.g., "read receipts are enabled for this draft").
 
 ---
 

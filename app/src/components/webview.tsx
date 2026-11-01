@@ -5,7 +5,6 @@ import classnames from 'classnames';
 import networkErrors from 'chromium-net-errors';
 import { localized } from 'mailspring-exports';
 
-import { rootURLForServer } from '../flux/mailspring-api-request';
 import { RetinaImg } from './retina-img';
 import { Disposable } from 'event-kit';
 
@@ -54,7 +53,7 @@ class InitialLoadingCover extends React.Component<
     if (this.props.error) {
       message = this.props.error;
     } else if (this.state.slow) {
-      message = localized(`Still trying to reach %@…`, rootURLForServer('identity'));
+      message = localized('Still loading…');
     } else {
       message = '&nbsp;';
     }

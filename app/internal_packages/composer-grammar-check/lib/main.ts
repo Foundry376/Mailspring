@@ -9,7 +9,7 @@ const { setGrammarCheckStore, clearGrammarCheckStore, cleanupDraft, clearAllGram
 const GrammarCheckToggleWithTip = HasTutorialTip(GrammarCheckToggle, {
   title: localized('Check your grammar'),
   instructions: localized(
-    "Enable grammar checking to find writing issues as you compose. Text is sent to Mailspring's LanguageTool service and is not stored."
+    'Check English grammar locally with Harper as you compose. Your text never leaves this device. No account or subscription is required.'
   ),
 });
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import classnames from 'classnames';
 import { localized } from 'mailspring-exports';
-import { LinkStatsEntry, SubjectStatsEntry } from './root';
+import { SubjectStatsEntry } from './root';
 
 /**
  * Reveal transitions live only on the `.visible` state, so dropping the flag
@@ -193,12 +193,11 @@ export function MetricsBySubjectTable({ data }: { data: SubjectStatsEntry[] }) {
           <th>{localized('Subject Line')}</th>
           <th className="numeric">{localized('Messages Sent')}</th>
           <th className="numeric">{localized('Open Rate')}</th>
-          <th className="numeric">{localized('Link Click Rate')}</th>
           <th className="numeric">{localized('Reply Rate')}</th>
         </tr>
       </thead>
       <tbody>
-        {data.map(({ subject, count, opens, clicks, replies }) => (
+        {data.map(({ subject, count, opens, replies }) => (
           <tr key={subject}>
             <td className="ellipsis">
               <span title={subject}>{subject}</span>
@@ -208,40 +207,8 @@ export function MetricsBySubjectTable({ data }: { data: SubjectStatsEntry[] }) {
               <RateCell numerator={opens} denominator={count} />
             </td>
             <td className="numeric">
-              <RateCell numerator={clicks} denominator={count} />
-            </td>
-            <td className="numeric">
               <RateCell numerator={replies} denominator={count} />
             </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
-
-export function MetricsByLinkTable({ data }: { data: LinkStatsEntry[] }) {
-  return (
-    <table className="metric-table">
-      <thead>
-        <tr>
-          <th>{localized('Link')}</th>
-          <th className="numeric">{localized('Messages Sent')}</th>
-          <th className="numeric">{localized('Link Click Rate')}</th>
-          <th className="numeric">{localized('Total Clicks')}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {data.map(({ url, count, messagesClicked, clicks }) => (
-          <tr key={url}>
-            <td className="ellipsis">
-              <span title={url}>{url}</span>
-            </td>
-            <td className="numeric">{count}</td>
-            <td className="numeric">
-              <RateCell numerator={messagesClicked} denominator={count} />
-            </td>
-            <td className="numeric">{clicks || <span className="empty">—</span>}</td>
           </tr>
         ))}
       </tbody>

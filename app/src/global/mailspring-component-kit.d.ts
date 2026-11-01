@@ -7,8 +7,6 @@ export const FixedPopover: typeof import('../components/fixed-popover').default;
 export const DatePickerPopover: typeof import('../components/date-picker-popover').default;
 export const Modal: typeof import('../components/modal').default;
 export const Webview: typeof import('../components/webview').default;
-export const FeatureUsedUpModal: typeof import('../components/feature-used-up-modal').default;
-export const OpenIdentityPageButton: typeof import('../components/open-identity-page-button').default;
 export * from '../components/flexbox';
 
 export * from '../components/retina-img';
@@ -34,7 +32,6 @@ export * from '../components/tokenizing-text-field';
 export const ParticipantsTextField: typeof import('../components/participants-text-field').default;
 export const MultiselectToolbar: typeof import('../components/multiselect-toolbar').default;
 export * from '../components/injected-component-set';
-export const MetadataComposerToggleButton: typeof import('../components/metadata-composer-toggle-button').default;
 export * from '../components/config-prop-container';
 export * from '../components/disclosure-triangle';
 export const EditableList: typeof import('../components/editable-list').default;

@@ -135,7 +135,7 @@ export default class EngagementBoard extends React.Component<
 
   _visibleEntries(): EngagementStats[] {
     const { recipients, groupBy, search, hideColleagues } = this.state;
-    // Opens and clicks need tracking, but a reply is engagement on its own.
+    // Opens need tracking, but a reply is engagement on its own.
     let entries = recipients.filter((r) => r.tracked > 0 || r.replies > 0);
     if (hideColleagues) {
       const domains = colleagueDomains();
@@ -183,7 +183,6 @@ export default class EngagementBoard extends React.Component<
         'Sent',
         'Engaged',
         'Opens',
-        'Clicks',
         'Replies',
         'Avg Seconds To First Open',
         'Last Activity',
@@ -201,7 +200,6 @@ export default class EngagementBoard extends React.Component<
             e.sent,
             e.engaged,
             e.opens,
-            e.clicks,
             e.replies,
             avg === null ? '' : Math.round(avg),
             e.lastActivityAt === null ? '' : new Date(e.lastActivityAt * 1000).toISOString(),

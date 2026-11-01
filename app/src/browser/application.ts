@@ -21,6 +21,7 @@ import proc from 'child_process';
 import { EventEmitter } from 'events';
 
 import { localized, initializeLocalization } from '../intl';
+import pkg from '../utils/package';
 import WindowManager from './window-manager';
 import FileListCache from './file-list-cache';
 import ConfigMigrator from './config-migrator';
@@ -180,7 +181,7 @@ export default class Application extends EventEmitter {
     await this.oneTimeAddToDock();
 
     guardAuxiliaryWindowNavigation();
-    this.autoUpdateManager = new AutoUpdateManager(version, config, specMode);
+    this.autoUpdateManager = new AutoUpdateManager();
     this.applicationMenu = new ApplicationMenu(version);
     this.windowManager = new WindowManager({
       resourcePath: this.resourcePath,
@@ -219,9 +220,9 @@ export default class Application extends EventEmitter {
 
     if (process.platform === 'linux') {
       const helper = new DefaultClientHelper();
-      helper.registerForURLScheme('mailspring');
+      helper.registerForURLScheme(pkg.name);
     } else {
-      app.setAsDefaultProtocolClient('mailspring');
+      app.setAsDefaultProtocolClient(pkg.name);
     }
   }
 
@@ -311,7 +312,7 @@ export default class Application extends EventEmitter {
     if (!addedToDock && appPath.includes('/Applications/') && appPath.includes('.app/')) {
       const appBundlePath = appPath.split('.app/')[0];
       proc.exec(
-        `defaults write com.apple.dock persistent-apps -array-add "<dict><key>tile-type</key><string>file-tile</string><key>tile-data</key><dict><key>file-type</key><integer>41</integer><key>file-label</key><string>Mailspring</string><key>bundle-identifier</key><string>com.mailspring.mailspring</string><key>file-data</key><dict><key>_CFURLString</key><string>file://${appBundlePath}.app/</string><key>_CFURLStringType</key><integer>15</integer></dict></dict></dict>" && pkill "Dock"`
+        `defaults write com.apple.dock persistent-apps -array-add "<dict><key>tile-type</key><string>file-tile</string><key>tile-data</key><dict><key>file-type</key><integer>41</integer><key>file-label</key><string>${pkg.productName}</string><key>bundle-identifier</key><string>com.bettermailspring.bettermailspring</string><key>file-data</key><dict><key>_CFURLString</key><string>file://${appBundlePath}.app/</string><key>_CFURLStringType</key><integer>15</integer></dict></dict></dict>" && pkill "Dock"`
       );
       this.config.set('addedToDock', true);
     }
@@ -1106,7 +1107,7 @@ export default class Application extends EventEmitter {
 
     if (parts.protocol === 'mailto:') {
       main.sendMessage('mailto', urlToOpen);
-    } else if (parts.protocol === 'mailspring:') {
+    } else if (parts.protocol === `${pkg.name}:`) {
       // Handle notification action URLs from Windows toast notifications
       // These URLs are triggered when users click buttons on Windows toast notifications
       // since Windows toast XML with activationType="background" doesn't work reliably with Electron
@@ -1122,10 +1123,7 @@ export default class Application extends EventEmitter {
       } else if (parts.host === 'plugins') {
         main.sendMessage('changePluginStateFromUrl', urlToOpen);
       } else if (parts.host === 'install-view') {
-        // A shared View's landing page (getmailspring.com/v/<shareId>) links here.
-        main.show();
-        main.focus();
-        main.sendMessage('install-view', urlToOpen);
+        return;
       } else {
         main.sendMessage('openThreadFromWeb', urlToOpen);
       }
@@ -1174,7 +1172,7 @@ export default class Application extends EventEmitter {
 
     // Important: Use .mailspring-spec instead of .mailspring-mail to avoid overwriting the
     // user's real email config!
-    const configDirPath = path.join(app.getPath('home'), '.mailspring-spec');
+    const configDirPath = path.join(app.getPath('home'), `.${pkg.name}-spec`);
 
     specWindowOptions.resourcePath = resourcePath;
     specWindowOptions.configDirPath = configDirPath;

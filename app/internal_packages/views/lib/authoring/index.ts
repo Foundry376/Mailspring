@@ -8,8 +8,7 @@ import { waitForConsent } from '../consent';
 import { renderMockScreenshot } from '../mock/mock-render';
 import { regenerateStarterPosters } from '../home/starter-posters';
 
-// An agent's revision that asks for new access waits this long for the user to answer the
-// consent card before the agent is told it is still waiting.
+// Revisions requesting new access wait for the user to answer the consent card.
 const CONSENT_TIMEOUT_MS = 10 * 60 * 1000;
 
 export { ViewRevision, Diagnostic, ViewDiagnostics, revisionOf };
@@ -46,7 +45,7 @@ export const ViewAuthoring = {
   /**
    * Applies a revision and resolves once it renders cleanly, fails, or times out. A revision
    * that asks for access the user hasn't allowed waits for their answer first; declining
-   * fails the revision with a record the agent sees.
+   * fails the revision with a diagnostic record.
    */
   async applyAndWait(viewId: string, revision: ViewRevision, { timeoutMs = 15000 } = {}) {
     const { revision: hash } = this.applyRevision(viewId, revision);

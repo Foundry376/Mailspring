@@ -8,10 +8,8 @@ import ActivityListButton from './list/activity-list-button';
 import Root from './root';
 
 const ActivityListButtonWithTutorialTip = HasTutorialTip(ActivityListButton, {
-  title: localized('Open and link tracking'),
-  instructions: localized(
-    "If you've enabled link tracking or read receipts, those events will appear here!"
-  ),
+  title: localized('Historical read receipts'),
+  instructions: localized('Recorded read receipts from previously tracked messages appear here.'),
 });
 
 // Sent by the main process for application:show-activity, from the rail, the Window menu or

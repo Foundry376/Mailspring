@@ -7,20 +7,15 @@ import {
   PreferencesUIStore,
   WorkspaceStore,
   ComponentRegistry,
-  IdentityStore,
   AccountStore,
 } from 'mailspring-exports';
 import { NavRailItem } from 'mailspring-component-kit';
 
 import PreferencesRoot from './preferences-root';
 
-// Names the Mailspring ID, or the first account while signed out of it.
 function whoMenuItems(): Electron.MenuItemConstructorOptions[] {
-  const identity = IdentityStore.identity();
   const account = AccountStore.accounts()[0];
-  const lines = identity
-    ? [`${identity.firstName} ${identity.lastName}`.trim(), identity.emailAddress]
-    : [account.name, account.emailAddress];
+  const lines = account ? [account.name, account.emailAddress] : [];
   return lines.filter(Boolean).map((label) => ({ label, enabled: false }));
 }
 
@@ -75,14 +70,6 @@ export function activate() {
       displayName: localized('Accounts'),
       componentClassFn: () => require('./tabs/preferences-accounts').default,
       order: 2,
-    })
-  );
-  PreferencesUIStore.registerPreferencesTab(
-    new PreferencesUIStore.TabItem({
-      tabId: 'Subscription',
-      displayName: localized('Subscription'),
-      componentClassFn: () => require('./tabs/preferences-identity').default,
-      order: 3,
     })
   );
   PreferencesUIStore.registerPreferencesTab(

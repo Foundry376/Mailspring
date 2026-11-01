@@ -6,9 +6,9 @@ export type EngagementTier = 'high' | 'engaged' | 'none';
 /** Column order, least to most engaged, so the board reads like a pipeline. */
 export const ENGAGEMENT_TIERS: EngagementTier[] = ['none', 'engaged', 'high'];
 
-/** Mirrors Mixmax's published rules with replies promoted above clicks. */
+/** Replies and repeated opens of a message signal high engagement. */
 export function tierFor(stats: EngagementStats): EngagementTier {
-  if (stats.replies > 0 || stats.clicks > 0 || stats.maxOpensOfOneMessage >= 3) {
+  if (stats.replies > 0 || stats.maxOpensOfOneMessage >= 3) {
     return 'high';
   }
   if (stats.opens > 0) {
@@ -17,9 +17,9 @@ export function tierFor(stats: EngagementStats): EngagementTier {
   return 'none';
 }
 
-/** Outreach's 3/2/1 weighting, over deduped engaged messages rather than raw opens. */
+/** Replies carry more weight than deduped opened messages. */
 export function engagementScore(stats: EngagementStats) {
-  return 3 * stats.replies + 2 * stats.clicks + stats.engaged;
+  return 3 * stats.replies + stats.engaged;
 }
 
 export function tierLabel(tier: EngagementTier) {
@@ -36,10 +36,10 @@ export function tierLabel(tier: EngagementTier) {
 export function tierDescription(tier: EngagementTier) {
   switch (tier) {
     case 'high':
-      return localized('Replied, clicked a link, or opened a tracked message three or more times');
+      return localized('Replied or opened a tracked message three or more times');
     case 'engaged':
       return localized('Opened at least one tracked message');
     default:
-      return localized('No opens or clicks on tracked messages, and no replies');
+      return localized('No opens on tracked messages, and no replies');
   }
 }

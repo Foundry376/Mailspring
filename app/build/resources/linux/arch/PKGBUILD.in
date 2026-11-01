@@ -1,0 +1,38 @@
+pkgname=<%= name %>
+pkgver=<%= version %>
+pkgrel=1
+pkgdesc='A local-first Mailspring fork'
+arch=('<%= arch %>')
+license=('GPL-3.0-only')
+depends=('alsa-lib' 'at-spi2-core' 'cairo' 'curl' 'dbus' 'expat' 'gcc-libs'
+         'glib2' 'glibc' 'gtk3' 'libcups' 'libdrm' 'libsecret' 'libx11'
+         'libxcb' 'libxcomposite' 'libxdamage' 'libxext' 'libxfixes'
+         'libxkbcommon' 'libxrandr' 'libxss' 'libxtst' 'mesa' 'nspr' 'nss'
+         'openssl' 'pango' 'tidy' 'xdg-utils' 'zlib')
+optdepends=('libappindicator-gtk3: system tray integration'
+            'libnotify: desktop notifications'
+            'gnome-keyring: secure credential storage on GNOME'
+            'kwallet: secure credential storage on KDE')
+options=('!strip' '!debug')
+source=('<%= archiveName %>')
+sha256sums=('<%= checksum %>')
+
+package() {
+  install -dm755 "$pkgdir/usr/lib/$pkgname" "$pkgdir/usr/bin"
+  cp -a "$srcdir/<%= contentsName %>/." "$pkgdir/usr/lib/$pkgname/"
+  # cp -a also preserves the packager's private top-level directory permissions.
+  chmod 755 "$pkgdir/usr/lib/$pkgname"
+  ln -s "/usr/lib/$pkgname/$pkgname" "$pkgdir/usr/bin/$pkgname"
+  chmod 4755 "$pkgdir/usr/lib/$pkgname/chrome-sandbox"
+
+  install -Dm644 "$srcdir/<%= desktopName %>" \
+    "$pkgdir/usr/share/applications/<%= desktopName %>"
+  install -Dm644 "$srcdir/$pkgname.metainfo.xml" \
+    "$pkgdir/usr/share/metainfo/$pkgname.metainfo.xml"
+  for size in 16 32 64 128 256 512; do
+    install -Dm644 "$srcdir/icons/$size.png" \
+      "$pkgdir/usr/share/icons/hicolor/${size}x${size}/apps/$pkgname.png"
+  done
+  install -Dm644 "$pkgdir/usr/lib/$pkgname/LICENSE" \
+    "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

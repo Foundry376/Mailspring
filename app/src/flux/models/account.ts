@@ -203,7 +203,7 @@ export class Account extends ModelWithMetadata {
   }
 
   // Graph addresses one message to all its recipients, so it cannot send each recipient a
-  // body of their own (per-recipient open and link tracking).
+  // body of their own (per-recipient open tracking).
   sendsViaGraph() {
     return !!(this.settings && this.settings.graph_send);
   }

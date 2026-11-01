@@ -3,14 +3,11 @@ import classnames from 'classnames';
 import { localized } from 'mailspring-exports';
 import { DropdownMenu } from 'mailspring-component-kit';
 import { eventCountLabel } from '../activity-events';
-import { SegmentedControl } from '../segmented-control';
 
-export type EventKind = 'all' | 'open' | 'click';
 export type GroupBy = 'none' | 'recipient' | 'message';
 
 export interface ActivityFeedFilters {
   search: string;
-  kind: EventKind;
   collapseRepeats: boolean;
   groupBy: GroupBy;
 }
@@ -28,7 +25,7 @@ export function ActivityFeedToolbar({
   onChange,
   onExport,
 }: ActivityFeedToolbarProps) {
-  const { search, kind, collapseRepeats, groupBy } = filters;
+  const { search, collapseRepeats, groupBy } = filters;
   const groupByOptions: { id: GroupBy; name: string }[] = [
     { id: 'none', name: localized('None') },
     { id: 'recipient', name: localized('Recipient') },
@@ -39,18 +36,9 @@ export function ActivityFeedToolbar({
       <input
         type="search"
         className="toolbar-search"
-        placeholder={localized('Search by recipient, subject, or link…')}
+        placeholder={localized('Search by recipient or subject…')}
         value={search}
         onChange={(e) => onChange({ search: e.target.value })}
-      />
-      <SegmentedControl<EventKind>
-        value={kind}
-        onChange={(id) => onChange({ kind: id })}
-        options={[
-          { id: 'all', label: localized('All') },
-          { id: 'open', label: localized('Opens') },
-          { id: 'click', label: localized('Clicks') },
-        ]}
       />
       <div className="group-by">
         <span className="group-by-label">{localized('Group by')}</span>

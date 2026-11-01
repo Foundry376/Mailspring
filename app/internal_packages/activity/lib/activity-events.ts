@@ -1,18 +1,16 @@
 import { Contact, Message, localized } from 'mailspring-exports';
-import { LINK_TRACKING_ID, OPEN_TRACKING_ID } from './plugin-helpers';
+import { OPEN_TRACKING_ID } from './plugin-helpers';
 
 /**
- * A single open or click, flattened out of a message's open-tracking or
- * link-tracking plugin metadata.
+ * A single open, flattened out of a message's open-tracking plugin metadata.
  */
 export interface ActivityEvent {
   messageId: string;
   threadId: string;
   accountId: string;
   subject: string;
-  /** Subject for opens, link URL for clicks; used for notification text and repeat detection. */
+  /** Subject used for notification text and repeat detection. */
   title: string;
-  linkUrl?: string;
   recipient: Contact | null;
   recipientEmail: string | null;
   pluginId: string;
@@ -32,8 +30,8 @@ export function pluckByEmail(recipients: Contact[], email: string) {
 }
 
 /**
- * True when a tracked message went to several recipients as one shared body, so an open or
- * click cannot be attributed to any of them. Accounts that send through Microsoft Graph send
+ * True when a tracked message went to several recipients as one shared body, so an open
+ * cannot be attributed to any of them. Accounts that send through Microsoft Graph send
  * every recipient the same message; the tracking metadata records this as `shared_body`. With
  * a single recipient the event is still theirs (pluckByEmail).
  */
@@ -49,7 +47,7 @@ export function eventCountLabel(count: number) {
 }
 
 /**
- * Collapses repeated opens of a message / clicks of a link by the same recipient
+ * Collapses repeated opens of a message by the same recipient
  * into the earliest one, with `occurrences` counting the rest. Returns copies,
  * newest first.
  */
@@ -97,22 +95,6 @@ export function eventsForMessage(
         pluginId: OPEN_TRACKING_ID,
         timestamp: open.timestamp,
       });
-    }
-  }
-
-  const linkMetadata = message.metadataForPluginId(LINK_TRACKING_ID);
-  if (linkMetadata && linkMetadata.links) {
-    for (const link of linkMetadata.links) {
-      for (const click of link.click_data || []) {
-        events.push({
-          ...base,
-          ...withRecipient(click.recipient),
-          title: link.url,
-          linkUrl: link.url,
-          pluginId: LINK_TRACKING_ID,
-          timestamp: click.timestamp,
-        });
-      }
     }
   }
 

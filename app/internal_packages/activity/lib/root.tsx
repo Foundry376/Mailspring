@@ -39,7 +39,7 @@ function ActivityTabs({
   };
 
   return (
-    <div className="activity-tabs hidden-on-web" role="tablist" onKeyDown={onKeyDown}>
+    <div className="activity-tabs" role="tablist" onKeyDown={onKeyDown}>
       {TABS.map((tab) => (
         <div
           key={tab.id}
@@ -104,7 +104,6 @@ class Root extends React.Component<
     // Falls back to all accounts once the picked one is removed.
     const picked = accounts.find((a) => a.id === this.state.accountId);
     const accountIds = picked ? [picked.id] : accounts.map((a) => a.id);
-    const shown = picked || (accounts.length === 1 ? accounts[0] : null);
 
     return (
       <div className="activity-dashboard">
@@ -118,15 +117,12 @@ class Root extends React.Component<
               onChange={this._onSelectAccount}
             />
           )}
-          <div className="accounts visible-on-web">
-            · {shown ? shown.label : localized('All Accounts')}
-          </div>
         </div>
         <ActivityTabs selected={tab} onSelect={this._onSelectTab} />
-        <div className="activity-tab-panel hidden-on-web" hidden={tab !== 'feed'}>
+        <div className="activity-tab-panel" hidden={tab !== 'feed'}>
           <ActivityFeed accountIds={accountIds} timespan={timespan} />
         </div>
-        <div className="activity-tab-panel hidden-on-web" hidden={tab !== 'engagement'}>
+        <div className="activity-tab-panel" hidden={tab !== 'engagement'}>
           <EngagementBoard accountIds={accountIds} timespan={timespan} />
         </div>
         <div className="activity-tab-panel reports" hidden={tab !== 'reports'}>

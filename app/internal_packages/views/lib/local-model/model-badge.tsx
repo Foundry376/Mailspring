@@ -22,10 +22,7 @@ function confirm(message: string, detail: string, action: string) {
   return choice === 0;
 }
 
-/**
- * The pill's prefix. The badge is about running Views, not building them (that uses cloud AI),
- * so it names what Views run on rather than saying "AI" alone.
- */
+/** Names the on-device runtime rather than saying "AI" alone. */
 export function badgePrefix(status: LocalModelStatus | null) {
   return status && status.state.kind === 'disabled'
     ? localized('AI in Views')

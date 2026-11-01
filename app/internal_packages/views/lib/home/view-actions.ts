@@ -6,7 +6,6 @@ import { removeThumbnail } from './thumbnails';
 import { forgetView } from '../consent';
 import { setPinned } from '../nav/pins';
 import { clearBadge } from '../nav/badges';
-import { AgentSessionStore } from '../agent/store';
 
 export function openViewsHome() {
   ViewsNavStore.showHome();
@@ -20,7 +19,11 @@ export function openViewsHome() {
  */
 export function purgeView(viewId: string) {
   if (ViewsNavStore.viewId() === viewId) openViewsHome();
-  AgentSessionStore.forget(viewId);
+  for (const key of ['core.views.agentCode', 'core.views.agentRevisions']) {
+    const values = { ...(AppEnv.config.get(key) || {}) };
+    delete values[viewId];
+    AppEnv.config.set(key, values);
+  }
   deleteViewFiles(viewId);
   removeThumbnail(viewId);
   setPinned(viewId, false);

@@ -26,36 +26,36 @@ Requires: libasound.so.2()(64bit), libXss.so.1()(64bit), libsecret-1.so.0()(64bi
 %define _build_id_links none
 
 %install
-mkdir -p %{buildroot}/usr/share/mailspring
-cp -r <%= contentsDir %>/* %{buildroot}/usr/share/mailspring
+mkdir -p %{buildroot}<%= linuxShareDir %>
+cp -r <%= contentsDir %>/* %{buildroot}<%= linuxShareDir %>
 
 mkdir -p %{buildroot}/usr/bin/
 
-ln -s ../share/mailspring/mailspring %{buildroot}/usr/bin/mailspring
-chmod 755 %{buildroot}/usr/bin/mailspring
+ln -s ../share/<%= name %>/<%= name %> %{buildroot}/usr/bin/<%= name %>
+chmod 755 %{buildroot}/usr/bin/<%= name %>
 
 mkdir -p %{buildroot}/usr/share/applications/
-mv Mailspring.desktop %{buildroot}/usr/share/applications/
+mv <%= desktopName %> %{buildroot}/usr/share/applications/
 
 mkdir -p %{buildroot}/usr/share/metainfo/
-mv mailspring.metainfo.xml %{buildroot}/usr/share/metainfo/
+mv <%= name %>.metainfo.xml %{buildroot}/usr/share/metainfo/
 
 for s in 16 32 64 128 256 512; do
     mkdir -p %{buildroot}/usr/share/icons/hicolor/${s}x${s}/apps
-    cp -p <%= linuxAssetsDir %>/icons/${s}.png %{buildroot}/usr/share/icons/hicolor/${s}x${s}/apps/mailspring.png
+    cp -p <%= linuxAssetsDir %>/icons/${s}.png %{buildroot}/usr/share/icons/hicolor/${s}x${s}/apps/<%= name %>.png
 done
 
 %files
-/usr/bin/mailspring
-/usr/share/mailspring
-/usr/share/applications/Mailspring.desktop
-/usr/share/metainfo/mailspring.metainfo.xml
-/usr/share/icons/hicolor/16x16/apps/mailspring.png
-/usr/share/icons/hicolor/32x32/apps/mailspring.png
-/usr/share/icons/hicolor/64x64/apps/mailspring.png
-/usr/share/icons/hicolor/128x128/apps/mailspring.png
-/usr/share/icons/hicolor/256x256/apps/mailspring.png
-/usr/share/icons/hicolor/512x512/apps/mailspring.png
+/usr/bin/<%= name %>
+<%= linuxShareDir %>
+/usr/share/applications/<%= desktopName %>
+/usr/share/metainfo/<%= name %>.metainfo.xml
+/usr/share/icons/hicolor/16x16/apps/<%= name %>.png
+/usr/share/icons/hicolor/32x32/apps/<%= name %>.png
+/usr/share/icons/hicolor/64x64/apps/<%= name %>.png
+/usr/share/icons/hicolor/128x128/apps/<%= name %>.png
+/usr/share/icons/hicolor/256x256/apps/<%= name %>.png
+/usr/share/icons/hicolor/512x512/apps/<%= name %>.png
 
 %post
 gtk-update-icon-cache -f /usr/share/icons/hicolor &> /dev/null || :

@@ -359,7 +359,7 @@ function showGrammarContextMenu(mark: any, editor: Editor) {
     replacements.slice(0, 5).forEach((r: string) => {
       menu.append(
         new MenuItem({
-          label: r,
+          label: r || localized('Remove'),
           click: () => applyReplacement(editor, r),
         })
       );

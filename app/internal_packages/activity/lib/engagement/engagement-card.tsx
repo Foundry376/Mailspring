@@ -5,15 +5,13 @@ import { RetinaImg } from 'mailspring-component-kit';
 
 import ActivityEventStore from '../activity-event-store';
 import * as ActivityActions from '../activity-actions';
-import { configForPluginId, LINK_TRACKING_ID, OPEN_TRACKING_ID } from '../plugin-helpers';
+import { configForPluginId, OPEN_TRACKING_ID } from '../plugin-helpers';
 import { ActivityKind, averageFirstOpenDelay, EngagementStats } from './engagement-stats';
 
 function activityLabel(kind: ActivityKind) {
   switch (kind) {
     case 'reply':
       return localized('Replied');
-    case 'click':
-      return localized('Clicked');
     default:
       return localized('Opened');
   }
@@ -23,8 +21,6 @@ function activityIcon(kind: ActivityKind) {
   switch (kind) {
     case 'reply':
       return 'icon-activity-replied.png';
-    case 'click':
-      return configForPluginId(LINK_TRACKING_ID).iconName;
     default:
       return configForPluginId(OPEN_TRACKING_ID).iconName;
   }
@@ -45,7 +41,6 @@ function statsLine(stats: EngagementStats) {
     stats.sent === 1 ? localized('1 sent') : localized('%@ sent', stats.sent),
     stats.tracked < stats.sent ? localized('%@ tracked', stats.tracked) : null,
     stats.opens === 1 ? localized('1 open') : localized('%@ opens', stats.opens),
-    stats.clicks === 1 ? localized('1 click') : localized('%@ clicks', stats.clicks),
     stats.replies === 1 ? localized('1 reply') : localized('%@ replies', stats.replies),
   ];
   const avgDelay = averageFirstOpenDelay(stats);

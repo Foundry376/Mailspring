@@ -4,8 +4,6 @@ import { shell } from 'electron';
 import { localized } from './intl';
 import pkg from './utils/package';
 
-const bundleIdentifier = 'com.mailspring.mailspring';
-
 interface DCH {
   available(): boolean;
   isRegisteredForURLScheme(scheme: string, callback: (registered: boolean | Error) => void): void;
@@ -35,7 +33,7 @@ export class DefaultClientHelperWindows implements DCH {
               callback(err1 || err2);
               return;
             }
-            callback(output.includes('Mailspring'));
+            callback(output.includes(`${pkg.productName}.Url.mailto`));
           }
         );
       }
@@ -46,12 +44,14 @@ export class DefaultClientHelperWindows implements DCH {
     // On Windows 11 21H2+ (with April 2023 update), we can deep link directly to Mailspring's
     // default app settings page. On older Windows versions, this falls back to the main
     // Default Apps page, which is still better than opening a web browser.
-    shell.openExternal('ms-settings:defaultapps?registeredAppUser=Mailspring').catch((err) => {
-      AppEnv.showErrorDialog({
-        title: localized('Failed to Open Settings'),
-        message: localized('Mailspring was unable to open Windows Settings.\n\n%@', err.message),
+    shell
+      .openExternal(`ms-settings:defaultapps?registeredAppUser=${pkg.productName}`)
+      .catch((err) => {
+        AppEnv.showErrorDialog({
+          title: localized('Failed to Open Settings'),
+          message: localized('Mailspring was unable to open Windows Settings.\n\n%@', err.message),
+        });
       });
-    });
   }
 
   registerForURLScheme(scheme: string, callback = (error?: Error) => {}) {
@@ -89,7 +89,7 @@ export class DefaultClientHelperWindows implements DCH {
             // On Windows 11 21H2+ (with April 2023 update), this deep links directly to
             // Mailspring's default app settings. On older versions, falls back to Default Apps.
             shell
-              .openExternal('ms-settings:defaultapps?registeredAppUser=Mailspring')
+              .openExternal(`ms-settings:defaultapps?registeredAppUser=${pkg.productName}`)
               .catch((err) => {
                 AppEnv.showErrorDialog({
                   title: localized('Failed to Open Settings'),

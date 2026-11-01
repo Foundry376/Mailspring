@@ -13,7 +13,7 @@ const { spawnSync } = require('child_process');
 const { createWindowsInstaller } = require('electron-winstaller');
 
 const appDir = path.join(__dirname, '..');
-const { version } = require(path.join(appDir, 'package.json'));
+const { version, name, productName } = require(path.join(appDir, 'package.json'));
 
 const signToolPath = process.env.WINDOWS_SIGNTOOL_PATH;
 const signWithParams = process.env.WINDOWS_SIGN_PARAMS;
@@ -82,17 +82,17 @@ function verifySigningWorks(vendorDirectory) {
 const config = {
   usePackageJson: false,
   outputDirectory: path.join(appDir, 'dist'),
-  appDirectory: path.join(appDir, 'dist', 'mailspring-win32-x64'),
+  appDirectory: path.join(appDir, 'dist', `${name}-win32-x64`),
   loadingGif: path.join(appDir, 'build', 'resources', 'win', 'loading.gif'),
   iconUrl: 'http://mailspring-builds.s3.amazonaws.com/assets/mailspring-square.ico',
-  description: 'Mailspring',
+  description: productName,
   version: version,
-  title: 'Mailspring',
+  title: productName,
   authors: 'Foundry 376, LLC',
   setupIcon: path.join(appDir, 'build', 'resources', 'win', 'mailspring-square.ico'),
-  setupExe: 'MailspringSetup.exe',
-  exe: 'mailspring.exe',
-  name: 'Mailspring',
+  setupExe: `${productName}Setup.exe`,
+  exe: `${name}.exe`,
+  name,
 };
 
 if (signWithParams) {

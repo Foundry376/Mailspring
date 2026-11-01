@@ -221,16 +221,6 @@ const RegExpUtils = {
     return /<img\s+[^>]*src="([^"]*)"[^>]*>/g;
   },
 
-  // Regex that matches our link tracking urls, surrounded by quotes
-  // ("link.getmailspring.com...?redirect=")
-  // Test cases: https://regex101.com/r/rB4fO4/3
-  // Returns the following capturing groups
-  // 1.The redirect url: the actual url you want to visit by clicking a url
-  // that matches this regex
-  trackedLinkRegex() {
-    return /["|']https:\/\/link\.getmailspring\.com\/link\/.*?\?.*?redirect=([^&"']*).*?["|']/g;
-  },
-
   punctuation({ exclude }: { exclude?: [] } = {}) {
     if (exclude == null) {
       exclude = [];

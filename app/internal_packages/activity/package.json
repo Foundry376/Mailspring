@@ -15,7 +15,7 @@
 
   "title":"Activity Notifications and Dashboard",
   "icon":"./assets/icon.png",
-  "description": "Get notifications for open and link tracking activity.",
+  "description": "Get notifications for read receipt activity.",
   "supportedEnvs": ["development", "staging", "production"],
 
   "license": "GPL-3.0"

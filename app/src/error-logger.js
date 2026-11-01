@@ -1,15 +1,9 @@
-var ErrorLogger, _, app;
+var ErrorLogger;
 
 let ipcRenderer = null;
 if (process.type === 'renderer') {
   ipcRenderer = require('electron').ipcRenderer;
-  app = require('@electron/remote').app;
-} else {
-  app = require('electron').app;
 }
-
-var appVersion = app.getVersion();
-var SentryErrorReporter = require('./error-logger-extensions/sentry-error-reporter');
 
 // A globally available ErrorLogger that can report errors to various
 // sources and enhance error functionality.
@@ -24,8 +18,7 @@ var SentryErrorReporter = require('./error-logger-extensions/sentry-error-report
 // You should almost always use `AppEnv.reportError` in the renderer
 // processes instead of manually accessing the `errorLogger`
 //
-// The errorLogger will report errors to a log file as well as to 3rd
-// party reporting services if enabled.
+// Errors remain in the local application log and are never uploaded.
 module.exports = ErrorLogger = (function () {
   function ErrorLogger(args) {
     this.reportError = this.reportError.bind(this);
@@ -33,19 +26,9 @@ module.exports = ErrorLogger = (function () {
     this.inDevMode = args.inDevMode;
     this.resourcePath = args.resourcePath;
 
-    this._startCrashReporter();
-
     this._extendErrorObject();
 
     this._extendNativeConsole();
-
-    this.extensions = [
-      new SentryErrorReporter({
-        inSpecMode: args.inSpecMode,
-        inDevMode: args.inDevMode,
-        resourcePath: args.resourcePath,
-      }),
-    ];
 
     if (this.inSpecMode) {
       return;
@@ -137,8 +120,6 @@ module.exports = ErrorLogger = (function () {
        * it before the window closes.
        */
       ipcRenderer.sendSync('report-error', { errorJSON: errorJSON, extra: extraJSON });
-    } else {
-      this._notifyExtensions('reportError', error, extra);
     }
     // console.error can itself throw (eg. EPIPE writing to a closed
     // stdout/stderr pipe on Linux). Since reportError is called from our
@@ -154,23 +135,6 @@ module.exports = ErrorLogger = (function () {
   /////////////////////////////////////////////////////////////////////
   ////////////////////////// PRIVATE METHODS //////////////////////////
   /////////////////////////////////////////////////////////////////////
-
-  ErrorLogger.prototype._startCrashReporter = function (args) {
-    if (process.type === 'renderer') {
-      return;
-    }
-    require('electron').crashReporter.start({
-      productName: 'Mailspring',
-      companyName: 'Mailspring',
-      submitURL: `https://id.getmailspring.com/report-crash?ver=${appVersion}&platform=${process.platform}`,
-      uploadToServer: true,
-      autoSubmit: true,
-      extra: {
-        ver: appVersion,
-        platform: process.platform,
-      },
-    });
-  };
 
   ErrorLogger.prototype._extendNativeConsole = function (args) {
     console.debug = this._consoleDebug.bind(this);
@@ -192,16 +156,6 @@ module.exports = ErrorLogger = (function () {
       },
       configurable: true,
     });
-  };
-
-  ErrorLogger.prototype._notifyExtensions = function () {
-    var command, args;
-    command = arguments[0];
-    args = 2 <= arguments.length ? Array.prototype.slice.call(arguments, 1) : [];
-    for (var i = 0; i < this.extensions.length; i++) {
-      const extension = this.extensions[i];
-      extension[command].apply(extension, args);
-    }
   };
 
   // Create a new console.debug option, which takes `true` (print)

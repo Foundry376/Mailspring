@@ -4,7 +4,6 @@ import {
   INITIAL_API_VERSION,
   apiVersionOf,
   compatibility,
-  rebuildRequest,
   shimsFor,
   withApiVersion,
 } from '../lib/api-version';
@@ -25,7 +24,7 @@ describe('View API versions', function () {
     expect(compatibility('2027-01-01', range)).toBe('too-new');
   });
 
-  it('offers a rebuild to Views written before the unshimmed 2026-10-20 changes', () => {
+  it('rejects Views written before the unshimmed 2026-10-20 changes', () => {
     expect(MIN_SUPPORTED_API_VERSION).toBe(CURRENT_API_VERSION);
     expect(compatibility('2026-10-05')).toBe('too-old');
     expect(compatibility(apiVersionOf({}))).toBe('too-old');
@@ -43,11 +42,5 @@ describe('View API versions', function () {
     expect(withApiVersion({ name: 'x', apiVersion: '2026-10-01' } as any).apiVersion).toBe(
       '2026-10-01'
     );
-  });
-
-  it('asks the agent to move a View to the current API', () => {
-    const text = rebuildRequest('2026-09-01');
-    expect(text).toContain('2026-09-01');
-    expect(text).toContain(`"apiVersion": "${CURRENT_API_VERSION}"`);
   });
 });

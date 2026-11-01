@@ -1,9 +1,8 @@
 import { AccountStore } from 'mailspring-exports';
 import { ActivityEvent } from '../activity-events';
-import { LINK_TRACKING_ID } from '../plugin-helpers';
 import { exportCsv } from '../csv-export';
 
-/** One row per open or click, in the order the feed currently displays them. */
+/** One row per open, in the order the feed currently displays them. */
 export function exportActivityEventsCsv(events: ActivityEvent[]) {
   exportCsv(
     'activity.csv',
@@ -13,7 +12,6 @@ export function exportActivityEventsCsv(events: ActivityEvent[]) {
       'Recipient Email',
       'Event',
       'Occurrences',
-      'Link',
       'Subject',
       'Account',
       'Message ID',
@@ -26,9 +24,8 @@ export function exportActivityEventsCsv(events: ActivityEvent[]) {
           new Date(event.timestamp * 1000).toISOString(),
           event.recipient ? event.recipient.name || '' : '',
           event.recipientEmail || '',
-          event.pluginId === LINK_TRACKING_ID ? 'click' : 'open',
+          'open',
           event.occurrences,
-          event.linkUrl || '',
           event.subject || '',
           account ? account.emailAddress : '',
           event.messageId,

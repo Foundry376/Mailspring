@@ -12,8 +12,5 @@ setAccount.sync = true;
 export const chooseAccountProvider = Reflux.createAction('chooseAccountProvider');
 chooseAccountProvider.sync = true;
 
-export const identityJSONReceived = Reflux.createAction('identityJSONReceived');
-identityJSONReceived.sync = true;
-
 export const finishAndAddAccount = Reflux.createAction('finishAndAddAccount');
 finishAndAddAccount.sync = true;

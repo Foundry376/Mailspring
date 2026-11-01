@@ -169,11 +169,6 @@
     padding: 3px 0;
   }
 
-  label[for='subscribe-check'] {
-    color: black;
-    white-space: inherit;
-  }
-
   label.checkbox {
     width: inherit;
   }
@@ -184,71 +179,6 @@
     font-size: 0.94em;
     text-align: right;
     padding: 0;
-  }
-}
-
-.page.authenticate {
-  flex: 1;
-  display: flex;
-
-  webview {
-    display: flex;
-    flex: 1;
-  }
-
-  .webview-loading-spinner {
-    position: absolute;
-    right: 17px;
-    top: 17px;
-    opacity: 0;
-    transition: opacity 200ms ease-in-out;
-    transition-delay: 200ms;
-    &.loading-true {
-      opacity: 1;
-    }
-  }
-
-  .webview-cover {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #f3f3f3;
-    opacity: 1;
-    transition: opacity 200ms ease-out;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    .message {
-      color: #444;
-      opacity: 0;
-      margin-top: 20px;
-      transition: opacity 200ms ease-out;
-    }
-    .try-again {
-      opacity: 0;
-      transition: opacity 200ms ease-out;
-    }
-  }
-  .webview-cover.slow,
-  .webview-cover.error {
-    .message {
-      opacity: 1;
-      max-width: 400px;
-    }
-  }
-  .webview-cover.error {
-    .spinner {
-      visibility: hidden;
-    }
-    .try-again {
-      opacity: 1;
-    }
-  }
-  .webview-cover.ready {
-    pointer-events: none;
-    opacity: 0;
   }
 }
 
@@ -447,107 +377,6 @@
   }
 }
 
-.page.tutorial {
-  display: flex;
-  flex-direction: column;
-
-  &.appeared-false {
-    .tutorial-container .left {
-      transform: translate3d(-30px, 0, 0);
-      opacity: 0;
-    }
-    .tutorial-container .right {
-      transform: translate3d(30px, 0, 0);
-      opacity: 0;
-    }
-  }
-
-  .tutorial-container {
-    background-color: #f9f9f9;
-    display: flex;
-    flex-direction: row;
-    flex: 1;
-
-    .left {
-      align-self: center;
-      flex: 2;
-      opacity: 1;
-      transform: translate3d(0, 0, 0);
-      transition: all ease-in-out 400ms;
-
-      .screenshot {
-        width: 523px;
-        height: 385px;
-        background: url(mailspring://onboarding/assets/app-screenshot@2x.png) top left no-repeat;
-        background-size: contain;
-        margin: auto;
-        position: relative;
-
-        .overlay {
-          position: absolute;
-          width: 40px;
-          height: 40px;
-          border: 2px solid rgba(0, 0, 0, 0.7);
-          border-radius: 20px;
-          transform: translate3d(-50%, -50%, 0);
-          transition: all cubic-bezier(0.65, 0.05, 0.36, 1) 260ms;
-
-          .overlay-content {
-            transition: all cubic-bezier(0.65, 0.05, 0.36, 1) 260ms;
-            transform: translate3d(-67px, -67px, 0) scale(0.21);
-            background: url(mailspring://onboarding/assets/app-screenshot@2x.png) top left no-repeat;
-            background-position: 10% 20%;
-            border-radius: 73px;
-            width: 146px;
-            height: 146px;
-            opacity: 0;
-            display: block;
-            position: absolute;
-          }
-        }
-        .overlay.seen {
-          border: 2px solid rgba(0, 0, 0, 0.3);
-        }
-        .overlay.expanded {
-          width: 150px;
-          height: 150px;
-          border: 2px solid rgba(0, 0, 0, 0.7);
-          border-radius: 75px;
-          box-shadow: 0 0 15px fade(#2673d1, 50%);
-          z-index: 2;
-
-          .overlay-content {
-            transform: scale(1);
-            opacity: 1;
-          }
-        }
-      }
-    }
-
-    .right {
-      flex: 1;
-      padding: 30px;
-      padding-left: 0;
-      opacity: 1;
-      transform: translate3d(0, 0, 0);
-      transition: all ease-in-out 400ms;
-
-      h2 {
-        font-size: 28px;
-        font-weight: 300;
-        text-align: center;
-      }
-      p {
-        font-size: 16px;
-        line-height: 1.85em;
-        text-align: left;
-        padding: 10px 0;
-        color: #333;
-      }
-    }
-  }
-}
-
 .page.welcome {
   display: flex;
   flex-direction: column;
@@ -594,19 +423,13 @@
   }
 }
 
-.page.welcome,
-.page.tutorial {
+.page.welcome {
   .footer {
     text-align: center;
     background-color: #ececec;
     border-top: 1px solid rgba(0, 0, 0, 0.1);
     box-shadow: 0 1px 1px solid rgba(255, 255, 255, 0.25);
 
-    .btn-next,
-    .btn-prev {
-      min-width: 160px;
-      margin: 20px 10px;
-    }
     .btn-continue {
       font-weight: 300;
       margin: 20px 0;
@@ -618,8 +441,7 @@
 }
 
 body.platform-win32 {
-  .page.welcome,
-  .page.tutorial {
+  .page.welcome {
     .footer {
       .btn-continue {
         color: white;
@@ -711,47 +533,5 @@ body.platform-win32 {
 
   input {
     margin-top: 0;
-  }
-}
-
-// temporarily copied from prefs-identity
-
-.page.initial-subscription {
-  .features {
-    display: flex;
-    max-width: 470px;
-    margin-top: 20px;
-    ul {
-      flex: 1;
-      margin: 0;
-      line-height: 1.9em;
-      list-style-type: none;
-      padding: 0;
-      li {
-        text-align: left;
-      }
-    }
-  }
-  .pro-feature-ring {
-    display: block;
-    width: 205px;
-    height: 205px;
-    position: relative;
-    .price,
-    .period {
-      display: block;
-      z-index: 2;
-      position: absolute;
-      left: 50%;
-      transform: translate(-50%, -50%);
-    }
-    .price {
-      font-size: 50px;
-      line-height: 50px;
-      top: 40%;
-    }
-    .period {
-      top: 56%;
-    }
   }
 }

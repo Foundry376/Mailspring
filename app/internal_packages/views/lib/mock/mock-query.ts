@@ -9,9 +9,6 @@ import { MockData, MockMessage, MockThread, lastMessageDate, threadSummary } fro
  * that is wrong against the user's mail is wrong here too. Matching follows the SQL compiler in
  * src/services/mail-access/filter.ts closely enough for posters; full-text matching is plain
  * word containment rather than stemmed FTS.
- *
- * The authoring agent's checker bundles this file and mock-data.ts (backend
- * agents/views/harness-src), so both stay free of Electron and app imports beyond types.
  */
 
 const EXACT = /^[^\s@]+@[^\s@]+$/;

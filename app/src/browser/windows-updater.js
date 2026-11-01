@@ -26,6 +26,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { shell } = require('electron');
+const { name, productName } = require('../../package.json');
 
 // C:\Users\<USERNAME>\AppData\Local\Mailspring\app-x.x.x
 const appFolder = path.resolve(process.execPath, '..');
@@ -142,7 +143,10 @@ function createRegistryEntries({ allowEscalation, registerDefaultIfPossible }, c
         callback(err);
         return;
       }
-      const importTemplate = data.toString();
+      const importTemplate = data
+        .toString()
+        .replace(/{{PRODUCT_NAME}}/g, productName)
+        .replace(/{{EXE_NAME}}/g, `${name}.exe`);
       let importContents = importTemplate.replace(
         /{{PATH_TO_ROOT_FOLDER}}/g,
         escapeBackticks(rootAppDataFolder)
@@ -198,8 +202,8 @@ exports.existsSync = () => fs.existsSync(updateDotExe);
 // show "Mailspring" instead of "com.squirrel.mailspring.mailspring"
 // Registry path: HKEY_CURRENT_USER\SOFTWARE\Classes\AppUserModelId\{AUMID}
 function registerAppUserModelId(callback) {
-  const aumid = 'com.squirrel.mailspring.mailspring';
-  const displayName = 'Mailspring';
+  const aumid = 'com.squirrel.bettermailspring.bettermailspring';
+  const displayName = productName;
   const iconPath = path.join(appFolder, 'resources', 'mailspring-square.ico');
 
   let regPath = 'reg.exe';
@@ -249,7 +253,13 @@ function copyVisualElements() {
       'mailspring.VisualElementsManifest.xml',
     ];
     for (const file of files) {
-      fs.copyFileSync(path.join(appFolder, 'resources', file), path.join(rootAppDataFolder, file));
+      const target = file.endsWith('.VisualElementsManifest.xml')
+        ? `${name}.VisualElementsManifest.xml`
+        : file;
+      fs.copyFileSync(
+        path.join(appFolder, 'resources', file),
+        path.join(rootAppDataFolder, target)
+      );
     }
   } catch (err) {
     // Ignore errors - visual elements are optional
@@ -297,23 +307,23 @@ exports.handleSquirrelInstall = (app) => {
     'Windows',
     'Start Menu',
     'Programs',
-    'Mailspring.lnk'
+    `${productName}.lnk`
   );
   const desktopPath = path.join(
     process.env.USERPROFILE || process.env.HOME,
     'Desktop',
-    'Mailspring.lnk'
+    `${productName}.lnk`
   );
   const iconPath = path.join(appFolder, 'resources', 'mailspring-square.ico');
 
   const shortcutOptions = {
     target: updateDotExe,
-    args: '--processStart mailspring.exe',
+    args: `--processStart ${name}.exe`,
     icon: fs.existsSync(iconPath) ? iconPath : undefined,
     iconIndex: 0,
     description: 'The best email app for people and teams at work',
-    appUserModelId: 'com.squirrel.mailspring.mailspring',
-    toastActivatorClsid: '{E6AD16B0-2830-48E7-9DB7-439152FA917B}',
+    appUserModelId: 'com.squirrel.bettermailspring.bettermailspring',
+    toastActivatorClsid: '{8C854B73-EAD8-4C20-ACFD-3A463AF57E22}',
   };
 
   try {
@@ -333,7 +343,7 @@ exports.handleSquirrelInstall = (app) => {
   }
 
   // Spawn reg.exe to register AUMID (detached - won't block exit)
-  const aumid = 'com.squirrel.mailspring.mailspring';
+  const aumid = 'com.squirrel.bettermailspring.bettermailspring';
   const regKey = `HKEY_CURRENT_USER\\SOFTWARE\\Classes\\AppUserModelId\\${aumid}`;
   let regPath = 'reg.exe';
   if (process.env.SystemRoot) {
@@ -347,7 +357,7 @@ exports.handleSquirrelInstall = (app) => {
     '/t',
     'REG_SZ',
     '/d',
-    'Mailspring',
+    productName,
     '/f',
   ]);
   if (fs.existsSync(iconPath)) {
@@ -393,12 +403,12 @@ exports.handleSquirrelUninstall = (app) => {
     'Windows',
     'Start Menu',
     'Programs',
-    'Mailspring.lnk'
+    `${productName}.lnk`
   );
   const desktopPath = path.join(
     process.env.USERPROFILE || process.env.HOME,
     'Desktop',
-    'Mailspring.lnk'
+    `${productName}.lnk`
   );
 
   try {

@@ -4,7 +4,6 @@ import { ViewRegistryEvents, allViews } from './view-registry';
 import { ViewHost } from './view-host';
 import { ViewsNavStore } from './views-nav';
 import { ViewsHome } from './home/views-home';
-import { EditViewButton, openPanelForView } from './authoring-panel';
 
 /** Content of the Views root sheet: the Views home. */
 export class ViewsRoot extends React.Component<Record<string, never>> {
@@ -71,10 +70,7 @@ export class ViewPageRoot extends React.Component<Record<string, never>, ViewPag
       return (
         <div className="views-root unbuilt">
           <div className="views-unbuilt-message">
-            {localized('This View hasn’t been built yet.')}
-            <button className="btn" onClick={() => openPanelForView(viewId)}>
-              {localized('Open Chat')}
-            </button>
+            {localized('Add View.jsx to this View’s local folder to use it.')}
           </div>
         </div>
       );
@@ -82,7 +78,6 @@ export class ViewPageRoot extends React.Component<Record<string, never>, ViewPag
     return (
       <div className="views-root">
         <ViewHost key={viewId} viewId={viewId} placement="page" />
-        <EditViewButton key={`edit-${viewId}`} viewId={viewId} variant="page" />
       </div>
     );
   }
