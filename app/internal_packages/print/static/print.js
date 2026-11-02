@@ -1,10 +1,25 @@
 (function() {
+  // Wrapper rules live here rather than in print-styles.css, which can't reach into the
+  // shadow roots. The copied theme styles carry the app's text color, light in a dark theme.
+  var MESSAGE_STYLES =
+    ':host { display: block; }' +
+    '#inbox-html-wrapper, #inbox-plain-wrapper {' +
+    '  margin-top: 10px; --email-text-color: black !important; color: black !important;' +
+    '}' +
+    '@media only print { #inbox-html-wrapper, #inbox-plain-wrapper {' +
+    '  display: block !important; width: auto !important; height: auto !important;' +
+    '  overflow: visible !important;' +
+    '} }';
+
+  // Each message carries its own <style> tags (the sender's, plus the email frame's theme
+  // styles). A shadow root keeps them from restyling the print header, participant list and
+  // other messages, as an iframe does on screen.
   function rebuildMessages(messageNodes, messages) {
-    // Simply insert the message html inside the appropriate node
     for (var idx = 0; idx < messageNodes.length; idx++) {
       var msgNode = messageNodes[idx];
-      var msgHtml = messages[idx];
-      msgNode.innerHTML = msgHtml;
+      msgNode.textContent = '';
+      var root = msgNode.attachShadow({ mode: 'open' });
+      root.innerHTML = '<style>' + MESSAGE_STYLES + '</style>' + messages[idx];
     }
   }
 

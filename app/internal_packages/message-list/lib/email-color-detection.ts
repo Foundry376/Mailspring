@@ -157,7 +157,7 @@ export function prepareEmailColors(wrapper: HTMLElement, behind: RGBA): boolean 
   // Only rewrite once we know the email stays transparent: on a white page the
   // sender's black is correct.
   for (const el of nearBlackElements) {
-    el.style.color = defaultColor;
+    el.style.color = `var(--email-text-color, ${defaultColor})`;
   }
   return false;
 }

@@ -52,6 +52,12 @@ describe('prepareEmailColors', () => {
     expect(prepareEmailColors(wrapper, DARK_THEME_BG)).toBe(false);
   });
 
+  it("gives near-black text the theme's email text color in a form print can override", () => {
+    const wrapper = render('<p style="color: rgb(0, 0, 0)">Signature</p>', { darkMode: false });
+    expect(prepareEmailColors(wrapper, DARK_THEME_BG)).toBe(false);
+    expect(wrapper.querySelector('p').style.color).toContain('var(--email-text-color');
+  });
+
   it('still uses a white page for a painted email when its dark-mode rules do not apply', () => {
     const wrapper = render(GOOGLE_CALENDAR_BODY, { darkMode: false });
     expect(prepareEmailColors(wrapper, DARK_THEME_BG)).toBe(true);
