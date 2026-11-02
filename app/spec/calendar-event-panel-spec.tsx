@@ -46,13 +46,13 @@ describe('EventPanel', function () {
     host.remove();
   });
 
-  const render = (event: TimedOccurrence) =>
+  const render = (event: TimedOccurrence, unsentChange = null) =>
     ReactDOM.render(
       React.createElement(EventPanel, {
         event,
         isCalendarReadOnly: false,
         onBack: () => {},
-        unsentChange: null,
+        unsentChange,
         onUnsentChange: () => {},
         onSendUnsentChange: () => {},
         onSaveChange: () => Promise.resolve(),
@@ -103,6 +103,15 @@ describe('EventPanel', function () {
 
       expect(buttons()).toContain('Yes');
       expect(proposalHint()).not.toBe(null);
+    });
+
+    it('keeps the answers in place but off while a proposal waits', function () {
+      const yes = () =>
+        Array.from(host.querySelectorAll('button')).find((b) => b.textContent === 'Yes');
+      const proposal = { eventId: 'e1', edits: [], times: null, proposal: { comment: '' } };
+      render(invitation({ attendees: guests }), proposal);
+
+      expect(yes().disabled).toBe(true);
     });
 
     it('offers neither once the organizer cancels it, and says so', function () {

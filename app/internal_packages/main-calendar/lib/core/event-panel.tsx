@@ -975,8 +975,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   // else's calendar the answer is only emailed (recordAndSendRSVP).
   _renderRsvp() {
     const { event, calendar, isCalendarReadOnly, unsentChange } = this.props;
-    // Hidden while a proposal waits, so an answer and a new time aren't sent at once.
-    if (!canRespondToEvent(event) || event.isCancelled || unsentChange) return null;
+    if (!canRespondToEvent(event) || event.isCancelled) return null;
+    // Kept in place but off while a change waits, so an answer and a new time aren't sent at once.
+    const disabled = isCalendarReadOnly || !!unsentChange;
     const answer = myParticipationStatus(event);
     const savedTo =
       calendar && !isCalendarReadOnly && !CalendarUtils.isSomeoneElsesCalendar(calendar);
@@ -993,9 +994,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           {rsvpActions().map(([status, label]) => (
             <button
               key={status}
-              className={`btn ${status === answer ? status : ''}`}
+              className={`btn ${status === answer ? status : ''} ${disabled ? 'btn-disabled' : ''}`}
               aria-pressed={status === answer}
-              disabled={isCalendarReadOnly}
+              disabled={disabled}
               onClick={() => respondToCalendarEvent(event, status)}
             >
               {label}
