@@ -128,4 +128,51 @@ describe('FeatureUsageStore', function featureUsageStoreSpec() {
       });
     });
   });
+
+  describe('displayUpgradeModal recharge text', () => {
+    const rechargeTextFor = (feature, lexicon) => {
+      FeatureUsageStore.displayUpgradeModal(feature, lexicon).catch(() => {});
+      const { calls } = Actions.openModal as unknown as jasmine.Spy;
+      return calls[calls.length - 1].args[0].component.props.rechargeText;
+    };
+
+    beforeEach(() => {
+      spyOn(Actions, 'openModal');
+      this.fakeIdentity.featureUsage['weekly'] = { quota: 5, period: 'weekly', usedInPeriod: 5 };
+      this.fakeIdentity.featureUsage['all-time'] = { quota: 10, period: 'unlimited', usedInPeriod: 10 };
+    });
+
+    afterEach(() => {
+      FeatureUsageStore._onModalClose();
+    });
+
+    it('fills in the quota and period for limits that reset', () => {
+      const lexicon = { headerText: 'h', iconUrl: 'i', rechargeText: '%1$@ each %2$@' };
+      expect(rechargeTextFor('weekly', lexicon)).toBe('5 each week');
+      expect(rechargeTextFor('not-usable', lexicon)).toBe('10 each month');
+    });
+
+    it("uses the lexicon's all-time text for limits that never reset", () => {
+      const lexicon = {
+        headerText: 'h',
+        iconUrl: 'i',
+        rechargeText: '%1$@ each %2$@',
+        rechargeTextAllTime: '%1$@ in total',
+      };
+      expect(rechargeTextFor('all-time', lexicon)).toBe('10 in total');
+    });
+
+    it("doesn't show per-period text for a limit that never resets", () => {
+      const lexicon = { headerText: 'h', iconUrl: 'i', rechargeText: '%1$@ each %2$@' };
+      const text = rechargeTextFor('all-time', lexicon);
+      expect(text).toContain('10 free uses');
+      expect(text).not.toContain('%2$@');
+      expect(text).not.toContain('each');
+    });
+
+    it('keeps text without placeholders as it is', () => {
+      const lexicon = { headerText: 'h', iconUrl: 'i', rechargeText: 'Thanks for trying it out!' };
+      expect(rechargeTextFor('all-time', lexicon)).toBe('Thanks for trying it out!');
+    });
+  });
 });
