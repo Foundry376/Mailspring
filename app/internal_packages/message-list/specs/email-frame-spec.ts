@@ -49,4 +49,21 @@ describe('matchAppColorScheme', () => {
     matchAppColorScheme(doc, iframeEl);
     expect(rootScheme(doc)).toBe(window.getComputedStyle(iframeEl).colorScheme);
   });
+
+  it("matches the email's dark-mode rules to the theme, not the OS", () => {
+    const doc = writeEmail(
+      '<style>p { color: rgb(0, 0, 255); } @media (prefers-color-scheme: dark) { p { color: rgb(255, 0, 0); } }</style><p>x</p>'
+    );
+    const textColor = () => doc.defaultView.getComputedStyle(doc.querySelector('p')).color;
+
+    spyOn(AppEnv.themes, 'isActiveThemeDark').andReturn(true);
+    matchAppColorScheme(doc, iframeEl);
+    expect(iframeEl.style.colorScheme).toBe('dark');
+    expect(textColor()).toBe('rgb(255, 0, 0)');
+
+    (AppEnv.themes.isActiveThemeDark as any).andReturn(false);
+    matchAppColorScheme(doc, iframeEl);
+    expect(iframeEl.style.colorScheme).toBe('light');
+    expect(textColor()).toBe('rgb(0, 0, 255)');
+  });
 });

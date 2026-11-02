@@ -136,9 +136,9 @@ export default class PrintWindow {
   }
 
   /**
-   * Paper always gets `prefers-color-scheme: light`, but this window's preview follows
-   * nativeTheme.themeSource, so in a dark theme it would show emails' dark-mode text on
-   * white. Emulation needs a loaded page to attach to and then persists across navigations.
+   * Paper always gets `prefers-color-scheme: light`, but this window's preview follows the
+   * OS, so in dark mode it would show emails' dark-mode text on white. Emulation needs a
+   * loaded page to attach to and then persists across navigations.
    */
   async emulateLightColorScheme() {
     const { webContents } = this.browserWin;

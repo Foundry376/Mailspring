@@ -18,15 +18,19 @@ import {
 } from './email-color-detection';
 
 /**
- * Pins the message document's color-scheme to the app's. Emails often declare
- * `color-scheme: dark` or `light dark` (newsletters, or pages captured with the
- * Dark Reader extension enabled), and when the iframe's root scheme differs from
- * the embedding element's, Chromium paints the iframe an opaque dark canvas
- * beneath our dark theme text. An inline !important declaration is the only
- * author style that outranks !important rules inside an `@layer`.
+ * Renders the message in the theme's color scheme rather than the OS's. The iframe
+ * element's `color-scheme` decides what `prefers-color-scheme` matches inside it, so
+ * emails' dark-mode rules (eg. Google Calendar's `#e8eaed` text) apply only in a
+ * dark theme.
+ *
+ * The message document's root gets the same scheme: emails often declare their own
+ * (newsletters' `light dark`, Dark Reader's `dark`), and when it differs from the
+ * iframe element's, Chromium paints the iframe an opaque canvas. An inline !important
+ * declaration is the only author style that outranks !important rules inside an `@layer`.
  */
 export function matchAppColorScheme(doc: Document, iframeEl: HTMLIFrameElement) {
-  const scheme = window.getComputedStyle(iframeEl).colorScheme;
+  const scheme = AppEnv.themes.isActiveThemeDark() ? 'dark' : 'light';
+  iframeEl.style.colorScheme = scheme;
   doc.documentElement.style.setProperty('color-scheme', scheme, 'important');
 }
 

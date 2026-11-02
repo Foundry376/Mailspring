@@ -59,7 +59,7 @@ export default class ThemeManager {
   private resourcePath: string;
   private safeMode: boolean;
 
-  private themeValueCache: { emailTextColor?: string } = {};
+  private themeValueCache: { emailTextColor?: string; isDark?: boolean } = {};
 
   private _systemAccentColor: string | null = null;
   private _systemAccentDisposable: Disposable | null = null;
@@ -123,11 +123,6 @@ export default class ThemeManager {
     return AUTOMATIC_THEME_NAME;
   }
 
-  // The OS appearance, which nativeTheme stops reporting while a fixed theme pins themeSource.
-  isSystemDarkMode() {
-    return this._systemDarkMode;
-  }
-
   private isAutomaticModeSelected() {
     return !this.baseThemeOnly && this.getConfiguredThemeName() === AUTOMATIC_THEME_NAME;
   }
@@ -150,7 +145,7 @@ export default class ThemeManager {
         styleEl.textContent = this.cssContentsOfStylesheet((styleEl as any).sourcePath);
       }
     }
-    this.syncNativeThemeSource();
+    this.themeValueCache = {};
     this.emitter.emit('did-change-active-themes');
   }
 
@@ -349,33 +344,7 @@ export default class ThemeManager {
   loadStaticStylesheets() {
     this.requireStylesheet('../static/style/index');
     this.requireStylesheet('../static/style/email-frame');
-    this.syncNativeThemeSource();
-  }
-
-  // `@background-primary` only exists in LESS, so read it back from an element styled with it.
-  isActiveThemeDark() {
-    const probe = document.createElement('mailspring-workspace');
-    probe.style.display = 'none';
-    document.body.appendChild(probe);
-    const background = window.getComputedStyle(probe).backgroundColor;
-    probe.remove();
-    return isDarkColor(background);
-  }
-
-  /**
-   * Points Electron's `nativeTheme.themeSource` at the active theme so `prefers-color-scheme`
-   * agrees with it. Otherwise a light theme on a dark-mode OS renders emails' dark-mode rules
-   * (eg. Google Calendar's `#e8eaed` text) on our white message pane. Automatic mode keeps
-   * 'system': its theme already follows the OS, and the main process needs the unpinned
-   * value to notice the OS switching.
-   */
-  syncNativeThemeSource() {
-    if (this.baseThemeOnly) return;
-    let source: 'system' | 'light' | 'dark' = 'system';
-    if (!this.isAutomaticModeSelected()) {
-      source = this.isActiveThemeDark() ? 'dark' : 'light';
-    }
-    ipcRenderer.send('set-native-theme-source', source);
+    this.themeValueCache = {};
   }
 
   resolveStylesheetPath(stylesheetPath) {
@@ -426,6 +395,18 @@ export default class ThemeManager {
   }
 
   // Helpers for theme values
+
+  // `@background-primary` only exists in LESS, so read it back from an element styled with it.
+  isActiveThemeDark() {
+    if (this.themeValueCache.isDark === undefined) {
+      const probe = document.createElement('mailspring-workspace');
+      probe.style.display = 'none';
+      document.body.appendChild(probe);
+      this.themeValueCache.isDark = isDarkColor(window.getComputedStyle(probe).backgroundColor);
+      probe.remove();
+    }
+    return this.themeValueCache.isDark;
+  }
 
   getEmailTextColor() {
     if (!this.themeValueCache.emailTextColor) {

@@ -10,7 +10,6 @@ import {
   ipcMain,
   dialog,
   nativeImage,
-  nativeTheme,
   powerMonitor,
   shell,
 } from 'electron';
@@ -687,15 +686,6 @@ export default class Application extends EventEmitter {
           : false;
       }
     );
-
-    onFromMailspringWindows(ipcMain, 'set-native-theme-source', (event, source) => {
-      if (!['system', 'light', 'dark'].includes(source)) return;
-      if (nativeTheme.themeSource === source) return;
-      nativeTheme.themeSource = source;
-      // Unpinning only emits 'updated' when the effective value changes, and macOS doesn't
-      // report OS switches while pinned, so the watcher's last OS value may be stale.
-      if (this.systemAccentWatcher) this.systemAccentWatcher.refresh();
-    });
 
     onFromMailspringWindows(ipcMain, 'encountered-theme-error', (event, { message, detail }) => {
       if (userResetTheme) return;

@@ -42,12 +42,10 @@ class SystemTrayIconStore {
       window.removeEventListener('browser-window-hide', this._onWindowBackgrounded);
       window.removeEventListener('browser-window-blur', this._onWindowBackgrounded);
       nativeTheme.removeListener('updated', this._onNativeThemeUpdated);
-      ipcRenderer.removeListener('system-dark-mode-changed', this._onNativeThemeUpdated);
     });
 
     // If the theme changes from bright to dark mode or vice versa, we need to update the tray icon
     nativeTheme.on('updated', this._onNativeThemeUpdated);
-    ipcRenderer.on('system-dark-mode-changed', this._onNativeThemeUpdated);
   }
 
   deactivate() {
@@ -74,9 +72,8 @@ class SystemTrayIconStore {
     if (process.platform === 'win32') {
       // nativeTheme is accessed via @electron/remote; guard against the remote
       // object being GC'd during window teardown (Sentry MAILSPRING-CLIENT-49).
-      // The taskbar follows the Windows mode, not the app mode or our pinned themeSource.
       try {
-        return nativeTheme.shouldUseDarkColorsForSystemIntegratedUI ? '-dark' : '';
+        return nativeTheme.shouldUseDarkColors ? '-dark' : '';
       } catch {
         return '';
       }
@@ -90,12 +87,17 @@ class SystemTrayIconStore {
         return '';
       }
       // Automatic: On GNOME/Unity the top bar panel is always dark regardless of the
-      // application theme. Default to the light-on-dark icon.
+      // application theme, so nativeTheme.shouldUseDarkColors is unreliable
+      // for choosing the tray icon variant. Default to the light-on-dark icon.
       const desktop = (process.env.XDG_CURRENT_DESKTOP || '').toUpperCase();
       if (desktop.includes('GNOME') || desktop.includes('UNITY')) {
         return '-dark';
       }
-      return AppEnv.themes.isSystemDarkMode() ? '-dark' : '';
+      try {
+        return nativeTheme.shouldUseDarkColors ? '-dark' : '';
+      } catch {
+        return '';
+      }
     }
     return '';
   };

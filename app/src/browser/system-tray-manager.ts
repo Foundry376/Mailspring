@@ -97,14 +97,11 @@ class SystemTrayManager {
       dark = '';
     } else {
       // Automatic: On GNOME/Unity the top bar panel is always dark regardless of the
-      // application theme. Default to the light-on-dark icon. Elsewhere follow the OS value,
-      // which nativeTheme stops reporting while a fixed theme pins themeSource.
+      // application theme, so nativeTheme.shouldUseDarkColors is unreliable
+      // for choosing the tray icon variant. Default to the light-on-dark icon.
       const desktop = (process.env.XDG_CURRENT_DESKTOP || '').toUpperCase();
-      const watcher = this._application.systemAccentWatcher;
       if (desktop.includes('GNOME') || desktop.includes('UNITY')) {
         dark = '-dark';
-      } else if (watcher) {
-        dark = watcher.getDarkMode() ? '-dark' : '';
       } else {
         dark = nativeTheme.shouldUseDarkColors ? '-dark' : '';
       }

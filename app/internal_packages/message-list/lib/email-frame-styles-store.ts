@@ -5,7 +5,6 @@ const EMAIL_RENDER_MODE_KEY = 'core.reading.emailRenderMode';
 class EmailFrameStylesStore extends MailspringStore {
   _styles?: string;
   _mutationObserver: MutationObserver;
-  _darkSchemeQuery?: MediaQueryList;
   _configDisposable?: { dispose: () => void };
 
   constructor() {
@@ -65,20 +64,11 @@ class EmailFrameStylesStore extends MailspringStore {
     const target = document.getElementsByTagName('managed-styles')[0];
     this._mutationObserver = new MutationObserver(this._findStyles);
     this._mutationObserver.observe(target, { attributes: true, subtree: true, childList: true });
-
-    // A theme switch restyles the frames before the new nativeTheme.themeSource round-trips
-    // through the main process, so they're classified against the old scheme. Re-render once
-    // the scheme catches up.
-    this._darkSchemeQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    this._darkSchemeQuery.addEventListener('change', this._findStyles);
   }
 
   _unlistenToStyles() {
     if (this._mutationObserver) {
       this._mutationObserver.disconnect();
-    }
-    if (this._darkSchemeQuery) {
-      this._darkSchemeQuery.removeEventListener('change', this._findStyles);
     }
     if (this._configDisposable) {
       this._configDisposable.dispose();
