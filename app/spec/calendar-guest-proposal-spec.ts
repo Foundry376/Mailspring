@@ -277,6 +277,7 @@ describe("a guest's Show as", function () {
   let queued: any[];
   let onUnsentChange: jasmine.Spy;
   let ics: string;
+  let provider: string;
   const showAs = { property: 'transp', value: 'TRANSPARENT' };
 
   const veventsOf = (written: string) =>
@@ -320,6 +321,8 @@ describe("a guest's Show as", function () {
       email === ME ? { id: 'a', emailAddress: ME } : null
     );
     spyOn(DatabaseStore, 'find').andCallFake(() => Promise.resolve(rowWith(ics)));
+    provider = 'imap';
+    spyOn(AccountStore, 'accountForId').andCallFake(() => ({ provider }));
     onUnsentChange = jasmine.createSpy('onUnsentChange');
   });
 
@@ -330,6 +333,19 @@ describe("a guest's Show as", function () {
     const change = onUnsentChange.mostRecentCall.args[0];
     expect(change.edits).toEqual([showAs]);
     expect(change.proposal).toBeUndefined();
+  });
+
+  it("saves straight to the occurrence on Google, which ignores a guest's series-wide one", async function () {
+    provider = 'gmail';
+    const panel = panelFor(invitation, onUnsentChange);
+    panel._saveProperty(showAs);
+    await panel._saving;
+
+    expect(onUnsentChange).not.toHaveBeenCalled();
+    const [master, exception] = veventsOf(writtenIcs());
+    expect(master).not.toContain('TRANSP:TRANSPARENT');
+    expect(exception).toContain('TRANSP:TRANSPARENT');
+    expect(exception).toContain(`RECURRENCE-ID:${stamp(START)}`);
   });
 
   it('writes this occurrence alone, keeping every SEQUENCE', async function () {

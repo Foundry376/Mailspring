@@ -653,6 +653,14 @@ export function asksScope(event: EventOccurrence): boolean {
   return event.isRecurring && !event.isException;
 }
 
+/**
+ * Google's CalDAV accepts a guest's TRANSP on one occurrence but ignores it on the series, so
+ * there a guest's Show as goes to the occurrence without asking.
+ */
+export function asksGuestShowAsScope(event: EventOccurrence): boolean {
+  return asksScope(event) && AccountStore.accountForId(event.accountId).provider !== 'gmail';
+}
+
 /** Edits wait in the panel's card when guests are emailed on every save, for a scope, or as a proposal. */
 export function holdsEdits(event: EventOccurrence, isCalendarReadOnly: boolean): boolean {
   if (!event.isMine) return proposesTime(event, isCalendarReadOnly);

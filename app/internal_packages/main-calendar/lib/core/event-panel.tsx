@@ -25,6 +25,7 @@ import {
 import { EventOccurrence, EventAttendee, isTimed, occurrenceTimes } from './calendar-data-source';
 import {
   allDayToggleTimes,
+  asksGuestShowAsScope,
   asksScope,
   calcEventColors,
   clampEnd,
@@ -309,7 +310,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   _saveProperty(edit: EventPropertyEdit) {
     const { event, unsentChange, onUnsentChange } = this.props;
     // A guest's Show as is their own, so it never joins a proposal; on a series it asks its scope.
-    if (event.isMine ? this._holdsEdits() : asksScope(event)) {
+    if (event.isMine ? this._holdsEdits() : asksGuestShowAsScope(event)) {
       onUnsentChange(withEdit(unsentChange, event, edit, this._storedValue(edit.property)));
     } else {
       this._save({ ...emptyChange(event), edits: [edit] });
