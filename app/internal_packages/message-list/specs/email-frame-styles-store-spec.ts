@@ -48,7 +48,7 @@ describe('EmailFrameStylesStore', () => {
     // Inversion needs a known black-on-white input, otherwise a transparent
     // email using the theme's light text would invert to dark-on-dark.
     expect(renderModeStyles).toContain(
-      'body:not(.adapts-to-dark-mode) #inbox-html-wrapper { color: black; background: white; }'
+      'body:not(.adapts-to-dark-mode) #inbox-html-wrapper { color: black; --email-text-color: black; background: white; }'
     );
     expect(renderModeStyles).toContain(
       'body:not(.adapts-to-dark-mode) { filter: invert(100%) hue-rotate(180deg)'

@@ -17,10 +17,14 @@ export const DARK_THEME_NAME = 'ui-dark';
 
 /**
  * True when a computed `rgb()`/`rgba()` color is darker than 50% gray by Rec. 709 luma. Used
- * to classify themes, which only declare their colors as LESS variables.
+ * to classify themes, which only declare their colors as LESS variables. Anything else counts
+ * as light: Chrome reports `color-mix()` and `oklch()` as `color(srgb 0-1 ...)`, and a theme
+ * whose LESS failed to compile leaves the background transparent.
  */
-export function isDarkColor(rgb: string) {
-  const [r, g, b] = (rgb.match(/[\d.]+/g) || ['255', '255', '255']).map(Number);
+export function isDarkColor(color: string) {
+  const m = /^rgba?\((\d+), (\d+), (\d+)(?:, ([\d.]+))?\)$/.exec(color);
+  if (!m || (m[4] !== undefined && Number(m[4]) === 0)) return false;
+  const [r, g, b] = [m[1], m[2], m[3]].map(Number);
   return 0.2126 * r + 0.7152 * g + 0.0722 * b < 128;
 }
 

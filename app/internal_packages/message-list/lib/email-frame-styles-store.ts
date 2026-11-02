@@ -53,7 +53,7 @@ class EmailFrameStylesStore extends MailspringStore {
       // them would give dark text on black.
       const target = 'body:not(.adapts-to-dark-mode)';
       return (
-        `\n${target} #inbox-html-wrapper { color: black; background: white; }` +
+        `\n${target} #inbox-html-wrapper { color: black; --email-text-color: black; background: white; }` +
         `\n${target} { filter: invert(100%) hue-rotate(180deg) !important; }` +
         `\n${target} img { filter: invert(100%) hue-rotate(180deg) !important; }`
       );

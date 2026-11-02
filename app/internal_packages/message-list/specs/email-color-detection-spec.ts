@@ -43,6 +43,17 @@ describe('prepareEmailColors', () => {
     expect(prepareEmailColors(wrapper, DARK_THEME_BG)).toBe(false);
   });
 
+  it("rewrites near-black text a dark-mode email didn't restyle, but not inside painted boxes", () => {
+    const forward = `
+      <p style="color: rgb(0, 0, 0)">FYI, see below</p>
+      <div style="background-color: #fce8e6;"><span style="color: rgb(0, 0, 0)">Canceled</span></div>
+      ${GOOGLE_CALENDAR_BODY}`;
+    const wrapper = render(forward, { darkMode: true });
+    expect(prepareEmailColors(wrapper, DARK_THEME_BG)).toBe(false);
+    expect(wrapper.querySelector('p').style.color).toContain('var(--email-text-color');
+    expect(wrapper.querySelector('span').style.color).toBe('rgb(0, 0, 0)');
+  });
+
   it('finds dark-mode rules nested in other grouping rules', () => {
     const nested = GOOGLE_CALENDAR_BODY.replace(
       '@media',

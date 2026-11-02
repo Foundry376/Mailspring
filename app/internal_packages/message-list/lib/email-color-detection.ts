@@ -1,7 +1,7 @@
 // Also loaded by file path, outside the module system: app/src/browser/view-sessions.ts
 // (emailColorsScript) serves this file to Views as `_runtime/email-colors.js`, and
-// views/runtime/mailspring-view.js calls `prepareEmailColors` and `backgroundColorBehind`
-// off `window.MailspringEmailColors`. Keep it import-free DOM code, and update both if it
+// views/runtime/mailspring-view.js calls `prepareEmailColors`, `adaptsToDarkMode` and
+// `backgroundColorBehind` off `window.MailspringEmailColors`. Keep it import-free DOM code, and update both if it
 // moves or those exports are renamed.
 type RGBA = [number, number, number, number];
 
@@ -124,6 +124,17 @@ export function adaptsToDarkMode(wrapper: HTMLElement): boolean {
   return false;
 }
 
+// Black text on a highlight or a box the sender painted is legible as is.
+function sitsOnPaintedBackground(el: HTMLElement, wrapper: HTMLElement, win: Window): boolean {
+  for (let node: HTMLElement | null = el; node && node !== wrapper; node = node.parentElement) {
+    const style = win.getComputedStyle(node);
+    if (style.backgroundImage !== 'none') return true;
+    const bg = parseComputedColor(style.backgroundColor);
+    if (!bg || bg[3] > 0) return true;
+  }
+  return false;
+}
+
 // Decides how an email's colors should be rendered against the theme, and
 // returns true when it should be shown on a white page.
 //
@@ -140,16 +151,16 @@ export function adaptsToDarkMode(wrapper: HTMLElement): boolean {
 // for the theme. Fully transparent text is ignored because marketing emails use
 // it for hidden preheaders.
 //
-// Emails whose own `prefers-color-scheme: dark` rules are active are left exactly
-// as the sender styled them: a white page would put their light dark-mode text on
-// white.
+// Emails whose own `prefers-color-scheme: dark` rules are active always stay
+// transparent and keep their colors: a white page would put their light dark-mode
+// text on white. Near-black text they didn't restyle is still rewritten.
 export function prepareEmailColors(wrapper: HTMLElement, behind: RGBA): boolean {
   const win = wrapper.ownerDocument.defaultView;
   if (!win) return false;
-  if (adaptsToDarkMode(wrapper)) return false;
+  const adapts = adaptsToDarkMode(wrapper);
 
   const elements = Array.from(wrapper.querySelectorAll<HTMLElement>('*'));
-  if (paintsOwnBackground(elements, win)) return true;
+  if (!adapts && paintsOwnBackground(elements, win)) return true;
 
   const defaultColor = win.getComputedStyle(wrapper).color;
   const nearBlackElements: HTMLElement[] = [];
@@ -160,13 +171,13 @@ export function prepareEmailColors(wrapper: HTMLElement, behind: RGBA): boolean 
     if (style.display === 'none') continue;
 
     const color = parseComputedColor(style.color);
-    if (!color) return true;
-    if (color[3] === 0) continue;
-    if (isNearBlack(color)) {
-      nearBlackElements.push(el);
+    if (color && color[3] === 0) continue;
+    if (color && isNearBlack(color)) {
+      if (!sitsOnPaintedBackground(el, wrapper, win)) nearBlackElements.push(el);
       continue;
     }
-    if (contrastRatio(color, behind) < MIN_LEGIBLE_CONTRAST) return true;
+    if (adapts) continue;
+    if (!color || contrastRatio(color, behind) < MIN_LEGIBLE_CONTRAST) return true;
   }
 
   // Only rewrite once we know the email stays transparent: on a white page the
