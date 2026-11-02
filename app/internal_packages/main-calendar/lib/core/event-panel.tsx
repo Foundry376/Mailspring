@@ -405,8 +405,10 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   };
 
   // Saved once focus leaves the times, so changing the start and then the end is one save.
+  // A pick from a time list focuses the list, which then closes without a blur.
   _onTimesBlur = (e: React.FocusEvent<HTMLDivElement>) => {
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) this._saveTimes();
+    const to = e.relatedTarget as Element | null;
+    if (!e.currentTarget.contains(to) || to.classList.contains('time-options')) this._saveTimes();
   };
 
   // From the days on screen, which may be picked but not yet saved.
