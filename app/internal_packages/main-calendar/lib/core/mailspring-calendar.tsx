@@ -42,7 +42,11 @@ import {
   occurrenceTimes,
 } from './calendar-data-source';
 import { CalendarEventContextMenu } from './calendar-event-context-menu';
-import { offerCounterInsteadOfMove, proposeNewTimeForCalendarEvent } from './calendar-rsvp';
+import {
+  openProposeNewTimePopover,
+  proposeNewTimeForCalendarEvent,
+  showOrganizerOnlyMoveDialog,
+} from './calendar-rsvp';
 import { CalendarView, DEFAULT_TIMED_EVENT_DURATION_SECONDS } from './calendar-constants';
 import { CalendarEmptyState } from './calendar-empty-state';
 import {
@@ -58,6 +62,7 @@ import {
   NewEventDraft,
   editableFields,
   holdsEdits,
+  proposesTime,
 } from './calendar-helpers';
 import { Disposable } from 'rx-core';
 import { CalendarEventArgs } from './calendar-event-container';
@@ -621,15 +626,23 @@ export class MailspringCalendar extends React.Component<
     return editableFields(occurrence, this._isCalendarReadOnly(occurrence.calendarId)).has('title');
   }
 
-  /** A guest's change to the times is held as a proposal to the organizer. */
   _proposes(occurrence: EventOccurrence) {
+    return proposesTime(occurrence, this._isCalendarReadOnly(occurrence.calendarId));
+  }
+
+  _isMovable(occurrence: EventOccurrence) {
     return (
-      !occurrence.isMine &&
-      editableFields(occurrence, this._isCalendarReadOnly(occurrence.calendarId)).has('times')
+      canMoveEvent(occurrence, this._isCalendarReadOnly(occurrence.calendarId)) ||
+      this._proposes(occurrence)
     );
   }
 
   _proposeNewTime(occurrence: EventOccurrence) {
+    // A counter only sends mail, so a read-only calendar's guest still gets one.
+    if (!this._proposes(occurrence)) {
+      openProposeNewTimePopover(occurrence);
+      return;
+    }
     if (!this._select([occurrence])) return;
     window.requestAnimationFrame(() => this._eventPanel.current?.focusTimes());
   }
@@ -1051,14 +1064,10 @@ export class MailspringCalendar extends React.Component<
 
     // A drag of an event we neither organize nor can propose for starts so the attempt can be
     // seen; once it is one, explain instead.
-    if (
-      newDragState.isDragging &&
-      !canMoveEvent(newDragState.event, this._isCalendarReadOnly(newDragState.event.calendarId)) &&
-      !this._proposes(newDragState.event)
-    ) {
+    if (newDragState.isDragging && !this._isMovable(newDragState.event)) {
       this._pendingDragState = null;
       this.setState({ dragState: null });
-      offerCounterInsteadOfMove(newDragState.event);
+      showOrganizerOnlyMoveDialog(newDragState.event);
       return;
     }
 
@@ -1200,12 +1209,9 @@ export class MailspringCalendar extends React.Component<
       return;
     }
 
-    if (
-      !canMoveEvent(occurrence, this._isCalendarReadOnly(occurrence.calendarId)) &&
-      !this._proposes(occurrence)
-    ) {
+    if (!this._isMovable(occurrence)) {
       if (canAttemptMove(occurrence, this._isCalendarReadOnly(occurrence.calendarId))) {
-        offerCounterInsteadOfMove(occurrence);
+        showOrganizerOnlyMoveDialog(occurrence);
       }
       return;
     }

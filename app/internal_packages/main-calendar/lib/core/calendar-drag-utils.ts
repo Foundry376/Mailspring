@@ -447,7 +447,7 @@ export function canAttemptMove(event: EventOccurrence, isCalendarReadOnly = fals
 
 /**
  * Whether the event may actually be moved: only the organizer reschedules a meeting (RFC 5546
- * section 2.1.4); a guest's drag is answered with the offer to counter instead.
+ * section 2.1.4). A guest's drag becomes a proposal, and anyone else's is refused.
  */
 export function canMoveEvent(event: EventOccurrence, isCalendarReadOnly = false): boolean {
   return canAttemptMove(event, isCalendarReadOnly) && event.isMine;

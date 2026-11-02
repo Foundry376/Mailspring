@@ -598,13 +598,18 @@ export function editableFields(event: EventOccurrence, isCalendarReadOnly: boole
   );
 }
 
+/** A guest's change to the times is held as a proposal to the organizer. */
+export function proposesTime(event: EventOccurrence, isCalendarReadOnly: boolean): boolean {
+  return !event.isMine && editableFields(event, isCalendarReadOnly).has('times');
+}
+
 export function asksScope(event: EventOccurrence): boolean {
   return event.isRecurring && !event.isException;
 }
 
 /** Edits wait in the panel's card when guests are emailed on every save, for a scope, or as a proposal. */
 export function holdsEdits(event: EventOccurrence, isCalendarReadOnly: boolean): boolean {
-  if (!event.isMine) return editableFields(event, isCalendarReadOnly).has('times');
+  if (!event.isMine) return proposesTime(event, isCalendarReadOnly);
   return !isCalendarReadOnly && (hasGuests(event) || asksScope(event));
 }
 

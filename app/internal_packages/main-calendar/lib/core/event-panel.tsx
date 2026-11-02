@@ -33,6 +33,7 @@ import {
   formatShortTimeRange,
   hasGuests,
   holdsEdits,
+  proposesTime,
   inclusiveAllDayEnd,
   momentOf,
   PanelField,
@@ -231,7 +232,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   }
 
   _proposes() {
-    return !this.props.event.isMine && this._canEdit('times');
+    return proposesTime(this.props.event, this.props.isCalendarReadOnly);
   }
 
   _holdsEdits() {

@@ -385,20 +385,14 @@ export function openProposeNewTimePopover(occurrence: EventOccurrence, anchor?: 
 }
 
 /**
- * What a guest gets for trying to move a meeting: only the organizer reschedules one (RFC 5546
- * section 2.1.4), so the dialog offers the counter-proposal that stands in for the move.
+ * What someone off the guest list gets for trying to move a meeting: only the organizer
+ * reschedules one (RFC 5546 section 2.1.4), and they have no invitation to counter.
  */
-export function offerCounterInsteadOfMove(occurrence: EventOccurrence): void {
-  const response = require('@electron/remote').dialog.showMessageBoxSync({
+export function showOrganizerOnlyMoveDialog(occurrence: EventOccurrence): void {
+  require('@electron/remote').dialog.showMessageBoxSync({
     type: 'info',
-    buttons: [localized('Propose a new time'), localized('Cancel')],
-    defaultId: 0,
-    cancelId: 1,
+    buttons: [localized('OK')],
     title: localized("This meeting can't be rescheduled"),
     message: localized('Only the organizer can move "%@".', occurrence.title),
-    detail: localized('You can propose a new time to the organizer instead.'),
   });
-  if (response === 0) {
-    openProposeNewTimePopover(occurrence);
-  }
 }
