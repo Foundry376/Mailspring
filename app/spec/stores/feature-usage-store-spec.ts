@@ -139,7 +139,11 @@ describe('FeatureUsageStore', function featureUsageStoreSpec() {
     beforeEach(() => {
       spyOn(Actions, 'openModal');
       this.fakeIdentity.featureUsage['weekly'] = { quota: 5, period: 'weekly', usedInPeriod: 5 };
-      this.fakeIdentity.featureUsage['all-time'] = { quota: 10, period: 'unlimited', usedInPeriod: 10 };
+      this.fakeIdentity.featureUsage['all-time'] = {
+        quota: 10,
+        period: 'unlimited',
+        usedInPeriod: 10,
+      };
     });
 
     afterEach(() => {
