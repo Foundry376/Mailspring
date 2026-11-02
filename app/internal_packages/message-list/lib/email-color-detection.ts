@@ -81,6 +81,34 @@ function paintsOwnBackground(elements: HTMLElement[], win: Window): boolean {
   return false;
 }
 
+// Media rules have both `media` and `cssRules`; other grouping rules (@supports,
+// @layer) only `cssRules`. Duck-typed because the email's rule classes belong to
+// the iframe's realm, so `instanceof CSSMediaRule` fails.
+function hasActiveDarkModeRule(rules: CSSRuleList, win: Window): boolean {
+  for (const rule of Array.from(rules)) {
+    if (!('cssRules' in rule)) continue;
+    if ('media' in rule) {
+      const media = (rule as CSSMediaRule).media.mediaText;
+      if (/prefers-color-scheme\s*:\s*dark/i.test(media) && win.matchMedia(media).matches) {
+        return true;
+      }
+    }
+    if (hasActiveDarkModeRule((rule as CSSGroupingRule).cssRules, win)) return true;
+  }
+  return false;
+}
+
+// True when the email's own stylesheets restyle it for dark mode and those rules
+// currently apply, eg. Google Calendar invitations.
+export function adaptsToDarkMode(wrapper: HTMLElement): boolean {
+  const win = wrapper.ownerDocument.defaultView;
+  if (!win) return false;
+  for (const style of Array.from(wrapper.querySelectorAll('style'))) {
+    if (style.sheet && hasActiveDarkModeRule(style.sheet.cssRules, win)) return true;
+  }
+  return false;
+}
+
 // Decides how an email's colors should be rendered against the theme, and
 // returns true when it should be shown on a white page.
 //
@@ -96,9 +124,14 @@ function paintsOwnBackground(elements: HTMLElement[], win: Window): boolean {
 // nearly every email colors its links and the stylesheet already restyles them
 // for the theme. Fully transparent text is ignored because marketing emails use
 // it for hidden preheaders.
+//
+// Emails whose own `prefers-color-scheme: dark` rules are active are left exactly
+// as the sender styled them: a white page would put their light dark-mode text on
+// white.
 export function prepareEmailColors(wrapper: HTMLElement, behind: RGBA): boolean {
   const win = wrapper.ownerDocument.defaultView;
   if (!win) return false;
+  if (adaptsToDarkMode(wrapper)) return false;
 
   const elements = Array.from(wrapper.querySelectorAll<HTMLElement>('*'));
   if (paintsOwnBackground(elements, win)) return true;

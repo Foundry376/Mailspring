@@ -10,6 +10,7 @@ import {
   ipcMain,
   dialog,
   nativeImage,
+  nativeTheme,
   powerMonitor,
   shell,
 } from 'electron';
@@ -686,6 +687,11 @@ export default class Application extends EventEmitter {
           : false;
       }
     );
+
+    onFromMailspringWindows(ipcMain, 'set-native-theme-source', (event, source) => {
+      if (!['system', 'light', 'dark'].includes(source)) return;
+      if (nativeTheme.themeSource !== source) nativeTheme.themeSource = source;
+    });
 
     onFromMailspringWindows(ipcMain, 'encountered-theme-error', (event, { message, detail }) => {
       if (userResetTheme) return;

@@ -48,6 +48,10 @@ export default class SystemAccentWatcher extends EventEmitter {
         this._current = nextAccent;
         this.emit('change', this._current);
       }
+      // A fixed theme pins themeSource (see ThemeManager.syncNativeThemeSource), and while
+      // pinned shouldUseDarkColors reports the pin rather than the OS. Keep the last OS value
+      // until automatic mode returns themeSource to 'system'.
+      if (nativeTheme.themeSource !== 'system') return;
       const nextDark = !!nativeTheme.shouldUseDarkColors;
       if (nextDark !== this._darkMode) {
         this._darkMode = nextDark;

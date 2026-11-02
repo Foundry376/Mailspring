@@ -15,6 +15,15 @@ export const AUTOMATIC_THEME_NAME = 'ui-automatic';
 export const LIGHT_THEME_NAME = 'ui-light';
 export const DARK_THEME_NAME = 'ui-dark';
 
+/**
+ * True when a computed `rgb()`/`rgba()` color is darker than 50% gray by Rec. 709 luma. Used
+ * to classify themes, which only declare their colors as LESS variables.
+ */
+export function isDarkColor(rgb: string) {
+  const [r, g, b] = (rgb.match(/[\d.]+/g) || ['255', '255', '255']).map(Number);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b < 128;
+}
+
 function buildSystemAccentCSS(color: string): string {
   return `:root {
   --system-accent: ${color};
@@ -132,6 +141,7 @@ export default class ThemeManager {
         styleEl.textContent = this.cssContentsOfStylesheet((styleEl as any).sourcePath);
       }
     }
+    this.syncNativeThemeSource();
     this.emitter.emit('did-change-active-themes');
   }
 
@@ -330,6 +340,33 @@ export default class ThemeManager {
   loadStaticStylesheets() {
     this.requireStylesheet('../static/style/index');
     this.requireStylesheet('../static/style/email-frame');
+    this.syncNativeThemeSource();
+  }
+
+  // `@background-primary` only exists in LESS, so read it back from an element styled with it.
+  isActiveThemeDark() {
+    const probe = document.createElement('mailspring-workspace');
+    probe.style.display = 'none';
+    document.body.appendChild(probe);
+    const background = window.getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return isDarkColor(background);
+  }
+
+  /**
+   * Points Electron's `nativeTheme.themeSource` at the active theme so `prefers-color-scheme`
+   * agrees with it. Otherwise a light theme on a dark-mode OS renders emails' dark-mode rules
+   * (eg. Google Calendar's `#e8eaed` text) on our white message pane. Automatic mode keeps
+   * 'system': its theme already follows the OS, and the main process needs the unpinned
+   * value to notice the OS switching.
+   */
+  syncNativeThemeSource() {
+    if (this.baseThemeOnly) return;
+    let source: 'system' | 'light' | 'dark' = 'system';
+    if (!this.isAutomaticModeSelected()) {
+      source = this.isActiveThemeDark() ? 'dark' : 'light';
+    }
+    ipcRenderer.send('set-native-theme-source', source);
   }
 
   resolveStylesheetPath(stylesheetPath) {

@@ -72,8 +72,9 @@ class SystemTrayIconStore {
     if (process.platform === 'win32') {
       // nativeTheme is accessed via @electron/remote; guard against the remote
       // object being GC'd during window teardown (Sentry MAILSPRING-CLIENT-49).
+      // The taskbar follows the Windows mode, not the app mode or our pinned themeSource.
       try {
-        return nativeTheme.shouldUseDarkColors ? '-dark' : '';
+        return nativeTheme.shouldUseDarkColorsForSystemIntegratedUI ? '-dark' : '';
       } catch {
         return '';
       }
