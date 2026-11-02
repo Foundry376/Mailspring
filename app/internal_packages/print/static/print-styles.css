@@ -114,6 +114,8 @@ h1,
   height: 60px;
 }
 
+/* The message wrappers sit in shadow roots, so print.js carries their copy of this block
+   (MESSAGE_STYLES). Keep the two in sync. */
 @media only print {
   body,
   #message-list,

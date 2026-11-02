@@ -1,6 +1,7 @@
 (function() {
   // Wrapper rules live here rather than in print-styles.css, which can't reach into the
   // shadow roots. The copied theme styles carry the app's text color, light in a dark theme.
+  // Keep the @media print block in sync with the one in print-styles.css.
   var MESSAGE_STYLES =
     ':host { display: block; }' +
     '#inbox-html-wrapper, #inbox-plain-wrapper {' +
@@ -11,6 +12,21 @@
     '  overflow: visible !important;' +
     '} }';
 
+  // Paper is always printed in the light scheme, but this window's preview follows the OS.
+  // Dropping the emails' dark-mode rules keeps a dark-mode OS from previewing their light
+  // text on white.
+  function removeDarkModeRules(container) {
+    for (var i = container.cssRules.length - 1; i >= 0; i--) {
+      var rule = container.cssRules[i];
+      if (!rule.cssRules) continue;
+      if (rule.media && /prefers-color-scheme\s*:\s*dark/i.test(rule.media.mediaText)) {
+        container.deleteRule(i);
+      } else {
+        removeDarkModeRules(rule);
+      }
+    }
+  }
+
   // Each message carries its own <style> tags (the sender's, plus the email frame's theme
   // styles). A shadow root keeps them from restyling the print header, participant list and
   // other messages, as an iframe does on screen.
@@ -20,6 +36,9 @@
       msgNode.textContent = '';
       var root = msgNode.attachShadow({ mode: 'open' });
       root.innerHTML = '<style>' + MESSAGE_STYLES + '</style>' + messages[idx];
+      for (var s = 0; s < root.styleSheets.length; s++) {
+        removeDarkModeRules(root.styleSheets[s]);
+      }
     }
   }
 

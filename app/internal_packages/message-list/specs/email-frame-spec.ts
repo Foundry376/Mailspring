@@ -1,4 +1,4 @@
-import { matchAppColorScheme } from '../lib/email-frame';
+import { setColorSchemeFromTheme } from '../lib/email-frame';
 
 // Abridged from a Salesforce-sent reply whose <head> carried the Dark Reader
 // extension's injected stylesheets (community.getmailspring.com/t/14590).
@@ -11,7 +11,7 @@ html, body {
 }
 }</style>`;
 
-describe('matchAppColorScheme', () => {
+describe('setColorSchemeFromTheme', () => {
   let iframeEl: HTMLIFrameElement;
 
   const writeEmail = (html: string) => {
@@ -38,7 +38,7 @@ describe('matchAppColorScheme', () => {
     const doc = writeEmail(DARK_READER_HEAD);
     expect(rootScheme(doc)).toBe('dark');
 
-    matchAppColorScheme(doc, iframeEl);
+    setColorSchemeFromTheme(doc, iframeEl);
     expect(rootScheme(doc)).toBe(window.getComputedStyle(iframeEl).colorScheme);
   });
 
@@ -46,7 +46,7 @@ describe('matchAppColorScheme', () => {
     const doc = writeEmail('<style>:root { color-scheme: light dark; }</style>');
     expect(rootScheme(doc)).toBe('light dark');
 
-    matchAppColorScheme(doc, iframeEl);
+    setColorSchemeFromTheme(doc, iframeEl);
     expect(rootScheme(doc)).toBe(window.getComputedStyle(iframeEl).colorScheme);
   });
 
@@ -57,12 +57,12 @@ describe('matchAppColorScheme', () => {
     const textColor = () => doc.defaultView.getComputedStyle(doc.querySelector('p')).color;
 
     spyOn(AppEnv.themes, 'isActiveThemeDark').andReturn(true);
-    matchAppColorScheme(doc, iframeEl);
+    setColorSchemeFromTheme(doc, iframeEl);
     expect(iframeEl.style.colorScheme).toBe('dark');
     expect(textColor()).toBe('rgb(255, 0, 0)');
 
     (AppEnv.themes.isActiveThemeDark as any).andReturn(false);
-    matchAppColorScheme(doc, iframeEl);
+    setColorSchemeFromTheme(doc, iframeEl);
     expect(iframeEl.style.colorScheme).toBe('light');
     expect(textColor()).toBe('rgb(0, 0, 255)');
   });

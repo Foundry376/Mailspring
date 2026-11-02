@@ -16,16 +16,19 @@ export const LIGHT_THEME_NAME = 'ui-light';
 export const DARK_THEME_NAME = 'ui-dark';
 
 /**
- * True when a computed `rgb()`/`rgba()` color is darker than 50% gray by Rec. 709 luma. Used
- * to classify themes, which only declare their colors as LESS variables. Anything else counts
- * as light: Chrome reports `color-mix()` and `oklch()` as `color(srgb 0-1 ...)`, and a theme
- * whose LESS failed to compile leaves the background transparent.
+ * True when CSS `contrast-color()` picks white text for `color`, which accepts any CSS color
+ * syntax (`oklch()`, `color-mix()`...). Used to classify themes, which only declare their
+ * colors as LESS variables. Transparent counts as light, though `contrast-color()` calls it
+ * dark: it's what a theme whose LESS failed to compile reports.
  */
 export function isDarkColor(color: string) {
-  const m = /^rgba?\((\d+), (\d+), (\d+)(?:, ([\d.]+))?\)$/.exec(color);
-  if (!m || (m[4] !== undefined && Number(m[4]) === 0)) return false;
-  const [r, g, b] = [m[1], m[2], m[3]].map(Number);
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b < 128;
+  if (color === 'transparent' || /^rgba\(.*, 0\)$/.test(color)) return false;
+  const probe = document.createElement('div');
+  probe.style.color = `contrast-color(${color})`;
+  document.body.appendChild(probe);
+  const dark = window.getComputedStyle(probe).color === 'rgb(255, 255, 255)';
+  probe.remove();
+  return dark;
 }
 
 function buildSystemAccentCSS(color: string): string {

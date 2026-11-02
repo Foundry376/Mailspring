@@ -130,26 +130,7 @@ export default class PrintWindow {
    * Load our temp html file. Once the file is loaded it will run print.js, and
    * that script will pop out the print dialog.
    */
-  async load() {
-    await this.emulateLightColorScheme();
+  load() {
     this.browserWin.loadURL(pathToFileURL(this.tmpFile).href);
-  }
-
-  /**
-   * Paper always gets `prefers-color-scheme: light`, but this window's preview follows the
-   * OS, so in dark mode it would show emails' dark-mode text on white. Emulation needs a
-   * loaded page to attach to and then persists across navigations.
-   */
-  async emulateLightColorScheme() {
-    const { webContents } = this.browserWin;
-    try {
-      await this.browserWin.loadURL('about:blank');
-      webContents.debugger.attach();
-      await webContents.debugger.sendCommand('Emulation.setEmulatedMedia', {
-        features: [{ name: 'prefers-color-scheme', value: 'light' }],
-      });
-    } catch (err) {
-      console.warn(`Print preview will follow the app color scheme: ${err.message}`);
-    }
   }
 }

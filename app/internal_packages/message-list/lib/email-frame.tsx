@@ -28,7 +28,7 @@ import {
  * iframe element's, Chromium paints the iframe an opaque canvas. An inline !important
  * declaration is the only author style that outranks !important rules inside an `@layer`.
  */
-export function matchAppColorScheme(doc: Document, iframeEl: HTMLIFrameElement) {
+export function setColorSchemeFromTheme(doc: Document, iframeEl: HTMLIFrameElement) {
   const scheme = AppEnv.themes.isActiveThemeDark() ? 'dark' : 'light';
   iframeEl.style.colorScheme = scheme;
   doc.documentElement.style.setProperty('color-scheme', scheme, 'important');
@@ -119,7 +119,7 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
           `<div id='inbox-plain-wrapper' class="${process.platform}"></div>`
       );
       doc.close();
-      matchAppColorScheme(doc, iframeEl);
+      setColorSchemeFromTheme(doc, iframeEl);
       const plainWrapper = doc.getElementById('inbox-plain-wrapper');
       plainWrapper.innerText = content;
       plainWrapper.setAttribute('role', 'document');
@@ -131,7 +131,7 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
           `<div id='inbox-html-wrapper' class="${process.platform}">${content}</div>`
       );
       doc.close();
-      matchAppColorScheme(doc, iframeEl);
+      setColorSchemeFromTheme(doc, iframeEl);
       const htmlWrapper = doc.getElementById('inbox-html-wrapper');
       if (htmlWrapper) {
         htmlWrapper.setAttribute('role', 'document');
