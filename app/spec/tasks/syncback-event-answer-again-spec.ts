@@ -27,6 +27,11 @@ const event = (icsText: string, id = 'event-1') =>
 
 const unfolded = (icsText: string) => icsText.replace(/\r\n[ \t]/g, '');
 
+// Lets onError read the stored row and start waiting for the sync.
+const untilWaiting = async () => {
+  for (let i = 0; i < 5; i++) await Promise.resolve();
+};
+
 describe('an answer refused because our copy changed on the server', function () {
   let listener: (record: any) => void;
   let unlisten: jasmine.Spy;
@@ -53,13 +58,30 @@ describe('an answer refused because our copy changed on the server', function ()
       return unlisten;
     });
     spyOn(AppEnv.mailsyncBridge, 'sendSyncCalendarNow');
+    // The row still holds the answer we wrote, unless a test stores the server's copy in it.
+    spyOn(DatabaseStore, 'find').andReturn(Promise.resolve(event(ics({ partstat: 'ACCEPTED' }))));
     queued = [];
     spyOn(Actions, 'queueTask').andCallFake((t) => queued.push(t));
     dialog = spyOn(AppEnv, 'showErrorDialog');
   });
 
+  it('makes the answer again on the copy the engine stored when the write was refused', async function () {
+    (DatabaseStore.find as any as jasmine.Spy).andReturn(Promise.resolve(moved()));
+
+    await answerTask().onError({ key: 'etag-conflict', debuginfo: '' });
+
+    expect(AppEnv.mailsyncBridge.sendSyncCalendarNow).not.toHaveBeenCalled();
+    expect(DatabaseStore.listen).not.toHaveBeenCalled();
+    expect(queued.length).toBe(1);
+    const written = unfolded(queued[0].event.ics);
+    expect(written).toContain("LOCATION:Ruthie's");
+    expect(written).toContain(`ATTENDEE;PARTSTAT=ACCEPTED:mailto:${ME}`);
+    expect(dialog).not.toHaveBeenCalled();
+  });
+
   it('re-reads the calendar and makes the answer again on the copy the server has now', async function () {
     const done = answerTask().onError({ key: 'etag-conflict', debuginfo: '' });
+    await untilWaiting();
     expect(AppEnv.mailsyncBridge.sendSyncCalendarNow).toHaveBeenCalledWith('acct-1');
     listener(stored([moved()]));
     await done;
@@ -83,6 +105,7 @@ describe('an answer refused because our copy changed on the server', function ()
       key: 'etag-conflict',
       debuginfo: '',
     });
+    await untilWaiting();
     const current = moved();
     listener(stored([current]));
     await done;
@@ -98,6 +121,7 @@ describe('an answer refused because our copy changed on the server', function ()
 
   it('waits for this event, not another one or a removal', async function () {
     const done = answerTask().onError({ key: 'etag-conflict', debuginfo: '' });
+    await untilWaiting();
     listener(stored([event(ics(), 'event-2')]));
     listener(stored([moved()], 'unpersist'));
     listener({ type: 'persist', objectClass: 'Message', objects: [moved()] });
@@ -109,17 +133,19 @@ describe('an answer refused because our copy changed on the server', function ()
 
   it('shows the conflict when the calendar does not come back within 30 seconds', async function () {
     const done = answerTask().onError({ key: 'etag-conflict', debuginfo: '' });
+    await untilWaiting();
     advanceClock(29 * 1000);
     expect(unlisten).not.toHaveBeenCalled();
     advanceClock(1000);
     await done;
     expect(unlisten).toHaveBeenCalled();
     expect(queued.length).toBe(0);
-    expect(dialog.mostRecentCall.args[0].message).toContain('changed by another client');
+    expect(dialog.mostRecentCall.args[0].message).toContain('changed since it was last loaded');
   });
 
   it('stops waiting once the copy arrives', async function () {
     const done = answerTask().onError({ key: 'etag-conflict', debuginfo: '' });
+    await untilWaiting();
     listener(stored([moved()]));
     await done;
     advanceClock(60 * 1000);
@@ -128,6 +154,7 @@ describe('an answer refused because our copy changed on the server', function ()
 
   it('shows the conflict when the new copy no longer lists us', async function () {
     const done = answerTask().onError({ key: 'etag-conflict', debuginfo: '' });
+    await untilWaiting();
     listener(stored([event(ics().replace(`mailto:${ME}`, 'mailto:someone@example.com'))]));
     await done;
     expect(queued.length).toBe(0);
@@ -139,22 +166,28 @@ describe('an answer refused because our copy changed on the server', function ()
       key: 'etag-conflict',
       debuginfo: '',
     });
+    expect(DatabaseStore.listen).not.toHaveBeenCalled();
     expect(AppEnv.mailsyncBridge.sendSyncCalendarNow).not.toHaveBeenCalled();
+    expect(queued.length).toBe(0);
     expect(dialog).toHaveBeenCalled();
   });
 
-  it('leaves an ordinary edit that conflicts to the user', async function () {
+  it('does not make an ordinary edit that conflicts again', async function () {
     await SyncbackEventTask.forUpdating({ event: event(ics()) }).onError({
       key: 'etag-conflict',
       debuginfo: '',
     });
+    expect(DatabaseStore.listen).not.toHaveBeenCalled();
     expect(AppEnv.mailsyncBridge.sendSyncCalendarNow).not.toHaveBeenCalled();
+    expect(queued.length).toBe(0);
     expect(dialog).toHaveBeenCalled();
   });
 
   it('does not retry an answer refused for another reason', async function () {
     await answerTask().onError({ key: 'not-found', debuginfo: '' });
+    expect(DatabaseStore.listen).not.toHaveBeenCalled();
     expect(AppEnv.mailsyncBridge.sendSyncCalendarNow).not.toHaveBeenCalled();
+    expect(queued.length).toBe(0);
     expect(dialog.mostRecentCall.args[0].message).toContain('no longer exists');
   });
 });

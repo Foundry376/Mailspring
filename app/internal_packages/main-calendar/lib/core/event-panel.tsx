@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOM from 'react-dom';
 import {
   localized,
   isRTL,
@@ -29,8 +30,8 @@ import {
   clampEnd,
   editableFields,
   extractNotesFromDescription,
-  formatShortTime,
   formatShortTimeRange,
+  formatTime,
   hasGuests,
   holdsEdits,
   proposesTime,
@@ -76,6 +77,20 @@ const repeatOptionLabel = (option: RepeatOption) =>
 function daysLabel(first: CalendarDate, last: CalendarDate) {
   const from = momentOf(first).format('ddd MMM D');
   return first === last ? from : `${from} – ${momentOf(last).format('ddd MMM D')}`;
+}
+
+const formatDay = (day: CalendarDate) =>
+  momentOf(day).format(DateUtils.DATE_FORMAT_llll_NO_TIME).trim();
+
+// As the date pickers show them, so an event that can't be edited reads like one that can.
+function renderDays(first: CalendarDate, last: CalendarDate) {
+  return (
+    <div className="event-panel-wrap">
+      <span>{formatDay(first)}</span>
+      {first !== last && <span>–</span>}
+      {first !== last && <span>{formatDay(last)}</span>}
+    </div>
+  );
 }
 const SHOW_AS_OPTIONS: ShowAsOption[] = ['OPAQUE', 'TRANSPARENT'];
 
@@ -162,6 +177,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   state: EventPanelState = { repeat: 'none', times: null, proposals: [] };
 
+  _el = React.createRef<HTMLElement>();
   _title = React.createRef<EventPanelTextField>();
   _when = React.createRef<HTMLDivElement>();
   // Read as well as kept in state: the time picker reports its last change during the same blur
@@ -169,6 +185,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   _pendingTimes: Times | null = null;
   // Each save is built from the stored event, so it waits until the one before has been written.
   _saving: Promise<void> = Promise.resolve();
+  _savesUnwritten = 0;
   /** The last times save has been written, so the next refresh shows the event's own times. */
   _timesSaveLanded = false;
   _timesSaveCount = 0;
@@ -203,6 +220,36 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   focusTimes() {
     this._when.current?.querySelector('input')?.focus();
+  }
+
+  /**
+   * Focuses the field last edited, for Keep editing. A click that leaves the panel moves focus to
+   * what it hit on mousedown, before the calendar asks, so the field can't be read from focus.
+   */
+  returnToField() {
+    const field = this._lastFocused;
+    if (field && field.isConnected && this._el.current?.contains(field)) field.focus();
+  }
+
+  _lastFocused: HTMLElement | null = null;
+
+  _onFocus = (e: React.FocusEvent<HTMLElement>) => {
+    this._lastFocused = e.target;
+  };
+
+  /**
+   * Saves the field being edited, as leaving it would, while the panel still shows its event.
+   * Removing a focused field doesn't blur it, and React drops events while it unmounts, so the
+   * calendar calls this before the panel shows another event or goes away. Resolves once the
+   * panel's saves have been written; null when none is left to write.
+   */
+  commitEdits(): Promise<void> | null {
+    const focused = document.activeElement;
+    if (focused instanceof HTMLElement && this._el.current?.contains(focused)) {
+      // Flushed, so a change held for Send update is in the calendar's state on return.
+      ReactDOM.flushSync(() => focused.blur());
+    }
+    return this._savesUnwritten ? this._saving : null;
   }
 
   async _eventRow() {
@@ -249,9 +296,13 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   }
 
   _save(change: UnsentChange) {
+    this._savesUnwritten += 1;
     this._saving = this._saving
       .then(() => this.props.onSaveChange(change))
-      .catch((error) => console.error('Failed to save the event:', error));
+      .catch((error) => console.error('Failed to save the event:', error))
+      .finally(() => {
+        this._savesUnwritten -= 1;
+      });
     return this._saving;
   }
 
@@ -343,8 +394,10 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     });
   }
 
-  // Esc closes a date's month, as it leaves a text field, before the calendar's Esc can act.
+  // Enter saves, after the picker it's pressed in has taken its text. Esc closes a date's month,
+  // as it leaves a text field, before the calendar's Esc can act.
   _onTimesKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') this._saveTimes();
     const target = e.target as HTMLElement;
     if (e.key !== 'Escape' || !target.closest('.date-picker')) return;
     e.stopPropagation();
@@ -434,14 +487,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         />
       );
     }
-    if (!event.isCancelled) return <div className="event-panel-title">{title}</div>;
-    // Only the organizer cancels a meeting (RFC 5546 section 3.2.5), so the badge needn't say who.
-    return (
-      <div className="event-panel-title cancelled">
-        <s>{title}</s>
-        <span className="event-panel-cancelled">{localized('Cancelled')}</span>
-      </div>
-    );
+    return <div className="event-panel-title">{event.isCancelled ? <s>{title}</s> : title}</div>;
   }
 
   /** The last day the times cover: a timed event ending at midnight doesn't reach the next day. */
@@ -497,21 +543,27 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         {!t.isAllDay && (
           <div className={`event-panel-row ${allDaySwitch ? 'indented' : ''}`}>
             {!allDaySwitch && clock}
-            <TimePicker value={t.start * 1000} onChange={this._changeStart} />
-            <SVGIcons.ArrowRight className="event-panel-icon" />
-            <TimePicker
-              value={t.end * 1000}
-              relativeTo={t.start * 1000}
-              onChange={(ms) => this._changeEnd(ms / 1000)}
-            />
-            <span className="event-panel-subtle">{DateUtils.formatDuration(t.end - t.start)}</span>
+            <div className="event-panel-wrap">
+              <TimePicker value={t.start * 1000} onChange={this._changeStart} />
+              <SVGIcons.ArrowRight className="event-panel-icon" />
+              <TimePicker
+                value={t.end * 1000}
+                relativeTo={t.start * 1000}
+                onChange={(ms) => this._changeEnd(ms / 1000)}
+              />
+              <span className="event-panel-subtle">
+                {DateUtils.formatDuration(t.end - t.start)}
+              </span>
+            </div>
           </div>
         )}
         <div className={`event-panel-row ${allDaySwitch || !t.isAllDay ? 'indented' : ''}`}>
           {!allDaySwitch && t.isAllDay && clock}
-          <DatePicker value={t.start * 1000} onChange={this._changeStart} />
-          {multiDay && <span>–</span>}
-          {multiDay && endDatePicker}
+          <div className="event-panel-wrap">
+            <DatePicker value={t.start * 1000} onChange={this._changeStart} />
+            {multiDay && <span>–</span>}
+            {multiDay && endDatePicker}
+          </div>
         </div>
         {!allDaySwitch && t.isAllDay && (
           <div className="event-panel-row indented">{localized('All day')}</div>
@@ -558,7 +610,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     const showAsWaits = this.props.unsentChange?.guestCopy && this.props.unsentChange.edits.length;
     if (this._canEdit('times') && !showAsWaits) return this._renderEditableWhen();
     const { event } = this.props;
-    const days = daysLabel(event.startDate, event.endDate);
+    const days = renderDays(event.startDate, event.endDate);
 
     return (
       <div className="event-panel-section">
@@ -566,14 +618,15 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           <>
             <div className="event-panel-row">
               <SVGIcons.Clock className="event-panel-icon" />
-              <span>{formatShortTime(event.start)}</span>
-              <SVGIcons.ArrowRight className="event-panel-icon" />
-              <span>
-                {formatShortTime(event.end)}{' '}
+              <div className="event-panel-wrap">
+                {/* As the time pickers show them. */}
+                <span>{formatTime(event.start)}</span>
+                <SVGIcons.ArrowRight className="event-panel-icon" />
+                <span>{formatTime(event.end)}</span>
                 <span className="event-panel-subtle">
                   {DateUtils.formatDuration(event.end - event.start)}
                 </span>
-              </span>
+              </div>
             </div>
             <div className="event-panel-row indented">{days}</div>
             <div className="event-panel-row">
@@ -586,7 +639,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           <>
             <div className="event-panel-row">
               <SVGIcons.Clock className="event-panel-icon" />
-              <span>{days}</span>
+              {days}
             </div>
             <div className="event-panel-row indented">{localized('All day')}</div>
           </>
@@ -951,10 +1004,25 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
+  _renderCancelledCard() {
+    if (!this.props.event.isCancelled) return null;
+    return (
+      <div className="event-panel-card event-panel-subtle">
+        {localized('This event has been cancelled')}
+      </div>
+    );
+  }
+
   // The card sits under the scrolling rows, so a long event never pushes it out of view.
   render() {
     return (
-      <aside className="event-panel" tabIndex={-1} aria-label={localized('Event')}>
+      <aside
+        ref={this._el}
+        className="event-panel"
+        tabIndex={-1}
+        aria-label={localized('Event')}
+        onFocus={this._onFocus}
+      >
         {this._renderHeader()}
         <ScrollRegion className="event-panel-body">
           {this._renderTitle()}
@@ -966,6 +1034,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           {this._renderCalendar()}
         </ScrollRegion>
         {this._renderUnsentChangeCard()}
+        {this._renderCancelledCard()}
       </aside>
     );
   }

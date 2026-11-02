@@ -3562,4 +3562,204 @@ describe('TRANSP, the Show As of an event', function () {
     );
     expect(transpsOf(ics)).toEqual([null, 'TRANSPARENT']);
   });
+
+  describe('on Yahoo, which reads it from X-YAHOO-USER-STATUS', function () {
+    const yahooOf = (ics: string) =>
+      ics
+        .split('BEGIN:VEVENT')
+        .slice(1)
+        .map((v) => (/^X-YAHOO-USER-STATUS:(.*)$/m.exec(v) || [])[1] || null);
+
+    it('is written beside TRANSP on a new event', function () {
+      const free = { ...createOptions, transparency: 'TRANSPARENT' as const };
+      expect(yahooOf(ICSEventHelpers.createICSString(free))).toEqual(['FREE']);
+      const busy = { ...createOptions, transparency: 'OPAQUE' as const };
+      expect(yahooOf(ICSEventHelpers.createICSString(busy))).toEqual(['BUSY']);
+    });
+
+    it("replaces the value Yahoo's own copy carries when Show As changes", function () {
+      const synced = SIMPLE_ICS.replace(
+        'SEQUENCE:0',
+        'SEQUENCE:0\nTRANSP:OPAQUE\nX-YAHOO-USER-STATUS:BUSY'
+      );
+      const ics = ICSEventHelpers.updateEventProperty(synced, 'transp', 'TRANSPARENT');
+      expect(yahooOf(ics)).toEqual(['FREE']);
+    });
+
+    it('follows TRANSP on the named exception only', function () {
+      const ics = ICSEventHelpers.applyEditsToException(
+        RECURRING_WITH_EXCEPTION_ICS,
+        '20260302T060000Z',
+        { transparency: 'TRANSPARENT' }
+      );
+      expect(yahooOf(ics)).toEqual([null, 'FREE']);
+    });
+
+    it('is matched to the TRANSP an emailed invitation carries', function () {
+      const invite = RECURRING_WITH_EXCEPTION_ICS.replace(
+        'END:VEVENT',
+        'TRANSP:TRANSPARENT\nEND:VEVENT'
+      );
+      const ics = ICSEventHelpers.matchYahooTransparency(invite);
+      expect(transpsOf(ics)).toEqual(['TRANSPARENT', null]);
+      expect(yahooOf(ics)).toEqual(['FREE', null]);
+    });
+  });
+});
+
+describe('ICSEventHelpers reminders', function () {
+  const NEW_EVENT = {
+    summary: 'Dentist',
+    start: new Date(Date.UTC(2026, 2, 3, 20, 0)),
+    end: new Date(Date.UTC(2026, 2, 3, 21, 0)),
+    timezone: 'America/Chicago',
+  };
+
+  // Two reminders as Google writes them: offsets spelled out in full, the first an email.
+  const REMINDED_ICS = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Test//Test//EN
+BEGIN:VEVENT
+UID:reminded@test
+DTSTART:20260303T140000Z
+DTEND:20260303T150000Z
+RRULE:FREQ=WEEKLY
+SUMMARY:Planning
+DTSTAMP:20260101T000000Z
+BEGIN:VALARM
+ACTION:EMAIL
+DESCRIPTION:This is an event reminder
+SUMMARY:Alarm notification
+ATTENDEE:mailto:me@example.com
+TRIGGER:-P0DT0H30M0S
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:This is an event reminder
+TRIGGER:-P1D
+END:VALARM
+END:VEVENT
+END:VCALENDAR`;
+
+  const alarmsOf = (ics: string) => {
+    const { event } = parseICSString(ics);
+    return event.component.getAllSubcomponents('valarm');
+  };
+
+  it('adds a display reminder to a new event', function () {
+    const ics = ICSEventHelpers.createICSString({ ...NEW_EVENT, alarmTrigger: '-PT10M' });
+    const [alarm, ...rest] = alarmsOf(ics);
+
+    expect(rest.length).toBe(0);
+    expect(alarm.getFirstPropertyValue('action')).toBe('DISPLAY');
+    expect(alarm.getFirstPropertyValue('description')).toBe('Dentist');
+    expect(ics).toContain('TRIGGER:-PT10M');
+  });
+
+  it('marks a new event without a trigger as having no reminder', function () {
+    const ics = ICSEventHelpers.createICSString(NEW_EVENT);
+    const [alarm, ...rest] = alarmsOf(ics);
+
+    expect(rest.length).toBe(0);
+    expect(alarm.getFirstPropertyValue('action')).toBe('NONE');
+    expect(ics).toContain('TRIGGER;VALUE=DATE-TIME:19760401T005545Z');
+    expect(ICSEventHelpers.getAlarmTrigger(ics)).toBe(null);
+  });
+
+  it('reads the placeholder another client wrote as no reminder, and replaces it with one', function () {
+    const marked = ICSEventHelpers.createICSString(NEW_EVENT);
+    const reminded = ICSEventHelpers.updateAlarm(marked, '-PT15M');
+    const [alarm, ...rest] = alarmsOf(reminded);
+
+    expect(rest.length).toBe(0);
+    expect(alarm.getFirstPropertyValue('action')).toBe('DISPLAY');
+    expect(ICSEventHelpers.getAlarmTrigger(reminded)).toBe('-PT15M');
+  });
+
+  it("reads the first reminder's offset, however it is spelled", function () {
+    expect(ICSEventHelpers.getAlarmTrigger(REMINDED_ICS)).toBe('-PT30M');
+    expect(ICSEventHelpers.getAlarmTrigger(DAILY_STANDUP_ICS)).toBe(null);
+  });
+
+  it('reads a reminder at a set time as written', function () {
+    const ics = REMINDED_ICS.replace(
+      'TRIGGER:-P0DT0H30M0S',
+      'TRIGGER;VALUE=DATE-TIME:20260303T120000Z'
+    );
+    expect(ICSEventHelpers.getAlarmTrigger(ics)).toBe('2026-03-03T12:00:00Z');
+  });
+
+  it('moves the first reminder and leaves the others', function () {
+    const ics = ICSEventHelpers.updateAlarm(REMINDED_ICS, '-PT1H');
+    const alarms = alarmsOf(ics);
+
+    expect(alarms.length).toBe(2);
+    expect(alarms[0].getFirstPropertyValue('action')).toBe('EMAIL');
+    expect(alarms[0].getFirstPropertyValue('trigger').toString()).toBe('-PT1H');
+    expect(alarms[1].getFirstPropertyValue('trigger').toString()).toBe('-P1D');
+  });
+
+  it('replaces a reminder at a set time with an offset', function () {
+    const ics = ICSEventHelpers.updateAlarm(
+      REMINDED_ICS.replace('TRIGGER:-P0DT0H30M0S', 'TRIGGER;VALUE=DATE-TIME:20260303T120000Z'),
+      '-PT5M'
+    );
+    expect(ics).toContain('TRIGGER:-PT5M');
+    expect(ics).not.toContain('VALUE=DATE-TIME');
+  });
+
+  it('adds a reminder to an event that had none', function () {
+    const ics = ICSEventHelpers.updateAlarm(DAILY_STANDUP_ICS, '-P1W');
+    const [alarm] = alarmsOf(ics);
+    expect(alarm.getFirstPropertyValue('description')).toBe('Daily Standup');
+    expect(ics).toContain('TRIGGER:-P1W');
+  });
+
+  it('replaces every reminder with the placeholder for none', function () {
+    const ics = ICSEventHelpers.updateAlarm(REMINDED_ICS, null);
+    const [alarm, ...rest] = alarmsOf(ics);
+
+    expect(rest.length).toBe(0);
+    expect(alarm.getFirstPropertyValue('action')).toBe('NONE');
+    expect(ICSEventHelpers.getAlarmTrigger(ics)).toBe(null);
+  });
+
+  it("sets the reminder of a series' moved occurrences with the series'", function () {
+    const { masterIcs } = ICSEventHelpers.createRecurrenceException(
+      REMINDED_ICS,
+      Date.UTC(2026, 2, 10, 14) / 1000,
+      Date.UTC(2026, 2, 10, 15) / 1000,
+      Date.UTC(2026, 2, 10, 16) / 1000,
+      false
+    );
+    const vevents = (ics: string) => ics.split('BEGIN:VEVENT').slice(1);
+    expect(vevents(masterIcs).length).toBe(2);
+
+    const [master, exception] = vevents(ICSEventHelpers.updateAlarm(masterIcs, '-PT1H'));
+    expect(master).toContain('TRIGGER:-PT1H');
+    expect(exception).toContain('TRIGGER:-PT1H');
+    expect(exception).not.toContain('TRIGGER:-P0DT0H30M0S');
+
+    const [, cleared] = vevents(ICSEventHelpers.updateAlarm(masterIcs, null));
+    expect(cleared).not.toContain('ACTION:DISPLAY');
+    expect(cleared).toContain('ACTION:NONE');
+  });
+
+  it("sets one occurrence's reminder without touching the series'", function () {
+    const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
+      REMINDED_ICS,
+      Date.UTC(2026, 2, 10, 14) / 1000,
+      Date.UTC(2026, 2, 10, 15) / 1000,
+      Date.UTC(2026, 2, 10, 16) / 1000,
+      false
+    );
+    const ics = ICSEventHelpers.applyEditsToException(masterIcs, recurrenceId, {
+      alarmTrigger: null,
+    });
+    const [master, exception] = ics.split('BEGIN:VEVENT').slice(1);
+
+    expect(master).toContain('ACTION:DISPLAY');
+    expect(exception).not.toContain('ACTION:DISPLAY');
+    expect(exception).toContain('ACTION:NONE');
+  });
 });

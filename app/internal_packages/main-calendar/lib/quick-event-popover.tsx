@@ -2,7 +2,7 @@ import React from 'react';
 import { Actions, Calendar, DatabaseStore, DateUtils, localized } from 'mailspring-exports';
 import { Moment } from 'moment';
 import {
-  getEditableCalendars,
+  defaultCalendarForNewEvent,
   showNoEditableCalendarsError,
   createCalendarEvent,
 } from './core/calendar-helpers';
@@ -52,8 +52,8 @@ export class QuickEventPopover extends React.Component<
   }) => {
     const allCalendars = await DatabaseStore.findAll<Calendar>(Calendar);
     const disabledCalendars: string[] = AppEnv.config.get('mailspring.disabledCalendars') || [];
-    const editableCals = getEditableCalendars(allCalendars, disabledCalendars);
-    if (editableCals.length === 0) {
+    const calendar = defaultCalendarForNewEvent(allCalendars, disabledCalendars);
+    if (!calendar) {
       showNoEditableCalendarsError();
       return;
     }
@@ -63,8 +63,8 @@ export class QuickEventPopover extends React.Component<
       start: start.toDate(),
       end: end.toDate(),
       isAllDay: false,
-      calendarId: editableCals[0].id,
-      accountId: editableCals[0].accountId,
+      calendarId: calendar.id,
+      accountId: calendar.accountId,
     });
   };
 
@@ -73,9 +73,10 @@ export class QuickEventPopover extends React.Component<
     if (this.state.start) {
       dateInterpretation = (
         <span className="date-interpretation">
-          Title: {this.state.leftoverText} <br />
-          Start: {DateUtils.format(this.state.start, DateUtils.DATE_FORMAT_SHORT)} <br />
-          End: {DateUtils.format(this.state.end, DateUtils.DATE_FORMAT_SHORT)}
+          {localized('Title:')} {this.state.leftoverText} <br />
+          {localized('Start:')} {DateUtils.format(this.state.start, DateUtils.DATE_FORMAT_SHORT)}{' '}
+          <br />
+          {localized('End:')} {DateUtils.format(this.state.end, DateUtils.DATE_FORMAT_SHORT)}
         </span>
       );
     }
@@ -85,7 +86,7 @@ export class QuickEventPopover extends React.Component<
         <input
           tabIndex={0}
           type="text"
-          placeholder={localized("Coffee next Monday at 9AM'")}
+          placeholder={localized('Coffee next Monday at 9AM')}
           onKeyDown={this.onInputKeyDown}
           onChange={this.onInputChange}
         />

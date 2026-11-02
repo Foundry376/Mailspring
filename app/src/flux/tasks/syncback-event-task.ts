@@ -62,6 +62,11 @@ export class SyncbackEventTask extends Task {
     rsvp: Attributes.Obj({
       modelKey: 'rsvp',
     }),
+    /** The answer a new copy of an invitation was created with, which Yahoo resets on create
+     * and the engine then writes again (DAVWorker::writeAndResyncEvent). */
+    createdAnswer: Attributes.Obj({
+      modelKey: 'createdAnswer',
+    }),
   };
 
   event: Event;
@@ -70,20 +75,24 @@ export class SyncbackEventTask extends Task {
   newData?: EventSnapshot;
   taskDescription?: string;
   rsvp?: RSVPAnswer;
+  createdAnswer?: RSVPAnswer;
 
   static forCreating({
     event,
     calendarId,
     accountId,
+    answer,
   }: {
     event: Event;
     calendarId: string;
     accountId: string;
+    answer?: RSVPAnswer;
   }) {
     return new SyncbackEventTask({
       event,
       calendarId,
       accountId,
+      createdAnswer: answer,
       // Creating events cannot be undone via this mechanism
       // (would need DestroyEventTask)
     });
@@ -211,21 +220,23 @@ export class SyncbackEventTask extends Task {
     return localized('Saving event...');
   }
 
-  // The engine's read-back after the PUT (DAVWorker::writeAndResyncEvent) updates only this row.
-  // A series' exception rows, and any exception this write added, arrive with the next full sync.
+  // The engine stores the written resource's rows itself (DAVWorker::storeServerCopy), exception
+  // rows included. This pass picks up whatever else the server changed on the calendar.
   async onSuccess() {
     AppEnv.mailsyncBridge.sendSyncCalendarNow(this.accountId);
   }
 
   // Keys from TaskProcessor::perform{Local,Remote}SyncbackEvent and DAVWorker::writeAndResyncEvent.
-  // Only the network ones (etag-conflict, no-calendar, not-found) leave the rejected edit on screen.
+  // A refused write's rows already hold the server's copy again: the engine stores it before it
+  // reports the error (DAVWorker::storeServerCopy, MicrosoftCalendarWorker::restoreEvent).
   async onError({ key, debuginfo }: { key: string; debuginfo: string }) {
     if (key === 'etag-conflict' && this.rsvp && !this.rsvp.retried) {
       if (await this._answerAgainOnCurrentCopy()) return;
     }
     const messages: { [key: string]: string } = {
+      // The server's copy need not be another client's: our own earlier write changes it too.
       'etag-conflict': localized(
-        'This event was changed by another client. Refresh the calendar and make your change again.'
+        "This event changed since it was last loaded, so your change wasn't saved. Please make your change again on its latest version."
       ),
       'ics-incomplete': localized(
         'This series already has modified occurrences on the server. Refresh the calendar and edit it again.'
@@ -250,7 +261,7 @@ export class SyncbackEventTask extends Task {
    * when that copy did not arrive or no longer lists us.
    */
   async _answerAgainOnCurrentCopy(): Promise<boolean> {
-    const current = await this._nextCopyOfEvent();
+    const current = (await this._storedServerCopy()) || (await this._nextCopyOfEvent());
     if (!current) return false;
     const { email, status, occurrenceIcs } = this.rsvp;
     const ics = occurrenceIcs
@@ -263,6 +274,14 @@ export class SyncbackEventTask extends Task {
       SyncbackEventTask.forAnswering({ event, answer: { ...this.rsvp, retried: true } })
     );
     return true;
+  }
+
+  // The engine stores the server's copy over our refused write before it reports the conflict
+  // (DAVWorker::writeAndResyncEvent). Null when the row still holds what this task wrote, as when
+  // that read-back failed.
+  async _storedServerCopy(): Promise<Event | null> {
+    const stored = await DatabaseStore.find<Event>(Event, this.event.id);
+    return stored && stored.ics !== this.event.ics ? stored : null;
   }
 
   // Asks the engine to re-read the calendar, and resolves with the event as that sync stores it.

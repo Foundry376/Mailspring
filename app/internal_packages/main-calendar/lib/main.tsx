@@ -96,17 +96,20 @@ function updateMenus() {
 }
 
 // Sent by the main process for application:show-calendar, from the Window menu or from an
-// invitation's "View in Calendar" link in any window.
+// invitation's "View in Calendar" link in any window. `calendarId` picks one copy when the
+// account holds the event on several calendars; without it the first copy found is shown.
 async function onShowCalendar(
   _event: Electron.IpcRendererEvent,
-  focus?: { icsuid: string; accountId: string; recurrenceIdStart?: number }
+  focus?: { icsuid: string; accountId: string; calendarId?: string; recurrenceIdStart?: number }
 ) {
   if (WorkspaceStore.rootSheet() !== WorkspaceStore.Sheet.Calendar) {
     Actions.selectRootSheet(WorkspaceStore.Sheet.Calendar);
   }
   if (!focus) return;
-  const { icsuid, accountId, recurrenceIdStart } = focus;
-  const events = await DatabaseStore.findAll<Event>(Event).where({ icsuid, accountId });
+  const { icsuid, accountId, calendarId, recurrenceIdStart } = focus;
+  const events = await DatabaseStore.findAll<Event>(Event).where(
+    calendarId ? { icsuid, accountId, calendarId } : { icsuid, accountId }
+  );
   const info = focusedEventInfoForEvents(events, Date.now() / 1000, recurrenceIdStart);
   if (info) {
     Actions.focusCalendarEvent(info);

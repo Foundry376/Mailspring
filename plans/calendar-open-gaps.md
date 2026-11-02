@@ -16,10 +16,10 @@ the code before planning from it, and delete it here when it lands.
   PARTSTAT to the calendar copy and also queue an `EventRSVPTask` reply. On Google the write already
   makes Google email the organizer, so an outside organizer gets both, and a Google organizer ignores
   the emailed one. Seen live 2026-10-15.
-- **New events go on an arbitrary calendar.** The editor, drag-to-create and the quick-event box all
-  take the first writable calendar (`getEditableCalendars(...)[0]`), so with several accounts a
-  meeting can go out from the wrong address. It should default to Mail's "Send new messages from"
-  account (`core.sending.defaultAccountIdForSend`).
+- **Times are always 12-hour.** `formatTime` in `calendar-event-popover.tsx`, `formatEventTimeRange`
+  (`calendar-helpers.tsx`), the drag tooltip (`calendar-drag-utils.ts`) and search results
+  (`event-search-bar.tsx`) hardcode AM/PM, so 24-hour locales see "10 AM". `formatShortTime` already
+  follows the locale.
 - **A moved occurrence can be drawn at its old time.** Every Event row of a series holds the whole
   resource, and the rows can disagree. When the series' main row is older than an exception's row,
   `occurrencesForEvents` expands the main row, and its standalone-exception branch reads the

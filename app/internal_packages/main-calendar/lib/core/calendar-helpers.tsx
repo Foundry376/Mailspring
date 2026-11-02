@@ -1,4 +1,5 @@
 import moment, { Moment } from 'moment';
+import momentTz from 'moment-timezone';
 import {
   CalendarDate,
   Utils,
@@ -12,8 +13,11 @@ import {
   TaskQueue,
   localized,
   CalendarDateUtils,
+  CalendarUtils,
+  DraftFactory,
 } from 'mailspring-exports';
 import { ShowAsOption, defaultShowAs } from './show-as-selector';
+import { alertTrigger, defaultAlert } from './alert-selector';
 import {
   MIN_EVENT_DURATION_SECONDS,
   DEFAULT_TIMED_EVENT_DURATION_SECONDS,
@@ -293,6 +297,20 @@ export function clampEnd(startUnix: number, endUnix: number, isAllDay: boolean):
   return Math.max(endUnix, floor);
 }
 
+/**
+ * The zone an editor's time fields read in: the event's zone, or the machine's when tzdata
+ * cannot place it (an Outlook display name), since a save then keeps the instant shown.
+ */
+export function fieldZone(timezone: string): string {
+  return CalendarUtils.resolveIanaZone(timezone) || DateUtils.timeZone;
+}
+
+/** The instant whose wall clock in `toZone` is the one `unix` shows in `fromZone`. */
+export function sameWallClockIn(unix: number, fromZone: string, toZone: string): number {
+  const wallClock = momentTz.tz(unix * 1000, fromZone).format('YYYY-MM-DDTHH:mm:ss');
+  return momentTz.tz(wallClock, toZone).unix();
+}
+
 /** The fields of a new event that the grid draws, as its editor would save them. */
 export interface NewEventDraft {
   title: string;
@@ -433,6 +451,22 @@ export function getEditableCalendars(
 }
 
 /**
+ * The calendar a new event starts on: one of the user's own in the account Mail would send a new
+ * message from, so an invitation goes out from that address, else the first editable one.
+ */
+export function defaultCalendarForNewEvent(
+  calendars: Calendar[],
+  disabledCalendars: string[]
+): Calendar | null {
+  const editable = getEditableCalendars(calendars, disabledCalendars);
+  const account = DraftFactory._accountForNewDraft();
+  const own = editable.find(
+    (c) => c.accountId === account.id && !CalendarUtils.isSomeoneElsesCalendar(c)
+  );
+  return own || editable[0] || null;
+}
+
+/**
  * Show an error dialog when no editable calendars are available.
  */
 export function showNoEditableCalendarsError(): void {
@@ -468,6 +502,8 @@ export interface CreateCalendarEventOptions {
   recurrenceRule?: string;
   timezone?: string;
   transparency?: ShowAsOption;
+  /** The reminder's TRIGGER, null for none; omitted, the editor's default for the event. */
+  alarmTrigger?: string | null;
 }
 
 /** The account, as the ORGANIZER the ICS helpers name once an event has guests. */
@@ -478,12 +514,16 @@ export function organizerForAccount(
   return account ? { email: account.emailAddress, name: account.name } : undefined;
 }
 
-/**
- * Create a new calendar event, queue the syncback task, and focus the event.
- * Shared by CalendarEventPopover and QuickEventPopover.
- */
-export async function createCalendarEvent(options: CreateCalendarEventOptions): Promise<void> {
+/** Builds a new calendar event and queues its creation. */
+export function queueNewCalendarEvent(options: CreateCalendarEventOptions): {
+  event: Event;
+  task: SyncbackEventTask;
+} {
   const icsuid = ICSEventHelpers.generateUID();
+  const alarmTrigger =
+    options.alarmTrigger === undefined
+      ? alertTrigger(defaultAlert(options.isAllDay))
+      : options.alarmTrigger;
   const ics = ICSEventHelpers.createICSString({
     uid: icsuid,
     summary: options.summary,
@@ -497,6 +537,7 @@ export async function createCalendarEvent(options: CreateCalendarEventOptions): 
     attendees: options.attendees,
     recurrenceRule: options.recurrenceRule,
     transparency: options.transparency ?? defaultShowAs(options.isAllDay),
+    alarmTrigger,
   });
 
   const event = new Event({
@@ -515,7 +556,12 @@ export async function createCalendarEvent(options: CreateCalendarEventOptions): 
     accountId: options.accountId,
   });
   Actions.queueTask(task);
+  return { event, task };
+}
 
+/** Creates a new calendar event and focuses it once the server has it. */
+export async function createCalendarEvent(options: CreateCalendarEventOptions): Promise<void> {
+  const { event, task } = queueNewCalendarEvent(options);
   try {
     await TaskQueue.waitForPerformRemote(task);
     Actions.focusCalendarEvent({ id: event.id, start: event.recurrenceStart });
