@@ -310,6 +310,8 @@ export class MailspringCalendar extends React.Component<
     if (!this._select([stored])) return true;
     // Another event's change was just sent or discarded, though state may not show it yet.
     const change = isUnsentChangeFor(unsentChange, stored) ? unsentChange : null;
+    // A guest's Show as waiting for its scope isn't part of a proposal, and has to go first.
+    if (change?.guestCopy && change.edits.length) return true;
     this.setState({ unsentChange: withTimes(change, stored, times, occurrenceTimes(stored)) });
     return true;
   }
@@ -384,7 +386,7 @@ export class MailspringCalendar extends React.Component<
     await proposeNewTimeForCalendarEvent(occurrence, {
       start: new Date(times.start * 1000),
       end: new Date(times.end * 1000),
-      comment: proposal.note.trim(),
+      comment: proposal.comment.trim(),
     });
   }
 
@@ -394,10 +396,9 @@ export class MailspringCalendar extends React.Component<
     const row = await DatabaseStore.find<Event>(Event, change.eventId);
     if (!row) return;
     const staleIcs = row.ics;
-    const task =
-      selected && !selected.isMine
-        ? modifyGuestCopy(row, change.edits)
-        : modifyEventChange(row, change, scope);
+    const task = change.guestCopy
+      ? modifyGuestCopy(row, change, scope)
+      : modifyEventChange(row, change, scope);
     // A new repeat rule or time leaves the one-off fallback in _currentOccurrence nothing to match.
     if (selected) {
       const start = change.times?.start ?? occurrenceStartUnix(selected);

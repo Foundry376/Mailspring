@@ -6,12 +6,13 @@ type Times = NonNullable<EventChange['times']>;
 
 /**
  * Edits made in the panel to one event, sent as one update; or, on an invitation, the new time
- * a guest proposes to the organizer, with their note.
+ * a guest proposes to the organizer, with their comment, or their own Show as for their copy.
  */
 export interface UnsentChange extends EventChange {
   eventId: string;
   slot?: number;
-  proposal?: { note: string };
+  guestCopy?: boolean;
+  proposal?: { comment: string };
 }
 
 export function isUnsentChangeFor(change: UnsentChange | null, occurrence: EventOccurrence) {
@@ -29,7 +30,7 @@ export function emptyChange(occurrence: EventOccurrence): UnsentChange {
     eventId,
     ...(occurrence.isRecurring && { slot: occurrenceSlot(occurrence) }),
     edits: [],
-    ...(!occurrence.isMine && { proposal: { note: '' } }),
+    ...(!occurrence.isMine && { guestCopy: true }),
   };
 }
 
@@ -73,7 +74,11 @@ export function withTimes(
   const base = change ?? emptyChange(occurrence);
   const same =
     times.start === stored.start && times.end === stored.end && times.isAllDay === stored.isAllDay;
-  return unlessEmpty({ ...base, times: same ? undefined : times });
+  return unlessEmpty({
+    ...base,
+    ...(base.guestCopy && { proposal: base.proposal ?? { comment: '' } }),
+    times: same ? undefined : times,
+  });
 }
 
 export function unsentEdit(

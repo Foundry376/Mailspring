@@ -123,6 +123,14 @@ function panelFor(event: TimedOccurrence, onUnsentChange: jasmine.Spy) {
   return panel;
 }
 
+const dragOf = (times: { start: number; end: number }, previewIsAllDay: boolean) => ({
+  event: invitation,
+  mode: 'move',
+  previewStart: times.start,
+  previewEnd: times.end,
+  previewIsAllDay,
+});
+
 describe('editableFields', function () {
   beforeEach(function () {
     spyOn(AccountStore, 'accountForEmail').andCallFake((email: string) =>
@@ -185,14 +193,15 @@ describe("a guest's proposal", function () {
     expect(onUnsentChange).toHaveBeenCalledWith({
       eventId: 'e1',
       slot: START,
+      guestCopy: true,
       edits: [],
-      proposal: { note: '' },
+      proposal: { comment: '' },
       times,
     });
   });
 
   it('sends nothing on Discard or Esc', function () {
-    const change = { eventId: 'e1', slot: START, edits: [], proposal: { note: '' }, times };
+    const change = { eventId: 'e1', slot: START, edits: [], proposal: { comment: '' }, times };
     spyOn(UnsentChangeDialog, 'showUnsentChangeDialog').andReturn('discard');
 
     const leaving = calendarWith([invitation]);
@@ -208,13 +217,13 @@ describe("a guest's proposal", function () {
     expect(queued).toEqual([]);
   });
 
-  it('sends one COUNTER for the occurrence with the note, writing nothing to our copy', async function () {
+  it('sends one COUNTER for the occurrence with the comment, writing nothing to our copy', async function () {
     const calendar = calendarWith([invitation]);
     calendar.state.unsentChange = {
       eventId: 'e1',
       slot: START,
       edits: [],
-      proposal: { note: '  Can we do later?  ' },
+      proposal: { comment: '  Can we do later?  ' },
       times,
     };
     await calendar._sendUnsentChange();
@@ -231,16 +240,164 @@ describe("a guest's proposal", function () {
     expect(calendar.state.unsentChange).toBe(null);
   });
 
-  it('saves their own Show as to their copy, keeping the SEQUENCE', async function () {
-    const panel = panelFor(invitation, onUnsentChange);
-    panel._saveProperty({ property: 'transp', value: 'TRANSPARENT' });
+  it('moves a drag into a proposal, writing nothing', async function () {
+    const calendar = calendarWith([invitation]);
+    await calendar._persistDragChange(dragOf(times, false));
+
+    expect(queued).toEqual([]);
+    expect(calendar.state.unsentChange.times).toEqual(times);
+    expect(calendar.state.unsentChange.proposal).toEqual({ comment: '' });
+  });
+
+  it('drops a drag across the all-day row, writing nothing', async function () {
+    const calendar = calendarWith([invitation]);
+    await calendar._persistDragChange(dragOf(times, true));
+
+    expect(queued).toEqual([]);
+    expect(calendar.state.unsentChange).toBeFalsy();
+  });
+
+  it('leaves a Show as waiting for its scope out of a drag', async function () {
+    const calendar = calendarWith([invitation]);
+    const showAs = {
+      eventId: 'e1',
+      slot: START,
+      guestCopy: true,
+      edits: [{ property: 'transp', value: 'TRANSPARENT' }],
+    };
+    calendar.state.unsentChange = showAs;
+    await calendar._persistDragChange(dragOf(times, false));
+
+    expect(queued).toEqual([]);
+    expect(calendar.state.unsentChange).toBe(showAs);
+  });
+});
+
+describe("a guest's Show as", function () {
+  let queued: any[];
+  let onUnsentChange: jasmine.Spy;
+  let ics: string;
+  const showAs = { property: 'transp', value: 'TRANSPARENT' };
+
+  const veventsOf = (written: string) =>
+    written
+      .split('BEGIN:VEVENT')
+      .slice(1)
+      .map((v) => lines(v));
+  const writtenIcs = () => (queued[0] as SyncbackEventTask).event.ics;
+  const withMovedOccurrence = (series: string) =>
+    series.replace(
+      'END:VCALENDAR',
+      [
+        'BEGIN:VEVENT',
+        'UID:interview@test',
+        `RECURRENCE-ID:${stamp(START)}`,
+        `DTSTART:${stamp(START + HOUR)}`,
+        `DTEND:${stamp(START + 2 * HOUR)}`,
+        'SUMMARY:Interview',
+        'SEQUENCE:2',
+        'DTSTAMP:20261001T000000Z',
+        'ORGANIZER:mailto:alex@example.com',
+        `ATTENDEE;PARTSTAT=ACCEPTED:mailto:${ME}`,
+        'END:VEVENT',
+        'END:VCALENDAR',
+      ].join('\r\n')
+    );
+  const moved = occurrenceOf('alex@example.com', ME, {
+    id: CalendarUtils.occurrenceId('e1', START + HOUR),
+    isException: true,
+    recurrenceIdStart: START,
+    start: START + HOUR,
+    end: START + 2 * HOUR,
+  });
+
+  beforeEach(function () {
+    queued = [];
+    ics = seriesIcs('alex@example.com', ME);
+    spyOn(Actions, 'queueTask').andCallFake((task) => queued.push(task));
+    spyOn(TaskQueue, 'waitForPerformLocal').andReturn(Promise.resolve());
+    spyOn(AccountStore, 'accountForEmail').andCallFake((email: string) =>
+      email === ME ? { id: 'a', emailAddress: ME } : null
+    );
+    spyOn(DatabaseStore, 'find').andCallFake(() => Promise.resolve(rowWith(ics)));
+    onUnsentChange = jasmine.createSpy('onUnsentChange');
+  });
+
+  it('waits for a scope on an occurrence of a series, separate from any proposal', function () {
+    panelFor(invitation, onUnsentChange)._saveProperty(showAs);
+
+    expect(queued).toEqual([]);
+    const change = onUnsentChange.mostRecentCall.args[0];
+    expect(change.edits).toEqual([showAs]);
+    expect(change.proposal).toBeUndefined();
+  });
+
+  it('writes this occurrence alone, keeping every SEQUENCE', async function () {
+    await calendarWith([invitation])._writeChange(
+      { eventId: 'e1', slot: START, guestCopy: true, edits: [showAs] },
+      'this-occurrence'
+    );
+
+    const [master, exception] = veventsOf(writtenIcs());
+    expect(master).not.toContain('TRANSP:TRANSPARENT');
+    expect(exception).toContain('TRANSP:TRANSPARENT');
+    expect(exception).toContain(`RECURRENCE-ID:${stamp(START)}`);
+    expect(master).toContain('SEQUENCE:2');
+    expect(exception).toContain('SEQUENCE:2');
+  });
+
+  it('writes every occurrence, keeping the SEQUENCE', async function () {
+    await calendarWith([invitation])._writeChange(
+      { eventId: 'e1', slot: START, guestCopy: true, edits: [showAs] },
+      'all-occurrences'
+    );
+
+    const vevents = veventsOf(writtenIcs());
+    expect(vevents.length).toBe(1);
+    expect(vevents[0]).toContain('TRANSP:TRANSPARENT');
+    expect(vevents[0]).toContain('SEQUENCE:2');
+  });
+
+  it('saves straight to an occurrence the organizer moved', async function () {
+    ics = withMovedOccurrence(ics);
+    const panel = panelFor(moved, onUnsentChange);
+    panel._saveProperty(showAs);
     await panel._saving;
 
     expect(onUnsentChange).not.toHaveBeenCalled();
-    expect(queued.length).toBe(1);
-    const written = lines((queued[0] as SyncbackEventTask).event.ics);
-    expect(written).toContain('TRANSP:TRANSPARENT');
-    expect(written.filter((l) => l.startsWith('SEQUENCE'))).toEqual(['SEQUENCE:2']);
+    const [master, exception] = veventsOf(writtenIcs());
+    expect(master).not.toContain('TRANSP:TRANSPARENT');
+    expect(exception).toContain('TRANSP:TRANSPARENT');
+    expect(exception).toContain(`DTSTART:${stamp(START + HOUR)}`);
+    expect(exception).toContain('SEQUENCE:2');
+  });
+
+  it('saves straight to a one-off invitation', async function () {
+    ics = ics.replace('RRULE:FREQ=WEEKLY\r\n', '');
+    const oneOff = occurrenceOf('alex@example.com', ME, { isRecurring: false });
+    const panel = panelFor(oneOff, onUnsentChange);
+    panel._saveProperty(showAs);
+    await panel._saving;
+
+    expect(onUnsentChange).not.toHaveBeenCalled();
+    expect(lines(writtenIcs())).toContain('TRANSP:TRANSPARENT');
+    expect(lines(writtenIcs())).toContain('SEQUENCE:2');
+  });
+
+  it('keeps the SEQUENCE when the panel has moved on before the save runs', async function () {
+    await calendarWith([])._writeChange(
+      { eventId: 'e1', slot: START, guestCopy: true, edits: [showAs] },
+      'this-occurrence'
+    );
+
+    veventsOf(writtenIcs()).forEach((vevent) => expect(vevent).toContain('SEQUENCE:2'));
+  });
+
+  it("isn't offered on a copy on someone else's calendar", function () {
+    const panel = panelFor(invitation, onUnsentChange);
+    expect(panel._canSetShowAs()).toBe(true);
+    panel.props = { ...panel.props, calendar: { ownership: 'other' } };
+    expect(panel._canSetShowAs()).toBe(false);
   });
 });
 

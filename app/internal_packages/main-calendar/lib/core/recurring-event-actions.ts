@@ -132,17 +132,28 @@ export function modifySimpleEventChange(
 }
 
 /**
- * Writes a guest's own settings to their copy of an invitation. The SEQUENCE stays: only the
- * organizer revises a meeting (RFC 5546 section 2.1.4).
+ * Writes a guest's own settings to their copy of an invitation, for `scope` on a series. The
+ * SEQUENCE stays: only the organizer revises a meeting (RFC 5546 section 2.1.4).
  */
 export function modifyGuestCopy(
-  event: Event,
-  edits: EventPropertyEdit[],
-  description = localized('Edit event')
+  row: Event,
+  change: EventChange & { slot?: number },
+  scope: ChangeScope
 ): SyncbackEventTask {
-  const undoData = captureEventSnapshot(event);
-  event.ics = edits.reduce(applyPropertyEdit, event.ics);
-  const task = SyncbackEventTask.forUpdating({ event, undoData, description });
+  const undoData = captureEventSnapshot(row);
+  const { slot } = change;
+  row.ics =
+    slot === undefined || row.isRecurrenceException() || scope === 'all-occurrences'
+      ? change.edits.reduce(applyPropertyEdit, row.ics)
+      : occurrenceExceptionIcs(row.ics, slot, {
+          ...change,
+          times: occurrenceTimes(occurrenceAtSlot(row, slot)),
+        }).ics;
+  const task = SyncbackEventTask.forUpdating({
+    event: row,
+    undoData,
+    description: localized('Edit event'),
+  });
   Actions.queueTask(task);
   return task;
 }
@@ -163,6 +174,32 @@ export function createOccurrenceException(options: EventTimeChangeOptions): void
   );
 }
 
+function occurrenceExceptionIcs(
+  masterIcs: string,
+  slot: number,
+  change: EventChange & Required<Pick<EventChange, 'times'>>
+) {
+  const { times } = change;
+  const created = ICSEventHelpers.createRecurrenceException(
+    masterIcs,
+    slot,
+    times.start,
+    times.end,
+    times.isAllDay
+  );
+  const edited = (property: EventPropertyEdit['property']) =>
+    change.edits.find((e) => e.property === property)?.value ?? undefined;
+  const ics = change.edits.length
+    ? ICSEventHelpers.applyEditsToException(created.masterIcs, created.recurrenceId, {
+        summary: edited('summary'),
+        location: edited('location'),
+        description: edited('description'),
+        transparency: edited('transp') as ShowAsOption | undefined,
+      })
+    : created.masterIcs;
+  return { ics, recurrenceId: created.recurrenceId };
+}
+
 /**
  * Writes a change to one occurrence of a series as its inline exception and queues one syncback
  * task. A repeat rule belongs to the whole series, so a change carrying one goes to
@@ -178,23 +215,7 @@ export function modifyOccurrenceChange(
 ): SyncbackEventTask {
   const undoData = captureEventSnapshot(master);
   const { times } = change;
-  const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
-    master.ics,
-    slot,
-    times.start,
-    times.end,
-    times.isAllDay
-  );
-  const edited = (property: EventPropertyEdit['property']) =>
-    change.edits.find((e) => e.property === property)?.value ?? undefined;
-  const ics = change.edits.length
-    ? ICSEventHelpers.applyEditsToException(masterIcs, recurrenceId, {
-        summary: edited('summary'),
-        location: edited('location'),
-        description: edited('description'),
-        transparency: edited('transp') as ShowAsOption | undefined,
-      })
-    : masterIcs;
+  const { ics, recurrenceId } = occurrenceExceptionIcs(master.ics, slot, change);
 
   master.ics = ICSEventHelpers.bumpEventSequence(ics, recurrenceId);
   master.recurrenceStart = times.start;
@@ -270,14 +291,16 @@ export function modifyEventChange(
   if (scope === 'all-occurrences') {
     return modifySeriesChange(row, slot, change);
   }
-  const occurrence = change.times ? null : occurrenceForRecurrenceId([row], slot);
-  if (!change.times && !occurrence) {
-    throw new Error(`No occurrence of ${row.id} at ${slot} to change`);
-  }
   return modifyOccurrenceChange(row, slot, {
     ...change,
-    times: change.times ?? occurrenceTimes(occurrence),
+    times: change.times ?? occurrenceTimes(occurrenceAtSlot(row, slot)),
   });
+}
+
+function occurrenceAtSlot(row: Event, slot: number) {
+  const occurrence = occurrenceForRecurrenceId([row], slot);
+  if (!occurrence) throw new Error(`No occurrence of ${row.id} at ${slot} to change`);
+  return occurrence;
 }
 
 /**

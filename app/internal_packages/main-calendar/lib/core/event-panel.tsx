@@ -239,6 +239,15 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     return holdsEdits(this.props.event, this.props.isCalendarReadOnly);
   }
 
+  // A copy on someone else's calendar holds their availability, not ours (recordAndSendRSVP).
+  _canSetShowAs() {
+    const { event, calendar, unsentChange } = this.props;
+    if (!this._canEdit('showAs')) return false;
+    if (event.isMine) return true;
+    if (CalendarUtils.isSomeoneElsesCalendar(calendar)) return false;
+    return !(unsentChange?.proposal && asksScope(event));
+  }
+
   _save(change: UnsentChange) {
     this._saving = this._saving
       .then(() => this.props.onSaveChange(change))
@@ -248,8 +257,8 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   _saveProperty(edit: EventPropertyEdit) {
     const { event, unsentChange, onUnsentChange } = this.props;
-    // A guest's Show as is their own, so it saves rather than joining the proposal.
-    if (this._holdsEdits() && !this._proposes()) {
+    // A guest's Show as is their own, so it never joins a proposal; on a series it asks its scope.
+    if (event.isMine ? this._holdsEdits() : asksScope(event)) {
       onUnsentChange(withEdit(unsentChange, event, edit, this._storedValue(edit.property)));
     } else {
       this._save({ ...emptyChange(event), edits: [edit] });
@@ -545,7 +554,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   }
 
   _renderWhen() {
-    if (this._canEdit('times')) return this._renderEditableWhen();
+    // Sent separately, so a guest's Show as waiting for its scope goes first.
+    const showAsWaits = this.props.unsentChange?.guestCopy && this.props.unsentChange.edits.length;
+    if (this._canEdit('times') && !showAsWaits) return this._renderEditableWhen();
     const { event } = this.props;
     const days = daysLabel(event.startDate, event.endDate);
 
@@ -690,7 +701,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           </div>
         )}
         <div className="event-panel-row indented">
-          {this._canEdit('showAs') ? (
+          {this._canSetShowAs() ? (
             <PanelSelect
               value={this._shown('transp', showAs)}
               onChange={(e) => this._saveProperty({ property: 'transp', value: e.target.value })}
@@ -860,11 +871,10 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     return (
       <>
         <textarea
-          className="event-panel-proposal-note"
-          rows={3}
-          value={change.proposal.note}
+          className="event-panel-proposal-comment"
+          value={change.proposal.comment}
           placeholder={localized('Add a note for the organizer (optional)')}
-          onChange={(e) => onUnsentChange({ ...change, proposal: { note: e.target.value } })}
+          onChange={(e) => onUnsentChange({ ...change, proposal: { comment: e.target.value } })}
           onKeyDown={(e) => {
             // Kept in the panel, so the next Esc reaches the calendar's.
             if (e.key === 'Escape') e.currentTarget.closest<HTMLElement>('.event-panel')?.focus();
@@ -887,7 +897,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     const { event, onSendUnsentChange } = this.props;
     return (
       <>
-        {hasGuests(event) && (
+        {event.isMine && hasGuests(event) && (
           <div className="event-panel-subtle">{localized('Guests will be emailed.')}</div>
         )}
         <div className="event-panel-change-buttons stacked">
