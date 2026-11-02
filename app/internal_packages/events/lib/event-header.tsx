@@ -18,11 +18,14 @@ import {
   ICSEventHelpers,
   ICSParticipantStatus,
   Message,
+  Thread,
   Event,
   EventRSVPTask,
   SyncbackEventTask,
+  DestroyEventTask,
   DatabaseStore,
   RegExpUtils,
+  Utils,
 } from 'mailspring-exports';
 import ICAL from 'ical.js';
 import {
@@ -34,6 +37,13 @@ import {
   CounterProposalProblem,
   RSVPTargetResolution,
 } from './rsvp-target';
+import {
+  copyIsBehind,
+  EmailedInvitation,
+  newestInvitation,
+  otherInvitationEmails,
+  readEmailedInvitations,
+} from './invitation-versions';
 
 import { findOneIana } from 'windows-iana';
 
@@ -74,6 +84,63 @@ export function renderLocation(location: string | undefined): React.ReactNode {
   return nodes;
 }
 
+const WEEKDAYS = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+
+/** A rule's frequency and the weekdays a weekly one lists, or null for any other rule. */
+function repeatEvery(rrule: ICAL.Recur): string | null {
+  const interval = rrule.interval || 1;
+  const byDay = (rrule.parts.BYDAY as string[] | undefined) || [];
+  const others = Object.keys(rrule.parts).filter((part) => part !== 'BYDAY');
+  if (others.length || !byDay.every((day) => WEEKDAYS.includes(day))) return null;
+
+  if (byDay.length) {
+    if (rrule.freq !== 'WEEKLY') return null;
+    const days = WEEKDAYS.filter((day) => byDay.includes(day))
+      .map((day) => moment.weekdaysShort(WEEKDAYS.indexOf(day)))
+      .join(', ');
+    return interval === 1
+      ? localized('Every %@', days)
+      : localized('Every %1$@ weeks on %2$@', interval, days);
+  }
+  const every: { [freq: string]: [string, (n: number) => string] } = {
+    DAILY: [localized('Every Day'), (n) => localized('Every %@ days', n)],
+    WEEKLY: [localized('Every Week'), (n) => localized('Every %@ weeks', n)],
+    MONTHLY: [localized('Every Month'), (n) => localized('Every %@ months', n)],
+    YEARLY: [localized('Every Year'), (n) => localized('Every %@ years', n)],
+  };
+  if (!every[rrule.freq]) return null;
+  const [once, many] = every[rrule.freq];
+  return interval === 1 ? once : many(interval);
+}
+
+/** How often a series repeats and when it ends, or only that it repeats for a rule this can't
+ * put in a few words (such as the second Tuesday of each month). */
+export function repeatSummary(event: ICAL.Event): string | null {
+  const rrule = event.component.getFirstPropertyValue('rrule') as ICAL.Recur | null;
+  if (!rrule) return null;
+  const every = repeatEvery(rrule);
+  if (!every) return localized('Repeats');
+  if (rrule.count) return localized('%1$@, %2$@ times', every, rrule.count);
+  if (rrule.until) {
+    return localized('%1$@, until %2$@', every, moment(rrule.until.toJSDate()).format('ll'));
+  }
+  return every;
+}
+
+/**
+ * Who organizes an event, as a guest would name them. iCloud mails invitations from a relay
+ * address (`2_…@imip.me.com`) that replies must go to, with the person's name in CN and their
+ * address in EMAIL.
+ */
+export function organizerName(event: ICAL.Event): string | null {
+  const organizer = event.component.getFirstProperty('organizer');
+  if (!organizer) return null;
+  const named = organizer.getParameter('cn') || organizer.getParameter('email');
+  return named
+    ? String(named)
+    : CalendarUtils.emailFromParticipantURI(String(organizer.getFirstValue()));
+}
+
 /**
  * The VEVENT of a synced calendar object that an invitation is about. An invitation for one
  * occurrence of a series names it by RECURRENCE-ID; the object's first VEVENT is the series.
@@ -109,18 +176,24 @@ interface EventHeaderProps {
 
 interface EventHeaderState {
   /**
-   * The invitation as mailed; the REPLY is built from it (RFC 5546 section 3.2.3). Google
-   * rewrites ORGANIZER on a shared calendar's copy to an `@group.calendar.google.com` id.
+   * The invitation as mailed, revised by any later email about it; the REPLY is built from it
+   * (RFC 5546 section 3.2.3). Google rewrites ORGANIZER on a shared calendar's copy to an
+   * `@group.calendar.google.com` id.
    */
   inviteIcs?: string;
   inviteEvent?: ICAL.Event;
+  /** The latest email that revised this invitation, when one did. */
+  newerInvitation?: Message;
   /** Set when the emailed invitation is about one occurrence of a series, in unix seconds. */
   inviteRecurrenceIdStart?: number;
   icsMethod?: 'reply' | 'request' | 'cancel' | 'counter';
-  /** The synced copy's VEVENT for this invitation when there is one, else the invitation. */
+  /** What is shown: the synced copy's VEVENT for this invitation, unless the copy is behind it. */
   icsEvent?: ICAL.Event;
-  /** The synced calendar object `icsEvent` came from. */
+  /** Our synced calendar object for this invitation, and its VEVENT the invitation is about. */
   syncedIcs?: string;
+  syncedEvent?: ICAL.Event;
+  /** Whether that copy missed a revision the invitation holds, which answering brings it up to. */
+  copyBehind?: boolean;
   isOnCalendar?: boolean;
   /** Which calendar copy of this event, if any, our response will be written to. */
   rsvp?: RSVPTargetResolution;
@@ -155,8 +228,11 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     icsMethod: undefined,
     inviteIcs: undefined,
     inviteEvent: undefined,
+    newerInvitation: undefined,
     inviteRecurrenceIdStart: undefined,
     syncedIcs: undefined,
+    syncedEvent: undefined,
+    copyBehind: false,
     isOnCalendar: false,
     rsvp: undefined,
     counterProblem: undefined,
@@ -169,11 +245,15 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
 
   _mounted = false;
   _subscription: Rx.IDisposable;
+  _versionsSubscription: Rx.IDisposable;
 
   componentWillUnmount() {
     this._mounted = false;
     if (this._subscription) {
       this._subscription.dispose();
+    }
+    if (this._versionsSubscription) {
+      this._versionsSubscription.dispose();
     }
   }
 
@@ -232,6 +312,10 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
         : undefined,
     });
 
+    if (normalizedMethod === 'request') {
+      this._watchForNewerVersions(data, event);
+    }
+
     if (this._subscription) {
       this._subscription.dispose();
     }
@@ -264,6 +348,84 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
         if (this._mounted) this._onCalendarCopies(calEvents, calendars, nearby, copy, window);
       });
   }
+
+  /**
+   * Organizers mail each revision of an invitation separately, so the one in this email can be
+   * stale. Its later emails are found, their bodies fetched when they haven't been, and the
+   * invitation shown and answered becomes the newest they add up to. Accepting a stale one would
+   * add the organizer's old times to our calendar.
+   */
+  async _watchForNewerVersions(ownIcs: string, ownEvent: ICAL.Event) {
+    const candidates = await this._otherInvitationEmails(ownEvent.summary);
+    if (!candidates.length || !this._mounted) return;
+    const undownloaded = candidates.filter((m) => m.body === null);
+    if (undownloaded.length) {
+      Actions.fetchBodies(undownloaded);
+    }
+    if (this._versionsSubscription) {
+      this._versionsSubscription.dispose();
+    }
+    this._versionsSubscription = Rx.Observable.fromQuery(
+      DatabaseStore.findAll<Message>(Message).where([
+        Message.attributes.id.in(candidates.map((m) => m.id)),
+      ])
+    )
+      .flatMapLatest((messages: Message[]) =>
+        Rx.Observable.fromPromise(readEmailedInvitations(messages))
+      )
+      .subscribe((others: EmailedInvitation[]) => {
+        if (this._mounted) this._onEmailedVersions(ownIcs, others);
+      });
+  }
+
+  _otherInvitationEmails(title: string): Promise<Message[]> {
+    return otherInvitationEmails(this.props.message, title);
+  }
+
+  // Runs again as each candidate's body arrives, so every result replaces the last; null puts
+  // back this email's own invitation.
+  _onEmailedVersions(ownIcs: string, others: EmailedInvitation[]) {
+    let newest: ReturnType<typeof newestInvitation>;
+    let event: ICAL.Event;
+    try {
+      newest = newestInvitation({ ics: ownIcs, message: this.props.message }, others) || {
+        ics: ownIcs,
+        cancelled: false,
+        message: null,
+      };
+      event = CalendarUtils.parseICSString(newest.ics).event;
+    } catch (e) {
+      console.warn(`EventHeader: Could not read a later copy of this invitation: ${e.message}`);
+      return;
+    }
+    const next: Partial<EventHeaderState> = {
+      inviteIcs: newest.ics,
+      inviteEvent: event,
+      newerInvitation: newest.message || undefined,
+      // Only an emailed REQUEST looks for later versions.
+      icsMethod: newest.cancelled ? 'cancel' : 'request',
+    };
+    this.setState({ ...next, ...this._shownFor({ ...this.state, ...next }) } as EventHeaderState);
+  }
+
+  /** The calendar copy is shown in place of the invitation, unless it is behind it. */
+  _shownFor(state: EventHeaderState): Pick<EventHeaderState, 'icsEvent' | 'copyBehind'> {
+    const { syncedEvent, syncedIcs, inviteIcs, inviteEvent } = state;
+    let copyBehind = false;
+    if (syncedEvent) {
+      try {
+        copyBehind = copyIsBehind(syncedIcs, inviteIcs);
+      } catch (e) {
+        console.warn(`EventHeader: Could not compare the invitation with our copy: ${e.message}`);
+      }
+    }
+    return { copyBehind, icsEvent: syncedEvent && !copyBehind ? syncedEvent : inviteEvent };
+  }
+
+  _onViewNewerInvitation = async () => {
+    const thread = await DatabaseStore.find<Thread>(Thread, this.state.newerInvitation.threadId);
+    if (thread) Actions.popoutThread(thread);
+  };
 
   /** Which copy of the invitation is ours to answer, and its VEVENT for this invitation. */
   _copyFor(calEvents: Event[], calendars: Calendar[]): CalendarCopy {
@@ -344,21 +506,22 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       addTo: addTo ? addTo.addTo : undefined,
       addToChoices: addTo ? addTo.choices : undefined,
       isOnCalendar: calEvents.length > 0,
+      syncedIcs: display ? display.ics : undefined,
+      syncedEvent: synced || undefined,
     };
-    if (display) {
-      if (synced) next.icsEvent = synced;
-      next.syncedIcs = display.ics;
-    }
-    this.setState(next as EventHeaderState);
+    this.setState({ ...next, ...this._shownFor({ ...this.state, ...next }) } as EventHeaderState);
   }
 
   /**
    * What the REPLY is built from: the calendar copy when there is one, except for an
-   * invitation to one occurrence, which the emailed copy describes alone.
+   * invitation to one occurrence, which the emailed copy describes alone, and a copy behind
+   * the invitation, whose SEQUENCE the organizer would read as an answer to an old revision.
    */
   _replyIcs(): string {
-    const { inviteIcs, inviteRecurrenceIdStart, syncedIcs } = this.state;
-    return inviteRecurrenceIdStart === undefined && syncedIcs ? syncedIcs : inviteIcs;
+    const { inviteIcs, inviteRecurrenceIdStart, syncedIcs, copyBehind } = this.state;
+    return inviteRecurrenceIdStart === undefined && syncedIcs && !copyBehind
+      ? syncedIcs
+      : inviteIcs;
   }
 
   /** This account's own address plus any aliases, used to recognise our own calendar. */
@@ -431,12 +594,16 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
             <div>
               <div className="event-time">{time}</div>
             </div>
+            {repeatSummary(icsEvent) && (
+              <div className="event-repeat">{repeatSummary(icsEvent)}</div>
+            )}
             <div className="event-location">{renderLocation(icsEvent.location)}</div>
             {this.state.isOnCalendar && (
               <div className="event-view-in-calendar">
                 <a onClick={this._onViewInCalendar}>{localized('View in Calendar')}</a>
               </div>
             )}
+            {this._renderNewerInvitation()}
             {icsMethod === 'request' && this._renderConflicts()}
             {icsMethod === 'cancel'
               ? this._renderCancellation()
@@ -451,10 +618,26 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     );
   }
 
+  _renderNewerInvitation() {
+    if (!this.state.newerInvitation) return false;
+    const cancelled = this.state.icsMethod === 'cancel';
+    return (
+      <div className="event-newer-invitation">
+        {cancelled
+          ? localized('This invitation was cancelled after this email was sent.')
+          : localized('This invitation was updated after this email was sent.')}{' '}
+        <a onClick={this._onViewNewerInvitation}>
+          {cancelled ? localized('View the cancellation') : localized('View the update')}
+        </a>
+      </div>
+    );
+  }
+
   _onViewInCalendar = () => {
     ipcRenderer.send('command', 'application:show-calendar', {
       icsuid: this.state.icsEvent.uid,
       accountId: this.props.message.accountId,
+      calendarId: this.state.rsvp?.target?.event.calendarId,
       recurrenceIdStart: this.state.inviteRecurrenceIdStart,
     });
   };
@@ -613,19 +796,33 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
   }
 
   _renderCancellation() {
-    const { icsEvent } = this.state;
-    const organizerEmail = CalendarUtils.emailFromParticipantURI(icsEvent.organizer);
+    const { icsEvent, copyBehind, rsvp, inviteRecurrenceIdStart } = this.state;
+    const organizer = organizerName(icsEvent);
+    // Our copy of a cancelled meeting stays where the server didn't apply the cancellation.
+    const removable = copyBehind && rsvp && rsvp.target && inviteRecurrenceIdStart === undefined;
 
     return (
       <div className="event-actions event-cancelled">
         <span className="cancelled-notice">
-          {organizerEmail
-            ? localized('This event has been cancelled by %@', organizerEmail)
+          {organizer
+            ? localized('This event has been cancelled by %@', organizer)
             : localized('This event has been cancelled')}
         </span>
+        {removable && (
+          <div className="btn btn-large btn-rsvp" onClick={this._onRemoveCancelled}>
+            {localized('Remove from %@', rsvp.target.calendar.name)}
+          </div>
+        )}
       </div>
     );
   }
+
+  _onRemoveCancelled = () => {
+    const { rsvp } = this.state;
+    if (rsvp && rsvp.target) {
+      Actions.queueTask(DestroyEventTask.forRemoving({ events: [rsvp.target.event] }));
+    }
+  };
 
   _renderRSVP() {
     const { icsEvent, inflight } = this.state;
@@ -692,34 +889,48 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     if (rsvp.target) {
       return (
         <div className="event-rsvp-destination">
-          {localized('Your response will be saved to %@', rsvp.target.calendar.name)}
+          {this.state.copyBehind
+            ? localized(
+                '%@ still has an earlier version of this event. Your response will update it.',
+                rsvp.target.calendar.name
+              )
+            : localized('Your response will be saved to %@', rsvp.target.calendar.name)}
         </div>
       );
     }
 
     if (rsvp.problem === 'not-on-a-calendar' && addTo) {
       const choices = this.state.addToChoices || [];
+      const account = AccountStore.accountForId(this.props.message.accountId);
+      const inAccount =
+        account && !CalendarUtils.isNamedAfterAccount(addTo, account)
+          ? `(${account.emailAddress})`
+          : '';
+      if (choices.length <= 1) {
+        return (
+          <div className="event-rsvp-destination">
+            {[localized('Accepting will add this event to'), addTo.name, inAccount]
+              .filter(Boolean)
+              .join(' ')}
+          </div>
+        );
+      }
       return (
         <div className="event-rsvp-destination">
           <span>{localized('Accepting will add this event to')}</span>
-          {choices.length > 1 ? (
-            <select
-              className="event-rsvp-calendar-picker"
-              value={addTo.id}
-              aria-label={localized('Calendar to add this event to')}
-              onChange={(e) =>
-                this.setState({ addTo: choices.find((c) => c.id === e.target.value) })
-              }
-            >
-              {choices.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <span>{addTo.name}</span>
-          )}
+          <select
+            className="event-rsvp-calendar-picker"
+            value={addTo.id}
+            aria-label={localized('Calendar to add this event to')}
+            onChange={(e) => this.setState({ addTo: choices.find((c) => c.id === e.target.value) })}
+          >
+            {choices.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          {inAccount && <span>{inAccount}</span>}
         </div>
       );
     }
@@ -786,7 +997,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
 
   // Not undoable: the REPLY already sent cannot be retracted (iTIP has no way to).
   _writeRSVPToCalendar(status: ICSParticipantStatus) {
-    const { rsvp, addTo, inviteIcs, inviteEvent } = this.state;
+    const { rsvp, addTo, inviteIcs, inviteEvent, copyBehind } = this.state;
     const { accountId } = this.props.message;
     // _onRSVP has already built the REPLY from this attendee, so it exists.
     const me = CalendarUtils.selfParticipant(inviteEvent, accountId);
@@ -798,6 +1009,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       inviteIcs,
       inviteEvent,
       accountId,
+      copyBehind,
     });
     if (!write) return;
     Actions.queueTask(
@@ -807,6 +1019,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
             event: write.event,
             calendarId: write.calendar.id,
             accountId,
+            answer: write.answer,
           })
     );
   }

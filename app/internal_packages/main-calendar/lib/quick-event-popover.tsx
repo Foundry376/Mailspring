@@ -73,9 +73,10 @@ export class QuickEventPopover extends React.Component<
     if (this.state.start) {
       dateInterpretation = (
         <span className="date-interpretation">
-          Title: {this.state.leftoverText} <br />
-          Start: {DateUtils.format(this.state.start, DateUtils.DATE_FORMAT_SHORT)} <br />
-          End: {DateUtils.format(this.state.end, DateUtils.DATE_FORMAT_SHORT)}
+          {localized('Title:')} {this.state.leftoverText} <br />
+          {localized('Start:')} {DateUtils.format(this.state.start, DateUtils.DATE_FORMAT_SHORT)}{' '}
+          <br />
+          {localized('End:')} {DateUtils.format(this.state.end, DateUtils.DATE_FORMAT_SHORT)}
         </span>
       );
     }
@@ -85,7 +86,7 @@ export class QuickEventPopover extends React.Component<
         <input
           tabIndex={0}
           type="text"
-          placeholder={localized("Coffee next Monday at 9AM'")}
+          placeholder={localized('Coffee next Monday at 9AM')}
           onKeyDown={this.onInputKeyDown}
           onChange={this.onInputChange}
         />

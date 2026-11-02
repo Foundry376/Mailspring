@@ -80,6 +80,10 @@ describe('calendar RSVP helpers', function () {
     expect(canRespondToEvent(other)).toBe(false);
   });
 
+  it('does not offer an RSVP on a meeting its organizer cancelled', function () {
+    expect(canRespondToEvent(occurrence({ isCancelled: true }))).toBe(false);
+  });
+
   it('does not offer an RSVP when we are not a guest', function () {
     const notMine = occurrence({
       attendees: [{ email: 'ada@example.com', partstat: 'ACCEPTED' }],
@@ -125,6 +129,13 @@ describe('CalendarEventContextMenu', function () {
       'Maybe',
       'Decline',
       'Propose New Time...',
+      'Delete Event',
+    ]);
+  });
+
+  it('offers only viewing and delete on a meeting its organizer cancelled', function () {
+    expect(labels(menuFor(occurrence({ isCancelled: true })))).toEqual([
+      'View Event',
       'Delete Event',
     ]);
   });

@@ -159,6 +159,17 @@ function savedView(): CalendarView {
   return Object.values(CalendarView).includes(saved) ? saved : CalendarView.WEEK;
 }
 
+/**
+ * Which panel a selection shows, null for none. A series' occurrences share an event id, but not
+ * a field's just-saved text. The slot survives a move, so moving an occurrence keeps its panel.
+ */
+function panelKey(selected: EventOccurrence[]) {
+  if (selected.length !== 1) return null;
+  const [event] = selected;
+  const eventId = CalendarUtils.parseOccurrenceId(event.id).eventId;
+  return event.isRecurring ? `${eventId}@${occurrenceSlot(event)}` : eventId;
+}
+
 /*
  * Mailspring Calendar
  */
@@ -317,10 +328,21 @@ export class MailspringCalendar extends React.Component<
     return !(next.length === 1 && isUnsentChangeFor(change, next[0]));
   }
 
+  /** Saves a field being edited in the panel to its own event, before the panel shows another. */
+  _commitPanelEdits(next: EventOccurrence[]) {
+    if (panelKey(next) !== panelKey(this.state.selectedEvents)) {
+      this._eventPanel.current?.commitEdits();
+    }
+  }
+
   _mayLeave(next: EventOccurrence[]) {
+    this._commitPanelEdits(next);
     if (!this._leavesUnsentChange(next)) return true;
     const choice = showUnsentChangeDialog(this.state.unsentChange, this._unsentChangeEvent());
-    if (choice === 'keep-editing') return false;
+    if (choice === 'keep-editing') {
+      this._eventPanel.current?.returnToField();
+      return false;
+    }
     if (choice === 'send') this._sendUnsentChange();
     else this.setState({ unsentChange: null });
     return true;
@@ -333,19 +355,24 @@ export class MailspringCalendar extends React.Component<
 
   // Quitting can't be stopped, and the sync engine is stopped once every callback is ready.
   _onBeforeUnload = (readyToUnload: () => void) => {
+    // First, so a field being edited is saved or joins the held change the dialog offers.
+    const saved = this._eventPanel.current?.commitEdits();
     let sent = this._sending?.done;
-    if (!sent) {
-      if (!this._leavesUnsentChange([])) return true;
+    if (!sent && this._leavesUnsentChange([])) {
       const choice = showUnsentChangeDialog(this.state.unsentChange, this._unsentChangeEvent(), {
         canKeepEditing: false,
       });
       if (choice === 'discard') {
         this.setState({ unsentChange: null });
-        return true;
+      } else {
+        sent = this._sendUnsentChange(choice === 'send' ? undefined : (choice as ChangeScope));
       }
-      sent = this._sendUnsentChange(choice === 'send' ? undefined : (choice as ChangeScope));
     }
-    Promise.race([sent, new Promise((r) => setTimeout(r, 700))]).then(readyToUnload, readyToUnload);
+    if (!saved && !sent) return true;
+    Promise.race([Promise.all([saved, sent]), new Promise((r) => setTimeout(r, 700))]).then(
+      readyToUnload,
+      readyToUnload
+    );
     return false;
   };
 
@@ -440,6 +467,7 @@ export class MailspringCalendar extends React.Component<
     if (this.state.selectedEvents !== selected) return;
     const next = refreshed.filter(Boolean);
     if (next.length !== selected.length || next.some((o, i) => o !== selected[i])) {
+      this._commitPanelEdits(next);
       // Deleted here or elsewhere, its event has nothing left to send the change to.
       const gone = this._leavesUnsentChange(next) && !this._leavesUnsentChange(selected);
       this.setState({ selectedEvents: next, ...(gone && { unsentChange: null }) });
@@ -793,21 +821,33 @@ export class MailspringCalendar extends React.Component<
       return;
     }
     const skipped = selected.length - deletable.length;
+    // Deleting an invitation declines it; nothing here is one when every event is ours.
+    const ours = deletable.every((o) => o.isMine);
+    let message: string;
+    if (!ours) {
+      message = localized('Delete or decline these events?');
+    } else if (deletable.length === 1) {
+      message = localized('Delete this event?');
+    } else {
+      message = localized('Delete these events?');
+    }
 
     // Show initial confirmation dialog
     const response = require('@electron/remote').dialog.showMessageBoxSync({
       type: 'warning',
       buttons: [localized('Delete'), localized('Cancel')],
-      message: localized('Delete or decline these events?'),
+      message,
       detail: skipped
         ? localized(
             "%1$@ of the %2$@ selected events will be deleted. The rest are on read-only calendars and can't be changed.",
             deletable.length,
             selected.length
           )
-        : localized(
-            `Are you sure you want to delete or decline invitations for the selected event(s)?`
-          ),
+        : ours
+          ? localized('Are you sure you want to delete the selected event(s)?')
+          : localized(
+              `Are you sure you want to delete or decline invitations for the selected event(s)?`
+            ),
     });
 
     if (response !== 0) {
@@ -1496,10 +1536,6 @@ export class MailspringCalendar extends React.Component<
       return null;
     }
     const event = this._panelEvent();
-    const eventId = event && CalendarUtils.parseOccurrenceId(event.id).eventId;
-    // A series' occurrences share an event id, but not a field's just-saved text. The slot
-    // survives a move, so moving an occurrence doesn't remount it.
-    const panelKey = event?.isRecurring ? `${eventId}@${occurrenceSlot(event)}` : eventId;
     const { unsentChange } = this.state;
     return (
       <ResizableRegion
@@ -1520,7 +1556,7 @@ export class MailspringCalendar extends React.Component<
           {event && (
             <EventPanel
               ref={this._eventPanel}
-              key={panelKey}
+              key={panelKey(this.state.selectedEvents)}
               event={event}
               unsentChange={isUnsentChangeFor(unsentChange, event) ? unsentChange : null}
               onUnsentChange={this._onUnsentChange}

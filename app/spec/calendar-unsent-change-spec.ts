@@ -1,3 +1,5 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
 import {
   Actions,
   CalendarUtils,
@@ -345,6 +347,187 @@ describe('editing in the panel', function () {
 
     expect(queueTask).not.toHaveBeenCalled();
     expect(onUnsentChange).toHaveBeenCalledWith({ eventId: 'e1', edits: [], times });
+  });
+
+  it('saves picked times on Enter, without waiting for focus to leave them', function () {
+    const panel = panelFor(withGuests);
+    const times = { start: START + HOUR, end: START + 2 * HOUR, isAllDay: false };
+    panel._changeTimes(times);
+    panel._onTimesKeyDown({ key: 'Enter', target: document.createElement('input') });
+
+    expect(onUnsentChange).toHaveBeenCalledWith({ eventId: 'e1', edits: [], times });
+  });
+
+  describe('commitEdits', function () {
+    let host: HTMLElement;
+    let panel: EventPanel;
+
+    beforeEach(async function () {
+      host = document.createElement('div');
+      document.body.appendChild(host);
+      panel = ReactDOM.render(
+        React.createElement(EventPanel, {
+          event: withGuests,
+          isCalendarReadOnly: false,
+          onBack: () => {},
+          unsentChange: null,
+          onUnsentChange,
+          onSendUnsentChange: () => {},
+          onSaveChange: () => Promise.resolve(),
+        }),
+        host
+      ) as any;
+      // The panel reads the event's row once mounted.
+      await settle();
+    });
+
+    afterEach(function () {
+      ReactDOM.unmountComponentAtNode(host);
+      host.remove();
+    });
+
+    it('saves a title still being typed, as leaving the field would', function () {
+      const title = host.querySelector('input.event-panel-title') as HTMLInputElement;
+      title.focus();
+      panel._title.current.setState({ draft: 'Interview with Alex' });
+      panel.commitEdits();
+
+      expect(onUnsentChange).toHaveBeenCalledWith({
+        eventId: 'e1',
+        edits: [{ property: 'summary', value: 'Interview with Alex' }],
+      });
+      expect(document.activeElement).not.toBe(title);
+    });
+
+    it('gives nothing to wait for once its saves are written', async function () {
+      let written: () => void;
+      panel = ReactDOM.render(
+        React.createElement(EventPanel, {
+          event: withoutGuests,
+          isCalendarReadOnly: false,
+          onBack: () => {},
+          unsentChange: null,
+          onUnsentChange,
+          onSendUnsentChange: () => {},
+          onSaveChange: () => new Promise<void>((resolve) => (written = resolve)),
+        }),
+        host
+      ) as any;
+      expect(panel.commitEdits()).toBe(null);
+
+      panel._save({ eventId: 'e1', edits: [{ property: 'summary', value: 'Interview' }] });
+      expect(panel.commitEdits()).not.toBe(null);
+      await settle();
+      written();
+      await settle();
+      expect(panel.commitEdits()).toBe(null);
+    });
+
+    it('returns to the field last edited once a click has moved focus away', function () {
+      const title = host.querySelector('input.event-panel-title') as HTMLInputElement;
+      title.focus();
+      const clicked = document.createElement('div');
+      clicked.tabIndex = -1;
+      document.body.appendChild(clicked);
+      clicked.focus();
+      panel.returnToField();
+
+      expect(document.activeElement).toBe(title);
+      clicked.remove();
+    });
+
+    it('leaves focus elsewhere alone', function () {
+      const outside = document.createElement('input');
+      document.body.appendChild(outside);
+      outside.focus();
+      panel.commitEdits();
+
+      expect(document.activeElement).toBe(outside);
+      expect(onUnsentChange).not.toHaveBeenCalled();
+      outside.remove();
+    });
+  });
+});
+
+describe('leaving the panel while a field is being edited', function () {
+  let commitEdits: jasmine.Spy;
+  let calendar: any;
+
+  beforeEach(function () {
+    spyOn(AppEnv.config, 'set');
+    calendar = calendarWith([withoutGuests]);
+    calendar.state.agendaOpen = true;
+    commitEdits = jasmine.createSpy('commitEdits').andCallFake(() => {
+      // The panel's event is still the one selected while its field saves.
+      expect(calendar.state.selectedEvents).toEqual([withoutGuests]);
+      return Promise.resolve();
+    });
+    calendar._eventPanel = { current: { commitEdits } };
+  });
+
+  it('saves it before another event is selected', function () {
+    const other = { ...withoutGuests, id: CalendarUtils.occurrenceId('e2', START) };
+    calendar._select([other]);
+
+    expect(commitEdits).toHaveBeenCalled();
+    expect(calendar.state.selectedEvents).toEqual([other]);
+  });
+
+  it('saves it before going back to the agenda', function () {
+    calendar._onBackToAgenda();
+
+    expect(commitEdits).toHaveBeenCalled();
+    expect(calendar.state.selectedEvents).toEqual([]);
+  });
+
+  it('leaves it be when the same event is selected again', function () {
+    calendar._select([withoutGuests]);
+
+    expect(commitEdits).not.toHaveBeenCalled();
+  });
+
+  it('saves it before the window closes, and waits for the save', async function () {
+    const readyToUnload = jasmine.createSpy('readyToUnload');
+    expect(calendar._onBeforeUnload(readyToUnload)).toBe(false);
+    expect(commitEdits).toHaveBeenCalled();
+    await settle();
+
+    expect(readyToUnload).toHaveBeenCalled();
+  });
+
+  it('lets the window close at once when the panel has nothing to save', function () {
+    commitEdits.andReturn(null);
+    expect(calendar._onBeforeUnload(() => {})).toBe(true);
+  });
+
+  it('returns to the field being edited when the user keeps editing', function () {
+    spyOn(UnsentChangeDialog, 'showUnsentChangeDialog').andReturn('keep-editing');
+    const returnToField = jasmine.createSpy('returnToField');
+    calendar._eventPanel = { current: { commitEdits, returnToField } };
+    commitEdits.andCallFake(() => {
+      calendar.state.unsentChange = {
+        eventId: 'e1',
+        edits: [{ property: 'summary', value: 'Interview with Alex' }],
+      };
+      return null;
+    });
+    spyOn(calendar, '_leavesUnsentChange').andReturn(true);
+
+    expect(calendar._mayLeave([])).toBe(false);
+    expect(returnToField).toHaveBeenCalled();
+  });
+
+  it('offers to send a change the field joins as the window closes', function () {
+    const dialog = spyOn(UnsentChangeDialog, 'showUnsentChangeDialog').andReturn('discard');
+    const held = { eventId: 'e1', edits: [{ property: 'summary', value: 'Interview with Alex' }] };
+    commitEdits.andCallFake(() => {
+      calendar.state.unsentChange = held;
+      return Promise.resolve();
+    });
+    calendar._onBeforeUnload(() => {});
+
+    expect(dialog).toHaveBeenCalled();
+    expect(calendar.state.unsentChange).toBe(null);
   });
 });
 

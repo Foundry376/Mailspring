@@ -145,12 +145,22 @@ export function resolveAddTo({
 
 export type RSVPWrite =
   | { kind: 'update'; event: Event; answer: RSVPAnswer }
-  | { kind: 'create'; event: Event; calendar: Calendar };
+  | { kind: 'create'; event: Event; calendar: Calendar; answer: RSVPAnswer };
+
+/** The invitation as our calendar stores it, with our answer on it. */
+function storedInvitation(inviteIcs: string, myEmail: string, status: ICSParticipantStatus) {
+  const answered = ICSEventHelpers.updateAttendeeStatus(inviteIcs, myEmail, status);
+  // A stored event must not carry the invitation's METHOD (RFC 4791 section 4.1).
+  return answered
+    ? ICSEventHelpers.matchYahooTransparency(ICSEventHelpers.stripITIPMethod(answered))
+    : null;
+}
 
 /**
  * The calendar write that records an answer, beside the emailed REPLY: our PARTSTAT on our own
  * copy (RFC 6638 section 3.2.5), on the one occurrence an invitation names where it names one,
- * or the invitation itself when we are attending and have no copy.
+ * or the invitation itself when we are attending and have no copy. A copy behind the invitation
+ * (copyIsBehind) is brought up to it, as answering it does in Thunderbird.
  */
 export function planRSVPWrite({
   rsvp,
@@ -160,6 +170,7 @@ export function planRSVPWrite({
   inviteIcs,
   inviteEvent,
   accountId,
+  copyBehind = false,
 }: {
   rsvp: RSVPTargetResolution | undefined;
   addTo: Calendar | undefined;
@@ -168,8 +179,13 @@ export function planRSVPWrite({
   inviteIcs: string;
   inviteEvent: ICAL.Event;
   accountId: string;
+  copyBehind?: boolean;
 }): RSVPWrite | null {
   if (!rsvp) return null;
+  const startAndEnd = {
+    recurrenceStart: Math.round(inviteEvent.startDate.toJSDate().getTime() / 1000),
+    recurrenceEnd: Math.round(inviteEvent.endDate.toJSDate().getTime() / 1000),
+  };
 
   if (rsvp.target) {
     const { event: calEvent } = rsvp.target;
@@ -179,12 +195,24 @@ export function planRSVPWrite({
     const occurrenceIcs = inviteEvent.component.getFirstPropertyValue('recurrence-id')
       ? inviteIcs
       : undefined;
-    const ics = occurrenceIcs
-      ? ICSEventHelpers.updateOccurrenceAttendeeStatus(calEvent.ics, occurrenceIcs, myEmail, status)
-      : ICSEventHelpers.updateAttendeeStatus(calEvent.ics, myEmail, status);
+    let ics: string | null;
+    if (occurrenceIcs) {
+      ics = ICSEventHelpers.updateOccurrenceAttendeeStatus(
+        calEvent.ics,
+        occurrenceIcs,
+        myEmail,
+        status,
+        { replace: copyBehind }
+      );
+    } else if (copyBehind) {
+      ics = storedInvitation(inviteIcs, myEmail, status);
+    } else {
+      ics = ICSEventHelpers.updateAttendeeStatus(calEvent.ics, myEmail, status);
+    }
     if (!ics) return null;
     const event = calEvent.clone();
     event.ics = ics;
+    if (copyBehind && !occurrenceIcs) Object.assign(event, startAndEnd);
     return { kind: 'update', event, answer: { email: myEmail, status, occurrenceIcs } };
   }
 
@@ -192,18 +220,16 @@ export function planRSVPWrite({
   const attending = status === 'ACCEPTED' || status === 'TENTATIVE';
   if (!attending || rsvp.problem !== 'not-on-a-calendar' || !addTo) return null;
 
-  const answered = ICSEventHelpers.updateAttendeeStatus(inviteIcs, myEmail, status);
-  if (!answered) return null;
+  const ics = storedInvitation(inviteIcs, myEmail, status);
+  if (!ics) return null;
   const event = new Event({
     calendarId: addTo.id,
     accountId,
-    // A stored event must not carry the invitation's METHOD (RFC 4791 section 4.1).
-    ics: ICSEventHelpers.stripITIPMethod(answered),
+    ics,
     icsuid: inviteEvent.uid,
-    recurrenceStart: Math.round(inviteEvent.startDate.toJSDate().getTime() / 1000),
-    recurrenceEnd: Math.round(inviteEvent.endDate.toJSDate().getTime() / 1000),
+    ...startAndEnd,
   });
-  return { kind: 'create', event, calendar: addTo };
+  return { kind: 'create', event, calendar: addTo, answer: { email: myEmail, status } };
 }
 
 /** Why a counter-proposal that arrived by email may not be applied to our copy. */

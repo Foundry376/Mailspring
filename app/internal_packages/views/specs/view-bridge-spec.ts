@@ -19,6 +19,7 @@ import {
   Actions,
   DraftFactory,
   DraftStore,
+  Calendar,
 } from 'mailspring-exports';
 import { renderableFor } from '../lib/bridge/renderable';
 
@@ -310,7 +311,10 @@ describe('ai.extract over events', function () {
     const denied = await call(['mail.bodies']);
     expect(denied.error.code).toBe('permission');
     expect(denied.error.permission).toBe('calendar.read');
-    spyOn(DatabaseStore, 'findAll').andReturn({ where: () => Promise.resolve([]) } as any);
+    spyOn(DatabaseStore, 'findAll').andCallFake(
+      (klass) =>
+        (klass === Calendar ? Promise.resolve([]) : { where: () => Promise.resolve([]) }) as any
+    );
     const allowed = await call(['calendar.read']);
     expect(allowed.result).toEqual({ jobId: 'j1', total: 0 });
     bridge.dispose();
