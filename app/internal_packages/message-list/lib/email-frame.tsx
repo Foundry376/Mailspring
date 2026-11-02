@@ -11,7 +11,11 @@ import {
 } from 'mailspring-exports';
 import { adjustImages } from './adjust-images';
 import EmailFrameStylesStore from './email-frame-styles-store';
-import { backgroundColorBehind, prepareEmailColors } from './email-color-detection';
+import {
+  adaptsToDarkMode,
+  backgroundColorBehind,
+  prepareEmailColors,
+} from './email-color-detection';
 
 /**
  * Pins the message document's color-scheme to the app's. Emails often declare
@@ -128,6 +132,8 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
       if (htmlWrapper) {
         htmlWrapper.setAttribute('role', 'document');
         try {
+          // Exempts the email from the dark render mode's inversion (EmailFrameStylesStore).
+          doc.body.classList.toggle('adapts-to-dark-mode', adaptsToDarkMode(htmlWrapper));
           // Note: In some cases, prepareEmailColors modifies the doc, replacing
           // hardcoded black text with inherited colors for better theme support.
           const hasBackground = prepareEmailColors(htmlWrapper, backgroundColorBehind(iframeEl));
