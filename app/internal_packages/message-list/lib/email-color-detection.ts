@@ -81,6 +81,17 @@ function paintsOwnBackground(elements: HTMLElement[], win: Window): boolean {
   return false;
 }
 
+// Dark-mode blocks that only swap a logo (`.logo-dark { display: block }`) leave a
+// light email light, so only color and background declarations count.
+function setsColors(rules: CSSRuleList): boolean {
+  for (const rule of Array.from(rules)) {
+    const style = (rule as CSSStyleRule).style;
+    if (style && (style.color || style.backgroundColor || style.backgroundImage)) return true;
+    if ('cssRules' in rule && setsColors((rule as CSSGroupingRule).cssRules)) return true;
+  }
+  return false;
+}
+
 // Media rules have both `media` and `cssRules`; other grouping rules (@supports,
 // @layer) only `cssRules`. Duck-typed because the email's rule classes belong to
 // the iframe's realm, so `instanceof CSSMediaRule` fails.
@@ -88,8 +99,12 @@ function hasActiveDarkModeRule(rules: CSSRuleList, win: Window): boolean {
   for (const rule of Array.from(rules)) {
     if (!('cssRules' in rule)) continue;
     if ('media' in rule) {
-      const media = (rule as CSSMediaRule).media.mediaText;
-      if (/prefers-color-scheme\s*:\s*dark/i.test(media) && win.matchMedia(media).matches) {
+      const { media, cssRules } = rule as CSSMediaRule;
+      if (
+        /prefers-color-scheme\s*:\s*dark/i.test(media.mediaText) &&
+        win.matchMedia(media.mediaText).matches &&
+        setsColors(cssRules)
+      ) {
         return true;
       }
     }

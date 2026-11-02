@@ -42,22 +42,7 @@ export default class SystemAccentWatcher extends EventEmitter {
     this._current = readAccent();
     this._darkMode = !!nativeTheme.shouldUseDarkColors;
 
-    const refresh = () => {
-      const nextAccent = readAccent();
-      if (nextAccent !== this._current) {
-        this._current = nextAccent;
-        this.emit('change', this._current);
-      }
-      // A fixed theme pins themeSource (see ThemeManager.syncNativeThemeSource), and while
-      // pinned shouldUseDarkColors reports the pin rather than the OS. Keep the last OS value
-      // until automatic mode returns themeSource to 'system'.
-      if (nativeTheme.themeSource !== 'system') return;
-      const nextDark = !!nativeTheme.shouldUseDarkColors;
-      if (nextDark !== this._darkMode) {
-        this._darkMode = nextDark;
-        this.emit('dark-mode-change', this._darkMode);
-      }
-    };
+    const refresh = () => this.refresh();
 
     // Fires natively on Windows and on Linux (Electron 37+).
     (systemPreferences as NodeJS.EventEmitter).on('accent-color-changed', refresh);
@@ -73,6 +58,23 @@ export default class SystemAccentWatcher extends EventEmitter {
     // change (e.g. switching to dark mode) rather than a dedicated event.
     // Also the sole trigger for pure dark-mode toggles that don't touch accent.
     nativeTheme.on('updated', refresh);
+  }
+
+  refresh() {
+    const nextAccent = readAccent();
+    if (nextAccent !== this._current) {
+      this._current = nextAccent;
+      this.emit('change', this._current);
+    }
+    // A fixed theme pins themeSource (see ThemeManager.syncNativeThemeSource), and while
+    // pinned shouldUseDarkColors reports the pin rather than the OS. Keep the last OS value
+    // until automatic mode returns themeSource to 'system'.
+    if (nativeTheme.themeSource !== 'system') return;
+    const nextDark = !!nativeTheme.shouldUseDarkColors;
+    if (nextDark !== this._darkMode) {
+      this._darkMode = nextDark;
+      this.emit('dark-mode-change', this._darkMode);
+    }
   }
 
   getCurrent(): string | null {

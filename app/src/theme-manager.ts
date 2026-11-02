@@ -119,6 +119,11 @@ export default class ThemeManager {
     return AUTOMATIC_THEME_NAME;
   }
 
+  // The OS appearance, which nativeTheme stops reporting while a fixed theme pins themeSource.
+  isSystemDarkMode() {
+    return this._systemDarkMode;
+  }
+
   private isAutomaticModeSelected() {
     return !this.baseThemeOnly && this.getConfiguredThemeName() === AUTOMATIC_THEME_NAME;
   }

@@ -58,6 +58,14 @@ describe('prepareEmailColors', () => {
     expect(wrapper.querySelector('p').style.color).toContain('var(--email-text-color');
   });
 
+  it('ignores dark-mode rules that only swap images', () => {
+    const logoSwap = `
+      <style>@media (prefers-color-scheme: dark) { .logo-dark { display: block !important; } }</style>
+      <table style="background-color: #ffffff;"><tr><td>Weekly digest</td></tr></table>`;
+    const wrapper = render(logoSwap, { darkMode: true });
+    expect(prepareEmailColors(wrapper, DARK_THEME_BG)).toBe(true);
+  });
+
   it('still uses a white page for a painted email when its dark-mode rules do not apply', () => {
     const wrapper = render(GOOGLE_CALENDAR_BODY, { darkMode: false });
     expect(prepareEmailColors(wrapper, DARK_THEME_BG)).toBe(true);
