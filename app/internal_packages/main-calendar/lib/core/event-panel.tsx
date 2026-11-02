@@ -804,8 +804,8 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           now: this._timesLabel(proposal, stored),
           was: this._timesLabel(stored, proposal),
         })}
-        {proposal.note && (
-          <div className="event-panel-notes event-panel-proposed-note">{proposal.note}</div>
+        {proposal.comment && (
+          <div className="event-panel-notes event-panel-proposed-comment">{proposal.comment}</div>
         )}
         <div className="event-panel-change-buttons">
           <button className="btn btn-emphasis" onClick={() => this._useProposedTime(proposal)}>

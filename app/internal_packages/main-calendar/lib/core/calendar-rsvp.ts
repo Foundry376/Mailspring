@@ -268,7 +268,7 @@ export interface ProposedTime {
   start: number;
   end: number;
   isAllDay: boolean;
-  note: string;
+  comment: string;
 }
 
 /**
@@ -316,7 +316,7 @@ export async function proposedTimesFor(occurrence: EventOccurrence): Promise<Pro
     if (seen && seen.date >= message.date) continue;
 
     for (const file of files.filter((f) => f.messageId === message.id)) {
-      let vevent: ICAL.Component;
+      let proposal: ProposedTime;
       try {
         const data = await fs.promises.readFile(
           await AttachmentStore.resolvePathForFile(file),
@@ -324,28 +324,28 @@ export async function proposedTimesFor(occurrence: EventOccurrence): Promise<Pro
         );
         const { root } = CalendarUtils.parseICSString(data);
         if (String(root.getFirstPropertyValue('method')).toUpperCase() !== 'COUNTER') continue;
-        vevent = root.getFirstSubcomponent('vevent');
+        const vevent = root.getFirstSubcomponent('vevent');
+        const recurrenceId = vevent && unixOf(vevent, 'recurrence-id');
+        if (
+          !vevent ||
+          vevent.getFirstPropertyValue('uid') !== row.icsuid ||
+          (named ? recurrenceId !== slot : recurrenceId !== undefined) ||
+          Number(vevent.getFirstPropertyValue('sequence') || 0) < sequence
+        ) {
+          continue;
+        }
+        // ICAL.Event reads an end given as a DURATION too.
+        const counter = new ICAL.Event(vevent);
+        proposal = {
+          from: { email: guest.email, name: guest.name || sender.name || guest.email },
+          start: counter.startDate.toJSDate().getTime() / 1000,
+          end: counter.endDate.toJSDate().getTime() / 1000,
+          isAllDay: counter.startDate.isDate,
+          comment: String(vevent.getFirstPropertyValue('comment') || ''),
+        };
       } catch (e) {
-        continue; // not downloaded, or not a calendar file
+        continue; // not downloaded, not a calendar file, or written without its times
       }
-      const recurrenceId = vevent && unixOf(vevent, 'recurrence-id');
-      if (
-        !vevent ||
-        vevent.getFirstPropertyValue('uid') !== row.icsuid ||
-        (named ? recurrenceId !== slot : recurrenceId !== undefined) ||
-        Number(vevent.getFirstPropertyValue('sequence') || 0) < sequence
-      ) {
-        continue;
-      }
-      // ICAL.Event reads an end given as a DURATION too.
-      const counter = new ICAL.Event(vevent);
-      const proposal = {
-        from: { email: guest.email, name: guest.name || sender.name || guest.email },
-        start: counter.startDate.toJSDate().getTime() / 1000,
-        end: counter.endDate.toJSDate().getTime() / 1000,
-        isAllDay: counter.startDate.isDate,
-        note: String(vevent.getFirstPropertyValue('comment') || ''),
-      };
       latest.set(guest.email.toLowerCase(), { date: message.date, proposal });
     }
   }

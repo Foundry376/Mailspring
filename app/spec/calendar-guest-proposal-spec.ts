@@ -8,15 +8,22 @@ import {
   Event,
   EventRSVPTask,
   File,
+  ICSEventHelpers,
   SyncbackEventTask,
   TaskQueue,
 } from 'mailspring-exports';
 import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
 import { EventPanel } from '../internal_packages/main-calendar/lib/core/event-panel';
-import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
+import {
+  TimedOccurrence,
+  occurrencesForEvents,
+} from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
 import { editableFields } from '../internal_packages/main-calendar/lib/core/calendar-helpers';
-import { proposedTimesFor } from '../internal_packages/main-calendar/lib/core/calendar-rsvp';
+import {
+  occurrenceRecurrenceId,
+  proposedTimesFor,
+} from '../internal_packages/main-calendar/lib/core/calendar-rsvp';
 import * as UnsentChangeDialog from '../internal_packages/main-calendar/lib/core/unsent-change-dialog';
 
 const HOUR = 3600;
@@ -289,7 +296,7 @@ describe('proposedTimesFor', function () {
     );
   });
 
-  it("keeps each guest's latest proposal for this occurrence, with its note", async function () {
+  it("keeps each guest's latest proposal for this occurrence, with its comment", async function () {
     counter('jordan@example.com', 100, { start: START + HOUR });
     counter('jordan@example.com', 200, { comment: 'Later works better' });
     counter('jordan@example.com', 150, { start: START + 3 * HOUR });
@@ -300,7 +307,7 @@ describe('proposedTimesFor', function () {
         start: START + 2 * HOUR,
         end: START + 3 * HOUR,
         isAllDay: false,
-        note: 'Later works better',
+        comment: 'Later works better',
       },
     ]);
   });
@@ -318,6 +325,110 @@ describe('proposedTimesFor', function () {
   it('ignores a proposal for another occurrence of the series', async function () {
     counter('jordan@example.com', 100, { recurrenceId: SERIES_START });
     expect(await proposedTimesFor(ours)).toEqual([]);
+  });
+
+  it('skips a proposal written without its times, keeping the others', async function () {
+    counter('jordan@example.com', 100);
+    counter('jordan@example.com', 200);
+    contents.set('f-m1', contents.get('f-m1').replace(/DT(START|END):.*\r\n/g, ''));
+
+    expect((await proposedTimesFor(ours)).length).toBe(1);
+  });
+
+  describe('reading back what createCounterProposal sends', function () {
+    const wrap = (...vevent: string[]) =>
+      [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Test//Test//EN',
+        'BEGIN:VEVENT',
+        'UID:interview@test',
+        ...vevent,
+        'SUMMARY:Interview',
+        'SEQUENCE:1',
+        'DTSTAMP:20261001T000000Z',
+        `ORGANIZER:mailto:${ME}`,
+        `ATTENDEE;PARTSTAT=ACCEPTED:mailto:${ME}`,
+        'ATTENDEE;PARTSTAT=ACCEPTED:mailto:jordan@example.com',
+        'END:VEVENT',
+        'END:VCALENDAR',
+      ].join('\r\n');
+    const zoned = (start: string, end: string) => [
+      `DTSTART;TZID=America/New_York:${start}`,
+      `DTEND;TZID=America/New_York:${end}`,
+    ];
+    const allDay = ['DTSTART;VALUE=DATE:20261103', 'DTEND;VALUE=DATE:20261104'];
+    const WEEKLY = 'RRULE:FREQ=WEEKLY;COUNT=4';
+    const timedSeries = [...zoned('20261103T100000', '20261103T110000'), WEEKLY];
+
+    const cases: [string, string][] = [
+      ['a zoned one-off', wrap(...zoned('20261110T100000', '20261110T110000'))],
+      ['an all-day one-off', wrap(...allDay)],
+      ['an occurrence of a zoned series', wrap(...timedSeries)],
+      ['an occurrence of an all-day series', wrap(...allDay, WEEKLY)],
+      [
+        'an occurrence the organizer moved',
+        wrap(...timedSeries).replace(
+          'END:VCALENDAR',
+          [
+            'BEGIN:VEVENT',
+            'UID:interview@test',
+            'RECURRENCE-ID;TZID=America/New_York:20261110T100000',
+            ...zoned('20261110T140000', '20261110T150000'),
+            'SUMMARY:Interview',
+            'SEQUENCE:3',
+            'DTSTAMP:20261001T000000Z',
+            `ORGANIZER:mailto:${ME}`,
+            'ATTENDEE;PARTSTAT=ACCEPTED:mailto:jordan@example.com',
+            'END:VEVENT',
+            'END:VCALENDAR',
+          ].join('\r\n')
+        ),
+      ],
+    ];
+
+    cases.forEach(([name, source]) => {
+      it(`for ${name}`, async function () {
+        ics = source;
+        const range = {
+          startUnix: Date.UTC(2026, 10, 1) / 1000,
+          endUnix: Date.UTC(2026, 11, 1) / 1000,
+        };
+        const expanded = occurrencesForEvents([rowWith(source)], range);
+        const target = {
+          ...(expanded.find((o) => o.isException) || expanded[expanded.length > 1 ? 1 : 0]),
+          isMine: true,
+        };
+        const start = target.isAllDay
+          ? new Date(2026, 10, 20)
+          : new Date(Date.UTC(2026, 10, 20, 18));
+        const end = target.isAllDay ? new Date(2026, 10, 21) : new Date(Date.UTC(2026, 10, 20, 19));
+        files.push(
+          new File({ id: 'sent', accountId: 'a', filename: 'invite.ics', messageId: 'm' })
+        );
+        messages.push({
+          id: 'm',
+          from: [{ email: 'jordan@example.com', name: '' }],
+          date: new Date(),
+        });
+        contents.set(
+          'sent',
+          ICSEventHelpers.createCounterProposal(source, {
+            email: 'jordan@example.com',
+            start,
+            end,
+            comment: 'Later works better',
+            recurrenceId: occurrenceRecurrenceId(target),
+          })
+        );
+
+        const [proposal] = await proposedTimesFor(target);
+        expect(proposal.start).toBe(start.getTime() / 1000);
+        expect(proposal.end).toBe(end.getTime() / 1000);
+        expect(proposal.isAllDay).toBe(!!target.isAllDay);
+        expect(proposal.comment).toBe('Later works better');
+      });
+    });
   });
 
   it('ignores a proposal the event already has', async function () {
@@ -344,7 +455,7 @@ describe("accepting a guest's proposed time", function () {
     const proposed = { start: START + 2 * HOUR, end: START + 3 * HOUR, isAllDay: false };
     panel._useProposedTime({
       from: { email: 'jordan@example.com', name: 'Jordan' },
-      note: '',
+      comment: '',
       ...proposed,
     });
     expect(queued).toEqual([]);
