@@ -206,8 +206,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         this.setState({ times: null });
       }
       this._loadEventRow();
-      this._loadProposals();
     }
+    // Every synced change to any event hands over a fresh object, and a load reads every invitation.
+    if (prevProps.event.id !== this.props.event.id) this._loadProposals();
   }
 
   _storedTimesAre({ start, end, isAllDay }: Times) {
@@ -272,7 +273,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   async _loadProposals() {
     const occurrence = this.props.event;
     const proposals = await proposedTimesFor(occurrence);
-    if (this.props.event === occurrence) this.setState({ proposals });
+    if (this.props.event.id === occurrence.id) this.setState({ proposals });
   }
 
   _canEdit(field: PanelField) {
