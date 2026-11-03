@@ -252,6 +252,7 @@ describe('Views calendar API', function () {
     });
 
     it('RSVPs like the calendar: records our answer and emails the organizer, once confirmed', async () => {
+      spyOn(AccountStore, 'accountForId').andReturn({ id: 'a1', provider: 'imap' } as any);
       await rsvp('spec', WRITE, 'ev1-e1792000000', 'accepted');
       expect(dialog).toHaveBeenCalled();
       expect(dialog.mostRecentCall.args[0].detail).toContain('boss@example.com');
