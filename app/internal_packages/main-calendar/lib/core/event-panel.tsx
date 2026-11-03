@@ -190,10 +190,10 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   /** The last times save has been written, so the next refresh shows the event's own times. */
   _timesSaveLanded = false;
   _timesSaveCount = 0;
+  _proposalsKey: string | null = null;
 
   componentDidMount() {
     this._loadEventRow();
-    this._loadProposals();
   }
 
   // Any synced change hands the panel a fresh occurrence. Times not yet saved stay on screen, and
@@ -207,8 +207,6 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       }
       this._loadEventRow();
     }
-    // Every synced change to any event hands over a fresh object, and a load reads every invitation.
-    if (prevProps.event.id !== this.props.event.id) this._loadProposals();
   }
 
   _storedTimesAre({ start, end, isAllDay }: Times) {
@@ -268,12 +266,14 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     this.setState({
       repeat: frequencyToRepeatOption(ICSEventHelpers.getRecurrenceInfo(row.ics).frequency),
     });
-  }
-
-  async _loadProposals() {
-    const occurrence = this.props.event;
-    const proposals = await proposedTimesFor(occurrence);
-    if (this.props.event.id === occurrence.id) this.setState({ proposals });
+    // A load reads every invitation from the guests, and any synced event hands over a fresh
+    // occurrence, so proposals reload only when this occurrence or its meeting changes.
+    const proposalsKey = `${occurrence.id}\n${row.ics}`;
+    if (proposalsKey !== this._proposalsKey) {
+      this._proposalsKey = proposalsKey;
+      const proposals = await proposedTimesFor(occurrence);
+      if (this._proposalsKey === proposalsKey) this.setState({ proposals });
+    }
   }
 
   _canEdit(field: PanelField) {
