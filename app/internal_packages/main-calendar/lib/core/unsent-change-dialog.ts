@@ -33,7 +33,14 @@ export function showUnsentChangeDialog(
   let choices: [UnsentChangeChoice, string][];
   let message: string;
   let detail: string;
-  if (event && asksScope(event)) {
+  if (change.proposal) {
+    choices = [
+      ['send', localized('Send proposal')],
+      ['discard', localized('Discard')],
+    ];
+    message = localized('Send this proposal to the organizer?');
+    detail = localized('You proposed a new time for "%@".', title);
+  } else if (event && asksScope(event)) {
     const scopes = scopesFor(change).map((scope): [UnsentChangeChoice, string] => [
       scope,
       scopeLabel(scope),

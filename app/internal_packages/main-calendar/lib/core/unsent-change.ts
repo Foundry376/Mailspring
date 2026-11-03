@@ -4,10 +4,15 @@ import { EventOccurrence, occurrenceAt, occurrenceSlot } from './calendar-data-s
 
 type Times = NonNullable<EventChange['times']>;
 
-/** Edits made in the panel to one event, sent as one update. */
+/**
+ * Edits made in the panel to one event, sent as one update; or, on an invitation, the new time
+ * a guest proposes to the organizer, with their comment, or their own Show as for their copy.
+ */
 export interface UnsentChange extends EventChange {
   eventId: string;
   slot?: number;
+  guestCopy?: boolean;
+  proposal?: { comment: string };
 }
 
 export function isUnsentChangeFor(change: UnsentChange | null, occurrence: EventOccurrence) {
@@ -18,11 +23,20 @@ export function isUnsentChangeFor(change: UnsentChange | null, occurrence: Event
   );
 }
 
+/** A guest's own Show as, held for This occurrence only / All occurrences, goes before any proposal. */
+export function showAsWaitsForScope(change: UnsentChange | null) {
+  return !!change?.guestCopy && change.edits.length > 0;
+}
+
+// Only the organizer changes a meeting (RFC 5546 section 2.1); a guest's change proposes one.
 export function emptyChange(occurrence: EventOccurrence): UnsentChange {
   const { eventId } = CalendarUtils.parseOccurrenceId(occurrence.id);
-  return occurrence.isRecurring
-    ? { eventId, slot: occurrenceSlot(occurrence), edits: [] }
-    : { eventId, edits: [] };
+  return {
+    eventId,
+    ...(occurrence.isRecurring && { slot: occurrenceSlot(occurrence) }),
+    edits: [],
+    ...(!occurrence.isMine && { guestCopy: true }),
+  };
 }
 
 /** The occurrences a series' change may go to: one occurrence can't carry a repeat rule of its own. */
@@ -65,7 +79,11 @@ export function withTimes(
   const base = change ?? emptyChange(occurrence);
   const same =
     times.start === stored.start && times.end === stored.end && times.isAllDay === stored.isAllDay;
-  return unlessEmpty({ ...base, times: same ? undefined : times });
+  return unlessEmpty({
+    ...base,
+    ...(base.guestCopy && { proposal: base.proposal ?? { comment: '' } }),
+    times: same ? undefined : times,
+  });
 }
 
 export function unsentEdit(

@@ -42,7 +42,11 @@ import {
   occurrenceTimes,
 } from './calendar-data-source';
 import { CalendarEventContextMenu } from './calendar-event-context-menu';
-import { openProposeNewTimePopover, offerCounterInsteadOfMove } from './calendar-rsvp';
+import {
+  openProposeNewTimePopover,
+  proposeNewTimeForCalendarEvent,
+  showOrganizerOnlyMoveDialog,
+} from './calendar-rsvp';
 import { CalendarView, DEFAULT_TIMED_EVENT_DURATION_SECONDS } from './calendar-constants';
 import { CalendarEmptyState } from './calendar-empty-state';
 import {
@@ -56,8 +60,9 @@ import {
   clampEnd,
   newEventOccurrence,
   NewEventDraft,
-  canEditInPanel,
+  editableFields,
   holdsEdits,
+  proposesTime,
 } from './calendar-helpers';
 import { Disposable } from 'rx-core';
 import { CalendarEventArgs } from './calendar-event-container';
@@ -83,12 +88,14 @@ import { showRecurringEventDialog } from './recurring-event-dialog';
 import {
   modifyEventWithRecurringSupport,
   modifyEventChange,
+  modifyGuestCopy,
   ChangeScope,
   EventTimeChangeOptions,
 } from './recurring-event-actions';
 import {
   UnsentChange,
   isUnsentChangeFor,
+  showAsWaitsForScope,
   unsentEdit,
   withTimes,
   withUnsentChange,
@@ -309,10 +316,13 @@ export class MailspringCalendar extends React.Component<
   _holdTimes(occurrence: EventOccurrence, times: ReturnType<typeof occurrenceTimes>) {
     const stored = this._storedOccurrence(occurrence);
     if (!holdsEdits(stored, this._isCalendarReadOnly(stored.calendarId))) return false;
+    // A proposal keeps the event all-day or timed, so a guest's drag across the rows is dropped.
+    if (this._proposes(stored) && times.isAllDay !== stored.isAllDay) return true;
     const { unsentChange } = this.state;
     if (!this._select([stored])) return true;
     // Another event's change was just sent or discarded, though state may not show it yet.
     const change = isUnsentChangeFor(unsentChange, stored) ? unsentChange : null;
+    if (showAsWaitsForScope(change)) return true;
     this.setState({ unsentChange: withTimes(change, stored, times, occurrenceTimes(stored)) });
     return true;
   }
@@ -390,9 +400,21 @@ export class MailspringCalendar extends React.Component<
   };
 
   async _writeUnsentChange(change: UnsentChange, scope: ChangeScope) {
-    await this._writeChange(change, scope);
+    if (change.proposal) await this._sendProposal(change);
+    else await this._writeChange(change, scope);
     // Kept until it's written, so nothing draws the old values in between.
     this.setState((s) => (s.unsentChange === change ? { unsentChange: null } : null));
+  }
+
+  // Nothing is written to our copy: the event moves only if the organizer accepts.
+  async _sendProposal(change: UnsentChange) {
+    const { times, proposal } = change;
+    const occurrence = this.state.selectedEvents.find((o) => isUnsentChangeFor(change, o));
+    await proposeNewTimeForCalendarEvent(occurrence, {
+      start: new Date(times.start * 1000),
+      end: new Date(times.end * 1000),
+      comment: proposal.comment.trim(),
+    });
   }
 
   /** Writes a change made in the panel, keeping its occurrence selected wherever it lands. */
@@ -401,7 +423,9 @@ export class MailspringCalendar extends React.Component<
     const row = await DatabaseStore.find<Event>(Event, change.eventId);
     if (!row) return;
     const staleIcs = row.ics;
-    const task = modifyEventChange(row, change, scope);
+    const task = change.guestCopy
+      ? modifyGuestCopy(row, change, scope)
+      : modifyEventChange(row, change, scope);
     // A new repeat rule or time leaves the one-off fallback in _currentOccurrence nothing to match.
     if (selected) {
       const start = change.times?.start ?? occurrenceStartUnix(selected);
@@ -626,9 +650,30 @@ export class MailspringCalendar extends React.Component<
     Actions.closePopover();
   };
 
-  // A writable calendar and a meeting we organize (RFC 5546 section 2.1.4), as canMoveEvent asks.
+  // A writable calendar and a meeting we organize (RFC 5546 section 2.1), as canMoveEvent asks.
   _isEditable(occurrence: EventOccurrence) {
-    return canEditInPanel(occurrence, this._isCalendarReadOnly(occurrence.calendarId));
+    return editableFields(occurrence, this._isCalendarReadOnly(occurrence.calendarId)).has('title');
+  }
+
+  _proposes(occurrence: EventOccurrence) {
+    return proposesTime(occurrence, this._isCalendarReadOnly(occurrence.calendarId));
+  }
+
+  _isMovable(occurrence: EventOccurrence) {
+    return (
+      canMoveEvent(occurrence, this._isCalendarReadOnly(occurrence.calendarId)) ||
+      this._proposes(occurrence)
+    );
+  }
+
+  _proposeNewTime(occurrence: EventOccurrence) {
+    // A counter only sends mail, so a read-only calendar's guest still gets one.
+    if (!occurrence.isMine && !this._proposes(occurrence)) {
+      openProposeNewTimePopover(occurrence);
+      return;
+    }
+    if (!this._select([occurrence])) return;
+    window.requestAnimationFrame(() => this._eventPanel.current?.focusTimes());
   }
 
   _editEvent(occurrence: EventOccurrence) {
@@ -662,7 +707,7 @@ export class MailspringCalendar extends React.Component<
       onOpen: () =>
         this._isEditable(occurrence) ? this._editEvent(occurrence) : this._select([occurrence]),
       onDelete: () => this._deleteEvent(occurrence),
-      onProposeNewTime: () => openProposeNewTimePopover(occurrence),
+      onProposeNewTime: () => this._proposeNewTime(occurrence),
     }).displayMenu();
   };
 
@@ -1058,14 +1103,12 @@ export class MailspringCalendar extends React.Component<
       config
     );
 
-    // A guest's drag starts so the attempt can be seen; once it is one, offer the counter instead.
-    if (
-      newDragState.isDragging &&
-      !canMoveEvent(newDragState.event, this._isCalendarReadOnly(newDragState.event.calendarId))
-    ) {
+    // A drag of an event we neither organize nor can propose for starts so the attempt can be
+    // seen; once it is one, explain instead.
+    if (newDragState.isDragging && !this._isMovable(newDragState.event)) {
       this._pendingDragState = null;
       this.setState({ dragState: null });
-      offerCounterInsteadOfMove(newDragState.event);
+      showOrganizerOnlyMoveDialog(newDragState.event);
       return;
     }
 
@@ -1210,9 +1253,9 @@ export class MailspringCalendar extends React.Component<
       return;
     }
 
-    if (!canMoveEvent(occurrence, this._isCalendarReadOnly(occurrence.calendarId))) {
+    if (!this._isMovable(occurrence)) {
       if (canAttemptMove(occurrence, this._isCalendarReadOnly(occurrence.calendarId))) {
-        offerCounterInsteadOfMove(occurrence);
+        showOrganizerOnlyMoveDialog(occurrence);
       }
       return;
     }

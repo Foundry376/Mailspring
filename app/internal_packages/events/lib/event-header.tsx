@@ -850,9 +850,9 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     }
 
     const actions: [ICSParticipantStatus, string][] = [
-      ['ACCEPTED', localized('Accept')],
+      ['ACCEPTED', localized('Yes')],
+      ['DECLINED', localized('No')],
       ['TENTATIVE', localized('Maybe')],
-      ['DECLINED', localized('Decline')],
     ];
 
     return (
@@ -909,7 +909,11 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       if (choices.length <= 1) {
         return (
           <div className="event-rsvp-destination">
-            {[localized('Accepting will add this event to'), addTo.name, inAccount]
+            {[
+              localized('This event is not on your calendar. Respond Yes or Maybe to add it to'),
+              addTo.name,
+              inAccount,
+            ]
               .filter(Boolean)
               .join(' ')}
           </div>
@@ -917,7 +921,9 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       }
       return (
         <div className="event-rsvp-destination">
-          <span>{localized('Accepting will add this event to')}</span>
+          <span>
+            {localized('This event is not on your calendar. Respond Yes or Maybe to add it to')}
+          </span>
           <select
             className="event-rsvp-calendar-picker"
             value={addTo.id}

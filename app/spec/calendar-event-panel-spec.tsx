@@ -4,6 +4,7 @@ import moment from 'moment';
 import { AccountStore, DatabaseStore, DateUtils } from 'mailspring-exports';
 import { EventPanel } from '../internal_packages/main-calendar/lib/core/event-panel';
 import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
+import * as CalendarRsvp from '../internal_packages/main-calendar/lib/core/calendar-rsvp';
 import * as CalendarDateUtils from '../src/calendar-date';
 
 const START = Date.UTC(2026, 10, 10, 15, 30, 0) / 1000;
@@ -46,13 +47,13 @@ describe('EventPanel', function () {
     host.remove();
   });
 
-  const render = (event: TimedOccurrence) =>
+  const render = (event: TimedOccurrence, unsentChange = null) =>
     ReactDOM.render(
       React.createElement(EventPanel, {
         event,
         isCalendarReadOnly: false,
         onBack: () => {},
-        unsentChange: null,
+        unsentChange,
         onUnsentChange: () => {},
         onSendUnsentChange: () => {},
         onSaveChange: () => Promise.resolve(),
@@ -96,19 +97,71 @@ describe('EventPanel', function () {
 
     const buttons = () => Array.from(host.querySelectorAll('button')).map((b) => b.textContent);
 
+    const proposalHint = () => host.querySelector('.event-panel-proposal-hint');
+
     it('offers the answers and a new time', function () {
       render(invitation({ attendees: guests }));
 
-      expect(buttons()).toContain('Accept');
-      expect(buttons()).toContain('Propose a new time...');
+      expect(buttons()).toContain('Yes');
+      expect(proposalHint()).not.toBe(null);
+    });
+
+    it('turns the answers off while a proposal waits', function () {
+      const yes = () =>
+        Array.from(host.querySelectorAll('button')).find((b) => b.textContent === 'Yes');
+      const proposal = { eventId: 'e1', edits: [], times: null, proposal: { comment: '' } };
+      render(invitation({ attendees: guests }), proposal);
+
+      expect(yes().disabled).toBe(true);
     });
 
     it('offers neither once the organizer cancels it, and says so', function () {
       render(invitation({ attendees: guests, isCancelled: true }));
 
-      expect(buttons()).not.toContain('Accept');
-      expect(buttons()).not.toContain('Propose a new time...');
+      expect(buttons()).not.toContain('Yes');
+      expect(proposalHint()).toBe(null);
       expect(host.textContent).toContain('This event has been cancelled');
+    });
+  });
+
+  describe("on a meeting we organize, its guests' proposals", function () {
+    const ics = (summary: string) =>
+      [
+        'BEGIN:VCALENDAR',
+        'BEGIN:VEVENT',
+        'UID:interview@test',
+        'DTSTART:20261110T153000Z',
+        'DTEND:20261110T163000Z',
+        `SUMMARY:${summary}`,
+        'END:VEVENT',
+        'END:VCALENDAR',
+      ].join('\r\n');
+    const settle = async () => {
+      for (let i = 0; i < 5; i++) await Promise.resolve();
+    };
+    let row: { ics: string };
+    let loads: jasmine.Spy;
+
+    beforeEach(function () {
+      row = { ics: ics('Interview') };
+      (DatabaseStore.find as jasmine.Spy).andCallFake(() => Promise.resolve(row));
+      loads = spyOn(CalendarRsvp, 'proposedTimesFor').andReturn(Promise.resolve([]));
+    });
+
+    it('reload when the meeting changes, even at the same start, but not when another event syncs', async function () {
+      const meeting = invitation({ isMine: true });
+      render(meeting);
+      await settle();
+      expect(loads.callCount).toBe(1);
+
+      render({ ...meeting });
+      await settle();
+      expect(loads.callCount).toBe(1);
+
+      row = { ics: ics('Interview with Jordan') };
+      render({ ...meeting });
+      await settle();
+      expect(loads.callCount).toBe(2);
     });
   });
 });

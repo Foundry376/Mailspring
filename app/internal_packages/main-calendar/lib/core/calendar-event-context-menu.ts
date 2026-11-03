@@ -72,7 +72,7 @@ export class CalendarEventContextMenu {
 
   template(): TemplateItem[] {
     const { occurrence, readOnly, onOpen, onDelete } = this.opts;
-    // A writable calendar and a meeting we organize (RFC 5546 section 2.1.4); an attendee gets
+    // A writable calendar and a meeting we organize (RFC 5546 section 2.1); an attendee gets
     // "View Event". Deleting our own copy of someone else's meeting stays governed by readOnly.
     const editable = !readOnly && occurrence.isMine;
 

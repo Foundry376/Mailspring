@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import ReactTestUtils from 'react-dom/test-utils';
 import {
   Actions,
   CalendarUtils,
@@ -445,6 +446,44 @@ describe('editing in the panel', function () {
       expect(document.activeElement).toBe(outside);
       expect(onUnsentChange).not.toHaveBeenCalled();
       outside.remove();
+    });
+  });
+
+  describe('a time picked from the list', function () {
+    let host: HTMLElement;
+
+    beforeEach(async function () {
+      host = document.createElement('div');
+      document.body.appendChild(host);
+      ReactDOM.render(
+        React.createElement(EventPanel, {
+          event: withGuests,
+          isCalendarReadOnly: false,
+          onBack: () => {},
+          unsentChange: null,
+          onUnsentChange,
+          onSendUnsentChange: () => {},
+          onSaveChange: () => Promise.resolve(),
+        }),
+        host
+      );
+      await settle();
+    });
+
+    afterEach(function () {
+      ReactDOM.unmountComponentAtNode(host);
+      host.remove();
+    });
+
+    it('holds the time as the click picks it', function () {
+      (host.querySelector('input.time-picker') as HTMLInputElement).focus();
+      const list = host.querySelector('.time-options') as HTMLElement;
+      const option = list.children[2] as HTMLElement;
+      ReactTestUtils.Simulate.mouseDown(option);
+      list.focus();
+
+      expect(onUnsentChange).toHaveBeenCalled();
+      expect(onUnsentChange.mostRecentCall.args[0].times).toBeTruthy();
     });
   });
 });

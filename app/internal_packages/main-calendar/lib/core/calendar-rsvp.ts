@@ -1,16 +1,21 @@
 import {
   AccountStore,
   Actions,
+  AttachmentStore,
   Calendar,
   CalendarUtils,
   DatabaseStore,
   Event,
   EventRSVPTask,
+  File,
   ICSEventHelpers,
   ICSParticipantStatus,
+  Message,
   SyncbackEventTask,
+  Utils,
   localized,
 } from 'mailspring-exports';
+import fs from 'fs';
 import React from 'react';
 import ICAL from 'ical.js';
 import { ProposeTimePopover } from 'mailspring-component-kit';
@@ -18,6 +23,7 @@ import {
   EventOccurrence,
   occurrenceSlot,
   occurrenceStartUnix,
+  occurrenceTimes,
   occurrenceEndUnix,
 } from './calendar-data-source';
 import { formatCalendarDate } from '../../../../src/calendar-date';
@@ -56,9 +62,9 @@ export function myAttendeeEmail(occurrence: EventOccurrence): string | null {
 /** The answers a guest can give, in the order the menu and the event panel offer them. */
 export function rsvpActions(): [ICSParticipantStatus, string][] {
   return [
-    ['ACCEPTED', localized('Accept')],
+    ['ACCEPTED', localized('Yes')],
+    ['DECLINED', localized('No')],
     ['TENTATIVE', localized('Maybe')],
-    ['DECLINED', localized('Decline')],
   ];
 }
 
@@ -261,6 +267,103 @@ export async function proposeNewTimeForCalendarEvent(
   );
 }
 
+export interface ProposedTime {
+  from: { email: string; name: string };
+  start: number;
+  end: number;
+  isAllDay: boolean;
+  comment: string;
+}
+
+/**
+ * Guests' proposals of another time for this occurrence of a meeting we organize (RFC 5546
+ * section 3.2.7), read from the COUNTERs they emailed us: the latest from each guest, while it
+ * still counters the event as it stands. A counter for a series must name its occurrence, as
+ * counterProposalProblem requires in the invitation header.
+ */
+export async function proposedTimesFor(occurrence: EventOccurrence): Promise<ProposedTime[]> {
+  const { organizer } = occurrence;
+  if (!occurrence.isMine || !organizer || occurrence.isCancelled) return [];
+  const guests = occurrence.attendees.filter(
+    (a) => a.email && !Utils.emailIsEquivalent(a.email, organizer.email)
+  );
+  if (guests.length === 0) return [];
+
+  const row = await DatabaseStore.find<Event>(
+    Event,
+    CalendarUtils.parseOccurrenceId(occurrence.id).eventId
+  );
+  if (!row) return [];
+  const slot = occurrenceSlot(occurrence);
+  const ours = CalendarUtils.parseICSString(row.ics).root.getAllSubcomponents('vevent');
+  const current =
+    ours.find((v) => unixOf(v, 'recurrence-id') === slot) ||
+    ours.find((v) => !v.hasProperty('recurrence-id'));
+  const sequence = Number(current?.getFirstPropertyValue('sequence') || 0);
+  const named = occurrence.isRecurring || occurrence.isException;
+
+  const files = await DatabaseStore.findAll<File>(File).where([
+    File.attributes.accountId.equal(occurrence.accountId),
+    File.attributes.filename.like('.ics'),
+  ]);
+  if (files.length === 0) return [];
+  const messages = await DatabaseStore.findAll<Message>(Message).where([
+    Message.attributes.id.in(files.map((f) => f.messageId)),
+  ]);
+
+  const latest = new Map<string, { date: Date; proposal: ProposedTime }>();
+  for (const message of messages) {
+    const sender = message.from[0];
+    const guest = sender && guests.find((g) => Utils.emailIsEquivalent(g.email, sender.email));
+    if (!guest) continue;
+    const seen = latest.get(guest.email.toLowerCase());
+    if (seen && seen.date >= message.date) continue;
+
+    for (const file of files.filter((f) => f.messageId === message.id)) {
+      let proposal: ProposedTime;
+      try {
+        const data = await fs.promises.readFile(
+          await AttachmentStore.resolvePathForFile(file),
+          'utf8'
+        );
+        const { root } = CalendarUtils.parseICSString(data);
+        if (String(root.getFirstPropertyValue('method')).toUpperCase() !== 'COUNTER') continue;
+        const vevent = root.getFirstSubcomponent('vevent');
+        const recurrenceId = vevent && unixOf(vevent, 'recurrence-id');
+        if (
+          !vevent ||
+          vevent.getFirstPropertyValue('uid') !== row.icsuid ||
+          (named ? recurrenceId !== slot : recurrenceId !== undefined) ||
+          Number(vevent.getFirstPropertyValue('sequence') || 0) < sequence
+        ) {
+          continue;
+        }
+        // ICAL.Event reads an end given as a DURATION too.
+        const counter = new ICAL.Event(vevent);
+        proposal = {
+          from: { email: guest.email, name: guest.name || sender.name || guest.email },
+          start: counter.startDate.toJSDate().getTime() / 1000,
+          end: counter.endDate.toJSDate().getTime() / 1000,
+          isAllDay: counter.startDate.isDate,
+          comment: String(vevent.getFirstPropertyValue('comment') || ''),
+        };
+      } catch (e) {
+        continue; // not downloaded, not a calendar file, or written without its times
+      }
+      latest.set(guest.email.toLowerCase(), { date: message.date, proposal });
+    }
+  }
+  const { start, end } = occurrenceTimes(occurrence);
+  return [...latest.values()]
+    .map(({ proposal }) => proposal)
+    .filter((p) => p.start !== start || p.end !== end);
+}
+
+function unixOf(vevent: ICAL.Component, property: string): number | undefined {
+  const time = vevent.getFirstPropertyValue(property) as ICAL.Time;
+  return time ? time.toJSDate().getTime() / 1000 : undefined;
+}
+
 /**
  * Opens the time picker for a counter-proposal, anchored on `anchor`, else on the event in the
  * grid, or on the window's centre when the grid has scrolled it out of view.
@@ -286,20 +389,14 @@ export function openProposeNewTimePopover(occurrence: EventOccurrence, anchor?: 
 }
 
 /**
- * What a guest gets for trying to move a meeting: only the organizer reschedules one (RFC 5546
- * section 2.1.4), so the dialog offers the counter-proposal that stands in for the move.
+ * What someone off the guest list gets for trying to move a meeting: only the organizer
+ * reschedules one (RFC 5546 section 2.1), and they have no invitation to counter.
  */
-export function offerCounterInsteadOfMove(occurrence: EventOccurrence): void {
-  const response = require('@electron/remote').dialog.showMessageBoxSync({
+export function showOrganizerOnlyMoveDialog(occurrence: EventOccurrence): void {
+  require('@electron/remote').dialog.showMessageBoxSync({
     type: 'info',
-    buttons: [localized('Propose a new time'), localized('Cancel')],
-    defaultId: 0,
-    cancelId: 1,
+    buttons: [localized('OK')],
     title: localized("This meeting can't be rescheduled"),
     message: localized('Only the organizer can move "%@".', occurrence.title),
-    detail: localized('You can propose a new time to the organizer instead.'),
   });
-  if (response === 0) {
-    openProposeNewTimePopover(occurrence);
-  }
 }
