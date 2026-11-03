@@ -1436,8 +1436,7 @@ export function changeAttendees(
 ): string {
   const ical = getICAL();
   const { root } = parseICSString(ics);
-  const vevents: ICALComponent[] =
-    root.name === 'vevent' ? [root] : root.getAllSubcomponents('vevent');
+  const vevents = veventsOf(root);
   const targets = recurrenceId
     ? vevents.filter((v) => matchesRecurrenceId(v, recurrenceId))
     : vevents;

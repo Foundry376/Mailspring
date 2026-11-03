@@ -110,7 +110,6 @@ function applyPropertyEdit(ics: string, edit: EventPropertyEdit) {
     : ICSEventHelpers.updateEventProperty(ics, edit.property, edit.value);
 }
 
-/** The change's guests on every VEVENT, or on the override at `recurrenceId`. */
 function applyAttendeeChange(
   ics: string,
   event: Event,

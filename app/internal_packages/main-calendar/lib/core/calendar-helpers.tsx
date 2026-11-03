@@ -673,7 +673,7 @@ export function asksGuestShowAsScope(event: EventOccurrence): boolean {
 
 /**
  * Edits wait in the panel's card when guests are emailed on every save, for a scope, or as a
- * proposal; and once `change` adds or removes guests, so the update they get carries them all.
+ * proposal; and while `change` is held, so it isn't overtaken by a save made beside it.
  */
 export function holdsEdits(
   event: EventOccurrence,
@@ -681,7 +681,7 @@ export function holdsEdits(
   change: EventChange | null = null
 ): boolean {
   if (!event.isMine) return proposesTime(event, isCalendarReadOnly);
-  return !isCalendarReadOnly && (hasGuests(event) || asksScope(event) || !!change?.attendees);
+  return !isCalendarReadOnly && (hasGuests(event) || asksScope(event) || !!change);
 }
 
 /** The times an event takes when All day is switched: whole days covering it, or 9–10 AM on its first day. */

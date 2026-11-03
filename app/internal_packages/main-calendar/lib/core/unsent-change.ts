@@ -102,7 +102,9 @@ export function withAttendees(
   stored: EventAttendee[]
 ): UnsentChange | null {
   const base = change ?? emptyChange(occurrence);
-  const added = without(attendees, stored);
+  const added = without(attendees, stored).filter(
+    (a, i, all) => all.findIndex((o) => Utils.emailIsEquivalent(o.email, a.email)) === i
+  );
   const removed = without(stored, attendees);
   return unlessEmpty({
     ...base,

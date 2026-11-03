@@ -132,6 +132,16 @@ describe('withAttendees', function () {
     );
   });
 
+  it('holds a guest added twice, or in two cases, once', function () {
+    const change = withAttendees(
+      null,
+      withGuests,
+      [...stored, alex, { email: 'ALEX@example.com', name: 'Alex' }],
+      stored
+    );
+    expect(change.attendees.added).toEqual([alex]);
+  });
+
   it('keeps the other edits when the guests go back', function () {
     const titled = {
       ...withAttendees(null, withGuests, [you], stored),
@@ -192,6 +202,17 @@ describe('moving an event with guests', function () {
       attendees,
       times: { start: START + HOUR, end: START + 2 * HOUR, isAllDay: false },
     });
+  });
+
+  it('keeps holding a drop once the guest that started the hold is removed again', async function () {
+    const calendar = calendarWith([withoutGuests]);
+    const held = { start: START + HOUR, end: START + 2 * HOUR, isAllDay: false };
+    calendar.state.unsentChange = { eventId: 'e1', edits: [], times: held };
+
+    await calendar._persistDragChange(droppedAt(withoutGuests, START + 2 * HOUR));
+
+    expect(queueTask).not.toHaveBeenCalled();
+    expect(calendar.state.unsentChange.times.start).toBe(START + 2 * HOUR);
   });
 
   it('holds arrow-key moves, each starting from the held time', async function () {

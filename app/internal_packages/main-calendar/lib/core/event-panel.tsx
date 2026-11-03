@@ -659,12 +659,6 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
-  // Also covers a meeting that lists us without naming an ORGANIZER.
-  _isMe(attendee: EventAttendee) {
-    const me = myAttendeeEmail(this.props.event);
-    return !!me && Utils.emailIsEquivalent(attendee.email, me);
-  }
-
   _isOrganizer(attendee: EventAttendee) {
     const { organizer } = this.props.event;
     return !!organizer && Utils.emailIsEquivalent(attendee.email, organizer.email);
@@ -690,14 +684,8 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     this._changeAttendees(shown.filter((a) => !Utils.emailIsEquivalent(a.email, attendee.email)));
   }
 
-  _renderInvitee(attendee: EventAttendee, removed: boolean) {
+  _renderInvitee(attendee: EventAttendee, state: 'removed' | 'removable' | '') {
     const name = attendee.name || attendee.email;
-    const removable =
-      this._canEdit('invitees') &&
-      !removed &&
-      !this._isOrganizer(attendee) &&
-      !this._isMe(attendee);
-    const state = removed ? 'removed' : removable ? 'removable' : '';
     return (
       <div
         key={attendee.email}
@@ -713,9 +701,10 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
               <div className="event-panel-subtle">{localized('Organizer')}</div>
             )}
           </div>
-          {removable && (
+          {state === 'removable' && (
             <button
-              className="event-panel-invitee-remove"
+              className="btn-bare event-panel-invitee-remove"
+              title={localized('Remove %@', name)}
               aria-label={localized('Remove %@', name)}
               onClick={() => this._removeAttendee(attendee)}
             >
@@ -727,21 +716,25 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
-  // Guests waiting to be removed stay, struck through, until Send; added ones follow the rest.
   _renderInvitees() {
     const { attendees } = this.props.event;
     const editable = this._canEdit('invitees');
     const { added = [], removed = [] } = this.props.unsentChange?.attendees ?? {};
     if (attendees.length === 0 && added.length === 0 && !editable) return null;
-    const isRemoved = (a: EventAttendee) =>
-      removed.some((r) => Utils.emailIsEquivalent(r.email, a.email));
+    // Our own row stays even on a meeting that names no ORGANIZER.
+    const me = myAttendeeEmail(this.props.event);
+    const stateOf = (a: EventAttendee): 'removed' | 'removable' | '' => {
+      if (removed.some((r) => Utils.emailIsEquivalent(r.email, a.email))) return 'removed';
+      const ours = this._isOrganizer(a) || (me && Utils.emailIsEquivalent(a.email, me));
+      return editable && !ours ? 'removable' : '';
+    };
     const listed = attendees.length > 0 || added.length > 0;
     return (
       <div className="event-panel-row top">
         <SVGIcons.Person className="event-panel-icon" />
         <div className="event-panel-invitees">
-          {sortAttendeesByStatus(attendees).map((a) => this._renderInvitee(a, isRemoved(a)))}
-          {added.map((a) => this._renderInvitee(a, false))}
+          {sortAttendeesByStatus(attendees).map((a) => this._renderInvitee(a, stateOf(a)))}
+          {added.map((a) => this._renderInvitee(a, stateOf(a)))}
           {editable && (
             <div className="event-panel-invitee event-panel-invitee-add">
               {listed && (

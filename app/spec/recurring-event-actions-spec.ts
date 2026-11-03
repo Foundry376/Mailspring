@@ -1130,6 +1130,19 @@ describe('a change to the guest list', function () {
     expect(sequence(series)).toBe(3);
   });
 
+  it('gives an occurrence that was not moved its own guest list', function () {
+    const event = makeEvent(MEETING_SERIES_ICS);
+
+    modifyEventChange(event, { slot: THIRD_SLOT, edits: [], attendees: swap }, 'this-occurrence');
+
+    const [series] = vevents(event.ics);
+    expect(guests(series)).toEqual(['mailto:you@example.com', 'mailto:jordan@example.com']);
+    expect(guests(at(event.ics, THIRD_SLOT))).toEqual([
+      'mailto:you@example.com',
+      'mailto:alex@example.com',
+    ]);
+  });
+
   it('changes one occurrence only, revising it alone', function () {
     const event = makeEvent(MEETING_SERIES_ICS);
 

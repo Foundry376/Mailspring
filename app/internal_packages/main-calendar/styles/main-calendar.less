@@ -965,24 +965,16 @@
 
   .event-panel-invitee.removed .event-panel-invitee-name {
     text-decoration: line-through;
-    color: fadeout(@text-color, 50%);
+    color: @text-color-very-subtle;
   }
 
   .event-panel-invitee-remove {
     width: 18px;
     height: 18px;
-    padding: 0;
-    flex-shrink: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    background: none;
-    color: fadeout(@text-color, 50%);
+    color: @text-color-very-subtle;
     visibility: hidden;
   }
 
-  // The fill reaches past the name and × without moving them, leaving the status dot outside.
   .event-panel-invitee.removable:hover,
   .event-panel-invitee.removable:focus-within {
     .event-panel-invitee-line {
