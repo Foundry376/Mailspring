@@ -402,6 +402,58 @@ describe('editing in the panel', function () {
     });
   });
 
+  describe('the guest list', function () {
+    const alex = { email: 'alex@example.com', name: 'Alex' };
+
+    it('holds a guest added to an event without guests, and sends them in one update', async function () {
+      const panel = panelFor(withoutGuests);
+      panel._addAttendees([alex]);
+
+      const change = onUnsentChange.mostRecentCall.args[0];
+      expect(change.attendees).toEqual({ added: [alex], removed: [] });
+      expect(queueTask).not.toHaveBeenCalled();
+
+      await calendarWith([withoutGuests])._writeChange(change);
+      expect(queueTask.calls.length).toBe(1);
+      const ics = queueTask.calls[0].args[0].event.ics.replace(/\r?\n[ \t]/g, '');
+      expect(ics).toContain('RSVP=TRUE:mailto:alex@example.com');
+    });
+
+    it('adds a guest to a change that already removes one and renames the event', function () {
+      const riley = { email: 'riley@example.com', name: 'Riley' };
+      const held = {
+        eventId: 'e1',
+        edits: [{ property: 'summary' as const, value: 'Interview with Riley' }],
+        attendees: { added: [], removed: [withGuests.attendees[1]] },
+      };
+      const panel = panelFor(withGuests, held);
+      panel._addAttendees([riley]);
+
+      expect(onUnsentChange).toHaveBeenCalledWith({
+        ...held,
+        attendees: { added: [riley], removed: [withGuests.attendees[1]] },
+      });
+    });
+
+    it('drops the change once the guest just added is removed again', function () {
+      const held = { eventId: 'e1', edits: [], attendees: { added: [alex], removed: [] } };
+      const panel = panelFor(withoutGuests, held);
+      panel._removeAttendee(alex);
+
+      expect(onUnsentChange).toHaveBeenCalledWith(null);
+    });
+
+    it('holds the removal of a guest', function () {
+      const panel = panelFor(withGuests);
+      panel._removeAttendee({ email: 'Alex@example.com' });
+
+      expect(onUnsentChange.mostRecentCall.args[0].attendees).toEqual({
+        added: [],
+        removed: [withGuests.attendees[1]],
+      });
+    });
+  });
+
   it('holds a time change to an event with guests, queueing nothing', async function () {
     const panel = panelFor(withGuests);
     const times = { start: START + HOUR, end: START + 2 * HOUR, isAllDay: false };

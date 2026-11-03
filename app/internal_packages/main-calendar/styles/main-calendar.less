@@ -951,6 +951,92 @@
     }
   }
 
+  .event-panel-invitee-line {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .event-panel-invitee-name {
+    flex: 1;
+  }
+
+  .event-panel-invitee.removed .event-panel-invitee-name {
+    text-decoration: line-through;
+    color: fadeout(@text-color, 50%);
+  }
+
+  .event-panel-invitee-remove {
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    background: none;
+    color: fadeout(@text-color, 50%);
+    visibility: hidden;
+  }
+
+  // The fill reaches past the name and × without moving them, leaving the status dot outside.
+  .event-panel-invitee.removable:hover,
+  .event-panel-invitee.removable:focus-within {
+    .event-panel-invitee-line {
+      margin: -4px -4px -4px -7px;
+      padding: 4px 4px 4px 7px;
+      border-radius: 3px;
+      background: @list-hover-bg;
+    }
+
+    .event-panel-invitee-remove {
+      visibility: visible;
+    }
+  }
+
+  .event-panel-invitee-add {
+    align-items: center;
+
+    .attendee-status {
+      margin-top: 0;
+      color: @text-color-very-subtle;
+    }
+
+    .event-panel-invitee-input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    // Inset as the guest rows' hover fill is, so the text lines up with the names.
+    .tokenizing-field-input {
+      margin: -4px -4px -4px -7px;
+      padding: 4px 4px 4px 7px;
+      border-radius: 3px;
+
+      &:hover {
+        background: @list-hover-bg;
+      }
+
+      input,
+      input:focus {
+        padding: 0;
+        border: none;
+        box-shadow: none;
+        outline: none;
+        font: inherit;
+        color: inherit;
+      }
+    }
+
+    .placeholder {
+      left: 7px;
+      color: @text-color-very-subtle;
+    }
+  }
+
   .event-panel-invitee-name,
   .event-panel-location {
     min-width: 0;
