@@ -150,13 +150,14 @@ describe('EventPanel', function () {
         invitation({
           attendees: [
             { email: 'jordan@example.com', name: 'Jordan', partstat: 'ACCEPTED' },
+            { email: 'zoe@example.com', name: 'Zoe', partstat: 'DECLINED' },
             { email: 'ada@example.com', name: 'Ada', partstat: 'ACCEPTED' },
           ],
         }),
         { eventId: 'e1', edits: [], attendees: { added: [waiting], removed: [] } }
       );
 
-      expect(names()).toEqual(['Ada', 'Jordan', 'Aaron']);
+      expect(names()).toEqual(['Ada', 'Jordan', 'Zoe', 'Aaron']);
     });
   });
 
