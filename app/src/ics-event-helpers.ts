@@ -1347,17 +1347,21 @@ function reconcileAttendees(vevent: ICALComponent, attendees: AttendeeInput[]): 
     }
   }
   for (const attendee of attendees) {
-    if (existing.has(attendee.email.toLowerCase())) {
-      continue;
+    if (!existing.has(attendee.email.toLowerCase())) {
+      addAttendee(vevent, attendee);
     }
-    const prop = vevent.addPropertyWithValue('attendee' as any, `mailto:${attendee.email}`);
-    if (attendee.name) {
-      prop.setParameter('cn', attendee.name);
-    }
-    prop.setParameter('partstat', 'NEEDS-ACTION');
-    prop.setParameter('role', 'REQ-PARTICIPANT');
-    prop.setParameter('rsvp', 'TRUE');
   }
+}
+
+/** A new guest, a required participant asked to answer. */
+function addAttendee(vevent: ICALComponent, attendee: AttendeeInput): void {
+  const prop = vevent.addPropertyWithValue('attendee' as any, `mailto:${attendee.email}`);
+  if (attendee.name) {
+    prop.setParameter('cn', attendee.name);
+  }
+  prop.setParameter('partstat', 'NEEDS-ACTION');
+  prop.setParameter('role', 'REQ-PARTICIPANT');
+  prop.setParameter('rsvp', 'TRUE');
 }
 
 /**
@@ -1415,6 +1419,47 @@ export function updateAttendees(
   // Update DTSTAMP
   vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
 
+  return root.toString();
+}
+
+export type AttendeeChange = { added: AttendeeInput[]; removed: AttendeeInput[] };
+
+/**
+ * Adds and removes guests on every VEVENT, so a series' moved occurrences follow it, or only on
+ * the override at `recurrenceId`. Each VEVENT keeps the guests the change doesn't name, its own
+ * included, exactly as they are; see reconcileAttendees and nameOrganizer.
+ */
+export function changeAttendees(
+  ics: string,
+  change: AttendeeChange,
+  { organizer, recurrenceId }: { organizer?: Organizer; recurrenceId?: string } = {}
+): string {
+  const ical = getICAL();
+  const { root } = parseICSString(ics);
+  const vevents: ICALComponent[] =
+    root.name === 'vevent' ? [root] : root.getAllSubcomponents('vevent');
+  const targets = recurrenceId
+    ? vevents.filter((v) => matchesRecurrenceId(v, recurrenceId))
+    : vevents;
+  if (!targets.length) {
+    throw new Error(`No VEVENT to change guests on for RECURRENCE-ID ${recurrenceId}`);
+  }
+
+  const removed = new Set(change.removed.map((a) => a.email.toLowerCase()));
+  for (const vevent of targets) {
+    const props = vevent.getAllProperties('attendee');
+    const emailOf = (prop: (typeof props)[number]) =>
+      emailFromParticipantURI(String(prop.getFirstValue()));
+    props.filter((p) => removed.has(emailOf(p))).forEach((p) => vevent.removeProperty(p));
+    const present = new Set(props.map(emailOf));
+    change.added
+      .filter((a) => !present.has(a.email.toLowerCase()))
+      .forEach((a) => addAttendee(vevent, a));
+    vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
+  }
+  if (organizer) {
+    nameOrganizer(root, organizer);
+  }
   return root.toString();
 }
 
