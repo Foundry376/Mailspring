@@ -1,6 +1,22 @@
 import React from 'react';
+import { Utils } from 'mailspring-exports';
 import { SVGIcons } from 'mailspring-component-kit';
 import { EventAttendee } from './calendar-data-source';
+
+// Office 365 (Graph) copies of a meeting carry no answer for its organizer, so they store
+// NEEDS-ACTION. Google lets an organizer decline their own meeting, so a stored answer still shows.
+export function withOrganizerAttending(
+  attendees: EventAttendee[],
+  organizer: { email: string } | null
+): EventAttendee[] {
+  if (!organizer) return attendees;
+  return attendees.map((a) =>
+    Utils.emailIsEquivalent(a.email, organizer.email) &&
+    (!a.partstat || a.partstat === 'NEEDS-ACTION')
+      ? { ...a, partstat: 'ACCEPTED' }
+      : a
+  );
+}
 
 export function attendeeStatusClass(attendee: EventAttendee): string {
   switch (attendee.partstat) {

@@ -44,7 +44,12 @@ import {
   sameWallClockIn,
   NewEventDraft,
 } from './calendar-helpers';
-import { AttendeeStatusIcon, attendeeStatusClass, sortAttendeesByStatus } from './attendee-status';
+import {
+  AttendeeStatusIcon,
+  attendeeStatusClass,
+  sortAttendeesByStatus,
+  withOrganizerAttending,
+} from './attendee-status';
 // CalendarColorPicker import removed - disabled until custom event colors are fully supported
 import { CalendarSelector } from './calendar-selector';
 import { LocationVideoInput } from './location-video-input';
@@ -882,14 +887,16 @@ class CalendarEventPopoverUnenditable extends React.Component<
           <ScrollRegion className="section invitees">
             <div className="label">{localized(`Invitees`)}: </div>
             <div className="invitees-list">
-              {sortAttendeesByStatus(attendees).map((a, idx) => (
-                <div key={idx} className={`attendee-chip ${attendeeStatusClass(a)}`}>
-                  <span className="attendee-status">
-                    <AttendeeStatusIcon attendee={a} />
-                  </span>
-                  <span className="attendee-name">{a.name || a.email}</span>
-                </div>
-              ))}
+              {sortAttendeesByStatus(withOrganizerAttending(attendees, event.organizer)).map(
+                (a, idx) => (
+                  <div key={idx} className={`attendee-chip ${attendeeStatusClass(a)}`}>
+                    <span className="attendee-status">
+                      <AttendeeStatusIcon attendee={a} />
+                    </span>
+                    <span className="attendee-name">{a.name || a.email}</span>
+                  </div>
+                )
+              )}
             </div>
           </ScrollRegion>
           <ScrollRegion className="section description">

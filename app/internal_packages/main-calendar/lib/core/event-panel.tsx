@@ -41,7 +41,12 @@ import {
   PanelField,
   shiftEndWithStart,
 } from './calendar-helpers';
-import { AttendeeStatusIcon, attendeeStatusClass, sortAttendeesByStatus } from './attendee-status';
+import {
+  AttendeeStatusIcon,
+  attendeeStatusClass,
+  sortAttendeesByStatus,
+  withOrganizerAttending,
+} from './attendee-status';
 import {
   RepeatOption,
   frequencyToRepeatOption,
@@ -733,7 +738,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       <div className="event-panel-row top">
         <SVGIcons.Person className="event-panel-icon" />
         <div className="event-panel-invitees">
-          {sortAttendeesByStatus(attendees).map((a) => this._renderInvitee(a, stateOf(a)))}
+          {sortAttendeesByStatus(withOrganizerAttending(attendees, this.props.event.organizer)).map(
+            (a) => this._renderInvitee(a, stateOf(a))
+          )}
           {added.map((a) => this._renderInvitee(a, stateOf(a)))}
           {editable && (
             <div className="event-panel-invitee event-panel-invitee-add">

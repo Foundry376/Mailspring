@@ -83,6 +83,37 @@ describe('EventPanel', function () {
     expect(text).toContain(`${pickerDay(START)}–${pickerDay(end)}`);
   });
 
+  describe("the guest list's answer dots", function () {
+    const dotFor = (name: string) =>
+      Array.from(host.querySelectorAll('.event-panel-invitee')).find((row) =>
+        row.textContent.startsWith(name)
+      ).className;
+
+    it('draws an unanswered organizer as attending, and anyone else as stored', function () {
+      render(
+        invitation({
+          attendees: [
+            { email: 'ada@example.com', name: 'Ada', partstat: 'NEEDS-ACTION' },
+            { email: 'jordan@example.com', name: 'Jordan', partstat: 'NEEDS-ACTION' },
+          ],
+        })
+      );
+
+      expect(dotFor('Ada')).toContain('accepted');
+      expect(dotFor('Jordan')).toContain('needs-action');
+    });
+
+    it("keeps an organizer's own Declined", function () {
+      render(
+        invitation({
+          attendees: [{ email: 'ada@example.com', name: 'Ada', partstat: 'DECLINED' }],
+        })
+      );
+
+      expect(dotFor('Ada')).toContain('declined');
+    });
+  });
+
   describe('on a meeting we were invited to', function () {
     const guests = [
       { email: 'ada@example.com', name: 'Ada', partstat: 'ACCEPTED' },
