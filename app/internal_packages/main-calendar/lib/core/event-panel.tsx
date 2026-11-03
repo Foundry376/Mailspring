@@ -52,6 +52,7 @@ import { formatTimezone } from './timezone-selector';
 import { ShowAsOption, showAsLabel } from './show-as-selector';
 import {
   canRespondToEvent,
+  myAttendeeEmail,
   myParticipationStatus,
   proposedTimesFor,
   ProposedTime,
@@ -658,6 +659,12 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
+  // Also covers a meeting that lists us without naming an ORGANIZER.
+  _isMe(attendee: EventAttendee) {
+    const me = myAttendeeEmail(this.props.event);
+    return !!me && Utils.emailIsEquivalent(attendee.email, me);
+  }
+
   _isOrganizer(attendee: EventAttendee) {
     const { organizer } = this.props.event;
     return !!organizer && Utils.emailIsEquivalent(attendee.email, organizer.email);
@@ -685,7 +692,11 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   _renderInvitee(attendee: EventAttendee, removed: boolean) {
     const name = attendee.name || attendee.email;
-    const removable = this._canEdit('invitees') && !removed && !this._isOrganizer(attendee);
+    const removable =
+      this._canEdit('invitees') &&
+      !removed &&
+      !this._isOrganizer(attendee) &&
+      !this._isMe(attendee);
     const state = removed ? 'removed' : removable ? 'removable' : '';
     return (
       <div
