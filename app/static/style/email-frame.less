@@ -68,9 +68,16 @@
     overflow-y: hidden;
   }
 
+  // Also the color prepareEmailColors gives the sender's near-black text, so the
+  // print window can reset both to black.
+  #inbox-html-wrapper,
+  #inbox-plain-wrapper {
+    --email-text-color: @text-color;
+  }
+
   #inbox-html-wrapper {
     font-family: 'Nylas-Pro', 'Helvetica', 'Lucidia Grande', sans-serif;
-    color: @text-color;
+    color: var(--email-text-color);
     &.has-background {
       background: white;
       color: black;
@@ -91,7 +98,7 @@
     font-family: @font-family-monospace;
     font-size: 14px;
     white-space: pre-line;
-    color: @text-color;
+    color: var(--email-text-color);
   }
 
   strong,

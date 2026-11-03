@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import { isDarkColor } from '../../../src/theme-manager';
 
 /**
  * The `Theme` pushed to Views (`useTheme`). `colors` keys become
@@ -95,13 +96,8 @@ export function currentThemeTokens(): ViewTheme {
   const font = { family: resolved.font.fontFamily, size: resolved.font.fontSize };
   probe.remove();
 
-  const mode = isDark(colors.bg) ? 'dark' : 'light';
+  const mode = isDarkColor(colors.bg) ? 'dark' : 'light';
   return { mode, colors, chart: CHART_COLORS[mode], font };
-}
-
-function isDark(rgb: string) {
-  const [r, g, b] = (rgb.match(/[\d.]+/g) || ['255', '255', '255']).map(Number);
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b < 128;
 }
 
 /**
