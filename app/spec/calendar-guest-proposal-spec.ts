@@ -25,6 +25,7 @@ import {
   proposedTimesFor,
 } from '../internal_packages/main-calendar/lib/core/calendar-rsvp';
 import * as UnsentChangeDialog from '../internal_packages/main-calendar/lib/core/unsent-change-dialog';
+import * as CalendarRsvp from '../internal_packages/main-calendar/lib/core/calendar-rsvp';
 
 const HOUR = 3600;
 // The series' second occurrence, a week after its first.
@@ -348,6 +349,36 @@ describe("a guest's Show as", function () {
     expect(exception).toContain(`RECURRENCE-ID:${stamp(START)}`);
   });
 
+  it('writes an occurrence stored as its own row in place, keeping its SEQUENCE', async function () {
+    ics = [
+      'BEGIN:VCALENDAR',
+      'BEGIN:VEVENT',
+      'UID:interview@test',
+      `RECURRENCE-ID:${stamp(START)}`,
+      `DTSTART:${stamp(START + HOUR)}`,
+      `DTEND:${stamp(START + 2 * HOUR)}`,
+      'SUMMARY:Interview',
+      'SEQUENCE:2',
+      'ORGANIZER:mailto:alex@example.com',
+      `ATTENDEE;PARTSTAT=ACCEPTED:mailto:${ME}`,
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+    (DatabaseStore.find as jasmine.Spy).andCallFake(() =>
+      Promise.resolve(Object.assign(rowWith(ics), { recurrenceId: stamp(START) }))
+    );
+    await calendarWith([moved])._writeChange(
+      { eventId: 'e1', slot: START, guestCopy: true, edits: [showAs] },
+      'this-occurrence'
+    );
+
+    const vevents = veventsOf(writtenIcs());
+    expect(vevents.length).toBe(1);
+    expect(vevents[0]).toContain('TRANSP:TRANSPARENT');
+    expect(vevents[0]).toContain(`DTSTART:${stamp(START + HOUR)}`);
+    expect(vevents[0]).toContain('SEQUENCE:2');
+  });
+
   it('writes this occurrence alone, keeping every SEQUENCE', async function () {
     await calendarWith([invitation])._writeChange(
       { eventId: 'e1', slot: START, guestCopy: true, edits: [showAs] },
@@ -409,11 +440,68 @@ describe("a guest's Show as", function () {
     veventsOf(writtenIcs()).forEach((vevent) => expect(vevent).toContain('SEQUENCE:2'));
   });
 
+  it("isn't offered while a proposal waits on a series, except on Google, where it doesn't wait", function () {
+    const panel = panelFor(invitation, onUnsentChange);
+    panel.props = {
+      ...panel.props,
+      unsentChange: {
+        eventId: 'e1',
+        slot: START,
+        guestCopy: true,
+        edits: [],
+        proposal: { comment: '' },
+      },
+    };
+    expect(panel._canSetShowAs()).toBe(false);
+    provider = 'gmail';
+    expect(panel._canSetShowAs()).toBe(true);
+  });
+
+  it('keeps the times fixed while it waits for its scope', function () {
+    const panel = panelFor(invitation, onUnsentChange);
+    spyOn(panel, '_renderEditableWhen').andReturn(null);
+    panel._renderWhen();
+    expect(panel._renderEditableWhen.calls.length).toBe(1);
+
+    panel.props = {
+      ...panel.props,
+      unsentChange: { eventId: 'e1', slot: START, guestCopy: true, edits: [showAs] },
+    };
+    panel._renderWhen();
+    expect(panel._renderEditableWhen.calls.length).toBe(1);
+  });
+
   it("isn't offered on a copy on someone else's calendar", function () {
     const panel = panelFor(invitation, onUnsentChange);
     expect(panel._canSetShowAs()).toBe(true);
     panel.props = { ...panel.props, calendar: { ownership: 'other' } };
     expect(panel._canSetShowAs()).toBe(false);
+  });
+});
+
+describe('Propose New Time from the menu', function () {
+  beforeEach(function () {
+    spyOn(CalendarRsvp, 'openProposeNewTimePopover');
+    spyOn(window, 'requestAnimationFrame');
+    spyOn(AppEnv.config, 'set');
+  });
+
+  it('focuses the times of an event we own, proposing nothing', function () {
+    const calendar = calendarWith([]);
+    calendar._proposeNewTime(
+      occurrenceOf('alex@example.com', ME, { isMine: true, organizer: null })
+    );
+
+    expect(CalendarRsvp.openProposeNewTimePopover).not.toHaveBeenCalled();
+    expect(calendar.state.selectedEvents.length).toBe(1);
+  });
+
+  it('opens the popover for a guest whose calendar is read-only', function () {
+    const calendar = calendarWith([]);
+    calendar.state.readOnlyCalendarIds = new Set(['c']);
+    calendar._proposeNewTime(invitation);
+
+    expect(CalendarRsvp.openProposeNewTimePopover).toHaveBeenCalled();
   });
 });
 

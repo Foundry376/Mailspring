@@ -65,6 +65,7 @@ import {
   emptyChange,
   scopeLabel,
   scopesFor,
+  showAsWaitsForScope,
   unsentEdit,
   withEdit,
   withTimes,
@@ -266,14 +267,15 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     this.setState({
       repeat: frequencyToRepeatOption(ICSEventHelpers.getRecurrenceInfo(row.ics).frequency),
     });
-    // A load reads every invitation from the guests, and any synced event hands over a fresh
-    // occurrence, so proposals reload only when this occurrence or its meeting changes.
+    this._loadProposals(occurrence, row);
+  }
+
+  async _loadProposals(occurrence: EventOccurrence, row: Event) {
     const proposalsKey = `${occurrence.id}\n${row.ics}`;
-    if (proposalsKey !== this._proposalsKey) {
-      this._proposalsKey = proposalsKey;
-      const proposals = await proposedTimesFor(occurrence);
-      if (this._proposalsKey === proposalsKey) this.setState({ proposals });
-    }
+    if (proposalsKey === this._proposalsKey) return;
+    this._proposalsKey = proposalsKey;
+    const proposals = await proposedTimesFor(occurrence);
+    if (this._proposalsKey === proposalsKey) this.setState({ proposals });
   }
 
   _canEdit(field: PanelField) {
@@ -294,7 +296,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     if (!this._canEdit('showAs')) return false;
     if (event.isMine) return true;
     if (CalendarUtils.isSomeoneElsesCalendar(calendar)) return false;
-    return !(unsentChange?.proposal && asksScope(event));
+    return !(unsentChange?.proposal && asksGuestShowAsScope(event));
   }
 
   _save(change: UnsentChange) {
@@ -610,9 +612,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   }
 
   _renderWhen() {
-    // Sent separately, so a guest's Show as waiting for its scope goes first.
-    const showAsWaits = this.props.unsentChange?.guestCopy && this.props.unsentChange.edits.length;
-    if (this._canEdit('times') && !showAsWaits) return this._renderEditableWhen();
+    if (this._canEdit('times') && !showAsWaitsForScope(this.props.unsentChange)) {
+      return this._renderEditableWhen();
+    }
     const { event } = this.props;
     const days = renderDays(event.startDate, event.endDate);
 

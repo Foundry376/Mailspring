@@ -475,7 +475,6 @@ describe('editing in the panel', function () {
       host.remove();
     });
 
-    // A mousedown on the list focuses it, and the list closes under that focus without a blur.
     it('holds the time as the click picks it', function () {
       (host.querySelector('input.time-picker') as HTMLInputElement).focus();
       const list = host.querySelector('.time-options') as HTMLElement;

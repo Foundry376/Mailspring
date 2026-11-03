@@ -95,6 +95,7 @@ import {
 import {
   UnsentChange,
   isUnsentChangeFor,
+  showAsWaitsForScope,
   unsentEdit,
   withTimes,
   withUnsentChange,
@@ -321,8 +322,7 @@ export class MailspringCalendar extends React.Component<
     if (!this._select([stored])) return true;
     // Another event's change was just sent or discarded, though state may not show it yet.
     const change = isUnsentChangeFor(unsentChange, stored) ? unsentChange : null;
-    // A guest's Show as waiting for its scope isn't part of a proposal, and has to go first.
-    if (change?.guestCopy && change.edits.length) return true;
+    if (showAsWaitsForScope(change)) return true;
     this.setState({ unsentChange: withTimes(change, stored, times, occurrenceTimes(stored)) });
     return true;
   }
@@ -668,7 +668,7 @@ export class MailspringCalendar extends React.Component<
 
   _proposeNewTime(occurrence: EventOccurrence) {
     // A counter only sends mail, so a read-only calendar's guest still gets one.
-    if (!this._proposes(occurrence)) {
+    if (!occurrence.isMine && !this._proposes(occurrence)) {
       openProposeNewTimePopover(occurrence);
       return;
     }
