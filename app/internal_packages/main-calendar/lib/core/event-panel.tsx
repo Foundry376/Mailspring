@@ -978,32 +978,36 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   _renderRsvp() {
     const { event, calendar, isCalendarReadOnly, unsentChange } = this.props;
     if (!canRespondToEvent(event) || event.isCancelled) return null;
-    // Kept in place but off while a change waits, so an answer and a new time aren't sent at once.
-    const disabled = isCalendarReadOnly || !!unsentChange;
+    // Slides away while a change waits, so an answer and a new time aren't sent at once.
+    const away = !!unsentChange;
     const answer = myParticipationStatus(event);
     const savedTo =
       calendar && !isCalendarReadOnly && !CalendarUtils.isSomeoneElsesCalendar(calendar);
     return (
-      <div className="event-panel-section event-panel-answer">
-        {savedTo && (
-          <div className="event-panel-subtle">{localized('Saved to %@', calendar.name)}</div>
-        )}
-        <div
-          className="event-panel-rsvp button-group"
-          role="group"
-          aria-label={localized('Your response')}
-        >
-          {rsvpActions().map(([status, label]) => (
-            <button
-              key={status}
-              className={`btn ${status === answer ? status : ''} ${disabled ? 'btn-disabled' : ''}`}
-              aria-pressed={status === answer}
-              disabled={disabled}
-              onClick={() => respondToCalendarEvent(event, status)}
+      <div className={`event-panel-collapse ${away ? 'collapsed' : ''}`} aria-hidden={away}>
+        <div>
+          <div className="event-panel-section event-panel-answer">
+            {savedTo && (
+              <div className="event-panel-subtle">{localized('Saved to %@', calendar.name)}</div>
+            )}
+            <div
+              className="event-panel-rsvp button-group"
+              role="group"
+              aria-label={localized('Your response')}
             >
-              {label}
-            </button>
-          ))}
+              {rsvpActions().map(([status, label]) => (
+                <button
+                  key={status}
+                  className={`btn ${status === answer ? status : ''}`}
+                  aria-pressed={status === answer}
+                  disabled={isCalendarReadOnly || away}
+                  onClick={() => respondToCalendarEvent(event, status)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );

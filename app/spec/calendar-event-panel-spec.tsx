@@ -105,7 +105,7 @@ describe('EventPanel', function () {
       expect(proposalHint()).not.toBe(null);
     });
 
-    it('keeps the answers in place but off while a proposal waits', function () {
+    it('turns the answers off while a proposal waits', function () {
       const yes = () =>
         Array.from(host.querySelectorAll('button')).find((b) => b.textContent === 'Yes');
       const proposal = { eventId: 'e1', edits: [], times: null, proposal: { comment: '' } };

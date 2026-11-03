@@ -1080,6 +1080,24 @@
     background: @background-secondary;
   }
 
+  // A grid row eases between the content's height and none; the inner div holds no padding,
+  // which would keep the row from closing.
+  .event-panel-collapse {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.2s ease, opacity 0.2s ease;
+
+    > div {
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    &.collapsed {
+      grid-template-rows: 0fr;
+      opacity: 0;
+    }
+  }
+
   .event-panel-answer {
     gap: 8px;
     background: color-mix(in srgb, @accent-primary 6%, @background-primary);
