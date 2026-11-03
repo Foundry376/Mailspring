@@ -215,8 +215,7 @@ export async function rsvp(viewId: string, grant: ViewGrant, id: string, status:
     title: parsed.summary || localized('(no title)'),
     people: organizer && !isMe(organizer) ? [organizer] : [],
   });
-  // The calendar's own RSVP: our copy's PARTSTAT plus an emailed REPLY to the organizer, for
-  // the whole series. Not undoable, since the REPLY can't be retracted.
+  // The calendar's own RSVP, for the whole series.
   await recordAndSendRSVP({
     event,
     myEmail: me.email,

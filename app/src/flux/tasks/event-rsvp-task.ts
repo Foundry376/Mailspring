@@ -3,6 +3,7 @@ import { AttributeValues } from '../models/model';
 import * as Attributes from '../attributes';
 import {
   localized,
+  AccountStore,
   ICSParticipantStatus,
   SyncbackMetadataTask,
   CalendarUtils,
@@ -140,6 +141,14 @@ export class EventRSVPTask extends Task {
       method: 'COUNTER',
       comment,
     });
+  }
+
+  /**
+   * Whether writing our answer to our copy on this account's calendar tells the organizer, so no
+   * REPLY of ours is needed. Google emails them itself; ours would arrive as a second answer.
+   */
+  static calendarWriteSendsReply(accountId: string) {
+    return AccountStore.accountForId(accountId).provider === 'gmail';
   }
 
   /** The answer the invitation header shows, read back from this metadata. */

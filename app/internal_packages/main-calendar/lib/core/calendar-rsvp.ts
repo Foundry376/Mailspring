@@ -77,11 +77,10 @@ export function myParticipationStatus(occurrence: EventOccurrence): string | nul
 }
 
 /**
- * Answers an invitation from the calendar: our PARTSTAT on our copy (RFC 6638 section 3.2.5)
- * and an emailed REPLY to the organizer, which goes even when the copy cannot be written. On a
- * series it first asks, as Google Calendar and Delete do, whether the answer is for this
- * occurrence or for all of them; one occurrence is answered on its own VEVENT and in a REPLY
- * that names it (RFC 5546 section 3.2.3).
+ * Answers an invitation from the calendar through recordAndSendRSVP. On a series it first asks,
+ * as Google Calendar and Delete do, whether the answer is for this occurrence or for all of
+ * them; one occurrence is answered on its own VEVENT and, when emailed, in a REPLY that names it
+ * (RFC 5546 section 3.2.3).
  */
 export async function respondToCalendarEvent(
   occurrence: EventOccurrence,
@@ -126,8 +125,9 @@ export async function respondToCalendarEvent(
 
 /**
  * The RSVP itself, shared with Views: our PARTSTAT on our copy when that copy is writable, and
- * an emailed REPLY to the organizer either way. `recurrenceId` answers one occurrence; null
- * answers the whole stored object. Not undoable: the REPLY cannot be retracted.
+ * an emailed REPLY to the organizer unless that write already tells them. `recurrenceId` answers
+ * one occurrence; null answers the whole stored object. Not undoable: an answer the organizer
+ * has been sent cannot be retracted.
  */
 export async function recordAndSendRSVP({
   event,
@@ -163,6 +163,7 @@ export async function recordAndSendRSVP({
         occurrenceIcs: recurrenceId ? answered : undefined,
       };
       Actions.queueTask(SyncbackEventTask.forAnswering({ event: updated, answer }));
+      if (EventRSVPTask.calendarWriteSendsReply(event.accountId)) return;
     }
   }
 

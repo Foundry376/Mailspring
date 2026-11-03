@@ -278,5 +278,33 @@ describe('answering and countering from the calendar', function () {
       await respondToCalendarEvent(occurrence(), 'TENTATIVE');
       expect(queued.length).toBe(1);
     });
+
+    describe('on a Google account', function () {
+      beforeEach(function () {
+        (AccountStore.accountForId as jasmine.Spy).andReturn({
+          id: 'acct-1',
+          emailAddress: ME,
+          provider: 'gmail',
+        });
+      });
+
+      it('leaves telling the organizer to Google once the answer is on our copy', async function () {
+        await respondToCalendarEvent(occurrence(), 'ACCEPTED');
+        expect(queued.length).toBe(1);
+        expect(queued[0] instanceof SyncbackEventTask).toBe(true);
+      });
+
+      it('still emails when the calendar is read-only', async function () {
+        calendar = new Calendar({
+          id: 'cal-1',
+          accountId: 'acct-1',
+          name: ME,
+          readOnly: true,
+        } as any);
+        await respondToCalendarEvent(occurrence(), 'TENTATIVE');
+        expect(queued.length).toBe(1);
+        expect(queued[0] instanceof EventRSVPTask).toBe(true);
+      });
+    });
   });
 });
