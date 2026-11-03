@@ -2,20 +2,13 @@ import React from 'react';
 import { Utils } from 'mailspring-exports';
 import { SVGIcons } from 'mailspring-component-kit';
 import { EventAttendee, EventOccurrence } from './calendar-data-source';
-import { myAttendeeEmail } from './calendar-rsvp';
+import { isOrganizer, myAttendeeEmail } from './calendar-rsvp';
 
 // Office 365 (Graph) copies of a meeting carry no answer for its organizer, so they store
 // NEEDS-ACTION. Google lets an organizer decline their own meeting, so a stored answer still shows.
-function withOrganizerAttending(
-  attendees: EventAttendee[],
-  organizer: { email: string } | null
-): EventAttendee[] {
-  return attendees.map((a) =>
-    !!organizer &&
-    Utils.emailIsEquivalent(a.email, organizer.email) &&
-    (!a.partstat || a.partstat === 'NEEDS-ACTION')
-      ? { ...a, partstat: 'ACCEPTED' }
-      : a
+function withOrganizerAttending(event: EventOccurrence): EventAttendee[] {
+  return event.attendees.map((a) =>
+    isOrganizer(event, a) && a.partstat === 'NEEDS-ACTION' ? { ...a, partstat: 'ACCEPTED' } : a
   );
 }
 
@@ -38,17 +31,15 @@ export const AttendeeStatusIcon = ({ attendee }: { attendee: EventAttendee }) =>
   return <SVGIcons.QuestionMark />;
 };
 
-/** The organizer first, then us, then everyone by answer and name. */
-export function sortAttendeesByStatus(event: EventOccurrence): EventAttendee[] {
-  const { organizer } = event;
+export function sortedAttendees(event: EventOccurrence): EventAttendee[] {
   const me = myAttendeeEmail(event);
   const pinOrder = (a: EventAttendee) => {
-    if (organizer && Utils.emailIsEquivalent(a.email, organizer.email)) return 0;
+    if (isOrganizer(event, a)) return 0;
     if (me && Utils.emailIsEquivalent(a.email, me)) return 1;
     return 2;
   };
   const statusOrder = { ACCEPTED: 0, TENTATIVE: 1, 'NEEDS-ACTION': 1, DECLINED: 2 };
-  return withOrganizerAttending(event.attendees, organizer).sort((a, b) => {
+  return withOrganizerAttending(event).sort((a, b) => {
     if (pinOrder(a) !== pinOrder(b)) return pinOrder(a) - pinOrder(b);
     const aOrder = statusOrder[a.partstat] ?? 1;
     const bOrder = statusOrder[b.partstat] ?? 1;
