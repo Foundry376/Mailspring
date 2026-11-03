@@ -142,6 +142,17 @@ export class EventRSVPTask extends Task {
     });
   }
 
+  /** The answer the invitation header shows, read back from this metadata. */
+  static recordAnswerOnMessage(message: Message, status: ICSParticipantStatus) {
+    Actions.queueTask(
+      SyncbackMetadataTask.forSaving({
+        model: message,
+        pluginId: 'event-rsvp',
+        value: { status, time: Date.now() },
+      })
+    );
+  }
+
   label() {
     return this.method === 'COUNTER'
       ? localized('Proposing a new time')
@@ -152,18 +163,7 @@ export class EventRSVPTask extends Task {
     // A counter-proposal is not an answer, so the RSVP buttons must not show one.
     if (this.messageId && this.icsRSVPStatus && this.method !== 'COUNTER') {
       const msg = await DatabaseStore.find<Message>(Message, this.messageId);
-      if (msg) {
-        Actions.queueTask(
-          SyncbackMetadataTask.forSaving({
-            model: msg,
-            pluginId: 'event-rsvp',
-            value: {
-              status: this.icsRSVPStatus,
-              time: Date.now(),
-            },
-          })
-        );
-      }
+      if (msg) EventRSVPTask.recordAnswerOnMessage(msg, this.icsRSVPStatus);
     }
 
     // Pull the provider's latest calendar state after any RSVP response. Calendar
