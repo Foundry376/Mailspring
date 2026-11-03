@@ -14,7 +14,11 @@ import { EventPanel } from '../internal_packages/main-calendar/lib/core/event-pa
 import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
 import * as UnsentChangeDialog from '../internal_packages/main-calendar/lib/core/unsent-change-dialog';
-import { withUnsentChange } from '../internal_packages/main-calendar/lib/core/unsent-change';
+import {
+  attendeesWith,
+  withAttendees,
+  withUnsentChange,
+} from '../internal_packages/main-calendar/lib/core/unsent-change';
 import * as RecurringEventDialog from '../internal_packages/main-calendar/lib/core/recurring-event-dialog';
 
 const START = Date.UTC(2026, 9, 27, 15, 0, 0) / 1000;
@@ -109,6 +113,35 @@ async function settle() {
     await Promise.resolve();
   }
 }
+
+describe('withAttendees', function () {
+  const alex = { email: 'alex@example.com', name: 'Alex' };
+  const jordan = { email: 'jordan@example.com', name: 'Jordan' };
+  const stored = [you, jordan];
+
+  it('holds the guests added and removed', function () {
+    const change = withAttendees(null, withGuests, [you, alex], stored);
+    expect(change.attendees).toEqual({ added: [alex], removed: [jordan] });
+    expect(attendeesWith(stored, change)).toEqual([you, alex]);
+  });
+
+  it('drops out once the list is back to the stored one, whatever the case of an address', function () {
+    const added = withAttendees(null, withGuests, [...stored, alex], stored);
+    expect(withAttendees(added, withGuests, [{ email: 'YOU@example.com' }, jordan], stored)).toBe(
+      null
+    );
+  });
+
+  it('keeps the other edits when the guests go back', function () {
+    const titled = {
+      ...withAttendees(null, withGuests, [you], stored),
+      edits: [{ property: 'summary' as const, value: 'Interview with Alex' }],
+    };
+    const change = withAttendees(titled, withGuests, stored, stored);
+    expect(change.attendees).toBe(undefined);
+    expect(change.edits).toEqual(titled.edits);
+  });
+});
 
 describe('moving an event with guests', function () {
   let queueTask: jasmine.Spy;

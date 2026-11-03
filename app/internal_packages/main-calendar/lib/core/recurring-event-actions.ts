@@ -13,6 +13,8 @@ import {
 } from './recurring-event-dialog';
 import { occurrenceForRecurrenceId, occurrenceTimes } from './calendar-data-source';
 import { ShowAsOption } from './show-as-selector';
+import { organizerForAccount } from './calendar-helpers';
+import type { AttendeeChange } from '../../../../src/ics-event-helpers';
 
 /**
  * Snapshot of event data for undo support.
@@ -99,12 +101,25 @@ export type EventPropertyEdit =
 export interface EventChange {
   times?: { start: number; end: number; isAllDay: boolean };
   edits: EventPropertyEdit[];
+  attendees?: AttendeeChange;
 }
 
 function applyPropertyEdit(ics: string, edit: EventPropertyEdit) {
   return edit.property === 'rrule'
     ? ICSEventHelpers.updateRecurrenceRule(ics, edit.value)
     : ICSEventHelpers.updateEventProperty(ics, edit.property, edit.value);
+}
+
+/** The change's guests on every VEVENT, or on the override at `recurrenceId`. */
+function applyAttendeeChange(
+  ics: string,
+  event: Event,
+  change: EventChange,
+  recurrenceId?: string
+): string {
+  if (!change.attendees) return ics;
+  const organizer = organizerForAccount(event.accountId);
+  return ICSEventHelpers.changeAttendees(ics, change.attendees, { organizer, recurrenceId });
 }
 
 /**
@@ -118,7 +133,7 @@ export function modifySimpleEventChange(
   description = localized('Edit event')
 ): SyncbackEventTask {
   const undoData = captureEventSnapshot(event);
-  let ics = change.edits.reduce(applyPropertyEdit, event.ics);
+  let ics = applyAttendeeChange(change.edits.reduce(applyPropertyEdit, event.ics), event, change);
   if (change.times) {
     ics = ICSEventHelpers.updateEventTimes(ics, change.times);
     event.recurrenceStart = change.times.start;
@@ -217,7 +232,10 @@ export function modifyOccurrenceChange(
   const { times } = change;
   const { ics, recurrenceId } = occurrenceExceptionIcs(master.ics, slot, change);
 
-  master.ics = ICSEventHelpers.bumpEventSequence(ics, recurrenceId);
+  master.ics = ICSEventHelpers.bumpEventSequence(
+    applyAttendeeChange(ics, master, change, recurrenceId),
+    recurrenceId
+  );
   master.recurrenceStart = times.start;
   master.recurrenceEnd = times.end;
 
@@ -253,7 +271,7 @@ export function modifySeriesChange(
   description = localized('Edit recurring event')
 ): SyncbackEventTask {
   const undoData = captureEventSnapshot(master);
-  let ics = change.edits.reduce(applyPropertyEdit, master.ics);
+  let ics = applyAttendeeChange(change.edits.reduce(applyPropertyEdit, master.ics), master, change);
 
   if (change.times) {
     const { start, end, isAllDay } = change.times;
