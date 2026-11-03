@@ -1016,6 +1016,8 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     const { rsvp, addTo, inviteIcs, inviteEvent, copyBehind } = this.state;
     const { accountId } = this.props.message;
     const me = CalendarUtils.selfParticipant(inviteEvent, accountId);
+    // A forwarded invitation can omit us while our synced copy lists us; the REPLY still goes.
+    if (!me) return null;
     return planRSVPWrite({
       rsvp,
       addTo,

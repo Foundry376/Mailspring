@@ -567,6 +567,19 @@ describe('EventHeader answering an invitation', function () {
     });
   });
 
+  it('still emails the reply when the emailed invitation omits us but our copy lists us', function () {
+    fs.writeFileSync(
+      icsPath,
+      INVITE.replace('mailto:brian@example.com', 'mailto:carol@example.com')
+    );
+    mount({ events: [synced], calendars: [mine] });
+    runs(() => {
+      click('Yes');
+      expect(queued.length).toBe(1);
+      expect(queued[0] instanceof EventRSVPTask).toBe(true);
+    });
+  });
+
   describe('on a Google account', function () {
     const answered = () =>
       ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'btn-rsvp')
