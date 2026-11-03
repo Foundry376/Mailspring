@@ -11,13 +11,6 @@ the code before planning from it, and delete it here when it lands.
   `DestroyEventTask`, and Google drops a guest's deleted copy without telling the organizer. Deleting
   one occurrence does reach them, because Google turns the EXDATE into a decline. Checked live
   2026-10-15 with an Outlook.com organizer.
-- **Accepting an invitation that isn't on a Google calendar yet doesn't add it.** When Google hasn't
-  put the invitation on the calendar itself (its "Add invitations to my calendar" setting, or an
-  invitation Gmail filed as spam), Yes or Maybe in the invitation header queues
-  `SyncbackEventTask.forCreating`, and Google answers the PUT with an empty 400. The emailed REPLY
-  still goes out. Once the create works, check whether Google also emails the organizer about it; if
-  so, that path needs the same skip as an update (`EventRSVPTask.calendarWriteSendsReply`). Seen live
-  2026-11-03.
 - **Times are always 12-hour.** `formatTime` in `calendar-event-popover.tsx`, `formatEventTimeRange`
   (`calendar-helpers.tsx`), the drag tooltip (`calendar-drag-utils.ts`) and search results
   (`event-search-bar.tsx`) hardcode AM/PM, so 24-hour locales see "10 AM". `formatShortTime` already
