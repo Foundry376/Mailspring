@@ -24,7 +24,7 @@ import {
 } from './calendar-constants';
 import { EventOccurrence, coveredDates, isTimed } from './calendar-data-source';
 import { dayFraction } from './week-view-helpers';
-import { canRespondToEvent } from './calendar-rsvp';
+import { canRespondToEvent, isOrganizer } from './calendar-rsvp';
 import type { EventChange } from './recurring-event-actions';
 
 export function dateOf(m: Moment): CalendarDate {
@@ -616,9 +616,7 @@ export function extractNotesFromDescription(description: string) {
 
 /** Anyone on the guest list besides the organizer, whom a change would email. */
 export function hasGuests(event: EventOccurrence): boolean {
-  return event.attendees.some(
-    (a) => !event.organizer || !Utils.emailIsEquivalent(a.email, event.organizer.email)
-  );
+  return event.attendees.some((a) => !isOrganizer(event, a));
 }
 
 export type PanelField =

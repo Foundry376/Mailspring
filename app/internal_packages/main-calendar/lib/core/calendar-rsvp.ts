@@ -20,6 +20,7 @@ import React from 'react';
 import ICAL from 'ical.js';
 import { ProposeTimePopover } from 'mailspring-component-kit';
 import {
+  EventAttendee,
   EventOccurrence,
   occurrenceSlot,
   occurrenceStartUnix,
@@ -42,6 +43,11 @@ export function canRespondToEvent(occurrence: EventOccurrence): boolean {
   const organizer =
     occurrence.organizer && CalendarUtils.emailFromParticipantURI(occurrence.organizer.email);
   return !organizer || organizer.toLowerCase() !== me;
+}
+
+export function isOrganizer(occurrence: EventOccurrence, attendee: EventAttendee): boolean {
+  const { organizer } = occurrence;
+  return !!organizer && Utils.emailIsEquivalent(attendee.email, organizer.email);
 }
 
 /**
@@ -284,9 +290,7 @@ export interface ProposedTime {
 export async function proposedTimesFor(occurrence: EventOccurrence): Promise<ProposedTime[]> {
   const { organizer } = occurrence;
   if (!occurrence.isMine || !organizer || occurrence.isCancelled) return [];
-  const guests = occurrence.attendees.filter(
-    (a) => a.email && !Utils.emailIsEquivalent(a.email, organizer.email)
-  );
+  const guests = occurrence.attendees.filter((a) => a.email && !isOrganizer(occurrence, a));
   if (guests.length === 0) return [];
 
   const row = await DatabaseStore.find<Event>(
