@@ -28,7 +28,7 @@ export function showAsWaitsForScope(change: UnsentChange | null) {
   return !!change?.guestCopy && change.edits.length > 0;
 }
 
-// Only the organizer changes a meeting (RFC 5546 section 2.1.4); a guest's change proposes one.
+// Only the organizer changes a meeting (RFC 5546 section 2.1); a guest's change proposes one.
 export function emptyChange(occurrence: EventOccurrence): UnsentChange {
   const { eventId } = CalendarUtils.parseOccurrenceId(occurrence.id);
   return {

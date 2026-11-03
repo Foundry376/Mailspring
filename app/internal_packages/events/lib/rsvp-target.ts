@@ -243,7 +243,7 @@ export type CounterProposalProblem =
 
 /**
  * Whether an emailed COUNTER may move our copy of the meeting: only the organizer revises one
- * (RFC 5546 section 2.1.4) and only a guest counters (section 3.2.7). Both are read off our
+ * (RFC 5546 section 2.1) and only a guest counters (section 3.2.7). Both are read off our
  * synced copy, never the attachment, whose UID, ORGANIZER and guests its sender wrote. A
  * counter for a series that names no occurrence is withheld too: applying it would re-base
  * every occurrence on the proposed date, and Thunderbird's invitation bar draws the same line.

@@ -756,7 +756,7 @@ export class CalendarEventPopover extends React.Component<
   };
 
   // A writable calendar and a meeting we organize: only the organizer revises one (RFC 5546
-  // section 2.1.4), the same test canMoveEvent applies to dragging.
+  // section 2.1), the same test canMoveEvent applies to dragging.
   _isEditable(): boolean {
     return !this.props.isCalendarReadOnly && (this.props.isNewEvent || this.props.event.isMine);
   }

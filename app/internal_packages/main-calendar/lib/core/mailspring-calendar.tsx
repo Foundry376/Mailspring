@@ -650,7 +650,7 @@ export class MailspringCalendar extends React.Component<
     Actions.closePopover();
   };
 
-  // A writable calendar and a meeting we organize (RFC 5546 section 2.1.4), as canMoveEvent asks.
+  // A writable calendar and a meeting we organize (RFC 5546 section 2.1), as canMoveEvent asks.
   _isEditable(occurrence: EventOccurrence) {
     return editableFields(occurrence, this._isCalendarReadOnly(occurrence.calendarId)).has('title');
   }

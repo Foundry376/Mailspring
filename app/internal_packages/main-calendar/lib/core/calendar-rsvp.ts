@@ -390,7 +390,7 @@ export function openProposeNewTimePopover(occurrence: EventOccurrence, anchor?: 
 
 /**
  * What someone off the guest list gets for trying to move a meeting: only the organizer
- * reschedules one (RFC 5546 section 2.1.4), and they have no invitation to counter.
+ * reschedules one (RFC 5546 section 2.1), and they have no invitation to counter.
  */
 export function showOrganizerOnlyMoveDialog(occurrence: EventOccurrence): void {
   require('@electron/remote').dialog.showMessageBoxSync({
