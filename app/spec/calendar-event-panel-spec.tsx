@@ -114,6 +114,52 @@ describe('EventPanel', function () {
     });
   });
 
+  describe("the guest list's order", function () {
+    beforeEach(function () {
+      spyOn(AccountStore, 'accountForEmail').andCallFake((email: string) => {
+        if (email === 'me@example.com') return { id: 'a' } as any;
+        if (email === 'other@example.com') return { id: 'b' } as any;
+        return null;
+      });
+    });
+
+    const names = () =>
+      Array.from(host.querySelectorAll('.event-panel-invitee-name > div:first-child')).map(
+        (n) => n.textContent
+      );
+
+    it('puts the organizer, then us, before everyone sorted by answer and name', function () {
+      render(
+        invitation({
+          attendees: [
+            { email: 'jordan@example.com', name: 'Jordan', partstat: 'ACCEPTED' },
+            { email: 'other@example.com', name: 'Another Account', partstat: 'ACCEPTED' },
+            { email: 'me@example.com', name: 'Me', partstat: 'TENTATIVE' },
+            { email: 'alex@example.com', name: 'Alex', partstat: 'NEEDS-ACTION' },
+            { email: 'ada@example.com', name: 'Ada', partstat: 'DECLINED' },
+          ],
+        })
+      );
+
+      expect(names()).toEqual(['Ada', 'Me', 'Another Account', 'Jordan', 'Alex']);
+    });
+
+    it('lists a guest waiting to be added after everyone stored', function () {
+      const waiting = { email: 'aaron@example.com', name: 'Aaron' };
+      render(
+        invitation({
+          attendees: [
+            { email: 'jordan@example.com', name: 'Jordan', partstat: 'ACCEPTED' },
+            { email: 'ada@example.com', name: 'Ada', partstat: 'ACCEPTED' },
+          ],
+        }),
+        { eventId: 'e1', edits: [], attendees: { added: [waiting], removed: [] } }
+      );
+
+      expect(names()).toEqual(['Ada', 'Jordan', 'Aaron']);
+    });
+  });
+
   describe('on a meeting we were invited to', function () {
     const guests = [
       { email: 'ada@example.com', name: 'Ada', partstat: 'ACCEPTED' },

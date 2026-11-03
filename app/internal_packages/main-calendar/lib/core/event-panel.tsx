@@ -41,12 +41,7 @@ import {
   PanelField,
   shiftEndWithStart,
 } from './calendar-helpers';
-import {
-  AttendeeStatusIcon,
-  attendeeStatusClass,
-  sortAttendeesByStatus,
-  withOrganizerAttending,
-} from './attendee-status';
+import { AttendeeStatusIcon, attendeeStatusClass, sortAttendeesByStatus } from './attendee-status';
 import {
   RepeatOption,
   frequencyToRepeatOption,
@@ -689,7 +684,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     this._changeAttendees(shown.filter((a) => !Utils.emailIsEquivalent(a.email, attendee.email)));
   }
 
-  _renderInvitee(attendee: EventAttendee, state: 'removed' | 'removable' | '') {
+  _renderInvitee(attendee: EventAttendee, state: 'removed' | 'removable' | '', me: string | null) {
     const name = attendee.name || attendee.email;
     return (
       <div
@@ -702,9 +697,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         <div className="event-panel-invitee-line">
           <div className="event-panel-invitee-name">
             <div>{name}</div>
-            {this._isOrganizer(attendee) && (
-              <div className="event-panel-subtle">{localized('Organizer')}</div>
-            )}
+            {this._renderInviteeRole(attendee, me)}
           </div>
           {state === 'removable' && (
             <button
@@ -738,10 +731,10 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       <div className="event-panel-row top">
         <SVGIcons.Person className="event-panel-icon" />
         <div className="event-panel-invitees">
-          {sortAttendeesByStatus(withOrganizerAttending(attendees, this.props.event.organizer)).map(
-            (a) => this._renderInvitee(a, stateOf(a))
+          {sortAttendeesByStatus(this.props.event).map((a) =>
+            this._renderInvitee(a, stateOf(a), me)
           )}
-          {added.map((a) => this._renderInvitee(a, stateOf(a)))}
+          {added.map((a) => this._renderInvitee(a, stateOf(a), me))}
           {editable && (
             <div className="event-panel-invitee event-panel-invitee-add">
               {listed && (
@@ -760,6 +753,17 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         </div>
       </div>
     );
+  }
+
+  _renderInviteeRole(attendee: EventAttendee, me: string | null) {
+    const isMe = !!me && Utils.emailIsEquivalent(attendee.email, me);
+    let role: string = null;
+    if (this._isOrganizer(attendee)) {
+      role = isMe ? localized('Organizer · You') : localized('Organizer');
+    } else if (isMe) {
+      role = localized('You');
+    }
+    return role && <div className="event-panel-subtle">{role}</div>;
   }
 
   _renderLocationIcon(location: string) {
