@@ -157,10 +157,10 @@ function storedInvitation(inviteIcs: string, myEmail: string, status: ICSPartici
 }
 
 /**
- * The calendar write that records an answer, beside the emailed REPLY: our PARTSTAT on our own
- * copy (RFC 6638 section 3.2.5), on the one occurrence an invitation names where it names one,
- * or the invitation itself when we are attending and have no copy. A copy behind the invitation
- * (copyIsBehind) is brought up to it, as answering it does in Thunderbird.
+ * The calendar write that records an answer: our PARTSTAT on our own copy (RFC 6638 section
+ * 3.2.5), on the one occurrence an invitation names where it names one, or the invitation itself
+ * when we are attending and have no copy. A copy behind the invitation (copyIsBehind) is brought
+ * up to it, as answering it does in Thunderbird.
  */
 export function planRSVPWrite({
   rsvp,

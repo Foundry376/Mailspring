@@ -21,6 +21,7 @@ import {
   Message,
   Rx,
   SyncbackEventTask,
+  SyncbackMetadataTask,
   Task,
   Thread,
   Utils,
@@ -563,6 +564,75 @@ describe('EventHeader answering an invitation', function () {
       expect(destination().textContent).toContain('only be emailed to the organizer');
       click('Yes');
       expect(queued.length).toBe(1);
+    });
+  });
+
+  describe('on a Google account', function () {
+    const answered = () =>
+      ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'btn-rsvp')
+        .filter((n) => /ACCEPTED|DECLINED|TENTATIVE/.test(n.className))
+        .map((n) => n.textContent);
+
+    beforeEach(function () {
+      (AccountStore.accountForId as jasmine.Spy).andReturn(
+        new Account({ id: 'a1', emailAddress: 'brian@example.com', provider: 'gmail' })
+      );
+    });
+
+    it('records the answer on our copy and the message, and leaves telling the organizer to Google', function () {
+      mount({ events: [synced], calendars: [mine] });
+      runs(() => {
+        click('Yes');
+        expect(queued.length).toBe(2);
+        const [write, recorded] = queued as [SyncbackEventTask, SyncbackMetadataTask];
+        expect(write instanceof SyncbackEventTask).toBe(true);
+        expect(write.rsvp.status).toBe('ACCEPTED');
+        expect(recorded instanceof SyncbackMetadataTask).toBe(true);
+        expect(recorded.modelId).toBe('m1');
+        expect(recorded.value.status).toBe('ACCEPTED');
+      });
+    });
+
+    it('shows the answer it recorded over one emailed before', function () {
+      mount({ events: [synced], calendars: [mine] });
+      runs(() => {
+        const { message } = header.props;
+        message.directlyAttachMetadata('event-rsvp', { status: 'DECLINED', time: Date.now() });
+        header.forceUpdate();
+        expect(answered()).toEqual(['No']);
+
+        click('Yes');
+        const recorded = queued.find(
+          (t) => t instanceof SyncbackMetadataTask
+        ) as SyncbackMetadataTask;
+        message.directlyAttachMetadata(recorded.pluginId, recorded.value);
+        header.forceUpdate();
+        expect(answered()).toEqual(['Yes']);
+      });
+    });
+
+    it('still emails the reply when the answer adds the invitation to a calendar', function () {
+      mount({ events: [], calendars: [mine] });
+      runs(() => {
+        click('Yes');
+        expect(queued[0] instanceof EventRSVPTask).toBe(true);
+        expect((queued[1] as SyncbackEventTask).createdAnswer.status).toBe('ACCEPTED');
+      });
+    });
+
+    it("still emails the reply when it can't tell which copy is ours", function () {
+      const onShared = synced.clone();
+      onShared.calendarId = shared.id;
+      mount({
+        events: [onRoom, onShared],
+        calendars: [cal({ id: 'cal-room', name: 'Boardroom' }), shared],
+      });
+      runs(() => {
+        expect(destination().textContent).toContain("can't tell which copy is yours");
+        click('Yes');
+        expect(queued.length).toBe(1);
+        expect(queued[0] instanceof EventRSVPTask).toBe(true);
+      });
     });
   });
 

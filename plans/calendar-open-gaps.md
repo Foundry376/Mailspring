@@ -11,11 +11,6 @@ the code before planning from it, and delete it here when it lands.
   `DestroyEventTask`, and Google drops a guest's deleted copy without telling the organizer. Deleting
   one occurrence does reach them, because Google turns the EXDATE into a decline. Checked live
   2026-10-15 with an Outlook.com organizer.
-- **Answering an invitation sends the organizer two replies.** Both answer paths,
-  `respondToCalendarEvent` (`calendar-rsvp.ts`) and the invitation header (`event-header.tsx`), write
-  PARTSTAT to the calendar copy and also queue an `EventRSVPTask` reply. On Google the write already
-  makes Google email the organizer, so an outside organizer gets both, and a Google organizer ignores
-  the emailed one. Seen live 2026-10-15.
 - **Times are always 12-hour.** `formatTime` in `calendar-event-popover.tsx`, `formatEventTimeRange`
   (`calendar-helpers.tsx`), the drag tooltip (`calendar-drag-utils.ts`) and search results
   (`event-search-bar.tsx`) hardcode AM/PM, so 24-hour locales see "10 AM". `formatShortTime` already
