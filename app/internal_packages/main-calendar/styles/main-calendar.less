@@ -1092,6 +1092,11 @@
       overflow: hidden;
     }
 
+    // The section is its wrapper's only child, but sections still follow it.
+    .event-panel-section:last-child {
+      border-bottom: 1px solid @border-color-divider;
+    }
+
     &.collapsed {
       grid-template-rows: 0fr;
       opacity: 0;
