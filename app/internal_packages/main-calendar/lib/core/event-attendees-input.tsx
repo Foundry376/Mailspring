@@ -27,6 +27,7 @@ interface EventAttendeesInputProps {
   attendees: EventAttendee[];
   change: (next: EventAttendee[]) => void;
   className: string;
+  placeholder?: string;
   onEmptied?: () => void;
   onFocus?: () => void;
 }
@@ -165,6 +166,7 @@ export class EventAttendeesInput extends React.Component<EventAttendeesInputProp
     return (
       <TokenizingTextField
         className={this.props.className}
+        placeholder={this.props.placeholder}
         ref="textField"
         tokens={this.props.attendees}
         tokenKey={(p) => p.email}

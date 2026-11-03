@@ -315,13 +315,13 @@ export class MailspringCalendar extends React.Component<
   /** Holds a move of an event whose edits wait for Send update; false when the move should save. */
   _holdTimes(occurrence: EventOccurrence, times: ReturnType<typeof occurrenceTimes>) {
     const stored = this._storedOccurrence(occurrence);
-    if (!holdsEdits(stored, this._isCalendarReadOnly(stored.calendarId))) return false;
-    // A proposal keeps the event all-day or timed, so a guest's drag across the rows is dropped.
-    if (this._proposes(stored) && times.isAllDay !== stored.isAllDay) return true;
     const { unsentChange } = this.state;
-    if (!this._select([stored])) return true;
     // Another event's change was just sent or discarded, though state may not show it yet.
     const change = isUnsentChangeFor(unsentChange, stored) ? unsentChange : null;
+    if (!holdsEdits(stored, this._isCalendarReadOnly(stored.calendarId), change)) return false;
+    // A proposal keeps the event all-day or timed, so a guest's drag across the rows is dropped.
+    if (this._proposes(stored) && times.isAllDay !== stored.isAllDay) return true;
+    if (!this._select([stored])) return true;
     if (showAsWaitsForScope(change)) return true;
     this.setState({ unsentChange: withTimes(change, stored, times, occurrenceTimes(stored)) });
     return true;

@@ -2926,6 +2926,107 @@ describe('ICSEventHelpers.applyEditsToException and the guest list', function ()
   });
 });
 
+describe('ICSEventHelpers.changeAttendees', function () {
+  const cy = { email: 'cy@example.com', name: 'Cy' };
+  const bo = { email: 'bo@example.com', name: 'Bo' };
+  const veventsOf = (ics: string) => unfoldLines(ics).join('\n').split('BEGIN:VEVENT').slice(1);
+  const guestsOf = (vevent: string) =>
+    vevent
+      .split('\n')
+      .filter((l) => l.startsWith('ATTENDEE'))
+      .map((l) => l.slice(l.lastIndexOf(':') + 1));
+
+  // A weekly meeting whose second occurrence was moved, with a guest of its own.
+  const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
+    MEETING_WITH_ROOM_ICS.replace('SEQUENCE:0', 'RRULE:FREQ=WEEKLY\nSEQUENCE:0'),
+    Date.UTC(2026, 2, 8, 14) / 1000,
+    Date.UTC(2026, 2, 8, 15) / 1000,
+    Date.UTC(2026, 2, 8, 16) / 1000,
+    false
+  );
+  const SERIES_WITH_OVERRIDE_ICS = ICSEventHelpers.applyEditsToException(masterIcs, recurrenceId, {
+    attendees: [...sameGuests, { email: 'dee@example.com' }],
+  });
+
+  it('adds a guest as a required participant awaiting a response, leaving the others as they are', function () {
+    const result = ICSEventHelpers.changeAttendees(MEETING_WITH_ROOM_ICS, {
+      added: [cy],
+      removed: [],
+    });
+    expect(attendeeLine(result, 'cy@example.com')).toBe(
+      'ATTENDEE;CN=Cy;PARTSTAT=NEEDS-ACTION;ROLE=REQ-PARTICIPANT;RSVP=TRUE:mailto:cy@example.com'
+    );
+    expect(attendeeLine(result, 'ada@example.com')).toBe(
+      attendeeLine(MEETING_WITH_ROOM_ICS, 'ada@example.com')
+    );
+    expect(attendeeLine(result, 'room1@example.com')).toBe(
+      attendeeLine(MEETING_WITH_ROOM_ICS, 'room1@example.com')
+    );
+  });
+
+  it('removes a guest by address whatever its case', function () {
+    const result = ICSEventHelpers.changeAttendees(MEETING_WITH_ROOM_ICS, {
+      added: [],
+      removed: [{ email: 'Bo@Example.com' }],
+    });
+    expect(guestsOf(veventsOf(result)[0])).toEqual(['ada@example.com', 'room1@example.com']);
+  });
+
+  it('does not add a second line for a guest who is already invited', function () {
+    const result = ICSEventHelpers.changeAttendees(MEETING_WITH_ROOM_ICS, {
+      added: [{ email: 'BO@example.com', name: 'Bo' }],
+      removed: [],
+    });
+    expect(attendeeLine(result, 'bo@example.com')).toBe(
+      attendeeLine(MEETING_WITH_ROOM_ICS, 'bo@example.com')
+    );
+    expect(guestsOf(veventsOf(result)[0]).length).toBe(3);
+  });
+
+  it("reaches a series' moved occurrences, which keep their own guests", function () {
+    const result = ICSEventHelpers.changeAttendees(SERIES_WITH_OVERRIDE_ICS, {
+      added: [cy],
+      removed: [bo],
+    });
+    const [series, moved] = veventsOf(result);
+    expect(guestsOf(series)).toEqual(['ada@example.com', 'room1@example.com', 'cy@example.com']);
+    expect(guestsOf(moved)).toEqual([
+      'ada@example.com',
+      'room1@example.com',
+      'dee@example.com',
+      'cy@example.com',
+    ]);
+  });
+
+  it('changes only the occurrence at recurrenceId', function () {
+    const result = ICSEventHelpers.changeAttendees(
+      SERIES_WITH_OVERRIDE_ICS,
+      { added: [cy], removed: [bo] },
+      { recurrenceId }
+    );
+    const [series, moved] = veventsOf(result);
+    expect(series).toBe(veventsOf(SERIES_WITH_OVERRIDE_ICS)[0]);
+    expect(guestsOf(moved)).toEqual([
+      'ada@example.com',
+      'room1@example.com',
+      'dee@example.com',
+      'cy@example.com',
+    ]);
+  });
+
+  it('names the organizer, attending, when the first guest is added', function () {
+    const result = ICSEventHelpers.changeAttendees(
+      SOLO_EVENT_ICS,
+      { added: [bo], removed: [] },
+      { organizer: { email: 'me@example.com', name: 'Me' } }
+    );
+    expect(unfoldLines(result).filter((l) => l.startsWith('ORGANIZER'))).toEqual([
+      'ORGANIZER;CN=Me:mailto:me@example.com',
+    ]);
+    expect(attendeeLine(result, 'me@example.com')).toContain('PARTSTAT=ACCEPTED');
+  });
+});
+
 const SOLO_EVENT_ICS = `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Test//Test//EN

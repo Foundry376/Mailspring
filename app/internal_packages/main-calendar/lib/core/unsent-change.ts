@@ -1,6 +1,11 @@
-import { CalendarUtils, localized } from 'mailspring-exports';
+import { CalendarUtils, Utils, localized } from 'mailspring-exports';
 import { ChangeScope, EventChange, EventPropertyEdit } from './recurring-event-actions';
-import { EventOccurrence, occurrenceAt, occurrenceSlot } from './calendar-data-source';
+import {
+  EventAttendee,
+  EventOccurrence,
+  occurrenceAt,
+  occurrenceSlot,
+} from './calendar-data-source';
 
 type Times = NonNullable<EventChange['times']>;
 
@@ -51,7 +56,7 @@ export function scopeLabel(scope: ChangeScope) {
 }
 
 function unlessEmpty(change: UnsentChange): UnsentChange | null {
-  return change.times || change.edits.length ? change : null;
+  return change.times || change.edits.length || change.attendees ? change : null;
 }
 
 /**
@@ -84,6 +89,37 @@ export function withTimes(
     ...(base.guestCopy && { proposal: base.proposal ?? { comment: '' } }),
     times: same ? undefined : times,
   });
+}
+
+const without = (attendees: EventAttendee[], others: EventAttendee[]) =>
+  attendees.filter((a) => !others.some((o) => Utils.emailIsEquivalent(a.email, o.email)));
+
+/** The change with the guests `attendees` adds to and removes from `stored`. */
+export function withAttendees(
+  change: UnsentChange | null,
+  occurrence: EventOccurrence,
+  attendees: EventAttendee[],
+  stored: EventAttendee[]
+): UnsentChange | null {
+  const base = change ?? emptyChange(occurrence);
+  const added = without(attendees, stored).filter(
+    (a, i, all) => all.findIndex((o) => Utils.emailIsEquivalent(o.email, a.email)) === i
+  );
+  const removed = without(stored, attendees);
+  return unlessEmpty({
+    ...base,
+    attendees: added.length || removed.length ? { added, removed } : undefined,
+  });
+}
+
+/** `stored` as it will be once the change is sent, new guests last. */
+export function attendeesWith(
+  stored: EventAttendee[],
+  change: UnsentChange | null
+): EventAttendee[] {
+  if (!change?.attendees) return stored;
+  const { added, removed } = change.attendees;
+  return [...without(stored, removed), ...added];
 }
 
 export function unsentEdit(

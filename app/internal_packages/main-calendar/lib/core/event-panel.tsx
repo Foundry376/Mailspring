@@ -52,6 +52,7 @@ import { formatTimezone } from './timezone-selector';
 import { ShowAsOption, showAsLabel } from './show-as-selector';
 import {
   canRespondToEvent,
+  myAttendeeEmail,
   myParticipationStatus,
   proposedTimesFor,
   ProposedTime,
@@ -62,14 +63,17 @@ import { ChangeScope, EventPropertyEdit } from './recurring-event-actions';
 import { EventPanelTextField } from './event-panel-text-field';
 import {
   UnsentChange,
+  attendeesWith,
   emptyChange,
   scopeLabel,
   scopesFor,
   showAsWaitsForScope,
   unsentEdit,
+  withAttendees,
   withEdit,
   withTimes,
 } from './unsent-change';
+import { EventAttendeesInput } from './event-attendees-input';
 
 const REPEAT_OPTIONS: RepeatOption[] = ['none', 'daily', 'weekly', 'monthly', 'yearly'];
 
@@ -287,7 +291,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   }
 
   _holdsEdits() {
-    return holdsEdits(this.props.event, this.props.isCalendarReadOnly);
+    return holdsEdits(this.props.event, this.props.isCalendarReadOnly, this.props.unsentChange);
   }
 
   // A copy on someone else's calendar holds their availability, not ours (recordAndSendRSVP).
@@ -660,6 +664,97 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     return !!organizer && Utils.emailIsEquivalent(attendee.email, organizer.email);
   }
 
+  _shownAttendees() {
+    return attendeesWith(this.props.event.attendees, this.props.unsentChange);
+  }
+
+  // Emailed on Send update, so always held.
+  _changeAttendees(attendees: EventAttendee[]) {
+    const { event, unsentChange, onUnsentChange } = this.props;
+    onUnsentChange(withAttendees(unsentChange, event, attendees, event.attendees));
+  }
+
+  _addAttendees = (added: EventAttendee[]) => {
+    const plain = added.map(({ email, name }) => ({ email, name }));
+    this._changeAttendees([...this._shownAttendees(), ...plain]);
+  };
+
+  _removeAttendee(attendee: EventAttendee) {
+    const shown = this._shownAttendees();
+    this._changeAttendees(shown.filter((a) => !Utils.emailIsEquivalent(a.email, attendee.email)));
+  }
+
+  _renderInvitee(attendee: EventAttendee, state: 'removed' | 'removable' | '') {
+    const name = attendee.name || attendee.email;
+    return (
+      <div
+        key={attendee.email}
+        className={`event-panel-invitee ${attendeeStatusClass(attendee)} ${state}`}
+      >
+        <span className="attendee-status">
+          <AttendeeStatusIcon attendee={attendee} />
+        </span>
+        <div className="event-panel-invitee-line">
+          <div className="event-panel-invitee-name">
+            <div>{name}</div>
+            {this._isOrganizer(attendee) && (
+              <div className="event-panel-subtle">{localized('Organizer')}</div>
+            )}
+          </div>
+          {state === 'removable' && (
+            <button
+              className="btn-bare event-panel-invitee-remove"
+              title={localized('Remove %@', name)}
+              aria-label={localized('Remove %@', name)}
+              onClick={() => this._removeAttendee(attendee)}
+            >
+              <SVGIcons.Remove />
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  _renderInvitees() {
+    const { attendees } = this.props.event;
+    const editable = this._canEdit('invitees');
+    const { added = [], removed = [] } = this.props.unsentChange?.attendees ?? {};
+    if (attendees.length === 0 && added.length === 0 && !editable) return null;
+    // Our own row stays even on a meeting that names no ORGANIZER.
+    const me = myAttendeeEmail(this.props.event);
+    const stateOf = (a: EventAttendee): 'removed' | 'removable' | '' => {
+      if (removed.some((r) => Utils.emailIsEquivalent(r.email, a.email))) return 'removed';
+      const ours = this._isOrganizer(a) || (me && Utils.emailIsEquivalent(a.email, me));
+      return editable && !ours ? 'removable' : '';
+    };
+    const listed = attendees.length > 0 || added.length > 0;
+    return (
+      <div className="event-panel-row top">
+        <SVGIcons.Person className="event-panel-icon" />
+        <div className="event-panel-invitees">
+          {sortAttendeesByStatus(attendees).map((a) => this._renderInvitee(a, stateOf(a)))}
+          {added.map((a) => this._renderInvitee(a, stateOf(a)))}
+          {editable && (
+            <div className="event-panel-invitee event-panel-invitee-add">
+              {listed && (
+                <span className="attendee-status">
+                  <SVGIcons.Plus size={12} />
+                </span>
+              )}
+              <EventAttendeesInput
+                className="event-panel-invitee-input"
+                attendees={[]}
+                placeholder={localized('Add Invitees')}
+                change={this._addAttendees}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   _renderLocationIcon(location: string) {
     return CalendarUtils.extractMeetingDomain(location, '') ? (
       <SVGIcons.Video className="event-panel-icon" />
@@ -669,32 +764,14 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   }
 
   _renderInviteesAndPlace() {
-    const { attendees, location } = this.props.event;
+    const { location } = this.props.event;
     const editable = this._canEdit('location');
-    if (attendees.length === 0 && !location && !editable) return null;
+    const invitees = this._renderInvitees();
+    if (!invitees && !location && !editable) return null;
     const shownLocation = this._shown('location', location);
     return (
       <div className="event-panel-section">
-        {attendees.length > 0 && (
-          <div className="event-panel-row top">
-            <SVGIcons.Person className="event-panel-icon" />
-            <div className="event-panel-invitees">
-              {sortAttendeesByStatus(attendees).map((a) => (
-                <div key={a.email} className={`event-panel-invitee ${attendeeStatusClass(a)}`}>
-                  <span className="attendee-status">
-                    <AttendeeStatusIcon attendee={a} />
-                  </span>
-                  <div className="event-panel-invitee-name">
-                    <div>{a.name || a.email}</div>
-                    {this._isOrganizer(a) && (
-                      <div className="event-panel-subtle">{localized('Organizer')}</div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {invitees}
         {editable ? (
           <div className="event-panel-row">
             {this._renderLocationIcon(shownLocation)}
@@ -800,6 +877,17 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         was: this._timesLabel(stored, change.times),
       });
     }
+    if (change.attendees) {
+      const names = (attendees: EventAttendee[]) =>
+        attendees.map((a) => a.name || a.email).join(', ');
+      rows.push({
+        key: 'attendees',
+        icon: <SVGIcons.Person />,
+        label: localized('Invitees'),
+        now: names(change.attendees.added),
+        was: names(change.attendees.removed),
+      });
+    }
     for (const edit of change.edits) {
       if (edit.property === 'summary') {
         rows.push({
@@ -903,18 +991,29 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         ) : asksScope(this.props.event) ? (
           this._renderScopeButtons(change)
         ) : (
-          <div className="event-panel-change-buttons">
-            {this._renderDiscardButton()}
-            <button
-              className="btn btn-emphasis"
-              onClick={() => this.props.onSendUnsentChange('this-occurrence')}
-            >
-              {localized('Send update')}
-            </button>
-          </div>
+          <>
+            {this._addsFirstGuest(change) && this._renderGuestsEmailed()}
+            <div className="event-panel-change-buttons">
+              {this._renderDiscardButton()}
+              <button
+                className="btn btn-emphasis"
+                onClick={() => this.props.onSendUnsentChange('this-occurrence')}
+              >
+                {localized('Send update')}
+              </button>
+            </div>
+          </>
         )}
       </div>
     );
+  }
+
+  _addsFirstGuest(change: UnsentChange) {
+    return !hasGuests(this.props.event) && !!change.attendees?.added.length;
+  }
+
+  _renderGuestsEmailed() {
+    return <div className="event-panel-subtle">{localized('Guests will be emailed.')}</div>;
   }
 
   _renderDiscardButton() {
@@ -956,9 +1055,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     const { event, onSendUnsentChange } = this.props;
     return (
       <>
-        {event.isMine && hasGuests(event) && (
-          <div className="event-panel-subtle">{localized('Guests will be emailed.')}</div>
-        )}
+        {event.isMine &&
+          (hasGuests(event) || this._addsFirstGuest(change)) &&
+          this._renderGuestsEmailed()}
         <div className="event-panel-change-buttons stacked">
           {scopesFor(change).map((scope, i) => (
             <button

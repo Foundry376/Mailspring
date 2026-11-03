@@ -26,6 +26,7 @@ export function showUnsentChangeDialog(
 ): UnsentChangeChoice {
   const changed = new Intl.ListFormat(getCurrentLocale(), { type: 'conjunction' }).format([
     ...(change.times ? [localized('time')] : []),
+    ...(change.attendees ? [localized('invitees')] : []),
     ...change.edits.map((edit) => changedName(edit.property)),
   ]);
   const title = event?.title ?? '';

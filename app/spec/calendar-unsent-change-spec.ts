@@ -14,7 +14,11 @@ import { EventPanel } from '../internal_packages/main-calendar/lib/core/event-pa
 import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
 import * as UnsentChangeDialog from '../internal_packages/main-calendar/lib/core/unsent-change-dialog';
-import { withUnsentChange } from '../internal_packages/main-calendar/lib/core/unsent-change';
+import {
+  attendeesWith,
+  withAttendees,
+  withUnsentChange,
+} from '../internal_packages/main-calendar/lib/core/unsent-change';
 import * as RecurringEventDialog from '../internal_packages/main-calendar/lib/core/recurring-event-dialog';
 
 const START = Date.UTC(2026, 9, 27, 15, 0, 0) / 1000;
@@ -110,6 +114,45 @@ async function settle() {
   }
 }
 
+describe('withAttendees', function () {
+  const alex = { email: 'alex@example.com', name: 'Alex' };
+  const jordan = { email: 'jordan@example.com', name: 'Jordan' };
+  const stored = [you, jordan];
+
+  it('holds the guests added and removed', function () {
+    const change = withAttendees(null, withGuests, [you, alex], stored);
+    expect(change.attendees).toEqual({ added: [alex], removed: [jordan] });
+    expect(attendeesWith(stored, change)).toEqual([you, alex]);
+  });
+
+  it('drops out once the list is back to the stored one, whatever the case of an address', function () {
+    const added = withAttendees(null, withGuests, [...stored, alex], stored);
+    expect(withAttendees(added, withGuests, [{ email: 'YOU@example.com' }, jordan], stored)).toBe(
+      null
+    );
+  });
+
+  it('holds a guest added twice, or in two cases, once', function () {
+    const change = withAttendees(
+      null,
+      withGuests,
+      [...stored, alex, { email: 'ALEX@example.com', name: 'Alex' }],
+      stored
+    );
+    expect(change.attendees.added).toEqual([alex]);
+  });
+
+  it('keeps the other edits when the guests go back', function () {
+    const titled = {
+      ...withAttendees(null, withGuests, [you], stored),
+      edits: [{ property: 'summary' as const, value: 'Interview with Alex' }],
+    };
+    const change = withAttendees(titled, withGuests, stored, stored);
+    expect(change.attendees).toBe(undefined);
+    expect(change.edits).toEqual(titled.edits);
+  });
+});
+
 describe('moving an event with guests', function () {
   let queueTask: jasmine.Spy;
 
@@ -143,6 +186,33 @@ describe('moving an event with guests', function () {
     expect(queueTask.calls.length).toBe(1);
     expect(queueTask.calls[0].args[0].event.recurrenceStart).toBe(START + HOUR);
     expect(calendar.state.unsentChange).toBe(null);
+  });
+
+  it('holds a drop of an event without guests once a guest is waiting to be added', async function () {
+    const calendar = calendarWith([withoutGuests]);
+    const attendees = { added: [{ email: 'alex@example.com', name: 'Alex' }], removed: [] };
+    calendar.state.unsentChange = { eventId: 'e1', edits: [], attendees };
+
+    await calendar._persistDragChange(droppedAt(withoutGuests, START + HOUR));
+
+    expect(queueTask).not.toHaveBeenCalled();
+    expect(calendar.state.unsentChange).toEqual({
+      eventId: 'e1',
+      edits: [],
+      attendees,
+      times: { start: START + HOUR, end: START + 2 * HOUR, isAllDay: false },
+    });
+  });
+
+  it('keeps holding a drop once the guest that started the hold is removed again', async function () {
+    const calendar = calendarWith([withoutGuests]);
+    const held = { start: START + HOUR, end: START + 2 * HOUR, isAllDay: false };
+    calendar.state.unsentChange = { eventId: 'e1', edits: [], times: held };
+
+    await calendar._persistDragChange(droppedAt(withoutGuests, START + 2 * HOUR));
+
+    expect(queueTask).not.toHaveBeenCalled();
+    expect(calendar.state.unsentChange.times.start).toBe(START + 2 * HOUR);
   });
 
   it('holds arrow-key moves, each starting from the held time', async function () {
@@ -337,6 +407,72 @@ describe('editing in the panel', function () {
 
     expect(queueTask.calls.length).toBe(1);
     expect(onUnsentChange).not.toHaveBeenCalled();
+  });
+
+  it('holds a title change to an event without guests once a guest is waiting to be added', async function () {
+    const alex = { email: 'alex@example.com', name: 'Alex' };
+    const held = { eventId: 'e1', edits: [], attendees: { added: [alex], removed: [] } };
+    const panel = panelFor(withoutGuests, held);
+    panel._saveProperty({ property: 'summary', value: 'Interview with Alex' });
+    await panel._saving;
+
+    expect(queueTask).not.toHaveBeenCalled();
+    expect(onUnsentChange).toHaveBeenCalledWith({
+      ...held,
+      edits: [{ property: 'summary', value: 'Interview with Alex' }],
+    });
+  });
+
+  describe('the guest list', function () {
+    const alex = { email: 'alex@example.com', name: 'Alex' };
+
+    it('holds a guest added to an event without guests, and sends them in one update', async function () {
+      const panel = panelFor(withoutGuests);
+      panel._addAttendees([alex]);
+
+      const change = onUnsentChange.mostRecentCall.args[0];
+      expect(change.attendees).toEqual({ added: [alex], removed: [] });
+      expect(queueTask).not.toHaveBeenCalled();
+
+      await calendarWith([withoutGuests])._writeChange(change);
+      expect(queueTask.calls.length).toBe(1);
+      const ics = queueTask.calls[0].args[0].event.ics.replace(/\r?\n[ \t]/g, '');
+      expect(ics).toContain('RSVP=TRUE:mailto:alex@example.com');
+    });
+
+    it('adds a guest to a change that already removes one and renames the event', function () {
+      const riley = { email: 'riley@example.com', name: 'Riley' };
+      const held = {
+        eventId: 'e1',
+        edits: [{ property: 'summary' as const, value: 'Interview with Riley' }],
+        attendees: { added: [], removed: [withGuests.attendees[1]] },
+      };
+      const panel = panelFor(withGuests, held);
+      panel._addAttendees([riley]);
+
+      expect(onUnsentChange).toHaveBeenCalledWith({
+        ...held,
+        attendees: { added: [riley], removed: [withGuests.attendees[1]] },
+      });
+    });
+
+    it('drops the change once the guest just added is removed again', function () {
+      const held = { eventId: 'e1', edits: [], attendees: { added: [alex], removed: [] } };
+      const panel = panelFor(withoutGuests, held);
+      panel._removeAttendee(alex);
+
+      expect(onUnsentChange).toHaveBeenCalledWith(null);
+    });
+
+    it('holds the removal of a guest', function () {
+      const panel = panelFor(withGuests);
+      panel._removeAttendee({ email: 'Alex@example.com' });
+
+      expect(onUnsentChange.mostRecentCall.args[0].attendees).toEqual({
+        added: [],
+        removed: [withGuests.attendees[1]],
+      });
+    });
   });
 
   it('holds a time change to an event with guests, queueing nothing', async function () {

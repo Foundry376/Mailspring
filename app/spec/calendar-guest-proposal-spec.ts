@@ -144,7 +144,7 @@ describe('editableFields', function () {
 
   it('gives the organizer every field', function () {
     expect(fields(ours)).toEqual(
-      ['allDay', 'location', 'notes', 'repeat', 'showAs', 'times', 'title'].sort()
+      ['allDay', 'invitees', 'location', 'notes', 'repeat', 'showAs', 'times', 'title'].sort()
     );
   });
 
