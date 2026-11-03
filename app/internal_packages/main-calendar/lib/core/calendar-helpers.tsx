@@ -25,6 +25,7 @@ import {
 import { EventOccurrence, coveredDates, isTimed } from './calendar-data-source';
 import { dayFraction } from './week-view-helpers';
 import { canRespondToEvent } from './calendar-rsvp';
+import type { EventChange } from './recurring-event-actions';
 
 export function dateOf(m: Moment): CalendarDate {
   return CalendarDateUtils.calendarDateFromUnix(m.unix());
@@ -620,13 +621,22 @@ export function hasGuests(event: EventOccurrence): boolean {
   );
 }
 
-export type PanelField = 'title' | 'times' | 'allDay' | 'repeat' | 'location' | 'notes' | 'showAs';
+export type PanelField =
+  | 'title'
+  | 'times'
+  | 'allDay'
+  | 'repeat'
+  | 'invitees'
+  | 'location'
+  | 'notes'
+  | 'showAs';
 
 const PANEL_FIELDS: PanelField[] = [
   'title',
   'times',
   'allDay',
   'repeat',
+  'invitees',
   'location',
   'notes',
   'showAs',
@@ -661,10 +671,17 @@ export function asksGuestShowAsScope(event: EventOccurrence): boolean {
   return asksScope(event) && AccountStore.accountForId(event.accountId).provider !== 'gmail';
 }
 
-/** Edits wait in the panel's card when guests are emailed on every save, for a scope, or as a proposal. */
-export function holdsEdits(event: EventOccurrence, isCalendarReadOnly: boolean): boolean {
+/**
+ * Edits wait in the panel's card when guests are emailed on every save, for a scope, or as a
+ * proposal; and once `change` adds or removes guests, so the update they get carries them all.
+ */
+export function holdsEdits(
+  event: EventOccurrence,
+  isCalendarReadOnly: boolean,
+  change: EventChange | null = null
+): boolean {
   if (!event.isMine) return proposesTime(event, isCalendarReadOnly);
-  return !isCalendarReadOnly && (hasGuests(event) || asksScope(event));
+  return !isCalendarReadOnly && (hasGuests(event) || asksScope(event) || !!change?.attendees);
 }
 
 /** The times an event takes when All day is switched: whole days covering it, or 9–10 AM on its first day. */

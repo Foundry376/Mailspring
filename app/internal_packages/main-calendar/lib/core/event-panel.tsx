@@ -287,7 +287,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   }
 
   _holdsEdits() {
-    return holdsEdits(this.props.event, this.props.isCalendarReadOnly);
+    return holdsEdits(this.props.event, this.props.isCalendarReadOnly, this.props.unsentChange);
   }
 
   // A copy on someone else's calendar holds their availability, not ours (recordAndSendRSVP).

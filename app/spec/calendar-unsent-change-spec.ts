@@ -178,6 +178,22 @@ describe('moving an event with guests', function () {
     expect(calendar.state.unsentChange).toBe(null);
   });
 
+  it('holds a drop of an event without guests once a guest is waiting to be added', async function () {
+    const calendar = calendarWith([withoutGuests]);
+    const attendees = { added: [{ email: 'alex@example.com', name: 'Alex' }], removed: [] };
+    calendar.state.unsentChange = { eventId: 'e1', edits: [], attendees };
+
+    await calendar._persistDragChange(droppedAt(withoutGuests, START + HOUR));
+
+    expect(queueTask).not.toHaveBeenCalled();
+    expect(calendar.state.unsentChange).toEqual({
+      eventId: 'e1',
+      edits: [],
+      attendees,
+      times: { start: START + HOUR, end: START + 2 * HOUR, isAllDay: false },
+    });
+  });
+
   it('holds arrow-key moves, each starting from the held time', async function () {
     const calendar = calendarWith([withGuests]);
 
@@ -370,6 +386,20 @@ describe('editing in the panel', function () {
 
     expect(queueTask.calls.length).toBe(1);
     expect(onUnsentChange).not.toHaveBeenCalled();
+  });
+
+  it('holds a title change to an event without guests once a guest is waiting to be added', async function () {
+    const alex = { email: 'alex@example.com', name: 'Alex' };
+    const held = { eventId: 'e1', edits: [], attendees: { added: [alex], removed: [] } };
+    const panel = panelFor(withoutGuests, held);
+    panel._saveProperty({ property: 'summary', value: 'Interview with Alex' });
+    await panel._saving;
+
+    expect(queueTask).not.toHaveBeenCalled();
+    expect(onUnsentChange).toHaveBeenCalledWith({
+      ...held,
+      edits: [{ property: 'summary', value: 'Interview with Alex' }],
+    });
   });
 
   it('holds a time change to an event with guests, queueing nothing', async function () {
