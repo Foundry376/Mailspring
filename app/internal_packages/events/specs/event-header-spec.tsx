@@ -579,35 +579,58 @@ describe('EventHeader answering an invitation', function () {
       );
     });
 
-    it('records the answer on our copy and the message, and leaves telling the organizer to Google', function () {
+    it('records the answer on our copy and leaves telling the organizer to Google', function () {
       mount({ events: [synced], calendars: [mine] });
       runs(() => {
         click('Yes');
-        expect(queued.length).toBe(2);
-        const [write, recorded] = queued as [SyncbackEventTask, SyncbackMetadataTask];
+        expect(queued.length).toBe(1);
+        const write = queued[0] as SyncbackEventTask;
         expect(write instanceof SyncbackEventTask).toBe(true);
         expect(write.rsvp.status).toBe('ACCEPTED');
-        expect(recorded instanceof SyncbackMetadataTask).toBe(true);
-        expect(recorded.modelId).toBe('m1');
-        expect(recorded.value.status).toBe('ACCEPTED');
+        expect(write.rsvp.messageId).toBe('m1');
       });
     });
 
-    it('shows the answer it recorded over one emailed before', function () {
-      mount({ events: [synced], calendars: [mine] });
-      runs(() => {
-        const { message } = header.props;
-        message.directlyAttachMetadata('event-rsvp', { status: 'DECLINED', time: Date.now() });
-        header.forceUpdate();
-        expect(answered()).toEqual(['No']);
+    describe('once the write has been tried', function () {
+      let message: Message;
+      let write: SyncbackEventTask;
 
-        click('Yes');
-        const recorded = queued.find(
-          (t) => t instanceof SyncbackMetadataTask
-        ) as SyncbackMetadataTask;
-        message.directlyAttachMetadata(recorded.pluginId, recorded.value);
+      const showRecordedAnswers = () => {
+        for (const task of queued) {
+          if (task instanceof SyncbackMetadataTask) {
+            message.directlyAttachMetadata(task.pluginId, task.value);
+          }
+        }
         header.forceUpdate();
-        expect(answered()).toEqual(['Yes']);
+      };
+
+      beforeEach(function () {
+        spyOn(AppEnv.mailsyncBridge, 'sendSyncCalendarNow');
+        mount({ events: [synced], calendars: [mine] });
+        runs(() => {
+          message = header.props.message;
+          spyOn(DatabaseStore, 'find').andReturn(Promise.resolve(message));
+          message.directlyAttachMetadata('event-rsvp', { status: 'DECLINED', time: Date.now() });
+          header.forceUpdate();
+          click('Yes');
+          write = queued[0] as SyncbackEventTask;
+        });
+      });
+
+      it('shows the answer over one emailed before when it lands', function () {
+        waitsForPromise(() => write.onSuccess());
+        runs(() => {
+          showRecordedAnswers();
+          expect(answered()).toEqual(['Yes']);
+        });
+      });
+
+      it('keeps showing the earlier answer when it fails', function () {
+        waitsForPromise(() => write.onError({ key: 'not-found', debuginfo: '' }));
+        runs(() => {
+          showRecordedAnswers();
+          expect(answered()).toEqual(['No']);
+        });
       });
     });
 

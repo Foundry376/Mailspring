@@ -981,8 +981,8 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     // A copy we create still gets the REPLY: whether Google tells the organizer about it is untested.
     if (write?.kind === 'update' && EventRSVPTask.calendarWriteSendsReply(message.accountId)) {
       this.setState({ inflight: status });
-      this._writeRSVPToCalendar(write);
-      EventRSVPTask.recordAnswerOnMessage(message, status);
+      const answer = { ...write.answer, messageId: message.id };
+      Actions.queueTask(SyncbackEventTask.forAnswering({ event: write.event, answer }));
       return;
     }
 
