@@ -828,6 +828,28 @@ body.platform-win32 {
       flex: 1;
     }
 
+    // Over the list, so the first day's heading tucks up under the button.
+    .agenda-new-event {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: flex-end;
+      padding: 8px 14px 0;
+      margin-bottom: -12px;
+      pointer-events: none;
+
+      .btn-ghost {
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: @text-color-subtle;
+        pointer-events: auto;
+      }
+    }
+
     .agenda-event-list {
       padding: 0 14px 14px;
     }

@@ -295,73 +295,6 @@
   }
 
   // ============================================
-  // Calendar Selector (for new events)
-  // ============================================
-  .calendar-selector {
-    position: relative;
-    display: flex;
-    align-items: center;
-    padding: @padding-small-vertical @padding-base-horizontal;
-    border-bottom: 1px solid @border-color-divider;
-
-    .calendar-selector-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      margin-right: 8px;
-      flex-shrink: 0;
-      border: 1px solid fade(@black, 15%);
-    }
-
-    .calendar-selector-value {
-      flex: 1;
-      min-width: 0;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: @text-color;
-      font-size: @font-size-small;
-      padding: 2px 4px;
-      border-radius: @border-radius-small;
-      white-space: nowrap;
-    }
-
-    .calendar-selector-name {
-      flex-shrink: 0;
-    }
-
-    .calendar-selector-account {
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      color: @text-color-very-subtle;
-    }
-
-    .calendar-selector-chevron {
-      display: flex;
-      margin-left: auto;
-      color: @text-color-very-subtle;
-    }
-
-    select {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      opacity: 0;
-      cursor: pointer;
-      font-size: @font-size-small;
-    }
-
-    &:hover .calendar-selector-value {
-      background-color: @background-secondary;
-    }
-
-    &:has(select:focus) .calendar-selector-value {
-      box-shadow: 0 0 0 2px rgb(from @accent-primary r g b / 40%);
-    }
-  }
-
-  // ============================================
   // Location Video Input
   // ============================================
   .location-video-input {
@@ -537,8 +470,91 @@
   }
 }
 
+// The quick add is a plain box, with no pointer at the button it hangs from.
+.fixed-popover-container:has(.quick-event-popover) {
+  .fixed-popover {
+    border: 1px solid @border-color-divider;
+    border-radius: 8px;
+    background: @background-primary;
+    box-shadow: 0 6px 20px fade(@black, 14%);
+    overflow: hidden;
+  }
+
+  .fixed-popover-pointer {
+    display: none;
+  }
+}
+
+// The field quick add and Add Invitees share: a fill on hover, none while typing in it, and a
+// clear button at the end while it holds text. Where it sits is up to its container.
+.calendar-field() {
+  position: relative;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 4px;
+
+  &:hover:not(:focus-within) {
+    background: @list-hover-bg;
+  }
+
+  &:has(.clear-button) {
+    padding-right: 28px;
+  }
+
+  input,
+  input:focus {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    outline: none;
+    font: inherit;
+    color: inherit;
+  }
+
+  .clear-button {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: @text-color;
+    opacity: 0.5;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
 .quick-event-popover {
-  width: 250px;
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+
+  // Inset, so the text sits 12px from the popover's edge.
+  .quick-event-popover-field {
+    .calendar-field();
+    margin: 3px 4px 0;
+    font-size: 13px;
+  }
+
+  .quick-event-popover-hint {
+    margin-top: 3px;
+    padding: 6px 12px 8px;
+    border-top: 1px solid @border-color-divider;
+    font-size: 11px;
+    line-height: 15px;
+    color: @text-color-very-subtle;
+  }
 }
 
 // The toolbar makes every item a no-drag region; the empty space beside the controls still moves the window.
@@ -978,8 +994,8 @@
   .event-panel-invitee.removable:hover,
   .event-panel-invitee.removable:focus-within {
     .event-panel-invitee-line {
-      margin: -4px -4px -4px -7px;
-      padding: 4px 4px 4px 7px;
+      margin: -4px -4px -4px -8px;
+      padding: 4px 4px 4px 8px;
       border-radius: 3px;
       background: @list-hover-bg;
     }
@@ -990,11 +1006,15 @@
   }
 
   .event-panel-invitee-add {
-    align-items: center;
-
     .attendee-status {
-      margin-top: 0;
+      margin-top: 7px;
       color: @text-color-very-subtle;
+    }
+
+    .event-attendees-hint {
+      font-size: 12px;
+      line-height: 16px;
+      color: fadeout(@text-color, 35%);
     }
 
     .event-panel-invitee-input {
@@ -1002,29 +1022,14 @@
       min-width: 0;
     }
 
-    // Inset as the guest rows' hover fill is, so the text lines up with the names.
+    // Pulled left so the text lines up with the guest names; the fill overhangs the 26px row.
     .tokenizing-field-input {
-      margin: -4px -4px -4px -7px;
-      padding: 4px 4px 4px 7px;
-      border-radius: 3px;
-
-      &:hover {
-        background: @list-hover-bg;
-      }
-
-      input,
-      input:focus {
-        padding: 0;
-        border: none;
-        box-shadow: none;
-        outline: none;
-        font: inherit;
-        color: inherit;
-      }
+      .calendar-field();
+      margin: -2px 0 -2px -8px;
     }
 
     .placeholder {
-      left: 7px;
+      left: 8px;
       color: @text-color-very-subtle;
     }
   }

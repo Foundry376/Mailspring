@@ -580,6 +580,7 @@ export const mailsyncProcessExited = create('mailsyncProcessExited', ActionScope
 
 // Calendar
 export const focusCalendarEvent = create('focusCalendarEvent', ActionScopeWindow);
+export const openNewCalendarEvent = create('openNewCalendarEvent', ActionScopeWindow);
 
 // Templates
 export const insertTemplateId = create('insertTemplateId', ActionScopeWindow);

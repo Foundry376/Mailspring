@@ -1,96 +1,82 @@
 import React from 'react';
-import { Actions, Calendar, DatabaseStore, DateUtils, localized } from 'mailspring-exports';
-import { Moment } from 'moment';
-import {
-  defaultCalendarForNewEvent,
-  showNoEditableCalendarsError,
-  createCalendarEvent,
-} from './core/calendar-helpers';
+import moment from 'moment';
+import { Actions, DateUtils, localized } from 'mailspring-exports';
+import { formatShortTimeRange } from './core/calendar-helpers';
+import { ClearButton } from './core/clear-button';
+
+type ParsedEvent = ReturnType<typeof DateUtils.parseDateString>;
+
+/** Opens the quick add under `anchor`, as New Event and the agenda's + do. */
+export function openQuickEventPopover(anchor: HTMLElement) {
+  Actions.openPopover(<QuickEventPopover />, {
+    originRect: anchor.getBoundingClientRect(),
+    direction: 'down',
+  });
+}
+
+/** The slot Enter would create, as the footer reads it: "Fri, Sep 18 · 12–1PM · Enter to add". */
+export function quickEventReading({ start, end }: ParsedEvent) {
+  const day = start.isSame(moment(), 'day') ? localized('Today') : start.format('ddd, MMM D');
+  return localized(
+    '%1$@ · %2$@ · Enter to add',
+    day,
+    formatShortTimeRange(start.unix(), end.unix())
+  );
+}
 
 interface QuickEventPopoverState {
-  start: Moment | null;
-  end: Moment | null;
-  leftoverText: string | null;
+  text: string;
+  parsed: ParsedEvent | null;
 }
 
 export class QuickEventPopover extends React.Component<
   Record<string, unknown>,
   QuickEventPopoverState
 > {
-  constructor(props) {
-    super(props);
-    this.state = {
-      start: null,
-      end: null,
-      leftoverText: null,
-    };
-  }
+  state: QuickEventPopoverState = { text: '', parsed: null };
 
+  // Opens what the footer reads in the event panel, rather than parsing again a minute later.
   onInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    const { key } = event;
-    const { value } = event.target as HTMLInputElement;
-    if (value.length > 0 && ['Enter', 'Return'].includes(key)) {
-      // This prevents onInputChange from being fired
+    const { parsed } = this.state;
+    if (parsed && ['Enter', 'Return'].includes(event.key)) {
       event.stopPropagation();
-      this.createEvent(DateUtils.parseDateString(value));
       Actions.closePopover();
+      Actions.openNewCalendarEvent({
+        title: parsed.leftoverText,
+        start: parsed.start.unix(),
+        end: parsed.end.unix(),
+      });
     }
   };
 
   onInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState(DateUtils.parseDateString(event.target.value));
+    const text = event.target.value;
+    this.setState({ text, parsed: text.trim() ? DateUtils.parseDateString(text) : null });
   };
 
-  createEvent = async ({
-    leftoverText,
-    start,
-    end,
-  }: {
-    leftoverText: string;
-    start: Moment;
-    end: Moment;
-  }) => {
-    const allCalendars = await DatabaseStore.findAll<Calendar>(Calendar);
-    const disabledCalendars: string[] = AppEnv.config.get('mailspring.disabledCalendars') || [];
-    const calendar = defaultCalendarForNewEvent(allCalendars, disabledCalendars);
-    if (!calendar) {
-      showNoEditableCalendarsError();
-      return;
-    }
-
-    await createCalendarEvent({
-      summary: leftoverText,
-      start: start.toDate(),
-      end: end.toDate(),
-      isAllDay: false,
-      calendarId: calendar.id,
-      accountId: calendar.accountId,
-    });
+  onClear = () => {
+    this.setState({ text: '', parsed: null });
   };
 
   render() {
-    let dateInterpretation;
-    if (this.state.start) {
-      dateInterpretation = (
-        <span className="date-interpretation">
-          {localized('Title:')} {this.state.leftoverText} <br />
-          {localized('Start:')} {DateUtils.format(this.state.start, DateUtils.DATE_FORMAT_SHORT)}{' '}
-          <br />
-          {localized('End:')} {DateUtils.format(this.state.end, DateUtils.DATE_FORMAT_SHORT)}
-        </span>
-      );
-    }
-
+    const { text, parsed } = this.state;
     return (
-      <div className="quick-event-popover nylas-date-input">
-        <input
-          tabIndex={0}
-          type="text"
-          placeholder={localized('Coffee next Monday at 9AM')}
-          onKeyDown={this.onInputKeyDown}
-          onChange={this.onInputChange}
-        />
-        {dateInterpretation}
+      <div className="quick-event-popover">
+        <div className="quick-event-popover-field">
+          <input
+            tabIndex={0}
+            type="text"
+            value={text}
+            aria-label={localized('Quick add')}
+            placeholder={localized('Coffee next Monday at 9AM')}
+            onKeyDown={this.onInputKeyDown}
+            onChange={this.onInputChange}
+          />
+          {text && <ClearButton onClear={this.onClear} />}
+        </div>
+        <div className="quick-event-popover-hint">
+          {parsed ? quickEventReading(parsed) : localized('Enter to add · Esc to close')}
+        </div>
       </div>
     );
   }
