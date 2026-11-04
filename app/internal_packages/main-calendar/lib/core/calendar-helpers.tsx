@@ -337,6 +337,7 @@ export function newEventOccurrence(id: string, draft: NewEventDraft): EventOccur
     isPending: false,
     isMine: true,
     isException: false,
+    isFree: defaultShowAs(isAllDay) === 'TRANSPARENT',
     organizer: null,
     attendees: [],
   };

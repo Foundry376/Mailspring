@@ -6,6 +6,8 @@ import {
   occurrenceAt,
   occurrenceSlot,
 } from './calendar-data-source';
+import { ShowAsOption, defaultShowAs } from './show-as-selector';
+import type { CreateCalendarEventOptions, NewEventDraft } from './calendar-helpers';
 
 type Times = NonNullable<EventChange['times']>;
 
@@ -153,4 +155,36 @@ function drawnWith(occurrence: EventOccurrence, change: UnsentChange): EventOccu
     isFree: transp === undefined ? occurrence.isFree : transp === 'TRANSPARENT',
   };
   return change.times ? occurrenceAt(shown, change.times) : shown;
+}
+
+/** An event that exists only in the panel is kept on leaving once it has a title or an invitee. */
+export function keepsUnsavedEvent(change: UnsentChange | null) {
+  return !!unsentEdit(change, 'summary')?.value || !!change?.attendees?.added.length;
+}
+
+/**
+ * What creates `draft` with the change made to it in the panel. Show as is the one the panel
+ * shows; the alert, which it doesn't, follows whether the event ends up all-day.
+ */
+export function newEventOptions(
+  draft: NewEventDraft,
+  change: UnsentChange | null
+): CreateCalendarEventOptions {
+  const { start, end, isAllDay } = change?.times ?? draft;
+  const edited = (property: EventPropertyEdit['property']) =>
+    unsentEdit(change, property)?.value || undefined;
+  const added = change?.attendees?.added ?? [];
+  return {
+    summary: edited('summary') ?? localized('New Event'),
+    start: new Date(start * 1000),
+    end: new Date(end * 1000),
+    isAllDay,
+    calendarId: draft.calendarId,
+    accountId: draft.accountId,
+    location: edited('location'),
+    description: edited('description'),
+    recurrenceRule: edited('rrule'),
+    transparency: (edited('transp') as ShowAsOption) ?? defaultShowAs(draft.isAllDay),
+    attendees: added.length ? added.map(({ email, name }) => ({ email, name })) : undefined,
+  };
 }

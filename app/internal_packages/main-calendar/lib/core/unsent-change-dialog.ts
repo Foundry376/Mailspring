@@ -1,6 +1,6 @@
 import { getCurrentLocale, localized } from 'mailspring-exports';
 import { ChangeScope, EventPropertyEdit } from './recurring-event-actions';
-import { UnsentChange, scopeLabel, scopesFor } from './unsent-change';
+import { UnsentChange, scopeLabel, scopesFor, unsentEdit } from './unsent-change';
 import { EventOccurrence } from './calendar-data-source';
 import { asksScope } from './calendar-helpers';
 
@@ -16,13 +16,14 @@ const changedName = (property: EventPropertyEdit['property']) =>
   })[property];
 
 /**
- * Asks what to do with a held change before leaving its event. Quitting can't be stopped, so
- * there it can't keep editing, and a series' scope is asked here rather than in the panel.
+ * Asks what to do with a held change before leaving its event, or with the `invitations` of an
+ * event not yet created. Quitting can't be stopped, so there it can't keep editing, and a series'
+ * scope is asked here rather than in the panel.
  */
 export function showUnsentChangeDialog(
   change: UnsentChange,
   event: EventOccurrence | undefined,
-  { canKeepEditing = true } = {}
+  { canKeepEditing = true, invitations = false } = {}
 ): UnsentChangeChoice {
   const changed = new Intl.ListFormat(getCurrentLocale(), { type: 'conjunction' }).format([
     ...(change.times ? [localized('time')] : []),
@@ -34,7 +35,17 @@ export function showUnsentChangeDialog(
   let choices: [UnsentChangeChoice, string][];
   let message: string;
   let detail: string;
-  if (change.proposal) {
+  if (invitations) {
+    choices = [
+      ['send', localized('Send invitations')],
+      ['discard', localized('Discard')],
+    ];
+    message = localized(
+      'Send invitations for "%@"?',
+      unsentEdit(change, 'summary')?.value || localized('New Event')
+    );
+    detail = localized('Guests will be emailed.');
+  } else if (change.proposal) {
     choices = [
       ['send', localized('Send proposal')],
       ['discard', localized('Discard')],
