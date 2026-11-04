@@ -37,6 +37,21 @@ describe('DateUtils.parseDateString', function () {
     );
   });
 
+  describe('with no day or time named', function () {
+    it('starts at the next half hour, for an hour', function () {
+      spyOn(moment, 'now').andReturn(new Date(2026, 9, 31, 10, 12).getTime());
+      const { leftoverText, start, end } = DateUtils.parseDateString('Call the bank');
+      expect(leftoverText).toBe('Call the bank');
+      expect(start.format('YYYY-MM-DD HH:mm:ss.SSS')).toBe('2026-10-31 10:30:00.000');
+      expect(end.format('HH:mm')).toBe('11:30');
+    });
+
+    it('keeps a time that is already on the half hour', function () {
+      spyOn(moment, 'now').andReturn(new Date(2026, 9, 31, 10, 30).getTime());
+      expect(DateUtils.parseDateString('Call the bank').start.format('HH:mm')).toBe('10:30');
+    });
+  });
+
   describe('on a Saturday', function () {
     beforeEach(function () {
       spyOn(moment, 'now').andReturn(new Date(2026, 9, 31, 15, 0).getTime());
@@ -73,12 +88,5 @@ describe('DateUtils.parseDateString', function () {
     expect(start.format('YYYY-MM-DD HH:mm:ss')).toBe(
       `${moment().add(1, 'day').format('YYYY-MM-DD')} 00:00:00`
     );
-  });
-
-  it('starts an undated title now, on the minute, for an hour', function () {
-    const { leftoverText, start, end } = DateUtils.parseDateString('Call Sam ');
-    expect(leftoverText).toBe('Call Sam');
-    expect(start.valueOf()).toBe(moment().startOf('minute').valueOf());
-    expect(end.diff(start, 'minutes')).toBe(60);
   });
 });

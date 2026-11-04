@@ -376,6 +376,11 @@ const DateUtils = {
     }
     results.leftoverText = results.leftoverText.replace(/\s+/g, ' ').trim();
 
+    // Nothing named a day or a time: the next half hour, not the current minute.
+    if (!gotTime.start && !gotDay.start) {
+      results.start.add((30 - (now.minute() % 30)) % 30, 'minutes');
+    }
+
     // Make the event a default 1 hour long if it looks like the end date
     // wasn't assigned, or if it's before the start date.
     if (results.end.valueOf() === now.valueOf() || results.end <= results.start) {
