@@ -479,15 +479,31 @@ describe('a new event in the panel', function () {
       expect(created()[0].event.ics).toContain('alex@example.com');
     });
 
-    it('sends the invitations from the card and shows the event once the server has it', function () {
-      const helpers = require('../internal_packages/main-calendar/lib/core/calendar-helpers');
-      const create = spyOn(helpers, 'createCalendarEvent').andReturn(Promise.resolve());
+    it('sends the invitations from the card and shows the event once the server has it', async function () {
+      spyOn(TaskQueue, 'waitForPerformRemote').andReturn(Promise.resolve());
+      spyOn(Actions, 'focusCalendarEvent');
       cal._openNewEvent(range);
       cal._onUnsentChange(invited());
       cal._sendUnsentChange();
-      expect(create.mostRecentCall.args[0].attendees).toEqual([guest]);
+      expect(created()[0].event.ics).toContain('alex@example.com');
       expect(cal.state.newEvent).toBe(null);
       expect(cal.state.unsentChange).toBe(null);
+      await Promise.resolve();
+      expect(Actions.focusCalendarEvent.mostRecentCall.args[0].id).toBe(created()[0].event.id);
+    });
+
+    it('leaves a new event opened before the server has the first one alone', async function () {
+      let written: () => void;
+      spyOn(TaskQueue, 'waitForPerformRemote').andReturn(new Promise<void>((r) => (written = r)));
+      spyOn(Actions, 'focusCalendarEvent');
+      cal._openNewEvent(range);
+      cal._onUnsentChange(invited());
+      cal._sendUnsentChange();
+      cal._openNewEvent({ ...range, startUnix: BASE + 7200, endUnix: BASE + 10800 });
+      written();
+      await Promise.resolve();
+      expect(Actions.focusCalendarEvent).not.toHaveBeenCalled();
+      expect(cal.state.newEvent).not.toBe(null);
     });
 
     it('creates nothing when the user discards', function () {
@@ -540,6 +556,20 @@ describe('a new event in the panel', function () {
     cal._onUnsentChange(titled());
     expect(cal._onBeforeUnload(() => {})).toBe(false);
     expect(created().length).toBe(1);
+  });
+
+  it('creates it on Esc once it has a title, as leaving does', function () {
+    cal._openNewEvent(range);
+    cal._onUnsentChange(titled());
+    cal.render().props.children.props.localHandlers['core:pop-sheet']();
+    expect(created().length).toBe(1);
+    expect(created()[0].event.title).toBe('Interview');
+  });
+
+  it('still waits on quitting for an update being sent when a new event is open', function () {
+    cal._sending = { change: {}, done: new Promise(() => {}) };
+    cal._openNewEvent(range);
+    expect(cal._onBeforeUnload(() => {})).toBe(false);
   });
 
   it('lets the window close at once when there is nothing to create', function () {

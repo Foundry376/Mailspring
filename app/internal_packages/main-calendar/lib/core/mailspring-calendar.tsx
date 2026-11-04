@@ -61,7 +61,6 @@ import {
   clampEnd,
   newEventOccurrence,
   NewEventDraft,
-  createCalendarEvent,
   queueNewCalendarEvent,
   getEditableCalendars,
   editableFields,
@@ -373,8 +372,9 @@ export class MailspringCalendar extends React.Component<
     // First, so a field being edited is saved or joins the held change the dialog offers.
     const saved = this._eventPanel.current?.commitEdits();
     let sent = this._sending?.done;
+    let created: Promise<void> | undefined;
     if (this.state.newEvent) {
-      sent = this._leaveNewEvent({ canKeepEditing: false }) || undefined;
+      created = this._leaveNewEvent({ canKeepEditing: false }) || undefined;
     } else if (!sent && this._leavesUnsentChange([])) {
       const choice = showUnsentChangeDialog(this.state.unsentChange, this._unsentChangeEvent(), {
         canKeepEditing: false,
@@ -385,11 +385,11 @@ export class MailspringCalendar extends React.Component<
         sent = this._sendUnsentChange(choice === 'send' ? undefined : (choice as ChangeScope));
       }
     }
-    if (!saved && !sent) return true;
-    Promise.race([Promise.all([saved, sent]), new Promise((r) => setTimeout(r, 700))]).then(
-      readyToUnload,
-      readyToUnload
-    );
+    if (!saved && !sent && !created) return true;
+    Promise.race([
+      Promise.all([saved, sent, created]),
+      new Promise((r) => setTimeout(r, 700)),
+    ]).then(readyToUnload, readyToUnload);
     return false;
   };
 
@@ -398,8 +398,14 @@ export class MailspringCalendar extends React.Component<
   _sendUnsentChange = (scope: ChangeScope = 'this-occurrence') => {
     const change = this.state.unsentChange;
     if (this.state.newEvent) {
-      createCalendarEvent(newEventOptions(this.state.newEvent.draft, change));
+      const { event, task } = queueNewCalendarEvent(
+        newEventOptions(this.state.newEvent.draft, change)
+      );
       this._dropNewEvent();
+      TaskQueue.waitForPerformRemote(task).then(
+        () => this._showOnceWritten(event),
+        (error) => console.error('Failed to sync new event to server:', error)
+      );
       return Promise.resolve();
     }
     if (!change) return Promise.resolve();
@@ -410,6 +416,12 @@ export class MailspringCalendar extends React.Component<
     this._sending = { change, done };
     return done;
   };
+
+  // Not over another event the user has moved on to since sending.
+  _showOnceWritten(event: Event) {
+    if (this.state.newEvent || this.state.selectedEvents.length) return;
+    Actions.focusCalendarEvent({ id: event.id, start: event.recurrenceStart });
+  }
 
   async _writeUnsentChange(change: UnsentChange, scope: ChangeScope) {
     if (change.proposal) await this._sendProposal(change);

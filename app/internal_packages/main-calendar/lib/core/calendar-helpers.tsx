@@ -10,7 +10,6 @@ import {
   Event,
   ICSEventHelpers,
   SyncbackEventTask,
-  TaskQueue,
   localized,
   CalendarDateUtils,
   CalendarUtils,
@@ -559,17 +558,6 @@ export function queueNewCalendarEvent(options: CreateCalendarEventOptions): {
   });
   Actions.queueTask(task);
   return { event, task };
-}
-
-/** Creates a new calendar event and focuses it once the server has it. */
-export async function createCalendarEvent(options: CreateCalendarEventOptions): Promise<void> {
-  const { event, task } = queueNewCalendarEvent(options);
-  try {
-    await TaskQueue.waitForPerformRemote(task);
-    Actions.focusCalendarEvent({ id: event.id, start: event.recurrenceStart });
-  } catch (error) {
-    console.error('Failed to sync new event to server:', error);
-  }
 }
 
 /**
