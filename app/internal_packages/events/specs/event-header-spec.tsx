@@ -21,6 +21,7 @@ import {
   Message,
   Rx,
   SyncbackEventTask,
+  SyncbackMetadataTask,
   Task,
   Thread,
   Utils,
@@ -563,6 +564,111 @@ describe('EventHeader answering an invitation', function () {
       expect(destination().textContent).toContain('only be emailed to the organizer');
       click('Yes');
       expect(queued.length).toBe(1);
+    });
+  });
+
+  it('still emails the reply when the emailed invitation omits us but our copy lists us', function () {
+    fs.writeFileSync(
+      icsPath,
+      INVITE.replace('mailto:brian@example.com', 'mailto:carol@example.com')
+    );
+    mount({ events: [synced], calendars: [mine] });
+    runs(() => {
+      click('Yes');
+      expect(queued.length).toBe(1);
+      expect(queued[0] instanceof EventRSVPTask).toBe(true);
+    });
+  });
+
+  describe('on a Google account', function () {
+    const answered = () =>
+      ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'btn-rsvp')
+        .filter((n) => /ACCEPTED|DECLINED|TENTATIVE/.test(n.className))
+        .map((n) => n.textContent);
+
+    beforeEach(function () {
+      (AccountStore.accountForId as jasmine.Spy).andReturn(
+        new Account({ id: 'a1', emailAddress: 'brian@example.com', provider: 'gmail' })
+      );
+    });
+
+    it('records the answer on our copy and leaves telling the organizer to Google', function () {
+      mount({ events: [synced], calendars: [mine] });
+      runs(() => {
+        click('Yes');
+        expect(queued.length).toBe(1);
+        const write = queued[0] as SyncbackEventTask;
+        expect(write instanceof SyncbackEventTask).toBe(true);
+        expect(write.rsvp.status).toBe('ACCEPTED');
+        expect(write.rsvp.messageId).toBe('m1');
+      });
+    });
+
+    describe('once the write has been tried', function () {
+      let message: Message;
+      let write: SyncbackEventTask;
+
+      const showRecordedAnswers = () => {
+        for (const task of queued) {
+          if (task instanceof SyncbackMetadataTask) {
+            message.directlyAttachMetadata(task.pluginId, task.value);
+          }
+        }
+        header.forceUpdate();
+      };
+
+      beforeEach(function () {
+        spyOn(AppEnv.mailsyncBridge, 'sendSyncCalendarNow');
+        mount({ events: [synced], calendars: [mine] });
+        runs(() => {
+          message = header.props.message;
+          spyOn(DatabaseStore, 'find').andReturn(Promise.resolve(message));
+          message.directlyAttachMetadata('event-rsvp', { status: 'DECLINED', time: Date.now() });
+          header.forceUpdate();
+          click('Yes');
+          write = queued[0] as SyncbackEventTask;
+        });
+      });
+
+      it('shows the answer over one emailed before when it lands', function () {
+        waitsForPromise(() => write.onSuccess());
+        runs(() => {
+          showRecordedAnswers();
+          expect(answered()).toEqual(['Yes']);
+        });
+      });
+
+      it('keeps showing the earlier answer when it fails', function () {
+        waitsForPromise(() => write.onError({ key: 'not-found', debuginfo: '' }));
+        runs(() => {
+          showRecordedAnswers();
+          expect(answered()).toEqual(['No']);
+        });
+      });
+    });
+
+    it('still emails the reply when the answer adds the invitation to a calendar', function () {
+      mount({ events: [], calendars: [mine] });
+      runs(() => {
+        click('Yes');
+        expect(queued[0] instanceof EventRSVPTask).toBe(true);
+        expect((queued[1] as SyncbackEventTask).createdAnswer.status).toBe('ACCEPTED');
+      });
+    });
+
+    it("still emails the reply when it can't tell which copy is ours", function () {
+      const onShared = synced.clone();
+      onShared.calendarId = shared.id;
+      mount({
+        events: [onRoom, onShared],
+        calendars: [cal({ id: 'cal-room', name: 'Boardroom' }), shared],
+      });
+      runs(() => {
+        expect(destination().textContent).toContain("can't tell which copy is yours");
+        click('Yes');
+        expect(queued.length).toBe(1);
+        expect(queued[0] instanceof EventRSVPTask).toBe(true);
+      });
     });
   });
 

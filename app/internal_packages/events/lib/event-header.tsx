@@ -36,6 +36,7 @@ import {
   counterProposalProblem,
   CounterProposalProblem,
   RSVPTargetResolution,
+  RSVPWrite,
 } from './rsvp-target';
 import {
   copyIsBehind,
@@ -881,7 +882,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     );
   }
 
-  // The REPLY is emailed whichever copy is ours; this says whether an answer is also recorded.
+  // Says whether the answer is also recorded on a calendar, or only emailed.
   _renderRSVPDestination() {
     const { rsvp, addTo } = this.state;
     if (!rsvp) return false;
@@ -975,13 +976,23 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       return;
     }
 
+    const { message } = this.props;
+    const write = this._planRSVPWrite(status);
+    // A copy we create still gets the REPLY: whether Google tells the organizer about it is untested.
+    if (write?.kind === 'update' && EventRSVPTask.calendarWriteSendsReply(message.accountId)) {
+      this.setState({ inflight: status });
+      const answer = { ...write.answer, messageId: message.id };
+      Actions.queueTask(SyncbackEventTask.forAnswering({ event: write.event, answer }));
+      return;
+    }
+
     // EventRSVPTask.forReplying throws if it can't find us as an attendee in the data it's
     // replying with; catch that here instead of letting it crash the click handler.
     let task: EventRSVPTask;
     try {
       task = EventRSVPTask.forReplying({
-        accountId: this.props.message.accountId,
-        messageId: this.props.message.id,
+        accountId: message.accountId,
+        messageId: message.id,
         icsOriginalData: this._replyIcs(),
         icsRSVPStatus: status,
         to: organizerEmail,
@@ -998,16 +1009,16 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
 
     this.setState({ inflight: status });
     Actions.queueTask(task);
-    this._writeRSVPToCalendar(status);
+    if (write) this._writeRSVPToCalendar(write);
   };
 
-  // Not undoable: the REPLY already sent cannot be retracted (iTIP has no way to).
-  _writeRSVPToCalendar(status: ICSParticipantStatus) {
+  _planRSVPWrite(status: ICSParticipantStatus): RSVPWrite | null {
     const { rsvp, addTo, inviteIcs, inviteEvent, copyBehind } = this.state;
     const { accountId } = this.props.message;
-    // _onRSVP has already built the REPLY from this attendee, so it exists.
     const me = CalendarUtils.selfParticipant(inviteEvent, accountId);
-    const write = planRSVPWrite({
+    // A forwarded invitation can omit us while our synced copy lists us; the REPLY still goes.
+    if (!me) return null;
+    return planRSVPWrite({
       rsvp,
       addTo,
       status,
@@ -1017,7 +1028,11 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       accountId,
       copyBehind,
     });
-    if (!write) return;
+  }
+
+  // Not undoable: an answer the organizer has been sent cannot be retracted (iTIP has no way to).
+  _writeRSVPToCalendar(write: RSVPWrite) {
+    const { accountId } = this.props.message;
     Actions.queueTask(
       write.kind === 'update'
         ? SyncbackEventTask.forAnswering({ event: write.event, answer: write.answer })

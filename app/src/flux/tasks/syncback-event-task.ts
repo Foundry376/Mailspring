@@ -7,6 +7,7 @@ import {
   Actions,
   DatabaseChangeRecord,
   DatabaseStore,
+  EventRSVPTask,
   ICSEventHelpers,
   ICSParticipantStatus,
 } from 'mailspring-exports';
@@ -30,6 +31,8 @@ export interface RSVPAnswer {
   occurrenceIcs?: string;
   /** Set on the write made again, which is not retried a second time. */
   retried?: boolean;
+  /** The invitation email to record the answer on once the write lands, when no REPLY will. */
+  messageId?: string;
 }
 
 const FRESH_COPY_TIMEOUT_MS = 30 * 1000;
@@ -128,8 +131,8 @@ export class SyncbackEventTask extends Task {
   }
 
   /**
-   * Records our answer to an invitation on our copy of the event. Not undoable: the REPLY
-   * emailed beside it cannot be retracted.
+   * Records our answer to an invitation on our copy of the event. Not undoable: an answer the
+   * organizer has been sent cannot be retracted.
    */
   static forAnswering({ event, answer }: { event: Event; answer: RSVPAnswer }) {
     latestQueuedIcs.set(event.id, event.ics);
@@ -223,6 +226,9 @@ export class SyncbackEventTask extends Task {
   // The engine stores the written resource's rows itself (DAVWorker::storeServerCopy), exception
   // rows included. This pass picks up whatever else the server changed on the calendar.
   async onSuccess() {
+    if (this.rsvp?.messageId) {
+      await EventRSVPTask.recordAnswerOnMessage(this.rsvp.messageId, this.rsvp.status);
+    }
     AppEnv.mailsyncBridge.sendSyncCalendarNow(this.accountId);
   }
 
