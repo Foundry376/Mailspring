@@ -114,10 +114,9 @@ interface EventPanelProps {
   onSendUnsentChange: (scope: ChangeScope) => void;
   onSaveChange: (change: UnsentChange) => Promise<void>;
   /** An event that exists only in the panel: every edit is held until the host creates it. */
-  isUnsaved?: boolean;
+  isNewEvent?: boolean;
   /** Replaces Discard's dropping of the held change, for an event the host would drop whole. */
   onDiscard?: () => void;
-  /** The calendars the event may be put on, for an event that isn't on one yet. */
   calendarChoices?: Calendar[];
   onCalendarChange?: (calendar: Calendar) => void;
 }
@@ -300,8 +299,8 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   }
 
   _holdsEdits() {
-    const { event, isCalendarReadOnly, unsentChange, isUnsaved } = this.props;
-    return isUnsaved || holdsEdits(event, isCalendarReadOnly, unsentChange);
+    const { event, isCalendarReadOnly, unsentChange, isNewEvent } = this.props;
+    return isNewEvent || holdsEdits(event, isCalendarReadOnly, unsentChange);
   }
 
   // A copy on someone else's calendar holds their availability, not ours (recordAndSendRSVP).
@@ -505,7 +504,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           onSave={(value) =>
             this._saveProperty({
               property: 'summary',
-              value: value || (this.props.isUnsaved ? '' : localized('New Event')),
+              value: value || (this.props.isNewEvent ? '' : localized('New Event')),
             })
           }
         />
@@ -857,7 +856,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       >
         {byAccount.size > 1
           ? [...byAccount].map(([accountId, calendars]) => (
-              <optgroup key={accountId} label={AccountStore.accountForId(accountId)?.emailAddress}>
+              <optgroup key={accountId} label={AccountStore.accountForId(accountId)?.label}>
                 {options(calendars)}
               </optgroup>
             ))
@@ -1029,7 +1028,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   _renderUnsentChangeCard() {
     const change = this.props.unsentChange;
     if (!change) return null;
-    if (this.props.isUnsaved) return this._renderInvitationsCard(change);
+    if (this.props.isNewEvent) return this._renderInvitationsCard(change);
     return (
       <div className="event-panel-card event-panel-change">
         {this._changeRows(change).map(this._renderChangeRow)}
@@ -1055,7 +1054,6 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
-  // Its other fields are new too, so only the guests who will be emailed are listed.
   _renderInvitationsCard(change: UnsentChange) {
     if (!change.attendees?.added.length) return null;
     const rows = this._changeRows(change).filter((row) => row.key === 'attendees');

@@ -376,7 +376,7 @@ const DateUtils = {
     }
     results.leftoverText = results.leftoverText.replace(/\s+/g, ' ').trim();
 
-    // Nothing named a day or a time: the next half hour, not the current minute.
+    // Nothing named a day or a time: start on the next half hour.
     if (!gotTime.start && !gotDay.start) {
       results.start.add((30 - (now.minute() % 30)) % 30, 'minutes');
     }

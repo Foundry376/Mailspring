@@ -311,9 +311,8 @@ export function sameWallClockIn(unix: number, fromZone: string, toZone: string):
   return momentTz.tz(wallClock, toZone).unix();
 }
 
-/** The fields of a new event that the grid draws, as its editor would save them. */
+/** The slot and calendar a new event opens with; the panel holds every edit after that. */
 export interface NewEventDraft {
-  title: string;
   start: number;
   end: number;
   isAllDay: boolean;
@@ -323,12 +322,12 @@ export interface NewEventDraft {
 
 /** An event that does not exist yet, as an occurrence, so the grid draws it like any other. */
 export function newEventOccurrence(id: string, draft: NewEventDraft): EventOccurrence {
-  const { title, start, end, isAllDay, calendarId, accountId } = draft;
+  const { start, end, isAllDay, calendarId, accountId } = draft;
   const shared = {
     id,
     accountId,
     calendarId,
-    title,
+    title: '',
     description: '',
     location: '',
     isRecurring: false,
@@ -501,10 +500,7 @@ export interface CreateCalendarEventOptions {
   location?: string;
   attendees?: Array<{ email: string; name?: string }>;
   recurrenceRule?: string;
-  timezone?: string;
   transparency?: ShowAsOption;
-  /** The reminder's TRIGGER, null for none; omitted, the editor's default for the event. */
-  alarmTrigger?: string | null;
 }
 
 /** The account, as the ORGANIZER the ICS helpers name once an event has guests. */
@@ -521,24 +517,20 @@ export function queueNewCalendarEvent(options: CreateCalendarEventOptions): {
   task: SyncbackEventTask;
 } {
   const icsuid = ICSEventHelpers.generateUID();
-  const alarmTrigger =
-    options.alarmTrigger === undefined
-      ? alertTrigger(defaultAlert(options.isAllDay))
-      : options.alarmTrigger;
   const ics = ICSEventHelpers.createICSString({
     uid: icsuid,
     summary: options.summary,
     start: options.start,
     end: options.end,
     isAllDay: options.isAllDay,
-    timezone: options.timezone || DateUtils.timeZone,
+    timezone: DateUtils.timeZone,
     description: options.description,
     location: options.location,
     organizer: organizerForAccount(options.accountId),
     attendees: options.attendees,
     recurrenceRule: options.recurrenceRule,
     transparency: options.transparency ?? defaultShowAs(options.isAllDay),
-    alarmTrigger,
+    alarmTrigger: alertTrigger(defaultAlert(options.isAllDay)),
   });
 
   const event = new Event({

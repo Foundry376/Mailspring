@@ -157,8 +157,7 @@ function drawnWith(occurrence: EventOccurrence, change: UnsentChange): EventOccu
   return change.times ? occurrenceAt(shown, change.times) : shown;
 }
 
-/** An event that exists only in the panel is kept on leaving once it has a title or an invitee. */
-export function keepsUnsavedEvent(change: UnsentChange | null) {
+export function keepsNewEvent(change: UnsentChange | null) {
   return !!unsentEdit(change, 'summary')?.value || !!change?.attendees?.added.length;
 }
 

@@ -2,10 +2,7 @@ import React from 'react';
 import { localized } from 'mailspring-exports';
 import { SVGIcons } from 'mailspring-component-kit';
 
-/**
- * Empties the field it sits in. A press doesn't take focus from that field, so the field's own
- * blur, which would add what's typed, never runs.
- */
+// A press keeps focus in the field: its blur would add what's typed before the clear.
 export const ClearButton = ({ onClear }: { onClear: () => void }) => (
   <button
     type="button"

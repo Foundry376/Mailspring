@@ -89,7 +89,6 @@ describe('EventAttendeesInput clearing typed text', function () {
     expect(container.querySelector('.clear-button')).toBe(null);
     fireEvent.change(input, { target: { value: 'alex@example.com' } });
     const clear = container.querySelector('.clear-button');
-    // Cancelled, so focus stays in the field and its blur, which adds what's typed, never runs.
     expect(fireEvent.mouseDown(clear)).toBe(false);
     fireEvent.click(clear);
     for (let i = 0; i < 10; i++) await Promise.resolve();

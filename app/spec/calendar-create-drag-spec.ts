@@ -358,7 +358,7 @@ describe('a new event in the panel', function () {
     cal._openNewEvent(range);
     expect(cal.state.agendaOpen).toBe(true);
     expect(panel().props.event).toBe(cal.state.newEvent.occurrence);
-    expect(panel().props.isUnsaved).toBe(true);
+    expect(panel().props.isNewEvent).toBe(true);
     expect(panel().props.onDiscard).toBe(cal._dropNewEvent);
     expect(panel().props.calendarChoices.map((c) => c.id)).toEqual(['cal-1', 'cal-2']);
     expect(shown().start).toBe(BASE);

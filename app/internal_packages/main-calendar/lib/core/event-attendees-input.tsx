@@ -31,7 +31,6 @@ interface EventAttendeesInputProps {
   placeholder?: string;
   onEmptied?: () => void;
   onFocus?: () => void;
-  /** Shows a clear button while text is typed. */
   clearable?: boolean;
 }
 
@@ -104,7 +103,6 @@ export class EventAttendeesInput extends React.Component<
     });
   };
 
-  // Text with no address in it yet stays in the field rather than becoming a guest.
   _add = (
     values: string | EventAttendee[],
     options: Record<string, unknown> = {}

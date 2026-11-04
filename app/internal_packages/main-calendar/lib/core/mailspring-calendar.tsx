@@ -3,9 +3,7 @@ import React from 'react';
 import {
   Rx,
   DatabaseStore,
-  AccountStore,
   Calendar,
-  Account,
   Actions,
   localized,
   CalendarDateUtils,
@@ -97,7 +95,7 @@ import {
 import {
   UnsentChange,
   isUnsentChangeFor,
-  keepsUnsavedEvent,
+  keepsNewEvent,
   newEventOptions,
   showAsWaitsForScope,
   unsentEdit,
@@ -192,14 +190,12 @@ interface MailspringCalendarState {
   agendaOpen: boolean;
   selectedEvents: EventOccurrence[];
   focusedEvent: FocusedEventInfo | null;
-  accounts?: Account[];
   calendars: Calendar[];
   calendarsLoaded: boolean;
   focusedMoment: Moment;
   disabledCalendars: string[];
   dragState: DragState | null;
   createDrag: CreateDragState | null;
-  /** The event being made in the panel, drawn on the grid until it's created or dropped. */
   newEvent: { draft: NewEventDraft; occurrence: EventOccurrence } | null;
   unsentChange: UnsentChange | null;
   readOnlyCalendarIds: Set<string>;
@@ -574,11 +570,10 @@ export class MailspringCalendar extends React.Component<
   _subscribeToCalendars() {
     const calQuery = DatabaseStore.findAll<Calendar>(Calendar);
     const calQueryObs = Rx.Observable.fromQuery(calQuery);
-    const accQueryObs = Rx.Observable.fromStore(AccountStore);
     const configObs = Rx.Observable.fromConfig<string[] | undefined>(DISABLED_CALENDARS);
 
-    return Rx.Observable.combineLatest(calQueryObs, accQueryObs, configObs).subscribe(
-      ([calendars, accountStore, disabledCalendars]) => {
+    return Rx.Observable.combineLatest(calQueryObs, configObs).subscribe(
+      ([calendars, disabledCalendars]) => {
         // Update the color cache with synced calendar colors from CalDAV
         setCalendarColors(calendars);
 
@@ -592,7 +587,6 @@ export class MailspringCalendar extends React.Component<
         this.setState({
           calendars: calendars,
           calendarsLoaded: true,
-          accounts: accountStore.accounts(),
           disabledCalendars: disabledCalendars || [],
           readOnlyCalendarIds,
         });
@@ -639,7 +633,6 @@ export class MailspringCalendar extends React.Component<
     FocusedMomentStore.setFocusedMoment(moment(event.start * 1000), event);
   };
 
-  // Quick add: the event may fall outside the range on screen, so the view moves to it.
   _onOpenNewCalendarEvent = ({
     title,
     start,
@@ -805,10 +798,7 @@ export class MailspringCalendar extends React.Component<
     this._openNewEvent({ startUnix, endUnix, isAllDay });
   }
 
-  /**
-   * Opens an event that does not exist yet in the panel, covering the given range. A title
-   * starts as an unsent edit, so leaving creates the event as if it had been typed.
-   */
+  /** A title starts as an unsent edit, so leaving creates the event as if it had been typed. */
   _openNewEvent({
     startUnix,
     endUnix,
@@ -832,7 +822,6 @@ export class MailspringCalendar extends React.Component<
     Actions.closePopover();
 
     const draft: NewEventDraft = {
-      title: '',
       start: startUnix,
       end: endUnix,
       isAllDay,
@@ -854,6 +843,11 @@ export class MailspringCalendar extends React.Component<
     return true;
   }
 
+  _newEventCalendarChoices() {
+    const editable = getEditableCalendars(this.state.calendars, this.state.disabledCalendars);
+    return editable.length > 1 ? editable : undefined;
+  }
+
   _onNewEventCalendarChange = (calendar: Calendar) => {
     const { newEvent } = this.state;
     if (!newEvent) return;
@@ -864,14 +858,13 @@ export class MailspringCalendar extends React.Component<
   };
 
   /**
-   * Creates the event being made in the panel, once it has a title or an invitee, and drops it
-   * otherwise. Invitations are sent only once the user says so. False keeps it open; a creation
-   * resolves once the event is written.
+   * Creates the panel's new event once it has a title or an invitee (with invitees, only after
+   * Send invitations), else drops it. False keeps it open; a creation resolves once written.
    */
   _leaveNewEvent({ canKeepEditing = true } = {}): Promise<void> | null | false {
     const { newEvent, unsentChange } = this.state;
     let created: Promise<void> | null = null;
-    if (keepsUnsavedEvent(unsentChange)) {
+    if (keepsNewEvent(unsentChange)) {
       const choice = unsentChange.attendees?.added.length
         ? showUnsentChangeDialog(unsentChange, newEvent.occurrence, {
             canKeepEditing,
@@ -1677,7 +1670,7 @@ export class MailspringCalendar extends React.Component<
               ref={this._eventPanel}
               key={panelKey(newEvent ? [event] : this.state.selectedEvents)}
               event={event}
-              isUnsaved={!!newEvent}
+              isNewEvent={!!newEvent}
               unsentChange={isUnsentChangeFor(unsentChange, event) ? unsentChange : null}
               onUnsentChange={this._onUnsentChange}
               onSendUnsentChange={this._sendUnsentChange}
@@ -1693,11 +1686,7 @@ export class MailspringCalendar extends React.Component<
                     : () => this._deleteEvent(event)
               }
               onDiscard={newEvent ? this._dropNewEvent : undefined}
-              calendarChoices={
-                newEvent
-                  ? getEditableCalendars(this.state.calendars, this.state.disabledCalendars)
-                  : undefined
-              }
+              calendarChoices={newEvent ? this._newEventCalendarChoices() : undefined}
               onCalendarChange={this._onNewEventCalendarChange}
             />
           )}

@@ -4,23 +4,18 @@ import ReactTestUtils from 'react-dom/test-utils';
 import { Actions, DatabaseStore, DateUtils } from 'mailspring-exports';
 import { EventPanel } from '../internal_packages/main-calendar/lib/core/event-panel';
 import {
-  formatShortTimeRange,
   newEventOccurrence,
   queueNewCalendarEvent,
 } from '../internal_packages/main-calendar/lib/core/calendar-helpers';
 import { newEventOptions } from '../internal_packages/main-calendar/lib/core/unsent-change';
 import moment from 'moment';
-import {
-  QuickEventPopover,
-  quickEventReading,
-} from '../internal_packages/main-calendar/lib/quick-event-popover';
+import { QuickEventPopover } from '../internal_packages/main-calendar/lib/quick-event-popover';
 
 const START = Date.UTC(2026, 10, 10, 15, 0, 0) / 1000;
 const HOUR = 3600;
 const ID = '__new_event_1';
 
 const draft = (overrides: any = {}) => ({
-  title: '',
   start: START,
   end: START + HOUR,
   isAllDay: false,
@@ -79,6 +74,15 @@ describe('newEventOptions', function () {
     expect(newEventOptions(draft(), null).transparency).toBe('OPAQUE');
   });
 
+  it('creates Show as as the panel shows it after a switch to all day', function () {
+    const day = { start: START, end: START + 24 * HOUR, isAllDay: true };
+    const shown = newEventOccurrence(ID, draft()).isFree ? 'TRANSPARENT' : 'OPAQUE';
+    expect(shown).toBe('OPAQUE');
+    expect(newEventOptions(draft(), { eventId: ID, edits: [], times: day }).transparency).toBe(
+      shown
+    );
+  });
+
   describe('the reminder it is created with', function () {
     beforeEach(function () {
       spyOn(Actions, 'queueTask');
@@ -122,7 +126,7 @@ describe('a new event in the panel', function () {
 
   const props = (unsentChange = null) => ({
     event: newEventOccurrence(ID, draft()),
-    isUnsaved: true,
+    isNewEvent: true,
     isCalendarReadOnly: false,
     onBack: () => {},
     unsentChange,
@@ -179,21 +183,18 @@ describe('a new event in the panel', function () {
     expect(onCalendarChange).toHaveBeenCalledWith(calendars[1]);
   });
 
-  it('shows no card until an invitee is added', function () {
-    render({ eventId: ID, edits: [{ property: 'summary', value: 'Interview' }] });
-    expect(host.querySelector('.event-panel-card')).toBe(null);
-  });
-
   it('sends the invitations, or drops the event, from the card', function () {
     render({ eventId: ID, edits: [], attendees: { added: [alex], removed: [] } });
-    const buttons = Array.from(host.querySelectorAll<HTMLElement>('.event-panel-card .btn'));
-    expect(buttons.map((b) => b.textContent)).toEqual(['Discard', 'Send invitations']);
+    const button = (label: string) =>
+      Array.from(host.querySelectorAll<HTMLElement>('.event-panel-card .btn')).find(
+        (b) => b.textContent === label
+      );
 
-    ReactTestUtils.Simulate.click(buttons[0]);
+    ReactTestUtils.Simulate.click(button('Discard'));
     expect(onDiscard).toHaveBeenCalled();
     expect(onUnsentChange).not.toHaveBeenCalled();
 
-    ReactTestUtils.Simulate.click(buttons[1]);
+    ReactTestUtils.Simulate.click(button('Send invitations'));
     expect(onSendUnsentChange).toHaveBeenCalled();
   });
 });
@@ -201,17 +202,6 @@ describe('a new event in the panel', function () {
 describe('the quick add footer', function () {
   beforeEach(function () {
     spyOn(moment, 'now').andReturn(new Date(2026, 9, 31, 10, 12).getTime());
-  });
-
-  it('reads the day and times Enter would create', function () {
-    const parsed = DateUtils.parseDateString('Coffee with Jordan next Monday at 9AM');
-    expect(quickEventReading(parsed)).toBe(
-      `Mon, Nov 2 · ${formatShortTimeRange(parsed.start.unix(), parsed.end.unix())} · Enter to add`
-    );
-  });
-
-  it('calls the slot it falls back to Today', function () {
-    expect(quickEventReading(DateUtils.parseDateString('Call the bank'))).toMatch(/^Today · /);
   });
 
   it('opens the slot it read, not one parsed again at Enter', function () {

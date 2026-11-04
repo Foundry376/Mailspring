@@ -6,7 +6,6 @@ import { ClearButton } from './core/clear-button';
 
 type ParsedEvent = ReturnType<typeof DateUtils.parseDateString>;
 
-/** Opens the quick add under `anchor`, as New Event and the agenda's + do. */
 export function openQuickEventPopover(anchor: HTMLElement) {
   Actions.openPopover(<QuickEventPopover />, {
     originRect: anchor.getBoundingClientRect(),
@@ -15,7 +14,7 @@ export function openQuickEventPopover(anchor: HTMLElement) {
 }
 
 /** The slot Enter would create, as the footer reads it: "Fri, Sep 18 · 12–1PM · Enter to add". */
-export function quickEventReading({ start, end }: ParsedEvent) {
+export function quickEventLabel({ start, end }: ParsedEvent) {
   const day = start.isSame(moment(), 'day') ? localized('Today') : start.format('ddd, MMM D');
   return localized(
     '%1$@ · %2$@ · Enter to add',
@@ -35,7 +34,6 @@ export class QuickEventPopover extends React.Component<
 > {
   state: QuickEventPopoverState = { text: '', parsed: null };
 
-  // Opens what the footer reads in the event panel, rather than parsing again a minute later.
   onInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     const { parsed } = this.state;
     if (parsed && ['Enter', 'Return'].includes(event.key)) {
@@ -75,7 +73,7 @@ export class QuickEventPopover extends React.Component<
           {text && <ClearButton onClear={this.onClear} />}
         </div>
         <div className="quick-event-popover-hint">
-          {parsed ? quickEventReading(parsed) : localized('Enter to add · Esc to close')}
+          {parsed ? quickEventLabel(parsed) : localized('Enter to add · Esc to close')}
         </div>
       </div>
     );

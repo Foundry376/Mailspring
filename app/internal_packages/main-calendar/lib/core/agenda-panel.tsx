@@ -21,7 +21,6 @@ export type AgendaPanelProps = Pick<
   'dataSource' | 'disabledCalendars' | 'selectedEvents' | 'onEventClick' | 'isCalendarReadOnly'
 > & {
   onEventDoubleClick?: (event: EventOccurrence) => void;
-  /** Shows a + that calls this with itself, for the quick add to hang from. */
   onNewEvent?: (button: HTMLElement) => void;
 };
 
