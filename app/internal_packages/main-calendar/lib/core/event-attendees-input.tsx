@@ -1,6 +1,7 @@
 import React from 'react';
 import _ from 'underscore';
 import { Utils, Contact, ContactStore, RegExpUtils, localized } from 'mailspring-exports';
+import { ClearButton } from './clear-button';
 import { TokenizingTextField, Menu, InjectedComponentSet } from 'mailspring-component-kit';
 import { EventAttendee } from './calendar-data-source';
 
@@ -30,10 +31,24 @@ interface EventAttendeesInputProps {
   placeholder?: string;
   onEmptied?: () => void;
   onFocus?: () => void;
+  /** Shows a clear button while text is typed. */
+  clearable?: boolean;
 }
 
-export class EventAttendeesInput extends React.Component<EventAttendeesInputProps> {
+interface EventAttendeesInputState {
+  refused: boolean;
+}
+
+export class EventAttendeesInput extends React.Component<
+  EventAttendeesInputProps,
+  EventAttendeesInputState
+> {
   static displayName = 'EventAttendeesInput';
+
+  state: EventAttendeesInputState = { refused: false };
+
+  // Set before the field handles the key, so _add knows a refusal came from Enter, not blur.
+  _enterPressed = false;
 
   shouldComponentUpdate(
     nextProps: EventAttendeesInputProps,
@@ -89,7 +104,18 @@ export class EventAttendeesInput extends React.Component<EventAttendeesInputProp
     });
   };
 
-  _add = (values: string | EventAttendee[], options: Record<string, unknown> = {}): void => {
+  // Text with no address in it yet stays in the field rather than becoming a guest.
+  _add = (
+    values: string | EventAttendee[],
+    options: Record<string, unknown> = {}
+  ): false | void => {
+    const enterPressed = this._enterPressed;
+    this._enterPressed = false;
+    if (typeof values === 'string' && !RegExpUtils.emailRegex().test(values)) {
+      if (enterPressed) this.setState({ refused: true });
+      return false;
+    }
+
     // If the input is a string, parse out email addresses and build
     // an array of contact objects. For each email address wrapped in
     // parentheses, look for a preceding name, if one exists.
@@ -162,31 +188,60 @@ export class EventAttendeesInput extends React.Component<EventAttendeesInputProp
     return [',', ';'].includes(event.key);
   };
 
+  _onKeyDownCapture = (event: React.KeyboardEvent) => {
+    this._enterPressed = event.key === 'Enter';
+  };
+
+  _onTextChanged = () => {
+    if (this.state.refused) this.setState({ refused: false });
+  };
+
   render() {
     return (
-      <TokenizingTextField
+      <div
         className={this.props.className}
-        placeholder={this.props.placeholder}
-        ref="textField"
-        tokens={this.props.attendees}
-        tokenKey={(p) => p.email}
-        // An attendee is a plain {email, name, partstat} record read out of the event's ICS,
-        // never a Contact, so ContactStore.isValidContact - an `instanceof Contact` test -
-        // called every invitee invalid and drew the malformed-address underline under all of
-        // them. Validate the address itself.
-        tokenIsValid={(p) => new Contact({ email: p.email }).isValid()}
-        tokenRenderer={TokenRenderer}
-        onRequestCompletions={(input) => ContactStore.searchContacts(input)}
-        shouldBreakOnKeydown={this._shouldBreakOnKeydown}
-        onInputTrySubmit={this._onInputTrySubmit}
-        completionNode={this._completionNode}
-        onAdd={this._add}
-        onRemove={this._remove}
-        onEdit={this._edit}
-        onEmptied={this.props.onEmptied}
-        onFocus={this.props.onFocus}
-        onTokenAction={this._onShowContextMenu}
-      />
+        onKeyDownCapture={this._onKeyDownCapture}
+        onChange={this._onTextChanged}
+      >
+        <TokenizingTextField
+          placeholder={this.props.placeholder}
+          ref="textField"
+          tokens={this.props.attendees}
+          tokenKey={(p) => p.email}
+          // An attendee is a plain {email, name, partstat} record read out of the event's ICS,
+          // never a Contact, so ContactStore.isValidContact - an `instanceof Contact` test -
+          // called every invitee invalid and drew the malformed-address underline under all of
+          // them. Validate the address itself.
+          tokenIsValid={(p) => new Contact({ email: p.email }).isValid()}
+          tokenRenderer={TokenRenderer}
+          onRequestCompletions={(input) => ContactStore.searchContacts(input)}
+          shouldBreakOnKeydown={this._shouldBreakOnKeydown}
+          onInputTrySubmit={this._onInputTrySubmit}
+          completionNode={this._completionNode}
+          onAdd={this._add}
+          onRemove={this._remove}
+          onEdit={this._edit}
+          onEmptied={this.props.onEmptied}
+          onFocus={this.props.onFocus}
+          onTokenAction={this._onShowContextMenu}
+          inputAccessory={
+            this.props.clearable
+              ? ({ value, clear }) =>
+                  value && (
+                    <ClearButton
+                      onClear={() => {
+                        this._onTextChanged();
+                        clear();
+                      }}
+                    />
+                  )
+              : undefined
+          }
+        />
+        {this.state.refused && (
+          <div className="event-attendees-hint">{localized('Enter a valid email')}</div>
+        )}
+      </div>
     );
   }
 }
