@@ -1,4 +1,5 @@
 @import 'ui-variables';
+@import 'ui-mixins';
 
 /* The Onboarding window should never adopt theme styles. This re-assigns UI
 variables and resets commonly overridden styles to ensure the onboarding window
@@ -126,11 +127,7 @@ h6 {
     background-color: @btn-default-text-color;
   }
 
-  // Use 4 box shadows to create a 0.5px hairline around the button, and another
-  // for the actual shadow. Pending https://code.google.com/p/chromium/issues/detail?id=236371
-  // Yes, 1px border looks really bad on retina.
-  box-shadow: 0 0.5px 0 @btn-border-color, 0 -0.5px 0 @btn-border-color,
-    0.5px 0 0 @btn-border-color, -0.5px 0 0 @btn-border-color, 0 0.5px 1px @btn-border-color;
+  .btn-hairline();
 
   height: 1.9em;
   line-height: 1.9em;
