@@ -718,37 +718,6 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     const name = attendee.name || attendee.email;
     const answerable = state === 'answerable';
     const { answerOpen } = this.state;
-    const line = (
-      <div className="event-panel-invitee-line">
-        <div className="event-panel-invitee-name">
-          <div title={new Contact({ name: attendee.name, email: attendee.email }).toString()}>
-            {name}
-          </div>
-          {this._renderInviteeRole(attendee, me)}
-        </div>
-        {state === 'removable' && (
-          <button
-            className="btn-bare event-panel-invitee-remove"
-            title={localized('Remove %@', name)}
-            aria-label={localized('Remove %@', name)}
-            onClick={() => this._removeAttendee(attendee)}
-          >
-            <SVGIcons.Remove />
-          </button>
-        )}
-        {answerable && (
-          <button
-            className="btn-bare event-panel-invitee-answer"
-            aria-expanded={answerOpen}
-            title={localized('Change your answer')}
-            aria-label={localized('Change your answer')}
-            onClick={this._toggleAnswer}
-          >
-            {answerOpen ? <SVGIcons.ChevronUp /> : <SVGIcons.ChevronDown />}
-          </button>
-        )}
-      </div>
-    );
     return (
       <div
         key={attendee.email}
@@ -757,14 +726,38 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         <span className="attendee-status">
           <AttendeeStatusIcon attendee={attendee} />
         </span>
-        {answerable ? (
-          <div className="event-panel-invitee-body">
-            {line}
-            {answerOpen && this._renderAnswerButtons(false)}
+        <div className="event-panel-invitee-body">
+          <div className="event-panel-invitee-line">
+            <div className="event-panel-invitee-name">
+              <div title={new Contact({ name: attendee.name, email: attendee.email }).toString()}>
+                {name}
+              </div>
+              {this._renderInviteeRole(attendee, me)}
+            </div>
+            {state === 'removable' && (
+              <button
+                className="btn-bare event-panel-invitee-remove"
+                title={localized('Remove %@', name)}
+                aria-label={localized('Remove %@', name)}
+                onClick={() => this._removeAttendee(attendee)}
+              >
+                <SVGIcons.Remove />
+              </button>
+            )}
+            {answerable && (
+              <button
+                className="btn-bare event-panel-invitee-answer"
+                aria-expanded={answerOpen}
+                title={localized('Change your answer')}
+                aria-label={localized('Change your answer')}
+                onClick={this._toggleAnswer}
+              >
+                {answerOpen ? <SVGIcons.ChevronUp /> : <SVGIcons.ChevronDown />}
+              </button>
+            )}
           </div>
-        ) : (
-          line
-        )}
+          {answerable && answerOpen && this._renderAnswerButtons(false)}
+        </div>
       </div>
     );
   }
@@ -1205,14 +1198,12 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
-  // Answering writes our status onto the event, which a read-only calendar refuses; on someone
-  // else's calendar the answer is only emailed (recordAndSendRSVP).
+  // On someone else's calendar the answer is only emailed (recordAndSendRSVP).
   _renderRsvp() {
-    const { event, calendar, isCalendarReadOnly } = this.props;
+    const { event, calendar } = this.props;
     if (!canRespondToEvent(event) || event.isCancelled) return null;
     const away = this._answerSectionAway();
-    const savedTo =
-      calendar && !isCalendarReadOnly && !CalendarUtils.isSomeoneElsesCalendar(calendar);
+    const savedTo = calendar && !CalendarUtils.isSomeoneElsesCalendar(calendar);
     return (
       <div className={`event-panel-collapse ${away ? 'collapsed' : ''}`} aria-hidden={away}>
         <div>
@@ -1227,8 +1218,8 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
-  // Slides away once answered Yes or No, which your guest row then changes, and while a change
-  // waits, so an answer and a new time aren't sent at once.
+  // Away on a read-only calendar, which refuses an answer; once answered Yes or No, which your
+  // guest row then changes; and while a change waits, so an answer and a new time aren't both sent.
   _answerSectionAway() {
     const { event, isCalendarReadOnly, unsentChange } = this.props;
     return (
