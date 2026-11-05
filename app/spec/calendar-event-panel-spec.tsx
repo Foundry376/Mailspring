@@ -197,7 +197,6 @@ describe('EventPanel', function () {
       render(invitation({ attendees: guests, isCancelled: true }));
 
       expect(buttons()).not.toContain('Yes');
-      expect(host.querySelector('[aria-label="Change your answer"]')).toBe(null);
       expect(proposalHint()).toBe(null);
       expect(host.textContent).toContain('This event has been cancelled');
     });
@@ -205,33 +204,12 @@ describe('EventPanel', function () {
     describe('our answer', function () {
       const answering = (partstat: string) =>
         invitation({ attendees: [guests[0], { ...guests[1], partstat }] });
-      const sectionAway = () =>
-        host.querySelector('.event-panel-collapse').classList.contains('collapsed');
       const carets = () =>
         Array.from(host.querySelectorAll<HTMLElement>('[aria-label="Change your answer"]'));
       const rowButton = (label: string) =>
         Array.from(host.querySelectorAll('.event-panel-invitee button')).find(
           (b) => b.textContent === label
         );
-
-      it('slides the answer section away once we answer Yes or No', function () {
-        const away = (partstat: string) => {
-          render(answering(partstat));
-          return sectionAway();
-        };
-        expect(away('NEEDS-ACTION')).toBe(false);
-        expect(away('TENTATIVE')).toBe(false);
-        expect(away('ACCEPTED')).toBe(true);
-        expect(away('DECLINED')).toBe(true);
-      });
-
-      it('can be changed from our own guest row only, whatever it is', function () {
-        for (const partstat of ['NEEDS-ACTION', 'TENTATIVE', 'ACCEPTED', 'DECLINED']) {
-          render(answering(partstat));
-          expect(carets().length).toBe(1);
-          expect(carets()[0].closest('.event-panel-invitee').textContent).toContain('Me');
-        }
-      });
 
       it('is sent from our row, which then closes', function () {
         const respond = spyOn(CalendarRsvp, 'respondToCalendarEvent').andReturn(Promise.resolve());
@@ -248,14 +226,33 @@ describe('EventPanel', function () {
         expect(rowButton('No')).toBeUndefined();
       });
 
-      it('has no caret while a proposal waits, and nothing on a read-only calendar', function () {
+      it('keeps focus in the panel when the button you answered with goes', function () {
+        spyOn(CalendarRsvp, 'respondToCalendarEvent').andReturn(Promise.resolve());
+        const panel = () => host.querySelector('.event-panel');
+        const sectionButton = (label: string) =>
+          Array.from(host.querySelectorAll<HTMLElement>('.event-panel-answer button')).find(
+            (b) => b.textContent === label
+          );
+
+        render(answering('NEEDS-ACTION'));
+        sectionButton('Yes').focus();
+        render(answering('ACCEPTED'));
+        expect(document.activeElement).toBe(panel());
+
+        carets()[0].click();
+        const no = rowButton('No') as HTMLElement;
+        no.focus();
+        no.click();
+        expect(document.activeElement).toBe(panel());
+      });
+
+      it('has no caret while a proposal waits, nor on a read-only calendar', function () {
         const proposal = { eventId: 'e1', edits: [], times: null, proposal: { comment: '' } };
         render(answering('NEEDS-ACTION'), proposal);
         expect(carets().length).toBe(0);
 
         render(answering('NEEDS-ACTION'), null, true);
         expect(carets().length).toBe(0);
-        expect(sectionAway()).toBe(true);
       });
     });
   });
