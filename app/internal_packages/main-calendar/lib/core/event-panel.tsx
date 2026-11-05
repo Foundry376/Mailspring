@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom';
 import {
   localized,
   isRTL,
+  AccountStore,
   Autolink,
   Calendar,
   CalendarDate,
@@ -112,6 +113,12 @@ interface EventPanelProps {
   onUnsentChange: (change: UnsentChange | null) => void;
   onSendUnsentChange: (scope: ChangeScope) => void;
   onSaveChange: (change: UnsentChange) => Promise<void>;
+  /** An event that exists only in the panel: every edit is held until the host creates it. */
+  isNewEvent?: boolean;
+  /** Replaces Discard's dropping of the held change, for an event the host would drop whole. */
+  onDiscard?: () => void;
+  calendarChoices?: Calendar[];
+  onCalendarChange?: (calendar: Calendar) => void;
 }
 
 interface Times {
@@ -292,7 +299,8 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   }
 
   _holdsEdits() {
-    return holdsEdits(this.props.event, this.props.isCalendarReadOnly, this.props.unsentChange);
+    const { event, isCalendarReadOnly, unsentChange, isNewEvent } = this.props;
+    return isNewEvent || holdsEdits(event, isCalendarReadOnly, unsentChange);
   }
 
   // A copy on someone else's calendar holds their availability, not ours (recordAndSendRSVP).
@@ -492,8 +500,12 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           className="event-panel-title"
           value={this._shown('summary', event.title)}
           placeholder={localized('New Event')}
+          // Left empty, an unsaved event keeps no title, so leaving it doesn't create it.
           onSave={(value) =>
-            this._saveProperty({ property: 'summary', value: value || localized('New Event') })
+            this._saveProperty({
+              property: 'summary',
+              value: value || (this.props.isNewEvent ? '' : localized('New Event')),
+            })
           }
         />
       );
@@ -741,6 +753,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
                 attendees={[]}
                 placeholder={localized('Add Invitees')}
                 change={this._addAttendees}
+                clearable
               />
             </div>
           )}
@@ -825,12 +838,41 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
+  _renderCalendarChoice(choices: Calendar[]) {
+    const { event, onCalendarChange } = this.props;
+    const byAccount = new Map<string, Calendar[]>();
+    for (const c of choices) byAccount.set(c.accountId, [...(byAccount.get(c.accountId) ?? []), c]);
+    // A closed select shows only the option, and accounts often each have a "Calendar".
+    const shared = (c: Calendar) => choices.some((o) => o !== c && o.name === c.name);
+    const options = (calendars: Calendar[]) =>
+      calendars.map((c) => (
+        <option key={c.id} value={c.id}>
+          {shared(c) ? `${c.name} · ${AccountStore.accountForId(c.accountId)?.label}` : c.name}
+        </option>
+      ));
+    return (
+      <PanelSelect
+        value={event.calendarId}
+        aria-label={localized('Calendar')}
+        onChange={(e) => onCalendarChange?.(choices.find((c) => c.id === e.target.value))}
+      >
+        {byAccount.size > 1
+          ? [...byAccount].map(([accountId, calendars]) => (
+              <optgroup key={accountId} label={AccountStore.accountForId(accountId)?.label}>
+                {options(calendars)}
+              </optgroup>
+            ))
+          : options(choices)}
+      </PanelSelect>
+    );
+  }
+
   _renderCalendar() {
-    const { event, calendar } = this.props;
+    const { event, calendar, calendarChoices } = this.props;
     const showAs = this._storedShowAs();
     return (
       <div className="event-panel-section">
-        {calendar && (
+        {(calendar || calendarChoices) && (
           <div className="event-panel-row">
             <span className="event-panel-icon">
               <span
@@ -838,7 +880,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
                 style={{ backgroundColor: calcEventColors(event.calendarId).band }}
               />
             </span>
-            {calendar.name}
+            {calendarChoices ? this._renderCalendarChoice(calendarChoices) : calendar.name}
           </div>
         )}
         <div className="event-panel-row indented">
@@ -988,6 +1030,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   _renderUnsentChangeCard() {
     const change = this.props.unsentChange;
     if (!change) return null;
+    if (this.props.isNewEvent) return this._renderInvitationsCard(change);
     return (
       <div className="event-panel-card event-panel-change">
         {this._changeRows(change).map(this._renderChangeRow)}
@@ -1013,6 +1056,26 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
+  _renderInvitationsCard(change: UnsentChange) {
+    if (!change.attendees?.added.length) return null;
+    const rows = this._changeRows(change).filter((row) => row.key === 'attendees');
+    return (
+      <div className="event-panel-card event-panel-change">
+        {rows.map(this._renderChangeRow)}
+        {this._renderGuestsEmailed()}
+        <div className="event-panel-change-buttons">
+          {this._renderDiscardButton()}
+          <button
+            className="btn btn-emphasis"
+            onClick={() => this.props.onSendUnsentChange('this-occurrence')}
+          >
+            {localized('Send invitations')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   _addsFirstGuest(change: UnsentChange) {
     return !hasGuests(this.props.event) && !!change.attendees?.added.length;
   }
@@ -1023,7 +1086,10 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   _renderDiscardButton() {
     return (
-      <button className="btn" onClick={() => this.props.onUnsentChange(null)}>
+      <button
+        className="btn"
+        onClick={this.props.onDiscard ?? (() => this.props.onUnsentChange(null))}
+      >
         {localized('Discard')}
       </button>
     );

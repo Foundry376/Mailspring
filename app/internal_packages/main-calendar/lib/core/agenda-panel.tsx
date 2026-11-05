@@ -1,6 +1,6 @@
 import React from 'react';
 import moment from 'moment-timezone';
-import { ScrollRegion } from 'mailspring-component-kit';
+import { ScrollRegion, SVGIcons } from 'mailspring-component-kit';
 import { localized, Actions, CalendarDate, CalendarDateUtils, DateUtils } from 'mailspring-exports';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
 import { CalendarEventPopover } from './calendar-event-popover';
@@ -21,6 +21,7 @@ export type AgendaPanelProps = Pick<
   'dataSource' | 'disabledCalendars' | 'selectedEvents' | 'onEventClick' | 'isCalendarReadOnly'
 > & {
   onEventDoubleClick?: (event: EventOccurrence) => void;
+  onNewEvent?: (button: HTMLElement) => void;
 };
 
 interface DayEvents {
@@ -201,6 +202,21 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
     const days = this._getEventsByDay();
     return (
       <aside className="agenda-panel" aria-label={localized('Agenda')}>
+        {this.props.onNewEvent && (
+          <div className="agenda-new-event">
+            <button
+              className="btn-ghost"
+              title={localized('New Event')}
+              aria-label={localized('New Event')}
+              onClick={(e) => {
+                e.stopPropagation();
+                this.props.onNewEvent(e.currentTarget);
+              }}
+            >
+              <SVGIcons.Plus size={16} />
+            </button>
+          </div>
+        )}
         <ScrollRegion className="agenda-scroll-region">
           <div className="agenda-event-list">
             {days.length > 0 ? (

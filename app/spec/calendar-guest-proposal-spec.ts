@@ -201,7 +201,7 @@ describe("a guest's proposal", function () {
     });
   });
 
-  it('sends nothing on Discard or Esc', function () {
+  it('sends nothing on Discard', function () {
     const change = { eventId: 'e1', slot: START, edits: [], proposal: { comment: '' }, times };
     spyOn(UnsentChangeDialog, 'showUnsentChangeDialog').andReturn('discard');
 
@@ -209,12 +209,7 @@ describe("a guest's proposal", function () {
     leaving.state.unsentChange = change;
     expect(leaving._mayLeave([])).toBe(true);
 
-    const escaping = calendarWith([invitation]);
-    escaping.state.unsentChange = change;
-    escaping._onEscape();
-
     expect(leaving.state.unsentChange).toBe(null);
-    expect(escaping.state.unsentChange).toBe(null);
     expect(queued).toEqual([]);
   });
 

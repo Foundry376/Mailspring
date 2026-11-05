@@ -14,6 +14,7 @@ interface AgendaContainerProps {
   selectedEvents?: EventOccurrence[];
   onEventClick?: (e: React.MouseEvent, event: EventOccurrence) => void;
   onEventDoubleClick?: (event: EventOccurrence) => void;
+  onNewEvent?: (button: HTMLElement) => void;
 }
 
 interface AgendaContainerState {
@@ -88,6 +89,7 @@ export class AgendaContainer extends React.Component<AgendaContainerProps, Agend
           selectedEvents={this.props.selectedEvents ?? this.state.selectedEvents}
           onEventClick={this._onEventClick}
           onEventDoubleClick={this.props.onEventDoubleClick}
+          onNewEvent={this.props.onNewEvent}
           isCalendarReadOnly={this._isCalendarReadOnly}
         />
       </div>
