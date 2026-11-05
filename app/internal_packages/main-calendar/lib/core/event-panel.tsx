@@ -214,9 +214,17 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     this._loadEventRow();
   }
 
+  // A focused answer button that slides away would leave focus on the page, where Esc can't
+  // close the panel.
+  getSnapshotBeforeUpdate() {
+    const section = this._el.current?.querySelector('.event-panel-answer');
+    return !!section?.contains(document.activeElement);
+  }
+
   // Any synced change hands the panel a fresh occurrence. Times not yet saved stay on screen, and
   // saved ones until they're written: after that the event's own times win, after an undo too.
-  componentDidUpdate(prevProps: EventPanelProps) {
+  componentDidUpdate(prevProps: EventPanelProps, _: EventPanelState, answerFocused: boolean) {
+    if (answerFocused && this._answerSectionAway()) this._el.current?.focus();
     if (prevProps.event !== this.props.event) {
       const { times } = this.state;
       if (times && !this._pendingTimes && (this._timesSaveLanded || this._storedTimesAre(times))) {
@@ -1188,10 +1196,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   // Answering writes our status onto the event, which a read-only calendar refuses; on someone
   // else's calendar the answer is only emailed (recordAndSendRSVP).
   _renderRsvp() {
-    const { event, calendar, isCalendarReadOnly, unsentChange } = this.props;
+    const { event, calendar, isCalendarReadOnly } = this.props;
     if (!canRespondToEvent(event) || event.isCancelled) return null;
-    // Slides away while a change waits, so an answer and a new time aren't sent at once.
-    const away = !!unsentChange;
+    const away = this._answerSectionAway();
     const savedTo =
       calendar && !isCalendarReadOnly && !CalendarUtils.isSomeoneElsesCalendar(calendar);
     return (
@@ -1201,10 +1208,21 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             {savedTo && (
               <div className="event-panel-subtle">{localized('Saved to %@', calendar.name)}</div>
             )}
-            {this._renderAnswerButtons(isCalendarReadOnly || away)}
+            {this._renderAnswerButtons(away)}
           </div>
         </div>
       </div>
+    );
+  }
+
+  // Slides away once answered Yes or No, which your guest row then changes, and while a change
+  // waits, so an answer and a new time aren't sent at once.
+  _answerSectionAway() {
+    const { event, isCalendarReadOnly, unsentChange } = this.props;
+    return (
+      isCalendarReadOnly ||
+      !!unsentChange ||
+      ['ACCEPTED', 'DECLINED'].includes(myParticipationStatus(event))
     );
   }
 
