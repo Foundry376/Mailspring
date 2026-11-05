@@ -215,17 +215,24 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     this._loadEventRow();
   }
 
-  // A focused answer button that slides away would leave focus on the page, where Esc can't
-  // close the panel.
+  // A focused answer button that closes or turns off would leave focus on the page, where Esc
+  // can't close the panel.
   getSnapshotBeforeUpdate() {
-    const section = this._el.current?.querySelector('.event-panel-answer');
-    return !!section?.contains(document.activeElement);
+    const focused = document.activeElement as HTMLButtonElement | null;
+    const answering = focused?.closest('.event-panel-answer, .event-panel-rsvp');
+    return answering && this._el.current?.contains(focused) ? focused : null;
   }
 
   // Any synced change hands the panel a fresh occurrence. Times not yet saved stay on screen, and
   // saved ones until they're written: after that the event's own times win, after an undo too.
-  componentDidUpdate(prevProps: EventPanelProps, _: EventPanelState, answerFocused: boolean) {
-    if (answerFocused && this._answerSectionAway()) this._el.current?.focus();
+  componentDidUpdate(
+    prevProps: EventPanelProps,
+    _: EventPanelState,
+    answerButton: HTMLButtonElement | null
+  ) {
+    if (answerButton && (!answerButton.isConnected || answerButton.disabled)) {
+      this._el.current?.focus();
+    }
     if (prevProps.event !== this.props.event) {
       const { times } = this.state;
       if (times && !this._pendingTimes && (this._timesSaveLanded || this._storedTimesAre(times))) {
