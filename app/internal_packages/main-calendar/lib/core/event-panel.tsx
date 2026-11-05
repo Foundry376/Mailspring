@@ -9,10 +9,12 @@ import {
   CalendarDate,
   CalendarDateUtils,
   CalendarUtils,
+  Contact,
   DatabaseStore,
   DateUtils,
   Event,
   ICSEventHelpers,
+  ICSParticipantStatus,
   Utils,
 } from 'mailspring-exports';
 import {
@@ -135,12 +137,16 @@ interface ChangeRow {
   was: string;
 }
 
+type InviteeState = 'removed' | 'removable' | 'answerable' | '';
+
 interface EventPanelState {
   /** Read from the event's row: the occurrence doesn't carry it. */
   repeat: RepeatOption;
   /** Times changed in the panel, shown until the saved event comes back. */
   times: Times | null;
   proposals: ProposedTime[];
+  /** Your guest row's answer buttons are showing. */
+  answerOpen: boolean;
 }
 
 /** Text with its links live, as notes show when not being edited. */
@@ -189,7 +195,7 @@ function linkOrText(location: string) {
 export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelState> {
   static displayName = 'EventPanel';
 
-  state: EventPanelState = { repeat: 'none', times: null, proposals: [] };
+  state: EventPanelState = { repeat: 'none', times: null, proposals: [], answerOpen: false };
 
   _el = React.createRef<HTMLElement>();
   _title = React.createRef<EventPanelTextField>();
@@ -209,9 +215,25 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     this._loadEventRow();
   }
 
+  // A focused answer button that closes or turns off would leave focus on the page, where Esc
+  // can't close the panel.
+  getSnapshotBeforeUpdate() {
+    const focused = document.activeElement as HTMLButtonElement | null;
+    const answering = focused?.closest('.event-panel-answer, .event-panel-rsvp');
+    return answering && this._el.current?.contains(focused) ? focused : null;
+  }
+
   // Any synced change hands the panel a fresh occurrence. Times not yet saved stay on screen, and
   // saved ones until they're written: after that the event's own times win, after an undo too.
-  componentDidUpdate(prevProps: EventPanelProps) {
+  componentDidUpdate(
+    prevProps: EventPanelProps,
+    _: EventPanelState,
+    answerButton: HTMLButtonElement | null
+  ) {
+    if (answerButton && (!answerButton.isConnected || answerButton.disabled)) {
+      this._el.current?.focus();
+    }
+    if (this.state.answerOpen && !this._answersFromGuestRow()) this.setState({ answerOpen: false });
     if (prevProps.event !== this.props.event) {
       const { times } = this.state;
       if (times && !this._pendingTimes && (this._timesSaveLanded || this._storedTimesAre(times))) {
@@ -692,8 +714,10 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     this._changeAttendees(shown.filter((a) => !Utils.emailIsEquivalent(a.email, attendee.email)));
   }
 
-  _renderInvitee(attendee: EventAttendee, state: 'removed' | 'removable' | '', me: string | null) {
+  _renderInvitee(attendee: EventAttendee, state: InviteeState, me: string | null) {
     const name = attendee.name || attendee.email;
+    const answerable = state === 'answerable';
+    const { answerOpen } = this.state;
     return (
       <div
         key={attendee.email}
@@ -702,24 +726,50 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         <span className="attendee-status">
           <AttendeeStatusIcon attendee={attendee} />
         </span>
-        <div className="event-panel-invitee-line">
-          <div className="event-panel-invitee-name">
-            <div>{name}</div>
-            {this._renderInviteeRole(attendee, me)}
+        <div className="event-panel-invitee-body">
+          <div className="event-panel-invitee-line">
+            <div className="event-panel-invitee-name">
+              <div title={new Contact({ name: attendee.name, email: attendee.email }).toString()}>
+                {name}
+              </div>
+              {this._renderInviteeRole(attendee, me)}
+            </div>
+            {state === 'removable' && (
+              <button
+                className="btn-bare event-panel-invitee-remove"
+                title={localized('Remove %@', name)}
+                aria-label={localized('Remove %@', name)}
+                onClick={() => this._removeAttendee(attendee)}
+              >
+                <SVGIcons.Remove />
+              </button>
+            )}
+            {answerable && (
+              <button
+                className="btn-bare event-panel-invitee-answer"
+                aria-expanded={answerOpen}
+                title={localized('Change your answer')}
+                aria-label={localized('Change your answer')}
+                onClick={this._toggleAnswer}
+              >
+                {answerOpen ? <SVGIcons.ChevronUp /> : <SVGIcons.ChevronDown />}
+              </button>
+            )}
           </div>
-          {state === 'removable' && (
-            <button
-              className="btn-bare event-panel-invitee-remove"
-              title={localized('Remove %@', name)}
-              aria-label={localized('Remove %@', name)}
-              onClick={() => this._removeAttendee(attendee)}
-            >
-              <SVGIcons.Remove />
-            </button>
-          )}
+          {answerable && answerOpen && this._renderAnswerButtons(false)}
         </div>
       </div>
     );
+  }
+
+  _toggleAnswer = () => {
+    this.setState(({ answerOpen }) => ({ answerOpen: !answerOpen }));
+  };
+
+  // A waiting proposal holds answers back, as it does the answer section's.
+  _answersFromGuestRow() {
+    const { event, isCalendarReadOnly, unsentChange } = this.props;
+    return canRespondToEvent(event) && !isCalendarReadOnly && !unsentChange;
   }
 
   _renderInvitees() {
@@ -729,9 +779,12 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     if (attendees.length === 0 && added.length === 0 && !editable) return null;
     // Our own row stays even on a meeting that names no ORGANIZER.
     const me = myAttendeeEmail(this.props.event);
-    const stateOf = (a: EventAttendee): 'removed' | 'removable' | '' => {
+    const answers = this._answersFromGuestRow();
+    const stateOf = (a: EventAttendee): InviteeState => {
       if (removed.some((r) => Utils.emailIsEquivalent(r.email, a.email))) return 'removed';
-      const ours = isOrganizer(this.props.event, a) || (me && Utils.emailIsEquivalent(a.email, me));
+      const mine = !!me && Utils.emailIsEquivalent(a.email, me);
+      if (mine && answers) return 'answerable';
+      const ours = isOrganizer(this.props.event, a) || mine;
       return editable && !ours ? 'removable' : '';
     };
     const listed = attendees.length > 0 || added.length > 0;
@@ -1145,16 +1198,12 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
-  // Answering writes our status onto the event, which a read-only calendar refuses; on someone
-  // else's calendar the answer is only emailed (recordAndSendRSVP).
+  // On someone else's calendar the answer is only emailed (recordAndSendRSVP).
   _renderRsvp() {
-    const { event, calendar, isCalendarReadOnly, unsentChange } = this.props;
+    const { event, calendar } = this.props;
     if (!canRespondToEvent(event) || event.isCancelled) return null;
-    // Slides away while a change waits, so an answer and a new time aren't sent at once.
-    const away = !!unsentChange;
-    const answer = myParticipationStatus(event);
-    const savedTo =
-      calendar && !isCalendarReadOnly && !CalendarUtils.isSomeoneElsesCalendar(calendar);
+    const away = this._answerSectionAway();
+    const savedTo = calendar && !CalendarUtils.isSomeoneElsesCalendar(calendar);
     return (
       <div className={`event-panel-collapse ${away ? 'collapsed' : ''}`} aria-hidden={away}>
         <div>
@@ -1162,27 +1211,50 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             {savedTo && (
               <div className="event-panel-subtle">{localized('Saved to %@', calendar.name)}</div>
             )}
-            <div
-              className="event-panel-rsvp button-group"
-              role="group"
-              aria-label={localized('Your response')}
-            >
-              {rsvpActions().map(([status, label]) => (
-                <button
-                  key={status}
-                  className={`btn ${status === answer ? status : ''}`}
-                  aria-pressed={status === answer}
-                  disabled={isCalendarReadOnly || away}
-                  onClick={() => respondToCalendarEvent(event, status)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            {this._renderAnswerButtons(away)}
           </div>
         </div>
       </div>
     );
+  }
+
+  // Away on a read-only calendar, which refuses an answer; once answered Yes or No, which your
+  // guest row then changes; and while a change waits, so an answer and a new time aren't both sent.
+  _answerSectionAway() {
+    const { event, isCalendarReadOnly, unsentChange } = this.props;
+    return (
+      isCalendarReadOnly ||
+      !!unsentChange ||
+      ['ACCEPTED', 'DECLINED'].includes(myParticipationStatus(event))
+    );
+  }
+
+  _renderAnswerButtons(disabled: boolean) {
+    const answer = myParticipationStatus(this.props.event);
+    return (
+      <div
+        className="event-panel-rsvp button-group"
+        role="group"
+        aria-label={localized('Your response')}
+      >
+        {rsvpActions().map(([status, label]) => (
+          <button
+            key={status}
+            className={`btn ${status === answer ? status : ''}`}
+            aria-pressed={status === answer}
+            disabled={disabled}
+            onClick={() => this._answer(status)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+    );
+  }
+
+  _answer(status: ICSParticipantStatus) {
+    this.setState({ answerOpen: false });
+    respondToCalendarEvent(this.props.event, status);
   }
 
   _renderCancelledCard() {

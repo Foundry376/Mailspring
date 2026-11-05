@@ -1,4 +1,5 @@
 @import 'ui-variables';
+@import 'ui-mixins';
 
 .activity-dashboard {
   .activity-tabs {
@@ -80,12 +81,7 @@
     border-radius: @border-radius-base;
     background: @background-primary;
     font-size: @font-size-small;
-    box-shadow:
-      0 0.5px 0 @btn-border-color,
-      0 -0.5px 0 @btn-border-color,
-      0.5px 0 0 @btn-border-color,
-      -0.5px 0 0 @btn-border-color,
-      0 0.5px 1px @btn-border-color;
+    .btn-hairline();
 
     .segment {
       cursor: default;

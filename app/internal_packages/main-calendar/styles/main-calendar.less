@@ -964,9 +964,16 @@
     }
   }
 
-  .event-panel-invitee-line {
+  .event-panel-invitee-body {
     flex: 1;
     min-width: 0;
+
+    .event-panel-rsvp {
+      margin-top: 4px;
+    }
+  }
+
+  .event-panel-invitee-line {
     display: flex;
     align-items: flex-start;
     gap: 8px;
@@ -974,6 +981,11 @@
 
   .event-panel-invitee-name {
     flex: 1;
+
+    > div {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 
   .event-panel-invitee.removed .event-panel-invitee-name {
@@ -999,6 +1011,17 @@
 
     .event-panel-invitee-remove {
       visibility: visible;
+    }
+  }
+
+  .event-panel-invitee-answer {
+    width: 18px;
+    height: 18px;
+    color: fadeout(@text-color, 35%);
+
+    &:hover,
+    &[aria-expanded='true'] {
+      color: @text-color;
     }
   }
 
@@ -1262,14 +1285,21 @@
   }
 
   // Your answer is filled as the invitation header fills it.
-  // Joined like the toolbar's .button-group.
+  // One outline around the group with hairline dividers, like Activity's segmented control.
   .event-panel-rsvp {
     display: flex;
+    border-radius: @border-radius-base;
+    .btn-hairline();
 
     .btn {
       flex: 1;
       min-width: 0;
       padding: 0 8px;
+      box-shadow: none;
+
+      & + .btn {
+        box-shadow: -0.5px 0 0 @btn-border-color;
+      }
 
       &:not(:last-child) {
         border-right: 0;
