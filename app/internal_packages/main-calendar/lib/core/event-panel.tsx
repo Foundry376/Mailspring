@@ -9,6 +9,7 @@ import {
   CalendarDate,
   CalendarDateUtils,
   CalendarUtils,
+  Contact,
   DatabaseStore,
   DateUtils,
   Event,
@@ -712,7 +713,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     const line = (
       <div className="event-panel-invitee-line">
         <div className="event-panel-invitee-name">
-          <div>{name}</div>
+          <div title={new Contact({ name: attendee.name, email: attendee.email }).toString()}>
+            {name}
+          </div>
           {this._renderInviteeRole(attendee, me)}
         </div>
         {state === 'removable' && (

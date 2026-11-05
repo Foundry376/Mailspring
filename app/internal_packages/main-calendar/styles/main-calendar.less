@@ -974,6 +974,11 @@
 
   .event-panel-invitee-name {
     flex: 1;
+
+    > div {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
   }
 
   .event-panel-invitee.removed .event-panel-invitee-name {
