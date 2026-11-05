@@ -1,14 +1,20 @@
 import { AccountStore } from 'mailspring-exports';
 import React from 'react';
 
-class AccountColorBar extends React.Component<{ accountId: string }, { color: string | null }> {
+const EnabledKey = 'core.workspace.showAccountColorBar';
+
+class AccountColorBar extends React.Component<
+  { accountId: string },
+  { color: string | null; enabled: boolean }
+> {
   static displayName = 'AccountColorBar';
 
   unsubscribe?: () => void;
+  configSubscription?: { dispose: () => void };
 
   constructor(props) {
     super(props);
-    this.state = { color: this.getColor(props) };
+    this.state = { color: this.getColor(props), enabled: AppEnv.config.get(EnabledKey) };
   }
 
   getColor = (props = this.props) => {
@@ -17,6 +23,9 @@ class AccountColorBar extends React.Component<{ accountId: string }, { color: st
   };
 
   componentDidMount() {
+    this.configSubscription = AppEnv.config.onDidChange(EnabledKey, () =>
+      this.setState({ enabled: AppEnv.config.get(EnabledKey) })
+    );
     this.unsubscribe = AccountStore.listen(() => {
       const nextColor = this.getColor();
       if (this.state.color !== nextColor) this.setState({ color: nextColor });
@@ -25,10 +34,11 @@ class AccountColorBar extends React.Component<{ accountId: string }, { color: st
 
   componentWillUnmount() {
     this.unsubscribe && this.unsubscribe();
+    this.configSubscription && this.configSubscription.dispose();
   }
 
   render() {
-    return this.state.color ? (
+    return this.state.color && this.state.enabled ? (
       <span
         style={{
           height: '50%',
