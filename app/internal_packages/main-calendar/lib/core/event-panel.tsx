@@ -233,6 +233,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     if (answerButton && (!answerButton.isConnected || answerButton.disabled)) {
       this._el.current?.focus();
     }
+    if (this.state.answerOpen && !this._answersFromGuestRow()) this.setState({ answerOpen: false });
     if (prevProps.event !== this.props.event) {
       const { times } = this.state;
       if (times && !this._pendingTimes && (this._timesSaveLanded || this._storedTimesAre(times))) {
