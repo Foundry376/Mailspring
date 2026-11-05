@@ -739,6 +739,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           <button
             className="btn-bare event-panel-invitee-answer"
             aria-expanded={answerOpen}
+            title={localized('Change your answer')}
             aria-label={localized('Change your answer')}
             onClick={this._toggleAnswer}
           >
