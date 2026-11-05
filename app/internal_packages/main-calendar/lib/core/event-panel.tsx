@@ -1152,7 +1152,6 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     if (!canRespondToEvent(event) || event.isCancelled) return null;
     // Slides away while a change waits, so an answer and a new time aren't sent at once.
     const away = !!unsentChange;
-    const answer = myParticipationStatus(event);
     const savedTo =
       calendar && !isCalendarReadOnly && !CalendarUtils.isSomeoneElsesCalendar(calendar);
     return (
@@ -1162,25 +1161,32 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             {savedTo && (
               <div className="event-panel-subtle">{localized('Saved to %@', calendar.name)}</div>
             )}
-            <div
-              className="event-panel-rsvp button-group"
-              role="group"
-              aria-label={localized('Your response')}
-            >
-              {rsvpActions().map(([status, label]) => (
-                <button
-                  key={status}
-                  className={`btn ${status === answer ? status : ''}`}
-                  aria-pressed={status === answer}
-                  disabled={isCalendarReadOnly || away}
-                  onClick={() => respondToCalendarEvent(event, status)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            {this._renderAnswerButtons(isCalendarReadOnly || away)}
           </div>
         </div>
+      </div>
+    );
+  }
+
+  _renderAnswerButtons(disabled: boolean) {
+    const answer = myParticipationStatus(this.props.event);
+    return (
+      <div
+        className="event-panel-rsvp button-group"
+        role="group"
+        aria-label={localized('Your response')}
+      >
+        {rsvpActions().map(([status, label]) => (
+          <button
+            key={status}
+            className={`btn ${status === answer ? status : ''}`}
+            aria-pressed={status === answer}
+            disabled={disabled}
+            onClick={() => respondToCalendarEvent(this.props.event, status)}
+          >
+            {label}
+          </button>
+        ))}
       </div>
     );
   }
