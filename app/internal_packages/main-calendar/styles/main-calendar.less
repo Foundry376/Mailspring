@@ -1282,14 +1282,26 @@
   }
 
   // Your answer is filled as the invitation header fills it.
-  // Joined like the toolbar's .button-group.
+  // One outline around the group with hairline dividers, like Activity's segmented control.
   .event-panel-rsvp {
     display: flex;
+    border-radius: @border-radius-base;
+    box-shadow:
+      0 0.5px 0 @btn-border-color,
+      0 -0.5px 0 @btn-border-color,
+      0.5px 0 0 @btn-border-color,
+      -0.5px 0 0 @btn-border-color,
+      0 0.5px 1px @btn-border-color;
 
     .btn {
       flex: 1;
       min-width: 0;
       padding: 0 8px;
+      box-shadow: none;
+
+      & + .btn {
+        box-shadow: -0.5px 0 0 @btn-border-color;
+      }
 
       &:not(:last-child) {
         border-right: 0;
