@@ -13,6 +13,7 @@ import {
   DateUtils,
   Event,
   ICSEventHelpers,
+  ICSParticipantStatus,
   Utils,
 } from 'mailspring-exports';
 import {
@@ -135,12 +136,16 @@ interface ChangeRow {
   was: string;
 }
 
+type InviteeState = 'removed' | 'removable' | 'answerable' | '';
+
 interface EventPanelState {
   /** Read from the event's row: the occurrence doesn't carry it. */
   repeat: RepeatOption;
   /** Times changed in the panel, shown until the saved event comes back. */
   times: Times | null;
   proposals: ProposedTime[];
+  /** Your guest row's answer buttons are showing. */
+  answerOpen: boolean;
 }
 
 /** Text with its links live, as notes show when not being edited. */
@@ -189,7 +194,7 @@ function linkOrText(location: string) {
 export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelState> {
   static displayName = 'EventPanel';
 
-  state: EventPanelState = { repeat: 'none', times: null, proposals: [] };
+  state: EventPanelState = { repeat: 'none', times: null, proposals: [], answerOpen: false };
 
   _el = React.createRef<HTMLElement>();
   _title = React.createRef<EventPanelTextField>();
@@ -692,8 +697,38 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     this._changeAttendees(shown.filter((a) => !Utils.emailIsEquivalent(a.email, attendee.email)));
   }
 
-  _renderInvitee(attendee: EventAttendee, state: 'removed' | 'removable' | '', me: string | null) {
+  _renderInvitee(attendee: EventAttendee, state: InviteeState, me: string | null) {
     const name = attendee.name || attendee.email;
+    const answerable = state === 'answerable';
+    const { answerOpen } = this.state;
+    const line = (
+      <div className="event-panel-invitee-line">
+        <div className="event-panel-invitee-name">
+          <div>{name}</div>
+          {this._renderInviteeRole(attendee, me)}
+        </div>
+        {state === 'removable' && (
+          <button
+            className="btn-bare event-panel-invitee-remove"
+            title={localized('Remove %@', name)}
+            aria-label={localized('Remove %@', name)}
+            onClick={() => this._removeAttendee(attendee)}
+          >
+            <SVGIcons.Remove />
+          </button>
+        )}
+        {answerable && (
+          <button
+            className="btn-bare event-panel-invitee-answer"
+            aria-expanded={answerOpen}
+            aria-label={localized('Change your answer')}
+            onClick={this._toggleAnswer}
+          >
+            {answerOpen ? <SVGIcons.ChevronUp /> : <SVGIcons.ChevronDown />}
+          </button>
+        )}
+      </div>
+    );
     return (
       <div
         key={attendee.email}
@@ -702,24 +737,26 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         <span className="attendee-status">
           <AttendeeStatusIcon attendee={attendee} />
         </span>
-        <div className="event-panel-invitee-line">
-          <div className="event-panel-invitee-name">
-            <div>{name}</div>
-            {this._renderInviteeRole(attendee, me)}
+        {answerable ? (
+          <div className="event-panel-invitee-body">
+            {line}
+            {answerOpen && this._renderAnswerButtons(false)}
           </div>
-          {state === 'removable' && (
-            <button
-              className="btn-bare event-panel-invitee-remove"
-              title={localized('Remove %@', name)}
-              aria-label={localized('Remove %@', name)}
-              onClick={() => this._removeAttendee(attendee)}
-            >
-              <SVGIcons.Remove />
-            </button>
-          )}
-        </div>
+        ) : (
+          line
+        )}
       </div>
     );
+  }
+
+  _toggleAnswer = () => {
+    this.setState(({ answerOpen }) => ({ answerOpen: !answerOpen }));
+  };
+
+  // A waiting proposal holds answers back, as it does the answer section's.
+  _answersFromGuestRow() {
+    const { event, isCalendarReadOnly, unsentChange } = this.props;
+    return canRespondToEvent(event) && !isCalendarReadOnly && !unsentChange;
   }
 
   _renderInvitees() {
@@ -729,9 +766,12 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     if (attendees.length === 0 && added.length === 0 && !editable) return null;
     // Our own row stays even on a meeting that names no ORGANIZER.
     const me = myAttendeeEmail(this.props.event);
-    const stateOf = (a: EventAttendee): 'removed' | 'removable' | '' => {
+    const answers = this._answersFromGuestRow();
+    const stateOf = (a: EventAttendee): InviteeState => {
       if (removed.some((r) => Utils.emailIsEquivalent(r.email, a.email))) return 'removed';
-      const ours = isOrganizer(this.props.event, a) || (me && Utils.emailIsEquivalent(a.email, me));
+      const mine = !!me && Utils.emailIsEquivalent(a.email, me);
+      if (mine && answers) return 'answerable';
+      const ours = isOrganizer(this.props.event, a) || mine;
       return editable && !ours ? 'removable' : '';
     };
     const listed = attendees.length > 0 || added.length > 0;
@@ -1182,13 +1222,18 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             className={`btn ${status === answer ? status : ''}`}
             aria-pressed={status === answer}
             disabled={disabled}
-            onClick={() => respondToCalendarEvent(this.props.event, status)}
+            onClick={() => this._answer(status)}
           >
             {label}
           </button>
         ))}
       </div>
     );
+  }
+
+  _answer(status: ICSParticipantStatus) {
+    this.setState({ answerOpen: false });
+    respondToCalendarEvent(this.props.event, status);
   }
 
   _renderCancelledCard() {

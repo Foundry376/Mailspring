@@ -47,11 +47,11 @@ describe('EventPanel', function () {
     host.remove();
   });
 
-  const render = (event: TimedOccurrence, unsentChange = null) =>
+  const render = (event: TimedOccurrence, unsentChange = null, isCalendarReadOnly = false) =>
     ReactDOM.render(
       React.createElement(EventPanel, {
         event,
-        isCalendarReadOnly: false,
+        isCalendarReadOnly,
         onBack: () => {},
         unsentChange,
         onUnsentChange: () => {},
@@ -197,8 +197,52 @@ describe('EventPanel', function () {
       render(invitation({ attendees: guests, isCancelled: true }));
 
       expect(buttons()).not.toContain('Yes');
+      expect(host.querySelector('[aria-label="Change your answer"]')).toBe(null);
       expect(proposalHint()).toBe(null);
       expect(host.textContent).toContain('This event has been cancelled');
+    });
+
+    describe('our answer', function () {
+      const answering = (partstat: string) =>
+        invitation({ attendees: [guests[0], { ...guests[1], partstat }] });
+      const carets = () =>
+        Array.from(host.querySelectorAll<HTMLElement>('[aria-label="Change your answer"]'));
+      const rowButton = (label: string) =>
+        Array.from(host.querySelectorAll('.event-panel-invitee button')).find(
+          (b) => b.textContent === label
+        );
+
+      it('can be changed from our own guest row only, whatever it is', function () {
+        for (const partstat of ['NEEDS-ACTION', 'TENTATIVE', 'ACCEPTED', 'DECLINED']) {
+          render(answering(partstat));
+          expect(carets().length).toBe(1);
+          expect(carets()[0].closest('.event-panel-invitee').textContent).toContain('Me');
+        }
+      });
+
+      it('is sent from our row, which then closes', function () {
+        const respond = spyOn(CalendarRsvp, 'respondToCalendarEvent').andReturn(Promise.resolve());
+        const event = answering('ACCEPTED');
+        render(event);
+
+        carets()[0].click();
+        expect(carets()[0].getAttribute('aria-expanded')).toBe('true');
+        expect(rowButton('Yes').getAttribute('aria-pressed')).toBe('true');
+
+        (rowButton('No') as HTMLElement).click();
+        expect(respond).toHaveBeenCalledWith(event, 'DECLINED');
+        expect(carets()[0].getAttribute('aria-expanded')).toBe('false');
+        expect(rowButton('No')).toBeUndefined();
+      });
+
+      it('has no caret while a proposal waits, nor on a read-only calendar', function () {
+        const proposal = { eventId: 'e1', edits: [], times: null, proposal: { comment: '' } };
+        render(answering('NEEDS-ACTION'), proposal);
+        expect(carets().length).toBe(0);
+
+        render(answering('NEEDS-ACTION'), null, true);
+        expect(carets().length).toBe(0);
+      });
     });
   });
 

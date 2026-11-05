@@ -1002,6 +1002,26 @@
     }
   }
 
+  .event-panel-invitee-body {
+    flex: 1;
+    min-width: 0;
+
+    .event-panel-rsvp {
+      margin-top: 4px;
+    }
+  }
+
+  .event-panel-invitee-answer {
+    width: 18px;
+    height: 18px;
+    color: fadeout(@text-color, 35%);
+
+    &:hover,
+    &[aria-expanded='true'] {
+      color: @text-color;
+    }
+  }
+
   .event-panel-invitee-add {
     .attendee-status {
       margin-top: 7px;
