@@ -6,6 +6,7 @@ import {
   AccountStore,
   Autolink,
   Calendar,
+  CalendarConflict,
   CalendarDate,
   CalendarDateUtils,
   CalendarUtils,
@@ -121,6 +122,8 @@ interface EventPanelProps {
   onDiscard?: () => void;
   calendarChoices?: Calendar[];
   onCalendarChange?: (calendar: Calendar) => void;
+  /** Given in the mail sidebar, where an invitation is answered; the calendar shows the clash. */
+  conflicts?: CalendarConflict[];
 }
 
 interface Times {
@@ -610,6 +613,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             {multiDay && endDatePicker}
           </div>
         </div>
+        {this._renderConflicts()}
         {!allDaySwitch && t.isAllDay && (
           <div className="event-panel-row indented">{localized('All day')}</div>
         )}
@@ -637,6 +641,22 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         )}
       </div>
     );
+  }
+
+  // Gone once answered Yes or No, as the answer section is.
+  _renderConflicts() {
+    const { conflicts, event } = this.props;
+    const answered = ['ACCEPTED', 'DECLINED'].includes(myParticipationStatus(event));
+    if (!conflicts?.length || !canRespondToEvent(event) || answered) return null;
+    return conflicts.map((c) => (
+      <div className="event-panel-row event-panel-conflict" key={`${c.eventId}-${c.start}`}>
+        <SVGIcons.AlertTriangle className="event-panel-icon" />
+        {localized(
+          'Conflicts with %@',
+          `${c.title || localized('(No title)')}, ${formatShortTimeRange(c.start, c.end)}`
+        )}
+      </div>
+    ));
   }
 
   _renderRepeatLabel() {
@@ -674,6 +694,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
               </div>
             </div>
             <div className="event-panel-row indented">{days}</div>
+            {this._renderConflicts()}
             <div className="event-panel-row">
               <SVGIcons.Globe className="event-panel-icon" />
               {/* The zone the times above are shown in, which may not be the event's own. */}
@@ -687,6 +708,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
               {days}
             </div>
             <div className="event-panel-row indented">{localized('All day')}</div>
+            {this._renderConflicts()}
           </>
         )}
         {this._renderRepeatLabel()}
