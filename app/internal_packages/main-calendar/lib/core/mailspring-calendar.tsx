@@ -27,6 +27,8 @@ import CalendarHeaderStore from './calendar-header-store';
 import {
   CalendarDataSource,
   EventOccurrence,
+  movedOccurrenceId,
+  panelKey,
   currentOccurrence,
   FocusedEventInfo,
   isEventSelected,
@@ -162,17 +164,6 @@ function savedView(): CalendarView {
   return Object.values(CalendarView).includes(saved) ? saved : CalendarView.WEEK;
 }
 
-/**
- * Which panel a selection shows, null for none. A series' occurrences share an event id, but not
- * a field's just-saved text. The slot survives a move, so moving an occurrence keeps its panel.
- */
-function panelKey(selected: EventOccurrence[]) {
-  if (selected.length !== 1) return null;
-  const [event] = selected;
-  const eventId = CalendarUtils.parseOccurrenceId(event.id).eventId;
-  return event.isRecurring ? `${eventId}@${occurrenceSlot(event)}` : eventId;
-}
-
 /*
  * Mailspring Calendar
  */
@@ -213,6 +204,7 @@ export class MailspringCalendar extends React.Component<
   _unlistenNewEvent?: () => void;
   _unlistenDatabase?: () => void;
   _unlistenFocusedMoment?: () => void;
+  _removeLeaveGuard?: () => void;
   _dataSource = new CalendarDataSource();
   /**
    * The press that began drawing a new event, held until release. It reaches state only once
@@ -259,7 +251,7 @@ export class MailspringCalendar extends React.Component<
     this._unlistenDatabase = DatabaseStore.listen(this._onDatabaseChange);
     // Captured, so it runs before the window's own undo handler on <body>.
     document.addEventListener('core:undo', this._ignoreUndoWhileHeld, true);
-    WorkspaceStore.setSectionLeaveGuard(() => this._mayLeave([]));
+    this._removeLeaveGuard = WorkspaceStore.setSectionLeaveGuard(() => this._mayLeave([]));
     AppEnv.onBeforeUnload(this._onBeforeUnload);
     AppEnv.mailsyncBridge.sendSyncCalendarNow();
     this._themeDisposable = AppEnv.themes.onDidChangeActiveThemes(() => {
@@ -475,7 +467,7 @@ export class MailspringCalendar extends React.Component<
     this._unlistenDatabase?.();
     this._unlistenFocusedMoment?.();
     document.removeEventListener('core:undo', this._ignoreUndoWhileHeld, true);
-    WorkspaceStore.setSectionLeaveGuard(null);
+    this._removeLeaveGuard?.();
     AppEnv.removeUnloadCallback(this._onBeforeUnload);
   }
 
@@ -506,12 +498,10 @@ export class MailspringCalendar extends React.Component<
     }
   }
 
-  /** An occurrence's id embeds its start; a series exception stored as its own row keeps its id. */
+  /** Keeps a moved occurrence selected, under its new id, until its row is rewritten. */
   _followMove(occurrence: EventOccurrence, event: Event, newStart: number, staleIcs: string) {
     if (!isEventSelected(this.state.selectedEvents, occurrence)) return;
-    const id = event.isRecurrenceException()
-      ? occurrence.id
-      : CalendarUtils.occurrenceId(event.id, newStart);
+    const id = movedOccurrenceId(occurrence, event, newStart);
     this._pendingMoves.set(id, { start: newStart, staleIcs });
     this.setState({
       selectedEvents: this.state.selectedEvents.map((o) =>

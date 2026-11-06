@@ -1,20 +1,17 @@
 import React from 'react';
 import { ipcRenderer } from 'electron';
-import {
-  Actions,
-  WorkspaceStore,
-  ComponentRegistry,
-  DatabaseStore,
-  Event,
-  localized,
-} from 'mailspring-exports';
+import { Actions, WorkspaceStore, ComponentRegistry, localized } from 'mailspring-exports';
 import { NavRailItem } from 'mailspring-component-kit';
 import { QuickEventButton } from './quick-event-button';
 import { MailspringCalendar } from './core/mailspring-calendar';
 import { CalendarSidebar } from './core/calendar-sidebar';
 import { CalendarHeader } from './core/calendar-header';
-import { focusedEventInfoForEvents } from './core/calendar-data-source';
-import { SidebarAgendaPanel } from './sidebar-agenda-panel';
+import {
+  EventRef,
+  focusedOccurrenceForIcsuid,
+  occurrenceStartUnix,
+} from './core/calendar-data-source';
+import { SidebarCalendarPanel } from './sidebar-calendar-panel';
 
 type MenuItem = (typeof AppEnv.menu.template)[0];
 
@@ -96,23 +93,15 @@ function updateMenus() {
 }
 
 // Sent by the main process for application:show-calendar, from the Window menu or from an
-// invitation's "View in Calendar" link in any window. `calendarId` picks one copy when the
-// account holds the event on several calendars; without it the first copy found is shown.
-async function onShowCalendar(
-  _event: Electron.IpcRendererEvent,
-  focus?: { icsuid: string; accountId: string; calendarId?: string; recurrenceIdStart?: number }
-) {
+// invitation's "View in Calendar" link in any window.
+async function onShowCalendar(_event: Electron.IpcRendererEvent, focus?: EventRef) {
   if (WorkspaceStore.rootSheet() !== WorkspaceStore.Sheet.Calendar) {
     Actions.selectRootSheet(WorkspaceStore.Sheet.Calendar);
   }
   if (!focus) return;
-  const { icsuid, accountId, calendarId, recurrenceIdStart } = focus;
-  const events = await DatabaseStore.findAll<Event>(Event).where(
-    calendarId ? { icsuid, accountId, calendarId } : { icsuid, accountId }
-  );
-  const info = focusedEventInfoForEvents(events, Date.now() / 1000, recurrenceIdStart);
-  if (info) {
-    Actions.focusCalendarEvent(info);
+  const occurrence = await focusedOccurrenceForIcsuid(focus, []);
+  if (occurrence) {
+    Actions.focusCalendarEvent({ id: occurrence.id, start: occurrenceStartUnix(occurrence) });
   }
 }
 
@@ -148,7 +137,7 @@ export function activate() {
     location: WorkspaceStore.Location.CalendarContent.Toolbar,
   });
   ComponentRegistry.register(CalendarNavRailItem, { role: 'NavRail:Item' });
-  ComponentRegistry.register(SidebarAgendaPanel, { role: 'MessageListSidebar:Panel' });
+  ComponentRegistry.register(SidebarCalendarPanel, { role: 'MessageListSidebar:Panel' });
 
   _unlistenWorkspace = WorkspaceStore.listen(updateMenus);
   ipcRenderer.on('show-calendar', onShowCalendar);
@@ -160,7 +149,7 @@ export function deactivate() {
   ComponentRegistry.unregister(QuickEventButton);
   ComponentRegistry.unregister(CalendarHeader);
   ComponentRegistry.unregister(CalendarNavRailItem);
-  ComponentRegistry.unregister(SidebarAgendaPanel);
+  ComponentRegistry.unregister(SidebarCalendarPanel);
 
   _unlistenWorkspace?.();
   ipcRenderer.removeListener('show-calendar', onShowCalendar);

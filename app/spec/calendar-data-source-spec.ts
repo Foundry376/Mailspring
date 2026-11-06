@@ -11,8 +11,10 @@ import {
   occurrenceEndUnix,
   isEventSelected,
   focusedEventInfoForEvents,
+  focusedOccurrenceForIcsuid,
   EventOccurrence,
 } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
+import { DatabaseStore } from 'mailspring-exports';
 import { formatCalendarDate, parseCalendarDate } from '../src/calendar-date';
 
 // All-day-ness comes from the ICS DATE type, never from duration.
@@ -494,6 +496,33 @@ describe('occurrencesForEvents on a long-running series', function () {
       endUnix: Date.UTC(2026, 8, 6) / 1000,
     });
     expect(occs.length).toBe(1);
+  });
+});
+
+describe('focusedOccurrenceForIcsuid', function () {
+  const unix = (iso: string) => new Date(iso).getTime() / 1000;
+  const NOW = unix('2026-06-15T12:00:00Z');
+  const REF = { icsuid: 'uid@test', accountId: 'account-1' };
+
+  const stored = (event: MailspringEvent) =>
+    spyOn(DatabaseStore, 'findAll').andReturn({ where: () => Promise.resolve([event]) } as any);
+
+  it('returns the occurrence the focus lands on, for a timed event', async function () {
+    stored(
+      makeEvent(icsFor('DTSTART:20260622T140000Z', 'DTEND:20260622T150000Z'), {
+        recurrenceStart: unix('2026-06-22T14:00:00Z'),
+      })
+    );
+    const occurrence = await focusedOccurrenceForIcsuid(REF, [], NOW);
+    expect(occurrence.id).toBe(`event-1-e${unix('2026-06-22T14:00:00Z')}`);
+    expect(occurrenceStartUnix(occurrence)).toBe(unix('2026-06-22T14:00:00Z'));
+  });
+
+  it('returns the occurrence the focus lands on, for an all-day event', async function () {
+    stored(makeEvent(icsFor('DTSTART;VALUE=DATE:20260622', 'DTEND;VALUE=DATE:20260623')));
+    const occurrence = await focusedOccurrenceForIcsuid(REF, [], NOW);
+    expect(occurrence.isAllDay).toBe(true);
+    expect(formatCalendarDate(occurrence.startDate)).toBe('2026-06-22');
   });
 });
 

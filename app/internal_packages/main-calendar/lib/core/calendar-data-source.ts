@@ -172,7 +172,7 @@ interface OccurrenceBase {
   recurrenceIdStart?: number;
   /** True if this event is part of a recurring series (has RRULE/RDATE) */
   isRecurring: boolean;
-  organizer: { email: string } | null;
+  organizer: { email: string; name?: string } | null;
   attendees: EventAttendee[];
 
   /** True if this is a synthetic drag preview event (not a real event) */
@@ -393,7 +393,12 @@ function occurrenceFromICS(args: {
     isException: args.isException ?? !!rid,
     recurrenceIdStart: rid ? (rid as any).toJSDate().getTime() / 1000 : undefined,
     isRecurring: args.isRecurring,
-    organizer: organizerEmail ? { email: organizerEmail } : null,
+    organizer: organizerEmail
+      ? {
+          email: organizerEmail,
+          name: item.component?.getFirstProperty('organizer')?.getFirstParameter('cn') || '',
+        }
+      : null,
     attendees,
   };
 
@@ -680,6 +685,53 @@ export function focusedEventInfoForEvents(
   }
 
   return occurrence ? { id: occurrence.id, start: occurrenceStartUnix(occurrence) } : null;
+}
+
+/** An event named by UID, as an invitation's View in Calendar link names it. */
+export interface EventRef {
+  icsuid: string;
+  accountId: string;
+  /** Picks one copy when the account holds the event on several calendars. */
+  calendarId?: string;
+  recurrenceIdStart?: number;
+}
+
+/** The occurrence `focusedEventInfoForEvents` picks for an event named by UID. */
+export async function focusedOccurrenceForIcsuid(
+  { icsuid, accountId, calendarId, recurrenceIdStart }: EventRef,
+  calendars: Calendar[],
+  nowUnix = Date.now() / 1000
+): Promise<EventOccurrence | null> {
+  const events = await DatabaseStore.findAll<Event>(Event).where(
+    calendarId ? { icsuid, accountId, calendarId } : { icsuid, accountId }
+  );
+  const info = focusedEventInfoForEvents(events, nowUnix, recurrenceIdStart);
+  if (!info) return null;
+  // Expanded again with our calendars, so a meeting a secondary calendar of ours organizes is ours.
+  const occurrences = occurrencesForEvents(events, {
+    startUnix: info.start - 1,
+    endUnix: info.start + 1,
+    ownCalendarAddresses: ownCalendarAddresses(calendars),
+  });
+  return occurrences.find((o) => o.id === info.id) ?? null;
+}
+
+/**
+ * Which panel a selection shows, null for none. A series' occurrences share an event id, but not
+ * a field's just-saved text. The slot survives a move, so moving an occurrence keeps its panel.
+ */
+export function panelKey(selected: EventOccurrence[]) {
+  if (selected.length !== 1) return null;
+  const [event] = selected;
+  const eventId = CalendarUtils.parseOccurrenceId(event.id).eventId;
+  return event.isRecurring ? `${eventId}@${occurrenceSlot(event)}` : eventId;
+}
+
+/** An occurrence's id embeds its start; a series exception stored as its own row keeps its id. */
+export function movedOccurrenceId(occurrence: EventOccurrence, event: Event, newStart: number) {
+  return event.isRecurrenceException()
+    ? occurrence.id
+    : CalendarUtils.occurrenceId(event.id, newStart);
 }
 
 /** The occurrence as its row draws it now; null once it's gone or a move landed unpredicted. */

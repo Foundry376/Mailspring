@@ -819,7 +819,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     const isMe = !!me && Utils.emailIsEquivalent(attendee.email, me);
     let role: string = null;
     if (isOrganizer(this.props.event, attendee)) {
-      role = isMe ? localized('Organizer · You') : localized('Organizer');
+      // An organizer left off the guest list isn't found as `me`; isMine says it's us.
+      role =
+        isMe || this.props.event.isMine ? localized('Organizer · You') : localized('Organizer');
     } else if (isMe) {
       role = localized('You');
     }
