@@ -1,5 +1,6 @@
 import React from 'react';
 import classnames from 'classnames';
+import { ipcRenderer } from 'electron';
 import { Disposable } from 'rx-core';
 import {
   Rx,
@@ -9,14 +10,17 @@ import {
   DOMUtils,
   Event,
   WorkspaceStore,
+  CalendarUtils,
   localized,
 } from 'mailspring-exports';
+import { RetinaImg } from 'mailspring-component-kit';
 import { AgendaContainer } from './core/agenda-container';
 import { EventPanel } from './core/event-panel';
 import {
   EventOccurrence,
   currentOccurrence,
   movedOccurrenceId,
+  occurrenceSlot,
   panelKey,
 } from './core/calendar-data-source';
 import { proposeNewEventTime } from './core/calendar-rsvp';
@@ -207,6 +211,22 @@ export class SidebarCalendarPanel extends React.Component<
     this.setState({ shown: { ...occurrence, id } });
   }
 
+  // The calendar opens it the way an invitation's View in Calendar link does.
+  _onViewInCalendar = async () => {
+    const { shown } = this.state;
+    const row = await DatabaseStore.find<Event>(
+      Event,
+      CalendarUtils.parseOccurrenceId(shown.id).eventId
+    );
+    if (!row) return;
+    ipcRenderer.send('command', 'application:show-calendar', {
+      icsuid: row.icsuid,
+      accountId: row.accountId,
+      calendarId: row.calendarId,
+      recurrenceIdStart: shown.isRecurring ? occurrenceSlot(shown) : undefined,
+    });
+  };
+
   _onDatabaseChange = ({ objectClass }: DatabaseChangeRecord<Event>) => {
     if (objectClass !== Event.name) return;
     const { shown } = this.state;
@@ -250,6 +270,16 @@ export class SidebarCalendarPanel extends React.Component<
             isCalendarReadOnly={readOnly}
             onBack={this._onBack}
             onDelete={readOnly ? undefined : () => deleteEvent(shown)}
+            headerActions={
+              <button
+                className="btn-bare event-panel-view"
+                title={localized('View in Calendar')}
+                aria-label={localized('View in Calendar')}
+                onClick={this._onViewInCalendar}
+              >
+                <RetinaImg name="ic-calendar-month.png" mode={RetinaImg.Mode.ContentIsMask} />
+              </button>
+            }
           />
         )}
       </div>

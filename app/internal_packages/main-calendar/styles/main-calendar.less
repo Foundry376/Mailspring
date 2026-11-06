@@ -862,7 +862,8 @@
     gap: 4px;
   }
 
-  .event-panel-more {
+  .event-panel-more,
+  .event-panel-view {
     width: 24px;
     height: 24px;
     padding: 0;
@@ -870,6 +871,10 @@
     align-items: center;
     justify-content: center;
     color: @text-color-very-subtle;
+
+    img.content-mask {
+      background-color: @text-color-very-subtle;
+    }
   }
 
   .event-panel-body {
