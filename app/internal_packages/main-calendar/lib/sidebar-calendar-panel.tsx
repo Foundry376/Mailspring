@@ -76,6 +76,7 @@ export class SidebarCalendarPanel extends React.Component<
   _removeLeaveGuard?: () => void;
   _threadId: string | null = null;
   _followedEmail = false;
+  _clickedInEmail = false;
 
   componentDidMount() {
     this._calendarsSubscription = Rx.Observable.fromQuery(
@@ -116,11 +117,16 @@ export class SidebarCalendarPanel extends React.Component<
   // The invitation's attachment can land after the email opens, so each change is checked
   // until this email's event is found.
   _onMessagesChange = async () => {
+    // A thread switch empties the messages before loading them; deciding then would let go.
+    if (MessageStore.itemsLoading()) return;
     const threadId = MessageStore.threadId();
     const newEmail = threadId !== this._threadId;
     if (!newEmail && this._followedEmail) return;
-    this._threadId = threadId;
-    this._followedEmail = false;
+    if (newEmail) {
+      this._threadId = threadId;
+      this._followedEmail = false;
+      this._clickedInEmail = false;
+    }
     const followed = () => MessageStore.threadId() === threadId && !this._followedEmail;
 
     const emailed = await emailedEventIn(MessageStore.items());
@@ -133,19 +139,21 @@ export class SidebarCalendarPanel extends React.Component<
     if (occurrence) {
       this._followedEmail = true;
       this.setState({ inThisEmail: occurrence });
-      if (this._show(occurrence)) this.props.claimActive(true);
+      // Found after the user picked something else in this email: their pick stays.
+      if (!this._clickedInEmail && this._show(occurrence)) this.props.claimActive(true);
     } else if (newEmail) {
       this.setState({ inThisEmail: null });
-      this.props.claimActive(false);
-      this._show(null);
+      if (this._show(null)) this.props.claimActive(false);
     }
   };
 
   _onAgendaEventClick = (_e: React.MouseEvent, occurrence: EventOccurrence) => {
+    this._clickedInEmail = true;
     this._show(occurrence);
   };
 
   _onBack = () => {
+    this._clickedInEmail = true;
     this._show(null);
   };
 
@@ -288,7 +296,16 @@ export class SidebarCalendarPanel extends React.Component<
       if (id !== shown?.id) this._pendingMoves.delete(id);
     }
     if (shown) this._refreshShown(shown);
+    const { inThisEmail } = this.state;
+    if (inThisEmail && !(shown && this._isInThisEmail(shown))) {
+      this._refreshInThisEmail(inThisEmail);
+    }
   };
+
+  async _refreshInThisEmail(pinned: EventOccurrence) {
+    const next = await currentOccurrence(pinned, this._pendingMoves, this.state.calendars);
+    if (this.state.inThisEmail === pinned) this.setState({ inThisEmail: next });
+  }
 
   /** The shown occurrence's times and exception flags go stale when its row changes. */
   async _refreshShown(shown: EventOccurrence) {

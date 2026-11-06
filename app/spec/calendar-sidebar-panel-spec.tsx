@@ -18,11 +18,14 @@ function sidebarPanel() {
 describe('SidebarCalendarPanel following the email being read', function () {
   let threadId: string;
   let emailed: typeof EMAILED | null;
+  let loading: boolean;
 
   beforeEach(function () {
     threadId = 'thread-1';
     emailed = EMAILED;
+    loading = false;
     spyOn(MessageStore, 'threadId').andCallFake(() => threadId);
+    spyOn(MessageStore, 'itemsLoading').andCallFake(() => loading);
     spyOn(MessageStore, 'items').andReturn([]);
     spyOn(invitationVersions, 'emailedEventIn').andCallFake(() => Promise.resolve(emailed));
   });
@@ -57,6 +60,44 @@ describe('SidebarCalendarPanel following the email being read', function () {
     expect(claimActive.mostRecentCall.args).toEqual([false]);
   });
 
+  it('keeps the event while the next email is still loading', async function () {
+    const { panel, claimActive } = following();
+    await panel._onMessagesChange();
+    threadId = 'thread-2';
+    loading = true;
+    emailed = null;
+    await panel._onMessagesChange();
+
+    expect(panel.state.shown).toBe(INTERVIEW);
+    expect(claimActive).not.toHaveBeenCalledWith(false);
+  });
+
+  it('keeps the sidebar claimed when Keep editing holds a change on the next email', async function () {
+    const { panel, claimActive } = following();
+    await panel._onMessagesChange();
+    panel.state.unsentChange = { eventId: 'interview', edits: [] } as any;
+    spyOn(unsentChangeDialog, 'showUnsentChangeDialog').andReturn('keep-editing');
+    threadId = 'thread-2';
+    emailed = null;
+    await panel._onMessagesChange();
+
+    expect(panel.state.shown).toBe(INTERVIEW);
+    expect(claimActive).not.toHaveBeenCalledWith(false);
+  });
+
+  it("keeps the user's pick when the email's event turns up after it", async function () {
+    const { panel } = following();
+    emailed = null;
+    await panel._onMessagesChange();
+    const picked = { ...INTERVIEW, id: 'standup' };
+    panel._onAgendaEventClick({} as any, picked as any);
+    emailed = EMAILED;
+    await panel._onMessagesChange();
+
+    expect(panel.state.shown).toBe(picked);
+    expect(panel.state.inThisEmail).toBe(INTERVIEW);
+  });
+
   it('leaves the agenda alone once the email is followed, so the last click wins', async function () {
     const { panel } = following();
     await panel._onMessagesChange();
@@ -80,6 +121,20 @@ describe('SidebarCalendarPanel following the email being read', function () {
   });
 });
 
+describe("SidebarCalendarPanel's In this email row", function () {
+  it('follows changes to its event while another one, or the agenda, is shown', async function () {
+    const { panel } = sidebarPanel();
+    const answered = { ...INTERVIEW, isPending: false };
+    panel.state.inThisEmail = { ...INTERVIEW, isPending: true } as any;
+    spyOn(calendarDataSource, 'currentOccurrence').andReturn(Promise.resolve(answered));
+
+    panel._onDatabaseChange({ objectClass: 'Event' } as any);
+    await Promise.resolve();
+
+    expect(panel.state.inThisEmail).toBe(answered);
+  });
+});
+
 describe('SidebarCalendarPanel closing with a change held for Send update', function () {
   const held = { eventId: 'interview', edits: [{ property: 'summary', value: 'Interview loop' }] };
 
@@ -96,5 +151,18 @@ describe('SidebarCalendarPanel closing with a change held for Send update', func
       canKeepEditing: false,
     });
     expect(panel._writeUnsentChange).toHaveBeenCalledWith(held, 'this-occurrence');
+  });
+
+  it('sends nothing when Discard is picked', function () {
+    const { panel } = sidebarPanel();
+    panel.state.shown = INTERVIEW as any;
+    panel.state.unsentChange = held as any;
+    spyOn(unsentChangeDialog, 'showUnsentChangeDialog').andReturn('discard');
+    spyOn(panel, '_writeUnsentChange').andReturn(Promise.resolve());
+
+    panel.componentWillUnmount();
+
+    expect(panel._writeUnsentChange).not.toHaveBeenCalled();
+    expect(panel.state.unsentChange).toBe(null);
   });
 });
