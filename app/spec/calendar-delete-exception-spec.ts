@@ -1,7 +1,7 @@
 import { Actions, DatabaseStore, DestroyEventTask, SyncbackEventTask } from 'mailspring-exports';
 import { dialog } from '@electron/remote';
 import { Event as MailspringEvent } from '../src/flux/models/event';
-import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
+import { deleteEvent } from '../internal_packages/main-calendar/lib/core/recurring-event-actions';
 import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 
 // A daily series whose 2 March occurrence has been moved to 08:00. Both rows the sync engine
@@ -78,7 +78,6 @@ const occurrence: TimedOccurrence = {
 
 describe('deleting a moved occurrence from the calendar', function () {
   let queued: any[];
-  let calendar: any;
 
   function stubRows(exception: MailspringEvent, masterRow: MailspringEvent | null) {
     spyOn(DatabaseStore, 'find').andReturn(Promise.resolve(exception));
@@ -89,14 +88,12 @@ describe('deleting a moved occurrence from the calendar', function () {
     queued = [];
     spyOn(Actions, 'queueTask').andCallFake((task) => queued.push(task));
     spyOn(AppEnv, 'showErrorDialog');
-    // _deleteEvent reads nothing from the rendered tree, so the component need not be mounted.
-    calendar = new MailspringCalendar({} as any);
   });
 
   it('edits the master instead of destroying the resource the rows share', async function () {
     stubRows(exceptionRow('20260302T060000Z'), master());
 
-    await calendar._deleteEvent(occurrence);
+    await deleteEvent(occurrence);
 
     expect(queued.length).toBe(1);
     expect(queued[0] instanceof SyncbackEventTask).toBe(true);
@@ -111,7 +108,7 @@ describe('deleting a moved occurrence from the calendar', function () {
   it('refuses when the master does not contain the occurrence, rather than deleting', async function () {
     stubRows(exceptionRow('20991231T060000Z'), master());
 
-    await calendar._deleteEvent(occurrence);
+    await deleteEvent(occurrence);
 
     expect(queued.length).toBe(0);
     expect(AppEnv.showErrorDialog).toHaveBeenCalled();
@@ -120,7 +117,7 @@ describe('deleting a moved occurrence from the calendar', function () {
   it('revises the series, so guests take the cancellation', async function () {
     stubRows(exceptionRow('20260302T060000Z'), master());
 
-    await calendar._deleteEvent(occurrence);
+    await deleteEvent(occurrence);
 
     expect(queued[0].event.ics).toContain('SEQUENCE:1');
     expect(queued[0].event.ics).not.toContain('SEQUENCE:0');
@@ -134,7 +131,7 @@ describe('deleting a moved occurrence from the calendar', function () {
     exception.ics = noSequence;
     stubRows(exception, row);
 
-    await calendar._deleteEvent(occurrence);
+    await deleteEvent(occurrence);
 
     expect(queued[0].event.ics).toContain('SEQUENCE:1');
   });
@@ -161,9 +158,7 @@ describe('deleting one plain occurrence from the calendar', function () {
       start,
       end: start + 3600,
     };
-    const calendar: any = new MailspringCalendar({} as any);
-
-    await calendar._deleteEvent(plain);
+    await deleteEvent(plain);
 
     expect(queued.length).toBe(1);
     const [masterVevent] = queued[0].event.ics.split('BEGIN:VEVENT').slice(1);

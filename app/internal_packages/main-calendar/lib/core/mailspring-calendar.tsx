@@ -8,10 +8,7 @@ import {
   localized,
   CalendarDateUtils,
   CalendarUtils,
-  DestroyEventTask,
   Event,
-  SyncbackEventTask,
-  ICSEventHelpers,
   DatabaseChangeRecord,
   TaskQueue,
   DOMUtils,
@@ -30,11 +27,9 @@ import CalendarHeaderStore from './calendar-header-store';
 import {
   CalendarDataSource,
   EventOccurrence,
+  currentOccurrence,
   FocusedEventInfo,
-  focusedEventInfoForEvents,
   isEventSelected,
-  occurrencesForEvents,
-  ownCalendarAddresses,
   occurrenceStartUnix,
   occurrenceEndUnix,
   occurrenceSlot,
@@ -43,7 +38,7 @@ import {
 import { CalendarEventContextMenu } from './calendar-event-context-menu';
 import {
   openProposeNewTimePopover,
-  proposeNewTimeForCalendarEvent,
+  proposeNewEventTime,
   showOrganizerOnlyMoveDialog,
 } from './calendar-rsvp';
 import { CalendarView, DEFAULT_TIMED_EVENT_DURATION_SECONDS } from './calendar-constants';
@@ -84,11 +79,10 @@ import {
   createNewEventPreview,
   CREATE_DRAG_SNAP_SECONDS,
 } from './calendar-drag-utils';
-import { showRecurringEventDialog } from './recurring-event-dialog';
 import {
+  deleteEvent,
   modifyEventWithRecurringSupport,
-  modifyEventChange,
-  modifyGuestCopy,
+  updateEvent,
   ChangeScope,
   EventTimeChangeOptions,
 } from './recurring-event-actions';
@@ -98,7 +92,6 @@ import {
   keepsNewEvent,
   newEventOptions,
   showAsWaitsForScope,
-  unsentEdit,
   withEdit,
   withTimes,
   withUnsentChange,
@@ -430,7 +423,7 @@ export class MailspringCalendar extends React.Component<
   async _sendProposal(change: UnsentChange) {
     const { times, proposal } = change;
     const occurrence = this.state.selectedEvents.find((o) => isUnsentChangeFor(change, o));
-    await proposeNewTimeForCalendarEvent(occurrence, {
+    await proposeNewEventTime(occurrence, {
       start: new Date(times.start * 1000),
       end: new Date(times.end * 1000),
       comment: proposal.comment.trim(),
@@ -438,24 +431,16 @@ export class MailspringCalendar extends React.Component<
   }
 
   /** Writes a change made in the panel, keeping its occurrence selected wherever it lands. */
-  _writeChange = async (change: UnsentChange, scope: ChangeScope = 'this-occurrence') => {
-    const selected = this.state.selectedEvents.find((o) => isUnsentChangeFor(change, o));
-    const row = await DatabaseStore.find<Event>(Event, change.eventId);
-    if (!row) return;
-    const staleIcs = row.ics;
-    const task = change.guestCopy
-      ? modifyGuestCopy(row, change, scope)
-      : modifyEventChange(row, change, scope);
-    // A new repeat rule or time leaves the one-off fallback in _currentOccurrence nothing to match.
-    if (selected) {
-      const start = change.times?.start ?? occurrenceStartUnix(selected);
-      // A new rule may have no occurrence there, so its next one is shown.
-      const landing = unsentEdit(change, 'rrule')
-        ? (focusedEventInfoForEvents([row], start)?.start ?? start)
-        : start;
-      this._followMove(selected, row, landing, staleIcs);
-    }
-    await TaskQueue.waitForPerformLocal(task);
+  _writeChange = async (change: UnsentChange, scope?: ChangeScope) => {
+    const shown = this.state.selectedEvents.find((o) => isUnsentChangeFor(change, o));
+    await updateEvent(
+      change,
+      scope,
+      shown && {
+        shown,
+        onMove: (row, start, staleIcs) => this._followMove(shown, row, start, staleIcs),
+      }
+    );
   };
 
   // The panel's date picker and switch use the same keys for themselves.
@@ -508,7 +493,9 @@ export class MailspringCalendar extends React.Component<
   /** Selection holds occurrence objects, whose times and exception flags go stale on a change. */
   async _refreshSelectedEvents() {
     const selected = this.state.selectedEvents;
-    const refreshed = await Promise.all(selected.map((o) => this._currentOccurrence(o)));
+    const refreshed = await Promise.all(
+      selected.map((o) => currentOccurrence(o, this._pendingMoves, this.state.calendars))
+    );
     if (this.state.selectedEvents !== selected) return;
     const next = refreshed.filter(Boolean);
     if (next.length !== selected.length || next.some((o, i) => o !== selected[i])) {
@@ -517,40 +504,6 @@ export class MailspringCalendar extends React.Component<
       const gone = this._leavesUnsentChange(next) && !this._leavesUnsentChange(selected);
       this.setState({ selectedEvents: next, ...(gone && { unsentChange: null }) });
     }
-  }
-
-  /** The occurrence as its row draws it now; null once it's gone or a move landed unpredicted. */
-  async _currentOccurrence(occurrence: EventOccurrence): Promise<EventOccurrence | null> {
-    const event = await DatabaseStore.find<Event>(
-      Event,
-      CalendarUtils.parseOccurrenceId(occurrence.id).eventId
-    );
-    const pending = this._pendingMoves.get(occurrence.id);
-    if (!event) return pending ? occurrence : null;
-    if (pending && event.ics === pending.staleIcs) return occurrence;
-    this._pendingMoves.delete(occurrence.id);
-
-    const slot = occurrenceSlot(occurrence);
-    const start = pending ? pending.start : occurrenceStartUnix(occurrence);
-    // The expander stops at the first regular occurrence past the range, so an exception moved
-    // in from a later slot is reached only when the range runs to that slot.
-    // Re-expanded without the calendars, a meeting a secondary calendar of ours organizes would
-    // come back as somebody else's and the next arrow key would refuse to move it.
-    const sameId = occurrencesForEvents([event], {
-      startUnix: Math.min(slot, start) - 86400,
-      endUnix: Math.max(slot, start) + 86400,
-      ownCalendarAddresses: ownCalendarAddresses(this.state.calendars),
-    }).filter((o) => o.id === occurrence.id);
-    // An occurrence moved onto another's start shares its id; their slots tell them apart.
-    const current = sameId.find((o) => occurrenceSlot(o) === slot) || sameId[0];
-    if (current || pending || occurrence.isRecurring) return current || null;
-    // Retimed elsewhere (the editor, another device): a one-off event is still its only occurrence.
-    const all = occurrencesForEvents([event], {
-      startUnix: event.recurrenceStart - 86400,
-      endUnix: event.recurrenceEnd + 86400,
-      ownCalendarAddresses: ownCalendarAddresses(this.state.calendars),
-    });
-    return all.length === 1 ? all[0] : null;
   }
 
   /** An occurrence's id embeds its start; a series exception stored as its own row keeps its id. */
@@ -740,7 +693,7 @@ export class MailspringCalendar extends React.Component<
       readOnly,
       onOpen: () =>
         this._isEditable(occurrence) ? this._editEvent(occurrence) : this._select([occurrence]),
-      onDelete: () => this._deleteEvent(occurrence),
+      onDelete: () => deleteEvent(occurrence),
       onProposeNewTime: () => this._proposeNewTime(occurrence),
     }).displayMenu();
   };
@@ -970,141 +923,9 @@ export class MailspringCalendar extends React.Component<
     }
 
     for (const occurrence of deletable) {
-      await this._deleteEvent(occurrence);
+      await deleteEvent(occurrence);
     }
   };
-
-  /**
-   * Delete a single event occurrence, handling recurring events appropriately
-   */
-  async _deleteEvent(occurrence: EventOccurrence) {
-    try {
-      // Parse the event ID from the occurrence ID (handles recurring instance IDs)
-      const eventId = CalendarUtils.parseOccurrenceId(occurrence.id).eventId;
-
-      // Fetch the full event from database to get ICS data
-      const event = await DatabaseStore.find<Event>(Event, eventId);
-      if (!event) {
-        console.error('Could not find event to delete:', eventId);
-        return;
-      }
-
-      // Check if this is a recurring event (and not already an exception)
-      const isRecurring = ICSEventHelpers.isRecurringEvent(event.ics);
-
-      if (event.isRecurrenceException()) {
-        // Deleting a moved occurrence means cancelling it on the master; see
-        // removeInlineException for why the row must never be destroyed on its own.
-        const master = await DatabaseStore.findBy<Event>(Event, {
-          accountId: event.accountId,
-          calendarId: event.calendarId,
-          icsuid: event.icsuid,
-          recurrenceId: '',
-        });
-        if (master) {
-          await this._cancelExceptionOccurrence(master, event);
-          return;
-        }
-      }
-
-      if (isRecurring && !event.isRecurrenceException()) {
-        // Show recurring event dialog
-        const choice = await showRecurringEventDialog('delete', occurrence.title);
-
-        if (choice === 'cancel') {
-          return; // User cancelled this deletion
-        }
-
-        if (choice === 'this-occurrence') {
-          // Delete only this occurrence by adding EXDATE to master
-          await this._deleteOccurrence(event, occurrence);
-        } else {
-          // Delete entire series
-          await this._deleteEntireEvent(event);
-        }
-      } else {
-        // Non-recurring event or already an exception - delete normally
-        await this._deleteEntireEvent(event);
-      }
-    } catch (error) {
-      console.error('Failed to delete event:', error);
-      AppEnv.showErrorDialog({
-        title: localized('Delete Failed'),
-        message: localized('Failed to delete the event. Please try again.'),
-      });
-    }
-  }
-
-  /**
-   * Delete a single occurrence of a recurring event by adding EXDATE to master.
-   * Supports undo - restores the original ICS without the EXDATE.
-   */
-  async _deleteOccurrence(masterEvent: Event, occurrence: EventOccurrence) {
-    // Capture original state for undo BEFORE modifying
-    const undoData = {
-      ics: masterEvent.ics,
-      recurrenceStart: masterEvent.recurrenceStart,
-      recurrenceEnd: masterEvent.recurrenceEnd,
-    };
-
-    // Add EXDATE to exclude this occurrence.
-    masterEvent.ics = ICSEventHelpers.bumpEventSequence(
-      ICSEventHelpers.addExclusionDate(
-        masterEvent.ics,
-        occurrenceStartUnix(occurrence),
-        occurrence.isAllDay
-      )
-    );
-
-    // Queue syncback with undo support
-    const task = SyncbackEventTask.forUpdating({
-      event: masterEvent,
-      undoData,
-      description: localized('Delete occurrence'),
-    });
-    Actions.queueTask(task);
-  }
-
-  /** Cancels the occurrence an inline exception overrides, by editing the master. */
-  async _cancelExceptionOccurrence(masterEvent: Event, exceptionEvent: Event) {
-    const undoData = {
-      ics: masterEvent.ics,
-      recurrenceStart: masterEvent.recurrenceStart,
-      recurrenceEnd: masterEvent.recurrenceEnd,
-    };
-
-    const updated = ICSEventHelpers.removeInlineException(
-      masterEvent.ics,
-      exceptionEvent.recurrenceId
-    );
-    if (updated === masterEvent.ics) {
-      // The row and its master disagree about which occurrence this is. Both live in one
-      // resource, so a DELETE would take the series; refuse rather than guess.
-      AppEnv.showErrorDialog({
-        title: localized('Delete Failed'),
-        message: localized(
-          'This occurrence could not be found in its series. Refresh the calendar and try again.'
-        ),
-      });
-      return;
-    }
-
-    masterEvent.ics = ICSEventHelpers.bumpEventSequence(updated);
-    Actions.queueTask(
-      SyncbackEventTask.forUpdating({
-        event: masterEvent,
-        undoData,
-        description: localized('Delete occurrence'),
-      })
-    );
-  }
-
-  /**
-   * Delete an entire event (or series)
-   */
-  async _deleteEntireEvent(event: Event) {
-    Actions.queueTask(DestroyEventTask.forRemoving({ events: [event] }));
-  }
 
   /**
    * Get the drag configuration based on the current view
@@ -1683,7 +1504,7 @@ export class MailspringCalendar extends React.Component<
                   ? this._dropNewEvent
                   : this._isCalendarReadOnly(event.calendarId)
                     ? undefined
-                    : () => this._deleteEvent(event)
+                    : () => deleteEvent(event)
               }
               onDiscard={newEvent ? this._dropNewEvent : undefined}
               calendarChoices={newEvent ? this._newEventCalendarChoices() : undefined}

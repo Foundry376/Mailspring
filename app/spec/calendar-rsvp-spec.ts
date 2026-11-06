@@ -10,7 +10,7 @@ import { Calendar } from '../src/flux/models/calendar';
 import {
   occurrenceRecurrenceId,
   openProposeNewTimePopover,
-  proposeNewTimeForCalendarEvent,
+  proposeNewEventTime,
   respondToCalendarEvent,
 } from '../internal_packages/main-calendar/lib/core/calendar-rsvp';
 import { parseCalendarDate } from '../src/calendar-date';
@@ -120,7 +120,7 @@ describe('answering and countering from the calendar', function () {
     dialog = spyOn(require('@electron/remote').dialog, 'showMessageBoxSync').andReturn(1);
   });
 
-  describe('proposeNewTimeForCalendarEvent', function () {
+  describe('proposeNewEventTime', function () {
     const proposal = {
       start: new Date('2026-03-10T16:00:00Z'),
       end: new Date('2026-03-10T17:00:00Z'),
@@ -128,7 +128,7 @@ describe('answering and countering from the calendar', function () {
     };
 
     it('sends a COUNTER to the organizer naming the occurrence', async function () {
-      await proposeNewTimeForCalendarEvent(occurrence(), proposal);
+      await proposeNewEventTime(occurrence(), proposal);
       const task = queued[0] as EventRSVPTask;
       expect(task instanceof EventRSVPTask).toBe(true);
       expect(task.method).toBe('COUNTER');
@@ -141,7 +141,7 @@ describe('answering and countering from the calendar', function () {
 
     it('keeps an all-day occurrence on dates', async function () {
       event.ics = ALL_DAY_ICS;
-      await proposeNewTimeForCalendarEvent(occurrence({ isAllDay: true }), {
+      await proposeNewEventTime(occurrence({ isAllDay: true }), {
         start: new Date(2026, 2, 12),
         end: new Date(2026, 2, 13),
         comment: '',
@@ -154,7 +154,7 @@ describe('answering and countering from the calendar', function () {
 
     it('explains instead of sending when we are not a guest', async function () {
       event.ics = SERIES_ICS.replace(`mailto:${ME}`, 'mailto:bo@example.com');
-      await proposeNewTimeForCalendarEvent(occurrence(), proposal);
+      await proposeNewEventTime(occurrence(), proposal);
       expect(queued.length).toBe(0);
       expect((AppEnv.showErrorDialog as jasmine.Spy).mostRecentCall.args[0]).toContain(
         'guest list'
