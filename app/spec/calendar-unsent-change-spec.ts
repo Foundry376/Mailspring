@@ -345,6 +345,26 @@ describe('leaving an event with a held change', function () {
     }
   });
 
+  it("still asks after the mail sidebar's panel, mounted before it, unmounts", function () {
+    const calendarSection = { id: 'SpecCalendar', root: true, supportedModes: ['list'] } as any;
+    const mailSection = { id: 'SpecMail', root: true, supportedModes: ['list'] } as any;
+    const saved = WorkspaceStore.sheetStack().slice();
+    spyOn(WorkspaceStore, 'trigger');
+    const removeSidebarGuard = WorkspaceStore.setSectionLeaveGuard(() => true);
+    WorkspaceStore._onSelectRootSheet(calendarSection);
+    mount(calendar);
+    removeSidebarGuard();
+    dialog.andReturn('keep-editing');
+    try {
+      WorkspaceStore._onSelectRootSheet(mailSection);
+      expect(dialog).toHaveBeenCalled();
+      expect(WorkspaceStore.rootSheet()).toBe(calendarSection);
+    } finally {
+      calendar.componentWillUnmount();
+      (WorkspaceStore as any)._sheetStack = saved;
+    }
+  });
+
   it('drops the change once its event is gone, without asking', async function () {
     find.andReturn(Promise.resolve(null));
     await calendar._refreshSelectedEvents();

@@ -204,6 +204,7 @@ export class MailspringCalendar extends React.Component<
   _unlistenNewEvent?: () => void;
   _unlistenDatabase?: () => void;
   _unlistenFocusedMoment?: () => void;
+  _removeLeaveGuard?: () => void;
   _dataSource = new CalendarDataSource();
   /**
    * The press that began drawing a new event, held until release. It reaches state only once
@@ -250,7 +251,7 @@ export class MailspringCalendar extends React.Component<
     this._unlistenDatabase = DatabaseStore.listen(this._onDatabaseChange);
     // Captured, so it runs before the window's own undo handler on <body>.
     document.addEventListener('core:undo', this._ignoreUndoWhileHeld, true);
-    WorkspaceStore.setSectionLeaveGuard(() => this._mayLeave([]));
+    this._removeLeaveGuard = WorkspaceStore.setSectionLeaveGuard(() => this._mayLeave([]));
     AppEnv.onBeforeUnload(this._onBeforeUnload);
     AppEnv.mailsyncBridge.sendSyncCalendarNow();
     this._themeDisposable = AppEnv.themes.onDidChangeActiveThemes(() => {
@@ -466,7 +467,7 @@ export class MailspringCalendar extends React.Component<
     this._unlistenDatabase?.();
     this._unlistenFocusedMoment?.();
     document.removeEventListener('core:undo', this._ignoreUndoWhileHeld, true);
-    WorkspaceStore.setSectionLeaveGuard(null);
+    this._removeLeaveGuard?.();
     AppEnv.removeUnloadCallback(this._onBeforeUnload);
   }
 

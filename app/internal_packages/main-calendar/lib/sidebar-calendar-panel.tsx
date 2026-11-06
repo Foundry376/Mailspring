@@ -75,6 +75,7 @@ export class SidebarCalendarPanel extends React.Component<
   _calendarsSubscription?: Disposable;
   _unlistenDatabase?: () => void;
   _unlistenMessages?: () => void;
+  _removeLeaveGuard?: () => void;
   _threadId: string | null = null;
   _followedEmail = false;
 
@@ -85,7 +86,7 @@ export class SidebarCalendarPanel extends React.Component<
     this._unlistenDatabase = DatabaseStore.listen(this._onDatabaseChange);
     // Captured, so it runs before the window's own undo handler on <body>.
     document.addEventListener('core:undo', this._ignoreUndoWhileHeld, true);
-    WorkspaceStore.setSectionLeaveGuard(() => this._mayLeave(null));
+    this._removeLeaveGuard = WorkspaceStore.setSectionLeaveGuard(() => this._mayLeave(null));
     AppEnv.onBeforeUnload(this._onBeforeUnload);
     this._unlistenMessages = MessageStore.listen(this._onMessagesChange);
     this._onMessagesChange();
@@ -98,7 +99,7 @@ export class SidebarCalendarPanel extends React.Component<
     this._unlistenDatabase?.();
     this._unlistenMessages?.();
     document.removeEventListener('core:undo', this._ignoreUndoWhileHeld, true);
-    WorkspaceStore.setSectionLeaveGuard(null);
+    this._removeLeaveGuard?.();
     AppEnv.removeUnloadCallback(this._onBeforeUnload);
   }
 
