@@ -27,10 +27,9 @@ import CalendarHeaderStore from './calendar-header-store';
 import {
   CalendarDataSource,
   EventOccurrence,
+  currentOccurrence,
   FocusedEventInfo,
   isEventSelected,
-  occurrencesForEvents,
-  ownCalendarAddresses,
   occurrenceStartUnix,
   occurrenceEndUnix,
   occurrenceSlot,
@@ -494,7 +493,9 @@ export class MailspringCalendar extends React.Component<
   /** Selection holds occurrence objects, whose times and exception flags go stale on a change. */
   async _refreshSelectedEvents() {
     const selected = this.state.selectedEvents;
-    const refreshed = await Promise.all(selected.map((o) => this._currentOccurrence(o)));
+    const refreshed = await Promise.all(
+      selected.map((o) => currentOccurrence(o, this._pendingMoves, this.state.calendars))
+    );
     if (this.state.selectedEvents !== selected) return;
     const next = refreshed.filter(Boolean);
     if (next.length !== selected.length || next.some((o, i) => o !== selected[i])) {
@@ -503,40 +504,6 @@ export class MailspringCalendar extends React.Component<
       const gone = this._leavesUnsentChange(next) && !this._leavesUnsentChange(selected);
       this.setState({ selectedEvents: next, ...(gone && { unsentChange: null }) });
     }
-  }
-
-  /** The occurrence as its row draws it now; null once it's gone or a move landed unpredicted. */
-  async _currentOccurrence(occurrence: EventOccurrence): Promise<EventOccurrence | null> {
-    const event = await DatabaseStore.find<Event>(
-      Event,
-      CalendarUtils.parseOccurrenceId(occurrence.id).eventId
-    );
-    const pending = this._pendingMoves.get(occurrence.id);
-    if (!event) return pending ? occurrence : null;
-    if (pending && event.ics === pending.staleIcs) return occurrence;
-    this._pendingMoves.delete(occurrence.id);
-
-    const slot = occurrenceSlot(occurrence);
-    const start = pending ? pending.start : occurrenceStartUnix(occurrence);
-    // The expander stops at the first regular occurrence past the range, so an exception moved
-    // in from a later slot is reached only when the range runs to that slot.
-    // Re-expanded without the calendars, a meeting a secondary calendar of ours organizes would
-    // come back as somebody else's and the next arrow key would refuse to move it.
-    const sameId = occurrencesForEvents([event], {
-      startUnix: Math.min(slot, start) - 86400,
-      endUnix: Math.max(slot, start) + 86400,
-      ownCalendarAddresses: ownCalendarAddresses(this.state.calendars),
-    }).filter((o) => o.id === occurrence.id);
-    // An occurrence moved onto another's start shares its id; their slots tell them apart.
-    const current = sameId.find((o) => occurrenceSlot(o) === slot) || sameId[0];
-    if (current || pending || occurrence.isRecurring) return current || null;
-    // Retimed elsewhere (the editor, another device): a one-off event is still its only occurrence.
-    const all = occurrencesForEvents([event], {
-      startUnix: event.recurrenceStart - 86400,
-      endUnix: event.recurrenceEnd + 86400,
-      ownCalendarAddresses: ownCalendarAddresses(this.state.calendars),
-    });
-    return all.length === 1 ? all[0] : null;
   }
 
   /** An occurrence's id embeds its start; a series exception stored as its own row keeps its id. */
