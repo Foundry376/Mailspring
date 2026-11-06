@@ -5,11 +5,18 @@ import { EventAttendee, EventOccurrence } from './calendar-data-source';
 import { isOrganizer, myAttendeeEmail } from './calendar-rsvp';
 
 // Office 365 (Graph) copies of a meeting carry no answer for its organizer, so they store
-// NEEDS-ACTION. Google lets an organizer decline their own meeting, so a stored answer still shows.
+// NEEDS-ACTION, and the organizer's own copy leaves them off the guest list altogether. Google
+// lets an organizer decline their own meeting, so a stored answer still shows. Drawn here only:
+// the stored list is what an edit writes back.
 function withOrganizerAttending(event: EventOccurrence): EventAttendee[] {
-  return event.attendees.map((a) =>
+  const { organizer, attendees } = event;
+  const listed = attendees.map((a) =>
     isOrganizer(event, a) && a.partstat === 'NEEDS-ACTION' ? { ...a, partstat: 'ACCEPTED' } : a
   );
+  if (!organizer || !attendees.length || attendees.some((a) => isOrganizer(event, a))) {
+    return listed;
+  }
+  return [{ ...organizer, partstat: 'ACCEPTED' }, ...listed];
 }
 
 export function attendeeStatusClass(attendee: EventAttendee): string {

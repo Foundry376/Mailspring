@@ -172,7 +172,7 @@ interface OccurrenceBase {
   recurrenceIdStart?: number;
   /** True if this event is part of a recurring series (has RRULE/RDATE) */
   isRecurring: boolean;
-  organizer: { email: string } | null;
+  organizer: { email: string; name?: string } | null;
   attendees: EventAttendee[];
 
   /** True if this is a synthetic drag preview event (not a real event) */
@@ -393,7 +393,12 @@ function occurrenceFromICS(args: {
     isException: args.isException ?? !!rid,
     recurrenceIdStart: rid ? (rid as any).toJSDate().getTime() / 1000 : undefined,
     isRecurring: args.isRecurring,
-    organizer: organizerEmail ? { email: organizerEmail } : null,
+    organizer: organizerEmail
+      ? {
+          email: organizerEmail,
+          name: item.component?.getFirstProperty('organizer')?.getFirstParameter('cn') || '',
+        }
+      : null,
     attendees,
   };
 
