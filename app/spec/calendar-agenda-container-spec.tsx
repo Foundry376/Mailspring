@@ -1,4 +1,4 @@
-import { SidebarAgendaPanel } from '../internal_packages/main-calendar/lib/sidebar-agenda-panel';
+import { SidebarCalendarPanel } from '../internal_packages/main-calendar/lib/sidebar-calendar-panel';
 import { AgendaContainer } from '../internal_packages/main-calendar/lib/core/agenda-container';
 import { AgendaPanel } from '../internal_packages/main-calendar/lib/core/agenda-panel';
 
@@ -34,10 +34,10 @@ describe('AgendaContainer', function () {
   });
 });
 
-describe('SidebarAgendaPanel', function () {
+describe('SidebarCalendarPanel', function () {
   it('shows the agenda while its tab is active, and nothing otherwise', function () {
-    const shown = new SidebarAgendaPanel({ active: true }).render();
+    const shown = new SidebarCalendarPanel({ active: true }).render();
     expect(shown.type).toBe(AgendaContainer);
-    expect(new SidebarAgendaPanel({ active: false }).render()).toBe(null);
+    expect(new SidebarCalendarPanel({ active: false }).render()).toBe(null);
   });
 });

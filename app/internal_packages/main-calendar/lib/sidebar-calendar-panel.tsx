@@ -3,8 +3,8 @@ import { localized } from 'mailspring-exports';
 import { AgendaContainer } from './core/agenda-container';
 
 /** The calendar's agenda as a choice in the thread sidebar's panel switcher. */
-export class SidebarAgendaPanel extends React.Component<{ active: boolean }> {
-  static displayName = 'SidebarAgendaPanel';
+export class SidebarCalendarPanel extends React.Component<{ active: boolean }> {
+  static displayName = 'SidebarCalendarPanel';
   static sidebarPanel = { id: 'calendar', title: localized('Calendar') };
 
   render() {
