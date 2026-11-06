@@ -32,7 +32,7 @@ import {
   resolveRSVPTarget,
   resolveAddTo,
   planRSVPWrite,
-  conflictCalendarIds,
+  findEventConflicts,
   counterProposalProblem,
   CounterProposalProblem,
   RSVPTargetResolution,
@@ -473,14 +473,12 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     conflictWindow: { start: number; end: number }
   ) {
     const addresses = this._accountAddresses();
-    const busy = new Set(
-      conflictCalendarIds(calendars, AppEnv.config.get('mailspring.disabledCalendars') || [])
-    );
-    const conflicts = ICSEventHelpers.findConflicts({
-      events: nearby.filter((e) => busy.has(e.calendarId)),
-      ...conflictWindow,
+    const conflicts = findEventConflicts({
+      nearby,
+      calendars,
+      window: conflictWindow,
       addresses,
-      excludeIcsuid: this.state.inviteEvent.uid,
+      icsuid: this.state.inviteEvent.uid,
     });
     const addTo = resolveAddTo({
       rsvp,

@@ -1,5 +1,6 @@
 import {
   Calendar,
+  CalendarConflict,
   CalendarUtils,
   Event,
   ICSEventHelpers,
@@ -112,6 +113,34 @@ export function conflictCalendarIds(
   return calendars
     .filter((c) => !c.readOnly && !disabled.has(c.id) && !CalendarUtils.isSomeoneElsesCalendar(c))
     .map((c) => c.id);
+}
+
+/**
+ * What an event's time clashes with on this account's busy calendars, leaving the event itself
+ * out. `nearby` is the account's events around the window, for findConflicts to expand.
+ */
+export function findEventConflicts({
+  nearby,
+  calendars,
+  window,
+  addresses,
+  icsuid,
+}: {
+  nearby: Event[];
+  calendars: Calendar[];
+  window: { start: number; end: number };
+  addresses: string[];
+  icsuid: string;
+}): CalendarConflict[] {
+  const busy = new Set(
+    conflictCalendarIds(calendars, AppEnv.config.get('mailspring.disabledCalendars') || [])
+  );
+  return ICSEventHelpers.findConflicts({
+    events: nearby.filter((e) => busy.has(e.calendarId)),
+    ...window,
+    addresses,
+    excludeIcsuid: icsuid,
+  });
 }
 
 /**
