@@ -809,6 +809,22 @@
   }
 }
 
+.agenda-in-this-email {
+  flex-shrink: 0;
+  margin-top: 4px;
+  padding: 8px;
+  border-top: 1px solid @border-color-divider;
+  border-bottom: 1px solid @border-color-divider;
+  background: color-mix(in srgb, @accent-primary 6%, @background-primary);
+
+  .agenda-in-this-email-label {
+    padding-bottom: 4px;
+    font-size: 12px;
+    line-height: 16px;
+    color: fadeout(@text-color, 35%);
+  }
+}
+
 .calendar-right-panel {
   position: relative;
   height: 100%;

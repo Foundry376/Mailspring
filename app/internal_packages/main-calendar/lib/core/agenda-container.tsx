@@ -15,6 +15,7 @@ interface AgendaContainerProps {
   onEventClick?: (e: React.MouseEvent, event: EventOccurrence) => void;
   onEventDoubleClick?: (event: EventOccurrence) => void;
   onNewEvent?: (button: HTMLElement) => void;
+  inThisEmail?: EventOccurrence | null;
 }
 
 interface AgendaContainerState {
@@ -90,6 +91,7 @@ export class AgendaContainer extends React.Component<AgendaContainerProps, Agend
           onEventClick={this._onEventClick}
           onEventDoubleClick={this.props.onEventDoubleClick}
           onNewEvent={this.props.onNewEvent}
+          inThisEmail={this.props.inThisEmail}
           isCalendarReadOnly={this._isCalendarReadOnly}
         />
       </div>

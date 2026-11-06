@@ -22,6 +22,8 @@ export type AgendaPanelProps = Pick<
 > & {
   onEventDoubleClick?: (event: EventOccurrence) => void;
   onNewEvent?: (button: HTMLElement) => void;
+  /** Pinned above the days, in the mail sidebar, for the event of the email being read. */
+  inThisEmail?: EventOccurrence | null;
 };
 
 interface DayEvents {
@@ -147,7 +149,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
     );
   };
 
-  _renderEvent(event: EventOccurrence, dayKey: string) {
+  _renderEvent(event: EventOccurrence, dayKey: string, time = this._renderEventTime(event)) {
     const colors = calcEventColors(event.calendarId);
     const isSelected = isEventSelected(this.props.selectedEvents, event);
 
@@ -181,8 +183,27 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
               event.title || localized('(No title)')
             )}
           </div>
-          {this._renderEventTime(event)}
+          {time}
         </div>
+      </div>
+    );
+  }
+
+  _renderInThisEmail(event: EventOccurrence) {
+    const day = momentOf(event.startDate).format('ddd, MMM D');
+    const time = isTimed(event)
+      ? formatShortTimeRange(event.start, event.end)
+      : localized('All day');
+    return (
+      <div className="agenda-in-this-email">
+        <div className="agenda-in-this-email-label">{localized('In this email')}</div>
+        {this._renderEvent(
+          event,
+          'in-this-email',
+          <div className="agenda-event-time">
+            {day} · {time}
+          </div>
+        )}
       </div>
     );
   }
@@ -217,6 +238,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
             </button>
           </div>
         )}
+        {this.props.inThisEmail && this._renderInThisEmail(this.props.inThisEmail)}
         <ScrollRegion className="agenda-scroll-region">
           <div className="agenda-event-list">
             {days.length > 0 ? (

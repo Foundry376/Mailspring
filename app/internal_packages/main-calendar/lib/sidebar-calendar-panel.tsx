@@ -35,6 +35,7 @@ import { showUnsentChangeDialog } from './core/unsent-change-dialog';
 
 interface SidebarCalendarPanelState {
   shown: EventOccurrence | null;
+  inThisEmail: EventOccurrence | null;
   unsentChange: UnsentChange | null;
   calendars: Calendar[];
   calendarsLoaded: boolean;
@@ -62,6 +63,7 @@ export class SidebarCalendarPanel extends React.Component<
 
   state: SidebarCalendarPanelState = {
     shown: null,
+    inThisEmail: null,
     unsentChange: null,
     calendars: [],
     calendarsLoaded: false,
@@ -128,8 +130,10 @@ export class SidebarCalendarPanel extends React.Component<
     if (!followed()) return;
     if (occurrence) {
       this._followedEmail = true;
+      this.setState({ inThisEmail: occurrence });
       if (this._show(occurrence)) this.props.claimActive(true);
     } else if (newEmail) {
+      this.setState({ inThisEmail: null });
       this.props.claimActive(false);
       this._show(null);
     }
@@ -269,7 +273,13 @@ export class SidebarCalendarPanel extends React.Component<
     if (this.state.shown?.id !== occurrence.id) return;
     const id = movedOccurrenceId(occurrence, event, newStart);
     this._pendingMoves.set(id, { start: newStart, staleIcs });
-    this.setState({ shown: { ...occurrence, id } });
+    const moved = { ...occurrence, id };
+    this.setState({ shown: moved, ...(this._isInThisEmail(occurrence) && { inThisEmail: moved }) });
+  }
+
+  _isInThisEmail(occurrence: EventOccurrence) {
+    const { inThisEmail } = this.state;
+    return !!inThisEmail && panelKey([inThisEmail]) === panelKey([occurrence]);
   }
 
   // The calendar opens it the way an invitation's View in Calendar link does.
@@ -304,7 +314,11 @@ export class SidebarCalendarPanel extends React.Component<
     if (!next || panelKey([next]) !== panelKey([shown])) this._eventPanel.current?.commitEdits();
     // Deleted here or elsewhere, its event has nothing left to send the change to.
     const gone = this._leavesUnsentChange(next) && !this._leavesUnsentChange(shown);
-    this.setState({ shown: next, ...(gone && { unsentChange: null }) });
+    this.setState({
+      shown: next,
+      ...(gone && { unsentChange: null }),
+      ...(this._isInThisEmail(shown) && { inThisEmail: next }),
+    });
   }
 
   render() {
@@ -317,6 +331,7 @@ export class SidebarCalendarPanel extends React.Component<
         <AgendaContainer
           className={classnames('sidebar-agenda-panel', { 'is-covered': !!shown })}
           onEventClick={this._onAgendaEventClick}
+          inThisEmail={this.state.inThisEmail}
         />
         {shown && (
           <EventPanel
