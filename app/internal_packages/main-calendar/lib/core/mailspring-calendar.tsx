@@ -28,7 +28,6 @@ import {
   CalendarDataSource,
   EventOccurrence,
   FocusedEventInfo,
-  focusedEventInfoForEvents,
   isEventSelected,
   occurrencesForEvents,
   ownCalendarAddresses,
@@ -84,8 +83,7 @@ import {
 import {
   deleteEvent,
   modifyEventWithRecurringSupport,
-  modifyEventChange,
-  modifyGuestCopy,
+  updateEvent,
   ChangeScope,
   EventTimeChangeOptions,
 } from './recurring-event-actions';
@@ -95,7 +93,6 @@ import {
   keepsNewEvent,
   newEventOptions,
   showAsWaitsForScope,
-  unsentEdit,
   withEdit,
   withTimes,
   withUnsentChange,
@@ -435,24 +432,16 @@ export class MailspringCalendar extends React.Component<
   }
 
   /** Writes a change made in the panel, keeping its occurrence selected wherever it lands. */
-  _writeChange = async (change: UnsentChange, scope: ChangeScope = 'this-occurrence') => {
-    const selected = this.state.selectedEvents.find((o) => isUnsentChangeFor(change, o));
-    const row = await DatabaseStore.find<Event>(Event, change.eventId);
-    if (!row) return;
-    const staleIcs = row.ics;
-    const task = change.guestCopy
-      ? modifyGuestCopy(row, change, scope)
-      : modifyEventChange(row, change, scope);
-    // A new repeat rule or time leaves the one-off fallback in _currentOccurrence nothing to match.
-    if (selected) {
-      const start = change.times?.start ?? occurrenceStartUnix(selected);
-      // A new rule may have no occurrence there, so its next one is shown.
-      const landing = unsentEdit(change, 'rrule')
-        ? (focusedEventInfoForEvents([row], start)?.start ?? start)
-        : start;
-      this._followMove(selected, row, landing, staleIcs);
-    }
-    await TaskQueue.waitForPerformLocal(task);
+  _writeChange = async (change: UnsentChange, scope?: ChangeScope) => {
+    const shown = this.state.selectedEvents.find((o) => isUnsentChangeFor(change, o));
+    await updateEvent(
+      change,
+      scope,
+      shown && {
+        shown,
+        onMove: (row, start, staleIcs) => this._followMove(shown, row, start, staleIcs),
+      }
+    );
   };
 
   // The panel's date picker and switch use the same keys for themselves.

@@ -4,6 +4,7 @@ import {
   DestroyEventTask,
   Event,
   SyncbackEventTask,
+  TaskQueue,
   ICSEventHelpers,
   CalendarUtils,
   localized,
@@ -15,12 +16,14 @@ import {
 } from './recurring-event-dialog';
 import {
   EventOccurrence,
+  focusedEventInfoForEvents,
   occurrenceForRecurrenceId,
   occurrenceStartUnix,
   occurrenceTimes,
 } from './calendar-data-source';
 import { ShowAsOption } from './show-as-selector';
 import { organizerForAccount } from './calendar-helpers';
+import { UnsentChange, unsentEdit } from './unsent-change';
 import type { AttendeeChange } from '../../../../src/ics-event-helpers';
 
 /**
@@ -325,6 +328,36 @@ function occurrenceAtSlot(row: Event, slot: number) {
   const occurrence = occurrenceForRecurrenceId([row], slot);
   if (!occurrence) throw new Error(`No occurrence of ${row.id} at ${slot} to change`);
   return occurrence;
+}
+
+/**
+ * Writes a change made in the panel. `follow.onMove` gets where the shown occurrence lands
+ * before the sync engine writes it, so the host can keep it selected.
+ */
+export async function updateEvent(
+  change: UnsentChange,
+  scope: ChangeScope = 'this-occurrence',
+  follow?: {
+    shown: EventOccurrence;
+    onMove: (row: Event, start: number, staleIcs: string) => void;
+  }
+) {
+  const row = await DatabaseStore.find<Event>(Event, change.eventId);
+  if (!row) return;
+  const staleIcs = row.ics;
+  const task = change.guestCopy
+    ? modifyGuestCopy(row, change, scope)
+    : modifyEventChange(row, change, scope);
+  // A new repeat rule or time leaves the one-off fallback in currentOccurrence nothing to match.
+  if (follow) {
+    const start = change.times?.start ?? occurrenceStartUnix(follow.shown);
+    // A new rule may have no occurrence there, so its next one is shown.
+    const landing = unsentEdit(change, 'rrule')
+      ? (focusedEventInfoForEvents([row], start)?.start ?? start)
+      : start;
+    follow.onMove(row, landing, staleIcs);
+  }
+  await TaskQueue.waitForPerformLocal(task);
 }
 
 /**
