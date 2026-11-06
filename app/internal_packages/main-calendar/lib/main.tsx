@@ -1,19 +1,12 @@
 import React from 'react';
 import { ipcRenderer } from 'electron';
-import {
-  Actions,
-  WorkspaceStore,
-  ComponentRegistry,
-  DatabaseStore,
-  Event,
-  localized,
-} from 'mailspring-exports';
+import { Actions, WorkspaceStore, ComponentRegistry, localized } from 'mailspring-exports';
 import { NavRailItem } from 'mailspring-component-kit';
 import { QuickEventButton } from './quick-event-button';
 import { MailspringCalendar } from './core/mailspring-calendar';
 import { CalendarSidebar } from './core/calendar-sidebar';
 import { CalendarHeader } from './core/calendar-header';
-import { focusedEventInfoForEvents } from './core/calendar-data-source';
+import { focusedEventInfoForIcsuid } from './core/calendar-data-source';
 import { SidebarAgendaPanel } from './sidebar-agenda-panel';
 
 type MenuItem = (typeof AppEnv.menu.template)[0];
@@ -96,21 +89,16 @@ function updateMenus() {
 }
 
 // Sent by the main process for application:show-calendar, from the Window menu or from an
-// invitation's "View in Calendar" link in any window. `calendarId` picks one copy when the
-// account holds the event on several calendars; without it the first copy found is shown.
+// invitation's "View in Calendar" link in any window.
 async function onShowCalendar(
   _event: Electron.IpcRendererEvent,
-  focus?: { icsuid: string; accountId: string; calendarId?: string; recurrenceIdStart?: number }
+  focus?: Parameters<typeof focusedEventInfoForIcsuid>[0]
 ) {
   if (WorkspaceStore.rootSheet() !== WorkspaceStore.Sheet.Calendar) {
     Actions.selectRootSheet(WorkspaceStore.Sheet.Calendar);
   }
   if (!focus) return;
-  const { icsuid, accountId, calendarId, recurrenceIdStart } = focus;
-  const events = await DatabaseStore.findAll<Event>(Event).where(
-    calendarId ? { icsuid, accountId, calendarId } : { icsuid, accountId }
-  );
-  const info = focusedEventInfoForEvents(events, Date.now() / 1000, recurrenceIdStart);
+  const info = await focusedEventInfoForIcsuid(focus);
   if (info) {
     Actions.focusCalendarEvent(info);
   }

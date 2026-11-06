@@ -682,6 +682,26 @@ export function focusedEventInfoForEvents(
   return occurrence ? { id: occurrence.id, start: occurrenceStartUnix(occurrence) } : null;
 }
 
+/**
+ * The occurrence to focus for an event named by UID, from an invitation or a View. `calendarId`
+ * picks one copy when the account holds the event on several calendars; without it the first
+ * copy found is shown.
+ */
+export async function focusedEventInfoForIcsuid(
+  {
+    icsuid,
+    accountId,
+    calendarId,
+    recurrenceIdStart,
+  }: { icsuid: string; accountId: string; calendarId?: string; recurrenceIdStart?: number },
+  nowUnix = Date.now() / 1000
+): Promise<FocusedEventInfo | null> {
+  const events = await DatabaseStore.findAll<Event>(Event).where(
+    calendarId ? { icsuid, accountId, calendarId } : { icsuid, accountId }
+  );
+  return focusedEventInfoForEvents(events, nowUnix, recurrenceIdStart);
+}
+
 /** The occurrence as its row draws it now; null once it's gone or a move landed unpredicted. */
 export async function currentOccurrence(
   occurrence: EventOccurrence,
