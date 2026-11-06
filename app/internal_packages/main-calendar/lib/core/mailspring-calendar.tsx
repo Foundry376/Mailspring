@@ -8,10 +8,7 @@ import {
   localized,
   CalendarDateUtils,
   CalendarUtils,
-  DestroyEventTask,
   Event,
-  SyncbackEventTask,
-  ICSEventHelpers,
   DatabaseChangeRecord,
   TaskQueue,
   DOMUtils,
@@ -84,8 +81,8 @@ import {
   createNewEventPreview,
   CREATE_DRAG_SNAP_SECONDS,
 } from './calendar-drag-utils';
-import { showRecurringEventDialog } from './recurring-event-dialog';
 import {
+  deleteEvent,
   modifyEventWithRecurringSupport,
   modifyEventChange,
   modifyGuestCopy,
@@ -740,7 +737,7 @@ export class MailspringCalendar extends React.Component<
       readOnly,
       onOpen: () =>
         this._isEditable(occurrence) ? this._editEvent(occurrence) : this._select([occurrence]),
-      onDelete: () => this._deleteEvent(occurrence),
+      onDelete: () => deleteEvent(occurrence),
       onProposeNewTime: () => this._proposeNewTime(occurrence),
     }).displayMenu();
   };
@@ -970,141 +967,9 @@ export class MailspringCalendar extends React.Component<
     }
 
     for (const occurrence of deletable) {
-      await this._deleteEvent(occurrence);
+      await deleteEvent(occurrence);
     }
   };
-
-  /**
-   * Delete a single event occurrence, handling recurring events appropriately
-   */
-  async _deleteEvent(occurrence: EventOccurrence) {
-    try {
-      // Parse the event ID from the occurrence ID (handles recurring instance IDs)
-      const eventId = CalendarUtils.parseOccurrenceId(occurrence.id).eventId;
-
-      // Fetch the full event from database to get ICS data
-      const event = await DatabaseStore.find<Event>(Event, eventId);
-      if (!event) {
-        console.error('Could not find event to delete:', eventId);
-        return;
-      }
-
-      // Check if this is a recurring event (and not already an exception)
-      const isRecurring = ICSEventHelpers.isRecurringEvent(event.ics);
-
-      if (event.isRecurrenceException()) {
-        // Deleting a moved occurrence means cancelling it on the master; see
-        // removeInlineException for why the row must never be destroyed on its own.
-        const master = await DatabaseStore.findBy<Event>(Event, {
-          accountId: event.accountId,
-          calendarId: event.calendarId,
-          icsuid: event.icsuid,
-          recurrenceId: '',
-        });
-        if (master) {
-          await this._cancelExceptionOccurrence(master, event);
-          return;
-        }
-      }
-
-      if (isRecurring && !event.isRecurrenceException()) {
-        // Show recurring event dialog
-        const choice = await showRecurringEventDialog('delete', occurrence.title);
-
-        if (choice === 'cancel') {
-          return; // User cancelled this deletion
-        }
-
-        if (choice === 'this-occurrence') {
-          // Delete only this occurrence by adding EXDATE to master
-          await this._deleteOccurrence(event, occurrence);
-        } else {
-          // Delete entire series
-          await this._deleteEntireEvent(event);
-        }
-      } else {
-        // Non-recurring event or already an exception - delete normally
-        await this._deleteEntireEvent(event);
-      }
-    } catch (error) {
-      console.error('Failed to delete event:', error);
-      AppEnv.showErrorDialog({
-        title: localized('Delete Failed'),
-        message: localized('Failed to delete the event. Please try again.'),
-      });
-    }
-  }
-
-  /**
-   * Delete a single occurrence of a recurring event by adding EXDATE to master.
-   * Supports undo - restores the original ICS without the EXDATE.
-   */
-  async _deleteOccurrence(masterEvent: Event, occurrence: EventOccurrence) {
-    // Capture original state for undo BEFORE modifying
-    const undoData = {
-      ics: masterEvent.ics,
-      recurrenceStart: masterEvent.recurrenceStart,
-      recurrenceEnd: masterEvent.recurrenceEnd,
-    };
-
-    // Add EXDATE to exclude this occurrence.
-    masterEvent.ics = ICSEventHelpers.bumpEventSequence(
-      ICSEventHelpers.addExclusionDate(
-        masterEvent.ics,
-        occurrenceStartUnix(occurrence),
-        occurrence.isAllDay
-      )
-    );
-
-    // Queue syncback with undo support
-    const task = SyncbackEventTask.forUpdating({
-      event: masterEvent,
-      undoData,
-      description: localized('Delete occurrence'),
-    });
-    Actions.queueTask(task);
-  }
-
-  /** Cancels the occurrence an inline exception overrides, by editing the master. */
-  async _cancelExceptionOccurrence(masterEvent: Event, exceptionEvent: Event) {
-    const undoData = {
-      ics: masterEvent.ics,
-      recurrenceStart: masterEvent.recurrenceStart,
-      recurrenceEnd: masterEvent.recurrenceEnd,
-    };
-
-    const updated = ICSEventHelpers.removeInlineException(
-      masterEvent.ics,
-      exceptionEvent.recurrenceId
-    );
-    if (updated === masterEvent.ics) {
-      // The row and its master disagree about which occurrence this is. Both live in one
-      // resource, so a DELETE would take the series; refuse rather than guess.
-      AppEnv.showErrorDialog({
-        title: localized('Delete Failed'),
-        message: localized(
-          'This occurrence could not be found in its series. Refresh the calendar and try again.'
-        ),
-      });
-      return;
-    }
-
-    masterEvent.ics = ICSEventHelpers.bumpEventSequence(updated);
-    Actions.queueTask(
-      SyncbackEventTask.forUpdating({
-        event: masterEvent,
-        undoData,
-        description: localized('Delete occurrence'),
-      })
-    );
-  }
-
-  /**
-   * Delete an entire event (or series)
-   */
-  async _deleteEntireEvent(event: Event) {
-    Actions.queueTask(DestroyEventTask.forRemoving({ events: [event] }));
-  }
 
   /**
    * Get the drag configuration based on the current view
@@ -1683,7 +1548,7 @@ export class MailspringCalendar extends React.Component<
                   ? this._dropNewEvent
                   : this._isCalendarReadOnly(event.calendarId)
                     ? undefined
-                    : () => this._deleteEvent(event)
+                    : () => deleteEvent(event)
               }
               onDiscard={newEvent ? this._dropNewEvent : undefined}
               calendarChoices={newEvent ? this._newEventCalendarChoices() : undefined}
