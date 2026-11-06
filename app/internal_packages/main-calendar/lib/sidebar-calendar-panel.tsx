@@ -19,6 +19,7 @@ import { AgendaContainer } from './core/agenda-container';
 import { EventPanel } from './core/event-panel';
 import {
   EventOccurrence,
+  EventRef,
   currentOccurrence,
   focusedOccurrenceForIcsuid,
   movedOccurrenceId,
@@ -77,6 +78,7 @@ export class SidebarCalendarPanel extends React.Component<
   _threadId: string | null = null;
   _followedEmail = false;
   _clickedInEmail = false;
+  _emailedRef: EventRef | null = null;
 
   componentDidMount() {
     this._calendarsSubscription = Rx.Observable.fromQuery(
@@ -126,6 +128,7 @@ export class SidebarCalendarPanel extends React.Component<
       this._threadId = threadId;
       this._followedEmail = false;
       this._clickedInEmail = false;
+      this._emailedRef = null;
     }
     const followed = () => MessageStore.threadId() === threadId && !this._followedEmail;
 
@@ -138,12 +141,13 @@ export class SidebarCalendarPanel extends React.Component<
     if (!followed()) return;
     if (occurrence) {
       this._followedEmail = true;
+      this._emailedRef = emailed;
       this.setState({ inThisEmail: occurrence });
       // Found after the user picked something else in this email: their pick stays.
       if (!this._clickedInEmail && this._show(occurrence)) this.props.claimActive(true);
     } else if (newEmail) {
       this.setState({ inThisEmail: null });
-      if (this._show(null)) this.props.claimActive(false);
+      if (!this._clickedInEmail && this._show(null)) this.props.claimActive(false);
     }
   };
 
@@ -303,7 +307,11 @@ export class SidebarCalendarPanel extends React.Component<
   };
 
   async _refreshInThisEmail(pinned: EventOccurrence) {
-    const next = await currentOccurrence(pinned, this._pendingMoves, this.state.calendars);
+    const { calendars } = this.state;
+    // A series retimed elsewhere gives its occurrences new ids, so it is found again by UID.
+    const next =
+      (await currentOccurrence(pinned, this._pendingMoves, calendars)) ??
+      (this._emailedRef && (await focusedOccurrenceForIcsuid(this._emailedRef, calendars)));
     if (this.state.inThisEmail === pinned) this.setState({ inThisEmail: next });
   }
 
@@ -314,11 +322,13 @@ export class SidebarCalendarPanel extends React.Component<
     if (!next || panelKey([next]) !== panelKey([shown])) this._eventPanel.current?.commitEdits();
     // Deleted here or elsewhere, its event has nothing left to send the change to.
     const gone = this._leavesUnsentChange(next) && !this._leavesUnsentChange(shown);
+    const pinned = this._isInThisEmail(shown) && this.state.inThisEmail;
     this.setState({
       shown: next,
       ...(gone && { unsentChange: null }),
-      ...(this._isInThisEmail(shown) && { inThisEmail: next }),
+      ...(pinned && next && { inThisEmail: next }),
     });
+    if (pinned && !next) this._refreshInThisEmail(pinned);
   }
 
   render() {

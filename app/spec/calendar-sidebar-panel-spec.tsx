@@ -98,6 +98,18 @@ describe('SidebarCalendarPanel following the email being read', function () {
     expect(panel.state.inThisEmail).toBe(INTERVIEW);
   });
 
+  it('keeps a pick made while the lookup runs on an email with no event', async function () {
+    const { panel, claimActive } = following();
+    emailed = null;
+    const lookingUp = panel._onMessagesChange();
+    const picked = { ...INTERVIEW, id: 'standup' };
+    panel._onAgendaEventClick({} as any, picked as any);
+    await lookingUp;
+
+    expect(panel.state.shown).toBe(picked);
+    expect(claimActive).not.toHaveBeenCalledWith(false);
+  });
+
   it('leaves the agenda alone once the email is followed, so the last click wins', async function () {
     const { panel } = following();
     await panel._onMessagesChange();
@@ -132,6 +144,20 @@ describe("SidebarCalendarPanel's In this email row", function () {
     await Promise.resolve();
 
     expect(panel.state.inThisEmail).toBe(answered);
+  });
+
+  it('finds its event again by UID once a retimed series gives the occurrence a new id', async function () {
+    const { panel } = sidebarPanel();
+    const moved = { ...INTERVIEW, id: 'interview-moved' };
+    panel.state.inThisEmail = INTERVIEW as any;
+    panel._emailedRef = EMAILED;
+    spyOn(calendarDataSource, 'currentOccurrence').andReturn(Promise.resolve(null));
+    spyOn(calendarDataSource, 'focusedOccurrenceForIcsuid').andReturn(Promise.resolve(moved));
+
+    panel._onDatabaseChange({ objectClass: 'Event' } as any);
+    for (let i = 0; i < 5; i++) await Promise.resolve();
+
+    expect(panel.state.inThisEmail).toBe(moved);
   });
 });
 
