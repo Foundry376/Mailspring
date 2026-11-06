@@ -1,0 +1,18 @@
+// A guest's answer as the colour of their status dot, for a row classed with it.
+.attendee-status-colors() {
+  &.accepted .attendee-status {
+    background-color: #34c759;
+    color: white;
+  }
+
+  &.declined .attendee-status {
+    background-color: #ff3b30;
+    color: white;
+  }
+
+  &.tentative .attendee-status,
+  &.needs-action .attendee-status {
+    background-color: #8e8e93;
+    color: white;
+  }
+}

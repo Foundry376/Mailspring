@@ -49,6 +49,10 @@ import {
 import { findOneIana } from 'windows-iana';
 import { focusedOccurrenceForIcsuid } from '../../main-calendar/lib/core/calendar-data-source';
 import { openProposeNewTimePopover } from '../../main-calendar/lib/core/calendar-rsvp';
+import {
+  AttendeeStatusIcon,
+  attendeeStatusClass,
+} from '../../main-calendar/lib/core/attendee-status';
 
 const moment = require('moment-timezone');
 
@@ -573,7 +577,9 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       <div className="event-wrapper">
         <div className="event-invitation">
           <div className="event-invitation-title-row">
-            <span className="event-title">{icsEvent.summary}</span>
+            <span className={`event-title ${icsMethod === 'cancel' ? 'cancelled' : ''}`}>
+              {icsEvent.summary}
+            </span>
             {this.state.isOnCalendar && (
               <a className="event-view-in-calendar" onClick={this._onViewInCalendar}>
                 {localized('View in Calendar')}
@@ -592,10 +598,12 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
           <div className="event-invitation-columns">
             <div className="event-invitation-details">
               <div className="event-time">{invitationTime(icsEvent)}</div>
+              {icsMethod === 'counter' && this._renderReplacedTime()}
               {repeat && <div className="event-repeat">{repeat}</div>}
               {icsEvent.location && (
                 <div className="event-location">{renderLocation(icsEvent.location)}</div>
               )}
+              {icsMethod === 'counter' && this._renderCounterNote()}
               {this._renderNewerInvitation()}
               {icsMethod === 'request' && this._renderConflicts()}
             </div>
@@ -722,26 +730,37 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
               : null;
 
     return (
-      <div className="event-actions event-counter">
-        <div className="event-counter-notice">
+      <>
+        <div className="event-answer-message">
           {localized('%@ proposed this new time.', proposer)}
         </div>
         {refusal ? (
           <div className="event-rsvp-destination event-rsvp-email-only">{refusal}</div>
         ) : (
-          <>
-            <div className="event-rsvp-buttons">
-              <div className="btn btn-large" onClick={this._onAcceptProposedTime}>
-                {localized('Move event to this time')}
-              </div>
-            </div>
-            <div className="event-rsvp-destination">
-              {localized('Your response will be saved to %@', rsvp.target.calendar.name)}
-            </div>
-          </>
+          <button className="btn btn-emphasis" onClick={this._onAcceptProposedTime}>
+            {localized('Use this time')}
+          </button>
         )}
-      </div>
+      </>
     );
+  }
+
+  // Our copy's time, which the proposed one would replace.
+  _renderReplacedTime() {
+    const { rsvp, inviteRecurrenceIdStart } = this.state;
+    if (!rsvp || !rsvp.target) return null;
+    let current: ICAL.Event | null = null;
+    try {
+      current = eventForInvitation(rsvp.target.event.ics, inviteRecurrenceIdStart);
+    } catch (e) {
+      return null;
+    }
+    return current && <s className="event-replaced-time">{invitationTime(current)}</s>;
+  }
+
+  _renderCounterNote() {
+    const comment = this.state.icsEvent.component.getFirstPropertyValue('comment');
+    return comment ? <div className="event-counter-note">{String(comment)}</div> : null;
   }
 
   // The server re-sends the invitation to the guests when the organizer moves the event, so
@@ -804,16 +823,34 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     const sender = CalendarUtils.cleanParticipants(icsEvent).find((p) => p.email === from.email);
     if (!sender) return false;
 
+    const name = from.displayName();
+    const answered: { [key: string]: string } = {
+      ACCEPTED: localized('%@ accepted', name),
+      DECLINED: localized('%@ declined', name),
+      TENTATIVE: localized('%@ said maybe', name),
+    };
+    if (answered[sender.status]) {
+      const attendee = { email: from.email, partstat: sender.status as ICSParticipantStatus };
+      return (
+        <div className={`event-answer-message event-reply ${attendeeStatusClass(attendee)}`}>
+          <span className="attendee-status">
+            <AttendeeStatusIcon attendee={attendee} />
+          </span>
+          {answered[sender.status]}
+        </div>
+      );
+    }
+
     const verb: { [key: string]: string } = {
-      DECLINED: localized('declined'),
-      ACCEPTED: localized('accepted'),
-      TENTATIVE: localized('tentatively accepted'),
       DELEGATED: localized('delegated'),
       COMPLETED: localized('completed'),
     }[sender.status];
-
     return (
-      <div className="event-actions">{localized(`%1$@ has %2$@ this event`, from.email, verb)}</div>
+      verb && (
+        <div className="event-answer-message">
+          {localized(`%1$@ has %2$@ this event`, from.email, verb)}
+        </div>
+      )
     );
   }
 
@@ -824,16 +861,16 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     const removable = copyBehind && rsvp && rsvp.target && inviteRecurrenceIdStart === undefined;
 
     return (
-      <div className="event-actions event-cancelled">
-        <span className="cancelled-notice">
+      <div className="event-cancelled">
+        <div className="event-answer-message">
           {organizer
             ? localized('This event has been cancelled by %@', organizer)
             : localized('This event has been cancelled')}
-        </span>
+        </div>
         {removable && (
-          <div className="btn btn-large btn-rsvp" onClick={this._onRemoveCancelled}>
+          <button className="btn" onClick={this._onRemoveCancelled}>
             {localized('Remove from %@', rsvp.target.calendar.name)}
-          </div>
+          </button>
         )}
       </div>
     );

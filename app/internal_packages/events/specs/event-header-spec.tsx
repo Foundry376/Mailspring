@@ -995,8 +995,8 @@ describe('EventHeader answering an invitation', function () {
       ics: OURS,
     } as any);
     const moveButton = () =>
-      ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'btn-large').find(
-        (n) => n.textContent === 'Move event to this time'
+      ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'btn').find(
+        (n) => n.textContent === 'Use this time'
       );
     const lines = (ics: string) => unfold(ics).split(/\r?\n/);
 
@@ -1010,7 +1010,6 @@ describe('EventHeader answering an invitation', function () {
         expect(header.state.icsEvent.startDate.toJSDate().toISOString()).toBe(
           '2026-03-01T16:00:00.000Z'
         );
-        expect(destination().textContent).toBe('Your response will be saved to brian@example.com');
         ReactTestUtils.Simulate.click(moveButton());
         const write = queued[0] as SyncbackEventTask;
         expect(write instanceof SyncbackEventTask).toBe(true);

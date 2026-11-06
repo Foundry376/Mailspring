@@ -29,6 +29,10 @@
       min-width: 0;
       font-weight: @font-weight-semi-bold;
       user-select: text;
+
+      &.cancelled {
+        text-decoration: line-through;
+      }
     }
   }
 
@@ -74,6 +78,21 @@
       user-select: text;
       overflow-wrap: anywhere;
     }
+
+    .event-replaced-time {
+      margin-top: -6px;
+      font-size: 12px;
+      line-height: 16px;
+      color: fadeout(@text-color, 50%);
+    }
+
+    // The proposer's note, set off as the event panel sets it off.
+    .event-counter-note {
+      padding-left: 8px;
+      border-left: 3px solid color-mix(in srgb, @accent-primary 28%, @background-primary);
+      white-space: pre-line;
+      user-select: text;
+    }
   }
 
   .event-conflicts {
@@ -109,10 +128,40 @@
     }
 
     .event-rsvp-destination,
-    .event-no-rsvp {
+    .event-no-rsvp,
+    .event-answer-message {
       font-size: 12px;
       line-height: 16px;
       color: fadeout(@text-color, 35%);
+    }
+
+    .event-cancelled {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .event-reply {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      .attendee-status-colors();
+
+      .attendee-status {
+        width: 12px;
+        height: 12px;
+        flex-shrink: 0;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        svg {
+          width: 7px;
+          height: 7px;
+        }
+      }
     }
   }
 }
