@@ -1,4 +1,4 @@
-import { RetinaImg } from 'mailspring-component-kit';
+import { AnswerSection, RetinaImg, TextSelect } from 'mailspring-component-kit';
 
 import React from 'react';
 import fs from 'fs';
@@ -47,6 +47,8 @@ import {
 } from './invitation-versions';
 
 import { findOneIana } from 'windows-iana';
+import { focusedOccurrenceForIcsuid } from '../../main-calendar/lib/core/calendar-data-source';
+import { openProposeNewTimePopover } from '../../main-calendar/lib/core/calendar-rsvp';
 
 const moment = require('moment-timezone');
 
@@ -140,6 +142,31 @@ export function organizerName(event: ICAL.Event): string | null {
   return named
     ? String(named)
     : CalendarUtils.emailFromParticipantURI(String(organizer.getFirstValue()));
+}
+
+/** An ICAL time in our zone; a date stays the day it names. */
+function inOurZone(time: ICAL.Time) {
+  if (time.isDate) return moment(time.toString());
+  // Microsoft calendars send Windows zone names, and Google sends "Z" for UTC.
+  const zone = findOneIana(time.zone.tzid) || time.zone.tzid;
+  return moment.tz(time.toString(), zone === 'Z' ? 'UTC' : zone).tz(DateUtils.timeZone);
+}
+
+/** The event's time on one line, as the invitation header shows it: "Fri, Sep 4, 2:00 PM – 3:00 PM". */
+export function invitationTime(event: ICAL.Event): string {
+  const start = inOurZone(event.startDate);
+  const end = inOurZone(event.endDate);
+  const day = 'ddd, MMM D';
+  if (event.startDate.isDate) {
+    const last = end.clone().subtract(1, 'day');
+    return last.isAfter(start, 'day')
+      ? `${start.format(day)} – ${last.format(day)}`
+      : `${start.format(day)}, ${localized('All day')}`;
+  }
+  const time = DateUtils.getTimeFormat({ timeZone: false });
+  return start.isSame(end, 'day')
+    ? `${start.format(day)}, ${start.format(time)} – ${end.format(time)}`
+    : `${start.format(day)}, ${start.format(time)} – ${end.format(day)}, ${end.format(time)}`;
 }
 
 /**
@@ -540,77 +567,47 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     if (!icsEvent || !icsEvent.startDate) {
       return null;
     }
-
-    // Workaround to convert calendar invites sent out from Microsoft calendars to IANA timezones
-    // that can be handled by moments-timezone.
-    let startTimezone = findOneIana(icsEvent.startDate.zone.tzid) || icsEvent.startDate.zone.tzid;
-    let endTimezone = findOneIana(icsEvent.endDate.zone.tzid) || icsEvent.endDate.zone.tzid;
-    // Workaround to convert calendar invites sent out from Google calendar with "Z" timezone
-    // to IANA timezone that can be handled by moments-timezone.
-    if (startTimezone === 'Z') {
-      startTimezone = 'UTC';
-    }
-    if (endTimezone === 'Z') {
-      endTimezone = 'UTC';
-    }
-
-    const startMoment = moment
-      .tz(icsEvent.startDate.toString(), startTimezone)
-      .tz(DateUtils.timeZone);
-    const endMoment = moment.tz(icsEvent.endDate.toString(), endTimezone).tz(DateUtils.timeZone);
-
-    const daySeconds = 24 * 60 * 60 * 1000;
-    let day = '';
-    let time = '';
-
-    if (endMoment.diff(startMoment) < daySeconds) {
-      day = startMoment.format('dddd, MMMM Do');
-      time = `${startMoment.format(
-        DateUtils.getTimeFormat({ timeZone: false })
-      )} - ${endMoment.format(DateUtils.getTimeFormat({ timeZone: true }))}`;
-    } else {
-      day = `${startMoment.format('dddd, MMMM Do')} - ${endMoment.format('MMMM Do')}`;
-      if (endMoment.diff(startMoment) % daySeconds === 0) {
-        time = localized('All Day');
-      } else {
-        time = startMoment.format(DateUtils.getTimeFormat({ timeZone: true }));
-      }
-    }
+    const repeat = repeatSummary(icsEvent);
 
     return (
       <div className="event-wrapper">
-        <div className="event-header">
-          <div className="event-download" onClick={() => Actions.fetchAndOpenFile(this.props.file)}>
-            <RetinaImg name="icon-attachment-download.png" mode={RetinaImg.Mode.ContentIsMask} />
-          </div>
-          <RetinaImg name="icon-RSVP-calendar-mini@2x.png" mode={RetinaImg.Mode.ContentPreserve} />
-          <span className="event-title-text">{localized('Event')}: </span>
-          <span className="event-title">{icsEvent.summary}</span>
-        </div>
-        <div className="event-body">
-          <div className="event-date">
-            <div className="event-day">{day}</div>
-            <div>
-              <div className="event-time">{time}</div>
-            </div>
-            {repeatSummary(icsEvent) && (
-              <div className="event-repeat">{repeatSummary(icsEvent)}</div>
-            )}
-            <div className="event-location">{renderLocation(icsEvent.location)}</div>
+        <div className="event-invitation">
+          <div className="event-invitation-title-row">
+            <span className="event-title">{icsEvent.summary}</span>
             {this.state.isOnCalendar && (
-              <div className="event-view-in-calendar">
-                <a onClick={this._onViewInCalendar}>{localized('View in Calendar')}</a>
-              </div>
+              <a className="event-view-in-calendar" onClick={this._onViewInCalendar}>
+                {localized('View in Calendar')}
+              </a>
             )}
-            {this._renderNewerInvitation()}
-            {icsMethod === 'request' && this._renderConflicts()}
-            {icsMethod === 'cancel'
-              ? this._renderCancellation()
-              : icsMethod === 'counter'
-                ? this._renderCounterProposal()
-                : icsMethod === 'request'
-                  ? this._renderRSVP()
-                  : this._renderSenderResponse()}
+            {/* The attachment list hides the .ics, so this is the only way to save it. */}
+            <button
+              className="btn-bare event-download"
+              title={localized('Download')}
+              aria-label={localized('Download')}
+              onClick={() => Actions.fetchAndOpenFile(this.props.file)}
+            >
+              <RetinaImg name="icon-attachment-download.png" mode={RetinaImg.Mode.ContentIsMask} />
+            </button>
+          </div>
+          <div className="event-invitation-columns">
+            <div className="event-invitation-details">
+              <div className="event-time">{invitationTime(icsEvent)}</div>
+              {repeat && <div className="event-repeat">{repeat}</div>}
+              {icsEvent.location && (
+                <div className="event-location">{renderLocation(icsEvent.location)}</div>
+              )}
+              {this._renderNewerInvitation()}
+              {icsMethod === 'request' && this._renderConflicts()}
+            </div>
+            <div className="event-invitation-answer">
+              {icsMethod === 'cancel'
+                ? this._renderCancellation()
+                : icsMethod === 'counter'
+                  ? this._renderCounterProposal()
+                  : icsMethod === 'request'
+                    ? this._renderRSVP()
+                    : this._renderSenderResponse()}
+            </div>
           </div>
         </div>
       </div>
@@ -641,39 +638,65 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     });
   };
   // What Google Calendar shows as "Conflicts with...", so the answer needs no trip to the
-  // calendar. Shown only on a REQUEST: a REPLY is about a slot we picked ourselves.
+  // calendar. Shown only on a REQUEST still waiting on Yes or No: a REPLY is about a slot we
+  // picked ourselves.
   _renderConflicts() {
     const { conflicts, icsEvent } = this.state;
     if (!conflicts || !conflicts.length) return false;
+    if (['ACCEPTED', 'DECLINED'].includes(this._myStatus())) return false;
 
     const timeFormat = DateUtils.getTimeFormat({ timeZone: false });
     // The header dates a series by its first occurrence while the slot checked is the next one,
     // so a clash on another day than the one shown says which day.
-    const shownDay = moment(icsEvent.startDate.toJSDate()).tz(DateUtils.timeZone);
+    const shownDay = inOurZone(icsEvent.startDate);
     const label = (conflict: CalendarConflict) => {
       const start = moment.unix(conflict.start).tz(DateUtils.timeZone);
       const end = moment.unix(conflict.end).tz(DateUtils.timeZone);
-      const day = start.isSame(shownDay, 'day') ? '' : `${start.format('dddd, MMMM Do')}, `;
-      return `${conflict.title || localized('(No title)')} (${day}${start.format(
+      const day = start.isSame(shownDay, 'day') ? '' : `${start.format('ddd, MMM D')}, `;
+      return `${conflict.title || localized('(No title)')}, ${day}${start.format(
         timeFormat
-      )} - ${end.format(timeFormat)})`;
+      )} – ${end.format(timeFormat)}`;
     };
 
     return (
       <div className="event-conflicts">
         <div className="event-conflicts-title">
           {conflicts.length === 1
-            ? localized('Conflicts with an event on your calendar')
-            : localized('Conflicts with %@ events on your calendar', conflicts.length)}
+            ? localized('Conflicts with %@', label(conflicts[0]))
+            : localized('Conflicts with %@ events', conflicts.length)}
         </div>
-        {conflicts.map((conflict) => (
-          <div className="event-conflict" key={`${conflict.eventId}-${conflict.start}`}>
-            {label(conflict)}
-          </div>
-        ))}
+        {conflicts.length > 1 &&
+          conflicts.map((conflict) => (
+            <div className="event-conflict" key={`${conflict.eventId}-${conflict.start}`}>
+              {label(conflict)}
+            </div>
+          ))}
+        {this.state.rsvp?.target && (
+          <a className="event-propose" onClick={this._onProposeNewTime}>
+            {localized('Propose a new time')}
+          </a>
+        )}
       </div>
     );
   }
+
+  // The proposal goes from the calendar copy, as the event panel's time rows send it.
+  _onProposeNewTime = async (e: React.MouseEvent<HTMLElement>) => {
+    const anchor = e.currentTarget;
+    const { icsEvent, rsvp, inviteRecurrenceIdStart } = this.state;
+    const { accountId } = this.props.message;
+    const calendars = await DatabaseStore.findAll<Calendar>(Calendar).where({ accountId });
+    const occurrence = await focusedOccurrenceForIcsuid(
+      {
+        icsuid: icsEvent.uid,
+        accountId,
+        calendarId: rsvp.target.calendar.id,
+        recurrenceIdStart: inviteRecurrenceIdStart,
+      },
+      calendars
+    );
+    if (occurrence) openProposeNewTimePopover(occurrence, anchor);
+  };
 
   // A guest proposing another slot for a meeting we organize (RFC 5546 section 3.2.7): the
   // action is the organizer's, and accepting moves the event. The header shows the proposed time.
@@ -824,108 +847,78 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
   };
 
   _renderRSVP() {
-    const { icsEvent, inflight } = this.state;
-    const me = CalendarUtils.selfParticipant(icsEvent, this.props.message.accountId);
+    const me = CalendarUtils.selfParticipant(this.state.icsEvent, this.props.message.accountId);
     if (!me) {
       // Invitations addressed to a group or a distribution list name the group as the
       // attendee, not us, and iTIP gives us no standing to reply on the group's behalf.
       return (
-        <div className="event-actions event-no-rsvp">
+        <div className="event-no-rsvp">
           {localized(
             "This invitation was sent to an address that isn't listed as a guest, so there's no RSVP to give."
           )}
         </div>
       );
     }
+    return (
+      <AnswerSection
+        note={this._renderRSVPDestination()}
+        answer={this._myStatus()}
+        sending={this.state.inflight}
+        onAnswer={this._onRSVP}
+      />
+    );
+  }
 
-    let status = me.status;
-
+  /** Our answer: the calendar copy's, or one sent from this email since the invitation came. */
+  _myStatus(): string | null {
+    const { icsEvent } = this.state;
+    const me = CalendarUtils.selfParticipant(icsEvent, this.props.message.accountId);
+    if (!me) return null;
     const icsTimeProperty = icsEvent.component.getFirstPropertyValue('dtstamp') as ICAL.Time;
     const icsTime = icsTimeProperty ? icsTimeProperty.toJSDate() : new Date(0);
-
     const metadata = this.props.message.metadataForPluginId('event-rsvp');
-    if (metadata && new Date(metadata.time) > icsTime) {
-      status = metadata.status;
-    }
-
-    const actions: [ICSParticipantStatus, string][] = [
-      ['ACCEPTED', localized('Yes')],
-      ['DECLINED', localized('No')],
-      ['TENTATIVE', localized('Maybe')],
-    ];
-
-    return (
-      <div className="event-actions">
-        <div className="event-rsvp-buttons">
-          {actions.map(([actionStatus, actionLabel]) => (
-            <div
-              key={actionStatus}
-              className={`btn btn-large btn-rsvp ${status === actionStatus ? actionStatus : ''}`}
-              onClick={() => this._onRSVP(actionStatus)}
-            >
-              {actionStatus === status || actionStatus !== inflight ? (
-                actionLabel
-              ) : (
-                <RetinaImg
-                  width={18}
-                  name="sending-spinner.gif"
-                  mode={RetinaImg.Mode.ContentPreserve}
-                />
-              )}
-            </div>
-          ))}
-        </div>
-        {this._renderRSVPDestination()}
-      </div>
-    );
+    return metadata && new Date(metadata.time) > icsTime ? metadata.status : me.status;
   }
 
   // Says whether the answer is also recorded on a calendar, or only emailed.
   _renderRSVPDestination() {
     const { rsvp, addTo } = this.state;
-    if (!rsvp) return false;
+    if (!rsvp) return null;
 
     if (rsvp.target) {
       return (
-        <div className="event-rsvp-destination">
+        <span className="event-rsvp-destination">
           {this.state.copyBehind
             ? localized(
                 '%@ still has an earlier version of this event. Your response will update it.',
                 rsvp.target.calendar.name
               )
-            : localized('Your response will be saved to %@', rsvp.target.calendar.name)}
-        </div>
+            : localized('Saved to %@', rsvp.target.calendar.name)}
+        </span>
       );
     }
 
     if (rsvp.problem === 'not-on-a-calendar' && addTo) {
       const choices = this.state.addToChoices || [];
       const account = AccountStore.accountForId(this.props.message.accountId);
+      // The calendar's own name doesn't say which account it's in, so its account goes on hover.
       const inAccount =
         account && !CalendarUtils.isNamedAfterAccount(addTo, account)
-          ? `(${account.emailAddress})`
-          : '';
+          ? account.emailAddress
+          : undefined;
       if (choices.length <= 1) {
         return (
-          <div className="event-rsvp-destination">
-            {[
-              localized('This event is not on your calendar. Respond Yes or Maybe to add it to'),
-              addTo.name,
-              inAccount,
-            ]
-              .filter(Boolean)
-              .join(' ')}
-          </div>
+          <span className="event-rsvp-destination" title={inAccount}>
+            {localized('Yes or Maybe adds it to %@', addTo.name)}
+          </span>
         );
       }
       return (
-        <div className="event-rsvp-destination">
-          <span>
-            {localized('This event is not on your calendar. Respond Yes or Maybe to add it to')}
-          </span>
-          <select
-            className="event-rsvp-calendar-picker"
+        <span className="event-rsvp-destination">
+          {localized('Yes or Maybe adds it to')}{' '}
+          <TextSelect
             value={addTo.id}
+            title={inAccount}
             aria-label={localized('Calendar to add this event to')}
             onChange={(e) => this.setState({ addTo: choices.find((c) => c.id === e.target.value) })}
           >
@@ -934,9 +927,8 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
                 {c.name}
               </option>
             ))}
-          </select>
-          {inAccount && <span>{inAccount}</span>}
-        </div>
+          </TextSelect>
+        </span>
       );
     }
 
@@ -955,7 +947,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
       ),
     }[rsvp.problem];
 
-    return <div className="event-rsvp-destination event-rsvp-email-only">{explanation}</div>;
+    return <span className="event-rsvp-destination event-rsvp-email-only">{explanation}</span>;
   }
 
   _onRSVP = (status: ICSParticipantStatus) => {

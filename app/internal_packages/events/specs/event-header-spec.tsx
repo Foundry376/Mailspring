@@ -27,6 +27,8 @@ import {
   Utils,
 } from 'mailspring-exports';
 import { EventHeader, organizerName, renderLocation, repeatSummary } from '../lib/event-header';
+import * as calendarDataSource from '../../main-calendar/lib/core/calendar-data-source';
+import * as calendarRsvp from '../../main-calendar/lib/core/calendar-rsvp';
 
 // A LOCATION as Zoom rooms write it: the join URL, then the rooms booked for the meeting.
 const ZOOM_WITH_ROOMS =
@@ -45,6 +47,12 @@ function textOf(node: React.ReactNode): string {
     .map((n) => (React.isValidElement(n) ? (n as Link).props.children : n))
     .join('');
 }
+
+// The Yes / No / Maybe buttons of the header's answer section.
+const rsvpButtons = (header: React.Component) =>
+  Array.from(
+    (ReactDOM.findDOMNode(header) as HTMLElement).querySelectorAll('.answer-section-buttons button')
+  ) as HTMLElement[];
 
 describe('EventHeader location', function () {
   it('links a join URL to itself', function () {
@@ -217,7 +225,7 @@ describe('EventHeader for an invitation to one occurrence of a series', function
 
   // The header prints the day in the local zone, so the expectation is formed the same way
   // rather than spelled out: no instant falls on one date in every zone the suite may run in.
-  const dayOf = (iso: string) => moment(iso).format('dddd, MMMM Do');
+  const dayOf = (iso: string) => moment(iso).format('ddd, MMM D');
 
   let icsPath: string;
 
@@ -261,7 +269,7 @@ describe('EventHeader for an invitation to one occurrence of a series', function
   it("shows that occurrence from the calendar copy, not the series' first date", function () {
     const text = render(EMAILED, vcalendar(SERIES, OTHER_WEEK, SYNCED));
     runs(() => {
-      expect(text('event-day')).toBe(dayOf('2026-09-15T16:00:00Z'));
+      expect(text('event-time')).toContain(dayOf('2026-09-15T16:00:00Z'));
       expect(text('event-title')).toBe('Huddle (as synced)');
     });
   });
@@ -269,7 +277,7 @@ describe('EventHeader for an invitation to one occurrence of a series', function
   it('keeps what the email said when the calendar copy has no entry for it', function () {
     const text = render(EMAILED, vcalendar(SERIES));
     runs(() => {
-      expect(text('event-day')).toBe(dayOf('2026-09-15T15:00:00Z'));
+      expect(text('event-time')).toContain(dayOf('2026-09-15T15:00:00Z'));
       expect(text('event-title')).toBe('Huddle');
     });
   });
@@ -278,9 +286,7 @@ describe('EventHeader for an invitation to one occurrence of a series', function
 
   // Clicks No and returns the ICS of the reply that was queued.
   function declineAndGetReply(text: ReturnType<typeof render>): string {
-    const decline = ReactTestUtils.scryRenderedDOMComponentsWithClass(text.header, 'btn-rsvp').find(
-      (button) => button.textContent === 'No'
-    );
+    const decline = rsvpButtons(text.header).find((button) => button.textContent === 'No');
     ReactTestUtils.Simulate.click(decline);
     return queueTask.mostRecentCall.args[0].ics;
   }
@@ -297,9 +303,7 @@ describe('EventHeader for an invitation to one occurrence of a series', function
 
   // Clicks Yes and returns the ICS written to our calendar copy.
   function acceptAndGetWrite(text: ReturnType<typeof render>): string {
-    const accept = ReactTestUtils.scryRenderedDOMComponentsWithClass(text.header, 'btn-rsvp').find(
-      (button) => button.textContent === 'Yes'
-    );
+    const accept = rsvpButtons(text.header).find((button) => button.textContent === 'Yes');
     ReactTestUtils.Simulate.click(accept);
     const write = queueTask.calls
       .map((call) => call.args[0])
@@ -348,7 +352,7 @@ describe('EventHeader for an invitation to one occurrence of a series', function
       vcalendar([...SERIES.slice(0, 3), 'SUMMARY:Huddle (as synced)', ...GUESTS])
     );
     runs(() => {
-      expect(text('event-day')).toBe(dayOf('2025-09-23T14:00:00Z'));
+      expect(text('event-time')).toContain(dayOf('2025-09-23T14:00:00Z'));
       expect(text('event-title')).toBe('Huddle (as synced)');
       expect(declineAndGetReply(text)).toContain('SUMMARY:Huddle (as synced)');
     });
@@ -461,9 +465,7 @@ describe('EventHeader answering an invitation', function () {
   }
 
   function click(label: string) {
-    const button = ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'btn-rsvp').find(
-      (n) => n.textContent === label
-    );
+    const button = rsvpButtons(header).find((n) => n.textContent === label);
     ReactTestUtils.Simulate.click(button);
   }
 
@@ -492,7 +494,7 @@ describe('EventHeader answering an invitation', function () {
     });
     runs(() => {
       expect(title()).toBe('Kickoff (moved)');
-      expect(destination().textContent).toBe('Your response will be saved to brian@example.com');
+      expect(destination().textContent).toBe('Saved to brian@example.com');
       click('Maybe');
       const write = queued[1] as SyncbackEventTask;
       expect(write instanceof SyncbackEventTask).toBe(true);
@@ -524,27 +526,21 @@ describe('EventHeader answering an invitation', function () {
   it('names the account beside a calendar named something else, in one sentence', function () {
     mount({ events: [], calendars: [shared] });
     runs(() => {
-      expect(destination().textContent).toBe(
-        'This event is not on your calendar. Respond Yes or Maybe to add it to US On Call (brian@example.com)'
-      );
+      expect(destination().textContent).toBe('Yes or Maybe adds it to US On Call');
     });
   });
 
   it('names a calendar called after the account once', function () {
     mount({ events: [], calendars: [mine] });
     runs(() => {
-      expect(destination().textContent).toBe(
-        'This event is not on your calendar. Respond Yes or Maybe to add it to brian@example.com'
-      );
+      expect(destination().textContent).toBe('Yes or Maybe adds it to brian@example.com');
     });
   });
 
   it('only emails a decline when the invitation is on no calendar', function () {
     mount({ events: [], calendars: [mine] });
     runs(() => {
-      expect(destination().textContent).toBe(
-        'This event is not on your calendar. Respond Yes or Maybe to add it to brian@example.com'
-      );
+      expect(destination().textContent).toBe('Yes or Maybe adds it to brian@example.com');
       expect(destination().querySelector('select')).toBe(null);
       expect(
         ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'event-view-in-calendar').length
@@ -582,7 +578,7 @@ describe('EventHeader answering an invitation', function () {
 
   describe('on a Google account', function () {
     const answered = () =>
-      ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'btn-rsvp')
+      rsvpButtons(header)
         .filter((n) => /ACCEPTED|DECLINED|TENTATIVE/.test(n.className))
         .map((n) => n.textContent);
 
@@ -679,7 +675,7 @@ describe('EventHeader answering an invitation', function () {
     );
     mount({ events: [], calendars: [mine] });
     runs(() => {
-      expect(ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'btn-rsvp').length).toBe(0);
+      expect(rsvpButtons(header).length).toBe(0);
       expect(
         ReactTestUtils.findRenderedDOMComponentWithClass(header, 'event-no-rsvp').textContent
       ).toContain("isn't listed as a guest");
@@ -736,10 +732,16 @@ describe('EventHeader answering an invitation', function () {
           'END:VCALENDAR',
         ].join('\r\n'),
       } as any);
-    const conflictLines = () =>
-      ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'event-conflict').map(
-        (n) => n.textContent
+    // One conflict is named in the title; several are listed under it.
+    const conflictLines = () => {
+      const lines = ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'event-conflict');
+      if (lines.length) return lines.map((n) => n.textContent);
+      const title = ReactTestUtils.scryRenderedDOMComponentsWithClass(
+        header,
+        'event-conflicts-title'
       );
+      return title.map((n) => n.textContent.replace('Conflicts with ', ''));
+    };
 
     beforeEach(function () {
       const original = AppEnv.config.get;
@@ -769,11 +771,7 @@ describe('EventHeader answering an invitation', function () {
         ],
       });
       runs(() => {
-        expect(
-          ReactTestUtils.findRenderedDOMComponentWithClass(header, 'event-conflicts-title')
-            .textContent
-        ).toBe('Conflicts with an event on your calendar');
-        expect(conflictLines()).toEqual(['Standup (8:30 am - 9:00 am)']);
+        expect(conflictLines()).toEqual(['Standup, 8:30 am – 9:00 am']);
       });
     });
 
@@ -798,9 +796,9 @@ describe('EventHeader answering an invitation', function () {
           start: next.start.getTime() / 1000,
           end: next.end.getTime() / 1000,
         });
-        expect(conflictLines().map((l) => l.split(' (')[0])).toEqual(['This week']);
+        expect(conflictLines().map((l) => l.split(', ')[0])).toEqual(['This week']);
         // The header shows the series' first date, so each line names the day it checked.
-        expect(conflictLines()[0]).toContain(`(${moment(next.start).format('dddd, MMMM Do')}, `);
+        expect(conflictLines()[0]).toContain(`, ${moment(next.start).format('ddd, MMM D')}, `);
       });
     });
 
@@ -811,7 +809,42 @@ describe('EventHeader answering an invitation', function () {
         nearby: [busyAt('Standup', mine.id, '20260301T143000Z', '20260301T150000Z')],
       });
       runs(() => {
-        expect(conflictLines()).toEqual(['Standup (8:30 am - 9:00 am)']);
+        expect(conflictLines()).toEqual(['Standup, 8:30 am – 9:00 am']);
+      });
+    });
+
+    it('proposes a new time for the occurrence the invitation is about, on our copy', function () {
+      fs.writeFileSync(
+        icsPath,
+        INVITE.replace(
+          'DTSTART:20260301T140000Z',
+          'RECURRENCE-ID:20260301T140000Z\r\nDTSTART:20260301T140000Z'
+        )
+      );
+      const occurrence = { id: 'e-mine' };
+      const lookUp = spyOn(calendarDataSource, 'focusedOccurrenceForIcsuid').andReturn(
+        Promise.resolve(occurrence)
+      );
+      const open = spyOn(calendarRsvp, 'openProposeNewTimePopover');
+      mount({
+        events: [synced],
+        calendars: [mine],
+        nearby: [busyAt('Standup', mine.id, '20260301T143000Z', '20260301T150000Z')],
+      });
+      runs(() => {
+        spyOn(DatabaseStore, 'findAll').andReturn({ where: () => Promise.resolve([mine]) } as any);
+        const link = ReactTestUtils.findRenderedDOMComponentWithClass(header, 'event-propose');
+        ReactTestUtils.Simulate.click(link);
+      });
+      waitsFor(() => open.callCount > 0);
+      runs(() => {
+        expect(lookUp.mostRecentCall.args[0]).toEqual({
+          icsuid: 'meeting-uid@example.com',
+          accountId: 'a1',
+          calendarId: mine.id,
+          recurrenceIdStart: Date.UTC(2026, 2, 1, 14) / 1000,
+        });
+        expect(open.mostRecentCall.args[0]).toBe(occurrence);
       });
     });
 
@@ -920,7 +953,7 @@ describe('EventHeader answering an invitation', function () {
           end: Date.UTC(2026, 2, 8, 17) / 1000,
         });
         expect(nearbyBounds).toEqual(header.state.conflictWindow);
-        expect(conflictLines().map((l) => l.split(' (')[0])).toEqual(['At the moved time']);
+        expect(conflictLines().map((l) => l.split(', ')[0])).toEqual(['At the moved time']);
       });
     });
 
@@ -1219,9 +1252,7 @@ describe('EventHeader for an invitation a later email revised', function () {
     ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'event-newer-invitation')[0];
 
   function accept() {
-    const button = ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'btn-rsvp').find(
-      (n) => n.textContent === 'Yes'
-    );
+    const button = rsvpButtons(header).find((n) => n.textContent === 'Yes');
     ReactTestUtils.Simulate.click(button);
   }
 
@@ -1270,7 +1301,7 @@ describe('EventHeader for an invitation a later email revised', function () {
       expect(
         ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'event-cancelled').length
       ).toBe(1);
-      expect(ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'btn-rsvp').length).toBe(0);
+      expect(rsvpButtons(header).length).toBe(0);
     });
   });
 
@@ -1306,9 +1337,7 @@ describe('EventHeader for an invitation a later email revised', function () {
       expect(
         ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'event-cancelled').length
       ).toBe(0);
-      expect(
-        ReactTestUtils.scryRenderedDOMComponentsWithClass(header, 'btn-rsvp').length
-      ).toBeGreaterThan(0);
+      expect(rsvpButtons(header).length).toBeGreaterThan(0);
     });
   });
 
