@@ -702,6 +702,24 @@ export async function focusedEventInfoForIcsuid(
   return focusedEventInfoForEvents(events, nowUnix, recurrenceIdStart);
 }
 
+/**
+ * Which panel a selection shows, null for none. A series' occurrences share an event id, but not
+ * a field's just-saved text. The slot survives a move, so moving an occurrence keeps its panel.
+ */
+export function panelKey(selected: EventOccurrence[]) {
+  if (selected.length !== 1) return null;
+  const [event] = selected;
+  const eventId = CalendarUtils.parseOccurrenceId(event.id).eventId;
+  return event.isRecurring ? `${eventId}@${occurrenceSlot(event)}` : eventId;
+}
+
+/** An occurrence's id embeds its start; a series exception stored as its own row keeps its id. */
+export function movedOccurrenceId(occurrence: EventOccurrence, event: Event, newStart: number) {
+  return event.isRecurrenceException()
+    ? occurrence.id
+    : CalendarUtils.occurrenceId(event.id, newStart);
+}
+
 /** The occurrence as its row draws it now; null once it's gone or a move landed unpredicted. */
 export async function currentOccurrence(
   occurrence: EventOccurrence,

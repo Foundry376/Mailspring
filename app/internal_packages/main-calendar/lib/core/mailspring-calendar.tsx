@@ -27,6 +27,8 @@ import CalendarHeaderStore from './calendar-header-store';
 import {
   CalendarDataSource,
   EventOccurrence,
+  movedOccurrenceId,
+  panelKey,
   currentOccurrence,
   FocusedEventInfo,
   isEventSelected,
@@ -160,17 +162,6 @@ export interface MailspringCalendarViewProps extends EventRendererProps {
 function savedView(): CalendarView {
   const saved = AppEnv.config.get(CALENDAR_VIEW);
   return Object.values(CalendarView).includes(saved) ? saved : CalendarView.WEEK;
-}
-
-/**
- * Which panel a selection shows, null for none. A series' occurrences share an event id, but not
- * a field's just-saved text. The slot survives a move, so moving an occurrence keeps its panel.
- */
-function panelKey(selected: EventOccurrence[]) {
-  if (selected.length !== 1) return null;
-  const [event] = selected;
-  const eventId = CalendarUtils.parseOccurrenceId(event.id).eventId;
-  return event.isRecurring ? `${eventId}@${occurrenceSlot(event)}` : eventId;
 }
 
 /*
@@ -506,12 +497,10 @@ export class MailspringCalendar extends React.Component<
     }
   }
 
-  /** An occurrence's id embeds its start; a series exception stored as its own row keeps its id. */
+  /** Keeps a moved occurrence selected, under its new id, until its row is rewritten. */
   _followMove(occurrence: EventOccurrence, event: Event, newStart: number, staleIcs: string) {
     if (!isEventSelected(this.state.selectedEvents, occurrence)) return;
-    const id = event.isRecurrenceException()
-      ? occurrence.id
-      : CalendarUtils.occurrenceId(event.id, newStart);
+    const id = movedOccurrenceId(occurrence, event, newStart);
     this._pendingMoves.set(id, { start: newStart, staleIcs });
     this.setState({
       selectedEvents: this.state.selectedEvents.map((o) =>
