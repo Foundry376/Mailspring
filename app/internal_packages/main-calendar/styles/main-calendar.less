@@ -1000,7 +1000,7 @@
     flex: 1;
     min-width: 0;
 
-    .event-panel-rsvp {
+    .answer-section {
       margin-top: 4px;
     }
   }
@@ -1158,30 +1158,6 @@
     }
   }
 
-  .event-panel-select {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-
-    select {
-      appearance: none;
-      field-sizing: content;
-      padding-right: 14px;
-    }
-
-    img.content-mask {
-      position: absolute;
-      right: 0;
-      pointer-events: none;
-      visibility: hidden;
-      background-color: @text-color-very-subtle;
-    }
-
-    &:hover img.content-mask {
-      visibility: visible;
-    }
-  }
-
   .date-picker .day-text {
     &,
     &:hover,
@@ -1332,48 +1308,6 @@
 
   // Your answer is filled as the invitation header fills it.
   // One outline around the group with hairline dividers, like Activity's segmented control.
-  .event-panel-rsvp {
-    display: flex;
-    border-radius: @border-radius-base;
-    .btn-hairline();
-
-    .btn {
-      flex: 1;
-      min-width: 0;
-      padding: 0 8px;
-      box-shadow: none;
-
-      & + .btn {
-        box-shadow: -0.5px 0 0 @btn-border-color;
-      }
-
-      &:not(:last-child) {
-        border-right: 0;
-        border-top-right-radius: 0;
-        border-bottom-right-radius: 0;
-      }
-      &:not(:first-child) {
-        border-top-left-radius: 0;
-        border-bottom-left-radius: 0;
-      }
-    }
-
-    .btn.ACCEPTED {
-      background: @color-success;
-      color: @white;
-    }
-
-    .btn.TENTATIVE {
-      background: @gray-light;
-      color: @white;
-    }
-
-    .btn.DECLINED {
-      background: @color-error;
-      color: @white;
-    }
-  }
-
   .event-panel-calendar-swatch {
     width: 12px;
     height: 12px;

@@ -19,11 +19,13 @@ import {
   Utils,
 } from 'mailspring-exports';
 import {
+  AnswerSection,
   DatePicker,
   RetinaImg,
   ScrollRegion,
   SVGIcons,
   Switch,
+  TextSelect,
   TimePicker,
 } from 'mailspring-component-kit';
 import { EventOccurrence, EventAttendee, isTimed, occurrenceTimes } from './calendar-data-source';
@@ -62,7 +64,6 @@ import {
   proposedTimesFor,
   ProposedTime,
   respondToCalendarEvent,
-  rsvpActions,
 } from './calendar-rsvp';
 import { ChangeScope, EventPropertyEdit } from './recurring-event-actions';
 import { EventPanelTextField } from './event-panel-text-field';
@@ -173,19 +174,6 @@ class AutolinkedText extends React.Component<{ text: string }> {
   }
 }
 
-// A select that reads as text, as the toolbar's view picker does, with the caret only on hover.
-const PanelSelect = (props: React.SelectHTMLAttributes<HTMLSelectElement>) => (
-  <span className="event-panel-select">
-    <select {...props} />
-    <RetinaImg
-      name="ic-calendar-down-arrow.png"
-      mode={RetinaImg.Mode.ContentIsMask}
-      style={{ width: 8, height: 5, WebkitMaskSize: 'contain' }}
-      aria-hidden="true"
-    />
-  </span>
-);
-
 function linkOrText(location: string) {
   return location.startsWith('http') || location.startsWith('tel:') ? (
     <a href={location}>{location}</a>
@@ -222,7 +210,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   // can't close the panel.
   getSnapshotBeforeUpdate() {
     const focused = document.activeElement as HTMLButtonElement | null;
-    const answering = focused?.closest('.event-panel-answer, .event-panel-rsvp');
+    const answering = focused?.closest('.event-panel-answer, .answer-section');
     return answering && this._el.current?.contains(focused) ? focused : null;
   }
 
@@ -630,13 +618,13 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         ) : (
           <div className="event-panel-row">
             <SVGIcons.Repeat className="event-panel-icon" />
-            <PanelSelect value={this._repeat()} onChange={this._onRepeatChange}>
+            <TextSelect value={this._repeat()} onChange={this._onRepeatChange}>
               {REPEAT_OPTIONS.map((option) => (
                 <option key={option} value={option}>
                   {repeatOptionLabel(option)}
                 </option>
               ))}
-            </PanelSelect>
+            </TextSelect>
           </div>
         )}
       </div>
@@ -778,7 +766,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
               </button>
             )}
           </div>
-          {answerable && answerOpen && this._renderAnswerButtons(false)}
+          {answerable && answerOpen && this._renderAnswerSection(false)}
         </div>
       </div>
     );
@@ -928,7 +916,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         </option>
       ));
     return (
-      <PanelSelect
+      <TextSelect
         value={event.calendarId}
         aria-label={localized('Calendar')}
         onChange={(e) => onCalendarChange?.(choices.find((c) => c.id === e.target.value))}
@@ -940,7 +928,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
               </optgroup>
             ))
           : options(choices)}
-      </PanelSelect>
+      </TextSelect>
     );
   }
 
@@ -962,7 +950,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         )}
         <div className="event-panel-row indented">
           {this._canSetShowAs() ? (
-            <PanelSelect
+            <TextSelect
               value={this._shown('transp', showAs)}
               onChange={(e) => this._saveProperty({ property: 'transp', value: e.target.value })}
             >
@@ -971,7 +959,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
                   {showAsLabel(option)}
                 </option>
               ))}
-            </PanelSelect>
+            </TextSelect>
           ) : (
             showAsLabel(showAs)
           )}
@@ -1232,10 +1220,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       <div className={`event-panel-collapse ${away ? 'collapsed' : ''}`} aria-hidden={away}>
         <div>
           <div className="event-panel-section event-panel-answer">
-            {savedTo && (
-              <div className="event-panel-subtle">{localized('Saved to %@', calendar.name)}</div>
-            )}
-            {this._renderAnswerButtons(away)}
+            {this._renderAnswerSection(away, savedTo && localized('Saved to %@', calendar.name))}
           </div>
         </div>
       </div>
@@ -1253,26 +1238,14 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
-  _renderAnswerButtons(disabled: boolean) {
-    const answer = myParticipationStatus(this.props.event);
+  _renderAnswerSection(disabled: boolean, note?: string) {
     return (
-      <div
-        className="event-panel-rsvp button-group"
-        role="group"
-        aria-label={localized('Your response')}
-      >
-        {rsvpActions().map(([status, label]) => (
-          <button
-            key={status}
-            className={`btn ${status === answer ? status : ''}`}
-            aria-pressed={status === answer}
-            disabled={disabled}
-            onClick={() => this._answer(status)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+      <AnswerSection
+        note={note}
+        answer={myParticipationStatus(this.props.event)}
+        disabled={disabled}
+        onAnswer={(status) => this._answer(status)}
+      />
     );
   }
 
