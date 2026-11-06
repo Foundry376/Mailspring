@@ -37,7 +37,7 @@ describe('AgendaContainer', function () {
 describe('SidebarCalendarPanel', function () {
   it('shows the agenda while its tab is active, and nothing otherwise', function () {
     const shown = new SidebarCalendarPanel({ active: true }).render();
-    expect(shown.type).toBe(AgendaContainer);
+    expect(shown.props.children[0].type).toBe(AgendaContainer);
     expect(new SidebarCalendarPanel({ active: false }).render()).toBe(null);
   });
 });

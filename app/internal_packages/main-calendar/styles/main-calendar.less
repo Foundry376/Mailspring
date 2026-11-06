@@ -775,6 +775,19 @@
   border-radius: (@toolbar-btn-height-darwin / 2);
 }
 
+.sidebar-calendar-panel {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+
+  // The agenda under an open event keeps its layout, and so its scroll position.
+  .is-covered {
+    visibility: hidden;
+  }
+}
+
 .mailspring-calendar.sidebar-agenda-panel {
   flex: 1;
   min-height: 0;
