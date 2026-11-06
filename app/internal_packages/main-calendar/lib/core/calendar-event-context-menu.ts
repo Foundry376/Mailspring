@@ -31,7 +31,7 @@ interface CalendarEventContextMenuOptions {
   readOnly: boolean;
   onOpen: () => void;
   onDelete: () => void;
-  /** Offer a different time to the organizer. See proposeNewTimeForCalendarEvent. */
+  /** Offer a different time to the organizer. See proposeNewEventTime. */
   onProposeNewTime: () => void;
 }
 

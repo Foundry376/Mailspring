@@ -208,7 +208,7 @@ export function occurrenceRecurrenceId(occurrence: EventOccurrence): ICAL.Time |
  * from the calendar where the accepted invitation lives. Nothing is written locally: the event
  * changes only when the organizer accepts and sends the update back.
  */
-export async function proposeNewTimeForCalendarEvent(
+export async function proposeNewEventTime(
   occurrence: EventOccurrence,
   proposal: { start: Date; end: Date; comment: string }
 ): Promise<void> {
@@ -381,7 +381,7 @@ export function openProposeNewTimePopover(occurrence: EventOccurrence, anchor?: 
       end: occurrenceEndUnix(occurrence),
       isAllDay: occurrence.isAllDay,
       onPropose: (proposal: { start: Date; end: Date; comment: string }) =>
-        proposeNewTimeForCalendarEvent(occurrence, proposal),
+        proposeNewEventTime(occurrence, proposal),
     }),
     {
       originRect: eventEl

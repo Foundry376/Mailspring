@@ -43,7 +43,7 @@ import {
 import { CalendarEventContextMenu } from './calendar-event-context-menu';
 import {
   openProposeNewTimePopover,
-  proposeNewTimeForCalendarEvent,
+  proposeNewEventTime,
   showOrganizerOnlyMoveDialog,
 } from './calendar-rsvp';
 import { CalendarView, DEFAULT_TIMED_EVENT_DURATION_SECONDS } from './calendar-constants';
@@ -430,7 +430,7 @@ export class MailspringCalendar extends React.Component<
   async _sendProposal(change: UnsentChange) {
     const { times, proposal } = change;
     const occurrence = this.state.selectedEvents.find((o) => isUnsentChangeFor(change, o));
-    await proposeNewTimeForCalendarEvent(occurrence, {
+    await proposeNewEventTime(occurrence, {
       start: new Date(times.start * 1000),
       end: new Date(times.end * 1000),
       comment: proposal.comment.trim(),
