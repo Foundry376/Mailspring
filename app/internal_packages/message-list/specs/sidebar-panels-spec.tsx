@@ -47,7 +47,7 @@ describe('SidebarPanels', function () {
   it('ends the claim when a tab is picked', function () {
     rendered().claimActive(true);
     rendered().select('contact');
-    expect(saved).toBe('contact');
+    expect(AppEnv.config.set).toHaveBeenCalledWith('core.messageListSidebar.panel', 'contact');
     expect(rendered().active).toBe('contact');
 
     // Picking the tab already shown keeps the claim, and the remembered tab with it.

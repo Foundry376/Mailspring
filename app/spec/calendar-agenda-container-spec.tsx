@@ -1,6 +1,7 @@
 import { SidebarCalendarPanel } from '../internal_packages/main-calendar/lib/sidebar-calendar-panel';
 import { AgendaContainer } from '../internal_packages/main-calendar/lib/core/agenda-container';
 import { AgendaPanel } from '../internal_packages/main-calendar/lib/core/agenda-panel';
+import { EventPanel } from '../internal_packages/main-calendar/lib/core/event-panel';
 
 describe('AgendaContainer', function () {
   const container = (props: { onEventClick?: jasmine.Spy; selectedEvents?: any[] } = {}) => {
@@ -39,5 +40,11 @@ describe('SidebarCalendarPanel', function () {
     const shown = new SidebarCalendarPanel({ active: true, claimActive: () => {} }).render();
     expect(shown.props.children[0].type).toBe(AgendaContainer);
     expect(new SidebarCalendarPanel({ active: false, claimActive: () => {} }).render()).toBe(null);
+  });
+
+  it('keeps an open event mounted while another tab is shown, so a field being typed in stays', function () {
+    const panel = new SidebarCalendarPanel({ active: false, claimActive: () => {} });
+    panel.state.shown = { id: 'e1', calendarId: 'cal-1', isRecurring: false } as any;
+    expect(panel.render().props.children[1].type).toBe(EventPanel);
   });
 });
