@@ -1,14 +1,19 @@
 import fs from 'fs';
 import ICAL from 'ical.js';
 import {
+  AccountStore,
   AttachmentStore,
+  Calendar,
   CalendarUtils,
   DatabaseStore,
+  Event,
   Message,
   SearchQueryAST,
   Thread,
 } from 'mailspring-exports';
+import type { focusedEventInfoForIcsuid } from '../../main-calendar/lib/core/calendar-data-source';
 import { bestICSAttachment } from './ics-attachment';
+import { resolveRSVPTarget } from './rsvp-target';
 
 /** An invitation as one email carried it. */
 export interface EmailedInvitation {
@@ -253,4 +258,38 @@ export async function readEmailedInvitations(messages: Message[]): Promise<Email
     })
   );
   return read.filter((r): r is EmailedInvitation => !!r);
+}
+
+/**
+ * The event of the newest of these emails that carries one, named the way the email's View in
+ * Calendar link names it; null when that event is on none of the account's calendars.
+ */
+export async function emailedEventIn(
+  messages: Message[]
+): Promise<Parameters<typeof focusedEventInfoForIcsuid>[0] | null> {
+  const invitations = await readEmailedInvitations(messages.filter((m) => !m.draft));
+  const newest = invitations.sort((a, b) => b.message.date.getTime() - a.message.date.getTime())[0];
+  if (!newest) return null;
+  let event: ICAL.Event;
+  try {
+    ({ event } = CalendarUtils.parseICSString(newest.ics));
+  } catch (e) {
+    return null;
+  }
+  const { accountId } = newest.message;
+  const [events, calendars] = await Promise.all([
+    DatabaseStore.findAll<Event>(Event).where({ icsuid: event.uid, accountId }),
+    DatabaseStore.findAll<Calendar>(Calendar).where({ accountId }),
+  ]);
+  if (!events.length) return null;
+  const addresses = AccountStore.aliasesFor([accountId]).map((a) => a.email);
+  const { target } = resolveRSVPTarget({ events, calendars, addresses });
+  return {
+    icsuid: event.uid,
+    accountId,
+    calendarId: target?.event.calendarId,
+    recurrenceIdStart: event.recurrenceId
+      ? event.recurrenceId.toJSDate().getTime() / 1000
+      : undefined,
+  };
 }

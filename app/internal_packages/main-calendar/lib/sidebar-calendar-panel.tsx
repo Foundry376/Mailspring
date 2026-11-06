@@ -9,6 +9,7 @@ import {
   DatabaseChangeRecord,
   DOMUtils,
   Event,
+  MessageStore,
   WorkspaceStore,
   CalendarUtils,
   localized,
@@ -19,10 +20,14 @@ import { EventPanel } from './core/event-panel';
 import {
   EventOccurrence,
   currentOccurrence,
+  focusedEventInfoForIcsuid,
   movedOccurrenceId,
   occurrenceSlot,
+  occurrencesForEvents,
+  ownCalendarAddresses,
   panelKey,
 } from './core/calendar-data-source';
+import { emailedEventIn } from '../../events/lib/invitation-versions';
 import { proposeNewEventTime } from './core/calendar-rsvp';
 import { ChangeScope, deleteEvent, updateEvent } from './core/recurring-event-actions';
 import { UnsentChange, isUnsentChangeFor } from './core/unsent-change';
@@ -35,13 +40,21 @@ interface SidebarCalendarPanelState {
   calendarsLoaded: boolean;
 }
 
+interface SidebarCalendarPanelProps {
+  active: boolean;
+  claimActive: (claim: boolean) => void;
+}
+
 /**
  * The calendar as a choice in the thread sidebar's panel switcher: the agenda, with the event
  * panel over it for the event picked there. One event at a time, so the change held for Send
  * update is always the shown event's.
+ *
+ * Opening an email whose event is on our calendar shows that event and claims the sidebar for
+ * it; an email without one goes back to the agenda. Within one email the last click wins.
  */
 export class SidebarCalendarPanel extends React.Component<
-  { active: boolean },
+  SidebarCalendarPanelProps,
   SidebarCalendarPanelState
 > {
   static displayName = 'SidebarCalendarPanel';
@@ -59,6 +72,9 @@ export class SidebarCalendarPanel extends React.Component<
   _sending: { change: UnsentChange; done: Promise<void> } | null = null;
   _calendarsSubscription?: Disposable;
   _unlistenDatabase?: () => void;
+  _unlistenMessages?: () => void;
+  _threadId: string | null = null;
+  _followedEmail = false;
 
   componentDidMount() {
     this._calendarsSubscription = Rx.Observable.fromQuery(
@@ -69,6 +85,8 @@ export class SidebarCalendarPanel extends React.Component<
     document.addEventListener('core:undo', this._ignoreUndoWhileHeld, true);
     WorkspaceStore.setSectionLeaveGuard(() => this._mayLeave(null));
     AppEnv.onBeforeUnload(this._onBeforeUnload);
+    this._unlistenMessages = MessageStore.listen(this._onMessagesChange);
+    this._onMessagesChange();
   }
 
   componentWillUnmount() {
@@ -76,6 +94,7 @@ export class SidebarCalendarPanel extends React.Component<
     this._settleUnsentChange();
     this._calendarsSubscription?.dispose();
     this._unlistenDatabase?.();
+    this._unlistenMessages?.();
     document.removeEventListener('core:undo', this._ignoreUndoWhileHeld, true);
     WorkspaceStore.setSectionLeaveGuard(null);
     AppEnv.removeUnloadCallback(this._onBeforeUnload);
@@ -91,6 +110,48 @@ export class SidebarCalendarPanel extends React.Component<
     if (!this._mayLeave(next)) return false;
     this.setState({ shown: next });
     return true;
+  }
+
+  // The invitation's attachment can land after the email opens, so each change is checked
+  // until this email's event is found.
+  _onMessagesChange = async () => {
+    const threadId = MessageStore.threadId();
+    const newEmail = threadId !== this._threadId;
+    if (!newEmail && this._followedEmail) return;
+    this._threadId = threadId;
+    this._followedEmail = false;
+    const followed = () => MessageStore.threadId() === threadId && !this._followedEmail;
+
+    const emailed = await emailedEventIn(MessageStore.items());
+    if (!followed()) return;
+    const occurrence = emailed && (await this._occurrenceFor(emailed));
+    if (!followed()) return;
+    if (occurrence) {
+      this._followedEmail = true;
+      if (this._show(occurrence)) this.props.claimActive(true);
+    } else if (newEmail) {
+      this.props.claimActive(false);
+      this._show(null);
+    }
+  };
+
+  async _occurrenceFor(emailed: Parameters<typeof focusedEventInfoForIcsuid>[0]) {
+    const info = await focusedEventInfoForIcsuid(emailed);
+    if (!info) return null;
+    const { icsuid, accountId, calendarId } = emailed;
+    const [events, calendars] = await Promise.all([
+      DatabaseStore.findAll<Event>(Event).where(
+        calendarId ? { icsuid, accountId, calendarId } : { icsuid, accountId }
+      ),
+      DatabaseStore.findAll<Calendar>(Calendar),
+    ]);
+    return (
+      occurrencesForEvents(events, {
+        startUnix: info.start - 1,
+        endUnix: info.start + 1,
+        ownCalendarAddresses: ownCalendarAddresses(calendars),
+      }).find((o) => o.id === info.id) ?? null
+    );
   }
 
   _onAgendaEventClick = (_e: React.MouseEvent, occurrence: EventOccurrence) => {

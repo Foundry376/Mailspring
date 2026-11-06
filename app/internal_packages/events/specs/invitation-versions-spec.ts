@@ -1,5 +1,16 @@
-import { Message } from 'mailspring-exports';
-import { copyIsBehind, newestInvitation } from '../lib/invitation-versions';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import {
+  AccountStore,
+  AttachmentStore,
+  Calendar,
+  DatabaseStore,
+  Event,
+  File,
+  Message,
+} from 'mailspring-exports';
+import { copyIsBehind, emailedEventIn, newestInvitation } from '../lib/invitation-versions';
 
 // The shapes Google mailed for one weekly series (October 2026): the invitation, then the
 // 10 November meeting moved to 10:30 as a REQUEST about that occurrence alone, then the series
@@ -299,5 +310,106 @@ describe('copyIsBehind', function () {
   it("can't be ordered without a SEQUENCE, as Exchange's copies come over Graph", function () {
     const graph = ADDED.replace('SEQUENCE:0\r\n', '');
     expect(copyIsBehind(graph, MOVED_LATER)).toBe(false);
+  });
+});
+
+describe('emailedEventIn', function () {
+  const ics = (uid: string, ...extra: string[]) =>
+    [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Test//Test//EN',
+      'METHOD:REQUEST',
+      'BEGIN:VEVENT',
+      `UID:${uid}`,
+      ...extra,
+      'DTSTART:20261110T150000Z',
+      'DTEND:20261110T160000Z',
+      'SUMMARY:Planning',
+      'DTSTAMP:20261101T000000Z',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+
+  let rows: Event[];
+  let calendars: Calendar[];
+
+  const email = (id: string, date: string, body: string) => {
+    const filePath = path.join(os.tmpdir(), `emailed-event-in-${process.pid}-${id}.ics`);
+    fs.writeFileSync(filePath, body);
+    return {
+      filePath,
+      message: new Message({
+        id,
+        accountId: 'a1',
+        date: new Date(date),
+        files: [new File({ id: `file-${id}`, filename: 'invite.ics' })],
+      }),
+    };
+  };
+
+  const ours = new Calendar({ id: 'cal-mine', accountId: 'a1', name: 'me@example.com' });
+  const colleagues = new Calendar({ id: 'cal-colleague', accountId: 'a1', readOnly: true });
+  const row = (calendarId: string, icsuid: string) =>
+    new Event({ id: `${calendarId}-${icsuid}`, accountId: 'a1', calendarId, icsuid, ics: '' });
+
+  function stubEmails(...emails: ReturnType<typeof email>[]) {
+    const paths = new Map(emails.map((e) => [e.message.files[0].id, e.filePath]));
+    spyOn(AttachmentStore, 'resolvePathForFile').andCallFake((file: File) =>
+      Promise.resolve(paths.get(file.id))
+    );
+    return emails.map((e) => e.message);
+  }
+
+  beforeEach(function () {
+    rows = [];
+    calendars = [colleagues, ours];
+    spyOn(AccountStore, 'aliasesFor').andReturn([{ email: 'me@example.com' }]);
+    spyOn(DatabaseStore, 'findAll').andCallFake((klass: unknown) => ({
+      where: (match: { icsuid?: string }) =>
+        Promise.resolve(
+          klass === Event ? rows.filter((r) => r.icsuid === match.icsuid) : calendars
+        ),
+    }));
+  });
+
+  it('names the event of the newest email that carries one, on our own copy', async function () {
+    rows = [
+      row('cal-colleague', 'newer@test'),
+      row('cal-mine', 'newer@test'),
+      row('cal-mine', 'older@test'),
+    ];
+    const messages = stubEmails(
+      email('m1', '2026-11-02T10:00:00Z', ics('older@test')),
+      email('m2', '2026-11-03T10:00:00Z', ics('newer@test'))
+    );
+
+    expect(await emailedEventIn(messages)).toEqual({
+      icsuid: 'newer@test',
+      accountId: 'a1',
+      calendarId: 'cal-mine',
+      recurrenceIdStart: undefined,
+    });
+  });
+
+  it('names the occurrence an invitation to one occurrence is about', async function () {
+    rows = [row('cal-mine', 'series@test')];
+    const messages = stubEmails(
+      email('m1', '2026-11-02T10:00:00Z', ics('series@test', 'RECURRENCE-ID:20261110T150000Z'))
+    );
+
+    expect((await emailedEventIn(messages)).recurrenceIdStart).toBe(
+      Date.UTC(2026, 10, 10, 15) / 1000
+    );
+  });
+
+  it('is null when the newest event is on none of our calendars, whatever older emails say', async function () {
+    rows = [row('cal-mine', 'older@test')];
+    const messages = stubEmails(
+      email('m1', '2026-11-02T10:00:00Z', ics('older@test')),
+      email('m2', '2026-11-03T10:00:00Z', ics('newer@test'))
+    );
+
+    expect(await emailedEventIn(messages)).toBe(null);
   });
 });
