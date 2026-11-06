@@ -11,7 +11,7 @@ import {
   SearchQueryAST,
   Thread,
 } from 'mailspring-exports';
-import type { focusedEventInfoForIcsuid } from '../../main-calendar/lib/core/calendar-data-source';
+import type { EventRef } from '../../main-calendar/lib/core/calendar-data-source';
 import { bestICSAttachment } from './ics-attachment';
 import { resolveRSVPTarget } from './rsvp-target';
 
@@ -264,9 +264,7 @@ export async function readEmailedInvitations(messages: Message[]): Promise<Email
  * The event of the newest of these emails that carries one, named the way the email's View in
  * Calendar link names it; null when that event is on none of the account's calendars.
  */
-export async function emailedEventIn(
-  messages: Message[]
-): Promise<Parameters<typeof focusedEventInfoForIcsuid>[0] | null> {
+export async function emailedEventIn(messages: Message[]): Promise<EventRef | null> {
   const invitations = await readEmailedInvitations(messages.filter((m) => !m.draft));
   const newest = invitations.sort((a, b) => b.message.date.getTime() - a.message.date.getTime())[0];
   if (!newest) return null;

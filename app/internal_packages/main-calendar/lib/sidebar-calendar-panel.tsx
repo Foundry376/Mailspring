@@ -20,11 +20,9 @@ import { EventPanel } from './core/event-panel';
 import {
   EventOccurrence,
   currentOccurrence,
-  focusedEventInfoForIcsuid,
+  focusedOccurrenceForIcsuid,
   movedOccurrenceId,
   occurrenceSlot,
-  occurrencesForEvents,
-  ownCalendarAddresses,
   panelKey,
 } from './core/calendar-data-source';
 import { emailedEventIn } from '../../events/lib/invitation-versions';
@@ -127,7 +125,10 @@ export class SidebarCalendarPanel extends React.Component<
 
     const emailed = await emailedEventIn(MessageStore.items());
     if (!followed()) return;
-    const occurrence = emailed && (await this._occurrenceFor(emailed));
+    const calendars = this.state.calendarsLoaded
+      ? this.state.calendars
+      : await DatabaseStore.findAll<Calendar>(Calendar);
+    const occurrence = emailed && (await focusedOccurrenceForIcsuid(emailed, calendars));
     if (!followed()) return;
     if (occurrence) {
       this._followedEmail = true;
@@ -139,25 +140,6 @@ export class SidebarCalendarPanel extends React.Component<
       this._show(null);
     }
   };
-
-  async _occurrenceFor(emailed: Parameters<typeof focusedEventInfoForIcsuid>[0]) {
-    const info = await focusedEventInfoForIcsuid(emailed);
-    if (!info) return null;
-    const { icsuid, accountId, calendarId } = emailed;
-    const [events, calendars] = await Promise.all([
-      DatabaseStore.findAll<Event>(Event).where(
-        calendarId ? { icsuid, accountId, calendarId } : { icsuid, accountId }
-      ),
-      DatabaseStore.findAll<Calendar>(Calendar),
-    ]);
-    return (
-      occurrencesForEvents(events, {
-        startUnix: info.start - 1,
-        endUnix: info.start + 1,
-        ownCalendarAddresses: ownCalendarAddresses(calendars),
-      }).find((o) => o.id === info.id) ?? null
-    );
-  }
 
   _onAgendaEventClick = (_e: React.MouseEvent, occurrence: EventOccurrence) => {
     this._show(occurrence);

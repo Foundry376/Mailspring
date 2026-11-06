@@ -2,6 +2,7 @@ import { MessageStore } from 'mailspring-exports';
 import { SidebarCalendarPanel } from '../internal_packages/main-calendar/lib/sidebar-calendar-panel';
 import * as invitationVersions from '../internal_packages/events/lib/invitation-versions';
 import * as unsentChangeDialog from '../internal_packages/main-calendar/lib/core/unsent-change-dialog';
+import * as calendarDataSource from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 
 const INTERVIEW = { id: 'interview', calendarId: 'cal-1', isRecurring: false, title: 'Interview' };
 const EMAILED = { icsuid: 'interview@test', accountId: 'a1', calendarId: 'cal-1' };
@@ -28,7 +29,8 @@ describe('SidebarCalendarPanel following the email being read', function () {
 
   function following() {
     const { panel, claimActive } = sidebarPanel();
-    spyOn(panel, '_occurrenceFor').andCallFake((e: typeof EMAILED) =>
+    panel.state.calendarsLoaded = true;
+    spyOn(calendarDataSource, 'focusedOccurrenceForIcsuid').andCallFake((e: typeof EMAILED) =>
       Promise.resolve(e === EMAILED ? INTERVIEW : null)
     );
     return { panel, claimActive };

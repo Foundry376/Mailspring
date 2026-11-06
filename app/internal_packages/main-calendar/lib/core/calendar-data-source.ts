@@ -687,24 +687,33 @@ export function focusedEventInfoForEvents(
   return occurrence ? { id: occurrence.id, start: occurrenceStartUnix(occurrence) } : null;
 }
 
-/**
- * The occurrence to focus for an event named by UID, from an invitation or a View. `calendarId`
- * picks one copy when the account holds the event on several calendars; without it the first
- * copy found is shown.
- */
-export async function focusedEventInfoForIcsuid(
-  {
-    icsuid,
-    accountId,
-    calendarId,
-    recurrenceIdStart,
-  }: { icsuid: string; accountId: string; calendarId?: string; recurrenceIdStart?: number },
+/** An event named by UID, as an invitation's View in Calendar link names it. */
+export interface EventRef {
+  icsuid: string;
+  accountId: string;
+  /** Picks one copy when the account holds the event on several calendars. */
+  calendarId?: string;
+  recurrenceIdStart?: number;
+}
+
+/** The occurrence `focusedEventInfoForEvents` picks for an event named by UID. */
+export async function focusedOccurrenceForIcsuid(
+  { icsuid, accountId, calendarId, recurrenceIdStart }: EventRef,
+  calendars: Calendar[],
   nowUnix = Date.now() / 1000
-): Promise<FocusedEventInfo | null> {
+): Promise<EventOccurrence | null> {
   const events = await DatabaseStore.findAll<Event>(Event).where(
     calendarId ? { icsuid, accountId, calendarId } : { icsuid, accountId }
   );
-  return focusedEventInfoForEvents(events, nowUnix, recurrenceIdStart);
+  const info = focusedEventInfoForEvents(events, nowUnix, recurrenceIdStart);
+  if (!info) return null;
+  // Expanded again with our calendars, so a meeting a secondary calendar of ours organizes is ours.
+  const occurrences = occurrencesForEvents(events, {
+    startUnix: info.start - 1,
+    endUnix: info.start + 1,
+    ownCalendarAddresses: ownCalendarAddresses(calendars),
+  });
+  return occurrences.find((o) => o.id === info.id) ?? null;
 }
 
 /**

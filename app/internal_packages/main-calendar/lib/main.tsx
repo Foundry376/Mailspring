@@ -6,7 +6,11 @@ import { QuickEventButton } from './quick-event-button';
 import { MailspringCalendar } from './core/mailspring-calendar';
 import { CalendarSidebar } from './core/calendar-sidebar';
 import { CalendarHeader } from './core/calendar-header';
-import { focusedEventInfoForIcsuid } from './core/calendar-data-source';
+import {
+  EventRef,
+  focusedOccurrenceForIcsuid,
+  occurrenceStartUnix,
+} from './core/calendar-data-source';
 import { SidebarCalendarPanel } from './sidebar-calendar-panel';
 
 type MenuItem = (typeof AppEnv.menu.template)[0];
@@ -90,17 +94,14 @@ function updateMenus() {
 
 // Sent by the main process for application:show-calendar, from the Window menu or from an
 // invitation's "View in Calendar" link in any window.
-async function onShowCalendar(
-  _event: Electron.IpcRendererEvent,
-  focus?: Parameters<typeof focusedEventInfoForIcsuid>[0]
-) {
+async function onShowCalendar(_event: Electron.IpcRendererEvent, focus?: EventRef) {
   if (WorkspaceStore.rootSheet() !== WorkspaceStore.Sheet.Calendar) {
     Actions.selectRootSheet(WorkspaceStore.Sheet.Calendar);
   }
   if (!focus) return;
-  const info = await focusedEventInfoForIcsuid(focus);
-  if (info) {
-    Actions.focusCalendarEvent(info);
+  const occurrence = await focusedOccurrenceForIcsuid(focus, []);
+  if (occurrence) {
+    Actions.focusCalendarEvent({ id: occurrence.id, start: occurrenceStartUnix(occurrence) });
   }
 }
 
