@@ -12,7 +12,13 @@ import {
   occurrenceStartUnix,
   isEventSelected,
 } from './calendar-data-source';
-import { calcEventColors, dateOf, formatShortTimeRange, momentOf } from './calendar-helpers';
+import {
+  calcEventColors,
+  dateOf,
+  formatOccurrenceTime,
+  formatShortTimeRange,
+  momentOf,
+} from './calendar-helpers';
 
 const DAYS_IN_PANEL = 14;
 
@@ -190,19 +196,13 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
   }
 
   _renderInThisEmail(event: EventOccurrence) {
-    const day = momentOf(event.startDate).format('ddd, MMM D');
-    const time = isTimed(event)
-      ? formatShortTimeRange(event.start, event.end)
-      : localized('All day');
     return (
       <div className="agenda-in-this-email">
         <div className="agenda-in-this-email-label">{localized('In this email')}</div>
         {this._renderEvent(
           event,
           'in-this-email',
-          <div className="agenda-event-time">
-            {day} · {time}
-          </div>
+          <div className="agenda-event-time">{formatOccurrenceTime(event)}</div>
         )}
       </div>
     );
