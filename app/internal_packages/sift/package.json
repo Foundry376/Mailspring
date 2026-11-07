@@ -1,0 +1,18 @@
+{
+  "name": "sift",
+  "version": "1.0.0",
+  "main": "./lib/main",
+  "title": "Sift",
+  "description": "AI triage, thread briefs, drafting and ask-your-inbox, powered by any model on OpenRouter",
+  "license": "GPL-3.0",
+  "private": true,
+  "isOptional": true,
+  "engines": {
+    "mailspring": "*"
+  },
+  "windowTypes": {
+    "default": true,
+    "composer": true,
+    "thread-popout": true
+  }
+}

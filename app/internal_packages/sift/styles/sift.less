@@ -1,0 +1,639 @@
+@import 'ui-variables';
+
+// Sift's own accent marks AI-generated content so it's never confused with
+// what people actually wrote.
+@sift-accent: #7a5af8;
+@sift-urgent: #e5484d;
+@sift-high: #f08c00;
+@sift-reply: #0b84f3;
+
+.sift-sparkle {
+  color: @sift-accent;
+  flex-shrink: 0;
+  vertical-align: -1px;
+}
+
+// ---------------------------------------------------------------- chips
+
+.sift-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 16px;
+  padding: 0 6px;
+  border-radius: 8px;
+  margin-left: 4px;
+  white-space: nowrap;
+  color: @text-color-subtle;
+  background: color-mix(in srgb, @text-color-subtle 12%, transparent);
+  text-transform: capitalize;
+}
+.sift-chip-urgent,
+.sift-chip-danger {
+  color: @sift-urgent;
+  background: color-mix(in srgb, @sift-urgent 14%, transparent);
+}
+.sift-chip-danger {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, @sift-urgent 45%, transparent);
+}
+.sift-chip-high {
+  color: @sift-high;
+  background: color-mix(in srgb, @sift-high 15%, transparent);
+}
+.sift-chip-reply {
+  color: @sift-reply;
+  background: color-mix(in srgb, @sift-reply 13%, transparent);
+}
+.sift-chip-quiet {
+  font-weight: 400;
+}
+
+// ---------------------------------------------------------------- thread list
+
+.sift-badges {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.sift-summary {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: @text-color-subtle;
+  font-size: @font-size-small;
+  .sift-sparkle {
+    margin-right: 2px;
+  }
+}
+.sift-summary-loading {
+  opacity: 0.6;
+  animation: sift-pulse 1.4s ease-in-out infinite;
+}
+
+// When Sift has a summary for a row, it replaces the raw snippet.
+.thread-list .snippet-and-labels:has(.sift-summary) {
+  > .snippet,
+  > div[style*='flex: 1'] {
+    display: none;
+  }
+  .thread-injected-mail-labels {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    overflow: hidden;
+  }
+  .sift-badges {
+    flex: 1;
+  }
+}
+.thread-list .list-item.selected,
+.thread-list .list-item.focused {
+  .sift-summary,
+  .sift-sparkle {
+    color: inherit;
+  }
+  .sift-chip {
+    color: inherit;
+    background: rgba(255, 255, 255, 0.22);
+    box-shadow: none;
+  }
+}
+
+@keyframes sift-pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+// ---------------------------------------------------------------- thread brief
+
+.sift-brief {
+  margin: 0 auto 14px auto;
+  max-width: 800px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: color-mix(in srgb, @sift-accent 5%, @background-primary);
+  border: 1px solid color-mix(in srgb, @sift-accent 22%, transparent);
+  font-size: @font-size-base;
+  color: @text-color;
+  user-select: text;
+
+  &.priority-urgent {
+    border-left: 3px solid @sift-urgent;
+  }
+  &.priority-high {
+    border-left: 3px solid @sift-high;
+  }
+  &.is-stale {
+    opacity: 0.75;
+  }
+}
+.sift-brief-muted,
+.sift-brief-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: @text-color-subtle;
+  .btn {
+    margin-left: auto;
+  }
+}
+.sift-brief-loading span {
+  animation: sift-pulse 1.4s ease-in-out infinite;
+}
+.sift-brief-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+  .sift-chip {
+    margin-left: 6px;
+  }
+}
+.sift-brand {
+  font-weight: 600;
+  font-size: @font-size-small;
+  color: @sift-accent;
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.sift-icon-btn {
+  border: none;
+  background: transparent;
+  color: @text-color-subtle;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 0 4px;
+  &:hover {
+    color: @sift-accent;
+  }
+}
+.sift-brief-text {
+  line-height: 1.5;
+}
+.sift-warning {
+  margin: 4px 0 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  color: @sift-urgent;
+  background: color-mix(in srgb, @sift-urgent 10%, transparent);
+  line-height: 1.45;
+  a {
+    cursor: pointer;
+    text-decoration: underline;
+  }
+}
+.sift-todos {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  li {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 3px 0;
+    label {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      flex: 1;
+      cursor: pointer;
+      margin: 0;
+      font-weight: normal;
+    }
+    &.is-done span {
+      text-decoration: line-through;
+      color: @text-color-very-subtle;
+    }
+  }
+}
+.sift-due {
+  font-size: @font-size-smaller;
+  color: @sift-high;
+  white-space: nowrap;
+}
+.sift-replies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.sift-reply-chip {
+  border: 1px solid color-mix(in srgb, @sift-accent 35%, transparent);
+  background: @background-primary;
+  color: @sift-accent;
+  border-radius: 14px;
+  padding: 3px 11px;
+  font-size: @font-size-small;
+  cursor: pointer;
+  &:hover:not(:disabled) {
+    background: color-mix(in srgb, @sift-accent 10%, @background-primary);
+  }
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+  &.is-busy {
+    opacity: 1;
+    animation: sift-pulse 1.4s ease-in-out infinite;
+  }
+}
+.sift-reply-custom {
+  color: @text-color-subtle;
+  border-style: dashed;
+}
+.sift-custom-reply {
+  flex: 1;
+  min-width: 240px;
+  input {
+    width: 100%;
+    border-radius: 14px;
+    padding: 3px 11px;
+    font-size: @font-size-small;
+  }
+}
+.sift-error {
+  color: @sift-urgent;
+  font-size: @font-size-small;
+  margin-top: 6px;
+}
+.sift-ok {
+  color: #2f9e44;
+  font-size: @font-size-small;
+}
+.sift-muted {
+  color: @text-color-subtle;
+  font-size: @font-size-small;
+}
+
+// ---------------------------------------------------------------- composer
+
+.btn.btn-toolbar.sift-composer-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: @sift-accent;
+  &.is-busy span {
+    animation: sift-pulse 1.4s ease-in-out infinite;
+  }
+  &.has-error {
+    color: @sift-urgent;
+  }
+}
+.sift-composer-popover {
+  width: 380px;
+  padding: 12px;
+  textarea {
+    width: 100%;
+    resize: vertical;
+    font-size: @font-size-base;
+    padding: 6px 8px;
+  }
+}
+.sift-popover-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.sift-popover-subtitle {
+  width: 100%;
+  font-size: @font-size-smaller;
+  color: @text-color-subtle;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+}
+.sift-popover-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+.sift-hint {
+  font-size: @font-size-smaller;
+  color: @text-color-very-subtle;
+}
+.sift-rewrites {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid @border-color-divider;
+}
+
+// ---------------------------------------------------------------- nav rail
+
+.nav-rail-item.sift-nav-item {
+  color: @text-color-subtle;
+  .sift-sparkle {
+    color: inherit;
+  }
+  &.active,
+  &:hover {
+    .sift-sparkle {
+      color: @sift-accent;
+    }
+  }
+}
+
+// ---------------------------------------------------------------- Sift sheet
+
+.sift-sheet {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: @background-primary;
+  color: @text-color;
+}
+.sift-sheet-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 20px;
+  border-bottom: 1px solid @border-color-divider;
+  h1 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+}
+.sift-sheet-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+.sift-chat {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.sift-chat-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 28px;
+  user-select: text;
+}
+.sift-empty {
+  max-width: 520px;
+  margin: 8vh auto 0;
+  text-align: center;
+  h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 10px 0 6px;
+  }
+  p {
+    color: @text-color-subtle;
+  }
+}
+.sift-setup {
+  flex: 1;
+  p {
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+}
+.sift-empty-icon {
+  display: inline-flex;
+  padding: 14px;
+  border-radius: 50%;
+  background: color-mix(in srgb, @sift-accent 10%, transparent);
+}
+.sift-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+}
+.sift-turn {
+  max-width: 760px;
+  margin: 0 auto 16px;
+}
+.sift-turn-user {
+  display: flex;
+  justify-content: flex-end;
+}
+.sift-bubble {
+  background: color-mix(in srgb, @sift-accent 12%, @background-primary);
+  padding: 8px 12px;
+  border-radius: 14px 14px 4px 14px;
+  max-width: 80%;
+}
+.sift-answer {
+  line-height: 1.55;
+}
+.sift-answer-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: @sift-accent;
+  margin-bottom: 4px;
+}
+.sift-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 8px;
+  font-size: @font-size-small;
+  color: @text-color-subtle;
+  li::before {
+    content: '✓ ';
+    color: #2f9e44;
+  }
+  li.is-running::before {
+    content: '… ';
+    color: @sift-accent;
+  }
+  li.is-running {
+    animation: sift-pulse 1.4s ease-in-out infinite;
+  }
+}
+.sift-steps-details {
+  margin: 0 0 8px;
+  font-size: @font-size-small;
+  color: @text-color-subtle;
+  summary {
+    cursor: pointer;
+    list-style: none;
+    &::before {
+      content: '✓ ';
+      color: #2f9e44;
+    }
+    &::-webkit-details-marker {
+      display: none;
+    }
+  }
+  .sift-steps {
+    margin: 4px 0 0 14px;
+  }
+}
+.sift-typing {
+  color: @text-color-subtle;
+  animation: sift-pulse 1.4s ease-in-out infinite;
+}
+.sift-markdown {
+  h3,
+  h4 {
+    font-size: @font-size-base;
+    font-weight: 600;
+    margin: 14px 0 4px;
+  }
+  p {
+    margin: 0 0 8px;
+  }
+  ul,
+  ol {
+    margin: 0 0 8px;
+    padding-left: 20px;
+  }
+  li {
+    margin-bottom: 3px;
+  }
+  code {
+    font-family: @font-family-monospace;
+    font-size: 0.92em;
+  }
+}
+.sift-thread-link {
+  color: @sift-accent;
+  cursor: pointer;
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, @sift-accent 35%, transparent);
+  &:hover {
+    border-bottom-color: @sift-accent;
+  }
+}
+.sift-chat-input {
+  display: flex;
+  gap: 8px;
+  padding: 12px 28px 16px;
+  border-top: 1px solid @border-color-divider;
+  input {
+    flex: 1;
+    height: 34px;
+    border-radius: 17px;
+    padding: 0 14px;
+    font-size: @font-size-base;
+  }
+  .btn {
+    height: 34px;
+    border-radius: 17px;
+    padding: 0 16px;
+  }
+}
+.sift-today {
+  width: 320px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  padding: 18px;
+  border-left: 1px solid @border-color-divider;
+  background: @background-off-primary;
+  h4 {
+    font-size: @font-size-smaller;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: @text-color-subtle;
+    margin: 18px 0 6px;
+  }
+  .sift-todos li {
+    font-size: @font-size-small;
+    padding: 5px 0;
+    border-bottom: 1px solid @border-color-divider;
+  }
+}
+.sift-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+  gap: 8px;
+}
+.sift-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px;
+  border-radius: 8px;
+  background: @background-primary;
+  border: 1px solid @border-color-divider;
+  font-size: @font-size-smaller;
+  color: @text-color-subtle;
+}
+.sift-stat-n {
+  font-size: 20px;
+  font-weight: 600;
+  color: @text-color;
+}
+.sift-stat-danger .sift-stat-n {
+  color: @sift-urgent;
+}
+.btn.sift-brief-btn {
+  width: 100%;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  .sift-sparkle {
+    color: inherit;
+  }
+}
+.sift-todo-source {
+  display: block;
+  font-size: @font-size-smaller;
+  margin-top: 1px;
+  border-bottom: none;
+}
+.sift-usage {
+  margin-top: 18px;
+  font-size: @font-size-smaller;
+  color: @text-color-very-subtle;
+}
+
+// ---------------------------------------------------------------- preferences
+
+.container-sift {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 10px 0 40px;
+  section {
+    margin-bottom: 22px;
+  }
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  textarea,
+  select {
+    width: 100%;
+  }
+  .sift-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    input[type='password'] {
+      flex: 1;
+    }
+  }
+  .sift-check {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: normal;
+  }
+}
