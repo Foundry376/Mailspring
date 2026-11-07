@@ -298,20 +298,24 @@ const rules: Rule[] = [
   },
 ];
 
+export function clearTextFormatting(editor: Editor) {
+  const { selection, document } = editor.value;
+  if (selection.isCollapsed) return;
+
+  const marks = new Map<string, any>();
+  document.getTextsAtRange(selection).forEach((node) => {
+    node
+      .getMarks()
+      .forEach((mark) => marks.set(mark.type + JSON.stringify(mark.data.toJS()), mark));
+  });
+  marks.forEach((mark) => editor.removeMark(mark));
+  editor.focus();
+}
+
 const ClearFormattingButton = ({ editor, className }: any) => {
   const clearFormatting = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
-    const { selection, document } = editor.value;
-    if (selection.isCollapsed) return;
-
-    const marks = new Map<string, any>();
-    document.getTextsAtRange(selection).forEach((node) => {
-      node
-        .getMarks()
-        .forEach((mark) => marks.set(mark.type + JSON.stringify(mark.data.toJS()), mark));
-    });
-    marks.forEach((mark) => editor.removeMark(mark));
-    editor.focus();
+    clearTextFormatting(editor);
   };
 
   return (
