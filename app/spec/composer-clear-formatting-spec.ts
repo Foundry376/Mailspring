@@ -26,7 +26,7 @@ describe('clearTextFormatting', function () {
     };
 
     clearTextFormatting(editor);
-    expect(editor.removeMark.calls.count()).toBe(3);
+    expect(editor.removeMark.calls.length).toBe(3);
     marks.forEach((m) => expect(editor.removeMark).toHaveBeenCalledWith(m));
     expect(editor.focus).toHaveBeenCalled();
   });
