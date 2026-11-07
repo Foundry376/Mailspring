@@ -303,7 +303,7 @@ export function clearTextFormatting(editor: Editor) {
   if (selection.isCollapsed) return;
 
   const marks = new Map<string, any>();
-  document.getTextsAtRange(selection).forEach((node) => {
+  document.getTextsAtRange(selection as any).forEach((node) => {
     node
       .getMarks()
       .forEach((mark) => marks.set(mark.type + JSON.stringify(mark.data.toJS()), mark));
