@@ -42,10 +42,11 @@ describe('KeymapManager', function () {
     const field = document.createElement('input');
     const editor = document.createElement('div');
     editor.contentEditable = 'true';
-    const event = new KeyboardEvent('keydown', { ctrlKey: true, key: 'z' });
     const callback = mousetrap.prototype.stopCallback;
 
     for (const target of [field, editor]) {
+      const event = new KeyboardEvent('keydown', { ctrlKey: true, key: 'z' });
+      Object.defineProperty(event, 'target', { value: target });
       for (const shortcut of ['ctrl+z', 'ctrl+shift+z', 'ctrl+y']) {
         expect(callback.call(trap, event, target, shortcut)).toBe(true);
       }
