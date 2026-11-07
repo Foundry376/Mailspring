@@ -38,6 +38,20 @@ describe('KeymapManager', function () {
     });
   }
 
+  it('leaves undo and redo to the focused text editor', function () {
+    const field = document.createElement('input');
+    const editor = document.createElement('div');
+    editor.contentEditable = 'true';
+    const event = new KeyboardEvent('keydown', { ctrlKey: true, key: 'z' });
+    const callback = mousetrap.prototype.stopCallback;
+
+    for (const target of [field, editor]) {
+      for (const shortcut of ['ctrl+z', 'ctrl+shift+z', 'ctrl+y']) {
+        expect(callback.call(trap, event, target, shortcut)).toBe(true);
+      }
+    }
+  });
+
   it('replaces base bindings for the commands a template defines', function () {
     manager.loadKeymap(path.join(keymapsDir, 'base.json'), { layer: 'base' });
     manager.loadKeymap(path.join(keymapsDir, 'templates', 'Outlook.json'), { layer: 'template' });
