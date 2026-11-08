@@ -253,6 +253,24 @@
   .thread-injected-mail-labels {
     margin-right: 6px;
   }
+  // Anchored to the absolutely positioned list row, not the column it is rendered in.
+  .account-tag {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0 5px;
+    border-radius: 0 0 3px 0;
+    font-size: 9px;
+    line-height: 12px;
+    color: #fff;
+    background-color: #7a7f87; // accounts without a chosen colour
+    pointer-events: none;
+  }
   .thread-icon {
     width: 25px;
     height: 24px;

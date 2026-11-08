@@ -132,6 +132,7 @@ lazyLoad('ScrollRegion', 'scroll-region');
 lazyLoad('ResizableRegion', 'resizable-region');
 
 lazyLoad('AccountColorBar', 'account-color-bar');
+lazyLoad('AccountTag', 'account-tag');
 lazyLoadFrom('MailLabel', 'mail-label');
 lazyLoadFrom('LabelColorizer', 'mail-label');
 lazyLoad('MailLabelSet', 'mail-label-set');
