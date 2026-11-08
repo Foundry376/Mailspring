@@ -23,6 +23,7 @@ import {
   TaskFactory,
   TaskQueue,
   Actions,
+  SanitizeTransformer,
 } from 'mailspring-exports';
 import {
   AccessCategory,
@@ -968,6 +969,8 @@ export function registerTools(server: McpServer) {
 
   // ── Draft Tools ──
   // Only create drafts: they never send, move or flag existing mail.
+  // Bodies are untrusted like pasted HTML, so they get the same sanitizing before the
+  // composer renders them.
 
   defineTool(
     server,
@@ -997,7 +1000,7 @@ export function registerTools(server: McpServer) {
       const fields: any = {
         to: to.map((c) => new Contact({ name: c.name || '', email: c.email })),
         subject,
-        body,
+        body: SanitizeTransformer.runSync(body),
       };
       if (cc) fields.cc = cc.map((c) => new Contact({ name: c.name || '', email: c.email }));
       if (bcc) fields.bcc = bcc.map((c) => new Contact({ name: c.name || '', email: c.email }));
@@ -1055,7 +1058,7 @@ export function registerTools(server: McpServer) {
         thread,
         type: type as 'reply' | 'reply-all',
       });
-      draft.body = `${body}\n\n${draft.body}`;
+      draft.body = `${SanitizeTransformer.runSync(body)}\n\n${draft.body}`;
       draft.pristine = false;
 
       const task = new SyncbackDraftTask({ draft });
