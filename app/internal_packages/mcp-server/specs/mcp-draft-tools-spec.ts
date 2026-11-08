@@ -15,6 +15,9 @@ import { registerTools, clearAuditLog } from '../lib/mcp-tools';
 const STYLE_BLOCK = '<style>p { color: red; }</style>';
 const INLINED_MARKER = '<!-- inlined -->';
 
+// Text that HTML sanitizing would mangle: & < > become entities and the address is dropped.
+const PLAINTEXT_BODY = 'Fish & chips at 5 > 4, ask Contact <john@example.com>';
+
 const HOSTILE_BODY =
   STYLE_BLOCK +
   '<p>Thanks!</p>' +
@@ -46,6 +49,7 @@ function expectSanitized(body: string) {
 describe('MCP draft tools', function () {
   beforeEach(function () {
     AppEnv.config.set('core.mcp.accessLevel', 'read-draft');
+    AppEnv.config.set('core.composing.html', true);
     this.server = new McpServer({ name: 'mailspring-spec', version: '0.0.1' });
     registerTools(this.server);
     this.client = new Client({ name: 'mcp-draft-tools-spec', version: '0.0.1' });
@@ -69,54 +73,94 @@ describe('MCP draft tools', function () {
     waitsForPromise(() => this.client.close());
   });
 
-  const queuedDraftBody = (queued: any[]) => {
+  const queuedDraft = (queued: any[]): Message => {
     expect(queued.length).toBe(1);
     expect(queued[0] instanceof SyncbackDraftTask).toBe(true);
-    return queued[0].draft.body as string;
+    return queued[0].draft;
   };
 
-  it('create_draft sanitizes the agent-supplied body, then inlines its styles', function () {
-    spyOn(DraftFactory, 'createDraft').andCallFake(
-      async (fields: any) =>
-        new Message({ ...fields, accountId: TEST_ACCOUNT_ID, draft: true } as any)
-    );
+  describe('create_draft', function () {
+    beforeEach(function () {
+      spyOn(DraftFactory, 'createDraft').andCallFake(
+        async (fields: any) =>
+          new Message({ ...fields, accountId: TEST_ACCOUNT_ID, draft: true } as any)
+      );
+    });
 
-    waitsForPromise(async () => {
-      const result: any = await this.client.callTool({
+    const createDraft = (client: Client, body: string) =>
+      client.callTool({
         name: 'create_draft',
-        arguments: { to: [{ email: 'a@example.com' }], subject: 'Hi', body: HOSTILE_BODY },
+        arguments: { to: [{ email: 'a@example.com' }], subject: 'Hi', body },
       });
-      expect(result.isError).toBeFalsy();
-      expectSanitizedThenInlined(queuedDraftBody(this.queued));
+
+    it('sanitizes the agent-supplied body, then inlines its styles', function () {
+      waitsForPromise(async () => {
+        const result: any = await createDraft(this.client, HOSTILE_BODY);
+        expect(result.isError).toBeFalsy();
+        const draft = queuedDraft(this.queued);
+        expect(draft.plaintext).toBe(false);
+        expectSanitizedThenInlined(draft.body);
+      });
+    });
+
+    it('stores the body unchanged when HTML composing is off', function () {
+      AppEnv.config.set('core.composing.html', false);
+
+      waitsForPromise(async () => {
+        const result: any = await createDraft(this.client, PLAINTEXT_BODY);
+        expect(result.isError).toBeFalsy();
+        const draft = queuedDraft(this.queued);
+        expect(draft.plaintext).toBe(true);
+        expect(draft.body).toBe(PLAINTEXT_BODY);
+        expect((InlineStyleTransformer.run as jasmine.Spy).calls.length).toBe(0);
+      });
     });
   });
 
-  it('reply_to_thread sanitizes and inlines the agent-supplied body, keeping the quoted reply', function () {
-    const thread = { id: 'thread-1', accountId: TEST_ACCOUNT_ID, categories: [] };
-    const message = new Message({ id: 'msg-1', accountId: TEST_ACCOUNT_ID, threadId: 'thread-1' });
-    spyOn(DatabaseStore, 'find').andReturn(Promise.resolve(thread));
-    const messagesQuery: any = { include: () => messagesQuery, order: () => [message] };
-    spyOn(DatabaseStore, 'findAll').andReturn(messagesQuery);
-    spyOn(DraftFactory, 'createDraftForReply').andReturn(
-      Promise.resolve(
-        new Message({
-          accountId: TEST_ACCOUNT_ID,
-          threadId: 'thread-1',
-          draft: true,
-          body: '<blockquote>Original</blockquote>',
-        })
-      )
-    );
-
-    waitsForPromise(async () => {
-      const result: any = await this.client.callTool({
-        name: 'reply_to_thread',
-        arguments: { threadId: 'thread-1', body: HOSTILE_BODY },
+  describe('reply_to_thread', function () {
+    beforeEach(function () {
+      const thread = { id: 'thread-1', accountId: TEST_ACCOUNT_ID, categories: [] };
+      const message = new Message({
+        id: 'msg-1',
+        accountId: TEST_ACCOUNT_ID,
+        threadId: 'thread-1',
       });
-      expect(result.isError).toBeFalsy();
-      const body = queuedDraftBody(this.queued);
-      expectSanitizedThenInlined(body);
-      expect(body).toContain('<blockquote>Original</blockquote>');
+      spyOn(DatabaseStore, 'find').andReturn(Promise.resolve(thread));
+      const messagesQuery: any = { include: () => messagesQuery, order: () => [message] };
+      spyOn(DatabaseStore, 'findAll').andReturn(messagesQuery);
+    });
+
+    const stubReplyDraft = (fields: { plaintext: boolean; body: string }) =>
+      spyOn(DraftFactory, 'createDraftForReply').andReturn(
+        Promise.resolve(
+          new Message({ accountId: TEST_ACCOUNT_ID, threadId: 'thread-1', draft: true, ...fields })
+        )
+      );
+
+    const replyToThread = (client: Client, body: string) =>
+      client.callTool({ name: 'reply_to_thread', arguments: { threadId: 'thread-1', body } });
+
+    it('sanitizes and inlines the agent-supplied body, keeping the quoted reply', function () {
+      stubReplyDraft({ plaintext: false, body: '<blockquote>Original</blockquote>' });
+
+      waitsForPromise(async () => {
+        const result: any = await replyToThread(this.client, HOSTILE_BODY);
+        expect(result.isError).toBeFalsy();
+        const { body } = queuedDraft(this.queued);
+        expectSanitizedThenInlined(body);
+        expect(body).toContain('<blockquote>Original</blockquote>');
+      });
+    });
+
+    it('prepends the body unchanged to a plaintext reply', function () {
+      stubReplyDraft({ plaintext: true, body: '> Original' });
+
+      waitsForPromise(async () => {
+        const result: any = await replyToThread(this.client, PLAINTEXT_BODY);
+        expect(result.isError).toBeFalsy();
+        expect(queuedDraft(this.queued).body).toBe(`${PLAINTEXT_BODY}\n\n> Original`);
+        expect((InlineStyleTransformer.run as jasmine.Spy).calls.length).toBe(0);
+      });
     });
   });
 });
