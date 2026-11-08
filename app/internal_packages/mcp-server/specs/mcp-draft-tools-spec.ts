@@ -5,18 +5,34 @@ import {
   Actions,
   DatabaseStore,
   DraftFactory,
+  InlineStyleTransformer,
   Message,
   SyncbackDraftTask,
   TaskQueue,
 } from 'mailspring-exports';
 import { registerTools, clearAuditLog } from '../lib/mcp-tools';
 
+const STYLE_BLOCK = '<style>p { color: red; }</style>';
+const INLINED_MARKER = '<!-- inlined -->';
+
 const HOSTILE_BODY =
+  STYLE_BLOCK +
   '<p>Thanks!</p>' +
   '<img src="https://example.com/x.png" onerror="alert(1)">' +
   '<script>alert(2)</script>' +
   '<a href="javascript:alert(3)">link</a>' +
   '<iframe src="https://example.com"></iframe>';
+
+// The inliner should receive sanitized HTML with its <style> block intact, and its output
+// is what lands in the draft.
+function expectSanitizedThenInlined(body: string) {
+  const inliner = InlineStyleTransformer.run as jasmine.Spy;
+  expect(inliner.calls.length).toBe(1);
+  const inlinerInput = inliner.calls[0].args[0];
+  expectSanitized(inlinerInput);
+  expect(inlinerInput).toContain(STYLE_BLOCK);
+  expect(body).toContain(INLINED_MARKER + inlinerInput);
+}
 
 function expectSanitized(body: string) {
   expect(body).toContain('<p>Thanks!</p>');
@@ -37,6 +53,10 @@ describe('MCP draft tools', function () {
     this.queued = [];
     spyOn(Actions, 'queueTask').andCallFake((task) => this.queued.push(task));
     spyOn(TaskQueue, 'waitForPerformLocal').andReturn(Promise.resolve());
+    // The real inliner round-trips through the main process, which specs don't run.
+    spyOn(InlineStyleTransformer, 'run').andCallFake((html: string) =>
+      Promise.resolve(INLINED_MARKER + html)
+    );
 
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
     waitsForPromise(() =>
@@ -55,7 +75,7 @@ describe('MCP draft tools', function () {
     return queued[0].draft.body as string;
   };
 
-  it('create_draft sanitizes the agent-supplied body', function () {
+  it('create_draft sanitizes the agent-supplied body, then inlines its styles', function () {
     spyOn(DraftFactory, 'createDraft').andCallFake(
       async (fields: any) =>
         new Message({ ...fields, accountId: TEST_ACCOUNT_ID, draft: true } as any)
@@ -67,11 +87,11 @@ describe('MCP draft tools', function () {
         arguments: { to: [{ email: 'a@example.com' }], subject: 'Hi', body: HOSTILE_BODY },
       });
       expect(result.isError).toBeFalsy();
-      expectSanitized(queuedDraftBody(this.queued));
+      expectSanitizedThenInlined(queuedDraftBody(this.queued));
     });
   });
 
-  it('reply_to_thread sanitizes the agent-supplied body and keeps the quoted reply', function () {
+  it('reply_to_thread sanitizes and inlines the agent-supplied body, keeping the quoted reply', function () {
     const thread = { id: 'thread-1', accountId: TEST_ACCOUNT_ID, categories: [] };
     const message = new Message({ id: 'msg-1', accountId: TEST_ACCOUNT_ID, threadId: 'thread-1' });
     spyOn(DatabaseStore, 'find').andReturn(Promise.resolve(thread));
@@ -95,7 +115,7 @@ describe('MCP draft tools', function () {
       });
       expect(result.isError).toBeFalsy();
       const body = queuedDraftBody(this.queued);
-      expectSanitized(body);
+      expectSanitizedThenInlined(body);
       expect(body).toContain('<blockquote>Original</blockquote>');
     });
   });

@@ -24,6 +24,7 @@ import {
   TaskQueue,
   Actions,
   SanitizeTransformer,
+  InlineStyleTransformer,
 } from 'mailspring-exports';
 import {
   AccessCategory,
@@ -361,6 +362,13 @@ export function registerResources(server: McpServer) {
       }
     }
   );
+}
+
+// Agent-written HTML gets the same treatment as pasted HTML: sanitized because it is
+// untrusted, then styles inlined because the composer drops <style> blocks and some
+// recipients' mail clients ignore them.
+async function prepareAgentHTML(html: string) {
+  return InlineStyleTransformer.run(SanitizeTransformer.runSync(html));
 }
 
 export function registerTools(server: McpServer) {
@@ -969,8 +977,6 @@ export function registerTools(server: McpServer) {
 
   // ── Draft Tools ──
   // Only create drafts: they never send, move or flag existing mail.
-  // Bodies are untrusted like pasted HTML, so they get the same sanitizing before the
-  // composer renders them.
 
   defineTool(
     server,
@@ -1000,7 +1006,7 @@ export function registerTools(server: McpServer) {
       const fields: any = {
         to: to.map((c) => new Contact({ name: c.name || '', email: c.email })),
         subject,
-        body: SanitizeTransformer.runSync(body),
+        body: await prepareAgentHTML(body),
       };
       if (cc) fields.cc = cc.map((c) => new Contact({ name: c.name || '', email: c.email }));
       if (bcc) fields.bcc = bcc.map((c) => new Contact({ name: c.name || '', email: c.email }));
@@ -1058,7 +1064,7 @@ export function registerTools(server: McpServer) {
         thread,
         type: type as 'reply' | 'reply-all',
       });
-      draft.body = `${SanitizeTransformer.runSync(body)}\n\n${draft.body}`;
+      draft.body = `${await prepareAgentHTML(body)}\n\n${draft.body}`;
       draft.pristine = false;
 
       const task = new SyncbackDraftTask({ draft });
