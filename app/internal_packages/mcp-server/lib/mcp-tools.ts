@@ -23,6 +23,8 @@ import {
   TaskFactory,
   TaskQueue,
   Actions,
+  SanitizeTransformer,
+  InlineStyleTransformer,
 } from 'mailspring-exports';
 import {
   AccessCategory,
@@ -360,6 +362,14 @@ export function registerResources(server: McpServer) {
       }
     }
   );
+}
+
+// Agent-written HTML gets the same treatment as pasted HTML: sanitized because it is
+// untrusted, then styles inlined because the composer drops <style> blocks and some
+// recipients' mail clients ignore them. Plaintext drafts skip this, as mailto bodies do:
+// they are always displayed as text, and HTML-escaping would send entities literally.
+async function prepareAgentHTML(html: string) {
+  return InlineStyleTransformer.run(SanitizeTransformer.runSync(html));
 }
 
 export function registerTools(server: McpServer) {
@@ -994,10 +1004,14 @@ export function registerTools(server: McpServer) {
     },
     'draft',
     async ({ to, cc, bcc, subject, body, accountId }) => {
+      // Decided once and pinned on the draft, so the await below can't race createDraft's
+      // own check of the Alt key.
+      const html = DraftFactory.useHTML();
       const fields: any = {
         to: to.map((c) => new Contact({ name: c.name || '', email: c.email })),
         subject,
-        body,
+        plaintext: !html,
+        body: html ? await prepareAgentHTML(body) : body,
       };
       if (cc) fields.cc = cc.map((c) => new Contact({ name: c.name || '', email: c.email }));
       if (bcc) fields.bcc = bcc.map((c) => new Contact({ name: c.name || '', email: c.email }));
@@ -1055,7 +1069,8 @@ export function registerTools(server: McpServer) {
         thread,
         type: type as 'reply' | 'reply-all',
       });
-      draft.body = `${body}\n\n${draft.body}`;
+      const reply = draft.plaintext ? body : await prepareAgentHTML(body);
+      draft.body = `${reply}\n\n${draft.body}`;
       draft.pristine = false;
 
       const task = new SyncbackDraftTask({ draft });
