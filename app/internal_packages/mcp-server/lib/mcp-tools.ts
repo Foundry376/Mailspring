@@ -25,6 +25,7 @@ import {
   Actions,
 } from 'mailspring-exports';
 import {
+  AccessCategory,
   checkAccessLevel,
   checkAccountAccess,
   checkFolderAccess,
@@ -288,7 +289,7 @@ function defineTool(
   name: string,
   description: string,
   schema: z.ZodRawShape,
-  accessCategory: 'read' | 'write' | 'send',
+  accessCategory: AccessCategory,
   handler: (args: any) => Promise<ToolResult>
 ) {
   server.tool(name, description, schema, (args: any) =>
@@ -965,7 +966,8 @@ export function registerTools(server: McpServer) {
     }
   );
 
-  // ── Write Tools ──
+  // ── Draft Tools ──
+  // Only create drafts: they never send, move or flag existing mail.
 
   defineTool(
     server,
@@ -990,7 +992,7 @@ export function registerTools(server: McpServer) {
         .optional()
         .describe('Account ID to send from (uses default if omitted)'),
     },
-    'write',
+    'draft',
     async ({ to, cc, bcc, subject, body, accountId }) => {
       const fields: any = {
         to: to.map((c) => new Contact({ name: c.name || '', email: c.email })),
@@ -1037,7 +1039,7 @@ export function registerTools(server: McpServer) {
         .default('reply')
         .describe('Reply type (default: reply)'),
     },
-    'write',
+    'draft',
     async ({ threadId, body, type }) => {
       const thread = await DatabaseStore.find<Thread>(Thread, threadId);
       if (!thread || !isThreadAllowed(thread)) return errorResult(`Thread '${threadId}' not found`);
@@ -1067,6 +1069,8 @@ export function registerTools(server: McpServer) {
       });
     }
   );
+
+  // ── Write Tools ──
 
   defineTool(
     server,
