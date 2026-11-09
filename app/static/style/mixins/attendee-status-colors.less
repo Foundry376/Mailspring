@@ -16,3 +16,21 @@
     color: white;
   }
 }
+
+// The small status dot of a guest row, with its check, cross or question mark inside.
+.attendee-status-dot() {
+  .attendee-status {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    svg {
+      width: 7px;
+      height: 7px;
+    }
+  }
+}

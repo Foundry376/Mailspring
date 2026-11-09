@@ -960,21 +960,10 @@
     gap: 8px;
     padding: 4px 0;
     .attendee-status-colors();
+    .attendee-status-dot();
 
     .attendee-status {
-      width: 12px;
-      height: 12px;
       margin-top: 3px;
-      flex-shrink: 0;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      svg {
-        width: 7px;
-        height: 7px;
-      }
     }
   }
 
@@ -1288,8 +1277,6 @@
     margin-bottom: -2px;
   }
 
-  // Your answer is filled as the invitation header fills it.
-  // One outline around the group with hairline dividers, like Activity's segmented control.
   .event-panel-calendar-swatch {
     width: 12px;
     height: 12px;
