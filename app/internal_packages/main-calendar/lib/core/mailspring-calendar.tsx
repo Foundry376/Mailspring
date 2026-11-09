@@ -27,6 +27,7 @@ import CalendarHeaderStore from './calendar-header-store';
 import {
   CalendarDataSource,
   EventOccurrence,
+  inAllDayRow,
   movedOccurrenceId,
   panelKey,
   currentOccurrence,
@@ -156,6 +157,9 @@ export interface MailspringCalendarViewProps extends EventRendererProps {
 
   /** Fail-closed read-only check; prefer this over readOnlyCalendarIds for write decisions */
   isCalendarReadOnly: (calendarId: string) => boolean;
+
+  /** An event just dragged in the grid past a day, kept there until the user moves on from it. */
+  heldInGridEventId?: string | null;
 }
 
 /** A view an older version saved may no longer exist: 'Agenda' is now a panel. */
@@ -184,6 +188,7 @@ interface MailspringCalendarState {
   unsentChange: UnsentChange | null;
   readOnlyCalendarIds: Set<string>;
   themeVersion: number;
+  heldInGridEventId: string | null;
 }
 
 export class MailspringCalendar extends React.Component<
@@ -235,6 +240,7 @@ export class MailspringCalendar extends React.Component<
       unsentChange: null,
       readOnlyCalendarIds: new Set<string>(),
       themeVersion: 0,
+      heldInGridEventId: null,
     };
   }
 
@@ -281,6 +287,7 @@ export class MailspringCalendar extends React.Component<
   _select(clicked: EventOccurrence[]) {
     const selectedEvents = clicked.map((o) => this._storedOccurrence(o));
     if (!this._mayLeave(selectedEvents)) return false;
+    this._releaseHeldUnless(selectedEvents);
     const opensPanel = selectedEvents.length === 1 && !this.state.agendaOpen;
     this.setState({ selectedEvents, focusedEvent: null, ...(opensPanel && { agendaOpen: true }) });
     if (opensPanel) AppEnv.config.set(AGENDA_OPEN, true);
@@ -289,7 +296,21 @@ export class MailspringCalendar extends React.Component<
 
   _onBackToAgenda = () => {
     if (!this._mayLeave([])) return;
+    this._releaseHeldUnless([]);
     this.setState({ selectedEvents: [], focusedEvent: null });
+  };
+
+  _releaseHeldUnless(selected: EventOccurrence[]) {
+    const held = this.state.heldInGridEventId;
+    const stillShown = selected.some((o) => CalendarUtils.parseOccurrenceId(o.id).eventId === held);
+    if (held && !stillShown) this.setState({ heldInGridEventId: null });
+  }
+
+  // Focus moving into the event panel is the user taking up the event they dropped.
+  _onRightPanelFocus = (e: React.FocusEvent<HTMLElement>) => {
+    if (this.state.heldInGridEventId && (e.target as HTMLElement).closest('.event-panel')) {
+      this.setState({ heldInGridEventId: null });
+    }
   };
 
   _onUnsentChange = (unsentChange: UnsentChange | null) => {
@@ -1284,14 +1305,16 @@ export class MailspringCalendar extends React.Component<
       newEnd = snapped.end;
     }
     const isAllDay = dragState.previewIsAllDay;
+    // Parse the event ID from the occurrence ID
+    const eventId = CalendarUtils.parseOccurrenceId(dragState.event.id).eventId;
+    // Stretched past a day in the grid, it stays there rather than jump to the all-day row
+    // under the pointer, until the user moves on to its panel or to something else.
+    if (!isAllDay && !inAllDayRow(dragState.event)) this.setState({ heldInGridEventId: eventId });
     if (this._holdTimes(dragState.event, { start: newStart, end: newEnd, isAllDay })) {
       return;
     }
 
     try {
-      // Parse the event ID from the occurrence ID
-      const eventId = CalendarUtils.parseOccurrenceId(dragState.event.id).eventId;
-
       const event = await DatabaseStore.find<Event>(Event, eventId);
       if (!event) {
         console.error('Could not find event to update:', eventId);
@@ -1407,6 +1430,7 @@ export class MailspringCalendar extends React.Component<
       onEventDragStart: this._onEventDragStart,
       readOnlyCalendarIds: this.state.readOnlyCalendarIds,
       isCalendarReadOnly: this._isCalendarReadOnly,
+      heldInGridEventId: this.state.heldInGridEventId,
     };
   }
 
@@ -1468,7 +1492,7 @@ export class MailspringCalendar extends React.Component<
         maxWidth={AGENDA_WIDTHS.max}
         onResize={(width) => AppEnv.storeColumnWidth({ id: AGENDA_WIDTH, width })}
       >
-        <div className="calendar-right-panel">
+        <div className="calendar-right-panel" onFocus={this._onRightPanelFocus}>
           <AgendaContainer
             className={event ? 'is-covered' : undefined}
             selectedEvents={this.state.selectedEvents}

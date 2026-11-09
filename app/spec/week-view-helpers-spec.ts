@@ -51,8 +51,12 @@ function timedEvent(startISO: string, endISO: string) {
 }
 
 // Which of the rendered columns the event landed in, by ISO date.
-function columnsContaining(event: EventOccurrence, days: Moment[]) {
-  const map = eventsGroupedByDay([event], days);
+function columnsContaining(
+  event: EventOccurrence,
+  days: Moment[],
+  inRow?: (e: EventOccurrence) => boolean
+) {
+  const map = eventsGroupedByDay([event], days, inRow);
   return days.filter((d) => map[`${d.unix()}`].length > 0).map((d) => d.format('YYYY-MM-DD'));
 }
 
@@ -69,6 +73,16 @@ describe('eventsGroupedByDay', function () {
     const long = timedEvent('2026-06-09 22:00', '2026-06-11 03:00');
     expect(columnsContaining(long, days)).toEqual([]);
     expect(eventsGroupedByDay([long], days).allDay).toEqual([long]);
+  });
+
+  it('spans every column a multi-day timed event covers while it is kept in the grid', function () {
+    const days = daysFrom('2026-06-08', 7);
+    const long = timedEvent('2026-06-09 22:00', '2026-06-11 03:00');
+    expect(columnsContaining(long, days, () => false)).toEqual([
+      '2026-06-09',
+      '2026-06-10',
+      '2026-06-11',
+    ]);
   });
 
   it('keeps an event ending at midnight out of the following column', function () {

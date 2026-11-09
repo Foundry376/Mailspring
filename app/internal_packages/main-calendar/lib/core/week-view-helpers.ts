@@ -145,7 +145,11 @@ export function exclusiveDayEnds(days: Moment[]): number[] {
   );
 }
 
-export function eventsGroupedByDay(events: EventOccurrence[], days: Moment[]) {
+export function eventsGroupedByDay(
+  events: EventOccurrence[],
+  days: Moment[],
+  inRow: (e: EventOccurrence) => boolean = inAllDayRow
+) {
   const map: { allDay: EventOccurrence[]; [dayUnix: string]: EventOccurrence[] } = { allDay: [] };
 
   const unixDays = days.map((d) => d.unix());
@@ -156,7 +160,7 @@ export function eventsGroupedByDay(events: EventOccurrence[], days: Moment[]) {
   const exclusiveEnds = exclusiveDayEnds(days);
 
   events.forEach((event) => {
-    if (isTimed(event) && !inAllDayRow(event)) {
+    if (isTimed(event) && !inRow(event)) {
       // Half-open, matching `coveredDates`' last-covered-instant convention, so a
       // 22:00-00:00 event covers only the day it starts on.
       const lastInstant = Math.max(event.end - 1, event.start);

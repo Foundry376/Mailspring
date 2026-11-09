@@ -4,7 +4,6 @@ import { InjectedComponentSet, SVGIcons } from 'mailspring-component-kit';
 import { CalendarDateUtils, CalendarUtils, localized } from 'mailspring-exports';
 import {
   EventOccurrence,
-  inAllDayRow,
   isTimed,
   occurrenceStartUnix,
   occurrenceEndUnix,
@@ -129,7 +128,8 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     // events by whole days across the week (remapped in _getStyles).
     let top: number | string;
     let height: number | string;
-    if (isTimed(event) && !inAllDayRow(event)) {
+    // By where it's drawn: a long timed event sits in the row, or in a column while held there.
+    if (isTimed(event) && this.props.direction === 'vertical') {
       const span = columnSpan(event, { start: this.props.scopeStart, end: this.props.scopeEnd });
       top = span.top / DAY_DUR;
       height = (span.bottom - span.top) / DAY_DUR;
