@@ -1,0 +1,56 @@
+@import 'ui-variables';
+@import 'ui-mixins';
+
+.answer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .answer-section-note {
+    font-size: 12px;
+    line-height: 16px;
+    color: fadeout(@text-color, 35%);
+  }
+
+  .answer-section-buttons {
+    display: flex;
+    border-radius: @border-radius-base;
+    .btn-hairline();
+
+    .btn {
+      flex: 1;
+      min-width: 0;
+      padding: 0 8px;
+      box-shadow: none;
+
+      & + .btn {
+        box-shadow: -0.5px 0 0 @btn-border-color;
+      }
+
+      &:not(:last-child) {
+        border-right: 0;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+      }
+      &:not(:first-child) {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+      }
+    }
+
+    .btn.ACCEPTED {
+      background: @color-success;
+      color: @white;
+    }
+
+    .btn.TENTATIVE {
+      background: @gray-light;
+      color: @white;
+    }
+
+    .btn.DECLINED {
+      background: @color-error;
+      color: @white;
+    }
+  }
+}

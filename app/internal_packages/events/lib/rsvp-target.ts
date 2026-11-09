@@ -1,6 +1,8 @@
 import {
   Calendar,
+  CalendarConflict,
   CalendarUtils,
+  DatabaseStore,
   Event,
   ICSEventHelpers,
   ICSParticipantStatus,
@@ -112,6 +114,43 @@ export function conflictCalendarIds(
   return calendars
     .filter((c) => !c.readOnly && !disabled.has(c.id) && !CalendarUtils.isSomeoneElsesCalendar(c))
     .map((c) => c.id);
+}
+
+/** This account's events whose stored span touches the window, for findEventConflicts. */
+export function nearbyEventsQuery(accountId: string, window: { start: number; end: number }) {
+  return DatabaseStore.findAll<Event>(Event).where([
+    Event.attributes.accountId.equal(accountId),
+    Event.attributes.recurrenceStart.lessThan(window.end),
+    Event.attributes.recurrenceEnd.greaterThan(window.start),
+  ]);
+}
+
+/**
+ * What an event's time clashes with on this account's busy calendars, leaving the event itself
+ * out. `nearby` is the account's events around the window, for findConflicts to expand.
+ */
+export function findEventConflicts({
+  nearby,
+  calendars,
+  window,
+  addresses,
+  icsuid,
+}: {
+  nearby: Event[];
+  calendars: Calendar[];
+  window: { start: number; end: number };
+  addresses: string[];
+  icsuid: string;
+}): CalendarConflict[] {
+  const busy = new Set(
+    conflictCalendarIds(calendars, AppEnv.config.get('mailspring.disabledCalendars') || [])
+  );
+  return ICSEventHelpers.findConflicts({
+    events: nearby.filter((e) => busy.has(e.calendarId)),
+    ...window,
+    addresses,
+    excludeIcsuid: icsuid,
+  });
 }
 
 /**

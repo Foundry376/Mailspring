@@ -1,0 +1,36 @@
+// A guest's answer as the colour of their status dot, for a row classed with it.
+.attendee-status-colors() {
+  &.accepted .attendee-status {
+    background-color: #34c759;
+    color: white;
+  }
+
+  &.declined .attendee-status {
+    background-color: #ff3b30;
+    color: white;
+  }
+
+  &.tentative .attendee-status,
+  &.needs-action .attendee-status {
+    background-color: #8e8e93;
+    color: white;
+  }
+}
+
+// The small status dot of a guest row, with its check, cross or question mark inside.
+.attendee-status-dot() {
+  .attendee-status {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    svg {
+      width: 7px;
+      height: 7px;
+    }
+  }
+}

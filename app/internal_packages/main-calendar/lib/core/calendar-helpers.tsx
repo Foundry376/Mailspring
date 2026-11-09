@@ -5,6 +5,7 @@ import {
   Utils,
   AccountStore,
   Calendar,
+  CalendarConflict,
   Actions,
   DateUtils,
   Event,
@@ -375,6 +376,16 @@ function shortTimeFormat(time: moment.Moment): string {
  */
 export function formatShortTimeRange(startUnix: number, endUnix: number): string {
   return shortTimeRange(startUnix, endUnix, '–');
+}
+
+/** A conflict on one line, "Standup, 9–9:30AM", naming its day when it isn't the day shown. */
+export function formatConflict(conflict: CalendarConflict, shownDayUnix: number): string {
+  const start = moment.unix(conflict.start);
+  const day = start.isSame(moment.unix(shownDayUnix), 'day')
+    ? ''
+    : `${start.format('ddd, MMM D')}, `;
+  const title = conflict.title || localized('(No title)');
+  return `${title}, ${day}${formatShortTimeRange(conflict.start, conflict.end)}`;
 }
 
 function shortTimeRange(startUnix: number, endUnix: number, separator: string): string {

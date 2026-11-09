@@ -2,24 +2,6 @@
 @import 'ui-variables';
 @import 'ui-mixins';
 
-.attendee-status-colors() {
-  &.accepted .attendee-status {
-    background-color: #34c759;
-    color: white;
-  }
-
-  &.declined .attendee-status {
-    background-color: #ff3b30;
-    color: white;
-  }
-
-  &.tentative .attendee-status,
-  &.needs-action .attendee-status {
-    background-color: #8e8e93;
-    color: white;
-  }
-}
-
 .fixed-popover .calendar-event-popover {
   // The one action a read-only card offers. Drawn as a link rather than a .btn box so it
   // sits with the card's text instead of floating in a section of its own.
@@ -810,7 +792,7 @@
   padding: 8px;
   border-top: 1px solid @border-color-divider;
   border-bottom: 1px solid @border-color-divider;
-  background: color-mix(in srgb, @accent-primary 6%, @background-primary);
+  background: color-mix(in srgb, @accent-primary 10%, @background-primary);
 
   .agenda-in-this-email-label {
     padding-bottom: 4px;
@@ -978,21 +960,10 @@
     gap: 8px;
     padding: 4px 0;
     .attendee-status-colors();
+    .attendee-status-dot();
 
     .attendee-status {
-      width: 12px;
-      height: 12px;
       margin-top: 3px;
-      flex-shrink: 0;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-
-      svg {
-        width: 7px;
-        height: 7px;
-      }
     }
   }
 
@@ -1000,7 +971,7 @@
     flex: 1;
     min-width: 0;
 
-    .event-panel-rsvp {
+    .answer-section {
       margin-top: 4px;
     }
   }
@@ -1144,27 +1115,17 @@
     overflow: hidden;
   }
 
-  .event-panel-select {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
+  .event-panel-conflict {
+    align-items: flex-start;
+    min-height: 0;
+    padding: 2px 0 4px;
+    font-size: 12px;
+    line-height: 16px;
+    color: @color-error;
 
-    select {
-      appearance: none;
-      field-sizing: content;
-      padding-right: 14px;
-    }
-
-    img.content-mask {
-      position: absolute;
-      right: 0;
-      pointer-events: none;
-      visibility: hidden;
-      background-color: @text-color-very-subtle;
-    }
-
-    &:hover img.content-mask {
-      visibility: visible;
+    .event-panel-icon {
+      margin-top: 1px;
+      color: @color-error;
     }
   }
 
@@ -1239,7 +1200,7 @@
 
   .event-panel-answer {
     gap: 8px;
-    background: color-mix(in srgb, @accent-primary 6%, @background-primary);
+    background: color-mix(in srgb, @accent-primary 10%, @background-primary);
   }
 
   .event-panel-change {
@@ -1314,50 +1275,6 @@
   // 2px from the time row, against the section's usual gap.
   .event-panel-proposal-hint {
     margin-bottom: -2px;
-  }
-
-  // Your answer is filled as the invitation header fills it.
-  // One outline around the group with hairline dividers, like Activity's segmented control.
-  .event-panel-rsvp {
-    display: flex;
-    border-radius: @border-radius-base;
-    .btn-hairline();
-
-    .btn {
-      flex: 1;
-      min-width: 0;
-      padding: 0 8px;
-      box-shadow: none;
-
-      & + .btn {
-        box-shadow: -0.5px 0 0 @btn-border-color;
-      }
-
-      &:not(:last-child) {
-        border-right: 0;
-        border-top-right-radius: 0;
-        border-bottom-right-radius: 0;
-      }
-      &:not(:first-child) {
-        border-top-left-radius: 0;
-        border-bottom-left-radius: 0;
-      }
-    }
-
-    .btn.ACCEPTED {
-      background: @color-success;
-      color: @white;
-    }
-
-    .btn.TENTATIVE {
-      background: @gray-light;
-      color: @white;
-    }
-
-    .btn.DECLINED {
-      background: @color-error;
-      color: @white;
-    }
   }
 
   .event-panel-calendar-swatch {

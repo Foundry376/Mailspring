@@ -1,11 +1,7 @@
 import { ICSParticipantStatus, localized } from 'mailspring-exports';
+import { rsvpActions } from 'mailspring-component-kit';
 import { EventOccurrence } from './calendar-data-source';
-import {
-  canRespondToEvent,
-  myParticipationStatus,
-  respondToCalendarEvent,
-  rsvpActions,
-} from './calendar-rsvp';
+import { canRespondToEvent, myParticipationStatus, respondToCalendarEvent } from './calendar-rsvp';
 
 type TemplateItem =
   | { label: string; click: () => void; type?: 'checkbox'; checked?: boolean; enabled?: boolean }

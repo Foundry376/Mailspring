@@ -4,7 +4,9 @@ import { ipcRenderer } from 'electron';
 import { Disposable } from 'rx-core';
 import {
   Rx,
+  AccountStore,
   Calendar,
+  CalendarConflict,
   DatabaseStore,
   DatabaseChangeRecord,
   DOMUtils,
@@ -20,6 +22,8 @@ import { EventPanel } from './core/event-panel';
 import {
   EventOccurrence,
   EventRef,
+  occurrenceEndUnix,
+  occurrenceStartUnix,
   currentOccurrence,
   focusedOccurrenceForIcsuid,
   movedOccurrenceId,
@@ -27,13 +31,16 @@ import {
   panelKey,
 } from './core/calendar-data-source';
 import { emailedEventIn } from '../../events/lib/invitation-versions';
-import { proposeNewEventTime } from './core/calendar-rsvp';
+import { findEventConflicts, nearbyEventsQuery } from '../../events/lib/rsvp-target';
+import { canRespondToEvent, proposeNewEventTime } from './core/calendar-rsvp';
 import { ChangeScope, deleteEvent, updateEvent } from './core/recurring-event-actions';
 import { UnsentChange, isUnsentChangeFor } from './core/unsent-change';
 import { showUnsentChangeDialog } from './core/unsent-change-dialog';
 
 interface SidebarCalendarPanelState {
   shown: EventOccurrence | null;
+  // Keyed by panelKey, so one event's conflicts never show on the next before they're read.
+  conflicts: { key: string; list: CalendarConflict[] } | null;
   inThisEmail: EventOccurrence | null;
   unsentChange: UnsentChange | null;
   calendars: Calendar[];
@@ -62,6 +69,7 @@ export class SidebarCalendarPanel extends React.Component<
 
   state: SidebarCalendarPanelState = {
     shown: null,
+    conflicts: null,
     inThisEmail: null,
     unsentChange: null,
     calendars: [],
@@ -91,6 +99,37 @@ export class SidebarCalendarPanel extends React.Component<
     AppEnv.onBeforeUnload(this._onBeforeUnload);
     this._unlistenMessages = MessageStore.listen(this._onMessagesChange);
     this._onMessagesChange();
+  }
+
+  componentDidUpdate(_: SidebarCalendarPanelProps, prevState: SidebarCalendarPanelState) {
+    // Which calendars count as busy time comes from them, and they can land after the event.
+    if (prevState.shown !== this.state.shown || prevState.calendars !== this.state.calendars) {
+      this._refreshConflicts(this.state.shown);
+    }
+  }
+
+  async _refreshConflicts(shown: EventOccurrence | null) {
+    let list: CalendarConflict[] = [];
+    if (shown && canRespondToEvent(shown)) {
+      const { accountId } = shown;
+      const window = { start: occurrenceStartUnix(shown), end: occurrenceEndUnix(shown) };
+      const nearby = await nearbyEventsQuery(accountId, window);
+      // Its own row is among them, being on the same account at the same time.
+      const eventId = CalendarUtils.parseOccurrenceId(shown.id).eventId;
+      const icsuid = nearby.find((e) => e.id === eventId)?.icsuid;
+      if (icsuid) {
+        list = findEventConflicts({
+          nearby,
+          calendars: this.state.calendars,
+          window,
+          addresses: AccountStore.aliasesFor([accountId]).map((a) => a.email),
+          icsuid,
+        });
+      }
+    }
+    if (this.state.shown === shown) {
+      this.setState({ conflicts: shown && { key: panelKey([shown]), list } });
+    }
   }
 
   componentWillUnmount() {
@@ -356,6 +395,11 @@ export class SidebarCalendarPanel extends React.Component<
             isCalendarReadOnly={readOnly}
             onBack={this._onBack}
             onDelete={readOnly ? undefined : () => deleteEvent(shown)}
+            conflicts={
+              this.state.conflicts?.key === panelKey([shown])
+                ? this.state.conflicts.list
+                : undefined
+            }
             headerActions={
               <button
                 className="btn-bare event-panel-view"
