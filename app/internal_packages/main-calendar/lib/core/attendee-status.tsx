@@ -1,5 +1,5 @@
 import React from 'react';
-import { Utils } from 'mailspring-exports';
+import { Contact, Utils } from 'mailspring-exports';
 import { SVGIcons } from 'mailspring-component-kit';
 import { EventAttendee, EventOccurrence } from './calendar-data-source';
 import { isOrganizer, myAttendeeEmail } from './calendar-rsvp';
@@ -38,7 +38,24 @@ export const AttendeeStatusIcon = ({ attendee }: { attendee: EventAttendee }) =>
   return <SVGIcons.QuestionMark />;
 };
 
-export function sortedAttendees(event: EventOccurrence): EventAttendee[] {
+/** Contacts' names by lowercased email, for the guests an invitation leaves unnamed. */
+export function contactNamesByEmail(contacts: Contact[]): Map<string, string> {
+  const names = new Map<string, string>();
+  for (const { email, name } of contacts) {
+    const key = email.toLowerCase();
+    if (name && name !== email && !names.has(key)) names.set(key, name);
+  }
+  return names;
+}
+
+export function guestName(attendee: EventAttendee, contactNames: Map<string, string>): string {
+  return attendee.name || contactNames.get(attendee.email.toLowerCase()) || attendee.email;
+}
+
+export function sortedAttendees(
+  event: EventOccurrence,
+  contactNames = new Map<string, string>()
+): EventAttendee[] {
   const me = myAttendeeEmail(event);
   const pinOrder = (a: EventAttendee) => {
     if (isOrganizer(event, a)) return 0;
@@ -51,8 +68,8 @@ export function sortedAttendees(event: EventOccurrence): EventAttendee[] {
     const aOrder = statusOrder[a.partstat] ?? 1;
     const bOrder = statusOrder[b.partstat] ?? 1;
     if (aOrder !== bOrder) return aOrder - bOrder;
-    const aName = (a.name || a.email).toLowerCase();
-    const bName = (b.name || b.email).toLowerCase();
+    const aName = guestName(a, contactNames).toLowerCase();
+    const bName = guestName(b, contactNames).toLowerCase();
     return aName.localeCompare(bName);
   });
 }
