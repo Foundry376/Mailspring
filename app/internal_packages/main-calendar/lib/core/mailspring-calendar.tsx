@@ -24,10 +24,11 @@ import { EventPanel } from './event-panel';
 import { ScrollBackArea } from './scroll-back-area';
 import FocusedMomentStore from './focused-moment-store';
 import CalendarHeaderStore from './calendar-header-store';
+import VisibleRangeStore from './visible-range-store';
+import { drawnInGrid } from './week-view-helpers';
 import {
   CalendarDataSource,
   EventOccurrence,
-  inAllDayRow,
   movedOccurrenceId,
   panelKey,
   currentOccurrence,
@@ -159,7 +160,7 @@ export interface MailspringCalendarViewProps extends EventRendererProps {
   isCalendarReadOnly: (calendarId: string) => boolean;
 
   /** An event just dragged in the grid past a day, kept there until the user moves on from it. */
-  heldInGridEventId?: string | null;
+  heldInGridEventId: string | null;
 }
 
 /** A view an older version saved may no longer exist: 'Agenda' is now a panel. */
@@ -209,6 +210,7 @@ export class MailspringCalendar extends React.Component<
   _unlistenNewEvent?: () => void;
   _unlistenDatabase?: () => void;
   _unlistenFocusedMoment?: () => void;
+  _unlistenVisibleRange?: () => void;
   _removeLeaveGuard?: () => void;
   _dataSource = new CalendarDataSource();
   /**
@@ -255,6 +257,8 @@ export class MailspringCalendar extends React.Component<
       })
     );
     this._unlistenDatabase = DatabaseStore.listen(this._onDatabaseChange);
+    // Another week, day or view is moving on from a held event.
+    this._unlistenVisibleRange = VisibleRangeStore.listen(() => this._releaseHeldUnless([]));
     // Captured, so it runs before the window's own undo handler on <body>.
     document.addEventListener('core:undo', this._ignoreUndoWhileHeld, true);
     this._removeLeaveGuard = WorkspaceStore.setSectionLeaveGuard(() => this._mayLeave([]));
@@ -487,6 +491,7 @@ export class MailspringCalendar extends React.Component<
     this._unlistenNewEvent?.();
     this._unlistenDatabase?.();
     this._unlistenFocusedMoment?.();
+    this._unlistenVisibleRange?.();
     document.removeEventListener('core:undo', this._ignoreUndoWhileHeld, true);
     this._removeLeaveGuard?.();
     AppEnv.removeUnloadCallback(this._onBeforeUnload);
@@ -800,6 +805,7 @@ export class MailspringCalendar extends React.Component<
       unsentChange: withEdit(null, occurrence, { property: 'summary', value: title }, ''),
       newEvent: { draft, occurrence },
       agendaOpen: true,
+      heldInGridEventId: null,
     });
     AppEnv.config.set(AGENDA_OPEN, true);
     // The panel may only mount with this render.
@@ -1084,6 +1090,8 @@ export class MailspringCalendar extends React.Component<
     this._suppressNextCalendarClick = false;
     const pending = this._pendingDrag;
     this._pendingDrag = null;
+    // A right-click sets no pending grab, even on the held event, and its menu isn't moving on.
+    if (args.mouseEvent.button === 0) this._releaseHeldUnless(pending ? [pending.event] : []);
     if (args.time === null) {
       return;
     }
@@ -1099,6 +1107,7 @@ export class MailspringCalendar extends React.Component<
       args.time,
       args.mouseEvent.clientX,
       args.mouseEvent.clientY,
+      args.containerType,
       this._getDragConfig()
     );
   };
@@ -1305,11 +1314,11 @@ export class MailspringCalendar extends React.Component<
       newEnd = snapped.end;
     }
     const isAllDay = dragState.previewIsAllDay;
-    // Parse the event ID from the occurrence ID
     const eventId = CalendarUtils.parseOccurrenceId(dragState.event.id).eventId;
-    // Stretched past a day in the grid, it stays there rather than jump to the all-day row
-    // under the pointer, until the user moves on to its panel or to something else.
-    if (!isAllDay && !inAllDayRow(dragState.event)) this.setState({ heldInGridEventId: eventId });
+    const holds =
+      dragState.containerType === 'day-column' &&
+      drawnInGrid(dragState.event, this.state.heldInGridEventId);
+    this.setState({ heldInGridEventId: holds ? eventId : null });
     if (this._holdTimes(dragState.event, { start: newStart, end: newEnd, isAllDay })) {
       return;
     }

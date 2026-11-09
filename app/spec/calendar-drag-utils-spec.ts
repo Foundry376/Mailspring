@@ -150,7 +150,15 @@ describe('updateDragState with day snapping', function () {
   ) {
     const event = makeOccurrence({ isAllDay: true, start, end });
     const cursor = mode === 'resize-start' ? 'ew-resize' : 'ew-resize';
-    const state = createDragState(event, { mode, cursor }, mouseTime, 0, 0, MONTH_VIEW_DRAG_CONFIG);
+    const state = createDragState(
+      event,
+      { mode, cursor },
+      mouseTime,
+      0,
+      0,
+      'month-cell',
+      MONTH_VIEW_DRAG_CONFIG
+    );
     // Move far enough to clear the drag threshold
     const dragged = updateDragState(
       state,
@@ -223,6 +231,7 @@ describe('updateDragState resizing a timed event in a month cell', function () {
       mouseTime,
       0,
       0,
+      'month-cell',
       MONTH_VIEW_DRAG_CONFIG
     );
     const dragged = updateDragState(
@@ -353,6 +362,7 @@ describe('updateDragState move with day snapping', function () {
       start,
       0,
       0,
+      'month-cell',
       MONTH_VIEW_DRAG_CONFIG
     );
     const dragged = updateDragState(
@@ -392,6 +402,7 @@ describe('updateDragState move with day snapping', function () {
       grabbed,
       0,
       0,
+      containerType,
       MONTH_VIEW_DRAG_CONFIG
     );
     const dragged = updateDragState(
@@ -471,6 +482,7 @@ describe('updateDragState move with day snapping', function () {
       localDay(2026, 8, 15) + HOUR / 2,
       0,
       0,
+      'day-column',
       DEFAULT_DRAG_CONFIG
     );
     const dragged = updateDragState(
@@ -518,6 +530,7 @@ describe('updateDragState move with day snapping', function () {
       start,
       0,
       0,
+      'month-cell',
       MONTH_VIEW_DRAG_CONFIG
     );
     const dragged = updateDragState(
@@ -568,6 +581,7 @@ describe('updateDragState move with day snapping', function () {
       start,
       0,
       0,
+      'month-cell',
       MONTH_VIEW_DRAG_CONFIG
     );
     const dragged = updateDragState(
@@ -599,6 +613,7 @@ describe('updateDragState move with day snapping', function () {
       localDay(2026, 8, 14) + 12 * HOUR,
       0,
       0,
+      'month-cell',
       MONTH_VIEW_DRAG_CONFIG
     );
     const dragged = updateDragState(
@@ -630,6 +645,7 @@ describe('updateDragState move converting all-day to timed', function () {
       start,
       0,
       0,
+      'day-column',
       DEFAULT_DRAG_CONFIG
     );
     const dragged = updateDragState(state, mouseTime, 100, 100, 'day-column', DEFAULT_DRAG_CONFIG);
@@ -813,6 +829,7 @@ describe('createDragState anchored on the grid', function () {
       gridTime,
       0,
       0,
+      'day-column',
       DEFAULT_DRAG_CONFIG
     );
     const dragged = updateDragState(state, gridTime, 100, 100, 'day-column', DEFAULT_DRAG_CONFIG);
@@ -829,6 +846,7 @@ describe('createDragState anchored on the grid', function () {
       cst - HOUR / 2,
       0,
       0,
+      'day-column',
       DEFAULT_DRAG_CONFIG
     );
     const dragged = updateDragState(
@@ -852,6 +870,7 @@ describe('createDragState anchored on the grid', function () {
       cst - HOUR, // grabbed at the top row: the grid says 01:00 CDT
       0,
       0,
+      'day-column',
       DEFAULT_DRAG_CONFIG
     );
     const gridAt = (minutes: number) => cst - HOUR + minutes * 60; // still CDT readings
@@ -872,6 +891,7 @@ describe('createDragState anchored on the grid', function () {
       cst3 + HOUR / 2,
       0,
       0,
+      'day-column',
       DEFAULT_DRAG_CONFIG
     );
     const gridOneThirtyCdt = Date.UTC(2025, 10, 2, 6, 30) / 1000;
@@ -896,6 +916,7 @@ describe('createDragState anchored on the grid', function () {
       start,
       0,
       0,
+      'day-column',
       DEFAULT_DRAG_CONFIG
     );
     const dragged = updateDragState(state, start, 100, 100, 'day-column', DEFAULT_DRAG_CONFIG);
@@ -911,6 +932,7 @@ describe('createDragState anchored on the grid', function () {
       start,
       0,
       0,
+      'day-column',
       DEFAULT_DRAG_CONFIG
     );
     const past = updateDragState(
@@ -943,6 +965,7 @@ describe('createDragState anchored on the grid', function () {
       grabbed,
       0,
       0,
+      'day-column',
       DEFAULT_DRAG_CONFIG
     );
     const dragged = updateDragState(

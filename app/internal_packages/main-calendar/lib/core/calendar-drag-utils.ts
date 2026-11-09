@@ -209,6 +209,7 @@ export function createDragState(
   mouseTime: number,
   mouseX: number,
   mouseY: number,
+  containerType: CalendarContainerType | null,
   config: DragConfig
 ): DragState {
   // The drag pipeline is unix; derive the event's instants once (all-day carries dates only).
@@ -242,6 +243,7 @@ export function createDragState(
     previewEnd: end,
     previewIsAllDay: event.isAllDay,
     snapIntervalSeconds: config.snapInterval,
+    containerType,
     isDragging: false,
   };
 }
@@ -429,7 +431,8 @@ export function updateDragState(
     isDragging === state.isDragging &&
     previewStart === state.previewStart &&
     previewEnd === state.previewEnd &&
-    previewIsAllDay === state.previewIsAllDay
+    previewIsAllDay === state.previewIsAllDay &&
+    containerType === state.containerType
   ) {
     return state;
   }
@@ -440,6 +443,7 @@ export function updateDragState(
     previewStart,
     previewEnd,
     previewIsAllDay,
+    containerType,
   };
 }
 

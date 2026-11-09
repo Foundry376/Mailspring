@@ -8,7 +8,7 @@ import {
   SnapScroller,
   SnapScrollTarget,
 } from 'mailspring-component-kit';
-import { CalendarDate, CalendarDateUtils, CalendarUtils } from 'mailspring-exports';
+import { CalendarDate, CalendarDateUtils } from 'mailspring-exports';
 import CalendarHeaderStore from './calendar-header-store';
 import VisibleRangeStore from './visible-range-store';
 import {
@@ -27,6 +27,7 @@ import { CalendarView } from './calendar-constants';
 import {
   overlapForEvents,
   maxConcurrentEvents,
+  drawnInGrid,
   eventsGroupedByDay,
   exclusiveDayEnds,
   TICKS_PER_DAY,
@@ -259,17 +260,15 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     );
   }
 
-  /**
-   * Whether the all-day row draws it. A timed event made or dragged in the grid stays in the grid
-   * while it's a preview or draft, and once dropped until the user moves on from it.
-   */
+  /** Whether the all-day row draws it; a new event's draft stays in the grid until it's created. */
   _inRow = (e: EventOccurrence) => {
-    if (!inAllDayRow(e) || !isTimed(e)) return inAllDayRow(e);
-    if (e.isDragPreview) {
-      const dragged = this.props.dragState?.event;
-      return !!dragged && inAllDayRow(dragged);
-    }
-    return CalendarUtils.parseOccurrenceId(e.id).eventId !== this.props.heldInGridEventId;
+    if (!isTimed(e)) return true;
+    if (!inAllDayRow(e)) return false;
+    const { dragState, heldInGridEventId } = this.props;
+    if (!e.isDragPreview) return !drawnInGrid(e, heldInGridEventId);
+    if (!dragState || e.originalEventId !== dragState.event.id) return false;
+    const { event, containerType } = dragState;
+    return !drawnInGrid(event, heldInGridEventId) || containerType === 'all-day-area';
   };
 
   /** The all-day lanes for the days drawn around `firstVisible`, which the legend and strip share. */
