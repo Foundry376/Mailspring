@@ -112,8 +112,9 @@
   }
 
   .event-invitation-answer {
-    width: 208px;
-    flex-shrink: 0;
+    flex: 0 1 auto;
+    min-width: 208px;
+    max-width: 50%;
     padding-left: 16px;
     border-left: 1px solid @border-color-divider;
     display: flex;
@@ -143,10 +144,14 @@
 
     .event-reply {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 6px;
       .attendee-status-colors();
       .attendee-status-dot();
+
+      .attendee-status {
+        margin-top: 2px;
+      }
     }
   }
 }
