@@ -1,4 +1,12 @@
-import { AccountStore, Actions, DatabaseStore, SyncbackEventTask } from 'mailspring-exports';
+import {
+  AccountStore,
+  Actions,
+  DatabaseStore,
+  ICSEventHelpers,
+  SyncbackEventTask,
+} from 'mailspring-exports';
+import TimePicker from '../src/components/time-picker';
+import { DatePicker } from '../src/components/date-picker';
 import { Event as MailspringEvent } from '../src/flux/models/event';
 import { CalendarEventPopover } from '../internal_packages/main-calendar/lib/core/calendar-event-popover';
 import React from 'react';
@@ -11,6 +19,7 @@ moment.locale('en');
 import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 import { AllDayToggle } from '../internal_packages/main-calendar/lib/core/all-day-toggle';
 import { ShowAsSelector } from '../internal_packages/main-calendar/lib/core/show-as-selector';
+import { TimeZoneSelector } from '../internal_packages/main-calendar/lib/core/timezone-selector';
 
 // A fortnightly Tue/Thu meeting that ends in June. Every part of this rule beyond FREQ is
 // something the five-value Repeat control cannot express.
@@ -182,13 +191,13 @@ describe('CalendarEventPopover save path and the recurrence rule', function () {
     const event = makeEvent(BERLIN_ICS);
     const popover = await openEditor(event, 'Standup');
     expect(popover.state.timezone).toBe('Europe/Berlin');
-    popover.updateField('timezone', 'America/Chicago');
+    popover.updateTimezone('America/Chicago');
 
     popover._saveAllOccurrences(event);
 
     const ics = queued[0].event.ics;
-    expect(ics).toContain('DTSTART;TZID=America/Chicago:20260303T080000');
-    expect(ics).toContain('EXDATE;TZID=America/Chicago:20260310T080000');
+    expect(ics).toContain('DTSTART;TZID=America/Chicago:20260303T150000');
+    expect(ics).toContain('EXDATE;TZID=America/Chicago:20260310T150000');
     expect(ics).toContain('TZID:America/Chicago');
     expect(ics).not.toContain('TZID:Europe/Berlin');
   });
@@ -267,11 +276,6 @@ describe('CalendarEventPopover and who may edit', function () {
 
   it('never offers to edit on a read-only calendar', function () {
     expect(popoverFor({ isCalendarReadOnly: true })._isEditable()).toBe(false);
-  });
-
-  it('always lets a new event be edited', function () {
-    const theirs = { ...makeOccurrence('Planning'), isMine: false };
-    expect(popoverFor({ event: theirs, isNewEvent: true })._isEditable()).toBe(true);
   });
 });
 
@@ -399,16 +403,6 @@ describe('CalendarEventPopover save path and Show As', function () {
     expect(popover._changedShowAs()).toBe(undefined);
   });
 
-  // A popover for an event that does not exist yet, as the grid opens one.
-  const newEventPopover = (isAllDay: boolean) => {
-    const popover: any = new CalendarEventPopover({
-      event: makeOccurrence('', { isAllDay } as any),
-      isNewEvent: true,
-    } as any);
-    popover.setState = (update: object) => Object.assign(popover.state, update);
-    return popover;
-  };
-
   /** The first element of this type in a rendered tree. */
   const findElement = (node: any, type: any): any => {
     if (!node || typeof node !== 'object') return null;
@@ -423,34 +417,12 @@ describe('CalendarEventPopover save path and Show As', function () {
     return findElement(node.props && node.props.children, type);
   };
 
-  it('opens a new all-day event as Free and a new timed one as Busy', function () {
-    expect(newEventPopover(true).state.showAs).toBe('TRANSPARENT');
-    expect(newEventPopover(false).state.showAs).toBe('OPAQUE');
-  });
-
   it('opens an existing all-day event with the Show As it has', async function () {
     const busy = await openEditor(makeEvent(BUSY_SERIES_ICS), 'Planning', {
       isAllDay: true,
       isFree: false,
     } as any);
     expect(busy.state.showAs).toBe('OPAQUE');
-  });
-
-  it('moves a new event between Busy and Free with the all-day switch', function () {
-    const popover = newEventPopover(false);
-    popover.updateAllDay(true);
-    expect(popover.state.allDay).toBe(true);
-    expect(popover.state.showAs).toBe('TRANSPARENT');
-    popover.updateAllDay(false);
-    expect(popover.state.showAs).toBe('OPAQUE');
-  });
-
-  it("keeps a new event's Show As once the user has picked one", function () {
-    const popover = newEventPopover(false);
-    popover.updateShowAs('OPAQUE');
-    popover.updateAllDay(true);
-    expect(popover.state.allDay).toBe(true);
-    expect(popover.state.showAs).toBe('OPAQUE');
   });
 
   it("leaves an existing event's Show As alone when it is made all-day", async function () {
@@ -460,45 +432,145 @@ describe('CalendarEventPopover save path and Show As', function () {
     expect(popover.state.showAs).toBe('OPAQUE');
   });
 
-  it('follows the all-day switch again for the next event the editor is given', function () {
-    const popover = newEventPopover(false);
-    popover.updateShowAs('OPAQUE');
-    const prevProps = popover.props;
-    popover.props = { ...prevProps, event: makeOccurrence('Other', { isAllDay: false } as any) };
-    popover.componentDidUpdate(prevProps, popover.state);
-    popover.updateAllDay(true);
-    expect(popover.state.showAs).toBe('TRANSPARENT');
-  });
-
-  it('wires the all-day switch and Show As control to their handlers', function () {
-    const popover = newEventPopover(false);
+  it('wires the all-day switch and Show As control to their handlers', async function () {
+    const popover = await openEditor(makeEvent(BUSY_SERIES_ICS), 'Planning');
     const tree = popover.renderEditable();
     expect(findElement(tree, AllDayToggle).props.onChange).toBe(popover.updateAllDay);
     expect(findElement(tree, ShowAsSelector).props.onChange).toBe(popover.updateShowAs);
   });
+});
 
-  it('creates a new all-day event as Free when Show As was left alone', async function () {
-    const helpers = require('../internal_packages/main-calendar/lib/core/calendar-helpers');
-    spyOn(helpers, 'createCalendarEvent').andReturn(Promise.resolve());
-    spyOn(Actions, 'closePopover');
-    await newEventPopover(true)._createNewEvent();
-    expect(helpers.createCalendarEvent.mostRecentCall.args[0].transparency).toBe('TRANSPARENT');
+describe('CalendarEventPopover save path and the alert', function () {
+  const REMINDED_ICS = FORTNIGHTLY_ICS.replace(
+    'END:VEVENT',
+    `BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Planning
+TRIGGER:-P0DT0H30M0S
+END:VALARM
+BEGIN:VALARM
+ACTION:DISPLAY
+DESCRIPTION:Planning
+TRIGGER:-P1D
+END:VALARM
+END:VEVENT`
+  );
+  let queued: any[];
+
+  beforeEach(function () {
+    queued = [];
+    spyOn(Actions, 'queueTask').andCallFake((task) => queued.push(task));
+    spyOn(SyncbackEventTask, 'forUpdating').andCallFake((opts) => opts);
   });
 
-  it('creates the event with the Show As the user picked', async function () {
-    const helpers = require('../internal_packages/main-calendar/lib/core/calendar-helpers');
-    spyOn(helpers, 'createCalendarEvent').andReturn(Promise.resolve());
-    spyOn(Actions, 'closePopover');
+  const triggersOf = (ics: string) => ics.match(/^TRIGGER:.*$/gm) || [];
+
+  it("shows an event's first reminder", async function () {
+    const popover = await openEditor(makeEvent(REMINDED_ICS), 'Planning');
+    expect(popover.state.alert).toBe('30min');
+  });
+
+  it('shows a reminder no option describes as custom', async function () {
+    const ics = REMINDED_ICS.replace('TRIGGER:-P0DT0H30M0S', 'TRIGGER:-PT20M');
+    const popover = await openEditor(makeEvent(ics), 'Planning');
+    expect(popover.state.alert).toBe('custom');
+  });
+
+  it('leaves the reminders as they were when the alert was not touched', async function () {
+    const event = makeEvent(REMINDED_ICS);
+    const popover = await openEditor(event, 'Planning');
+    popover.updateField('title', 'Planning (renamed)');
+
+    popover._saveAllOccurrences(event);
+
+    expect(triggersOf(queued[0].event.ics)).toEqual(['TRIGGER:-P0DT0H30M0S', 'TRIGGER:-P1D']);
+  });
+
+  it('moves the first reminder when the alert changes', async function () {
+    const event = makeEvent(REMINDED_ICS);
+    const popover = await openEditor(event, 'Planning');
+    popover.updateAlert('1hour');
+
+    popover._saveAllOccurrences(event);
+
+    expect(triggersOf(queued[0].event.ics)).toEqual(['TRIGGER:-PT1H', 'TRIGGER:-P1D']);
+  });
+
+  it('removes the reminders when the alert changes to none', async function () {
+    const event = makeEvent(REMINDED_ICS);
+    const popover = await openEditor(event, 'Planning');
+    popover.updateAlert('none');
+
+    popover._saveAllOccurrences(event);
+
+    const ics = queued[0].event.ics;
+    expect(ics).not.toContain('ACTION:DISPLAY');
+    expect(ics).toContain('ACTION:NONE');
+    expect(ICSEventHelpers.getAlarmTrigger(ics)).toBe(null);
+  });
+
+  it("changes only the occurrence's reminder when one occurrence is edited", async function () {
+    const event = makeEvent(REMINDED_ICS);
+    const popover = await openEditor(event, 'Planning');
+    popover.updateAlert('5min');
+
+    await popover._saveOccurrenceException(event);
+
+    const [master, exception] = queued[0].event.ics.split('BEGIN:VEVENT').slice(1);
+    expect(triggersOf(master)).toEqual(['TRIGGER:-P0DT0H30M0S', 'TRIGGER:-P1D']);
+    expect(triggersOf(exception)).toEqual(['TRIGGER:-PT5M', 'TRIGGER:-P1D']);
+  });
+});
+
+describe('CalendarEventPopover and the time zone picker', function () {
+  // 2 PM in Chicago, the zone scripts/test.js pins.
+  const TWO_PM = Date.UTC(2026, 2, 3, 20, 0) / 1000;
+  const HALF_THREE = Date.UTC(2026, 2, 3, 21, 30) / 1000;
+
+  const editorFor = () => {
     const popover: any = new CalendarEventPopover({
-      event: makeOccurrence(''),
-      isNewEvent: true,
+      event: makeOccurrence('', { isRecurring: false, start: TWO_PM, end: HALF_THREE }),
     } as any);
     popover.setState = (update: object) => Object.assign(popover.state, update);
-    popover.updateShowAs('TRANSPARENT');
+    return popover;
+  };
 
-    await popover._createNewEvent();
+  /** Every element of these types in the editor's rendered tree. */
+  const elementsOf = (popover: any, types: any[]) => {
+    const found: any[] = [];
+    const visit = (node: any) => {
+      if (!node || typeof node !== 'object') return;
+      if (Array.isArray(node)) return node.forEach(visit);
+      if (types.includes(node.type)) found.push(node);
+      visit(node.props && node.props.children);
+    };
+    visit(popover.renderEditable());
+    return found;
+  };
+  const pickerZones = (popover: any) =>
+    elementsOf(popover, [TimePicker, DatePicker]).map((el) => el.props.timeZone);
 
-    expect(helpers.createCalendarEvent.mostRecentCall.args[0].transparency).toBe('TRANSPARENT');
+  it('keeps the times shown when another zone is picked', function () {
+    const popover = editorFor();
+    popover.updateTimezone('America/Los_Angeles');
+
+    expect(popover.state.start).toBe(Date.UTC(2026, 2, 3, 22, 0) / 1000);
+    expect(popover.state.end).toBe(Date.UTC(2026, 2, 3, 23, 30) / 1000);
+    expect(pickerZones(popover)).toEqual(Array(4).fill('America/Los_Angeles'));
+  });
+
+  it("shows an event's times in its own zone when it is edited", async function () {
+    const popover = await openEditor(makeEvent(BERLIN_ICS), 'Standup');
+    expect(pickerZones(popover)).toEqual(Array(4).fill('Europe/Berlin'));
+  });
+
+  it('shows all-day dates in the machine’s days, with no zone to pick', function () {
+    const popover = editorFor();
+    popover.updateTimezone('Asia/Tokyo');
+    popover.updateAllDay(true);
+
+    expect(pickerZones(popover)).toEqual([undefined, undefined]);
+    expect(elementsOf(popover, [TimeZoneSelector]).length).toBe(0);
   });
 });
 

@@ -114,12 +114,119 @@ describe('TimePicker', function timePicker() {
     expect(input.value).toBe(moment(VALUE).format('LT'));
   });
 
+  it('refuses text with more than one time in it', () => {
+    const { onChange, input } = renderPicker();
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: '10:15 PM1:00 AM' } });
+    expect(input.classList.contains('invalid')).toBe(true);
+    fireEvent.blur(input);
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(input.value).toBe(moment(VALUE).format('LT'));
+  });
+
+  it('accepts a time with spaces around it', () => {
+    const { onChange, input } = renderPicker();
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: ' 4:30 pm ' } });
+    fireEvent.blur(input);
+
+    expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe(`${EVENT_DAY} 16:30`);
+  });
+
+  it('commits the typed time on Enter', () => {
+    const { onChange, input } = renderPicker();
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: '4:30pm' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe(`${EVENT_DAY} 16:30`);
+  });
+
+  it('closes its list of times on Enter, where nothing moves focus on, and opens it to typing', () => {
+    const { container, input } = renderPicker();
+    const listed = () => !!container.querySelector('.time-options');
+
+    fireEvent.focus(input);
+    expect(listed()).toBe(true);
+    fireEvent.change(input, { target: { value: '4:30pm' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(listed()).toBe(false);
+
+    fireEvent.change(input, { target: { value: '5pm' } });
+    expect(listed()).toBe(true);
+  });
+
+  it('commits a time once when Enter moves focus before the new value arrives', () => {
+    const { onChange, input } = renderPicker();
+
+    fireEvent.focus(input);
+    fireEvent.change(input, { target: { value: '4:30pm' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    fireEvent.blur(input);
+
+    expect(onChange.callCount).toBe(1);
+  });
+
+  describe('as an end field', () => {
+    const at = (day: string, time: string) =>
+      moment(`${day} ${time}`, 'YYYY-MM-DD HH:mm').valueOf();
+    const typeEnd = (start: number, end: number, text: string, timeZone?: string) => {
+      const onChange = jasmine.createSpy('onChange');
+      const { container } = render(
+        <TimePicker value={end} relativeTo={start} timeZone={timeZone} onChange={onChange} />
+      );
+      const input = container.querySelector('input');
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value: text } });
+      fireEvent.blur(input);
+      return onChange.mostRecentCall.args[0];
+    };
+
+    it('reads a time before the start as the next day’s', () => {
+      const end = typeEnd(at(EVENT_DAY, '22:00'), at(EVENT_DAY, '23:00'), '1:00am');
+      expect(moment(end).format('YYYY-MM-DD HH:mm')).toBe('2026-03-11 01:00');
+    });
+
+    it('leaves a time after the start on its day', () => {
+      const end = typeEnd(at(EVENT_DAY, '10:00'), at(EVENT_DAY, '11:00'), '11:30am');
+      expect(moment(end).format('YYYY-MM-DD HH:mm')).toBe(`${EVENT_DAY} 11:30`);
+    });
+
+    it('keeps the wall clock when the next day is across a DST change', () => {
+      // Sunday 2026-03-08 springs forward at 2 AM, so 3 AM that day is 23 hours after Saturday's.
+      const end = typeEnd(at('2026-03-07', '23:00'), at('2026-03-07', '23:30'), '3:00am');
+      expect(moment(end).format('YYYY-MM-DD HH:mm')).toBe('2026-03-08 03:00');
+    });
+
+    it('adds the day in the zone the field shows', () => {
+      // 10 PM to 11 PM in Los Angeles, which is midnight to 1 AM in Chicago.
+      const start = Date.UTC(2026, 5, 23, 5);
+      const end = typeEnd(start, Date.UTC(2026, 5, 23, 6), '1:00am', 'America/Los_Angeles');
+      expect(end).toBe(Date.UTC(2026, 5, 23, 8));
+    });
+  });
+
   it('emits milliseconds from the arrow keys', () => {
     const { onChange, input } = renderPicker();
 
     fireEvent.keyDown(input, { key: 'ArrowDown' });
 
     expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe(`${EVENT_DAY} 15:30`);
+  });
+
+  it('stops the arrow keys at the start an end field follows', () => {
+    const start = moment(`${EVENT_DAY} 10:15`, 'YYYY-MM-DD HH:mm').valueOf();
+    const end = moment(`${EVENT_DAY} 10:30`, 'YYYY-MM-DD HH:mm').valueOf();
+    const onChange = jasmine.createSpy('onChange');
+    const { container } = render(<TimePicker value={end} relativeTo={start} onChange={onChange} />);
+
+    fireEvent.keyDown(container.querySelector('input'), { key: 'ArrowUp' });
+
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   // date-utils.ts runs moment.locale(navigator.language) at startup, so a German or Japanese
@@ -172,6 +279,17 @@ describe('TimePicker', function timePicker() {
       return lastEmitted(onChange).format('HH:mm');
     };
 
+    it('accepts the words a locale writes around the time', () => {
+      moment.locale('lb');
+      const { onChange, input } = renderPicker();
+
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value: '16:30 Auer' } });
+      fireEvent.blur(input);
+
+      expect(lastEmitted(onChange).format('HH:mm')).toBe('16:30');
+    });
+
     it('reads the hour token rather than the meridiem', () => {
       moment.locale('lb');
       expect(typeBareFive()).toBe('05:00');
@@ -200,6 +318,41 @@ describe('TimePicker', function timePicker() {
       fireEvent.change(input, { target: { value: '2' } });
       fireEvent.blur(input);
       expect(lastEmitted(onChange).format('HH:mm')).toBe('02:00');
+    });
+  });
+
+  describe('in a zone other than the machine’s', () => {
+    // 3 PM in Chicago on EVENT_DAY is 1 PM in Los Angeles.
+    const renderInLosAngeles = () => {
+      const onChange = jasmine.createSpy('onChange');
+      const { container } = render(
+        <TimePicker value={VALUE} timeZone="America/Los_Angeles" onChange={onChange} />
+      );
+      return { onChange, container, input: container.querySelector('input') as HTMLInputElement };
+    };
+
+    it('shows the wall clock of that zone', () => {
+      const { input } = renderInLosAngeles();
+      expect(input.value).toBe('1:00 PM');
+    });
+
+    it('reads a typed time as that zone’s', () => {
+      const { onChange, input } = renderInLosAngeles();
+
+      fireEvent.focus(input);
+      fireEvent.change(input, { target: { value: '2:00 pm' } });
+      fireEvent.blur(input);
+
+      expect(onChange.mostRecentCall.args[0]).toBe(Date.UTC(2026, 2, 10, 21, 0));
+    });
+
+    it('lists the times of that zone’s day', () => {
+      const { onChange, input, container } = renderInLosAngeles();
+
+      fireEvent.focus(input);
+      fireEvent.mouseDown(container.querySelector('.time-options .option') as HTMLElement);
+
+      expect(onChange.mostRecentCall.args[0]).toBe(Date.UTC(2026, 2, 10, 7, 0));
     });
   });
 

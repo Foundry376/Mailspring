@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import moment from 'moment';
+import moment, { Moment } from 'moment-timezone';
 import classnames from 'classnames';
 import { TabGroupContext } from 'mailspring-component-kit';
 import { DateUtils } from 'mailspring-exports';
@@ -12,11 +12,16 @@ const INTERVAL: [any, string] = [30, 'minutes'];
 type TimePickerProps = {
   value?: number;
   onChange?: (ms: number) => void;
+  /** The start an end field follows: its list begins there, the arrow keys stop there, and a
+   * time typed before it is the next day's. */
   relativeTo?: number;
+  /** The IANA zone the time is shown and typed in; the machine's own when omitted. */
+  timeZone?: string;
 };
 type TimePickerState = {
   rawText: any;
-  focused: boolean;
+  /** Whether the list of times shows: while the field has focus, until Enter picks one. */
+  optionsOpen: boolean;
 };
 
 export default class TimePicker extends React.Component<TimePickerProps, TimePickerState> {
@@ -31,11 +36,14 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
   };
 
   _gotoScrollStartOnUpdate = false;
+  // The text last emitted. Enter commits it and then moves focus, and the blur that follows comes
+  // before the parent's batched update reaches props.value, so it would emit the same time again.
+  _emittedText: string | null = null;
 
   constructor(props) {
     super(props);
     this.state = {
-      focused: false,
+      optionsOpen: false,
       rawText: this._valToTimeString(props.value),
     };
   }
@@ -45,7 +53,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
   }
 
   componentDidUpdate(prevProps: TimePickerProps) {
-    if (prevProps.value !== this.props.value) {
+    if (prevProps.value !== this.props.value || prevProps.timeZone !== this.props.timeZone) {
       this.setState({ rawText: this._valToTimeString(this.props.value) });
     }
     if (this._gotoScrollStartOnUpdate) {
@@ -53,8 +61,12 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
     }
   }
 
-  _valToTimeString(value) {
-    return moment(value).format(DateUtils.localeTimeFormat());
+  _moment(ms: number): Moment {
+    return this.props.timeZone ? moment.tz(ms, this.props.timeZone) : moment(ms);
+  }
+
+  _valToTimeString(value: number) {
+    return this._moment(value).format(DateUtils.localeTimeFormat());
   }
 
   _onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -65,34 +77,43 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
       event.preventDefault();
       this._onArrow(event.key);
     } else if (event.key === 'Enter') {
+      // Committed here, not only on blur: the event panel has no TabGroup to move focus on, so
+      // the list closes here too.
+      this._saveIfValid(this.state.rawText);
+      this.setState({ optionsOpen: false });
       this.context?.shiftFocus(1);
     }
   };
 
   _onArrow(key) {
-    let newT = moment(this.props.value);
+    let newT = this._moment(this.props.value);
     newT = newT.round(...INTERVAL);
     if (key === 'ArrowUp') {
       newT = newT.subtract(...INTERVAL);
     } else if (key === 'ArrowDown') {
       newT = newT.add(...INTERVAL);
     }
-    if (moment(this.props.value).day() !== newT.day()) {
+    if (this._moment(this.props.value).day() !== newT.day()) {
+      return;
+    }
+    // A typed end before the start is read as the next day's; a step down never means that.
+    if (this.props.relativeTo && newT.valueOf() <= this.props.relativeTo) {
       return;
     }
     this._gotoScrollStartOnUpdate = true;
+    this.setState({ optionsOpen: true });
     this.props.onChange(newT.valueOf());
   }
 
   _onFocus = () => {
-    this.setState({ focused: true });
+    this.setState({ optionsOpen: true });
     this._gotoScrollStartOnUpdate = true;
     const el = ReactDOM.findDOMNode(this.refs.input) as HTMLInputElement;
     el.setSelectionRange(0, el.value.length);
   };
 
   _onBlur = (event: React.FocusEvent<HTMLInputElement>) => {
-    this.setState({ focused: false });
+    this.setState({ optionsOpen: false });
     if (
       event.relatedTarget &&
       Array.from((event.relatedTarget as Element).classList).includes('time-options')
@@ -103,34 +124,56 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
   };
 
   _onRawTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    this.setState({ rawText: event.target.value });
+    this._emittedText = null;
+    this.setState({ rawText: event.target.value, optionsOpen: true });
   };
 
   _saveIfValid(rawText = '') {
     // Compare the rendered text, not the parsed instant: re-parsing an ambiguous fall-back
     // wall clock re-resolves it to the earlier offset.
-    if (rawText.trim() === this._valToTimeString(this.props.value)) {
+    if (
+      rawText.trim() === this._valToTimeString(this.props.value) ||
+      rawText === this._emittedText
+    ) {
       return;
     }
-    // Locale-aware am/pm parsing!!
-    const parsedMoment = moment(rawText, 'h:ma');
-    if (parsedMoment.isValid()) {
-      if (this._shouldAddTwelve(rawText) && parsedMoment.hour() < 12) {
-        parsedMoment.hour(parsedMoment.hour() + 12);
+    const parsedMoment = this._parse(rawText);
+    if (parsedMoment) {
+      let hour = parsedMoment.hour();
+      if (this._shouldAddTwelve(rawText) && hour < 12) {
+        hour += 12;
       }
-      // 'h:ma' has no date tokens, so moment fills y/m/d from today.
-      const valueMoment = moment(this.props.value);
-      parsedMoment.year(valueMoment.year());
-      parsedMoment.dayOfYear(valueMoment.dayOfYear());
-
-      if (parsedMoment.valueOf() !== this.props.value) {
-        this.props.onChange(parsedMoment.valueOf());
+      // 'h:ma' has no date tokens, so only the time of day is taken from the text.
+      const typed = this._moment(this.props.value).set({
+        hour,
+        minute: parsedMoment.minute(),
+        second: 0,
+        millisecond: 0,
+      });
+      // An end field reads a time before its start as the next day's ("1:00 AM" after a 10 PM
+      // start). The day is added on the field's clock, so the wall clock survives a DST change.
+      if (this.props.relativeTo && typed.valueOf() < this.props.relativeTo) {
+        typed.add(1, 'day');
+      }
+      const next = typed.valueOf();
+      if (next !== this.props.value) {
+        this._emittedText = rawText;
+        this.props.onChange(next);
         return;
       }
     }
     // Nothing was emitted, so props.value will not change and componentDidUpdate will not
     // re-derive the text. Put the field back on the time it is meant to be showing.
     this.setState({ rawText: this._valToTimeString(this.props.value) });
+  }
+
+  // Locale-aware am/pm parsing. moment's forgiving parse stops at the first time it reads, so a
+  // digit left over ("10:15 PM1:00 AM") makes the entry invalid. Words are not: many locales
+  // write them around the time ("15:30 Auer", "오후 3:30") and 'h:ma' leaves them unread.
+  _parse(rawText: string): Moment | null {
+    const parsed = moment(rawText, 'h:ma');
+    const leftover = parsed.parsingFlags().unusedInput.some((s) => /\p{Nd}/u.test(s));
+    return parsed.isValid() && !leftover ? parsed : null;
   }
 
   // moment's LT uses h for a 12-hour clock and H for a 24-hour one. Test the hour token rather
@@ -173,30 +216,30 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
   }
 
   _renderTimeOptions() {
-    if (!this.state.focused) {
+    if (!this.state.optionsOpen) {
       return false;
     }
 
-    const enteredMoment = moment(this.props.value);
+    const enteredMoment = this._moment(this.props.value);
 
-    const roundedMoment = moment(enteredMoment);
+    const roundedMoment = enteredMoment.clone();
     roundedMoment.ceil(...INTERVAL);
 
-    const firstVisibleMoment = moment(roundedMoment);
+    const firstVisibleMoment = roundedMoment.clone();
     firstVisibleMoment.add(...INTERVAL);
 
-    let startVal = moment(this.props.value).startOf('day').valueOf();
+    let startVal = this._moment(this.props.value).startOf('day').valueOf();
     startVal = Math.max(startVal, this.props.relativeTo || 0);
 
-    const startMoment = moment(startVal);
+    const startMoment = this._moment(startVal);
     if (this.props.relativeTo) {
       startMoment.ceil(...INTERVAL).add(...INTERVAL);
     }
-    const endMoment = moment(startVal).endOf('day');
+    const endMoment = this._moment(startVal).endOf('day');
     const opts = [];
 
     const relStart = moment(this.props.relativeTo);
-    const timeIter = moment(startMoment);
+    const timeIter = startMoment.clone();
     while (timeIter.isSameOrBefore(endMoment)) {
       const val = timeIter.valueOf();
       const className = classnames({
@@ -237,7 +280,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
     const className = classnames({
       'time-picker': true,
       'no-select-end': true,
-      invalid: !moment(this.state.rawText, 'h:ma').isValid(),
+      invalid: !this._parse(this.state.rawText),
     });
     return (
       <div className="time-picker-wrap">

@@ -111,18 +111,22 @@ describe('pressing an event', function () {
 });
 
 describe("pressing a meeting we don't organize", function () {
-  it('offers the counter once it travels, and a later move does not offer it again', function () {
-    const offer = spyOn(CalendarRsvp, 'offerCounterInsteadOfMove');
-    const guestMeeting = { ...occurrence, isMine: false, organizer: { email: 'ada@example.com' } };
+  it('shows the notice once it travels, and a later move does not show it again', function () {
+    const notice = spyOn(CalendarRsvp, 'showOrganizerOnlyMoveDialog');
+    const uninvitedMeeting = {
+      ...occurrence,
+      isMine: false,
+      organizer: { email: 'ada@example.com' },
+    };
     const cal: any = new MailspringCalendar({} as any);
     cal.setState = (next: any) => Object.assign(cal.state, next);
     cal.state = { ...cal.state, calendarsLoaded: true, readOnlyCalendarIds: new Set() };
-    cal._onEventDragStart(guestMeeting, {} as any, { mode: 'move' } as any);
+    cal._onEventDragStart(uninvitedMeeting, {} as any, { mode: 'move' } as any);
     cal._onCalendarMouseDown(at(10, 10));
 
     cal._onCalendarMouseMove(at(10, 10 + DEFAULT_DRAG_CONFIG.dragThreshold + 1));
     cal._onCalendarMouseMove(at(10, 200));
-    expect(offer.calls.length).toBe(1);
+    expect(notice.calls.length).toBe(1);
     expect(cal.state.dragState).toBe(null);
   });
 });

@@ -1,0 +1,32 @@
+@import 'ui-variables';
+
+.text-select {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+
+  select {
+    appearance: none;
+    field-sizing: content;
+    padding: 0 14px 0 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    color: inherit;
+    font: inherit;
+    outline: none;
+  }
+
+  img.content-mask {
+    position: absolute;
+    right: 0;
+    pointer-events: none;
+    visibility: hidden;
+    background-color: @text-color-very-subtle;
+  }
+
+  &:hover img.content-mask {
+    visibility: visible;
+  }
+}

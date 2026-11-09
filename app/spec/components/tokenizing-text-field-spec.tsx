@@ -369,6 +369,33 @@ describe('TokenizingTextField', function () {
     });
   });
 
+  describe('prop: inputAccessory', function () {
+    it('is given what is typed, and a clear that empties the input and keeps focus', function () {
+      const accessory = jasmine.createSpy('inputAccessory').andReturn(null);
+      this.rerender(
+        <TokenizingTextField
+          tokens={this.tokens}
+          tokenKey={this.propTokenKey}
+          tokenRenderer={this.propTokenRenderer}
+          onRequestCompletions={this.propCompletionsForInput}
+          completionNode={this.propCompletionNode}
+          onAdd={this.propAdd}
+          onRemove={this.propRemove}
+          inputAccessory={accessory}
+        />
+      );
+      document.body.appendChild(this.container);
+      fireEvent.change(this.renderedInput, { target: { value: 'Alex' } });
+      const { value, clear } = accessory.mostRecentCall.args[0];
+      expect(value).toBe('Alex');
+      clear();
+      expect(this.renderedInput.value).toBe('');
+      expect(document.activeElement).toBe(this.renderedInput);
+      expect(this.propAdd).not.toHaveBeenCalled();
+      this.container.remove();
+    });
+  });
+
   describe('when blurred', function () {
     it('should do nothing if the relatedTarget is null meaning the app has been blurred', function () {
       fireEvent.focus(this.renderedInput);
@@ -390,6 +417,16 @@ describe('TokenizingTextField', function () {
       fireEvent.change(this.renderedInput, { target: { value: 'text' } });
       fireEvent.blur(this.renderedInput, { relatedTarget: document.body });
       expect(this.renderedInput.value).toBe('');
+    });
+
+    it('keeps the entered text when the parent refuses it', function () {
+      this.propAdd.andReturn(false);
+      fireEvent.focus(this.renderedInput);
+      fireEvent.change(this.renderedInput, { target: { value: 'Alex' } });
+      fireEvent.blur(this.renderedInput, { relatedTarget: document.body });
+      expect(this.renderedInput.value).toBe('Alex');
+      fireEvent.keyDown(this.renderedInput, { key: 'Enter', keyCode: 13 });
+      expect(this.renderedInput.value).toBe('Alex');
     });
 
     it('should no longer have the `focused` class', function () {

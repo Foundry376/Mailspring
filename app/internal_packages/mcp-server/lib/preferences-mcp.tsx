@@ -370,6 +370,7 @@ export default class PreferencesMcp extends React.Component<Record<string, never
                     <label>{localized('Access Level')}</label>
                     <select value={accessLevel} onChange={this._onAccessLevelChange}>
                       <option value="read-only">{localized('Read Only')}</option>
+                      <option value="read-draft">{localized('Read & Draft')}</option>
                       <option value="read-write">{localized('Read & Write')}</option>
                       <option value="read-write-send">{localized('Read, Write & Send')}</option>
                     </select>

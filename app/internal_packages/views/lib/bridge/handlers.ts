@@ -312,13 +312,16 @@ export const HANDLERS: { [method: string]: Handler } = {
   'events.find': async ({ grant }, params) => {
     requirePermission(grant, 'calendar.read');
     const range = parseRange(params);
-    return serializeEvents(grant, await eventQuery(range), range);
+    return serializeEvents(grant, await eventQuery(range), await calendarsQuery(), range);
   },
 
   'events.freeBusy': async ({ grant }, params) => {
     requirePermission(grant, 'calendar.read');
     const range = parseRange({ ...params, includeDeclined: false });
-    return freeBusy(serializeEvents(grant, await eventQuery(range), range), range);
+    return freeBusy(
+      serializeEvents(grant, await eventQuery(range), await calendarsQuery(), range),
+      range
+    );
   },
 
   'calendars.find': async ({ grant }) => {

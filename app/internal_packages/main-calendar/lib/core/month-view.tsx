@@ -8,14 +8,18 @@ import { CalendarView } from './calendar-constants';
 import CalendarHeaderStore from './calendar-header-store';
 import { EventOccurrence, EventRangeSubscription } from './calendar-data-source';
 import { MonthViewWeek } from './month-view-week';
-import { WeekBarsLayout, firstVisibleBarIds, layoutWeekBars } from './month-view-helpers';
+import {
+  WeekBarsLayout,
+  firstVisibleBarIds,
+  lanesThatFit,
+  layoutWeekBars,
+} from './month-view-helpers';
 import { getEventsWithDragPreview, withNewEventPreview } from './calendar-drag-utils';
 import { withUnsentChange } from './unsent-change';
 import { momentOf } from './calendar-helpers';
 import { WeekdayHeader } from './weekday-header';
 
 const DAYS_IN_WEEK = 7;
-const MAX_VISIBLE_EVENTS = 5;
 const VISIBLE_WEEKS = 6;
 
 function monthStartDate(m: Moment): CalendarDate {
@@ -167,7 +171,8 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
     week: Moment[],
     layout: WeekBarsLayout,
     firstBarIds: Set<string>,
-    currentMonth: number
+    currentMonth: number,
+    maxLanes: number
   ) {
     return (
       <MonthViewWeek
@@ -176,7 +181,7 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
         layout={layout}
         firstBarIds={firstBarIds}
         currentMonth={currentMonth}
-        maxVisibleEvents={MAX_VISIBLE_EVENTS}
+        maxVisibleEvents={maxLanes}
         focusedEvent={this.props.focusedEvent}
         selectedEvents={this.props.selectedEvents}
         onEventClick={this.props.onEventClick}
@@ -191,7 +196,7 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
     );
   }
 
-  _renderWeeks = (weekStarts: CalendarDate[], topWeek: CalendarDate) => {
+  _renderWeeks = (weekStarts: CalendarDate[], topWeek: CalendarDate, weekHeight: number) => {
     const events = withNewEventPreview(
       getEventsWithDragPreview(
         withUnsentChange(this.state.events, this.props.unsentChange),
@@ -202,7 +207,8 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
     const weeks = weekStarts.map((start) =>
       Array.from({ length: DAYS_IN_WEEK }, (_, i) => CalendarDateUtils.addCalendarDays(start, i))
     );
-    const layouts = weeks.map((days) => layoutWeekBars(events, days, MAX_VISIBLE_EVENTS));
+    const maxLanes = lanesThatFit(weekHeight);
+    const layouts = weeks.map((days) => layoutWeekBars(events, days, maxLanes));
     const visibleFrom =
       CalendarDateUtils.calendarDaysBetween(weekStarts[0], topWeek) / DAYS_IN_WEEK;
     const visibleBarIds = firstVisibleBarIds(
@@ -214,7 +220,8 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
         days.map(momentOf),
         layouts[idx],
         visibleBarIds[idx - visibleFrom] || new Set<string>(),
-        currentMonth
+        currentMonth,
+        maxLanes
       )
     );
   };
