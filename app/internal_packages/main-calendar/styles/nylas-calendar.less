@@ -252,13 +252,28 @@ body.platform-win32 {
         display: none;
       }
 
+      // A timed event in the all-day row, styled as the month view's bars.
+      .calendar-event-time,
+      .calendar-event-end-time {
+        font-size: 11px;
+        font-weight: normal;
+        opacity: 0.7;
+      }
+
+      .calendar-event-end-time {
+        flex-shrink: 0;
+        padding-left: 4px;
+        white-space: nowrap;
+      }
+
       .default-header {
         flex: 1;
       }
     }
     &.selected {
       .default-header,
-      .event-details {
+      .event-details,
+      .calendar-event-end-time {
         color: var(--event-selected-text-color);
       }
     }

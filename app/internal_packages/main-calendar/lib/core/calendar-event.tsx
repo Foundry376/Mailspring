@@ -1,7 +1,7 @@
 import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
 import { InjectedComponentSet, SVGIcons } from 'mailspring-component-kit';
-import { CalendarDateUtils, CalendarUtils } from 'mailspring-exports';
+import { CalendarDateUtils, CalendarUtils, localized } from 'mailspring-exports';
 import {
   EventOccurrence,
   inAllDayRow,
@@ -9,7 +9,7 @@ import {
   occurrenceStartUnix,
   occurrenceEndUnix,
 } from './calendar-data-source';
-import { calcEventColors, formatEventTimeRange } from './calendar-helpers';
+import { calcEventColors, formatEventTimeRange, formatShortTime } from './calendar-helpers';
 import { HitZone, ViewDirection } from './calendar-drag-types';
 import { detectHitZone, canAttemptMove, formatDragPreviewTime } from './calendar-drag-utils';
 import { DAY_DUR, columnSpan } from './week-view-helpers';
@@ -342,6 +342,23 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     );
   }
 
+  /** A timed event in the all-day row reads as the month view's bars do: "9AM Offsite … ends 5PM". */
+  _spanTime(end: 'start' | 'end') {
+    const { event, direction, scopeStart, scopeEnd } = this.props;
+    if (direction !== 'horizontal' || !isTimed(event)) return null;
+    // Only where it begins and ends, not on a side that runs past the days shown.
+    if (end === 'start') {
+      return event.start >= scopeStart ? (
+        <span className="calendar-event-time">{formatShortTime(event.start)} </span>
+      ) : null;
+    }
+    return event.end <= scopeEnd ? (
+      <span className="calendar-event-end-time">
+        {localized('ends %@', formatShortTime(event.end))}
+      </span>
+    ) : null;
+  }
+
   render() {
     const { direction, event, onClick, onDoubleClick, onContextMenu, selected, isDragging } =
       this.props;
@@ -400,8 +417,10 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
         onMouseDown={this._onMouseDown}
       >
         <span className="default-header" style={{ order: 0 }}>
+          {this._spanTime('start')}
           {event.isCancelled ? <s>{event.title}</s> : event.title}
         </span>
+        {this._spanTime('end')}
         {this._renderEventDetails()}
         <InjectedComponentSet
           className="event-injected-components"
