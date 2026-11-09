@@ -469,6 +469,36 @@ describe('updateDragState move with day snapping', function () {
     });
   });
 
+  it('starts a timed event of a day or more at the drop time when carried from the all-day row into the grid', function () {
+    // Monday 9 AM to Tuesday 9 AM, grabbed on its Tuesday cell, dropped Thursday 2 PM.
+    const event = makeOccurrence({
+      isAllDay: false,
+      start: localDay(2026, 8, 17) + 9 * HOUR,
+      end: localDay(2026, 8, 18) + 9 * HOUR,
+    });
+    const state = createDragState(
+      event,
+      { mode: 'move', cursor: 'grab' },
+      localDay(2026, 8, 18),
+      0,
+      0,
+      'all-day-area',
+      DEFAULT_DRAG_CONFIG
+    );
+    const dragged = updateDragState(
+      state,
+      localDay(2026, 8, 20) + 14 * HOUR,
+      100,
+      100,
+      'day-column',
+      DEFAULT_DRAG_CONFIG
+    );
+    expect({ start: dragged.previewStart, end: dragged.previewEnd }).toEqual({
+      start: localDay(2026, 8, 20) + 14 * HOUR,
+      end: localDay(2026, 8, 21) + 14 * HOUR,
+    });
+  });
+
   it('turns a timed event into one all-day day under the cursor, wherever it was grabbed', function () {
     // Grabbed in week view on its second column, then dropped on the all-day row.
     const event = makeOccurrence({

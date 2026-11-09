@@ -218,15 +218,18 @@ export function createDragState(
 
   // The grab offset keeps the event from jumping when the drag starts. `mouseTime` comes from
   // the grid, so it is measured against the grid's reading of the edge, not the edge itself.
+  // A day-granular surface reads only a day's midnight, so a bar grabbed there and carried into
+  // a day column starts (or ends) at the pointer.
+  const readsClockTime = containerType === 'day-column';
   let clickOffset = 0;
   let grabDayOffset = 0;
   if (hitZone.mode === 'move') {
-    clickOffset = mouseTime - CalendarDateUtils.firstOccurrenceUnix(start);
+    if (readsClockTime) clickOffset = mouseTime - CalendarDateUtils.firstOccurrenceUnix(start);
     grabDayOffset = CalendarDateUtils.calendarDaysBetween(
       event.startDate,
       CalendarDateUtils.calendarDateFromUnix(mouseTime)
     );
-  } else if (hitZone.mode === 'resize-end') {
+  } else if (hitZone.mode === 'resize-end' && readsClockTime) {
     clickOffset = mouseTime - CalendarDateUtils.firstOccurrenceUnix(end);
   }
 
