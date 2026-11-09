@@ -9,7 +9,6 @@ import {
 import {
   EventOccurrence,
   inAllDayRow,
-  isTimed,
   occurrenceAt,
   occurrenceStartUnix,
   occurrenceEndUnix,
@@ -298,11 +297,10 @@ export function updateDragState(
   // event dropped across kinds keeps its own kind (moves to that day) instead.
   // A timed event of a day or more is already drawn in the all-day row, so it moves along it as
   // itself, keeping its clock times, rather than turning all-day.
-  const longTimed = isTimed(state.event) && inAllDayRow(state.event);
-  const canConvert = state.mode === 'move' && !state.event.isRecurring && !longTimed;
+  const canConvert = state.mode === 'move' && !state.event.isRecurring;
   const previewIsAllDay =
     containerType === 'all-day-area'
-      ? state.event.isAllDay || canConvert
+      ? state.event.isAllDay || (canConvert && !inAllDayRow(state.event))
       : containerType === 'day-column'
         ? state.event.isAllDay && !canConvert
         : state.event.isAllDay;
