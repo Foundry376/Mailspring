@@ -114,5 +114,51 @@ describe('ProposeTimePopover', function () {
       );
       expect(days).toEqual(['2026-03-10', '2026-03-12']);
     });
+
+    // 2026-03-08 runs 23 hours in Chicago and 2026-11-01 runs 25, so a `+ 86400` step lands an
+    // hour off the midnight the organizer has to receive.
+    describe('across a DST transition', function () {
+      const localMidnight = (day: string) => moment(day, 'YYYY-MM-DD').unix();
+      const sent = () => ({
+        start: moment(proposal().start).format('YYYY-MM-DD HH:mm'),
+        end: moment(proposal().end).format('YYYY-MM-DD HH:mm'),
+      });
+
+      it('ends the day after a spring-forward last day at midnight', function () {
+        mount({
+          start: localMidnight('2026-03-07'),
+          end: localMidnight('2026-03-08'),
+          isAllDay: true,
+        });
+        popover._onChangeLastDay(moment('2026-03-08', 'YYYY-MM-DD').valueOf());
+        ReactTestUtils.Simulate.click(proposeButton());
+        expect(sent()).toEqual({ start: '2026-03-07 00:00', end: '2026-03-09 00:00' });
+
+        mount({
+          start: localMidnight('2026-03-08'),
+          end: localMidnight('2026-03-09'),
+          isAllDay: true,
+        });
+        expect(original()).toBe('Currently Sun, Mar 8');
+      });
+
+      it('ends the day after a fall-back last day at midnight', function () {
+        mount({
+          start: localMidnight('2026-10-31'),
+          end: localMidnight('2026-11-01'),
+          isAllDay: true,
+        });
+        popover._onChangeLastDay(moment('2026-11-01', 'YYYY-MM-DD').valueOf());
+        ReactTestUtils.Simulate.click(proposeButton());
+        expect(sent()).toEqual({ start: '2026-10-31 00:00', end: '2026-11-02 00:00' });
+
+        mount({
+          start: localMidnight('2026-11-01'),
+          end: localMidnight('2026-11-02'),
+          isAllDay: true,
+        });
+        expect(original()).toBe('Currently Sun, Nov 1');
+      });
+    });
   });
 });
