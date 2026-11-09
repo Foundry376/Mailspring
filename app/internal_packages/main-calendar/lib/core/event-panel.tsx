@@ -912,18 +912,18 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     const { event, onCalendarChange } = this.props;
     const byAccount = new Map<string, Calendar[]>();
     for (const c of choices) byAccount.set(c.accountId, [...(byAccount.get(c.accountId) ?? []), c]);
-    // A closed select shows only the option, and accounts often each have a "Calendar".
-    const shared = (c: Calendar) => choices.some((o) => o !== c && o.name === c.name);
     const options = (calendars: Calendar[]) =>
       calendars.map((c) => (
         <option key={c.id} value={c.id}>
-          {shared(c) ? `${c.name} · ${AccountStore.accountForId(c.accountId)?.label}` : c.name}
+          {c.name}
         </option>
       ));
     return (
       <TextSelect
         value={event.calendarId}
         aria-label={localized('Calendar')}
+        // Accounts often each have a "Calendar", which the closed select can't tell apart.
+        title={AccountStore.accountForId(event.accountId)?.label}
         onChange={(e) => onCalendarChange?.(choices.find((c) => c.id === e.target.value))}
       >
         {byAccount.size > 1

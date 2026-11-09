@@ -290,10 +290,9 @@ body.platform-win32 {
       }
     }
 
-    // Cancelled events: dotted border, transparent background, strikethrough text
+    // Cancelled events: dashed border, transparent background, strikethrough text
     &.cancelled {
-      border: 2px dashed;
-      border-bottom: 2px dashed;
+      border: 1px dashed var(--event-band-color, currentColor);
       background-color: transparent !important;
       background-image: none;
       .default-header {
@@ -305,6 +304,16 @@ body.platform-win32 {
       &:before {
         display: none; // Hide the left accent bar for cancelled events
       }
+
+      // Selected, it takes the tint other events have before selection, not the full fill.
+      &.selected {
+        background-color: ~'color-mix(in srgb, var(--event-band-color) 15%, transparent)' !important;
+
+        .default-header,
+        .event-details {
+          color: var(--event-text-color);
+        }
+      }
     }
 
     // Dragging state - reduce opacity to show original position
@@ -315,8 +324,8 @@ body.platform-win32 {
     // Drag preview - synthetic event styling
     &.drag-preview {
       opacity: 0.7;
-      outline: 2px dashed var(--event-band-color, inherit);
-      outline-offset: -2px;
+      outline: 1px dashed var(--event-band-color, inherit);
+      outline-offset: -1px;
       pointer-events: none;
       z-index: 1000;
 
@@ -698,8 +707,8 @@ body.platform-win32 {
 
       &.drag-preview {
         opacity: 0.7;
-        outline: 2px dashed var(--event-band-color, inherit);
-        outline-offset: -2px;
+        outline: 1px dashed var(--event-band-color, inherit);
+        outline-offset: -1px;
         pointer-events: none;
         position: relative;
         overflow: visible; // the time tooltip hangs above the chip, as in the week/day preview
