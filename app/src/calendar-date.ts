@@ -6,7 +6,12 @@
  */
 export type CalendarDate = number & { readonly __calendarDate: unique symbol };
 
-const MS_PER_DAY = 86400000;
+/**
+ * A fixed 24 hours. A calendar day can be 23 or 25 across DST, so step by days with
+ * shiftedDayStartUnix or addCalendarDays.
+ */
+export const SECONDS_PER_DAY = 86400;
+export const MS_PER_DAY = SECONDS_PER_DAY * 1000;
 
 /** ~12x the cost of a Date component read, so build one per zone, not per call */
 const partFormatters = new Map<string, Intl.DateTimeFormat>();
