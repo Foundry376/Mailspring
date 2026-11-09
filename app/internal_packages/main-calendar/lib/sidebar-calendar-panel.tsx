@@ -31,9 +31,8 @@ import {
   panelKey,
 } from './core/calendar-data-source';
 import { emailedEventIn } from '../../events/lib/invitation-versions';
-import { findEventConflicts } from '../../events/lib/rsvp-target';
-import { canRespondToEvent } from './core/calendar-rsvp';
-import { proposeNewEventTime } from './core/calendar-rsvp';
+import { findEventConflicts, nearbyEventsQuery } from '../../events/lib/rsvp-target';
+import { canRespondToEvent, proposeNewEventTime } from './core/calendar-rsvp';
 import { ChangeScope, deleteEvent, updateEvent } from './core/recurring-event-actions';
 import { UnsentChange, isUnsentChangeFor } from './core/unsent-change';
 import { showUnsentChangeDialog } from './core/unsent-change-dialog';
@@ -103,7 +102,10 @@ export class SidebarCalendarPanel extends React.Component<
   }
 
   componentDidUpdate(_: SidebarCalendarPanelProps, prevState: SidebarCalendarPanelState) {
-    if (prevState.shown !== this.state.shown) this._refreshConflicts(this.state.shown);
+    // Which calendars count as busy time comes from them, and they can land after the event.
+    if (prevState.shown !== this.state.shown || prevState.calendars !== this.state.calendars) {
+      this._refreshConflicts(this.state.shown);
+    }
   }
 
   async _refreshConflicts(shown: EventOccurrence | null) {
@@ -111,21 +113,17 @@ export class SidebarCalendarPanel extends React.Component<
     if (shown && canRespondToEvent(shown)) {
       const { accountId } = shown;
       const window = { start: occurrenceStartUnix(shown), end: occurrenceEndUnix(shown) };
-      const [row, nearby] = await Promise.all([
-        DatabaseStore.find<Event>(Event, CalendarUtils.parseOccurrenceId(shown.id).eventId),
-        DatabaseStore.findAll<Event>(Event).where([
-          Event.attributes.accountId.equal(accountId),
-          Event.attributes.recurrenceStart.lessThan(window.end),
-          Event.attributes.recurrenceEnd.greaterThan(window.start),
-        ]),
-      ]);
-      if (row) {
+      const nearby = await nearbyEventsQuery(accountId, window);
+      // Its own row is among them, being on the same account at the same time.
+      const eventId = CalendarUtils.parseOccurrenceId(shown.id).eventId;
+      const icsuid = nearby.find((e) => e.id === eventId)?.icsuid;
+      if (icsuid) {
         list = findEventConflicts({
           nearby,
           calendars: this.state.calendars,
           window,
           addresses: AccountStore.aliasesFor([accountId]).map((a) => a.email),
-          icsuid: row.icsuid,
+          icsuid,
         });
       }
     }

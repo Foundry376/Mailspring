@@ -2,6 +2,7 @@ import {
   Calendar,
   CalendarConflict,
   CalendarUtils,
+  DatabaseStore,
   Event,
   ICSEventHelpers,
   ICSParticipantStatus,
@@ -113,6 +114,15 @@ export function conflictCalendarIds(
   return calendars
     .filter((c) => !c.readOnly && !disabled.has(c.id) && !CalendarUtils.isSomeoneElsesCalendar(c))
     .map((c) => c.id);
+}
+
+/** This account's events whose stored span touches the window, for findEventConflicts. */
+export function nearbyEventsQuery(accountId: string, window: { start: number; end: number }) {
+  return DatabaseStore.findAll<Event>(Event).where([
+    Event.attributes.accountId.equal(accountId),
+    Event.attributes.recurrenceStart.lessThan(window.end),
+    Event.attributes.recurrenceEnd.greaterThan(window.start),
+  ]);
 }
 
 /**

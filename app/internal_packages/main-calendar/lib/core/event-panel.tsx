@@ -28,7 +28,13 @@ import {
   TextSelect,
   TimePicker,
 } from 'mailspring-component-kit';
-import { EventOccurrence, EventAttendee, isTimed, occurrenceTimes } from './calendar-data-source';
+import {
+  EventOccurrence,
+  EventAttendee,
+  isTimed,
+  occurrenceStartUnix,
+  occurrenceTimes,
+} from './calendar-data-source';
 import {
   allDayToggleTimes,
   asksGuestShowAsScope,
@@ -37,6 +43,7 @@ import {
   clampEnd,
   editableFields,
   extractNotesFromDescription,
+  formatConflict,
   formatShortTimeRange,
   formatTime,
   hasGuests,
@@ -58,6 +65,7 @@ import { formatTimezone } from './timezone-selector';
 import { ShowAsOption, showAsLabel } from './show-as-selector';
 import {
   canRespondToEvent,
+  isAnsweredYesOrNo,
   isOrganizer,
   myAttendeeEmail,
   myParticipationStatus,
@@ -634,15 +642,12 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   // Gone once answered Yes or No, as the answer section is.
   _renderConflicts() {
     const { conflicts, event } = this.props;
-    const answered = ['ACCEPTED', 'DECLINED'].includes(myParticipationStatus(event));
+    const answered = isAnsweredYesOrNo(myParticipationStatus(event));
     if (!conflicts?.length || !canRespondToEvent(event) || answered) return null;
     return conflicts.map((c) => (
       <div className="event-panel-row event-panel-conflict" key={`${c.eventId}-${c.start}`}>
         <SVGIcons.AlertTriangle className="event-panel-icon" />
-        {localized(
-          'Conflicts with %@',
-          `${c.title || localized('(No title)')}, ${formatShortTimeRange(c.start, c.end)}`
-        )}
+        {localized('Conflicts with %@', formatConflict(c, occurrenceStartUnix(event)))}
       </div>
     ));
   }
@@ -1231,11 +1236,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   // guest row then changes; and while a change waits, so an answer and a new time aren't both sent.
   _answerSectionAway() {
     const { event, isCalendarReadOnly, unsentChange } = this.props;
-    return (
-      isCalendarReadOnly ||
-      !!unsentChange ||
-      ['ACCEPTED', 'DECLINED'].includes(myParticipationStatus(event))
-    );
+    return isCalendarReadOnly || !!unsentChange || isAnsweredYesOrNo(myParticipationStatus(event));
   }
 
   _renderAnswerSection(disabled: boolean, note?: string) {

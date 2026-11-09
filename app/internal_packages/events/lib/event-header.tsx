@@ -33,6 +33,7 @@ import {
   resolveAddTo,
   planRSVPWrite,
   findEventConflicts,
+  nearbyEventsQuery,
   counterProposalProblem,
   CounterProposalProblem,
   RSVPTargetResolution,
@@ -48,7 +49,15 @@ import {
 
 import { findOneIana } from 'windows-iana';
 import { focusedOccurrenceForIcsuid } from '../../main-calendar/lib/core/calendar-data-source';
-import { openProposeNewTimePopover } from '../../main-calendar/lib/core/calendar-rsvp';
+import {
+  isAnsweredYesOrNo,
+  openProposeNewTimePopover,
+} from '../../main-calendar/lib/core/calendar-rsvp';
+import {
+  formatConflict,
+  formatShortTimeRange,
+  formatTime,
+} from '../../main-calendar/lib/core/calendar-helpers';
 import {
   AttendeeStatusIcon,
   attendeeStatusClass,
@@ -156,7 +165,10 @@ function inOurZone(time: ICAL.Time) {
   return moment.tz(time.toString(), zone === 'Z' ? 'UTC' : zone).tz(DateUtils.timeZone);
 }
 
-/** The event's time on one line, as the invitation header shows it: "Fri, Sep 4, 2:00 PM – 3:00 PM". */
+/**
+ * The event's time on one line, in the calendar's own time format and our zone, which it names:
+ * "Fri, Sep 4, 2–3PM CDT".
+ */
 export function invitationTime(event: ICAL.Event): string {
   const start = inOurZone(event.startDate);
   const end = inOurZone(event.endDate);
@@ -167,10 +179,12 @@ export function invitationTime(event: ICAL.Event): string {
       ? `${start.format(day)} – ${last.format(day)}`
       : `${start.format(day)}, ${localized('All day')}`;
   }
-  const time = DateUtils.getTimeFormat({ timeZone: false });
+  const zone = end.format('z');
   return start.isSame(end, 'day')
-    ? `${start.format(day)}, ${start.format(time)} – ${end.format(time)}`
-    : `${start.format(day)}, ${start.format(time)} – ${end.format(day)}, ${end.format(time)}`;
+    ? `${start.format(day)}, ${formatShortTimeRange(start.unix(), end.unix())} ${zone}`
+    : `${start.format(day)}, ${formatTime(start.unix())} – ${end.format(day)}, ${formatTime(
+        end.unix()
+      )} ${zone}`;
 }
 
 /**
@@ -368,13 +382,9 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
         const copy = this._copyFor(calEvents, calendars);
         const window = this._conflictWindowFor(copy);
         // Bounded by the stored series span, so a handful of rows; findConflicts expands them.
-        return Rx.Observable.fromQuery(
-          DatabaseStore.findAll<Event>(Event).where([
-            Event.attributes.accountId.equal(message.accountId),
-            Event.attributes.recurrenceStart.lessThan(window.end),
-            Event.attributes.recurrenceEnd.greaterThan(window.start),
-          ])
-        ).map((nearby: Event[]) => ({ calEvents, calendars, nearby, copy, window }));
+        return Rx.Observable.fromQuery(nearbyEventsQuery(message.accountId, window)).map(
+          (nearby: Event[]) => ({ calEvents, calendars, nearby, copy, window })
+        );
       })
       .subscribe(({ calEvents, calendars, nearby, copy, window }) => {
         if (this._mounted) this._onCalendarCopies(calEvents, calendars, nearby, copy, window);
@@ -651,35 +661,27 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
   _renderConflicts() {
     const { conflicts, icsEvent } = this.state;
     if (!conflicts || !conflicts.length) return false;
-    if (['ACCEPTED', 'DECLINED'].includes(this._myStatus())) return false;
+    if (isAnsweredYesOrNo(this._myStatus())) return false;
 
-    const timeFormat = DateUtils.getTimeFormat({ timeZone: false });
     // The header dates a series by its first occurrence while the slot checked is the next one,
     // so a clash on another day than the one shown says which day.
-    const shownDay = inOurZone(icsEvent.startDate);
-    const label = (conflict: CalendarConflict) => {
-      const start = moment.unix(conflict.start).tz(DateUtils.timeZone);
-      const end = moment.unix(conflict.end).tz(DateUtils.timeZone);
-      const day = start.isSame(shownDay, 'day') ? '' : `${start.format('ddd, MMM D')}, `;
-      return `${conflict.title || localized('(No title)')}, ${day}${start.format(
-        timeFormat
-      )} – ${end.format(timeFormat)}`;
-    };
-
+    const shownDay = icsEvent.startDate.toJSDate().getTime() / 1000;
+    const me = CalendarUtils.selfParticipant(icsEvent, this.props.message.accountId);
     return (
       <div className="event-conflicts">
         <div className="event-conflicts-title">
           {conflicts.length === 1
-            ? localized('Conflicts with %@', label(conflicts[0]))
+            ? localized('Conflicts with %@', formatConflict(conflicts[0], shownDay))
             : localized('Conflicts with %@ events', conflicts.length)}
         </div>
         {conflicts.length > 1 &&
           conflicts.map((conflict) => (
             <div className="event-conflict" key={`${conflict.eventId}-${conflict.start}`}>
-              {label(conflict)}
+              {formatConflict(conflict, shownDay)}
             </div>
           ))}
-        {this.state.rsvp?.target && (
+        {/* Only a guest proposes, from the copy on our calendar. */}
+        {me && this.state.rsvp.target && (
           <a className="event-propose" onClick={this._onProposeNewTime}>
             {localized('Propose a new time')}
           </a>
@@ -848,7 +850,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     return (
       verb && (
         <div className="event-answer-message">
-          {localized(`%1$@ has %2$@ this event`, from.email, verb)}
+          {localized(`%1$@ has %2$@ this event`, name, verb)}
         </div>
       )
     );

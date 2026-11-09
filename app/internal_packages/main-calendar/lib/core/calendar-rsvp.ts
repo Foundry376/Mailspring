@@ -65,6 +65,11 @@ export function myAttendeeEmail(occurrence: EventOccurrence): string | null {
   return null;
 }
 
+/** Yes or No, after which the answer section and conflicts go; Maybe keeps them. */
+export function isAnsweredYesOrNo(status: string | null) {
+  return status === 'ACCEPTED' || status === 'DECLINED';
+}
+
 /** Our current participation status for this occurrence, if we're on the guest list. */
 export function myParticipationStatus(occurrence: EventOccurrence): string | null {
   const me = myAttendeeEmail(occurrence);

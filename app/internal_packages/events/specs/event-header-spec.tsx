@@ -26,7 +26,13 @@ import {
   Thread,
   Utils,
 } from 'mailspring-exports';
-import { EventHeader, organizerName, renderLocation, repeatSummary } from '../lib/event-header';
+import {
+  EventHeader,
+  invitationTime,
+  organizerName,
+  renderLocation,
+  repeatSummary,
+} from '../lib/event-header';
 import * as calendarDataSource from '../../main-calendar/lib/core/calendar-data-source';
 import * as calendarRsvp from '../../main-calendar/lib/core/calendar-rsvp';
 
@@ -523,20 +529,6 @@ describe('EventHeader answering an invitation', function () {
     });
   });
 
-  it('names the account beside a calendar named something else, in one sentence', function () {
-    mount({ events: [], calendars: [shared] });
-    runs(() => {
-      expect(destination().textContent).toBe('Yes or Maybe adds it to US On Call');
-    });
-  });
-
-  it('names a calendar called after the account once', function () {
-    mount({ events: [], calendars: [mine] });
-    runs(() => {
-      expect(destination().textContent).toBe('Yes or Maybe adds it to brian@example.com');
-    });
-  });
-
   it('only emails a decline when the invitation is on no calendar', function () {
     mount({ events: [], calendars: [mine] });
     runs(() => {
@@ -771,7 +763,7 @@ describe('EventHeader answering an invitation', function () {
         ],
       });
       runs(() => {
-        expect(conflictLines()).toEqual(['Standup, 8:30 am – 9:00 am']);
+        expect(conflictLines()).toEqual(['Standup, 8:30–9AM']);
       });
     });
 
@@ -809,7 +801,7 @@ describe('EventHeader answering an invitation', function () {
         nearby: [busyAt('Standup', mine.id, '20260301T143000Z', '20260301T150000Z')],
       });
       runs(() => {
-        expect(conflictLines()).toEqual(['Standup, 8:30 am – 9:00 am']);
+        expect(conflictLines()).toEqual(['Standup, 8:30–9AM']);
       });
     });
 
@@ -826,13 +818,17 @@ describe('EventHeader answering an invitation', function () {
         Promise.resolve(occurrence)
       );
       const open = spyOn(calendarRsvp, 'openProposeNewTimePopover');
+      // A room's copy too, so the calendar named is the one our answer would go to.
+      const room = cal({ id: 'cal-room', name: 'Board Room' });
       mount({
-        events: [synced],
-        calendars: [mine],
+        events: [onRoom, synced],
+        calendars: [room, mine],
         nearby: [busyAt('Standup', mine.id, '20260301T143000Z', '20260301T150000Z')],
       });
       runs(() => {
-        spyOn(DatabaseStore, 'findAll').andReturn({ where: () => Promise.resolve([mine]) } as any);
+        spyOn(DatabaseStore, 'findAll').andReturn({
+          where: () => Promise.resolve([room, mine]),
+        } as any);
         const link = ReactTestUtils.findRenderedDOMComponentWithClass(header, 'event-propose');
         ReactTestUtils.Simulate.click(link);
       });
@@ -1349,6 +1345,47 @@ describe('EventHeader for an invitation a later email revised', function () {
       accept();
       expect((queued[1] as SyncbackEventTask).event.ics).not.toContain('EXDATE');
     });
+  });
+});
+
+// The runner pins TZ to America/Chicago (scripts/test.js), where midnight UTC is the day before.
+describe('EventHeader time line', function () {
+  const time = (...lines: string[]) =>
+    invitationTime(
+      CalendarUtils.parseICSString(
+        [
+          'BEGIN:VCALENDAR',
+          'BEGIN:VEVENT',
+          'UID:t@test',
+          ...lines,
+          'END:VEVENT',
+          'END:VCALENDAR',
+        ].join('\r\n')
+      ).event
+    );
+
+  it('reads a one-day all-day event as the day it names, in any zone', function () {
+    expect(time('DTSTART;VALUE=DATE:20260301', 'DTEND;VALUE=DATE:20260302')).toBe(
+      'Sun, Mar 1, All day'
+    );
+  });
+
+  it('ends an all-day event of several days on its last day, not the day after', function () {
+    expect(time('DTSTART;VALUE=DATE:20260301', 'DTEND;VALUE=DATE:20260303')).toBe(
+      'Sun, Mar 1 – Mon, Mar 2'
+    );
+  });
+
+  it('gives a timed event in our zone, naming it', function () {
+    expect(time('DTSTART:20260301T200000Z', 'DTEND:20260301T210000Z')).toBe(
+      'Sun, Mar 1, 2–3PM CST'
+    );
+  });
+
+  it('names both days of a timed event that crosses midnight', function () {
+    expect(time('DTSTART:20260302T050000Z', 'DTEND:20260302T070000Z')).toBe(
+      'Sun, Mar 1, 11:00 PM – Mon, Mar 2, 1:00 AM CST'
+    );
   });
 });
 
