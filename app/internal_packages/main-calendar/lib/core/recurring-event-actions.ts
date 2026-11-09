@@ -1,7 +1,10 @@
 import {
   Actions,
+  DatabaseStore,
+  DestroyEventTask,
   Event,
   SyncbackEventTask,
+  TaskQueue,
   ICSEventHelpers,
   CalendarUtils,
   localized,
@@ -11,8 +14,17 @@ import {
   RecurringEventChoice,
   RecurringEventOperation,
 } from './recurring-event-dialog';
-import { occurrenceForRecurrenceId, occurrenceTimes } from './calendar-data-source';
+import {
+  EventOccurrence,
+  focusedEventInfoForEvents,
+  occurrenceForRecurrenceId,
+  occurrenceStartUnix,
+  occurrenceTimes,
+} from './calendar-data-source';
 import { ShowAsOption } from './show-as-selector';
+import { organizerForAccount } from './calendar-helpers';
+import { UnsentChange, unsentEdit } from './unsent-change';
+import type { AttendeeChange } from '../../../../src/ics-event-helpers';
 
 /**
  * Snapshot of event data for undo support.
@@ -99,12 +111,24 @@ export type EventPropertyEdit =
 export interface EventChange {
   times?: { start: number; end: number; isAllDay: boolean };
   edits: EventPropertyEdit[];
+  attendees?: AttendeeChange;
 }
 
 function applyPropertyEdit(ics: string, edit: EventPropertyEdit) {
   return edit.property === 'rrule'
     ? ICSEventHelpers.updateRecurrenceRule(ics, edit.value)
     : ICSEventHelpers.updateEventProperty(ics, edit.property, edit.value);
+}
+
+function applyAttendeeChange(
+  ics: string,
+  event: Event,
+  change: EventChange,
+  recurrenceId?: string
+): string {
+  if (!change.attendees) return ics;
+  const organizer = organizerForAccount(event.accountId);
+  return ICSEventHelpers.changeAttendees(ics, change.attendees, { organizer, recurrenceId });
 }
 
 /**
@@ -118,7 +142,7 @@ export function modifySimpleEventChange(
   description = localized('Edit event')
 ): SyncbackEventTask {
   const undoData = captureEventSnapshot(event);
-  let ics = change.edits.reduce(applyPropertyEdit, event.ics);
+  let ics = applyAttendeeChange(change.edits.reduce(applyPropertyEdit, event.ics), event, change);
   if (change.times) {
     ics = ICSEventHelpers.updateEventTimes(ics, change.times);
     event.recurrenceStart = change.times.start;
@@ -127,6 +151,33 @@ export function modifySimpleEventChange(
   event.ics = ICSEventHelpers.bumpEventSequence(ics);
 
   const task = SyncbackEventTask.forUpdating({ event, undoData, description });
+  Actions.queueTask(task);
+  return task;
+}
+
+/**
+ * Writes a guest's own settings to their copy of an invitation, for `scope` on a series. The
+ * SEQUENCE stays: only the organizer revises a meeting (RFC 5546 section 2.1.4).
+ */
+export function modifyGuestCopy(
+  row: Event,
+  change: EventChange & { slot?: number },
+  scope: ChangeScope
+): SyncbackEventTask {
+  const undoData = captureEventSnapshot(row);
+  const { slot } = change;
+  row.ics =
+    slot === undefined || row.isRecurrenceException() || scope === 'all-occurrences'
+      ? change.edits.reduce(applyPropertyEdit, row.ics)
+      : occurrenceExceptionIcs(row.ics, slot, {
+          ...change,
+          times: occurrenceTimes(occurrenceAtSlot(row, slot)),
+        }).ics;
+  const task = SyncbackEventTask.forUpdating({
+    event: row,
+    undoData,
+    description: localized('Edit event'),
+  });
   Actions.queueTask(task);
   return task;
 }
@@ -147,6 +198,32 @@ export function createOccurrenceException(options: EventTimeChangeOptions): void
   );
 }
 
+function occurrenceExceptionIcs(
+  masterIcs: string,
+  slot: number,
+  change: EventChange & Required<Pick<EventChange, 'times'>>
+) {
+  const { times } = change;
+  const created = ICSEventHelpers.createRecurrenceException(
+    masterIcs,
+    slot,
+    times.start,
+    times.end,
+    times.isAllDay
+  );
+  const edited = (property: EventPropertyEdit['property']) =>
+    change.edits.find((e) => e.property === property)?.value ?? undefined;
+  const ics = change.edits.length
+    ? ICSEventHelpers.applyEditsToException(created.masterIcs, created.recurrenceId, {
+        summary: edited('summary'),
+        location: edited('location'),
+        description: edited('description'),
+        transparency: edited('transp') as ShowAsOption | undefined,
+      })
+    : created.masterIcs;
+  return { ics, recurrenceId: created.recurrenceId };
+}
+
 /**
  * Writes a change to one occurrence of a series as its inline exception and queues one syncback
  * task. A repeat rule belongs to the whole series, so a change carrying one goes to
@@ -162,25 +239,12 @@ export function modifyOccurrenceChange(
 ): SyncbackEventTask {
   const undoData = captureEventSnapshot(master);
   const { times } = change;
-  const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
-    master.ics,
-    slot,
-    times.start,
-    times.end,
-    times.isAllDay
-  );
-  const edited = (property: EventPropertyEdit['property']) =>
-    change.edits.find((e) => e.property === property)?.value ?? undefined;
-  const ics = change.edits.length
-    ? ICSEventHelpers.applyEditsToException(masterIcs, recurrenceId, {
-        summary: edited('summary'),
-        location: edited('location'),
-        description: edited('description'),
-        transparency: edited('transp') as ShowAsOption | undefined,
-      })
-    : masterIcs;
+  const { ics, recurrenceId } = occurrenceExceptionIcs(master.ics, slot, change);
 
-  master.ics = ICSEventHelpers.bumpEventSequence(ics, recurrenceId);
+  master.ics = ICSEventHelpers.bumpEventSequence(
+    applyAttendeeChange(ics, master, change, recurrenceId),
+    recurrenceId
+  );
   master.recurrenceStart = times.start;
   master.recurrenceEnd = times.end;
 
@@ -216,7 +280,7 @@ export function modifySeriesChange(
   description = localized('Edit recurring event')
 ): SyncbackEventTask {
   const undoData = captureEventSnapshot(master);
-  let ics = change.edits.reduce(applyPropertyEdit, master.ics);
+  let ics = applyAttendeeChange(change.edits.reduce(applyPropertyEdit, master.ics), master, change);
 
   if (change.times) {
     const { start, end, isAllDay } = change.times;
@@ -254,14 +318,46 @@ export function modifyEventChange(
   if (scope === 'all-occurrences') {
     return modifySeriesChange(row, slot, change);
   }
-  const occurrence = change.times ? null : occurrenceForRecurrenceId([row], slot);
-  if (!change.times && !occurrence) {
-    throw new Error(`No occurrence of ${row.id} at ${slot} to change`);
-  }
   return modifyOccurrenceChange(row, slot, {
     ...change,
-    times: change.times ?? occurrenceTimes(occurrence),
+    times: change.times ?? occurrenceTimes(occurrenceAtSlot(row, slot)),
   });
+}
+
+function occurrenceAtSlot(row: Event, slot: number) {
+  const occurrence = occurrenceForRecurrenceId([row], slot);
+  if (!occurrence) throw new Error(`No occurrence of ${row.id} at ${slot} to change`);
+  return occurrence;
+}
+
+/**
+ * Writes a change made in the panel. `follow.onMove` gets where the shown occurrence lands
+ * before the sync engine writes it, so the host can keep it selected.
+ */
+export async function updateEvent(
+  change: UnsentChange,
+  scope: ChangeScope = 'this-occurrence',
+  follow?: {
+    shown: EventOccurrence;
+    onMove: (row: Event, start: number, staleIcs: string) => void;
+  }
+) {
+  const row = await DatabaseStore.find<Event>(Event, change.eventId);
+  if (!row) return;
+  const staleIcs = row.ics;
+  const task = change.guestCopy
+    ? modifyGuestCopy(row, change, scope)
+    : modifyEventChange(row, change, scope);
+  // A new repeat rule or time leaves the one-off fallback in currentOccurrence nothing to match.
+  if (follow) {
+    const start = change.times?.start ?? occurrenceStartUnix(follow.shown);
+    // A new rule may have no occurrence there, so its next one is shown.
+    const landing = unsentEdit(change, 'rrule')
+      ? (focusedEventInfoForEvents([row], start)?.start ?? start)
+      : start;
+    follow.onMove(row, landing, staleIcs);
+  }
+  await TaskQueue.waitForPerformLocal(task);
 }
 
 /**
@@ -329,4 +425,136 @@ export async function modifyEventWithRecurringSupport(
       masterEvent: event,
     };
   }
+}
+
+/**
+ * Delete a single event occurrence, handling recurring events appropriately
+ */
+export async function deleteEvent(occurrence: EventOccurrence) {
+  try {
+    // Parse the event ID from the occurrence ID (handles recurring instance IDs)
+    const eventId = CalendarUtils.parseOccurrenceId(occurrence.id).eventId;
+
+    // Fetch the full event from database to get ICS data
+    const event = await DatabaseStore.find<Event>(Event, eventId);
+    if (!event) {
+      console.error('Could not find event to delete:', eventId);
+      return;
+    }
+
+    // Check if this is a recurring event (and not already an exception)
+    const isRecurring = ICSEventHelpers.isRecurringEvent(event.ics);
+
+    if (event.isRecurrenceException()) {
+      // Deleting a moved occurrence means cancelling it on the master; see
+      // removeInlineException for why the row must never be destroyed on its own.
+      const master = await DatabaseStore.findBy<Event>(Event, {
+        accountId: event.accountId,
+        calendarId: event.calendarId,
+        icsuid: event.icsuid,
+        recurrenceId: '',
+      });
+      if (master) {
+        await cancelExceptionOccurrence(master, event);
+        return;
+      }
+    }
+
+    if (isRecurring && !event.isRecurrenceException()) {
+      // Show recurring event dialog
+      const choice = await showRecurringEventDialog('delete', occurrence.title);
+
+      if (choice === 'cancel') {
+        return; // User cancelled this deletion
+      }
+
+      if (choice === 'this-occurrence') {
+        // Delete only this occurrence by adding EXDATE to master
+        await deleteOccurrence(event, occurrence);
+      } else {
+        // Delete entire series
+        await deleteEntireEvent(event);
+      }
+    } else {
+      // Non-recurring event or already an exception - delete normally
+      await deleteEntireEvent(event);
+    }
+  } catch (error) {
+    console.error('Failed to delete event:', error);
+    AppEnv.showErrorDialog({
+      title: localized('Delete Failed'),
+      message: localized('Failed to delete the event. Please try again.'),
+    });
+  }
+}
+
+/**
+ * Delete a single occurrence of a recurring event by adding EXDATE to master.
+ * Supports undo - restores the original ICS without the EXDATE.
+ */
+async function deleteOccurrence(masterEvent: Event, occurrence: EventOccurrence) {
+  // Capture original state for undo BEFORE modifying
+  const undoData = {
+    ics: masterEvent.ics,
+    recurrenceStart: masterEvent.recurrenceStart,
+    recurrenceEnd: masterEvent.recurrenceEnd,
+  };
+
+  // Add EXDATE to exclude this occurrence.
+  masterEvent.ics = ICSEventHelpers.bumpEventSequence(
+    ICSEventHelpers.addExclusionDate(
+      masterEvent.ics,
+      occurrenceStartUnix(occurrence),
+      occurrence.isAllDay
+    )
+  );
+
+  // Queue syncback with undo support
+  const task = SyncbackEventTask.forUpdating({
+    event: masterEvent,
+    undoData,
+    description: localized('Delete occurrence'),
+  });
+  Actions.queueTask(task);
+}
+
+/** Cancels the occurrence an inline exception overrides, by editing the master. */
+async function cancelExceptionOccurrence(masterEvent: Event, exceptionEvent: Event) {
+  const undoData = {
+    ics: masterEvent.ics,
+    recurrenceStart: masterEvent.recurrenceStart,
+    recurrenceEnd: masterEvent.recurrenceEnd,
+  };
+
+  const updated = ICSEventHelpers.removeInlineException(
+    masterEvent.ics,
+    exceptionEvent.recurrenceId
+  );
+  if (updated === masterEvent.ics) {
+    // The row and its master disagree about which occurrence this is. Both live in one
+    // resource, so a DELETE would take the series; refuse rather than guess.
+    AppEnv.showErrorDialog({
+      title: localized('Delete Failed'),
+      message: localized(
+        'This occurrence could not be found in its series. Refresh the calendar and try again.'
+      ),
+    });
+    return;
+  }
+
+  masterEvent.ics = ICSEventHelpers.bumpEventSequence(updated);
+  Actions.queueTask(
+    SyncbackEventTask.forUpdating({
+      event: masterEvent,
+      undoData,
+      description: localized('Delete occurrence'),
+    })
+  );
+}
+
+/**
+ * Delete an entire event (or series)
+ */
+async function deleteEntireEvent(event: Event) {
+  Actions.queueTask(DestroyEventTask.forRemoving({ events: [event] }));
 }

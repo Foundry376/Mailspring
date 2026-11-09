@@ -1,4 +1,12 @@
-import { AccountStore, Calendar, Event, Matcher, RegExpUtils, Utils } from 'mailspring-exports';
+import {
+  Account,
+  AccountStore,
+  Calendar,
+  Event,
+  Matcher,
+  RegExpUtils,
+  Utils,
+} from 'mailspring-exports';
 import { findOneIana } from 'windows-iana';
 
 type ICAL = typeof import('ical.js').default;
@@ -623,6 +631,18 @@ export function isOwnCalendar(calendar: Calendar, addresses: string[]): boolean 
   if (calendar.ownership === 'mine') return true;
   if (calendar.ownership === 'other') return false;
   return addresses.some((address) => Utils.emailIsEquivalent(calendar.name, address));
+}
+
+/**
+ * Whether a calendar's name already says which account it is in: Google names an account's
+ * primary calendar after its address, and the account's label can match it. Other names, such as
+ * "Calendar" or Yahoo's username, need the account beside them.
+ */
+export function isNamedAfterAccount(calendar: Calendar, account: Account): boolean {
+  return (
+    Utils.emailIsEquivalent(calendar.name, account.emailAddress) ||
+    calendar.name.trim().toLowerCase() === (account.label || '').trim().toLowerCase()
+  );
 }
 
 /**

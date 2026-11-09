@@ -1,185 +1,152 @@
 @import 'ui-variables';
 @import 'ui-mixins';
 
+// The details on the left, the answer beside them behind a hairline.
 .event-wrapper {
   cursor: default;
-  position: relative;
-  font-size: @font-size-small;
   margin-top: @spacing-standard;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  width: 100%;
-  display: inline-block;
-  border-radius: @border-radius-base;
-  border: 1px solid @border-color-divider;
+  font-size: @font-size-base;
+  line-height: 18px;
+  color: @text-color;
 
-  .event-header {
-    border-bottom: 1px solid @border-color-divider;
-    padding: 10px;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .event-invitation {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: color-mix(in srgb, @accent-primary 10%, @background-primary);
+  }
 
-    img {
-      margin-right: 20px;
-    }
-
-    .event-title-text {
-      color: @text-color-very-subtle;
-    }
+  .event-invitation-title-row {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
 
     .event-title {
-      color: @text-color;
-    }
-    .event-download {
-      float: right;
-      border-radius: @border-radius-base;
-      border: 1px solid @border-color-divider;
-      padding: 0 4px;
-      img {
-        background: @text-color-very-subtle;
-        margin: 0;
+      flex: 1;
+      min-width: 0;
+      font-weight: @font-weight-semi-bold;
+      user-select: text;
+
+      &.cancelled {
+        text-decoration: line-through;
       }
     }
   }
 
-  .event-body {
-    padding: @padding-small-horizontal;
-    color: @text-color;
+  .event-view-in-calendar,
+  .event-propose {
+    flex-shrink: 0;
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .event-download {
+    align-self: center;
+    padding: 0;
+    img.content-mask {
+      background-color: @text-color-very-subtle;
+    }
+  }
+
+  .event-invitation-columns {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .event-invitation-details {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    .event-time,
+    .event-repeat,
+    .event-newer-invitation {
+      font-size: 12px;
+      line-height: 16px;
+      color: fadeout(@text-color, 35%);
+    }
 
     .event-location {
+      font-size: 12px;
+      line-height: 16px;
+      user-select: text;
+      overflow-wrap: anywhere;
+    }
+
+    .event-replaced-time {
+      margin-top: -6px;
+      font-size: 12px;
+      line-height: 16px;
+      color: fadeout(@text-color, 50%);
+    }
+
+    // The proposer's note, set off as the event panel sets it off.
+    .event-counter-note {
+      padding-left: 8px;
+      border-left: 3px solid color-mix(in srgb, @accent-primary 28%, @background-primary);
+      white-space: pre-line;
       user-select: text;
     }
+  }
 
-    .event-date {
-      display: inline-block;
-      width: 100%;
+  .event-conflicts {
+    display: flex;
+    flex-direction: column;
+    font-size: 12px;
+    line-height: 16px;
+    color: fadeout(@text-color, 35%);
 
-      // Not .event-conflicts red: a meeting with no conflicts must not look as though it has one.
-      .event-day {
-        color: @text-color-subtle;
-        display: block;
-        font-size: @font-size-large;
-      }
-
-      .event-time {
-        display: inline-block;
-        font-size: @font-size-h3;
-        font-weight: @font-weight-blond;
-      }
-    }
-
-    .event-conflicts {
-      margin-top: 6px;
+    .event-conflicts-title {
       color: @color-error;
-
-      .event-conflicts-title {
-        font-weight: @font-weight-semi-bold;
-      }
-
-      .event-conflict {
-        opacity: 0.85;
-      }
     }
 
-    .event-actions {
-      display: flex;
-      // Column so the "where this is going" line sits under the buttons, not beside them.
-      flex-direction: column;
-      align-items: flex-start;
-
-      .btn-rsvp {
-        margin-right: 10.5px;
-        margin-top: 5px;
-        min-width: 85px;
-        text-align: center;
-
-        &:hover {
-          background: mix(@background-primary, @text-color, 95%);
-        }
-        &:active {
-          background: mix(@background-primary, @text-color, 92%);
-        }
-
-        &.DECLINED {
-          background: @color-error;
-          color: @white;
-        }
-
-        &.ACCEPTED {
-          background: @color-success;
-          color: @white;
-        }
-
-        &.TENTATIVE {
-          background: @gray-light;
-          color: @white;
-        }
-      }
-
-      &.event-cancelled {
-        .cancelled-notice {
-          color: @color-error;
-          font-weight: @font-weight-semi-bold;
-          margin-top: 5px;
-        }
-      }
-
-      &.event-counter .event-counter-notice {
-        font-weight: @font-weight-semi-bold;
-        margin-top: 5px;
-      }
-
-      &.event-no-rsvp {
-        color: @text-color-subtle;
-        margin-top: 5px;
-      }
-
-      .event-rsvp-buttons {
-        display: flex;
-        flex-direction: row;
-      }
-
-      .event-rsvp-destination {
-        align-items: center;
-        color: @text-color-subtle;
-        display: flex;
-        flex-wrap: wrap;
-        font-size: 0.9em;
-        gap: 4px;
-        margin-top: 6px;
-
-        .event-rsvp-calendar-picker {
-          background: @background-primary;
-          border: 1px solid @border-color-divider;
-          border-radius: @border-radius-base;
-          color: @text-color;
-          font-size: inherit;
-          max-width: 240px;
-          padding: 2px 6px;
-
-          &:hover {
-            background: @background-secondary;
-          }
-
-          &:focus {
-            border-color: @accent-primary;
-            outline: none;
-          }
-        }
-      }
+    .event-propose {
+      margin-top: 4px;
+      align-self: flex-start;
     }
   }
-}
-body.platform-win32 {
-  .event-wrapper {
-    border-radius: 0;
-    .event-body {
-      .event-actions {
-        .btn-rsvp {
-          border-radius: 0;
-        }
-      }
+
+  .event-invitation-answer {
+    width: 208px;
+    flex-shrink: 0;
+    padding-left: 16px;
+    border-left: 1px solid @border-color-divider;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+
+    .answer-section {
+      align-self: stretch;
+      gap: 4px;
+    }
+
+    .event-rsvp-destination,
+    .event-no-rsvp,
+    .event-answer-message {
+      font-size: 12px;
+      line-height: 16px;
+      color: fadeout(@text-color, 35%);
+    }
+
+    .event-cancelled {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+    }
+
+    .event-reply {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      .attendee-status-colors();
+      .attendee-status-dot();
     }
   }
 }

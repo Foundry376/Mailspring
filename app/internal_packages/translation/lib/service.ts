@@ -124,6 +124,9 @@ export const TranslationsUsedLexicon: FeatureLexicon = {
   rechargeText: `${localized(
     'You can translate up to %1$@ emails each %2$@ with Mailspring Basic.'
   )} ${localized('Upgrade to Pro today!')}`,
+  rechargeTextAllTime: `${localized(
+    "You've used the %1$@ free translations included with Mailspring Basic."
+  )} ${localized('Upgrade to Pro today!')}`,
   iconUrl: 'mailspring://translation/assets/ic-translation-modal@2x.png',
 };
 

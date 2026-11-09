@@ -1,11 +1,7 @@
 import { ICSParticipantStatus, localized } from 'mailspring-exports';
+import { rsvpActions } from 'mailspring-component-kit';
 import { EventOccurrence } from './calendar-data-source';
-import {
-  canRespondToEvent,
-  myParticipationStatus,
-  respondToCalendarEvent,
-  rsvpActions,
-} from './calendar-rsvp';
+import { canRespondToEvent, myParticipationStatus, respondToCalendarEvent } from './calendar-rsvp';
 
 type TemplateItem =
   | { label: string; click: () => void; type?: 'checkbox'; checked?: boolean; enabled?: boolean }
@@ -31,7 +27,7 @@ interface CalendarEventContextMenuOptions {
   readOnly: boolean;
   onOpen: () => void;
   onDelete: () => void;
-  /** Offer a different time to the organizer. See proposeNewTimeForCalendarEvent. */
+  /** Offer a different time to the organizer. See proposeNewEventTime. */
   onProposeNewTime: () => void;
 }
 
@@ -72,7 +68,7 @@ export class CalendarEventContextMenu {
 
   template(): TemplateItem[] {
     const { occurrence, readOnly, onOpen, onDelete } = this.opts;
-    // A writable calendar and a meeting we organize (RFC 5546 section 2.1.4); an attendee gets
+    // A writable calendar and a meeting we organize (RFC 5546 section 2.1); an attendee gets
     // "View Event". Deleting our own copy of someone else's meeting stays governed by readOnly.
     const editable = !readOnly && occurrence.isMine;
 

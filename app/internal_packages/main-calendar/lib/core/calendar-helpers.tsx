@@ -1,27 +1,31 @@
 import moment, { Moment } from 'moment';
+import momentTz from 'moment-timezone';
 import {
   CalendarDate,
   Utils,
   AccountStore,
   Calendar,
+  CalendarConflict,
   Actions,
   DateUtils,
   Event,
   ICSEventHelpers,
   SyncbackEventTask,
-  TaskQueue,
   localized,
   CalendarDateUtils,
   CalendarUtils,
   DraftFactory,
 } from 'mailspring-exports';
 import { ShowAsOption, defaultShowAs } from './show-as-selector';
+import { alertTrigger, defaultAlert } from './alert-selector';
 import {
   MIN_EVENT_DURATION_SECONDS,
   DEFAULT_TIMED_EVENT_DURATION_SECONDS,
 } from './calendar-constants';
 import { EventOccurrence, coveredDates, isTimed } from './calendar-data-source';
 import { dayFraction } from './week-view-helpers';
+import { canRespondToEvent, isOrganizer } from './calendar-rsvp';
+import type { EventChange } from './recurring-event-actions';
 
 export function dateOf(m: Moment): CalendarDate {
   return CalendarDateUtils.calendarDateFromUnix(m.unix());
@@ -294,9 +298,22 @@ export function clampEnd(startUnix: number, endUnix: number, isAllDay: boolean):
   return Math.max(endUnix, floor);
 }
 
-/** The fields of a new event that the grid draws, as its editor would save them. */
+/**
+ * The zone an editor's time fields read in: the event's zone, or the machine's when tzdata
+ * cannot place it (an Outlook display name), since a save then keeps the instant shown.
+ */
+export function fieldZone(timezone: string): string {
+  return CalendarUtils.resolveIanaZone(timezone) || DateUtils.timeZone;
+}
+
+/** The instant whose wall clock in `toZone` is the one `unix` shows in `fromZone`. */
+export function sameWallClockIn(unix: number, fromZone: string, toZone: string): number {
+  const wallClock = momentTz.tz(unix * 1000, fromZone).format('YYYY-MM-DDTHH:mm:ss');
+  return momentTz.tz(wallClock, toZone).unix();
+}
+
+/** The slot and calendar a new event opens with; the panel holds every edit after that. */
 export interface NewEventDraft {
-  title: string;
   start: number;
   end: number;
   isAllDay: boolean;
@@ -306,12 +323,12 @@ export interface NewEventDraft {
 
 /** An event that does not exist yet, as an occurrence, so the grid draws it like any other. */
 export function newEventOccurrence(id: string, draft: NewEventDraft): EventOccurrence {
-  const { title, start, end, isAllDay, calendarId, accountId } = draft;
+  const { start, end, isAllDay, calendarId, accountId } = draft;
   const shared = {
     id,
     accountId,
     calendarId,
-    title,
+    title: '',
     description: '',
     location: '',
     isRecurring: false,
@@ -319,6 +336,7 @@ export function newEventOccurrence(id: string, draft: NewEventDraft): EventOccur
     isPending: false,
     isMine: true,
     isException: false,
+    isFree: defaultShowAs(isAllDay) === 'TRANSPARENT',
     organizer: null,
     attendees: [],
   };
@@ -358,6 +376,16 @@ function shortTimeFormat(time: moment.Moment): string {
  */
 export function formatShortTimeRange(startUnix: number, endUnix: number): string {
   return shortTimeRange(startUnix, endUnix, '–');
+}
+
+/** A conflict on one line, "Standup, 9–9:30AM", naming its day when it isn't the day shown. */
+export function formatConflict(conflict: CalendarConflict, shownDayUnix: number): string {
+  const start = moment.unix(conflict.start);
+  const day = start.isSame(moment.unix(shownDayUnix), 'day')
+    ? ''
+    : `${start.format('ddd, MMM D')}, `;
+  const title = conflict.title || localized('(No title)');
+  return `${title}, ${day}${formatShortTimeRange(conflict.start, conflict.end)}`;
 }
 
 function shortTimeRange(startUnix: number, endUnix: number, separator: string): string {
@@ -483,7 +511,6 @@ export interface CreateCalendarEventOptions {
   location?: string;
   attendees?: Array<{ email: string; name?: string }>;
   recurrenceRule?: string;
-  timezone?: string;
   transparency?: ShowAsOption;
 }
 
@@ -495,11 +522,11 @@ export function organizerForAccount(
   return account ? { email: account.emailAddress, name: account.name } : undefined;
 }
 
-/**
- * Create a new calendar event, queue the syncback task, and focus the event.
- * Shared by CalendarEventPopover and QuickEventPopover.
- */
-export async function createCalendarEvent(options: CreateCalendarEventOptions): Promise<void> {
+/** Builds a new calendar event and queues its creation. */
+export function queueNewCalendarEvent(options: CreateCalendarEventOptions): {
+  event: Event;
+  task: SyncbackEventTask;
+} {
   const icsuid = ICSEventHelpers.generateUID();
   const ics = ICSEventHelpers.createICSString({
     uid: icsuid,
@@ -507,13 +534,14 @@ export async function createCalendarEvent(options: CreateCalendarEventOptions): 
     start: options.start,
     end: options.end,
     isAllDay: options.isAllDay,
-    timezone: options.timezone || DateUtils.timeZone,
+    timezone: DateUtils.timeZone,
     description: options.description,
     location: options.location,
     organizer: organizerForAccount(options.accountId),
     attendees: options.attendees,
     recurrenceRule: options.recurrenceRule,
     transparency: options.transparency ?? defaultShowAs(options.isAllDay),
+    alarmTrigger: alertTrigger(defaultAlert(options.isAllDay)),
   });
 
   const event = new Event({
@@ -532,13 +560,7 @@ export async function createCalendarEvent(options: CreateCalendarEventOptions): 
     accountId: options.accountId,
   });
   Actions.queueTask(task);
-
-  try {
-    await TaskQueue.waitForPerformRemote(task);
-    Actions.focusCalendarEvent({ id: event.id, start: event.recurrenceStart });
-  } catch (error) {
-    console.error('Failed to sync new event to server:', error);
-  }
+  return { event, task };
 }
 
 /**
@@ -586,22 +608,70 @@ export function extractNotesFromDescription(description: string) {
 
 /** Anyone on the guest list besides the organizer, whom a change would email. */
 export function hasGuests(event: EventOccurrence): boolean {
-  return event.attendees.some(
-    (a) => !event.organizer || !Utils.emailIsEquivalent(a.email, event.organizer.email)
+  return event.attendees.some((a) => !isOrganizer(event, a));
+}
+
+export type PanelField =
+  | 'title'
+  | 'times'
+  | 'allDay'
+  | 'repeat'
+  | 'invitees'
+  | 'location'
+  | 'notes'
+  | 'showAs';
+
+const PANEL_FIELDS: PanelField[] = [
+  'title',
+  'times',
+  'allDay',
+  'repeat',
+  'invitees',
+  'location',
+  'notes',
+  'showAs',
+];
+
+/**
+ * What the event panel lets you change: all of an event you organize; on an invitation, its time
+ * as a proposal to the organizer and your own Show as; nothing on a read-only calendar.
+ */
+export function editableFields(event: EventOccurrence, isCalendarReadOnly: boolean) {
+  if (isCalendarReadOnly) return new Set<PanelField>();
+  if (event.isMine) return new Set(PANEL_FIELDS);
+  return new Set<PanelField>(
+    canRespondToEvent(event) && !event.isCancelled ? ['times', 'showAs'] : []
   );
 }
 
-export function canEditInPanel(event: EventOccurrence, isCalendarReadOnly: boolean): boolean {
-  return !isCalendarReadOnly && event.isMine;
+/** A guest's change to the times is held as a proposal to the organizer. */
+export function proposesTime(event: EventOccurrence, isCalendarReadOnly: boolean): boolean {
+  return !event.isMine && editableFields(event, isCalendarReadOnly).has('times');
 }
 
 export function asksScope(event: EventOccurrence): boolean {
   return event.isRecurring && !event.isException;
 }
 
-/** Edits wait in the panel's card when guests are emailed on every save, or for a scope. */
-export function holdsEdits(event: EventOccurrence, isCalendarReadOnly: boolean): boolean {
-  return canEditInPanel(event, isCalendarReadOnly) && (hasGuests(event) || asksScope(event));
+/**
+ * Google's CalDAV accepts a guest's TRANSP on one occurrence but ignores it on the series, so
+ * there a guest's Show as goes to the occurrence without asking.
+ */
+export function asksGuestShowAsScope(event: EventOccurrence): boolean {
+  return asksScope(event) && AccountStore.accountForId(event.accountId).provider !== 'gmail';
+}
+
+/**
+ * Edits wait in the panel's card when guests are emailed on every save, for a scope, or as a
+ * proposal; and while `change` is held, so it isn't overtaken by a save made beside it.
+ */
+export function holdsEdits(
+  event: EventOccurrence,
+  isCalendarReadOnly: boolean,
+  change: EventChange | null = null
+): boolean {
+  if (!event.isMine) return proposesTime(event, isCalendarReadOnly);
+  return !isCalendarReadOnly && (hasGuests(event) || asksScope(event) || !!change);
 }
 
 /** The times an event takes when All day is switched: whole days covering it, or 9–10 AM on its first day. */

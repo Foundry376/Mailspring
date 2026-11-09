@@ -48,10 +48,13 @@ class EmailFrameStylesStore extends MailspringStore {
       return '\nbody { filter: none !important; }' + '\nimg { filter: none !important; }';
     }
     if (mode === 'dark') {
+      // Emails whose own dark-mode rules are active are already dark; inverting
+      // them would give dark text on black.
+      const target = 'body:not(.adapts-to-dark-mode)';
       return (
-        '\n#inbox-html-wrapper { color: black; background: white; }' +
-        '\nbody { filter: invert(100%) hue-rotate(180deg) !important; }' +
-        '\nimg { filter: invert(100%) hue-rotate(180deg) !important; }'
+        `\n${target} #inbox-html-wrapper { color: black; --email-text-color: black; background: white; }` +
+        `\n${target} { filter: invert(100%) hue-rotate(180deg) !important; }` +
+        `\n${target} img { filter: invert(100%) hue-rotate(180deg) !important; }`
       );
     }
     return '';

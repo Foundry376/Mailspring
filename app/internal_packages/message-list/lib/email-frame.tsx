@@ -11,18 +11,26 @@ import {
 } from 'mailspring-exports';
 import { adjustImages } from './adjust-images';
 import EmailFrameStylesStore from './email-frame-styles-store';
-import { backgroundColorBehind, prepareEmailColors } from './email-color-detection';
+import {
+  adaptsToDarkMode,
+  backgroundColorBehind,
+  prepareEmailColors,
+} from './email-color-detection';
 
 /**
- * Pins the message document's color-scheme to the app's. Emails often declare
- * `color-scheme: dark` or `light dark` (newsletters, or pages captured with the
- * Dark Reader extension enabled), and when the iframe's root scheme differs from
- * the embedding element's, Chromium paints the iframe an opaque dark canvas
- * beneath our dark theme text. An inline !important declaration is the only
- * author style that outranks !important rules inside an `@layer`.
+ * Renders the message in the theme's color scheme rather than the OS's. The iframe
+ * element's `color-scheme` decides what `prefers-color-scheme` matches inside it, so
+ * emails' dark-mode rules (eg. Google Calendar's `#e8eaed` text) apply only in a
+ * dark theme.
+ *
+ * The message document's root gets the same scheme: emails often declare their own
+ * (newsletters' `light dark`, Dark Reader's `dark`), and when it differs from the
+ * iframe element's, Chromium paints the iframe an opaque canvas. An inline !important
+ * declaration is the only author style that outranks !important rules inside an `@layer`.
  */
-export function matchAppColorScheme(doc: Document, iframeEl: HTMLIFrameElement) {
-  const scheme = window.getComputedStyle(iframeEl).colorScheme;
+export function setColorSchemeFromTheme(doc: Document, iframeEl: HTMLIFrameElement) {
+  const scheme = AppEnv.themes.isActiveThemeDark() ? 'dark' : 'light';
+  iframeEl.style.colorScheme = scheme;
   doc.documentElement.style.setProperty('color-scheme', scheme, 'important');
 }
 
@@ -111,7 +119,7 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
           `<div id='inbox-plain-wrapper' class="${process.platform}"></div>`
       );
       doc.close();
-      matchAppColorScheme(doc, iframeEl);
+      setColorSchemeFromTheme(doc, iframeEl);
       const plainWrapper = doc.getElementById('inbox-plain-wrapper');
       plainWrapper.innerText = content;
       plainWrapper.setAttribute('role', 'document');
@@ -123,11 +131,13 @@ export default class EmailFrame extends React.Component<EmailFrameProps> {
           `<div id='inbox-html-wrapper' class="${process.platform}">${content}</div>`
       );
       doc.close();
-      matchAppColorScheme(doc, iframeEl);
+      setColorSchemeFromTheme(doc, iframeEl);
       const htmlWrapper = doc.getElementById('inbox-html-wrapper');
       if (htmlWrapper) {
         htmlWrapper.setAttribute('role', 'document');
         try {
+          // Exempts the email from the dark render mode's inversion (EmailFrameStylesStore).
+          doc.body.classList.toggle('adapts-to-dark-mode', adaptsToDarkMode(htmlWrapper));
           // Note: In some cases, prepareEmailColors modifies the doc, replacing
           // hardcoded black text with inherited colors for better theme support.
           const hasBackground = prepareEmailColors(htmlWrapper, backgroundColorBehind(iframeEl));

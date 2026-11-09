@@ -6,7 +6,6 @@ import {
   CalendarUtils,
   Contact,
   DatabaseStore,
-  DateUtils,
   DestroyEventTask,
   Event,
   ICSEventHelpers,
@@ -21,6 +20,7 @@ import { ViewError } from './errors';
 import moment from 'moment';
 import FocusedMomentStore from '../../../main-calendar/lib/core/focused-moment-store';
 import { recordAndSendRSVP } from '../../../main-calendar/lib/core/calendar-rsvp';
+import { queueNewCalendarEvent } from '../../../main-calendar/lib/core/calendar-helpers';
 
 /**
  * Calendar reads beyond events, and the calendar writes Views may make. Every write goes
@@ -146,8 +146,18 @@ function check<S extends z.ZodTypeAny>(schema: S, value: any): z.infer<S> {
 const Status = z.enum(['accepted', 'tentative', 'declined']);
 const PARTSTAT = { accepted: 'ACCEPTED', tentative: 'TENTATIVE', declined: 'DECLINED' };
 
+/**
+ * A date a View passed. `new Date('2026-12-17')` is UTC midnight, the previous evening west of
+ * Greenwich; a date without a time means that day here, as `new Date('2026-12-17T00:00')` does.
+ */
+export function dateFromInput(v: unknown): Date {
+  return new Date(
+    typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) ? `${v}T00:00` : (v as any)
+  );
+}
+
 const DateInput = z.union([z.string(), z.number()]).transform((v, ctx) => {
-  const d = new Date(v);
+  const d = dateFromInput(v);
   if (isNaN(d.getTime())) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'must be a date' });
     return z.NEVER;
@@ -205,8 +215,7 @@ export async function rsvp(viewId: string, grant: ViewGrant, id: string, status:
     title: parsed.summary || localized('(no title)'),
     people: organizer && !isMe(organizer) ? [organizer] : [],
   });
-  // The calendar's own RSVP: our copy's PARTSTAT plus an emailed REPLY to the organizer, for
-  // the whole series. Not undoable, since the REPLY can't be retracted.
+  // The calendar's own RSVP, for the whole series.
   await recordAndSendRSVP({
     event,
     myEmail: me.email,
@@ -229,30 +238,17 @@ export async function createEvent(viewId: string, grant: ViewGrant, params: any)
     people: others,
   });
 
-  const icsuid = ICSEventHelpers.generateUID();
-  const ics = ICSEventHelpers.createICSString({
-    uid: icsuid,
+  const { event } = queueNewCalendarEvent({
     summary: input.title,
     start: input.start,
     end: input.end,
     isAllDay: !!input.isAllDay,
-    timezone: DateUtils.timeZone,
+    calendarId: calendar.id,
+    accountId: calendar.accountId,
     description: input.description,
     location: input.location,
     attendees: input.attendees,
   });
-  const event = new Event({
-    calendarId: calendar.id,
-    accountId: calendar.accountId,
-    ics,
-    icsuid,
-    recurrenceStart: Math.floor(input.start.getTime() / 1000),
-    recurrenceEnd: Math.floor(input.end.getTime() / 1000),
-  });
-  event.title = input.title;
-  Actions.queueTask(
-    SyncbackEventTask.forCreating({ event, calendarId: calendar.id, accountId: calendar.accountId })
-  );
   return { eventId: event.id };
 }
 
@@ -346,11 +342,12 @@ export async function showInCalendar(grant: ViewGrant, params: { id?: string; da
     ipcRenderer.send('command', 'application:show-calendar', {
       icsuid: event.icsuid,
       accountId: event.accountId,
+      calendarId: event.calendarId,
       recurrenceIdStart,
     });
     return {};
   }
-  const d = new Date(params.date);
+  const d = dateFromInput(params.date);
   if (isNaN(d.getTime())) throw new ViewError('invalid', 'date must be a date');
   ipcRenderer.send('command', 'application:show-calendar');
   FocusedMomentStore.setFocusedMoment(moment(d));

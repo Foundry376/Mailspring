@@ -8,7 +8,18 @@ import {
   isMessageAllowed as grantIsMessageAllowed,
 } from '../../../src/services/mail-access/grant';
 
-type AccessLevel = 'read-only' | 'read-write' | 'read-write-send';
+type AccessLevel = 'read-only' | 'read-draft' | 'read-write' | 'read-write-send';
+export type AccessCategory = 'read' | 'draft' | 'write' | 'send';
+
+// Ordered from least to most privileged: each level grants every category up to its own.
+const ACCESS_LEVELS: AccessLevel[] = ['read-only', 'read-draft', 'read-write', 'read-write-send'];
+
+const REQUIRED_LEVEL: { [C in AccessCategory]: AccessLevel } = {
+  read: 'read-only',
+  draft: 'read-draft',
+  write: 'read-write',
+  send: 'read-write-send',
+};
 
 interface AccountConfig {
   enabled: boolean;
@@ -25,14 +36,13 @@ function getMcpConfig(): {
   };
 }
 
-export function checkAccessLevel(category: 'read' | 'write' | 'send'): string | null {
+export function checkAccessLevel(category: AccessCategory): string | null {
   const { accessLevel } = getMcpConfig();
-  if (category === 'read') return null;
-  if (category === 'write' && (accessLevel === 'read-write' || accessLevel === 'read-write-send')) {
-    return null;
-  }
-  if (category === 'send' && accessLevel === 'read-write-send') return null;
-  return `Access denied: '${category}' operations require access level '${category === 'send' ? 'read-write-send' : 'read-write'}', but current level is '${accessLevel}'.`;
+  const required = REQUIRED_LEVEL[category];
+  // An unrecognized stored level ranks as read-only.
+  const granted = Math.max(ACCESS_LEVELS.indexOf(accessLevel), 0);
+  if (granted >= ACCESS_LEVELS.indexOf(required)) return null;
+  return `Access denied: '${category}' operations require access level '${required}', but current level is '${accessLevel}'.`;
 }
 
 // ── Pure predicates ──────────────────────────────────────────────────────

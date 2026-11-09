@@ -1,13 +1,15 @@
-import { CalendarUtils, Contact, DatabaseStore, Event } from 'mailspring-exports';
+import { Calendar, CalendarUtils, Contact, DatabaseStore, Event } from 'mailspring-exports';
 import { isAccountAllowed } from '../../../../src/services/mail-access/grant';
 import {
   occurrencesForEvents,
+  readOnlyCalendarIds,
   occurrenceStartUnix,
   occurrenceEndUnix,
   EventOccurrence,
 } from '../../../main-calendar/lib/core/calendar-data-source';
 import type { ViewGrant } from './grant';
 import { ViewError } from './errors';
+import { calendarsQuery, dateFromInput } from './calendar';
 
 const MAX_RANGE_DAYS = 400;
 const MAX_EVENTS = 2000;
@@ -31,8 +33,8 @@ export function parseRange({
   attendee,
   includeDeclined,
 }: any): EventRange {
-  const startUnix = Math.floor(new Date(start).getTime() / 1000);
-  const endUnix = Math.floor(new Date(end).getTime() / 1000);
+  const startUnix = Math.floor(dateFromInput(start).getTime() / 1000);
+  const endUnix = Math.floor(dateFromInput(end).getTime() / 1000);
   if (!startUnix || !endUnix || endUnix <= startUnix) {
     throw new ViewError('invalid', 'start and end must be dates, with end after start');
   }
@@ -123,19 +125,27 @@ function matchesRange(e: SerializedOccurrence, range: EventRange) {
   return true;
 }
 
-export function serializeEvents(grant: ViewGrant, events: Event[], range: EventRange) {
+export function serializeEvents(
+  grant: ViewGrant,
+  events: Event[],
+  calendars: Calendar[],
+  range: EventRange
+) {
   const needle = range.search && range.search.toLowerCase();
+  // Filtered before read-only copies are collapsed, so a copy the range leaves out (one we
+  // declined, or on another calendar) doesn't hide the copy it does include.
+  const serialized = new Map<EventOccurrence, SerializedOccurrence>();
+  const include = (o: EventOccurrence) => {
+    const text = [o.title, o.location, o.description];
+    if (needle && !text.some((s) => (s || '').toLowerCase().includes(needle))) return false;
+    serialized.set(o, serializeOccurrence(o));
+    return matchesRange(serialized.get(o), range);
+  };
   return occurrencesForEvents(
     events.filter((e) => isAccountAllowed(grant.scope, e.accountId)),
-    range
+    { ...range, readOnlyCalendarIds: readOnlyCalendarIds(calendars), include }
   )
-    .filter(
-      (o) =>
-        !needle ||
-        [o.title, o.location, o.description].some((s) => (s || '').toLowerCase().includes(needle))
-    )
-    .map(serializeOccurrence)
-    .filter((e) => matchesRange(e, range))
+    .map((o) => serialized.get(o))
     .slice(0, MAX_EVENTS)
     .sort((a, b) => a.start.localeCompare(b.start));
 }
@@ -181,7 +191,8 @@ export function freeBusy(events: SerializedOccurrence[], range: EventRange) {
 export async function eventsForExtraction(grant: ViewGrant, range: EventRange) {
   const seen = new Set<string>();
   const out = [];
-  for (const e of serializeEvents(grant, await eventQuery(range), range)) {
+  const events = serializeEvents(grant, await eventQuery(range), await calendarsQuery(), range);
+  for (const e of events) {
     if (seen.has(e.eventId) || e.status === 'CANCELLED') continue;
     seen.add(e.eventId);
     out.push({
