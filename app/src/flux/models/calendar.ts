@@ -46,6 +46,10 @@ export class Calendar extends Model {
       modelKey: 'order',
       jsonKey: 'order',
     }),
+    autoSchedule: Attributes.Boolean({
+      modelKey: 'autoSchedule',
+      jsonKey: 'auto_schedule',
+    }),
   };
 
   public name: string;
@@ -57,6 +61,8 @@ export class Calendar extends Model {
   public path: string;
   public color: string;
   public order: number;
+  /** The server sends this calendar's scheduling messages itself (RFC 6638 calendar-auto-schedule). */
+  public autoSchedule: boolean;
 
   constructor(data: AttributeValues<typeof Calendar.attributes>) {
     super(data);
