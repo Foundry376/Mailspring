@@ -1,8 +1,6 @@
-import moment from 'moment';
 import {
   AccountStore,
   Actions,
-  DatabaseStore,
   FocusedContentStore,
   FocusedPerspectiveStore,
   MailboxPerspective,
@@ -11,7 +9,6 @@ import {
 import { Calendar } from '../src/flux/models/calendar';
 import * as CalendarHelpers from '../internal_packages/main-calendar/lib/core/calendar-helpers';
 import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
-import { QuickEventPopover } from '../internal_packages/main-calendar/lib/quick-event-popover';
 
 const { defaultCalendarForNewEvent } = CalendarHelpers;
 
@@ -112,15 +109,8 @@ describe("new events start in Mail's sending account", function () {
       Object.assign(cal.state, typeof next === 'function' ? next(cal.state) : next);
   });
 
-  it('from the editor', function () {
-    spyOn(Actions, 'openPopover');
-    cal._openNewEventPopover({
-      startUnix: BASE,
-      endUnix: BASE + 3600,
-      isAllDay: false,
-      clientX: 100,
-      clientY: 200,
-    });
+  it('from the panel', function () {
+    cal._openNewEvent({ startUnix: BASE, endUnix: BASE + 3600, isAllDay: false });
     const preview = cal._renderMainContent().props.newEventPreview;
     expect(preview.calendarId).toBe('first-cal');
     expect(preview.accountId).toBe(accountIds()[0]);
@@ -140,17 +130,5 @@ describe("new events start in Mail's sending account", function () {
     } as any);
     expect(cal.state.createDrag.calendarId).toBe('first-cal');
     expect(cal.state.createDrag.accountId).toBe(accountIds()[0]);
-  });
-
-  it('from the quick event box', async function () {
-    spyOn(DatabaseStore, 'findAll').andReturn(Promise.resolve(calendars()));
-    const create = spyOn(CalendarHelpers, 'createCalendarEvent').andReturn(Promise.resolve());
-    await new QuickEventPopover({}).createEvent({
-      leftoverText: 'Lunch',
-      start: moment.unix(BASE),
-      end: moment.unix(BASE + 3600),
-    });
-    expect(create.mostRecentCall.args[0].calendarId).toBe('first-cal');
-    expect(create.mostRecentCall.args[0].accountId).toBe(accountIds()[0]);
   });
 });

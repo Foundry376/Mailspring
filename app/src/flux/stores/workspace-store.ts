@@ -297,9 +297,15 @@ class WorkspaceStore extends MailspringStore {
     return this._sheetStack[0];
   }
 
-  /** Asked before another section is shown; returning false keeps the current one. */
-  setSectionLeaveGuard(guard: (() => boolean) | null) {
+  /**
+   * Asked before another section is shown; returning false keeps the current one. The returned
+   * function removes it, unless another section's guard has replaced it since.
+   */
+  setSectionLeaveGuard(guard: () => boolean) {
     this._sectionLeaveGuard = guard;
+    return () => {
+      if (this._sectionLeaveGuard === guard) this._sectionLeaveGuard = null;
+    };
   }
 
   _mayLeaveSectionFor(sheet: SheetDeclaration) {

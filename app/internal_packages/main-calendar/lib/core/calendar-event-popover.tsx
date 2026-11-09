@@ -2,8 +2,6 @@ import moment from 'moment';
 import React from 'react';
 import {
   Actions,
-  Calendar,
-  Account,
   DatabaseStore,
   DateUtils,
   Event,
@@ -13,7 +11,6 @@ import {
   CalendarUtils,
   SyncbackEventTask,
   CalendarDateUtils,
-  Utils,
 } from 'mailspring-exports';
 import {
   DatePicker,
@@ -33,18 +30,17 @@ import {
 import { canRespondToEvent, openProposeNewTimePopover } from './calendar-rsvp';
 import { EventPropertyRow } from './event-property-row';
 import {
-  createCalendarEvent,
   organizerForAccount,
   inclusiveAllDayEnd,
   shiftEndWithStart,
   clampEnd,
   extractNotesFromDescription,
   formatTime,
-  NewEventDraft,
+  fieldZone,
+  sameWallClockIn,
 } from './calendar-helpers';
-import { AttendeeStatusIcon, attendeeStatusClass, sortAttendeesByStatus } from './attendee-status';
+import { AttendeeStatusIcon, attendeeStatusClass, sortedAttendees } from './attendee-status';
 // CalendarColorPicker import removed - disabled until custom event colors are fully supported
-import { CalendarSelector } from './calendar-selector';
 import { LocationVideoInput } from './location-video-input';
 import { AllDayToggle } from './all-day-toggle';
 import {
@@ -53,27 +49,16 @@ import {
   frequencyToRepeatOption,
   repeatOptionToRRule,
 } from './repeat-selector';
-import { AlertSelector, AlertTiming } from './alert-selector';
-import { ShowAsSelector, ShowAsOption, defaultShowAs } from './show-as-selector';
+import { AlertSelector, AlertTiming, alertForTrigger, alertTrigger } from './alert-selector';
+import { ShowAsSelector, ShowAsOption } from './show-as-selector';
 import { EventPopoverActions } from './event-popover-actions';
 import { TimeZoneSelector } from './timezone-selector';
 import { showRecurringEventDialog } from './recurring-event-dialog';
 
 interface CalendarEventPopoverProps {
   event: EventOccurrence;
-  /** When true, the popover opens in edit mode to create a new event */
-  isNewEvent?: boolean;
-  /** Available calendars (required when isNewEvent is true) */
-  calendars?: Calendar[];
-  /** Available accounts (required when isNewEvent is true) */
-  accounts?: Account[];
-  /** Disabled calendar IDs (required when isNewEvent is true) */
-  disabledCalendars?: string[];
   /** Whether the calendar containing this event is read-only */
   isCalendarReadOnly?: boolean;
-  /** Receives the event as the editor would now save it, whenever a field the grid draws changes. */
-  onDraftChange?: (draft: NewEventDraft) => void;
-  onClosed?: () => void;
 }
 
 interface CalendarEventPopoverState {
@@ -92,18 +77,15 @@ interface CalendarEventPopoverState {
   /** The zone the event arrived with; a series is rezoned only when the user picked another. */
   originalTimezone: string;
   alert: AlertTiming;
+  /** The alert the event arrived with, so a save writes its VALARM only when it changed. */
+  originalAlert: AlertTiming;
   showAs: ShowAsOption;
-  /** Whether the user picked Show As; until then a new event's follows the all-day switch. */
-  showAsChosen: boolean;
   /** The Show As value the event arrived with, so a save writes TRANSP only when it changed. */
   originalShowAs: ShowAsOption;
   calendarColor: string;
   timezone: string;
   showInvitees: boolean;
   showNotes: boolean;
-  // Calendar selection for new events
-  selectedCalendarId: string;
-  selectedAccountId: string;
 }
 
 export class CalendarEventPopover extends React.Component<
@@ -126,23 +108,22 @@ export class CalendarEventPopover extends React.Component<
       end,
       location,
       title,
-      editing: !!this.props.isNewEvent,
+      editing: false,
       attendees,
       // Initialize new fields with defaults
       allDay: isAllDay || false,
       repeat: 'none',
       originalRepeat: 'none',
       originalTimezone: DateUtils.timeZone,
-      alert: '10min',
+      // Read with its recurrence in _loadEditDefaults.
+      alert: 'none',
+      originalAlert: 'none',
       showAs: this._eventShowAs(),
-      showAsChosen: false,
       originalShowAs: this._eventShowAs(),
       calendarColor: '#419bf9',
       timezone: DateUtils.timeZone,
       showInvitees: attendees && attendees.length > 0,
       showNotes: !!description,
-      selectedCalendarId: this.props.event.calendarId,
-      selectedAccountId: this.props.event.accountId,
     };
   }
 
@@ -161,14 +142,8 @@ export class CalendarEventPopover extends React.Component<
         attendees,
         title,
         showAs,
-        showAsChosen: false,
         originalShowAs: showAs,
       });
-    }
-
-    const draft = this._draft();
-    if (!Utils.isEqualReact(draft, this._draft(prevState))) {
-      this.props.onDraftChange?.(draft);
     }
 
     // Autofocus invitees input when section is expanded
@@ -195,6 +170,7 @@ export class CalendarEventPopover extends React.Component<
   async _loadEditDefaults(): Promise<void> {
     let repeat: RepeatOption = 'none';
     let timezone = this.state.timezone;
+    let alert: AlertTiming = this.state.alert;
     try {
       const eventId = CalendarUtils.parseOccurrenceId(this.props.event.id).eventId;
       const event = await DatabaseStore.find<Event>(Event, eventId);
@@ -205,11 +181,19 @@ export class CalendarEventPopover extends React.Component<
         if (eventTz) {
           timezone = eventTz;
         }
+        alert = alertForTrigger(ICSEventHelpers.getAlarmTrigger(event.ics));
       }
     } catch (e) {
       // Fall back to defaults if we can't read the event
     }
-    this.setState({ repeat, timezone, originalRepeat: repeat, originalTimezone: timezone });
+    this.setState({
+      repeat,
+      timezone,
+      alert,
+      originalRepeat: repeat,
+      originalTimezone: timezone,
+      originalAlert: alert,
+    });
   }
 
   onEdit = async () => {
@@ -217,35 +201,27 @@ export class CalendarEventPopover extends React.Component<
     this.setState({ editing: true });
   };
 
-  componentWillUnmount() {
-    this.props.onClosed?.();
-  }
-
-  _draft(state: CalendarEventPopoverState = this.state): NewEventDraft {
-    const { title, start, end, allDay, selectedCalendarId, selectedAccountId } = state;
-    return {
-      title,
-      start,
-      end,
-      isAllDay: allDay,
-      calendarId: selectedCalendarId,
-      accountId: selectedAccountId,
-    };
-  }
-
   _eventShowAs(): ShowAsOption {
-    if (this.props.isNewEvent) return defaultShowAs(this.props.event.isAllDay);
     return this.props.event.isFree ? 'TRANSPARENT' : 'OPAQUE';
   }
 
   updateAllDay = (allDay: boolean): void => {
-    const followsAllDay = this.props.isNewEvent && !this.state.showAsChosen;
-    const showAs = followsAllDay ? defaultShowAs(allDay) : this.state.showAs;
-    this.setState({ allDay, showAs });
+    this.setState({ allDay });
   };
 
+  updateAlert = (alert: AlertTiming): void => {
+    this.setState({ alert });
+  };
+
+  /** The TRIGGER to write (null removes the reminders), or undefined when the alert is unchanged. */
+  _changedAlarmTrigger(): string | null | undefined {
+    return this.state.alert !== this.state.originalAlert
+      ? alertTrigger(this.state.alert)
+      : undefined;
+  }
+
   updateShowAs = (showAs: ShowAsOption): void => {
-    this.setState({ showAs, showAsChosen: true });
+    this.setState({ showAs });
   };
 
   /** The Show As value to write, or undefined when the user left it as the event had it. */
@@ -279,11 +255,6 @@ export class CalendarEventPopover extends React.Component<
 
   saveEdits = async (): Promise<void> => {
     try {
-      if (this.props.isNewEvent) {
-        await this._createNewEvent();
-        return;
-      }
-
       // Extract the real event ID from the occurrence ID (format: `${eventId}-e${idx}`)
       const eventId = CalendarUtils.parseOccurrenceId(this.props.event.id).eventId;
 
@@ -391,6 +362,10 @@ export class CalendarEventPopover extends React.Component<
     if (showAs) {
       ics = ICSEventHelpers.updateEventProperty(ics, 'transp', showAs);
     }
+    const alarmTrigger = this._changedAlarmTrigger();
+    if (alarmTrigger !== undefined) {
+      ics = ICSEventHelpers.updateAlarm(ics, alarmTrigger);
+    }
 
     // One save is one revision, however many helpers assembled it.
     event.ics = ICSEventHelpers.bumpEventSequence(ics);
@@ -441,6 +416,7 @@ export class CalendarEventPopover extends React.Component<
       attendees: this.state.attendees || [],
       organizer: organizerForAccount(this.props.event.accountId),
       transparency: this._changedShowAs(),
+      alarmTrigger: this._changedAlarmTrigger(),
     });
 
     masterEvent.ics = ICSEventHelpers.bumpEventSequence(updatedMasterIcs, recurrenceId);
@@ -456,43 +432,6 @@ export class CalendarEventPopover extends React.Component<
       })
     );
   }
-
-  _createNewEvent = async (): Promise<void> => {
-    const {
-      title,
-      start,
-      end,
-      allDay,
-      location,
-      description,
-      attendees,
-      repeat,
-      timezone,
-      showAs,
-      selectedCalendarId,
-      selectedAccountId,
-    } = this.state;
-
-    Actions.closePopover();
-
-    await createCalendarEvent({
-      summary: title || localized('New Event'),
-      start: new Date(start * 1000),
-      end: new Date(end * 1000),
-      isAllDay: allDay,
-      calendarId: selectedCalendarId,
-      accountId: selectedAccountId,
-      description: description || undefined,
-      location: location || undefined,
-      attendees:
-        attendees && attendees.length > 0
-          ? attendees.map((a) => ({ email: a.email, name: a.name }))
-          : undefined,
-      recurrenceRule: repeatOptionToRRule(repeat) || undefined,
-      timezone,
-      transparency: showAs,
-    });
-  };
 
   // If on the hour, formats as "3 PM", else formats as "3:15 PM"
 
@@ -516,8 +455,15 @@ export class CalendarEventPopover extends React.Component<
     this.setState({ end: clampEnd(this.state.start, end, this.state.allDay) });
   };
 
-  updateCalendar = (calendarId: string, accountId: string): void => {
-    this.setState({ selectedCalendarId: calendarId, selectedAccountId: accountId });
+  // The fields keep the wall clock they show, so picking a zone says where that time is.
+  updateTimezone = (timezone: string): void => {
+    const from = fieldZone(this.state.timezone);
+    const to = fieldZone(timezone);
+    this.setState({
+      timezone,
+      start: sameWallClockIn(this.state.start, from, to),
+      end: sameWallClockIn(this.state.end, from, to),
+    });
   };
 
   renderEditable = () => {
@@ -538,6 +484,8 @@ export class CalendarEventPopover extends React.Component<
     } = this.state;
 
     const notes = extractNotesFromDescription(description);
+    // All-day dates are the machine's days, whatever zone was picked for a timed event.
+    const zone = allDay ? undefined : fieldZone(timezone);
 
     return (
       <div className="calendar-event-popover editing" tabIndex={0}>
@@ -557,17 +505,6 @@ export class CalendarEventPopover extends React.Component<
 
           {/* Everything between the title and the buttons scrolls; the buttons stay put. */}
           <div className="popover-body">
-            {/* Calendar selector - only shown for new events */}
-            {this.props.isNewEvent && this.props.calendars && this.props.accounts && (
-              <CalendarSelector
-                calendars={this.props.calendars}
-                accounts={this.props.accounts}
-                disabledCalendars={this.props.disabledCalendars || []}
-                selectedCalendarId={this.state.selectedCalendarId}
-                onChange={this.updateCalendar}
-              />
-            )}
-
             {/* Location with video call toggle */}
             <LocationVideoInput
               value={location}
@@ -582,15 +519,24 @@ export class CalendarEventPopover extends React.Component<
 
             {/* Start/End times using property rows */}
             <EventPropertyRow label={localized('starts:')}>
-              <DatePicker value={start * 1000} onChange={(ts) => this.updateStart(ts / 1000)} />
+              <DatePicker
+                value={start * 1000}
+                timeZone={zone}
+                onChange={(ts) => this.updateStart(ts / 1000)}
+              />
               {!allDay && (
-                <TimePicker value={start * 1000} onChange={(ts) => this.updateStart(ts / 1000)} />
+                <TimePicker
+                  value={start * 1000}
+                  timeZone={zone}
+                  onChange={(ts) => this.updateStart(ts / 1000)}
+                />
               )}
             </EventPropertyRow>
 
             <EventPropertyRow label={localized('ends:')}>
               <DatePicker
                 value={(allDay ? inclusiveAllDayEnd(end) : end) * 1000}
+                timeZone={zone}
                 onChange={(ts) =>
                   this.updateEnd(
                     allDay
@@ -602,15 +548,16 @@ export class CalendarEventPopover extends React.Component<
                 }
               />
               {!allDay && (
-                <TimePicker value={end * 1000} onChange={(ts) => this.updateEnd(ts / 1000)} />
+                <TimePicker
+                  value={end * 1000}
+                  relativeTo={start * 1000}
+                  timeZone={zone}
+                  onChange={(ts) => this.updateEnd(ts / 1000)}
+                />
               )}
             </EventPropertyRow>
 
-            {/* Time zone selector */}
-            <TimeZoneSelector
-              value={timezone}
-              onChange={(value) => this.updateField('timezone', value)}
-            />
+            {!allDay && <TimeZoneSelector value={timezone} onChange={this.updateTimezone} />}
 
             {/* Repeat selector */}
             <RepeatSelector
@@ -619,7 +566,7 @@ export class CalendarEventPopover extends React.Component<
             />
 
             {/* Alert selector */}
-            <AlertSelector value={alert} onChange={(value) => this.updateField('alert', value)} />
+            <AlertSelector value={alert} onChange={this.updateAlert} />
 
             {/* Show as selector */}
             <ShowAsSelector value={showAs} onChange={this.updateShowAs} />
@@ -684,13 +631,13 @@ export class CalendarEventPopover extends React.Component<
   };
 
   // A writable calendar and a meeting we organize: only the organizer revises one (RFC 5546
-  // section 2.1.4), the same test canMoveEvent applies to dragging.
+  // section 2.1), the same test canMoveEvent applies to dragging.
   _isEditable(): boolean {
-    return !this.props.isCalendarReadOnly && (this.props.isNewEvent || this.props.event.isMine);
+    return !this.props.isCalendarReadOnly && this.props.event.isMine;
   }
 
   render() {
-    if (this._isEditable() && (this.state.editing || this.props.isNewEvent)) {
+    if (this._isEditable() && this.state.editing) {
       return this.renderEditable();
     }
     return (
@@ -776,7 +723,7 @@ class CalendarEventPopoverUnenditable extends React.Component<
 
   render() {
     const { event, onEdit, editable } = this.props;
-    const { title, description, location, attendees } = event;
+    const { title, description, location } = event;
 
     const notes = extractNotesFromDescription(description);
 
@@ -810,7 +757,7 @@ class CalendarEventPopoverUnenditable extends React.Component<
           <ScrollRegion className="section invitees">
             <div className="label">{localized(`Invitees`)}: </div>
             <div className="invitees-list">
-              {sortAttendeesByStatus(attendees).map((a, idx) => (
+              {sortedAttendees(event).map((a, idx) => (
                 <div key={idx} className={`attendee-chip ${attendeeStatusClass(a)}`}>
                   <span className="attendee-status">
                     <AttendeeStatusIcon attendee={a} />

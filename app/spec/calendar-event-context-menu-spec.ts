@@ -80,6 +80,10 @@ describe('calendar RSVP helpers', function () {
     expect(canRespondToEvent(other)).toBe(false);
   });
 
+  it('does not offer an RSVP on a meeting its organizer cancelled', function () {
+    expect(canRespondToEvent(occurrence({ isCancelled: true }))).toBe(false);
+  });
+
   it('does not offer an RSVP when we are not a guest', function () {
     const notMine = occurrence({
       attendees: [{ email: 'ada@example.com', partstat: 'ACCEPTED' }],
@@ -121,10 +125,17 @@ describe('CalendarEventContextMenu', function () {
     // ours - that removes our own copy, it doesn't change anyone else's.
     expect(labels(menuFor(occurrence()))).toEqual([
       'View Event',
-      'Accept',
+      'Yes',
+      'No',
       'Maybe',
-      'Decline',
       'Propose New Time...',
+      'Delete Event',
+    ]);
+  });
+
+  it('offers only viewing and delete on a meeting its organizer cancelled', function () {
+    expect(labels(menuFor(occurrence({ isCancelled: true })))).toEqual([
+      'View Event',
       'Delete Event',
     ]);
   });
@@ -155,9 +166,9 @@ describe('CalendarEventContextMenu', function () {
     // source means by isMine - so it is editable, and there is no one to RSVP to.
     expect(labels(menuFor(occurrence({ organizer: null, isMine: true })))).toEqual([
       'Edit Event...',
-      'Accept',
+      'Yes',
+      'No',
       'Maybe',
-      'Decline',
       'Propose New Time...',
       'Delete Event',
     ]);
@@ -166,8 +177,8 @@ describe('CalendarEventContextMenu', function () {
   it('checks the response we have already given', function () {
     const accepted = occurrence({ attendees: [{ email: ME, partstat: 'ACCEPTED' }] });
     const items = menuFor(accepted).template() as any[];
-    const accept = items.find((i) => i.label === 'Accept');
-    const decline = items.find((i) => i.label === 'Decline');
+    const accept = items.find((i) => i.label === 'Yes');
+    const decline = items.find((i) => i.label === 'No');
     expect(accept.checked).toBe(true);
     expect(decline.checked).toBe(false);
   });
@@ -183,9 +194,9 @@ describe('CalendarEventContextMenu', function () {
   it('offers only viewing on a read-only calendar', function () {
     expect(labels(menuFor(occurrence(), true))).toEqual([
       'View Event',
-      'Accept',
+      'Yes',
+      'No',
       'Maybe',
-      'Decline',
       'Propose New Time...',
     ]);
   });

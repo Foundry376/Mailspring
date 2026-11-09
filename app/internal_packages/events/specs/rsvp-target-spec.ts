@@ -391,6 +391,32 @@ describe('planRSVPWrite', function () {
     expect(myLine(synced.ics)).toContain('PARTSTAT=NEEDS-ACTION');
   });
 
+  it("keeps our copy's newer details rather than the email's when answering on it", function () {
+    const revised = synced.clone();
+    revised.ics = synced.ics
+      .replace('SUMMARY:Kickoff', 'SUMMARY:Kickoff\r\nSEQUENCE:2')
+      .replace('DTSTART:20260301T140000Z', 'DTSTART:20260301T160000Z');
+    const rsvp = resolveRSVPTarget({ events: [revised], calendars: [MINE], addresses: ADDRESSES });
+    const write = plan({ rsvp });
+    expect(write.kind).toBe('update');
+    expect(write.event.ics).toContain('DTSTART:20260301T160000Z');
+    expect(write.event.ics).toContain('SEQUENCE:2');
+    expect(myLine(write.event.ics)).toContain('PARTSTAT=ACCEPTED');
+  });
+
+  it('brings a copy that is behind the invitation up to it', function () {
+    const stale = synced.clone();
+    stale.ics = synced.ics.replace('DTSTART:20260301T140000Z', 'DTSTART:20260301T120000Z');
+    const rsvp = resolveRSVPTarget({ events: [stale], calendars: [MINE], addresses: ADDRESSES });
+    const write = plan({ rsvp, copyBehind: true });
+    if (write.kind !== 'update') throw new Error(`expected an update, got ${write.kind}`);
+    expect(write.event.id).toBe('e-mine');
+    expect(write.event.ics).toContain('DTSTART:20260301T140000Z');
+    expect(write.event.ics).not.toContain('METHOD');
+    expect(write.event.recurrenceStart).toBe(Date.UTC(2026, 2, 1, 14) / 1000);
+    expect(myLine(write.event.ics)).toContain('PARTSTAT=ACCEPTED');
+  });
+
   it('writes nothing when our copy no longer lists us', function () {
     const withoutMe = synced.clone();
     withoutMe.ics = synced.ics.replace(/ATTENDEE[^\r\n]*brian@example.com\r\n/, '');
@@ -406,6 +432,7 @@ describe('planRSVPWrite', function () {
     const write = plan();
     if (write.kind !== 'create') throw new Error(`expected a create, got ${write.kind}`);
     expect(write.calendar.id).toBe(MINE.id);
+    expect(write.answer).toEqual({ email: 'brian@example.com', status: 'ACCEPTED' });
     expect(write.event.calendarId).toBe(MINE.id);
     expect(write.event.icsuid).toBe('meeting-uid@example.com');
     expect(write.event.recurrenceStart).toBe(Date.UTC(2026, 2, 1, 14) / 1000);
@@ -413,6 +440,13 @@ describe('planRSVPWrite', function () {
     expect(write.event.ics).not.toContain('METHOD');
     expect(myLine(write.event.ics)).toContain('PARTSTAT=ACCEPTED');
     expect(myLine(write.event.ics)).not.toContain('RSVP=TRUE');
+  });
+
+  it('adds one marked free so that Yahoo, which reads X-YAHOO-USER-STATUS, keeps it free', function () {
+    const free = INVITE_ICS.replace('SUMMARY:Kickoff', 'SUMMARY:Kickoff\r\nTRANSP:TRANSPARENT');
+    const write = plan({ inviteIcs: free });
+    expect(write.event.ics).toContain('TRANSP:TRANSPARENT');
+    expect(write.event.ics).toContain('X-YAHOO-USER-STATUS:FREE');
   });
 
   it('adds a tentative one too', function () {
@@ -521,6 +555,23 @@ describe('planRSVPWrite', function () {
       expect(synced).toContain('DTSTART:20260915T160000Z');
       expect(myLines(synced)[0]).toContain('PARTSTAT=ACCEPTED');
       expect(myLines(synced)[0]).not.toContain('RSVP=TRUE');
+    });
+
+    it('replaces our override of that occurrence when it is behind the invitation', function () {
+      const copy = copyWith(occurrence('Huddle (as synced)', '20260915T160000Z'));
+      const write = plan({
+        rsvp: resolveRSVPTarget({ events: [copy], calendars: [MINE], addresses: ADDRESSES }),
+        inviteIcs: OCCURRENCE_INVITE,
+        inviteEvent: occurrenceEvent,
+        copyBehind: true,
+      });
+      const vevents = write.event.ics
+        .replace(/\r\n[ \t]/g, '')
+        .split('BEGIN:VEVENT')
+        .slice(1);
+      expect(vevents.length).toBe(2);
+      expect(vevents[1]).toContain('DTSTART:20260915T150000Z');
+      expect(myLines(vevents[1])[0]).toContain('PARTSTAT=ACCEPTED');
     });
 
     it('stores the emailed occurrence as an exception when our copy has none for it', function () {

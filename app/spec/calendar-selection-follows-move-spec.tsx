@@ -492,3 +492,31 @@ FOCUS_CASES.forEach(({ name, component, props }) => {
     });
   });
 });
+
+describe('asking before a delete', function () {
+  let dialog: jasmine.Spy;
+
+  beforeEach(function () {
+    dialog = spyOn(require('@electron/remote').dialog, 'showMessageBoxSync').andReturn(1);
+  });
+
+  const askedFor = async (selected: TimedOccurrence[]) => {
+    const calendar = calendarWith(selected);
+    calendar._isCalendarReadOnly = () => false;
+    await calendar._onDeleteSelectedEvents();
+    return dialog.mostRecentCall.args[0].message;
+  };
+
+  it('asks only to delete events that are ours', async function () {
+    expect(await askedFor([occurrenceAt(START)])).toBe('Delete this event?');
+    expect(await askedFor([occurrenceAt(START), occurrenceAt(START + 3600)])).toBe(
+      'Delete these events?'
+    );
+  });
+
+  it('says an invitation is declined', async function () {
+    expect(await askedFor([occurrenceAt(START, { isMine: false })])).toBe(
+      'Delete or decline these events?'
+    );
+  });
+});
