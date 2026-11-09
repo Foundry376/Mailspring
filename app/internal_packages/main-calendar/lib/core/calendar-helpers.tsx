@@ -371,7 +371,6 @@ function shortTimeFormat(time: moment.Moment): string {
   return time.minutes() === 0 ? tight.replace(/[:.]mm/, '') : tight;
 }
 
-/** A timed event's start on a bar across days, as in month view and the all-day row. */
 export const BarStartTime = ({ event }: { event: TimedOccurrence }) => (
   <span className="event-bar-time">{formatShortTime(event.start)} </span>
 );

@@ -347,12 +347,11 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     );
   }
 
-  /** A timed event in the all-day row reads as the month view's bars do: "9AM Offsite … ends 5PM". */
-  _spanTime(end: 'start' | 'end') {
+  _spanTime(side: 'start' | 'end') {
     const { event, direction, scopeStart, scopeEnd } = this.props;
     if (direction !== 'horizontal' || !isTimed(event)) return null;
     // Only where it begins and ends, not on a side that runs past the days shown.
-    if (end === 'start') return event.start >= scopeStart ? <BarStartTime event={event} /> : null;
+    if (side === 'start') return event.start >= scopeStart ? <BarStartTime event={event} /> : null;
     return event.end <= scopeEnd ? <BarEndTime event={event} /> : null;
   }
 
