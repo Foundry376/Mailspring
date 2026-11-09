@@ -1,4 +1,4 @@
-import { EventOccurrence, TimedOccurrence, isTimed } from './calendar-data-source';
+import { EventOccurrence, TimedOccurrence, inAllDayRow, isTimed } from './calendar-data-source';
 import moment, { Moment } from 'moment';
 import { CalendarDateUtils } from 'mailspring-exports';
 
@@ -156,7 +156,7 @@ export function eventsGroupedByDay(events: EventOccurrence[], days: Moment[]) {
   const exclusiveEnds = exclusiveDayEnds(days);
 
   events.forEach((event) => {
-    if (isTimed(event)) {
+    if (isTimed(event) && !inAllDayRow(event)) {
       // Half-open, matching `coveredDates`' last-covered-instant convention, so a
       // 22:00-00:00 event covers only the day it starts on.
       const lastInstant = Math.max(event.end - 1, event.start);

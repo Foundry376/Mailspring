@@ -11,7 +11,7 @@ import {
 import { CalendarDate, CalendarDateUtils } from 'mailspring-exports';
 import CalendarHeaderStore from './calendar-header-store';
 import VisibleRangeStore from './visible-range-store';
-import { EventOccurrence, EventRangeSubscription, isTimed } from './calendar-data-source';
+import { EventOccurrence, EventRangeSubscription, inAllDayRow } from './calendar-data-source';
 import { centerGridScroll, dateOf, formatShortTime, momentOf } from './calendar-helpers';
 import { EventGridBackground } from './event-grid-background';
 import { WeekViewEventColumn } from './week-view-event-column';
@@ -258,7 +258,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
   _allDay(events: EventOccurrence[], firstVisible: CalendarDate) {
     const drawn = SnapScroller.drawnFrom(firstVisible, this.props.visibleDays, 'day');
     const allDayEvents = events.filter(
-      (e) => !isTimed(e) && e.startDate < drawn.end && e.endDate >= drawn.first
+      (e) => inAllDayRow(e) && e.startDate < drawn.end && e.endDate >= drawn.first
     );
     const allDayOverlap = overlapForEvents(allDayEvents);
     // An empty row keeps one lane, so "All Day" sits below the headings.

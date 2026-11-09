@@ -64,13 +64,11 @@ describe('eventsGroupedByDay', function () {
     ]);
   });
 
-  it('spans every column a multi-day timed event covers', function () {
+  it('puts a timed event of a day or more in the all-day row, not the columns', function () {
     const days = daysFrom('2026-06-08', 7);
-    expect(columnsContaining(timedEvent('2026-06-09 22:00', '2026-06-11 03:00'), days)).toEqual([
-      '2026-06-09',
-      '2026-06-10',
-      '2026-06-11',
-    ]);
+    const long = timedEvent('2026-06-09 22:00', '2026-06-11 03:00');
+    expect(columnsContaining(long, days)).toEqual([]);
+    expect(eventsGroupedByDay([long], days).allDay).toEqual([long]);
   });
 
   it('keeps an event ending at midnight out of the following column', function () {
