@@ -1,3 +1,4 @@
+import moment from 'moment';
 import Rx from 'rx-lite';
 import {
   Event,
@@ -60,6 +61,14 @@ export function isEventSelected(
  */
 export function isTimed(e: EventOccurrence): e is TimedOccurrence {
   return e.isAllDay === false;
+}
+
+/**
+ * Whether the week and day views draw it in the all-day row: an all-day event, or a timed one of
+ * a day or more, counted to the same clock time a day later so a DST change doesn't tip it.
+ */
+export function inAllDayRow(e: EventOccurrence): boolean {
+  return !isTimed(e) || e.end >= moment.unix(e.start).add(1, 'day').unix();
 }
 
 /**

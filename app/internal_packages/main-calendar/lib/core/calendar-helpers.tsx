@@ -1,3 +1,4 @@
+import React from 'react';
 import moment, { Moment } from 'moment';
 import momentTz from 'moment-timezone';
 import {
@@ -22,7 +23,7 @@ import {
   MIN_EVENT_DURATION_SECONDS,
   DEFAULT_TIMED_EVENT_DURATION_SECONDS,
 } from './calendar-constants';
-import { EventOccurrence, coveredDates, isTimed } from './calendar-data-source';
+import { EventOccurrence, TimedOccurrence, coveredDates, isTimed } from './calendar-data-source';
 import { dayFraction } from './week-view-helpers';
 import { canRespondToEvent, isOrganizer } from './calendar-rsvp';
 import type { EventChange } from './recurring-event-actions';
@@ -369,6 +370,14 @@ function shortTimeFormat(time: moment.Moment): string {
   const tight = lt.replace(/\s+([aA])$/, '$1');
   return time.minutes() === 0 ? tight.replace(/[:.]mm/, '') : tight;
 }
+
+export const BarStartTime = ({ event }: { event: TimedOccurrence }) => (
+  <span className="event-bar-time">{formatShortTime(event.start)} </span>
+);
+
+export const BarEndTime = ({ event }: { event: TimedOccurrence }) => (
+  <span className="event-bar-end-time">{localized('ends %@', formatShortTime(event.end))}</span>
+);
 
 /**
  * A range in formatShortTime's terms, naming the meridiem once when both ends share it, as Notion

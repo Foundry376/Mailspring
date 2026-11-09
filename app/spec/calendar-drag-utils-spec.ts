@@ -150,7 +150,15 @@ describe('updateDragState with day snapping', function () {
   ) {
     const event = makeOccurrence({ isAllDay: true, start, end });
     const cursor = mode === 'resize-start' ? 'ew-resize' : 'ew-resize';
-    const state = createDragState(event, { mode, cursor }, mouseTime, 0, 0, MONTH_VIEW_DRAG_CONFIG);
+    const state = createDragState(
+      event,
+      { mode, cursor },
+      mouseTime,
+      0,
+      0,
+      'month-cell',
+      MONTH_VIEW_DRAG_CONFIG
+    );
     // Move far enough to clear the drag threshold
     const dragged = updateDragState(
       state,
@@ -223,6 +231,7 @@ describe('updateDragState resizing a timed event in a month cell', function () {
       mouseTime,
       0,
       0,
+      'month-cell',
       MONTH_VIEW_DRAG_CONFIG
     );
     const dragged = updateDragState(
@@ -353,6 +362,7 @@ describe('updateDragState move with day snapping', function () {
       start,
       0,
       0,
+      'month-cell',
       MONTH_VIEW_DRAG_CONFIG
     );
     const dragged = updateDragState(
@@ -392,6 +402,7 @@ describe('updateDragState move with day snapping', function () {
       grabbed,
       0,
       0,
+      containerType,
       MONTH_VIEW_DRAG_CONFIG
     );
     const dragged = updateDragState(
@@ -443,6 +454,51 @@ describe('updateDragState move with day snapping', function () {
     });
   });
 
+  it('moves a timed event of a day or more along the all-day row, keeping its clock', function () {
+    // Monday 9 AM to Wednesday 5 PM, grabbed on Tuesday and dropped on Wednesday.
+    const event = makeOccurrence({
+      isAllDay: false,
+      start: localDay(2026, 8, 17) + 9 * HOUR,
+      end: localDay(2026, 8, 19) + 17 * HOUR,
+    });
+    expect(
+      dragMoveFrom(event, localDay(2026, 8, 18), localDay(2026, 8, 19), 'all-day-area')
+    ).toEqual({
+      start: localDay(2026, 8, 18) + 9 * HOUR,
+      end: localDay(2026, 8, 20) + 17 * HOUR,
+    });
+  });
+
+  it('starts a timed event of a day or more at the drop time when carried from the all-day row into the grid', function () {
+    // Monday 9 AM to Tuesday 9 AM, grabbed on its Tuesday cell, dropped Thursday 2 PM.
+    const event = makeOccurrence({
+      isAllDay: false,
+      start: localDay(2026, 8, 17) + 9 * HOUR,
+      end: localDay(2026, 8, 18) + 9 * HOUR,
+    });
+    const state = createDragState(
+      event,
+      { mode: 'move', cursor: 'grab' },
+      localDay(2026, 8, 18),
+      0,
+      0,
+      'all-day-area',
+      DEFAULT_DRAG_CONFIG
+    );
+    const dragged = updateDragState(
+      state,
+      localDay(2026, 8, 20) + 14 * HOUR,
+      100,
+      100,
+      'day-column',
+      DEFAULT_DRAG_CONFIG
+    );
+    expect({ start: dragged.previewStart, end: dragged.previewEnd }).toEqual({
+      start: localDay(2026, 8, 20) + 14 * HOUR,
+      end: localDay(2026, 8, 21) + 14 * HOUR,
+    });
+  });
+
   it('turns a timed event into one all-day day under the cursor, wherever it was grabbed', function () {
     // Grabbed in week view on its second column, then dropped on the all-day row.
     const event = makeOccurrence({
@@ -456,6 +512,7 @@ describe('updateDragState move with day snapping', function () {
       localDay(2026, 8, 15) + HOUR / 2,
       0,
       0,
+      'day-column',
       DEFAULT_DRAG_CONFIG
     );
     const dragged = updateDragState(
@@ -503,6 +560,7 @@ describe('updateDragState move with day snapping', function () {
       start,
       0,
       0,
+      'month-cell',
       MONTH_VIEW_DRAG_CONFIG
     );
     const dragged = updateDragState(
@@ -553,6 +611,7 @@ describe('updateDragState move with day snapping', function () {
       start,
       0,
       0,
+      'month-cell',
       MONTH_VIEW_DRAG_CONFIG
     );
     const dragged = updateDragState(
@@ -584,6 +643,7 @@ describe('updateDragState move with day snapping', function () {
       localDay(2026, 8, 14) + 12 * HOUR,
       0,
       0,
+      'month-cell',
       MONTH_VIEW_DRAG_CONFIG
     );
     const dragged = updateDragState(
@@ -615,6 +675,7 @@ describe('updateDragState move converting all-day to timed', function () {
       start,
       0,
       0,
+      'day-column',
       DEFAULT_DRAG_CONFIG
     );
     const dragged = updateDragState(state, mouseTime, 100, 100, 'day-column', DEFAULT_DRAG_CONFIG);
@@ -798,6 +859,7 @@ describe('createDragState anchored on the grid', function () {
       gridTime,
       0,
       0,
+      'day-column',
       DEFAULT_DRAG_CONFIG
     );
     const dragged = updateDragState(state, gridTime, 100, 100, 'day-column', DEFAULT_DRAG_CONFIG);
@@ -814,6 +876,7 @@ describe('createDragState anchored on the grid', function () {
       cst - HOUR / 2,
       0,
       0,
+      'day-column',
       DEFAULT_DRAG_CONFIG
     );
     const dragged = updateDragState(
@@ -837,6 +900,7 @@ describe('createDragState anchored on the grid', function () {
       cst - HOUR, // grabbed at the top row: the grid says 01:00 CDT
       0,
       0,
+      'day-column',
       DEFAULT_DRAG_CONFIG
     );
     const gridAt = (minutes: number) => cst - HOUR + minutes * 60; // still CDT readings
@@ -857,6 +921,7 @@ describe('createDragState anchored on the grid', function () {
       cst3 + HOUR / 2,
       0,
       0,
+      'day-column',
       DEFAULT_DRAG_CONFIG
     );
     const gridOneThirtyCdt = Date.UTC(2025, 10, 2, 6, 30) / 1000;
@@ -881,6 +946,7 @@ describe('createDragState anchored on the grid', function () {
       start,
       0,
       0,
+      'day-column',
       DEFAULT_DRAG_CONFIG
     );
     const dragged = updateDragState(state, start, 100, 100, 'day-column', DEFAULT_DRAG_CONFIG);
@@ -896,6 +962,7 @@ describe('createDragState anchored on the grid', function () {
       start,
       0,
       0,
+      'day-column',
       DEFAULT_DRAG_CONFIG
     );
     const past = updateDragState(
@@ -928,6 +995,7 @@ describe('createDragState anchored on the grid', function () {
       grabbed,
       0,
       0,
+      'day-column',
       DEFAULT_DRAG_CONFIG
     );
     const dragged = updateDragState(

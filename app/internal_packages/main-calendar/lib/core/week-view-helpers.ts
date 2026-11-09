@@ -1,6 +1,6 @@
-import { EventOccurrence, TimedOccurrence, isTimed } from './calendar-data-source';
+import { EventOccurrence, TimedOccurrence, inAllDayRow, isTimed } from './calendar-data-source';
 import moment, { Moment } from 'moment';
-import { CalendarDateUtils } from 'mailspring-exports';
+import { CalendarDateUtils, CalendarUtils } from 'mailspring-exports';
 
 export interface OverlapByEventId {
   [id: string]: { concurrentEvents: number; order: null | number };
@@ -145,8 +145,17 @@ export function exclusiveDayEnds(days: Moment[]): number[] {
   );
 }
 
-export function eventsGroupedByDay(events: EventOccurrence[], days: Moment[]) {
-  const map: { allDay: EventOccurrence[]; [dayUnix: string]: EventOccurrence[] } = { allDay: [] };
+/** Under a day, or held in the grid after a drop. */
+export function drawnInGrid(e: EventOccurrence, heldInGridEventId: string | null) {
+  return !inAllDayRow(e) || CalendarUtils.parseOccurrenceId(e.id).eventId === heldInGridEventId;
+}
+
+export function eventsGroupedByDay(
+  events: EventOccurrence[],
+  days: Moment[],
+  inRow: (e: EventOccurrence) => boolean
+) {
+  const map: { [dayUnix: string]: EventOccurrence[] } = {};
 
   const unixDays = days.map((d) => d.unix());
   unixDays.forEach((day) => {
@@ -156,7 +165,7 @@ export function eventsGroupedByDay(events: EventOccurrence[], days: Moment[]) {
   const exclusiveEnds = exclusiveDayEnds(days);
 
   events.forEach((event) => {
-    if (isTimed(event)) {
+    if (isTimed(event) && !inRow(event)) {
       // Half-open, matching `coveredDates`' last-covered-instant convention, so a
       // 22:00-00:00 event covers only the day it starts on.
       const lastInstant = Math.max(event.end - 1, event.start);
@@ -165,8 +174,6 @@ export function eventsGroupedByDay(events: EventOccurrence[], days: Moment[]) {
           map[`${day}`].push(event);
         }
       });
-    } else {
-      map.allDay.push(event);
     }
   });
 

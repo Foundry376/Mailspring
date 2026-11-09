@@ -8,7 +8,12 @@ import {
   occurrenceStartUnix,
   occurrenceEndUnix,
 } from './calendar-data-source';
-import { calcEventColors, formatEventTimeRange } from './calendar-helpers';
+import {
+  BarEndTime,
+  BarStartTime,
+  calcEventColors,
+  formatEventTimeRange,
+} from './calendar-helpers';
 import { HitZone, ViewDirection } from './calendar-drag-types';
 import { detectHitZone, canAttemptMove, formatDragPreviewTime } from './calendar-drag-utils';
 import { DAY_DUR, columnSpan } from './week-view-helpers';
@@ -124,11 +129,12 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
   _getDimensions() {
     const event = this.props.event;
 
-    // Fractions of the scope: timed events by wall clock down a day column, all-day events by
-    // whole days across the week (remapped in _getStyles).
+    // Fractions of the scope: timed events by wall clock down a day column, the all-day row's
+    // events by whole days across the week (remapped in _getStyles).
     let top: number | string;
     let height: number | string;
-    if (isTimed(event)) {
+    // By where it's drawn: a long timed event sits in the row, or in a column while held there.
+    if (isTimed(event) && this.props.direction === 'vertical') {
       const span = columnSpan(event, { start: this.props.scopeStart, end: this.props.scopeEnd });
       top = span.top / DAY_DUR;
       height = (span.bottom - span.top) / DAY_DUR;
@@ -341,6 +347,14 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     );
   }
 
+  _spanTime(side: 'start' | 'end') {
+    const { event, direction, scopeStart, scopeEnd } = this.props;
+    if (direction !== 'horizontal' || !isTimed(event)) return null;
+    // Only where it begins and ends, not on a side that runs past the days shown.
+    if (side === 'start') return event.start >= scopeStart ? <BarStartTime event={event} /> : null;
+    return event.end <= scopeEnd ? <BarEndTime event={event} /> : null;
+  }
+
   render() {
     const { direction, event, onClick, onDoubleClick, onContextMenu, selected, isDragging } =
       this.props;
@@ -399,8 +413,10 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
         onMouseDown={this._onMouseDown}
       >
         <span className="default-header" style={{ order: 0 }}>
+          {this._spanTime('start')}
           {event.isCancelled ? <s>{event.title}</s> : event.title}
         </span>
+        {this._spanTime('end')}
         {this._renderEventDetails()}
         <InjectedComponentSet
           className="event-injected-components"

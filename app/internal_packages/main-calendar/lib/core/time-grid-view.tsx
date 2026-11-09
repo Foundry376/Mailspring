@@ -11,7 +11,12 @@ import {
 import { CalendarDate, CalendarDateUtils } from 'mailspring-exports';
 import CalendarHeaderStore from './calendar-header-store';
 import VisibleRangeStore from './visible-range-store';
-import { EventOccurrence, EventRangeSubscription, isTimed } from './calendar-data-source';
+import {
+  EventOccurrence,
+  EventRangeSubscription,
+  inAllDayRow,
+  isTimed,
+} from './calendar-data-source';
 import { centerGridScroll, dateOf, formatShortTime, momentOf } from './calendar-helpers';
 import { EventGridBackground } from './event-grid-background';
 import { WeekViewEventColumn } from './week-view-event-column';
@@ -22,6 +27,7 @@ import { CalendarView } from './calendar-constants';
 import {
   overlapForEvents,
   maxConcurrentEvents,
+  drawnInGrid,
   eventsGroupedByDay,
   exclusiveDayEnds,
   TICKS_PER_DAY,
@@ -254,11 +260,22 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     );
   }
 
+  /** Whether the all-day row draws it; a new event's draft stays in the grid until it's created. */
+  _inRow = (e: EventOccurrence) => {
+    if (!isTimed(e)) return true;
+    if (!inAllDayRow(e)) return false;
+    const { dragState, heldInGridEventId } = this.props;
+    if (!e.isDragPreview) return !drawnInGrid(e, heldInGridEventId);
+    if (!dragState || e.originalEventId !== dragState.event.id) return false;
+    const { event, containerType } = dragState;
+    return !drawnInGrid(event, heldInGridEventId) || containerType === 'all-day-area';
+  };
+
   /** The all-day lanes for the days drawn around `firstVisible`, which the legend and strip share. */
   _allDay(events: EventOccurrence[], firstVisible: CalendarDate) {
     const drawn = SnapScroller.drawnFrom(firstVisible, this.props.visibleDays, 'day');
     const allDayEvents = events.filter(
-      (e) => !isTimed(e) && e.startDate < drawn.end && e.endDate >= drawn.first
+      (e) => this._inRow(e) && e.startDate < drawn.end && e.endDate >= drawn.first
     );
     const allDayOverlap = overlapForEvents(allDayEvents);
     // An empty row keeps one lane, so "All Day" sits below the headings.
@@ -295,7 +312,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
   _renderDays = (dayStarts: CalendarDate[], firstVisible: CalendarDate) => {
     const events = this._eventsWithPreviews();
     const days = dayStarts.map(momentOf);
-    const eventsByDay = eventsGroupedByDay(events, days);
+    const eventsByDay = eventsGroupedByDay(events, days, this._inRow);
     const { allDayEvents, allDayOverlap, allDayBarHeight } = this._allDay(events, firstVisible);
     const dayEnds = exclusiveDayEnds(days);
     const todayColumnIdx = days.findIndex((d) => this._isToday(d));

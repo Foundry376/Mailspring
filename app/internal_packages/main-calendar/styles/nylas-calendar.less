@@ -19,9 +19,28 @@
     border-radius: 4px 0 0 4px;
   }
 
+  .event-bar-time,
+  .event-bar-end-time {
+    font-size: 11px;
+    font-weight: normal;
+    opacity: 0.7;
+  }
+
+  .event-bar-end-time {
+    flex-shrink: 0;
+    padding-left: 4px;
+    white-space: nowrap;
+    color: var(--event-text-color, inherit);
+  }
+
   // Selection fills with the calendar's own color, as Apple and Notion Calendar do
   &.selected {
     background-color: var(--event-band-color) !important;
+
+    .event-bar-end-time {
+      color: var(--event-selected-text-color);
+      opacity: 1;
+    }
 
     // Darkened in OKLCH so the band keeps its hue; mixing toward black greys out pale colors
     &:before {
@@ -331,6 +350,10 @@ body.platform-win32 {
 
       // The time tooltip hangs above the chip, so the preview itself must not clip.
       overflow: visible;
+
+      &:before {
+        display: none;
+      }
 
       .drag-preview-time-tooltip {
         position: absolute;
@@ -674,27 +697,12 @@ body.platform-win32 {
         opacity: 1;
       }
 
-      .month-view-event-time,
-      .month-view-event-end-time {
-        font-size: 11px;
-        font-weight: normal;
-        opacity: 0.7;
-      }
-
       &:focus {
         outline: none;
         box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
       }
 
-      .month-view-event-end-time {
-        flex-shrink: 0;
-        padding-left: 4px;
-        white-space: nowrap;
-        color: var(--event-text-color, inherit);
-      }
-
-      &.selected .month-view-event-title,
-      &.selected .month-view-event-end-time {
+      &.selected .month-view-event-title {
         color: var(--event-selected-text-color);
         opacity: 1;
       }
@@ -712,6 +720,10 @@ body.platform-win32 {
         pointer-events: none;
         position: relative;
         overflow: visible; // the time tooltip hangs above the chip, as in the week/day preview
+
+        &:before {
+          display: none;
+        }
 
         .drag-preview-time-tooltip {
           position: absolute;
