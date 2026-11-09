@@ -292,7 +292,7 @@ body.platform-win32 {
 
     // Cancelled events: dashed border, transparent background, strikethrough text
     &.cancelled {
-      border: 1px dashed;
+      border: 1px dashed var(--event-band-color, currentColor);
       background-color: transparent !important;
       background-image: none;
       .default-header {
