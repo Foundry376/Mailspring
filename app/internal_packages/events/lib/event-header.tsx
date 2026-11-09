@@ -48,7 +48,13 @@ import {
 } from './invitation-versions';
 
 import { findOneIana } from 'windows-iana';
-import { focusedOccurrenceForIcsuid } from '../../main-calendar/lib/core/calendar-data-source';
+import {
+  EventOccurrence,
+  focusedOccurrenceForIcsuid,
+  occurrenceEndUnix,
+  occurrenceForRecurrenceId,
+  occurrenceStartUnix,
+} from '../../main-calendar/lib/core/calendar-data-source';
 import {
   isAnsweredYesOrNo,
   openProposeNewTimePopover,
@@ -170,10 +176,26 @@ function inOurZone(time: ICAL.Time) {
  * "Fri, Sep 4, 2–3PM CDT".
  */
 export function invitationTime(event: ICAL.Event): string {
-  const start = inOurZone(event.startDate);
-  const end = inOurZone(event.endDate);
+  return timeLine(inOurZone(event.startDate), inOurZone(event.endDate), event.startDate.isDate);
+}
+
+/** An occurrence of our copy, on the same line. */
+function occurrenceTime(occurrence: EventOccurrence): string {
+  const at = (unix: number) => moment.unix(unix).tz(DateUtils.timeZone);
+  return timeLine(
+    at(occurrenceStartUnix(occurrence)),
+    at(occurrenceEndUnix(occurrence)),
+    occurrence.isAllDay
+  );
+}
+
+function timeLine(
+  start: ReturnType<typeof inOurZone>,
+  end: ReturnType<typeof inOurZone>,
+  isDate: boolean
+): string {
   const day = 'ddd, MMM D';
-  if (event.startDate.isDate) {
+  if (isDate) {
     const last = end.clone().subtract(1, 'day');
     return last.isAfter(start, 'day')
       ? `${start.format(day)} – ${last.format(day)}`
@@ -747,17 +769,23 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
     );
   }
 
-  // Our copy's time, which the proposed one would replace.
+  // Our copy's time, which the proposed one would replace. An occurrence of a series has no
+  // VEVENT of its own unless it was changed, so it is placed by its RECURRENCE-ID.
   _renderReplacedTime() {
     const { rsvp, inviteRecurrenceIdStart } = this.state;
     if (!rsvp || !rsvp.target) return null;
-    let current: ICAL.Event | null = null;
+    let replaced: string | null = null;
     try {
-      current = eventForInvitation(rsvp.target.event.ics, inviteRecurrenceIdStart);
+      if (inviteRecurrenceIdStart === undefined) {
+        replaced = invitationTime(eventForInvitation(rsvp.target.event.ics, undefined));
+      } else {
+        const occurrence = occurrenceForRecurrenceId([rsvp.target.event], inviteRecurrenceIdStart);
+        replaced = occurrence ? occurrenceTime(occurrence) : null;
+      }
     } catch (e) {
       return null;
     }
-    return current && <s className="event-replaced-time">{invitationTime(current)}</s>;
+    return replaced && <s className="event-replaced-time">{replaced}</s>;
   }
 
   _renderCounterNote() {

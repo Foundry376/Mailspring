@@ -1000,6 +1000,35 @@ describe('EventHeader answering an invitation', function () {
       fs.writeFileSync(icsPath, COUNTER);
     });
 
+    it('strikes through the time it would replace, for an unchanged occurrence of a series too', function () {
+      const weekly = OURS.replace(
+        'DTEND:20260301T150000Z',
+        'DTEND:20260301T150000Z\r\nRRULE:FREQ=WEEKLY'
+      );
+      fs.writeFileSync(
+        icsPath,
+        OURS.replace('BEGIN:VEVENT', 'METHOD:COUNTER\r\nBEGIN:VEVENT')
+          .replace(
+            'DTSTART:20260301T140000Z',
+            'RECURRENCE-ID:20260308T140000Z\r\nDTSTART:20260308T160000Z'
+          )
+          .replace('DTEND:20260301T150000Z', 'DTEND:20260308T170000Z')
+      );
+      const series = new Event({
+        ...ours,
+        ics: weekly,
+        recurrenceEnd: Date.UTC(2027, 0, 1) / 1000,
+      } as any);
+      mount({ events: [series], calendars: [mine], from: 'bo@example.com' });
+      runs(() => {
+        // The second Sunday, after the clocks went forward in the runner's America/Chicago.
+        expect(
+          ReactTestUtils.findRenderedDOMComponentWithClass(header, 'event-replaced-time')
+            .textContent
+        ).toBe('Sun, Mar 8, 9–10AM CDT');
+      });
+    });
+
     it('shows the proposed time and moves the event to it, as one revision', function () {
       mount({ events: [ours], calendars: [mine], from: 'bo@example.com' });
       runs(() => {
