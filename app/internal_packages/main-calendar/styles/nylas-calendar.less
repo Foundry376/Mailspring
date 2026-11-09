@@ -304,6 +304,16 @@ body.platform-win32 {
       &:before {
         display: none; // Hide the left accent bar for cancelled events
       }
+
+      // Selected, it takes the tint other events have before selection, not the full fill.
+      &.selected {
+        background-color: ~'color-mix(in srgb, var(--event-band-color) 15%, transparent)' !important;
+
+        .default-header,
+        .event-details {
+          color: var(--event-text-color);
+        }
+      }
     }
 
     // Dragging state - reduce opacity to show original position
