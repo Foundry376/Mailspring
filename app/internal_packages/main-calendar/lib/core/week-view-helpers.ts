@@ -169,8 +169,6 @@ export function eventsGroupedByDay(
           map[`${day}`].push(event);
         }
       });
-    } else {
-      map.allDay.push(event);
     }
   });
 
