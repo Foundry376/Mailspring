@@ -338,6 +338,10 @@ body.platform-win32 {
       // The time tooltip hangs above the chip, so the preview itself must not clip.
       overflow: visible;
 
+      &:before {
+        display: none;
+      }
+
       .drag-preview-time-tooltip {
         position: absolute;
         bottom: 100%;
@@ -718,6 +722,10 @@ body.platform-win32 {
         pointer-events: none;
         position: relative;
         overflow: visible; // the time tooltip hangs above the chip, as in the week/day preview
+
+        &:before {
+          display: none;
+        }
 
         .drag-preview-time-tooltip {
           position: absolute;
