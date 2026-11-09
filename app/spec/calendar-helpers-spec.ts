@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { AccountStore, Actions, SyncbackEventTask, TaskQueue } from 'mailspring-exports';
+import { AccountStore, Actions, SyncbackEventTask } from 'mailspring-exports';
 import 'moment/locale/de';
 import 'moment/locale/ko';
 import 'moment/locale/lb';
@@ -15,7 +15,7 @@ import {
   formatTime,
   formatEventTimeRange,
   formatOccurrenceTime,
-  createCalendarEvent,
+  queueNewCalendarEvent,
   allDayToggleTimes,
 } from '../internal_packages/main-calendar/lib/core/calendar-helpers';
 import { allDayOccurrence, timedOccurrence } from './fixtures/calendar-view-props';
@@ -396,7 +396,7 @@ describe('calendar times with Use 24-hour clock on, in a 12-hour locale', functi
   });
 });
 
-describe('createCalendarEvent and the organizer', function () {
+describe('queueNewCalendarEvent and the organizer', function () {
   const unfold = (ics: string) => ics.replace(/\r\n[ \t]/g, '').split(/\r?\n/);
   let queued: any[];
 
@@ -404,9 +404,7 @@ describe('createCalendarEvent and the organizer', function () {
     queued = [];
     spyOn(AccountStore, 'accountForId').andReturn({ emailAddress: 'me@example.com', name: 'Me' });
     spyOn(Actions, 'queueTask').andCallFake((task) => queued.push(task));
-    spyOn(Actions, 'focusCalendarEvent');
     spyOn(SyncbackEventTask, 'forCreating').andCallFake((opts) => opts);
-    spyOn(TaskQueue, 'waitForPerformRemote').andReturn(Promise.resolve());
   });
 
   const options = (attendees: Array<{ email: string; name?: string }>) => ({
@@ -419,27 +417,27 @@ describe('createCalendarEvent and the organizer', function () {
     attendees,
   });
 
-  it('names the account as organizer and accepted attendee when the event has guests', async function () {
-    await createCalendarEvent(options([{ email: 'bo@example.com', name: 'Bo' }]));
+  it('names the account as organizer and accepted attendee when the event has guests', function () {
+    queueNewCalendarEvent(options([{ email: 'bo@example.com', name: 'Bo' }]));
     const lines = unfold(queued[0].event.ics);
     expect(lines).toContain('ORGANIZER;CN=Me:mailto:me@example.com');
     expect(lines).toContain('ATTENDEE;CN=Me;PARTSTAT=ACCEPTED:mailto:me@example.com');
   });
 
-  it('writes the Show As the editor picked', async function () {
-    await createCalendarEvent({ ...options([]), transparency: 'TRANSPARENT' });
+  it('writes the Show As the editor picked', function () {
+    queueNewCalendarEvent({ ...options([]), transparency: 'TRANSPARENT' });
     expect(unfold(queued[0].event.ics)).toContain('TRANSP:TRANSPARENT');
   });
 
-  it('makes an all-day event Free and a timed one Busy when no Show As is given', async function () {
-    await createCalendarEvent({ ...options([]), isAllDay: true });
-    await createCalendarEvent(options([]));
+  it('makes an all-day event Free and a timed one Busy when no Show As is given', function () {
+    queueNewCalendarEvent({ ...options([]), isAllDay: true });
+    queueNewCalendarEvent(options([]));
     expect(unfold(queued[0].event.ics)).toContain('TRANSP:TRANSPARENT');
     expect(unfold(queued[1].event.ics)).toContain('TRANSP:OPAQUE');
   });
 
-  it('leaves a private appointment without an organizer', async function () {
-    await createCalendarEvent(options([]));
+  it('leaves a private appointment without an organizer', function () {
+    queueNewCalendarEvent(options([]));
     expect(queued[0].event.ics).not.toContain('ORGANIZER');
   });
 });

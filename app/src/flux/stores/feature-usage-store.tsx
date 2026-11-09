@@ -13,7 +13,10 @@ const UsageRecordedServerSide = ['contact-profiles', 'translation'];
 
 export interface FeatureLexicon {
   headerText: string;
+  // %1$@ is the quota and %2$@ the period ("week" or "month").
   rechargeText: string;
+  // Used instead of rechargeText when the quota never resets (period 'unlimited'). %1$@ is the quota.
+  rechargeTextAllTime?: string;
   iconUrl: string;
 }
 
@@ -87,8 +90,20 @@ class _FeatureUsageStore extends MailspringStore {
     } else {
       headerText = headerText || localized("You've reached your quota");
 
-      const time = featureData.period === 'monthly' ? localized('month') : localized('week');
-      rechargeText = rechargeText.replace('%1$@', `${featureData.quota}`).replace('%2$@', time);
+      if (featureData.period === 'unlimited') {
+        // The quota never resets, so "each week" copy doesn't apply.
+        if (lexicon.rechargeTextAllTime) {
+          rechargeText = lexicon.rechargeTextAllTime;
+        } else if (rechargeText.includes('%2$@')) {
+          rechargeText = `${localized(
+            "You've used the %1$@ free uses of this feature included with Mailspring Basic."
+          )} ${localized('Upgrade to Pro today!')}`;
+        }
+        rechargeText = rechargeText.replace('%1$@', `${featureData.quota}`);
+      } else {
+        const time = featureData.period === 'monthly' ? localized('month') : localized('week');
+        rechargeText = rechargeText.replace('%1$@', `${featureData.quota}`).replace('%2$@', time);
+      }
     }
 
     Actions.openModal({
