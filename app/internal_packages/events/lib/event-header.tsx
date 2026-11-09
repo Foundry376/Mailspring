@@ -1035,8 +1035,9 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
 
     const { message } = this.props;
     const write = this._planRSVPWrite(status);
-    // A copy we create still gets the REPLY: whether Google tells the organizer about it is untested.
-    if (write?.kind === 'update' && EventRSVPTask.calendarWriteSendsReply(message.accountId)) {
+    // A copy we create still gets the REPLY: Nextcloud and Cyrus answer the organizer when one is
+    // created already answered, Baikal does not, and Google is untested.
+    if (write?.kind === 'update' && EventRSVPTask.calendarWriteSendsReply(write.calendar)) {
       this.setState({ inflight: status });
       const answer = { ...write.answer, messageId: message.id };
       Actions.queueTask(SyncbackEventTask.forAnswering({ event: write.event, answer }));

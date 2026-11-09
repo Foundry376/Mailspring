@@ -568,6 +568,32 @@ describe('EventHeader answering an invitation', function () {
     });
   });
 
+  describe('on a calendar whose server schedules for it', function () {
+    const scheduling = cal({ id: 'cal-mine', name: 'brian@example.com', autoSchedule: true });
+
+    it('records the answer on our copy and leaves telling the organizer to the server', function () {
+      mount({ events: [synced], calendars: [scheduling] });
+      runs(() => {
+        click('Yes');
+        expect(queued.length).toBe(1);
+        const write = queued[0] as SyncbackEventTask;
+        expect(write instanceof SyncbackEventTask).toBe(true);
+        expect(write.rsvp.messageId).toBe('m1');
+      });
+    });
+
+    it('still emails the reply when the copy answered is on a calendar that does not', function () {
+      const onShared = synced.clone();
+      onShared.calendarId = shared.id;
+      mount({ events: [onShared], calendars: [shared, scheduling] });
+      runs(() => {
+        click('Yes');
+        expect(queued[0] instanceof EventRSVPTask).toBe(true);
+        expect((queued[1] as SyncbackEventTask).event.calendarId).toBe(shared.id);
+      });
+    });
+  });
+
   describe('on a Google account', function () {
     const answered = () =>
       rsvpButtons(header)

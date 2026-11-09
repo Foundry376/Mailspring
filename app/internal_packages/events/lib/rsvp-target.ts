@@ -183,7 +183,7 @@ export function resolveAddTo({
 }
 
 export type RSVPWrite =
-  | { kind: 'update'; event: Event; answer: RSVPAnswer }
+  | { kind: 'update'; event: Event; calendar: Calendar; answer: RSVPAnswer }
   | { kind: 'create'; event: Event; calendar: Calendar; answer: RSVPAnswer };
 
 /** The invitation as our calendar stores it, with our answer on it. */
@@ -227,7 +227,7 @@ export function planRSVPWrite({
   };
 
   if (rsvp.target) {
-    const { event: calEvent } = rsvp.target;
+    const { event: calEvent, calendar } = rsvp.target;
     // An invitation to one occurrence is answered on that occurrence alone. A Google organizer
     // takes the answer from this write and ignores the emailed REPLY (measured on #2924), so
     // writing every VEVENT would accept or decline the whole series.
@@ -252,7 +252,7 @@ export function planRSVPWrite({
     const event = calEvent.clone();
     event.ics = ics;
     if (copyBehind && !occurrenceIcs) Object.assign(event, startAndEnd);
-    return { kind: 'update', event, answer: { email: myEmail, status, occurrenceIcs } };
+    return { kind: 'update', event, calendar, answer: { email: myEmail, status, occurrenceIcs } };
   }
 
   // Declining leaves the event off our calendar, as Google does.

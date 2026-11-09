@@ -10,6 +10,7 @@ import {
   DatabaseStore,
   Message,
   Actions,
+  Calendar,
 } from 'mailspring-exports';
 
 /**
@@ -144,11 +145,14 @@ export class EventRSVPTask extends Task {
   }
 
   /**
-   * Whether writing our answer to our copy on this account's calendar tells the organizer, so no
-   * REPLY of ours is needed. Google emails them itself; ours would arrive as a second answer.
+   * Whether writing our answer to our copy on this calendar tells the organizer, so no REPLY of
+   * ours is needed: Google emails them itself, as does a server that schedules for the calendar
+   * (RFC 6638 section 3.2, which Thunderbird's canNotify follows). Ours would be a second answer.
    */
-  static calendarWriteSendsReply(accountId: string) {
-    return AccountStore.accountForId(accountId).provider === 'gmail';
+  static calendarWriteSendsReply(calendar: Calendar) {
+    return (
+      calendar.autoSchedule || AccountStore.accountForId(calendar.accountId).provider === 'gmail'
+    );
   }
 
   /** The answer the invitation header shows, read back from this metadata. */

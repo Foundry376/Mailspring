@@ -279,6 +279,24 @@ describe('answering and countering from the calendar', function () {
       expect(queued.length).toBe(1);
     });
 
+    describe('on a calendar whose server schedules for it', function () {
+      beforeEach(function () {
+        calendar = new Calendar({}).fromJSON({
+          id: 'cal-1',
+          aid: 'acct-1',
+          name: ME,
+          owner: 'mine',
+          auto_schedule: true,
+        });
+      });
+
+      it('leaves telling the organizer to the server once the answer is on our copy', async function () {
+        await respondToCalendarEvent(occurrence(), 'ACCEPTED');
+        expect(queued.length).toBe(1);
+        expect(queued[0] instanceof SyncbackEventTask).toBe(true);
+      });
+    });
+
     describe('on a Google account', function () {
       beforeEach(function () {
         (AccountStore.accountForId as jasmine.Spy).andReturn({

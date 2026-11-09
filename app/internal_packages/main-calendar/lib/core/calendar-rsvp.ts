@@ -165,7 +165,7 @@ export async function recordAndSendRSVP({
         occurrenceIcs: recurrenceId ? answered : undefined,
       };
       Actions.queueTask(SyncbackEventTask.forAnswering({ event: updated, answer }));
-      if (EventRSVPTask.calendarWriteSendsReply(event.accountId)) return;
+      if (EventRSVPTask.calendarWriteSendsReply(calendar)) return;
     }
   }
 
