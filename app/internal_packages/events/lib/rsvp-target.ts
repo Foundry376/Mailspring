@@ -1,6 +1,8 @@
 import {
   Calendar,
+  CalendarConflict,
   CalendarUtils,
+  DatabaseStore,
   Event,
   ICSEventHelpers,
   ICSParticipantStatus,
@@ -114,6 +116,43 @@ export function conflictCalendarIds(
     .map((c) => c.id);
 }
 
+/** This account's events whose stored span touches the window, for findEventConflicts. */
+export function nearbyEventsQuery(accountId: string, window: { start: number; end: number }) {
+  return DatabaseStore.findAll<Event>(Event).where([
+    Event.attributes.accountId.equal(accountId),
+    Event.attributes.recurrenceStart.lessThan(window.end),
+    Event.attributes.recurrenceEnd.greaterThan(window.start),
+  ]);
+}
+
+/**
+ * What an event's time clashes with on this account's busy calendars, leaving the event itself
+ * out. `nearby` is the account's events around the window, for findConflicts to expand.
+ */
+export function findEventConflicts({
+  nearby,
+  calendars,
+  window,
+  addresses,
+  icsuid,
+}: {
+  nearby: Event[];
+  calendars: Calendar[];
+  window: { start: number; end: number };
+  addresses: string[];
+  icsuid: string;
+}): CalendarConflict[] {
+  const busy = new Set(
+    conflictCalendarIds(calendars, AppEnv.config.get('mailspring.disabledCalendars') || [])
+  );
+  return ICSEventHelpers.findConflicts({
+    events: nearby.filter((e) => busy.has(e.calendarId)),
+    ...window,
+    addresses,
+    excludeIcsuid: icsuid,
+  });
+}
+
 /**
  * The calendars an unsynced invitation may be added to, and the one preselected. `current`
  * is the user's own pick from an earlier tick, kept while it is still a choice.
@@ -145,12 +184,22 @@ export function resolveAddTo({
 
 export type RSVPWrite =
   | { kind: 'update'; event: Event; answer: RSVPAnswer }
-  | { kind: 'create'; event: Event; calendar: Calendar };
+  | { kind: 'create'; event: Event; calendar: Calendar; answer: RSVPAnswer };
+
+/** The invitation as our calendar stores it, with our answer on it. */
+function storedInvitation(inviteIcs: string, myEmail: string, status: ICSParticipantStatus) {
+  const answered = ICSEventHelpers.updateAttendeeStatus(inviteIcs, myEmail, status);
+  // A stored event must not carry the invitation's METHOD (RFC 4791 section 4.1).
+  return answered
+    ? ICSEventHelpers.matchYahooTransparency(ICSEventHelpers.stripITIPMethod(answered))
+    : null;
+}
 
 /**
- * The calendar write that records an answer, beside the emailed REPLY: our PARTSTAT on our own
- * copy (RFC 6638 section 3.2.5), on the one occurrence an invitation names where it names one,
- * or the invitation itself when we are attending and have no copy.
+ * The calendar write that records an answer: our PARTSTAT on our own copy (RFC 6638 section
+ * 3.2.5), on the one occurrence an invitation names where it names one, or the invitation itself
+ * when we are attending and have no copy. A copy behind the invitation (copyIsBehind) is brought
+ * up to it, as answering it does in Thunderbird.
  */
 export function planRSVPWrite({
   rsvp,
@@ -160,6 +209,7 @@ export function planRSVPWrite({
   inviteIcs,
   inviteEvent,
   accountId,
+  copyBehind = false,
 }: {
   rsvp: RSVPTargetResolution | undefined;
   addTo: Calendar | undefined;
@@ -168,8 +218,13 @@ export function planRSVPWrite({
   inviteIcs: string;
   inviteEvent: ICAL.Event;
   accountId: string;
+  copyBehind?: boolean;
 }): RSVPWrite | null {
   if (!rsvp) return null;
+  const startAndEnd = {
+    recurrenceStart: Math.round(inviteEvent.startDate.toJSDate().getTime() / 1000),
+    recurrenceEnd: Math.round(inviteEvent.endDate.toJSDate().getTime() / 1000),
+  };
 
   if (rsvp.target) {
     const { event: calEvent } = rsvp.target;
@@ -179,12 +234,24 @@ export function planRSVPWrite({
     const occurrenceIcs = inviteEvent.component.getFirstPropertyValue('recurrence-id')
       ? inviteIcs
       : undefined;
-    const ics = occurrenceIcs
-      ? ICSEventHelpers.updateOccurrenceAttendeeStatus(calEvent.ics, occurrenceIcs, myEmail, status)
-      : ICSEventHelpers.updateAttendeeStatus(calEvent.ics, myEmail, status);
+    let ics: string | null;
+    if (occurrenceIcs) {
+      ics = ICSEventHelpers.updateOccurrenceAttendeeStatus(
+        calEvent.ics,
+        occurrenceIcs,
+        myEmail,
+        status,
+        { replace: copyBehind }
+      );
+    } else if (copyBehind) {
+      ics = storedInvitation(inviteIcs, myEmail, status);
+    } else {
+      ics = ICSEventHelpers.updateAttendeeStatus(calEvent.ics, myEmail, status);
+    }
     if (!ics) return null;
     const event = calEvent.clone();
     event.ics = ics;
+    if (copyBehind && !occurrenceIcs) Object.assign(event, startAndEnd);
     return { kind: 'update', event, answer: { email: myEmail, status, occurrenceIcs } };
   }
 
@@ -192,18 +259,16 @@ export function planRSVPWrite({
   const attending = status === 'ACCEPTED' || status === 'TENTATIVE';
   if (!attending || rsvp.problem !== 'not-on-a-calendar' || !addTo) return null;
 
-  const answered = ICSEventHelpers.updateAttendeeStatus(inviteIcs, myEmail, status);
-  if (!answered) return null;
+  const ics = storedInvitation(inviteIcs, myEmail, status);
+  if (!ics) return null;
   const event = new Event({
     calendarId: addTo.id,
     accountId,
-    // A stored event must not carry the invitation's METHOD (RFC 4791 section 4.1).
-    ics: ICSEventHelpers.stripITIPMethod(answered),
+    ics,
     icsuid: inviteEvent.uid,
-    recurrenceStart: Math.round(inviteEvent.startDate.toJSDate().getTime() / 1000),
-    recurrenceEnd: Math.round(inviteEvent.endDate.toJSDate().getTime() / 1000),
+    ...startAndEnd,
   });
-  return { kind: 'create', event, calendar: addTo };
+  return { kind: 'create', event, calendar: addTo, answer: { email: myEmail, status } };
 }
 
 /** Why a counter-proposal that arrived by email may not be applied to our copy. */
@@ -217,7 +282,7 @@ export type CounterProposalProblem =
 
 /**
  * Whether an emailed COUNTER may move our copy of the meeting: only the organizer revises one
- * (RFC 5546 section 2.1.4) and only a guest counters (section 3.2.7). Both are read off our
+ * (RFC 5546 section 2.1) and only a guest counters (section 3.2.7). Both are read off our
  * synced copy, never the attachment, whose UID, ORGANIZER and guests its sender wrote. A
  * counter for a series that names no occurrence is withheld too: applying it would re-base
  * every occurrence on the proposed date, and Thunderbird's invitation bar draws the same line.

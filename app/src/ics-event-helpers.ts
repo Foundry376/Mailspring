@@ -57,6 +57,9 @@ export interface CreateEventOptions {
   attendees?: Array<{ email: string; name?: string; role?: string }>;
   recurrenceRule?: string;
   transparency?: Transparency;
+  /** A TRIGGER duration such as "-PT10M" for a reminder; omitted, the event is marked as
+   * having none (see setAlarm). */
+  alarmTrigger?: string | null;
 }
 
 /**
@@ -605,8 +608,10 @@ export function createICSString(options: CreateEventOptions): string {
   }
 
   if (options.transparency) {
-    vevent.addPropertyWithValue('transp', options.transparency);
+    setTransparency(vevent, options.transparency);
   }
+
+  setAlarm(vevent, options.alarmTrigger || null, ical);
 
   // Set timestamp
   vevent.addPropertyWithValue('dtstamp', nowUTC(ical));
@@ -967,6 +972,8 @@ export function applyEditsToException(
     attendees?: AttendeeInput[];
     organizer?: Organizer;
     transparency?: Transparency;
+    /** See updateAlarm; undefined leaves the exception's alarms alone. */
+    alarmTrigger?: string | null;
   }
 ): string {
   const ical = getICAL();
@@ -1004,7 +1011,10 @@ export function applyEditsToException(
     nameOrganizer(vcalendar, edits.organizer);
   }
   if (edits.transparency) {
-    exceptionVevent.updatePropertyWithValue('transp', edits.transparency);
+    setTransparency(exceptionVevent, edits.transparency);
+  }
+  if (edits.alarmTrigger !== undefined) {
+    setAlarm(exceptionVevent, edits.alarmTrigger, ical);
   }
 
   exceptionVevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
@@ -1337,17 +1347,21 @@ function reconcileAttendees(vevent: ICALComponent, attendees: AttendeeInput[]): 
     }
   }
   for (const attendee of attendees) {
-    if (existing.has(attendee.email.toLowerCase())) {
-      continue;
+    if (!existing.has(attendee.email.toLowerCase())) {
+      addAttendee(vevent, attendee);
     }
-    const prop = vevent.addPropertyWithValue('attendee' as any, `mailto:${attendee.email}`);
-    if (attendee.name) {
-      prop.setParameter('cn', attendee.name);
-    }
-    prop.setParameter('partstat', 'NEEDS-ACTION');
-    prop.setParameter('role', 'REQ-PARTICIPANT');
-    prop.setParameter('rsvp', 'TRUE');
   }
+}
+
+/** A new guest, a required participant asked to answer. */
+function addAttendee(vevent: ICALComponent, attendee: AttendeeInput): void {
+  const prop = vevent.addPropertyWithValue('attendee' as any, `mailto:${attendee.email}`);
+  if (attendee.name) {
+    prop.setParameter('cn', attendee.name);
+  }
+  prop.setParameter('partstat', 'NEEDS-ACTION');
+  prop.setParameter('role', 'REQ-PARTICIPANT');
+  prop.setParameter('rsvp', 'TRUE');
 }
 
 /**
@@ -1405,6 +1419,130 @@ export function updateAttendees(
   // Update DTSTAMP
   vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
 
+  return root.toString();
+}
+
+export type AttendeeChange = { added: AttendeeInput[]; removed: AttendeeInput[] };
+
+/**
+ * Adds and removes guests on every VEVENT, so a series' moved occurrences follow it, or only on
+ * the override at `recurrenceId`. Each VEVENT keeps the guests the change doesn't name, its own
+ * included, exactly as they are; see reconcileAttendees and nameOrganizer.
+ */
+export function changeAttendees(
+  ics: string,
+  change: AttendeeChange,
+  { organizer, recurrenceId }: { organizer?: Organizer; recurrenceId?: string } = {}
+): string {
+  const ical = getICAL();
+  const { root } = parseICSString(ics);
+  const vevents = veventsOf(root);
+  const targets = recurrenceId
+    ? vevents.filter((v) => matchesRecurrenceId(v, recurrenceId))
+    : vevents;
+  if (!targets.length) {
+    throw new Error(`No VEVENT to change guests on for RECURRENCE-ID ${recurrenceId}`);
+  }
+
+  const removed = new Set(change.removed.map((a) => a.email.toLowerCase()));
+  for (const vevent of targets) {
+    const props = vevent.getAllProperties('attendee');
+    const emailOf = (prop: (typeof props)[number]) =>
+      emailFromParticipantURI(String(prop.getFirstValue()));
+    props.filter((p) => removed.has(emailOf(p))).forEach((p) => vevent.removeProperty(p));
+    const present = new Set(props.map(emailOf));
+    change.added
+      .filter((a) => !present.has(a.email.toLowerCase()))
+      .forEach((a) => addAttendee(vevent, a));
+    vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
+  }
+  if (organizer) {
+    nameOrganizer(root, organizer);
+  }
+  return root.toString();
+}
+
+/**
+ * An alarm that says the event has none. Google applies the calendar's default reminders to an
+ * event with no VALARM (measured October 2026: `reminders.useDefault` is true and the read-back
+ * carries the default), and takes this one as "no reminder". It is the placeholder Apple's
+ * clients write for None (draft-daboo-valarm-extensions section 11), iCloud stores it as written,
+ * Yahoo drops it, and RFC 5545 section 3.8.6.1 has other readers ignore an ACTION they don't know.
+ */
+function addNoAlarmPlaceholder(vevent: ICALComponent, ical: ICAL): void {
+  const alarm = new ical.Component('valarm');
+  alarm.addPropertyWithValue('action', 'NONE');
+  alarm.addProperty(new ical.Property(['trigger', {}, 'date-time', '1976-04-01T00:55:45Z']));
+  vevent.addSubcomponent(alarm);
+}
+
+function isNoAlarmPlaceholder(alarm: ICALComponent): boolean {
+  return String(alarm.getFirstPropertyValue('action') || '').toUpperCase() === 'NONE';
+}
+
+/**
+ * Points a VEVENT's first VALARM at `trigger`, adding a DISPLAY alarm when it has none, or removes
+ * every VALARM for null and marks the event as having none. The editor shows only the first, so
+ * any others are left as they are.
+ */
+function setAlarm(vevent: ICALComponent, trigger: string | null, ical: ICAL): void {
+  const placeholders = vevent.getAllSubcomponents('valarm').filter(isNoAlarmPlaceholder);
+  placeholders.forEach((alarm) => vevent.removeSubcomponent(alarm));
+  const alarms = vevent.getAllSubcomponents('valarm');
+  if (!trigger) {
+    alarms.forEach((alarm) => vevent.removeSubcomponent(alarm));
+    addNoAlarmPlaceholder(vevent, ical);
+    return;
+  }
+  let alarm = alarms[0];
+  if (!alarm) {
+    alarm = new ical.Component('valarm');
+    alarm.addPropertyWithValue('action', 'DISPLAY');
+    // RFC 5545 section 3.6.6 requires a DESCRIPTION on a DISPLAY alarm.
+    alarm.addPropertyWithValue('description', vevent.getFirstPropertyValue('summary') || '');
+    vevent.addSubcomponent(alarm);
+  }
+  // A new property drops VALUE=DATE-TIME and RELATED=END from the trigger it replaces.
+  alarm.removeAllProperties('trigger');
+  alarm.addPropertyWithValue('trigger', ical.Duration.fromString(trigger));
+}
+
+/**
+ * The first VEVENT's first VALARM TRIGGER, or null when it has none or is marked as having none
+ * (see addNoAlarmPlaceholder). An offset from the start is normalized, so Google's
+ * "-P0DT0H10M0S" reads "-PT10M"; a trigger at a set time or relative to the end comes back as
+ * written.
+ */
+export function getAlarmTrigger(ics: string): string | null {
+  const ical = getICAL();
+  const { event } = parseICSString(ics);
+  const alarm = event.component.getAllSubcomponents('valarm').find((a) => !isNoAlarmPlaceholder(a));
+  const trigger = alarm?.getFirstProperty('trigger');
+  if (!trigger) return null;
+  const value = trigger.getFirstValue();
+  if (value instanceof ical.Duration && trigger.getParameter('related') !== 'END') {
+    return ical.Duration.fromSeconds(value.toSeconds()).toString();
+  }
+  return String(value);
+}
+
+/**
+ * Sets the event's reminder to `trigger` (see setAlarm), or removes its reminders for null. A
+ * series' moved occurrences take it too, as Google Calendar and Apple Calendar do for a reminder
+ * changed on all events.
+ */
+export function updateAlarm(ics: string, trigger: string | null): string {
+  const ical = getICAL();
+  const { root } = parseICSString(ics);
+  const vevents = root.name === 'vevent' ? [root] : root.getAllSubcomponents('vevent');
+  if (!vevents.length) {
+    throw new Error('Invalid ICS: no VEVENT component found');
+  }
+  const uid = vevents[0].getFirstPropertyValue('uid');
+  for (const vevent of vevents.filter((v) => v.getFirstPropertyValue('uid') === uid)) {
+    setAlarm(vevent, trigger, ical);
+    vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
+  }
   return root.toString();
 }
 
@@ -1630,15 +1768,17 @@ export function updateAttendeeStatus(ics: string, email: string, partstat: strin
 /**
  * Answers an invitation to one occurrence of a series on our stored copy: PARTSTAT changes on
  * the VEVENT that RECURRENCE-ID names and nowhere else, and when the copy has no VEVENT for that
- * occurrence the emailed one is stored as its exception. A Google organizer acts on this write
- * rather than on the emailed REPLY, so writing the master would answer for every occurrence.
- * Null when the address is not an attendee of the occurrence.
+ * occurrence the emailed one is stored as its exception, as it is in place of the copy's own with
+ * `replace`. A Google organizer acts on this write rather than on the emailed REPLY, so writing
+ * the master would answer for every occurrence. Null when the address is not an attendee of the
+ * occurrence.
  */
 export function updateOccurrenceAttendeeStatus(
   calendarIcs: string,
   occurrenceIcs: string,
   email: string,
-  partstat: string
+  partstat: string,
+  { replace = false }: { replace?: boolean } = {}
 ): string | null {
   const ical = getICAL();
   const { root } = parseICSString(calendarIcs);
@@ -1657,12 +1797,13 @@ export function updateOccurrenceAttendeeStatus(
     const rid = vevent.getFirstPropertyValue('recurrence-id') as ICALTime | null;
     return !!rid && rid.toJSDate().getTime() === namedInstant;
   });
-  if (existing) {
+  if (existing && !replace) {
     return setAttendeePartstat(existing, target, partstat, ical) ? root.toString() : null;
   }
 
   const exception = new ical.Component(invited.toJSON());
   if (!setAttendeePartstat(exception, target, partstat, ical)) return null;
+  if (existing) root.removeSubcomponent(existing);
   root.addSubcomponent(exception);
   // The emailed occurrence may sit in a zone the copy has no VTIMEZONE for yet.
   syncVTimezones(root, ical, recurrenceId.toJSDate());
@@ -1680,6 +1821,29 @@ export function getEventTimezone(ics: string): string | null {
     return zone.tzid;
   }
   return null;
+}
+
+/**
+ * Sets TRANSP, and X-YAHOO-USER-STATUS beside it. Yahoo CalDAV ignores TRANSP and derives it
+ * from that property, BUSY when it is absent, on create and on update; it ignores
+ * X-YAHOO-EVENT-STATUS (measured October 2026). Google and iCloud store the property as written.
+ */
+function setTransparency(vevent: ICALComponent, transparency: string): void {
+  vevent.updatePropertyWithValue('transp', transparency);
+  const free = transparency.toUpperCase() === 'TRANSPARENT';
+  vevent.updatePropertyWithValue('x-yahoo-user-status', free ? 'FREE' : 'BUSY');
+}
+
+/** Pairs each VEVENT's TRANSP with the X-YAHOO-USER-STATUS Yahoo reads it from. */
+export function matchYahooTransparency(ics: string): string {
+  const { root } = parseICSString(ics);
+  const vevents =
+    root.name === 'vevent' ? [root] : (root.getAllSubcomponents('vevent') as ICALComponent[]);
+  for (const vevent of vevents) {
+    const transp = vevent.getFirstPropertyValue('transp');
+    if (transp) setTransparency(vevent, String(transp));
+  }
+  return root.toString();
 }
 
 /**
@@ -1704,7 +1868,7 @@ export function updateEventProperty(
       event.location = value;
       break;
     case 'transp':
-      event.component.updatePropertyWithValue('transp', value);
+      setTransparency(event.component, value);
       break;
   }
 

@@ -1,4 +1,4 @@
-import moment, { Moment } from 'moment';
+import moment, { Moment } from 'moment-timezone';
 import classnames from 'classnames';
 import React from 'react';
 import { DateUtils } from 'mailspring-exports';
@@ -7,6 +7,8 @@ import { MiniMonthView, TabGroupContext } from 'mailspring-component-kit';
 type DatePickerProps = {
   value?: number;
   onChange?: (ms: number) => void;
+  /** The IANA zone the day is shown and picked in; the machine's own when omitted. */
+  timeZone?: string;
 };
 type DatePickerState = {
   focused: boolean;
@@ -28,14 +30,19 @@ export class DatePicker extends React.Component<DatePickerProps, DatePickerState
   }
 
   value() {
-    return this.props.value ? moment(this.props.value) : null;
+    if (!this.props.value) return null;
+    const { timeZone } = this.props;
+    return timeZone ? moment.tz(this.props.value, timeZone) : moment(this.props.value);
   }
 
   // Apply the time to the destination day rather than moving the value's own date: a
   // same-day-next-year intermediate can land in that year's spring-forward gap and gain an hour.
+  // `day` may be a local midnight from the mini month; only its date is read.
   _changeDay(day: Moment) {
     const val = this.value();
-    const next = day.set({
+    const { timeZone } = this.props;
+    const dayStart = timeZone ? moment.tz(day.format('YYYY-MM-DD'), timeZone) : day;
+    const next = dayStart.set({
       hour: val.hour(),
       minute: val.minute(),
       second: val.second(),

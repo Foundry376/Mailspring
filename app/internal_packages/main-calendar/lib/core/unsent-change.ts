@@ -1,13 +1,25 @@
-import { CalendarUtils, localized } from 'mailspring-exports';
+import { CalendarUtils, Utils, localized } from 'mailspring-exports';
 import { ChangeScope, EventChange, EventPropertyEdit } from './recurring-event-actions';
-import { EventOccurrence, occurrenceAt, occurrenceSlot } from './calendar-data-source';
+import {
+  EventAttendee,
+  EventOccurrence,
+  occurrenceAt,
+  occurrenceSlot,
+} from './calendar-data-source';
+import { ShowAsOption, defaultShowAs } from './show-as-selector';
+import type { CreateCalendarEventOptions, NewEventDraft } from './calendar-helpers';
 
 type Times = NonNullable<EventChange['times']>;
 
-/** Edits made in the panel to one event, sent as one update. */
+/**
+ * Edits made in the panel to one event, sent as one update; or, on an invitation, the new time
+ * a guest proposes to the organizer, with their comment, or their own Show as for their copy.
+ */
 export interface UnsentChange extends EventChange {
   eventId: string;
   slot?: number;
+  guestCopy?: boolean;
+  proposal?: { comment: string };
 }
 
 export function isUnsentChangeFor(change: UnsentChange | null, occurrence: EventOccurrence) {
@@ -18,11 +30,20 @@ export function isUnsentChangeFor(change: UnsentChange | null, occurrence: Event
   );
 }
 
+/** A guest's own Show as, held for This occurrence only / All occurrences, goes before any proposal. */
+export function showAsWaitsForScope(change: UnsentChange | null) {
+  return !!change?.guestCopy && change.edits.length > 0;
+}
+
+// Only the organizer changes a meeting (RFC 5546 section 2.1); a guest's change proposes one.
 export function emptyChange(occurrence: EventOccurrence): UnsentChange {
   const { eventId } = CalendarUtils.parseOccurrenceId(occurrence.id);
-  return occurrence.isRecurring
-    ? { eventId, slot: occurrenceSlot(occurrence), edits: [] }
-    : { eventId, edits: [] };
+  return {
+    eventId,
+    ...(occurrence.isRecurring && { slot: occurrenceSlot(occurrence) }),
+    edits: [],
+    ...(!occurrence.isMine && { guestCopy: true }),
+  };
 }
 
 /** The occurrences a series' change may go to: one occurrence can't carry a repeat rule of its own. */
@@ -37,7 +58,7 @@ export function scopeLabel(scope: ChangeScope) {
 }
 
 function unlessEmpty(change: UnsentChange): UnsentChange | null {
-  return change.times || change.edits.length ? change : null;
+  return change.times || change.edits.length || change.attendees ? change : null;
 }
 
 /**
@@ -65,7 +86,42 @@ export function withTimes(
   const base = change ?? emptyChange(occurrence);
   const same =
     times.start === stored.start && times.end === stored.end && times.isAllDay === stored.isAllDay;
-  return unlessEmpty({ ...base, times: same ? undefined : times });
+  return unlessEmpty({
+    ...base,
+    ...(base.guestCopy && { proposal: base.proposal ?? { comment: '' } }),
+    times: same ? undefined : times,
+  });
+}
+
+const without = (attendees: EventAttendee[], others: EventAttendee[]) =>
+  attendees.filter((a) => !others.some((o) => Utils.emailIsEquivalent(a.email, o.email)));
+
+/** The change with the guests `attendees` adds to and removes from `stored`. */
+export function withAttendees(
+  change: UnsentChange | null,
+  occurrence: EventOccurrence,
+  attendees: EventAttendee[],
+  stored: EventAttendee[]
+): UnsentChange | null {
+  const base = change ?? emptyChange(occurrence);
+  const added = without(attendees, stored).filter(
+    (a, i, all) => all.findIndex((o) => Utils.emailIsEquivalent(o.email, a.email)) === i
+  );
+  const removed = without(stored, attendees);
+  return unlessEmpty({
+    ...base,
+    attendees: added.length || removed.length ? { added, removed } : undefined,
+  });
+}
+
+/** `stored` as it will be once the change is sent, new guests last. */
+export function attendeesWith(
+  stored: EventAttendee[],
+  change: UnsentChange | null
+): EventAttendee[] {
+  if (!change?.attendees) return stored;
+  const { added, removed } = change.attendees;
+  return [...without(stored, removed), ...added];
 }
 
 export function unsentEdit(
@@ -99,4 +155,35 @@ function drawnWith(occurrence: EventOccurrence, change: UnsentChange): EventOccu
     isFree: transp === undefined ? occurrence.isFree : transp === 'TRANSPARENT',
   };
   return change.times ? occurrenceAt(shown, change.times) : shown;
+}
+
+export function keepsNewEvent(change: UnsentChange | null) {
+  return !!unsentEdit(change, 'summary')?.value || !!change?.attendees?.added.length;
+}
+
+/**
+ * What creates `draft` with the change made to it in the panel. Show as is the one the panel
+ * shows; the alert, which it doesn't, follows whether the event ends up all-day.
+ */
+export function newEventOptions(
+  draft: NewEventDraft,
+  change: UnsentChange | null
+): CreateCalendarEventOptions {
+  const { start, end, isAllDay } = change?.times ?? draft;
+  const edited = (property: EventPropertyEdit['property']) =>
+    unsentEdit(change, property)?.value || undefined;
+  const added = change?.attendees?.added ?? [];
+  return {
+    summary: edited('summary') ?? localized('New Event'),
+    start: new Date(start * 1000),
+    end: new Date(end * 1000),
+    isAllDay,
+    calendarId: draft.calendarId,
+    accountId: draft.accountId,
+    location: edited('location'),
+    description: edited('description'),
+    recurrenceRule: edited('rrule'),
+    transparency: (edited('transp') as ShowAsOption) ?? defaultShowAs(draft.isAllDay),
+    attendees: added.length ? added.map(({ email, name }) => ({ email, name })) : undefined,
+  };
 }

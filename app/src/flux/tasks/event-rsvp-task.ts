@@ -3,6 +3,7 @@ import { AttributeValues } from '../models/model';
 import * as Attributes from '../attributes';
 import {
   localized,
+  AccountStore,
   ICSParticipantStatus,
   SyncbackMetadataTask,
   CalendarUtils,
@@ -77,6 +78,9 @@ export class EventRSVPTask extends Task {
 
     // Set METHOD to REPLY at the calendar level
     root.updatePropertyWithValue('method', 'REPLY');
+    // Google drops a REPLY that still carries its own Calendar PRODID; the attendee's
+    // PARTSTAT stays needsAction.
+    root.updatePropertyWithValue('prodid', '-//Mailspring//Calendar//EN');
 
     // Per RFC 5546 section 3.2.3 a REPLY names exactly one ATTENDEE - the person replying.
     // Every VEVENT has to be cleaned, not just the master: an invitation to a series carries
@@ -139,6 +143,27 @@ export class EventRSVPTask extends Task {
     });
   }
 
+  /**
+   * Whether writing our answer to our copy on this account's calendar tells the organizer, so no
+   * REPLY of ours is needed. Google emails them itself; ours would arrive as a second answer.
+   */
+  static calendarWriteSendsReply(accountId: string) {
+    return AccountStore.accountForId(accountId).provider === 'gmail';
+  }
+
+  /** The answer the invitation header shows, read back from this metadata. */
+  static async recordAnswerOnMessage(messageId: string, status: ICSParticipantStatus) {
+    const message = await DatabaseStore.find<Message>(Message, messageId);
+    if (!message) return;
+    Actions.queueTask(
+      SyncbackMetadataTask.forSaving({
+        model: message,
+        pluginId: 'event-rsvp',
+        value: { status, time: Date.now() },
+      })
+    );
+  }
+
   label() {
     return this.method === 'COUNTER'
       ? localized('Proposing a new time')
@@ -148,19 +173,7 @@ export class EventRSVPTask extends Task {
   async onSuccess() {
     // A counter-proposal is not an answer, so the RSVP buttons must not show one.
     if (this.messageId && this.icsRSVPStatus && this.method !== 'COUNTER') {
-      const msg = await DatabaseStore.find<Message>(Message, this.messageId);
-      if (msg) {
-        Actions.queueTask(
-          SyncbackMetadataTask.forSaving({
-            model: msg,
-            pluginId: 'event-rsvp',
-            value: {
-              status: this.icsRSVPStatus,
-              time: Date.now(),
-            },
-          })
-        );
-      }
+      await EventRSVPTask.recordAnswerOnMessage(this.messageId, this.icsRSVPStatus);
     }
 
     // Pull the provider's latest calendar state after any RSVP response. Calendar

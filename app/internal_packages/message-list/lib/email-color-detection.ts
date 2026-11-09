@@ -1,7 +1,7 @@
 // Also loaded by file path, outside the module system: app/src/browser/view-sessions.ts
 // (emailColorsScript) serves this file to Views as `_runtime/email-colors.js`, and
-// views/runtime/mailspring-view.js calls `prepareEmailColors` and `backgroundColorBehind`
-// off `window.MailspringEmailColors`. Keep it import-free DOM code, and update both if it
+// views/runtime/mailspring-view.js calls `prepareEmailColors`, `adaptsToDarkMode` and
+// `backgroundColorBehind` off `window.MailspringEmailColors`. Keep it import-free DOM code, and update both if it
 // moves or those exports are renamed.
 type RGBA = [number, number, number, number];
 
@@ -81,6 +81,60 @@ function paintsOwnBackground(elements: HTMLElement[], win: Window): boolean {
   return false;
 }
 
+// Dark-mode blocks that only swap a logo (`.logo-dark { display: block }`) leave a
+// light email light, so only color and background declarations count.
+function setsColors(rules: CSSRuleList): boolean {
+  for (const rule of Array.from(rules)) {
+    const style = (rule as CSSStyleRule).style;
+    if (style && (style.color || style.backgroundColor || style.backgroundImage)) return true;
+    if ('cssRules' in rule && setsColors((rule as CSSGroupingRule).cssRules)) return true;
+  }
+  return false;
+}
+
+// Media rules have both `media` and `cssRules`; other grouping rules (@supports,
+// @layer) only `cssRules`. Duck-typed because the email's rule classes belong to
+// the iframe's realm, so `instanceof CSSMediaRule` fails.
+function hasActiveDarkModeRule(rules: CSSRuleList, win: Window): boolean {
+  for (const rule of Array.from(rules)) {
+    if (!('cssRules' in rule)) continue;
+    if ('media' in rule) {
+      const { media, cssRules } = rule as CSSMediaRule;
+      if (
+        /prefers-color-scheme\s*:\s*dark/i.test(media.mediaText) &&
+        win.matchMedia(media.mediaText).matches &&
+        setsColors(cssRules)
+      ) {
+        return true;
+      }
+    }
+    if (hasActiveDarkModeRule((rule as CSSGroupingRule).cssRules, win)) return true;
+  }
+  return false;
+}
+
+// True when the email's own stylesheets restyle it for dark mode and those rules
+// currently apply, eg. Google Calendar invitations.
+export function adaptsToDarkMode(wrapper: HTMLElement): boolean {
+  const win = wrapper.ownerDocument.defaultView;
+  if (!win) return false;
+  for (const style of Array.from(wrapper.querySelectorAll('style'))) {
+    if (style.sheet && hasActiveDarkModeRule(style.sheet.cssRules, win)) return true;
+  }
+  return false;
+}
+
+// Black text on a highlight or a box the sender painted is legible as is.
+function sitsOnPaintedBackground(el: HTMLElement, wrapper: HTMLElement, win: Window): boolean {
+  for (let node: HTMLElement | null = el; node && node !== wrapper; node = node.parentElement) {
+    const style = win.getComputedStyle(node);
+    if (style.backgroundImage !== 'none') return true;
+    const bg = parseComputedColor(style.backgroundColor);
+    if (!bg || bg[3] > 0) return true;
+  }
+  return false;
+}
+
 // Decides how an email's colors should be rendered against the theme, and
 // returns true when it should be shown on a white page.
 //
@@ -96,12 +150,17 @@ function paintsOwnBackground(elements: HTMLElement[], win: Window): boolean {
 // nearly every email colors its links and the stylesheet already restyles them
 // for the theme. Fully transparent text is ignored because marketing emails use
 // it for hidden preheaders.
+//
+// Emails whose own `prefers-color-scheme: dark` rules are active always stay
+// transparent and keep their colors: a white page would put their light dark-mode
+// text on white. Near-black text they didn't restyle is still rewritten.
 export function prepareEmailColors(wrapper: HTMLElement, behind: RGBA): boolean {
   const win = wrapper.ownerDocument.defaultView;
   if (!win) return false;
+  const adapts = adaptsToDarkMode(wrapper);
 
   const elements = Array.from(wrapper.querySelectorAll<HTMLElement>('*'));
-  if (paintsOwnBackground(elements, win)) return true;
+  if (!adapts && paintsOwnBackground(elements, win)) return true;
 
   const defaultColor = win.getComputedStyle(wrapper).color;
   const nearBlackElements: HTMLElement[] = [];
@@ -112,19 +171,19 @@ export function prepareEmailColors(wrapper: HTMLElement, behind: RGBA): boolean 
     if (style.display === 'none') continue;
 
     const color = parseComputedColor(style.color);
-    if (!color) return true;
-    if (color[3] === 0) continue;
-    if (isNearBlack(color)) {
-      nearBlackElements.push(el);
+    if (color && color[3] === 0) continue;
+    if (color && isNearBlack(color)) {
+      if (!sitsOnPaintedBackground(el, wrapper, win)) nearBlackElements.push(el);
       continue;
     }
-    if (contrastRatio(color, behind) < MIN_LEGIBLE_CONTRAST) return true;
+    if (adapts) continue;
+    if (!color || contrastRatio(color, behind) < MIN_LEGIBLE_CONTRAST) return true;
   }
 
   // Only rewrite once we know the email stays transparent: on a white page the
   // sender's black is correct.
   for (const el of nearBlackElements) {
-    el.style.color = defaultColor;
+    el.style.color = `var(--email-text-color, ${defaultColor})`;
   }
   return false;
 }

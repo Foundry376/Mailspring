@@ -55,8 +55,15 @@ interface SnapScrollerProps {
   visibleUnits: number;
   /** The unit holding `date` becomes the first in view on mount, and whenever a new target is passed. */
   scrollTarget: SnapScrollTarget;
-  /** Children share the strip evenly; a single child marks its own unit edges as snap points. */
-  renderUnits: (unitStarts: CalendarDate[], firstVisible: CalendarDate) => React.ReactNode;
+  /**
+   * Children share the strip evenly, `unitSize` px each; a single child marks its own unit edges as
+   * snap points. `unitSize` is 0 until the strip has been measured.
+   */
+  renderUnits: (
+    unitStarts: CalendarDate[],
+    firstVisible: CalendarDate,
+    unitSize: number
+  ) => React.ReactNode;
   onFirstVisibleChange: (firstVisible: CalendarDate) => void;
   onScrollEnd?: (firstVisible: CalendarDate) => void;
   onClick?: React.MouseEventHandler<HTMLDivElement>;
@@ -294,7 +301,7 @@ export class SnapScroller extends React.Component<SnapScrollerProps, SnapScrolle
           className="snap-scroller-span"
           style={{ [length]: (lastIndex - firstIndex) * unitSize }}
         >
-          {renderUnits(unitStarts, firstVisible)}
+          {renderUnits(unitStarts, firstVisible, unitSize)}
         </div>
         <div style={{ [length]: (unitCount(unit) - lastIndex) * unitSize }} />
       </div>

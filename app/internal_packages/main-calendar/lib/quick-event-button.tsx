@@ -1,7 +1,7 @@
 import React from 'react';
-import { Actions, localized } from 'mailspring-exports';
+import { localized } from 'mailspring-exports';
 import { NewItemButton, BindGlobalCommands } from 'mailspring-component-kit';
-import { QuickEventPopover } from './quick-event-popover';
+import { openQuickEventPopover } from './quick-event-popover';
 
 export class QuickEventButton extends React.Component<Record<string, unknown>> {
   static displayName = 'QuickEventButton';
@@ -10,11 +10,7 @@ export class QuickEventButton extends React.Component<Record<string, unknown>> {
 
   _openPopover = () => {
     const button = this._button.current;
-    if (!button) return;
-    Actions.openPopover(<QuickEventPopover />, {
-      originRect: button.getBoundingClientRect(),
-      direction: 'down',
-    });
+    if (button) openQuickEventPopover(button);
   };
 
   onClick = (event: React.MouseEvent) => {

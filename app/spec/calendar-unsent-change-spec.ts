@@ -1,3 +1,6 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
+import ReactTestUtils from 'react-dom/test-utils';
 import {
   Actions,
   CalendarUtils,
@@ -11,7 +14,11 @@ import { EventPanel } from '../internal_packages/main-calendar/lib/core/event-pa
 import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
 import * as UnsentChangeDialog from '../internal_packages/main-calendar/lib/core/unsent-change-dialog';
-import { withUnsentChange } from '../internal_packages/main-calendar/lib/core/unsent-change';
+import {
+  attendeesWith,
+  withAttendees,
+  withUnsentChange,
+} from '../internal_packages/main-calendar/lib/core/unsent-change';
 import * as RecurringEventDialog from '../internal_packages/main-calendar/lib/core/recurring-event-dialog';
 
 const START = Date.UTC(2026, 9, 27, 15, 0, 0) / 1000;
@@ -107,6 +114,45 @@ async function settle() {
   }
 }
 
+describe('withAttendees', function () {
+  const alex = { email: 'alex@example.com', name: 'Alex' };
+  const jordan = { email: 'jordan@example.com', name: 'Jordan' };
+  const stored = [you, jordan];
+
+  it('holds the guests added and removed', function () {
+    const change = withAttendees(null, withGuests, [you, alex], stored);
+    expect(change.attendees).toEqual({ added: [alex], removed: [jordan] });
+    expect(attendeesWith(stored, change)).toEqual([you, alex]);
+  });
+
+  it('drops out once the list is back to the stored one, whatever the case of an address', function () {
+    const added = withAttendees(null, withGuests, [...stored, alex], stored);
+    expect(withAttendees(added, withGuests, [{ email: 'YOU@example.com' }, jordan], stored)).toBe(
+      null
+    );
+  });
+
+  it('holds a guest added twice, or in two cases, once', function () {
+    const change = withAttendees(
+      null,
+      withGuests,
+      [...stored, alex, { email: 'ALEX@example.com', name: 'Alex' }],
+      stored
+    );
+    expect(change.attendees.added).toEqual([alex]);
+  });
+
+  it('keeps the other edits when the guests go back', function () {
+    const titled = {
+      ...withAttendees(null, withGuests, [you], stored),
+      edits: [{ property: 'summary' as const, value: 'Interview with Alex' }],
+    };
+    const change = withAttendees(titled, withGuests, stored, stored);
+    expect(change.attendees).toBe(undefined);
+    expect(change.edits).toEqual(titled.edits);
+  });
+});
+
 describe('moving an event with guests', function () {
   let queueTask: jasmine.Spy;
 
@@ -140,6 +186,33 @@ describe('moving an event with guests', function () {
     expect(queueTask.calls.length).toBe(1);
     expect(queueTask.calls[0].args[0].event.recurrenceStart).toBe(START + HOUR);
     expect(calendar.state.unsentChange).toBe(null);
+  });
+
+  it('holds a drop of an event without guests once a guest is waiting to be added', async function () {
+    const calendar = calendarWith([withoutGuests]);
+    const attendees = { added: [{ email: 'alex@example.com', name: 'Alex' }], removed: [] };
+    calendar.state.unsentChange = { eventId: 'e1', edits: [], attendees };
+
+    await calendar._persistDragChange(droppedAt(withoutGuests, START + HOUR));
+
+    expect(queueTask).not.toHaveBeenCalled();
+    expect(calendar.state.unsentChange).toEqual({
+      eventId: 'e1',
+      edits: [],
+      attendees,
+      times: { start: START + HOUR, end: START + 2 * HOUR, isAllDay: false },
+    });
+  });
+
+  it('keeps holding a drop once the guest that started the hold is removed again', async function () {
+    const calendar = calendarWith([withoutGuests]);
+    const held = { start: START + HOUR, end: START + 2 * HOUR, isAllDay: false };
+    calendar.state.unsentChange = { eventId: 'e1', edits: [], times: held };
+
+    await calendar._persistDragChange(droppedAt(withoutGuests, START + 2 * HOUR));
+
+    expect(queueTask).not.toHaveBeenCalled();
+    expect(calendar.state.unsentChange.times.start).toBe(START + 2 * HOUR);
   });
 
   it('holds arrow-key moves, each starting from the held time', async function () {
@@ -272,6 +345,26 @@ describe('leaving an event with a held change', function () {
     }
   });
 
+  it("still asks after the mail sidebar's panel, mounted before it, unmounts", function () {
+    const calendarSection = { id: 'SpecCalendar', root: true, supportedModes: ['list'] } as any;
+    const mailSection = { id: 'SpecMail', root: true, supportedModes: ['list'] } as any;
+    const saved = WorkspaceStore.sheetStack().slice();
+    spyOn(WorkspaceStore, 'trigger');
+    const removeSidebarGuard = WorkspaceStore.setSectionLeaveGuard(() => true);
+    WorkspaceStore._onSelectRootSheet(calendarSection);
+    mount(calendar);
+    removeSidebarGuard();
+    dialog.andReturn('keep-editing');
+    try {
+      WorkspaceStore._onSelectRootSheet(mailSection);
+      expect(dialog).toHaveBeenCalled();
+      expect(WorkspaceStore.rootSheet()).toBe(calendarSection);
+    } finally {
+      calendar.componentWillUnmount();
+      (WorkspaceStore as any)._sheetStack = saved;
+    }
+  });
+
   it('drops the change once its event is gone, without asking', async function () {
     find.andReturn(Promise.resolve(null));
     await calendar._refreshSelectedEvents();
@@ -336,6 +429,72 @@ describe('editing in the panel', function () {
     expect(onUnsentChange).not.toHaveBeenCalled();
   });
 
+  it('holds a title change to an event without guests once a guest is waiting to be added', async function () {
+    const alex = { email: 'alex@example.com', name: 'Alex' };
+    const held = { eventId: 'e1', edits: [], attendees: { added: [alex], removed: [] } };
+    const panel = panelFor(withoutGuests, held);
+    panel._saveProperty({ property: 'summary', value: 'Interview with Alex' });
+    await panel._saving;
+
+    expect(queueTask).not.toHaveBeenCalled();
+    expect(onUnsentChange).toHaveBeenCalledWith({
+      ...held,
+      edits: [{ property: 'summary', value: 'Interview with Alex' }],
+    });
+  });
+
+  describe('the guest list', function () {
+    const alex = { email: 'alex@example.com', name: 'Alex' };
+
+    it('holds a guest added to an event without guests, and sends them in one update', async function () {
+      const panel = panelFor(withoutGuests);
+      panel._addAttendees([alex]);
+
+      const change = onUnsentChange.mostRecentCall.args[0];
+      expect(change.attendees).toEqual({ added: [alex], removed: [] });
+      expect(queueTask).not.toHaveBeenCalled();
+
+      await calendarWith([withoutGuests])._writeChange(change);
+      expect(queueTask.calls.length).toBe(1);
+      const ics = queueTask.calls[0].args[0].event.ics.replace(/\r?\n[ \t]/g, '');
+      expect(ics).toContain('RSVP=TRUE:mailto:alex@example.com');
+    });
+
+    it('adds a guest to a change that already removes one and renames the event', function () {
+      const riley = { email: 'riley@example.com', name: 'Riley' };
+      const held = {
+        eventId: 'e1',
+        edits: [{ property: 'summary' as const, value: 'Interview with Riley' }],
+        attendees: { added: [], removed: [withGuests.attendees[1]] },
+      };
+      const panel = panelFor(withGuests, held);
+      panel._addAttendees([riley]);
+
+      expect(onUnsentChange).toHaveBeenCalledWith({
+        ...held,
+        attendees: { added: [riley], removed: [withGuests.attendees[1]] },
+      });
+    });
+
+    it('drops the change once the guest just added is removed again', function () {
+      const held = { eventId: 'e1', edits: [], attendees: { added: [alex], removed: [] } };
+      const panel = panelFor(withoutGuests, held);
+      panel._removeAttendee(alex);
+
+      expect(onUnsentChange).toHaveBeenCalledWith(null);
+    });
+
+    it('holds the removal of a guest', function () {
+      const panel = panelFor(withGuests);
+      panel._removeAttendee({ email: 'Alex@example.com' });
+
+      expect(onUnsentChange.mostRecentCall.args[0].attendees).toEqual({
+        added: [],
+        removed: [withGuests.attendees[1]],
+      });
+    });
+  });
+
   it('holds a time change to an event with guests, queueing nothing', async function () {
     const panel = panelFor(withGuests);
     const times = { start: START + HOUR, end: START + 2 * HOUR, isAllDay: false };
@@ -345,6 +504,225 @@ describe('editing in the panel', function () {
 
     expect(queueTask).not.toHaveBeenCalled();
     expect(onUnsentChange).toHaveBeenCalledWith({ eventId: 'e1', edits: [], times });
+  });
+
+  it('saves picked times on Enter, without waiting for focus to leave them', function () {
+    const panel = panelFor(withGuests);
+    const times = { start: START + HOUR, end: START + 2 * HOUR, isAllDay: false };
+    panel._changeTimes(times);
+    panel._onTimesKeyDown({ key: 'Enter', target: document.createElement('input') });
+
+    expect(onUnsentChange).toHaveBeenCalledWith({ eventId: 'e1', edits: [], times });
+  });
+
+  describe('commitEdits', function () {
+    let host: HTMLElement;
+    let panel: EventPanel;
+
+    beforeEach(async function () {
+      host = document.createElement('div');
+      document.body.appendChild(host);
+      panel = ReactDOM.render(
+        React.createElement(EventPanel, {
+          event: withGuests,
+          isCalendarReadOnly: false,
+          onBack: () => {},
+          unsentChange: null,
+          onUnsentChange,
+          onSendUnsentChange: () => {},
+          onSaveChange: () => Promise.resolve(),
+        }),
+        host
+      ) as any;
+      // The panel reads the event's row once mounted.
+      await settle();
+    });
+
+    afterEach(function () {
+      ReactDOM.unmountComponentAtNode(host);
+      host.remove();
+    });
+
+    it('saves a title still being typed, as leaving the field would', function () {
+      const title = host.querySelector('input.event-panel-title') as HTMLInputElement;
+      title.focus();
+      panel._title.current.setState({ draft: 'Interview with Alex' });
+      panel.commitEdits();
+
+      expect(onUnsentChange).toHaveBeenCalledWith({
+        eventId: 'e1',
+        edits: [{ property: 'summary', value: 'Interview with Alex' }],
+      });
+      expect(document.activeElement).not.toBe(title);
+    });
+
+    it('gives nothing to wait for once its saves are written', async function () {
+      let written: () => void;
+      panel = ReactDOM.render(
+        React.createElement(EventPanel, {
+          event: withoutGuests,
+          isCalendarReadOnly: false,
+          onBack: () => {},
+          unsentChange: null,
+          onUnsentChange,
+          onSendUnsentChange: () => {},
+          onSaveChange: () => new Promise<void>((resolve) => (written = resolve)),
+        }),
+        host
+      ) as any;
+      expect(panel.commitEdits()).toBe(null);
+
+      panel._save({ eventId: 'e1', edits: [{ property: 'summary', value: 'Interview' }] });
+      expect(panel.commitEdits()).not.toBe(null);
+      await settle();
+      written();
+      await settle();
+      expect(panel.commitEdits()).toBe(null);
+    });
+
+    it('returns to the field last edited once a click has moved focus away', function () {
+      const title = host.querySelector('input.event-panel-title') as HTMLInputElement;
+      title.focus();
+      const clicked = document.createElement('div');
+      clicked.tabIndex = -1;
+      document.body.appendChild(clicked);
+      clicked.focus();
+      panel.returnToField();
+
+      expect(document.activeElement).toBe(title);
+      clicked.remove();
+    });
+
+    it('leaves focus elsewhere alone', function () {
+      const outside = document.createElement('input');
+      document.body.appendChild(outside);
+      outside.focus();
+      panel.commitEdits();
+
+      expect(document.activeElement).toBe(outside);
+      expect(onUnsentChange).not.toHaveBeenCalled();
+      outside.remove();
+    });
+  });
+
+  describe('a time picked from the list', function () {
+    let host: HTMLElement;
+
+    beforeEach(async function () {
+      host = document.createElement('div');
+      document.body.appendChild(host);
+      ReactDOM.render(
+        React.createElement(EventPanel, {
+          event: withGuests,
+          isCalendarReadOnly: false,
+          onBack: () => {},
+          unsentChange: null,
+          onUnsentChange,
+          onSendUnsentChange: () => {},
+          onSaveChange: () => Promise.resolve(),
+        }),
+        host
+      );
+      await settle();
+    });
+
+    afterEach(function () {
+      ReactDOM.unmountComponentAtNode(host);
+      host.remove();
+    });
+
+    it('holds the time as the click picks it', function () {
+      (host.querySelector('input.time-picker') as HTMLInputElement).focus();
+      const list = host.querySelector('.time-options') as HTMLElement;
+      const option = list.children[2] as HTMLElement;
+      ReactTestUtils.Simulate.mouseDown(option);
+      list.focus();
+
+      expect(onUnsentChange).toHaveBeenCalled();
+      expect(onUnsentChange.mostRecentCall.args[0].times).toBeTruthy();
+    });
+  });
+});
+
+describe('leaving the panel while a field is being edited', function () {
+  let commitEdits: jasmine.Spy;
+  let calendar: any;
+
+  beforeEach(function () {
+    spyOn(AppEnv.config, 'set');
+    calendar = calendarWith([withoutGuests]);
+    calendar.state.agendaOpen = true;
+    commitEdits = jasmine.createSpy('commitEdits').andCallFake(() => {
+      // The panel's event is still the one selected while its field saves.
+      expect(calendar.state.selectedEvents).toEqual([withoutGuests]);
+      return Promise.resolve();
+    });
+    calendar._eventPanel = { current: { commitEdits } };
+  });
+
+  it('saves it before another event is selected', function () {
+    const other = { ...withoutGuests, id: CalendarUtils.occurrenceId('e2', START) };
+    calendar._select([other]);
+
+    expect(commitEdits).toHaveBeenCalled();
+    expect(calendar.state.selectedEvents).toEqual([other]);
+  });
+
+  it('saves it before going back to the agenda', function () {
+    calendar._onBackToAgenda();
+
+    expect(commitEdits).toHaveBeenCalled();
+    expect(calendar.state.selectedEvents).toEqual([]);
+  });
+
+  it('leaves it be when the same event is selected again', function () {
+    calendar._select([withoutGuests]);
+
+    expect(commitEdits).not.toHaveBeenCalled();
+  });
+
+  it('saves it before the window closes, and waits for the save', async function () {
+    const readyToUnload = jasmine.createSpy('readyToUnload');
+    expect(calendar._onBeforeUnload(readyToUnload)).toBe(false);
+    expect(commitEdits).toHaveBeenCalled();
+    await settle();
+
+    expect(readyToUnload).toHaveBeenCalled();
+  });
+
+  it('lets the window close at once when the panel has nothing to save', function () {
+    commitEdits.andReturn(null);
+    expect(calendar._onBeforeUnload(() => {})).toBe(true);
+  });
+
+  it('returns to the field being edited when the user keeps editing', function () {
+    spyOn(UnsentChangeDialog, 'showUnsentChangeDialog').andReturn('keep-editing');
+    const returnToField = jasmine.createSpy('returnToField');
+    calendar._eventPanel = { current: { commitEdits, returnToField } };
+    commitEdits.andCallFake(() => {
+      calendar.state.unsentChange = {
+        eventId: 'e1',
+        edits: [{ property: 'summary', value: 'Interview with Alex' }],
+      };
+      return null;
+    });
+    spyOn(calendar, '_leavesUnsentChange').andReturn(true);
+
+    expect(calendar._mayLeave([])).toBe(false);
+    expect(returnToField).toHaveBeenCalled();
+  });
+
+  it('offers to send a change the field joins as the window closes', function () {
+    const dialog = spyOn(UnsentChangeDialog, 'showUnsentChangeDialog').andReturn('discard');
+    const held = { eventId: 'e1', edits: [{ property: 'summary', value: 'Interview with Alex' }] };
+    commitEdits.andCallFake(() => {
+      calendar.state.unsentChange = held;
+      return Promise.resolve();
+    });
+    calendar._onBeforeUnload(() => {});
+
+    expect(dialog).toHaveBeenCalled();
+    expect(calendar.state.unsentChange).toBe(null);
   });
 });
 

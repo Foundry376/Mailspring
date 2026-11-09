@@ -6,13 +6,17 @@ export const SIDEBAR_PANEL_ROLE = 'MessageListSidebar:Panel';
 const CONTACT_PANEL_ID = 'contact';
 const ACTIVE_PANEL_CONFIG_KEY = 'core.messageListSidebar.panel';
 
-type PanelComponent = React.ComponentType<{ active: boolean }> & {
+type PanelComponent = React.ComponentType<{
+  active: boolean;
+  claimActive: (claim: boolean) => void;
+}> & {
   sidebarPanel: { id: string; title: string };
 };
 
 interface SidebarPanelsState {
   panels: PanelComponent[];
   activeId: string;
+  claimedId: string | null;
 }
 
 /**
@@ -24,6 +28,9 @@ interface SidebarPanelsState {
  * Every panel stays mounted while the sidebar is open and receives `active`, so a panel with
  * expensive state (a View's webview) survives switching away and back. With no extra panels
  * registered, nothing renders and the sidebar looks exactly as it did before.
+ *
+ * A panel may `claimActive` for the email being read, which shows it without changing the
+ * remembered choice; it lets go on the next email. Picking a tab yourself ends the claim.
  */
 export class SidebarPanels extends React.Component<Record<string, unknown>, SidebarPanelsState> {
   static displayName = 'SidebarPanels';
@@ -35,6 +42,7 @@ export class SidebarPanels extends React.Component<Record<string, unknown>, Side
   state: SidebarPanelsState = {
     panels: this._findPanels(),
     activeId: AppEnv.config.get(ACTIVE_PANEL_CONFIG_KEY) || CONTACT_PANEL_ID,
+    claimedId: null,
   };
 
   componentDidMount() {
@@ -58,17 +66,29 @@ export class SidebarPanels extends React.Component<Record<string, unknown>, Side
   }
 
   _onSelect = (id: string) => {
+    if (id === this._activeId()) return;
+    this.setState({ claimedId: null });
     AppEnv.config.set(ACTIVE_PANEL_CONFIG_KEY, id);
   };
+
+  _claimActive(id: string, claim: boolean) {
+    this.setState(({ claimedId }) => ({
+      claimedId: claim ? id : claimedId === id ? null : claimedId,
+    }));
+  }
+
+  _activeId() {
+    const { panels, claimedId, activeId } = this.state;
+    const id = claimedId ?? activeId;
+    // A remembered panel whose provider has since been removed falls back to Participants.
+    return panels.some((p) => p.sidebarPanel.id === id) ? id : CONTACT_PANEL_ID;
+  }
 
   render() {
     const { panels } = this.state;
     if (panels.length === 0) return null;
 
-    // A remembered panel whose provider has since been removed falls back to Participants.
-    const activeId = panels.some((p) => p.sidebarPanel.id === this.state.activeId)
-      ? this.state.activeId
-      : CONTACT_PANEL_ID;
+    const activeId = this._activeId();
     const choices = [
       { id: CONTACT_PANEL_ID, title: localized('Participants') },
       ...panels.map((p) => p.sidebarPanel),
@@ -101,7 +121,10 @@ export class SidebarPanels extends React.Component<Record<string, unknown>, Side
               role="tabpanel"
               style={{ display: active ? 'flex' : 'none' }}
             >
-              <Panel active={active} />
+              <Panel
+                active={active}
+                claimActive={(claim) => this._claimActive(Panel.sidebarPanel.id, claim)}
+              />
             </div>
           );
         })}
