@@ -619,7 +619,7 @@ function seriesOccurrences(
   return occurrences;
 }
 
-const UPCOMING_LOOKAHEAD_SECONDS = 366 * 86400;
+const UPCOMING_LOOKAHEAD_SECONDS = 366 * CalendarDateUtils.SECONDS_PER_DAY;
 
 /**
  * The occurrence of a series that `recurrenceIdStart` names. A moved occurrence is no longer
@@ -644,9 +644,10 @@ export function occurrenceForRecurrenceId(
   } catch (err) {
     // No rows, or a calendar object that won't parse. occurrencesForEvents handles both.
   }
-  return occurrencesForEvents(events, { startUnix: start, endUnix: start + 86400 }).find(
-    (o) => occurrenceSlot(o) === recurrenceIdStart
-  );
+  return occurrencesForEvents(events, {
+    startUnix: start,
+    endUnix: start + CalendarDateUtils.SECONDS_PER_DAY,
+  }).find((o) => occurrenceSlot(o) === recurrenceIdStart);
 }
 
 /**
@@ -680,7 +681,7 @@ export function focusedEventInfoForEvents(
     const firstStart = Math.min(...events.map((e) => e.recurrenceStart));
     [occurrence] = occurrencesForEvents(events, {
       startUnix: firstStart,
-      endUnix: firstStart + 86400,
+      endUnix: firstStart + CalendarDateUtils.SECONDS_PER_DAY,
     });
   }
 
@@ -756,8 +757,8 @@ export async function currentOccurrence(
   // Re-expanded without the calendars, a meeting a secondary calendar of ours organizes would
   // come back as somebody else's and the next arrow key would refuse to move it.
   const sameId = occurrencesForEvents([event], {
-    startUnix: Math.min(slot, start) - 86400,
-    endUnix: Math.max(slot, start) + 86400,
+    startUnix: Math.min(slot, start) - CalendarDateUtils.SECONDS_PER_DAY,
+    endUnix: Math.max(slot, start) + CalendarDateUtils.SECONDS_PER_DAY,
     ownCalendarAddresses: ownCalendarAddresses(calendars),
   }).filter((o) => o.id === occurrence.id);
   // An occurrence moved onto another's start shares its id; their slots tell them apart.
@@ -765,8 +766,8 @@ export async function currentOccurrence(
   if (current || pending || occurrence.isRecurring) return current || null;
   // Retimed elsewhere (the editor, another device): a one-off event is still its only occurrence.
   const all = occurrencesForEvents([event], {
-    startUnix: event.recurrenceStart - 86400,
-    endUnix: event.recurrenceEnd + 86400,
+    startUnix: event.recurrenceStart - CalendarDateUtils.SECONDS_PER_DAY,
+    endUnix: event.recurrenceEnd + CalendarDateUtils.SECONDS_PER_DAY,
     ownCalendarAddresses: ownCalendarAddresses(calendars),
   });
   return all.length === 1 ? all[0] : null;

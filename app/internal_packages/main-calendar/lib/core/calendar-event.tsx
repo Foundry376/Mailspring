@@ -11,7 +11,7 @@ import {
 import { calcEventColors, formatEventTimeRange } from './calendar-helpers';
 import { HitZone, ViewDirection } from './calendar-drag-types';
 import { detectHitZone, canAttemptMove, formatDragPreviewTime } from './calendar-drag-utils';
-import { DAY_DUR, columnSpan } from './week-view-helpers';
+import { columnSpan } from './week-view-helpers';
 
 const EVENT_GAP = 2;
 
@@ -130,11 +130,13 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     let height: number | string;
     if (isTimed(event)) {
       const span = columnSpan(event, { start: this.props.scopeStart, end: this.props.scopeEnd });
-      top = span.top / DAY_DUR;
-      height = (span.bottom - span.top) / DAY_DUR;
+      top = span.top / CalendarDateUtils.SECONDS_PER_DAY;
+      height = (span.bottom - span.top) / CalendarDateUtils.SECONDS_PER_DAY;
     } else {
       const scopeStartDate = CalendarDateUtils.calendarDateFromUnix(this.props.scopeStart);
-      const scopeDays = Math.round((this.props.scopeEnd - this.props.scopeStart) / 86400);
+      const scopeDays = Math.round(
+        (this.props.scopeEnd - this.props.scopeStart) / CalendarDateUtils.SECONDS_PER_DAY
+      );
       const startOffset = CalendarDateUtils.calendarDaysBetween(scopeStartDate, event.startDate);
       const spanDays = CalendarDateUtils.calendarDaysBetween(event.startDate, event.endDate) + 1;
       // Mirror the timed branch: clamp the start into scope and drop the pre-scope days from the

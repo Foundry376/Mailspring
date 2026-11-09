@@ -1,3 +1,4 @@
+import { CalendarDateUtils } from 'mailspring-exports';
 import { MIN_EVENT_DURATION_SECONDS } from './calendar-constants';
 
 import { EventOccurrence } from './calendar-data-source';
@@ -120,8 +121,8 @@ export const DEFAULT_DRAG_CONFIG: DragConfig = {
  */
 export const MONTH_VIEW_DRAG_CONFIG: DragConfig = {
   dragThreshold: 5,
-  snapInterval: 86400, // 1 day
+  snapInterval: CalendarDateUtils.SECONDS_PER_DAY,
   edgeZoneSize: 12, // Larger zone for easier grab
-  minDuration: 86400, // 1 day
+  minDuration: CalendarDateUtils.SECONDS_PER_DAY,
   direction: 'horizontal',
 };

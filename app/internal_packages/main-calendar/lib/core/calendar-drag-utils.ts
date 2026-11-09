@@ -287,7 +287,7 @@ export function updateDragState(
   // - day-column (week view timed): 15-minute intervals
   // - all-day-area, month-cell: full day intervals
   const usesDaySnap = containerType !== 'day-column';
-  const snapInterval = usesDaySnap ? 86400 : config.snapInterval; // 86400 = 1 day in seconds
+  const snapInterval = usesDaySnap ? CalendarDateUtils.SECONDS_PER_DAY : config.snapInterval;
   // A move converts between kinds when the drop container disagrees with the event: the all-day
   // row makes a timed event all-day, the timed grid (day-column) makes an all-day event timed. A
   // month cell preserves the event's kind. Recurring events are NOT converted yet:
@@ -311,7 +311,9 @@ export function updateDragState(
       if (previewIsAllDay) {
         // Target is all-day. An all-day event keeps its whole-day span and the day it was grabbed
         // by; a converting timed event becomes a single day under the cursor.
-        const numDays = state.event.isAllDay ? Math.max(1, Math.round(eventDuration / 86400)) : 1;
+        const numDays = state.event.isAllDay
+          ? Math.max(1, Math.round(eventDuration / CalendarDateUtils.SECONDS_PER_DAY))
+          : 1;
         const cursorDay = CalendarDateUtils.calendarDateFromUnix(mouseTime);
         previewStart = CalendarDateUtils.dayStartUnix(
           state.event.isAllDay

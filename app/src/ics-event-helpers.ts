@@ -8,7 +8,12 @@ import {
 } from './calendar-utils';
 
 export { createVTIMEZONEString };
-import { calendarDateFromUnix, shiftedDayStartUnix, calendarDaysBetween } from './calendar-date';
+import {
+  calendarDateFromUnix,
+  shiftedDayStartUnix,
+  calendarDaysBetween,
+  SECONDS_PER_DAY,
+} from './calendar-date';
 
 type ICAL = typeof import('ical.js').default;
 type ICALComponent = InstanceType<ICAL['Component']>;
@@ -166,12 +171,12 @@ const EXPANSION_STEP_SECONDS: { [freq: string]: number } = {
   SECONDLY: 1,
   MINUTELY: 60,
   HOURLY: 3600,
-  DAILY: 86400,
+  DAILY: SECONDS_PER_DAY,
   WEEKLY: 604800,
   // Deliberately the shortest month and year. Underestimating the step overestimates the
   // budget, which errs towards expanding a legitimate series rather than truncating it.
-  MONTHLY: 28 * 86400,
-  YEARLY: 365 * 86400,
+  MONTHLY: 28 * SECONDS_PER_DAY,
+  YEARLY: 365 * SECONDS_PER_DAY,
 };
 const MIN_EXPANSION_ITERATIONS = 1000;
 const MAX_EXPANSION_ITERATIONS = 50000;
@@ -1996,7 +2001,7 @@ export function upcomingOccurrence(ics: string, now: Date): Occurrence | null {
   const nowUnix = Math.round(now.getTime() / 1000);
   const seriesStart = Math.round(event.startDate.toJSDate().getTime() / 1000);
   // between() keeps what overlaps the year ahead; a moved occurrence can be listed out of order.
-  const next = expandBetween(ics, seriesStart, nowUnix, nowUnix + 366 * 86400).sort(
+  const next = expandBetween(ics, seriesStart, nowUnix, nowUnix + 366 * SECONDS_PER_DAY).sort(
     (a, b) => a.startDate.toJSDate().getTime() - b.startDate.toJSDate().getTime()
   )[0];
   if (!next) return null;

@@ -173,17 +173,16 @@ export function eventsGroupedByDay(events: EventOccurrence[], days: Moment[]) {
   return map;
 }
 
-export const DAY_DUR = 24 * 60 * 60;
 export const TICK_STEP = 30 * 60;
-export const TICKS_PER_DAY = DAY_DUR / TICK_STEP;
+export const TICKS_PER_DAY = CalendarDateUtils.SECONDS_PER_DAY / TICK_STEP;
 
 /** Where an instant sits down the grid, 0..1: the grid is 24 wall-clock hours on every day. */
 export function dayFraction(unixSeconds: number): number {
-  return CalendarDateUtils.secondsIntoDay(unixSeconds) / DAY_DUR;
+  return CalendarDateUtils.secondsIntoDay(unixSeconds) / CalendarDateUtils.SECONDS_PER_DAY;
 }
 
 /**
- * The grid rows a timed event occupies in one day column, in whole grid seconds (0..DAY_DUR),
+ * The grid rows a timed event occupies in one day column, in whole grid seconds (0..SECONDS_PER_DAY),
  * so they double as sweep keys. Instants outside the column clamp to its edges. Across a
  * fall-back transition an end can read no later than its start; such an event is drawn at
  * its real duration instead.
@@ -194,11 +193,11 @@ export function columnSpan(
 ): { top: number; bottom: number } {
   const top = event.start < column.start ? 0 : CalendarDateUtils.secondsIntoDay(event.start);
   if (event.end >= column.end) {
-    return { top, bottom: DAY_DUR };
+    return { top, bottom: CalendarDateUtils.SECONDS_PER_DAY };
   }
   const wallClockEnd = CalendarDateUtils.secondsIntoDay(event.end);
   const bottom = wallClockEnd > top ? wallClockEnd : top + (event.end - event.start);
-  return { top, bottom: Math.min(Math.max(bottom, top), DAY_DUR) };
+  return { top, bottom: Math.min(Math.max(bottom, top), CalendarDateUtils.SECONDS_PER_DAY) };
 }
 
 /** One tick per hour, where `tickHeight` is the height of one TICK_STEP. */
@@ -210,7 +209,7 @@ export function* tickGenerator(tickHeight: number) {
   // picking a non-DST boundary day.
   const time = moment([2015, 1, 1]);
 
-  for (let tsec = 0; tsec <= DAY_DUR; tsec += step) {
+  for (let tsec = 0; tsec <= CalendarDateUtils.SECONDS_PER_DAY; tsec += step) {
     const y = (tsec / TICK_STEP) * tickHeight;
     yield { time, y };
     time.add(step, 'seconds');

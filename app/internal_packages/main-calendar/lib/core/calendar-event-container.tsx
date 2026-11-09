@@ -5,7 +5,6 @@ import { CalendarDateUtils, isRTL } from 'mailspring-exports';
 import { EventOccurrence } from './calendar-data-source';
 import { CalendarContainerType } from './calendar-drag-types';
 import { allDayColumnStartUnix } from './calendar-drag-utils';
-import { DAY_DUR } from './week-view-helpers';
 
 export interface CalendarEventArgs {
   /** The underlying DOM mouse event */
@@ -182,7 +181,7 @@ export class CalendarEventContainer extends React.Component<CalendarEventContain
         const percentDay = Math.max(0, Math.min(1, y / height));
         time = CalendarDateUtils.secondsIntoDayUnix(
           CalendarDateUtils.calendarDateFromUnix(startTime),
-          Math.round(percentDay * DAY_DUR)
+          Math.round(percentDay * CalendarDateUtils.SECONDS_PER_DAY)
         );
         break;
       }

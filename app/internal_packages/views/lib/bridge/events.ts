@@ -1,4 +1,11 @@
-import { Calendar, CalendarUtils, Contact, DatabaseStore, Event } from 'mailspring-exports';
+import {
+  Calendar,
+  CalendarDateUtils,
+  CalendarUtils,
+  Contact,
+  DatabaseStore,
+  Event,
+} from 'mailspring-exports';
 import { isAccountAllowed } from '../../../../src/services/mail-access/grant';
 import {
   occurrencesForEvents,
@@ -38,7 +45,7 @@ export function parseRange({
   if (!startUnix || !endUnix || endUnix <= startUnix) {
     throw new ViewError('invalid', 'start and end must be dates, with end after start');
   }
-  if (endUnix - startUnix > MAX_RANGE_DAYS * 86400) {
+  if (endUnix - startUnix > MAX_RANGE_DAYS * CalendarDateUtils.SECONDS_PER_DAY) {
     throw new ViewError('limit', `a range can span at most ${MAX_RANGE_DAYS} days`);
   }
   if (

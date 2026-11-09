@@ -1,5 +1,5 @@
 import React from 'react';
-import { localized } from 'mailspring-exports';
+import { CalendarDateUtils, localized } from 'mailspring-exports';
 import { AuditEntry, getAuditLog, clearAuditLog, onAuditLogChanged } from './mcp-tools';
 
 interface State {
@@ -25,7 +25,7 @@ export default class PreferencesMcpAudit extends React.Component<Record<string, 
     const diff = Math.floor((Date.now() - ts) / 1000);
     if (diff < 60) return `${diff}s ago`;
     if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    if (diff < CalendarDateUtils.SECONDS_PER_DAY) return `${Math.floor(diff / 3600)}h ago`;
     return new Date(ts).toLocaleDateString();
   }
 
