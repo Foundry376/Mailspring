@@ -31,6 +31,7 @@ export interface EventAttendee {
 type ICAL = typeof import('ical.js').default;
 type ICALEvent = InstanceType<ICAL['Event']>;
 type ICALTime = InstanceType<ICAL['Time']>;
+type ICALComponent = InstanceType<ICAL['Component']>;
 
 /** An ICAL.Time's date, taken from its parts so no timezone is applied on the way. */
 function dateFromICALTime(time: ICALTime): CalendarDate {
@@ -414,20 +415,71 @@ function occurrenceFromICS(args: {
     : { ...base, isAllDay: false, start: startUnix, end: endUnix };
 }
 
+interface ExceptionSource {
+  exception: Event;
+  /** Null when a later master copy no longer holds the occurrence. */
+  event: ICALEvent | null;
+  /** The row's copy is later than its master's, so it redraws the master's version of the slot. */
+  replacesMasters: boolean;
+}
+
 /**
- * The VEVENT an exception row stands for. The engine stores the whole calendar resource on every
- * row it holds, master included, so it is the one whose RECURRENCE-ID the row names; a resource
- * holding the exception alone has only that one.
+ * The VEVENT an exception row is drawn from, out of the later of its own copy and its series'
+ * master row's copy. The engine gives every row of a UID the whole resource (Mailspring-Sync
+ * DAVWorker.cpp storeResource, MicrosoftCalendarWorker.cpp ingestEvent), so rows disagree only
+ * where an engine before Mailspring-Sync#187 left an older row behind. A later master copy without
+ * the row's RECURRENCE-ID cancelled that occurrence or split it into a new series.
  */
-function exceptionICSEvent(exception: Event): ICALEvent {
-  const { root, event } = CalendarUtils.parseICSString(exception.ics);
-  const own = root.getAllSubcomponents('vevent').find((vevent) => {
-    const rid = vevent.getFirstPropertyValue('recurrence-id') as ICALTime | null;
-    return rid && rid.toICALString() === exception.recurrenceId;
-  });
-  if (!own) return event;
+function exceptionSource(exception: Event, mastersCopy: ICALComponent | null): ExceptionSource {
   const ICAL: ICAL = require('ical.js');
-  return new ICAL.Event(own);
+  const named = (root: ICALComponent) =>
+    root.getAllSubcomponents('vevent').find((vevent) => {
+      const rid = vevent.getFirstPropertyValue('recurrence-id') as ICALTime | null;
+      return rid && rid.toICALString() === exception.recurrenceId;
+    });
+  const own = CalendarUtils.parseICSString(exception.ics);
+  if (mastersCopy && isLaterCopy(mastersCopy, own.root)) {
+    const vevent = named(mastersCopy);
+    return { exception, event: vevent ? new ICAL.Event(vevent) : null, replacesMasters: false };
+  }
+  const vevent = named(own.root);
+  if (!vevent) {
+    return { exception, event: own.event, replacesMasters: false };
+  }
+  return {
+    exception,
+    event: new ICAL.Event(vevent),
+    replacesMasters: !!mastersCopy && isLaterCopy(own.root, mastersCopy),
+  };
+}
+
+/**
+ * Whether copy `a` of a resource changed after copy `b`, by the newest DTSTAMP on their VEVENTs.
+ * Without a METHOD, DTSTAMP is when the store last revised the component (RFC 5545 3.8.7.2).
+ * Google sets it to LAST-MODIFIED; Graph's copies carry it alone (GraphICS.cpp). A copy with a
+ * VEVENT lacking one can't be judged, so neither copy is later.
+ */
+function isLaterCopy(a: ICALComponent, b: ICALComponent): boolean {
+  return lastStamped(a) > lastStamped(b);
+}
+
+function lastStamped(root: ICALComponent): number {
+  return Math.max(
+    ...root
+      .getAllSubcomponents('vevent')
+      .map(
+        (vevent) =>
+          (vevent.getFirstPropertyValue('dtstamp') as ICALTime | null)?.toUnixTime() ?? NaN
+      )
+  );
+}
+
+function readableRoot(ics: string): ICALComponent | null {
+  try {
+    return CalendarUtils.parseICSString(ics).root;
+  } catch (err) {
+    return null;
+  }
 }
 
 export function occurrencesForEvents(
@@ -501,6 +553,21 @@ function seriesOccurrences(
   // Separate master from exceptions
   const master = events.find((e) => !e.recurrenceId);
   const exceptions = events.filter((e) => e.recurrenceId);
+  const mastersCopy = master ? readableRoot(master.ics) : null;
+  const sources: ExceptionSource[] = [];
+  for (const exception of exceptions) {
+    try {
+      sources.push(exceptionSource(exception, mastersCopy));
+    } catch (err) {
+      console.error(`Failed to parse ICS for exception ${exception.id}:`, err);
+    }
+  }
+  // Slots a later exception row draws, so the master's older copy doesn't draw them too.
+  const replacedSlots = new Set(
+    sources
+      .filter((source) => source.replacesMasters)
+      .map((source) => source.event.recurrenceId.toUnixTime())
+  );
 
   // Track occurrence start times generated from master expansion
   // to avoid duplicates when exceptions are in the same ICS file
@@ -523,6 +590,9 @@ function seriesOccurrences(
       const masterIsRecurring = ICSEventHelpers.isRecurringEvent(master.ics);
 
       expanded.forEach((e) => {
+        if (e.recurrenceId && replacedSlots.has(e.recurrenceId.toUnixTime())) {
+          return;
+        }
         const start = e.startDate.toJSDate().getTime() / 1000;
         const item = ICSEventHelpers.expandedEvent(e);
         expandedStartTimes.add(start);
@@ -591,11 +661,13 @@ function seriesOccurrences(
   }
 
   // Standalone exception rows, unless the master's expansion already drew them. The start
-  // compared is the row's own VEVENT read here, not its recurrenceStart column: the sync engine
+  // compared is the row's VEVENT read above, not its recurrenceStart column: the sync engine
   // computes that column, and it need not read a zoned time to the same second.
-  for (const exception of exceptions) {
+  for (const { exception, event: icsEvent } of sources) {
+    if (!icsEvent) {
+      continue;
+    }
     try {
-      const icsEvent = exceptionICSEvent(exception);
       const occStart = icsEvent.startDate.toJSDate().getTime() / 1000;
       const occEnd = icsEvent.endDate.toJSDate().getTime() / 1000;
       if (expandedStartTimes.has(occStart)) {

@@ -11,11 +11,6 @@ Verify an item against the code before planning from it, and delete it here when
   `DestroyEventTask`, and Google drops a guest's deleted copy without telling the organizer. Deleting
   one occurrence does reach them, because Google turns the EXDATE into a decline. Checked live
   2026-10-15 with an Outlook.com organizer.
-- **A moved occurrence can be drawn at its old time.** Every Event row of a series holds the whole
-  resource, and the rows can disagree. When the series' main row is older than an exception's row,
-  `occurrencesForEvents` expands the main row, and its standalone-exception branch reads the
-  exception row's first VEVENT, which is the master. Seen in 2 of 56 exception rows in one real
-  calendar.
 - **A rejected save stays on screen.** When the server refuses a save without changing its own copy
   (Google's 409 for a SEQUENCE lower than its own, or a 400 or 403), the local row keeps the rejected
   change, and a resync doesn't correct it because the row's etag still matches the server's. An etag
