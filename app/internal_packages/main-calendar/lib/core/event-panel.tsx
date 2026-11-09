@@ -12,6 +12,7 @@ import {
   CalendarUtils,
   Contact,
   DatabaseStore,
+  Rx,
   DateUtils,
   Event,
   ICSEventHelpers,
@@ -54,7 +55,13 @@ import {
   PanelField,
   shiftEndWithStart,
 } from './calendar-helpers';
-import { AttendeeStatusIcon, attendeeStatusClass, sortedAttendees } from './attendee-status';
+import {
+  AttendeeStatusIcon,
+  attendeeStatusClass,
+  contactNamesByEmail,
+  guestName,
+  sortedAttendees,
+} from './attendee-status';
 import {
   RepeatOption,
   frequencyToRepeatOption,
@@ -159,6 +166,8 @@ interface EventPanelState {
   proposals: ProposedTime[];
   /** Your guest row's answer buttons are showing. */
   answerOpen: boolean;
+  /** Shown only: the guest list an edit writes back keeps the invitation's own names. */
+  contactNames: Map<string, string>;
 }
 
 /** Text with its links live, as notes show when not being edited. */
@@ -194,7 +203,13 @@ function linkOrText(location: string) {
 export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelState> {
   static displayName = 'EventPanel';
 
-  state: EventPanelState = { repeat: 'none', times: null, proposals: [], answerOpen: false };
+  state: EventPanelState = {
+    repeat: 'none',
+    times: null,
+    proposals: [],
+    answerOpen: false,
+    contactNames: new Map(),
+  };
 
   _el = React.createRef<HTMLElement>();
   _title = React.createRef<EventPanelTextField>();
@@ -209,9 +224,16 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   _timesSaveLanded = false;
   _timesSaveCount = 0;
   _proposalsKey: string | null = null;
+  _contactNamesKey = '';
+  _contactNamesSub: { dispose(): void } | null = null;
 
   componentDidMount() {
     this._loadEventRow();
+    this._watchContactNames();
+  }
+
+  componentWillUnmount() {
+    this._contactNamesSub?.dispose();
   }
 
   // A focused answer button that closes or turns off would leave focus on the page, where Esc
@@ -241,6 +263,29 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       }
       this._loadEventRow();
     }
+    this._watchContactNames();
+  }
+
+  _watchContactNames() {
+    const { event, unsentChange } = this.props;
+    const people = [...event.attendees, ...(unsentChange?.attendees?.added ?? [])];
+    if (event.organizer) people.push(event.organizer);
+    const emails = [...new Set(people.filter((p) => !p.name).map((p) => p.email.toLowerCase()))];
+    const key = emails.sort().join('\n');
+    if (key === this._contactNamesKey) return;
+    this._contactNamesKey = key;
+    this._contactNamesSub?.dispose();
+    this._contactNamesSub = null;
+    if (!emails.length) {
+      this.setState({ contactNames: new Map() });
+      return;
+    }
+    const query = DatabaseStore.findAll<Contact>(Contact)
+      .where(Contact.attributes.email.in(emails))
+      .where(Contact.attributes.hidden.equal(false));
+    this._contactNamesSub = Rx.Observable.fromQuery(query).subscribe((contacts) =>
+      this.setState({ contactNames: contactNamesByEmail(contacts) })
+    );
   }
 
   _storedTimesAre({ start, end, isAllDay }: Times) {
@@ -730,7 +775,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   }
 
   _renderInvitee(attendee: EventAttendee, state: InviteeState, me: string | null) {
-    const name = attendee.name || attendee.email;
+    const name = guestName(attendee, this.state.contactNames);
     const answerable = state === 'answerable';
     const { answerOpen } = this.state;
     return (
@@ -744,9 +789,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         <div className="event-panel-invitee-body">
           <div className="event-panel-invitee-line">
             <div className="event-panel-invitee-name">
-              <div title={new Contact({ name: attendee.name, email: attendee.email }).toString()}>
-                {name}
-              </div>
+              <div title={new Contact({ name, email: attendee.email }).toString()}>{name}</div>
               {this._renderInviteeRole(attendee, me)}
             </div>
             {state === 'removable' && (
@@ -807,7 +850,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       <div className="event-panel-row top">
         <SVGIcons.Person className="event-panel-icon" />
         <div className="event-panel-invitees">
-          {sortedAttendees(this.props.event).map((a) => this._renderInvitee(a, stateOf(a), me))}
+          {sortedAttendees(this.props.event, this.state.contactNames).map((a) =>
+            this._renderInvitee(a, stateOf(a), me)
+          )}
           {added.map((a) => this._renderInvitee(a, stateOf(a), me))}
           {editable && (
             <div className="event-panel-invitee event-panel-invitee-add">
@@ -996,7 +1041,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     }
     if (change.attendees) {
       const names = (attendees: EventAttendee[]) =>
-        attendees.map((a) => a.name || a.email).join(', ');
+        attendees.map((a) => guestName(a, this.state.contactNames)).join(', ');
       rows.push({
         key: 'attendees',
         icon: <SVGIcons.Person />,
