@@ -655,6 +655,7 @@
         const colors = window.MailspringEmailColors;
         if (wrapper && colors && !wrapper.dataset.colorsPrepared) {
           wrapper.dataset.colorsPrepared = 'true';
+          doc.body.classList.toggle('adapts-to-dark-mode', colors.adaptsToDarkMode(wrapper));
           wrapper.classList.toggle(
             'has-background',
             colors.prepareEmailColors(wrapper, colors.backgroundColorBehind(iframe))

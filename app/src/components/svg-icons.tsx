@@ -86,6 +86,14 @@ export const More = lineIcon(
   </>
 );
 
+export const AlertTriangle = lineIcon(
+  'AlertTriangle',
+  <>
+    <path d="M12 9v4" />
+    <path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z" />
+    <path d="M12 16h.01" />
+  </>
+);
 export const ArrowUp = lineIcon('ArrowUp', <path d="M12 19V5M6 11l6-6 6 6" />);
 export const ArrowDown = lineIcon('ArrowDown', <path d="M12 5v14M6 13l6 6 6-6" />);
 export const ArrowLeft = lineIcon('ArrowLeft', <path d="M19 12H5M11 6l-6 6 6 6" />);

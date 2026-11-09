@@ -15,6 +15,22 @@ export const AUTOMATIC_THEME_NAME = 'ui-automatic';
 export const LIGHT_THEME_NAME = 'ui-light';
 export const DARK_THEME_NAME = 'ui-dark';
 
+/**
+ * True when CSS `contrast-color()` picks white text for `color`, which accepts any CSS color
+ * syntax (`oklch()`, `color-mix()`...). Used to classify themes, which only declare their
+ * colors as LESS variables. Transparent counts as light, though `contrast-color()` calls it
+ * dark: it's what a theme whose LESS failed to compile reports.
+ */
+export function isDarkColor(color: string) {
+  if (color === 'transparent' || /^rgba\(.*, 0\)$/.test(color)) return false;
+  const probe = document.createElement('div');
+  probe.style.color = `contrast-color(${color})`;
+  document.body.appendChild(probe);
+  const dark = window.getComputedStyle(probe).color === 'rgb(255, 255, 255)';
+  probe.remove();
+  return dark;
+}
+
 function buildSystemAccentCSS(color: string): string {
   return `:root {
   --system-accent: ${color};
@@ -46,7 +62,7 @@ export default class ThemeManager {
   private resourcePath: string;
   private safeMode: boolean;
 
-  private themeValueCache: { emailTextColor?: string } = {};
+  private themeValueCache: { emailTextColor?: string; isDark?: boolean } = {};
 
   private _systemAccentColor: string | null = null;
   private _systemAccentDisposable: Disposable | null = null;
@@ -132,6 +148,7 @@ export default class ThemeManager {
         styleEl.textContent = this.cssContentsOfStylesheet((styleEl as any).sourcePath);
       }
     }
+    this.themeValueCache = {};
     this.emitter.emit('did-change-active-themes');
   }
 
@@ -330,6 +347,7 @@ export default class ThemeManager {
   loadStaticStylesheets() {
     this.requireStylesheet('../static/style/index');
     this.requireStylesheet('../static/style/email-frame');
+    this.themeValueCache = {};
   }
 
   resolveStylesheetPath(stylesheetPath) {
@@ -380,6 +398,18 @@ export default class ThemeManager {
   }
 
   // Helpers for theme values
+
+  // `@background-primary` only exists in LESS, so read it back from an element styled with it.
+  isActiveThemeDark() {
+    if (this.themeValueCache.isDark === undefined) {
+      const probe = document.createElement('mailspring-workspace');
+      probe.style.display = 'none';
+      document.body.appendChild(probe);
+      this.themeValueCache.isDark = isDarkColor(window.getComputedStyle(probe).backgroundColor);
+      probe.remove();
+    }
+    return this.themeValueCache.isDark;
+  }
 
   getEmailTextColor() {
     if (!this.themeValueCache.emailTextColor) {

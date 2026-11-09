@@ -6,7 +6,7 @@ import * as CalendarRsvp from '../internal_packages/main-calendar/lib/core/calen
 
 const START = Date.UTC(2026, 5, 23, 14, 0, 0) / 1000;
 
-const guestMeeting: TimedOccurrence = {
+const uninvitedMeeting: TimedOccurrence = {
   id: 'e1-e0',
   accountId: 'a',
   calendarId: 'c',
@@ -25,27 +25,28 @@ const guestMeeting: TimedOccurrence = {
   end: START + 3600,
 } as TimedOccurrence;
 
-// Dragging and the arrow keys share one rule: a guest cannot move a meeting, and is told so
-// with the counter-proposal on offer. The component is driven unmounted, setState redirected.
+// Dragging and the arrow keys share one rule: a meeting we neither organize nor are invited to
+// can't be moved, and we're told so. (A guest's move is a proposal, held in the event panel.)
+// The component is driven unmounted, setState redirected.
 // The grid's hit-test result, as CalendarEventContainer passes it, with the pointer at (x, y).
 const moveTo = (time: number, x: number, y: number) =>
   ({ time, x, y, containerType: 'day', mouseEvent: { clientX: x, clientY: y } }) as any;
 
 describe('moving a meeting we do not organize', function () {
   let calendar: any;
-  let offer: jasmine.Spy;
+  let notice: jasmine.Spy;
 
   beforeEach(function () {
     calendar = new MailspringCalendar({} as any);
     calendar.setState = (update: object) => Object.assign(calendar.state, update);
     calendar.state.calendarsLoaded = true;
     calendar.state.readOnlyCalendarIds = new Set();
-    offer = spyOn(CalendarRsvp, 'offerCounterInsteadOfMove');
+    notice = spyOn(CalendarRsvp, 'showOrganizerOnlyMoveDialog');
   });
 
-  it('turns a drag into the offer once it has clearly begun', function () {
+  it('turns a drag into the notice once it has clearly begun', function () {
     calendar.state.dragState = createDragState(
-      guestMeeting,
+      uninvitedMeeting,
       { mode: 'move' } as any,
       START,
       100,
@@ -53,15 +54,15 @@ describe('moving a meeting we do not organize', function () {
       DEFAULT_DRAG_CONFIG
     );
     calendar._onCalendarMouseMove(moveTo(START + 900, 101, 101));
-    expect(offer).not.toHaveBeenCalled();
+    expect(notice).not.toHaveBeenCalled();
 
     calendar._onCalendarMouseMove(moveTo(START + 1800, 160, 160));
-    expect(offer).toHaveBeenCalledWith(guestMeeting);
+    expect(notice).toHaveBeenCalledWith(uninvitedMeeting);
     expect(calendar.state.dragState).toBe(null);
   });
 
   it('leaves a drag of our own meeting alone', function () {
-    const ours = { ...guestMeeting, isMine: true };
+    const ours = { ...uninvitedMeeting, isMine: true };
     calendar.state.dragState = createDragState(
       ours,
       { mode: 'move' } as any,
@@ -71,20 +72,20 @@ describe('moving a meeting we do not organize', function () {
       DEFAULT_DRAG_CONFIG
     );
     calendar._onCalendarMouseMove(moveTo(START + 1800, 160, 160));
-    expect(offer).not.toHaveBeenCalled();
+    expect(notice).not.toHaveBeenCalled();
     expect(calendar.state.dragState.isDragging).toBe(true);
   });
 
   it('answers an arrow key the same way', function () {
-    calendar.state.selectedEvents = [guestMeeting];
+    calendar.state.selectedEvents = [uninvitedMeeting];
     calendar._onMoveSelectedEvent('down', false);
-    expect(offer).toHaveBeenCalledWith(guestMeeting);
+    expect(notice).toHaveBeenCalledWith(uninvitedMeeting);
   });
 
   it('says nothing for an arrow key on a read-only calendar', function () {
     calendar.state.readOnlyCalendarIds = new Set(['c']);
-    calendar.state.selectedEvents = [guestMeeting];
+    calendar.state.selectedEvents = [uninvitedMeeting];
     calendar._onMoveSelectedEvent('down', false);
-    expect(offer).not.toHaveBeenCalled();
+    expect(notice).not.toHaveBeenCalled();
   });
 });

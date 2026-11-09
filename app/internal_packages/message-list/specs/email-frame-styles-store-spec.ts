@@ -47,9 +47,15 @@ describe('EmailFrameStylesStore', () => {
     expect(themeStyles).toContain('font-size: 18px; color: pink;');
     // Inversion needs a known black-on-white input, otherwise a transparent
     // email using the theme's light text would invert to dark-on-dark.
-    expect(renderModeStyles).toContain('#inbox-html-wrapper { color: black; background: white; }');
-    expect(renderModeStyles).toContain('body { filter: invert(100%) hue-rotate(180deg)');
-    expect(renderModeStyles).toContain('img { filter: invert(100%) hue-rotate(180deg)');
+    expect(renderModeStyles).toContain(
+      'body:not(.adapts-to-dark-mode) #inbox-html-wrapper { color: black; --email-text-color: black; background: white; }'
+    );
+    expect(renderModeStyles).toContain(
+      'body:not(.adapts-to-dark-mode) { filter: invert(100%) hue-rotate(180deg)'
+    );
+    expect(renderModeStyles).toContain(
+      'body:not(.adapts-to-dark-mode) img { filter: invert(100%) hue-rotate(180deg)'
+    );
   });
 
   it('treats legacy theme mode as light email rendering', () => {

@@ -1,0 +1,8 @@
+@import 'ui-variables';
+
+// Four box shadows draw a 0.5px hairline and a fifth the button's shadow; a 1px border looks bad
+// on retina. Pending https://code.google.com/p/chromium/issues/detail?id=236371
+.btn-hairline() {
+  box-shadow: 0 0.5px 0 @btn-border-color, 0 -0.5px 0 @btn-border-color,
+    0.5px 0 0 @btn-border-color, -0.5px 0 0 @btn-border-color, 0 0.5px 1px @btn-border-color;
+}

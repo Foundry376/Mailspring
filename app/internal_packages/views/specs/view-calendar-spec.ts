@@ -10,7 +10,7 @@ import {
 } from 'mailspring-exports';
 import { FULL_GRANT } from '../../../src/services/mail-access/grant';
 import { ViewGrant, ViewPermission } from '../lib/bridge/grant';
-import { freeBusy, parseRange } from '../lib/bridge/events';
+import { freeBusy, parseRange, serializeEvents } from '../lib/bridge/events';
 import {
   createEvent,
   deleteEvent,
@@ -107,6 +107,7 @@ describe('Views calendar API', function () {
         calendarIds: ['c1'],
         attendee: 'Boss@Example.com',
       });
+      expect(r.startUnix).toBe(new Date(2026, 9, 1).getTime() / 1000);
       expect(r.calendarIds).toEqual(['c1']);
       expect(r.attendee).toBe('boss@example.com');
       expect(r.includeDeclined).toBe(false);
@@ -131,6 +132,63 @@ describe('Views calendar API', function () {
       expect(parseOccurrenceId('8f2a-e-86400')).toEqual({ eventId: '8f2a', start: -86400 });
       expect(parseOccurrenceId('8f2a-e0').eventId).toBe('8f2a');
       expect(parseOccurrenceId('8f2a')).toEqual({ eventId: '8f2a', start: null });
+    });
+
+    it("lists a holiday subscribed from two accounts once, and each account's copy of a meeting", () => {
+      const range = parseRange({ start: '2026-10-12T00:00:00Z', end: '2026-10-13T00:00:00Z' });
+      const row = (
+        id: string,
+        accountId: string,
+        calendarId: string,
+        ics: string,
+        icsuid: string
+      ) => new Event({ id, accountId, calendarId, ics, icsuid } as any);
+      const holiday = invitationICS({ attendees: [] }).replace('abc@example.com', 'holiday@x');
+      const events = [
+        row('h1', 'a1', 'hol1', holiday, 'holiday@x'),
+        row('h2', 'a2', 'hol2', holiday, 'holiday@x'),
+        row('m1', 'a1', 'c1', invitationICS(), 'abc@example.com'),
+        row('m2', 'a2', 'c2', invitationICS(), 'abc@example.com'),
+      ];
+      const calendars = [
+        new Calendar({ id: 'hol1', accountId: 'a1', readOnly: true } as any),
+        new Calendar({ id: 'hol2', accountId: 'a2', readOnly: true } as any),
+        new Calendar({ id: 'c1', accountId: 'a1' } as any),
+        new Calendar({ id: 'c2', accountId: 'a2' } as any),
+      ];
+      const out = serializeEvents(WRITE, events, calendars, range);
+      expect(out.map((e) => e.calendarId).sort()).toEqual(['c1', 'c2', 'hol1']);
+    });
+
+    it('lists the read-only copy of an occurrence when the range leaves out the copy before it', () => {
+      const range = parseRange({ start: '2026-10-12T00:00:00Z', end: '2026-10-13T00:00:00Z' });
+      const row = (id: string, calendarId: string, ics: string) =>
+        new Event({ id, accountId: 'a1', calendarId, ics, icsuid: 'abc@example.com' } as any);
+      const declined = invitationICS().replace(
+        `PARTSTAT=NEEDS-ACTION:mailto:${ME}`,
+        `PARTSTAT=DECLINED:mailto:${ME}`
+      );
+      const accepted = invitationICS().replace(
+        `PARTSTAT=NEEDS-ACTION:mailto:${ME}`,
+        `PARTSTAT=ACCEPTED:mailto:${ME}`
+      );
+      const events = [row('mine', 'c1', declined), row('shared', 'ro', accepted)];
+      const calendars = [
+        new Calendar({ id: 'c1', accountId: 'a1' } as any),
+        new Calendar({ id: 'ro', accountId: 'a1', readOnly: true } as any),
+      ];
+      expect(serializeEvents(WRITE, events, calendars, range).map((e) => e.calendarId)).toEqual([
+        'ro',
+      ]);
+      const onlyShared = parseRange({
+        start: '2026-10-12T00:00:00Z',
+        end: '2026-10-13T00:00:00Z',
+        calendarIds: ['ro'],
+        includeDeclined: true,
+      });
+      expect(
+        serializeEvents(WRITE, events, calendars, onlyShared).map((e) => e.calendarId)
+      ).toEqual(['ro']);
     });
 
     it('merges busy time, ignoring declined, cancelled and all-day events', () => {
@@ -194,6 +252,7 @@ describe('Views calendar API', function () {
     });
 
     it('RSVPs like the calendar: records our answer and emails the organizer, once confirmed', async () => {
+      spyOn(AccountStore, 'accountForId').andReturn({ id: 'a1', provider: 'imap' } as any);
       await rsvp('spec', WRITE, 'ev1-e1792000000', 'accepted');
       expect(dialog).toHaveBeenCalled();
       expect(dialog.mostRecentCall.args[0].detail).toContain('boss@example.com');
@@ -238,6 +297,9 @@ describe('Views calendar API', function () {
       await createEvent('spec', WRITE, base);
       expect(dialog).not.toHaveBeenCalled();
       expect((Actions.queueTask as any as jasmine.Spy).callCount).toBe(1);
+      // The calendar editor's default reminder, which a timed event gets wherever it is created.
+      const created = (Actions.queueTask as any as jasmine.Spy).mostRecentCall.args[0];
+      expect(created.event.ics).toContain('TRIGGER:-PT10M');
 
       await createEvent('spec', WRITE, { ...base, attendees: [{ email: 'guest@example.com' }] });
       expect(dialog).toHaveBeenCalled();
@@ -245,6 +307,19 @@ describe('Views calendar API', function () {
 
       const bad = await errorFrom(() => createEvent('spec', WRITE, { ...base, end: base.start }));
       expect(bad.code).toBe('invalid');
+    });
+
+    it('reads a date without a time as that day here, not in UTC', async () => {
+      await createEvent('spec', WRITE, {
+        calendarId: 'c1',
+        title: 'Aunt Jess visiting',
+        start: '2026-12-17',
+        end: '2026-12-18',
+        isAllDay: true,
+      });
+      const created = (Actions.queueTask as any as jasmine.Spy).mostRecentCall.args[0];
+      expect(created.event.ics).toContain('DTSTART;VALUE=DATE:20261217');
+      expect(created.event.ics).toContain('DTEND;VALUE=DATE:20261218');
     });
 
     it('edits a whole event with undo but not one occurrence of a series', async () => {
