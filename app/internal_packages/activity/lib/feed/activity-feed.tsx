@@ -1,5 +1,5 @@
 import React from 'react';
-import { localized, Message, Rx } from 'mailspring-exports';
+import { CalendarDateUtils, localized, Message, Rx } from 'mailspring-exports';
 import { ScrollRegion } from 'mailspring-component-kit';
 
 import { trackedMessagesQuery } from '../activity-data-source';
@@ -18,7 +18,7 @@ import { ActivityFeedEmptyState } from './activity-feed-empty-state';
  * queryable (they live in the metadata JSON), so the message query reaches this
  * far back before the timespan start and events are filtered by timestamp.
  */
-const MESSAGE_LOOKBACK_SECONDS = 90 * 24 * 60 * 60;
+const MESSAGE_LOOKBACK_SECONDS = 90 * CalendarDateUtils.SECONDS_PER_DAY;
 
 interface ActivityFeedProps {
   accountIds: string[];

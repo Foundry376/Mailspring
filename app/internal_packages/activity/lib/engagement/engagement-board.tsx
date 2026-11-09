@@ -1,6 +1,6 @@
 import React from 'react';
 import classnames from 'classnames';
-import { localized, AccountStore } from 'mailspring-exports';
+import { localized, AccountStore, CalendarDateUtils } from 'mailspring-exports';
 import { ScrollRegion } from 'mailspring-component-kit';
 
 import LoadingCover from '../dashboard/loading-cover';
@@ -168,7 +168,7 @@ export default class EngagementBoard extends React.Component<
   _isStale(stats: EngagementStats) {
     if (this.props.timespan.days < STALE_MIN_WINDOW_DAYS) return false;
     const last = stats.lastActivityAt || stats.lastSentAt;
-    return Date.now() / 1000 - last > STALE_AFTER_DAYS * 24 * 60 * 60;
+    return Date.now() / 1000 - last > STALE_AFTER_DAYS * CalendarDateUtils.SECONDS_PER_DAY;
   }
 
   _onExport = (entries: EngagementStats[]) => {

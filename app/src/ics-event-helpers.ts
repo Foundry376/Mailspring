@@ -172,7 +172,7 @@ const EXPANSION_STEP_SECONDS: { [freq: string]: number } = {
   MINUTELY: 60,
   HOURLY: 3600,
   DAILY: SECONDS_PER_DAY,
-  WEEKLY: 604800,
+  WEEKLY: 7 * SECONDS_PER_DAY,
   // Deliberately the shortest month and year. Underestimating the step overestimates the
   // budget, which errs towards expanding a legitimate series rather than truncating it.
   MONTHLY: 28 * SECONDS_PER_DAY,
