@@ -8,6 +8,7 @@ import {
   Utils,
 } from 'mailspring-exports';
 import { findOneIana } from 'windows-iana';
+import { MS_PER_DAY } from './calendar-date';
 
 type ICAL = typeof import('ical.js').default;
 type ICALComponent = InstanceType<ICAL['Component']>;
@@ -295,9 +296,9 @@ export function createVTIMEZONEString(
     }
   });
 
-  const YEAR_MS = 366 * 24 * 60 * 60 * 1000;
+  const YEAR_MS = 366 * MS_PER_DAY;
   const horizon = dataHorizonYear(momentTz);
-  const enumeratedSpan = enumeratedYears * 365.2425 * 24 * 60 * 60 * 1000;
+  const enumeratedSpan = enumeratedYears * 365.2425 * MS_PER_DAY;
   const enumeratedFrom = referenceDate.getTime() - enumeratedSpan;
   const enumeratedUntil = referenceDate.getTime() + enumeratedSpan;
   const anchorYear = Math.min(1970, referenceDate.getUTCFullYear() - 1);

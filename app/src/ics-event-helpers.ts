@@ -12,6 +12,7 @@ import {
   calendarDateFromUnix,
   shiftedDayStartUnix,
   calendarDaysBetween,
+  MS_PER_DAY,
   SECONDS_PER_DAY,
 } from './calendar-date';
 
@@ -1065,7 +1066,7 @@ export function shiftInlineExceptions(ics: string, deltaMs: number): string {
     if (value.isDate) {
       return createAllDayTime(
         new Date(
-          shiftedDayStartUnix(asDate.getTime() / 1000, Math.round(deltaMs / 86400000)) * 1000
+          shiftedDayStartUnix(asDate.getTime() / 1000, Math.round(deltaMs / MS_PER_DAY)) * 1000
         ),
         ical
       );
