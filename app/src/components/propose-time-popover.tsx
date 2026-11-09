@@ -63,6 +63,11 @@ export class ProposeTimePopover extends React.Component<
   }
 
   _moveStart(start: Moment) {
+    if (this.props.isAllDay) {
+      const days = allDayLength(this.state.start, this.state.end);
+      this.setState({ start: start.unix(), end: shiftedDayStartUnix(start.unix(), days) });
+      return;
+    }
     const duration = this.state.end - this.state.start;
     this.setState({ start: start.unix(), end: start.unix() + duration });
   }

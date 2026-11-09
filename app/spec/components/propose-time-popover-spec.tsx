@@ -159,6 +159,16 @@ describe('ProposeTimePopover', function () {
         });
         expect(original()).toBe('Currently Sun, Nov 1');
       });
+
+      it('keeps whole days when the first day moves onto a transition', function () {
+        for (const day of ['2026-03-08', '2026-11-01']) {
+          mount({ start: MIDNIGHT, end: MIDNIGHT + 86400, isAllDay: true });
+          popover._onChangeDay(moment(day, 'YYYY-MM-DD').valueOf());
+          ReactTestUtils.Simulate.click(proposeButton());
+          const next = moment(day, 'YYYY-MM-DD').add(1, 'day').format('YYYY-MM-DD');
+          expect(sent()).toEqual({ start: `${day} 00:00`, end: `${next} 00:00` });
+        }
+      });
     });
   });
 });
