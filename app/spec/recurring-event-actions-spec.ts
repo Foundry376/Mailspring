@@ -1,4 +1,10 @@
-import { Actions, ICSEventHelpers, CalendarUtils, SyncbackEventTask } from 'mailspring-exports';
+import {
+  AccountStore,
+  Actions,
+  ICSEventHelpers,
+  CalendarUtils,
+  SyncbackEventTask,
+} from 'mailspring-exports';
 import { Event as MailspringEvent } from '../src/flux/models/event';
 
 // Import the functions under test directly from the source file.
@@ -1032,5 +1038,121 @@ describe('changes to a series', function () {
     const moved = at(event.ics, MOVED_SLOT + hourLater);
     expect(startOf(moved)).toBe(unix('2026-03-09T17:00:00Z'));
     expect(moved.getFirstPropertyValue('sequence')).toBe(5);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Guests added and removed
+// ---------------------------------------------------------------------------
+
+describe('a change to the guest list', function () {
+  const MEETING_SERIES_ICS = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Test//Test//EN',
+    'BEGIN:VEVENT',
+    'UID:meeting-uid@test',
+    'DTSTART:20260302T150000Z',
+    'DTEND:20260302T160000Z',
+    'RRULE:FREQ=WEEKLY;COUNT=6',
+    'SUMMARY:Interview',
+    'ORGANIZER:mailto:you@example.com',
+    'ATTENDEE;PARTSTAT=ACCEPTED:mailto:you@example.com',
+    'ATTENDEE;PARTSTAT=ACCEPTED:mailto:jordan@example.com',
+    'DTSTAMP:20260101T000000Z',
+    'SEQUENCE:2',
+    'END:VEVENT',
+    'BEGIN:VEVENT',
+    'UID:meeting-uid@test',
+    'RECURRENCE-ID:20260309T150000Z',
+    'DTSTART:20260309T170000Z',
+    'DTEND:20260309T180000Z',
+    'SUMMARY:Interview',
+    'ORGANIZER:mailto:you@example.com',
+    'ATTENDEE;PARTSTAT=ACCEPTED:mailto:you@example.com',
+    'ATTENDEE;PARTSTAT=ACCEPTED:mailto:jordan@example.com',
+    'DTSTAMP:20260101T000000Z',
+    'SEQUENCE:5',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n');
+  const MOVED_SLOT = Date.parse('2026-03-09T15:00:00Z') / 1000;
+  const THIRD_SLOT = Date.parse('2026-03-16T15:00:00Z') / 1000;
+  const swap = {
+    added: [{ email: 'alex@example.com', name: 'Alex' }],
+    removed: [{ email: 'jordan@example.com' }],
+  };
+
+  let queued: jasmine.Spy;
+  beforeEach(function () {
+    queued = spyOn(Actions, 'queueTask');
+    spyOn(SyncbackEventTask, 'forUpdating').andCallFake((opts) => ({ _opts: opts }));
+    spyOn(AccountStore, 'accountForId').andReturn({
+      emailAddress: 'you@example.com',
+      name: 'You',
+    } as any);
+  });
+
+  const vevents = (ics: string) =>
+    CalendarUtils.parseICSString(ics).root.getAllSubcomponents('vevent') as any[];
+  const guests = (vevent: any) =>
+    vevent.getAllProperties('attendee').map((p) => String(p.getFirstValue()));
+  const sequence = (vevent: any) => vevent.getFirstPropertyValue('sequence');
+  const at = (ics: string, slot: number) =>
+    vevents(ics).find(
+      (v) => v.getFirstPropertyValue('recurrence-id')?.toJSDate().getTime() / 1000 === slot
+    );
+
+  it('sends the guests with the other edits as one update that revises the event once', function () {
+    const event = makeEvent(SIMPLE_ICS);
+
+    modifySimpleEventChange(event, {
+      edits: [{ property: 'summary', value: 'Interview' }],
+      attendees: { added: [{ email: 'alex@example.com', name: 'Alex' }], removed: [] },
+    });
+
+    expect(queued.callCount).toBe(1);
+    const [vevent] = vevents(event.ics);
+    expect(vevent.getFirstPropertyValue('summary')).toBe('Interview');
+    expect(guests(vevent)).toEqual(['mailto:alex@example.com', 'mailto:you@example.com']);
+    expect(String(vevent.getFirstPropertyValue('organizer'))).toBe('mailto:you@example.com');
+    expect(sequence(vevent)).toBe(1);
+  });
+
+  it('reaches every occurrence of a series, moved ones too', function () {
+    const event = makeEvent(MEETING_SERIES_ICS);
+
+    modifyEventChange(event, { slot: THIRD_SLOT, edits: [], attendees: swap }, 'all-occurrences');
+
+    const [series, moved] = vevents(event.ics);
+    expect(guests(series)).toEqual(['mailto:you@example.com', 'mailto:alex@example.com']);
+    expect(guests(moved)).toEqual(['mailto:you@example.com', 'mailto:alex@example.com']);
+    expect(sequence(series)).toBe(3);
+  });
+
+  it('gives an occurrence that was not moved its own guest list', function () {
+    const event = makeEvent(MEETING_SERIES_ICS);
+
+    modifyEventChange(event, { slot: THIRD_SLOT, edits: [], attendees: swap }, 'this-occurrence');
+
+    const [series] = vevents(event.ics);
+    expect(guests(series)).toEqual(['mailto:you@example.com', 'mailto:jordan@example.com']);
+    expect(guests(at(event.ics, THIRD_SLOT))).toEqual([
+      'mailto:you@example.com',
+      'mailto:alex@example.com',
+    ]);
+  });
+
+  it('changes one occurrence only, revising it alone', function () {
+    const event = makeEvent(MEETING_SERIES_ICS);
+
+    modifyEventChange(event, { slot: MOVED_SLOT, edits: [], attendees: swap }, 'this-occurrence');
+
+    const [series] = vevents(event.ics);
+    const moved = at(event.ics, MOVED_SLOT);
+    expect(guests(series)).toEqual(['mailto:you@example.com', 'mailto:jordan@example.com']);
+    expect(sequence(series)).toBe(2);
+    expect(guests(moved)).toEqual(['mailto:you@example.com', 'mailto:alex@example.com']);
+    expect(sequence(moved)).toBe(6);
   });
 });

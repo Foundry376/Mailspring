@@ -2,24 +2,6 @@
 @import 'ui-variables';
 @import 'ui-mixins';
 
-.attendee-status-colors() {
-  &.accepted .attendee-status {
-    background-color: #34c759;
-    color: white;
-  }
-
-  &.declined .attendee-status {
-    background-color: #ff3b30;
-    color: white;
-  }
-
-  &.tentative .attendee-status,
-  &.needs-action .attendee-status {
-    background-color: #8e8e93;
-    color: white;
-  }
-}
-
 .fixed-popover .calendar-event-popover {
   // The one action a read-only card offers. Drawn as a link rather than a .btn box so it
   // sits with the card's text instead of floating in a section of its own.
@@ -295,46 +277,6 @@
   }
 
   // ============================================
-  // Calendar Selector (for new events)
-  // ============================================
-  .calendar-selector {
-    display: flex;
-    align-items: center;
-    padding: @padding-small-vertical @padding-base-horizontal;
-    border-bottom: 1px solid @border-color-divider;
-
-    .calendar-selector-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      margin-right: 8px;
-      flex-shrink: 0;
-      border: 1px solid fade(@black, 15%);
-    }
-
-    select {
-      flex: 1;
-      background: transparent;
-      border: none;
-      color: @text-color;
-      font-size: @font-size-small;
-      cursor: pointer;
-      padding: 2px 4px;
-      border-radius: @border-radius-small;
-      min-width: 0;
-
-      &:hover {
-        background-color: @background-secondary;
-      }
-
-      &:focus {
-        outline: none;
-        box-shadow: 0 0 0 2px rgb(from @accent-primary r g b / 40%);
-      }
-    }
-  }
-
-  // ============================================
   // Location Video Input
   // ============================================
   .location-video-input {
@@ -510,8 +452,88 @@
   }
 }
 
+.fixed-popover-container:has(.quick-event-popover) {
+  .fixed-popover {
+    border: 1px solid @border-color-divider;
+    border-radius: 8px;
+    background: @background-primary;
+    box-shadow: 0 6px 20px fade(@black, 14%);
+    overflow: hidden;
+  }
+
+  .fixed-popover-pointer {
+    display: none;
+  }
+}
+
+.calendar-field() {
+  position: relative;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 30px;
+  padding: 0 8px;
+  border-radius: 4px;
+
+  &:hover:not(:focus-within) {
+    background: @list-hover-bg;
+  }
+
+  &:has(.clear-button) {
+    padding-right: 28px;
+  }
+
+  input,
+  input:focus {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    outline: none;
+    font: inherit;
+    color: inherit;
+  }
+
+  .clear-button {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: @text-color;
+    opacity: 0.5;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+}
+
 .quick-event-popover {
-  width: 250px;
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+
+  // Inset, so the text sits 12px from the popover's edge.
+  .quick-event-popover-field {
+    .calendar-field();
+    margin: 3px 4px 0;
+    font-size: 13px;
+  }
+
+  .quick-event-popover-hint {
+    margin-top: 3px;
+    padding: 6px 12px 8px;
+    border-top: 1px solid @border-color-divider;
+    font-size: 11px;
+    line-height: 15px;
+    color: @text-color-very-subtle;
+  }
 }
 
 // The toolbar makes every item a no-drag region; the empty space beside the controls still moves the window.
@@ -735,6 +757,14 @@
   border-radius: (@toolbar-btn-height-darwin / 2);
 }
 
+.sidebar-calendar-panel {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .mailspring-calendar.sidebar-agenda-panel {
   flex: 1;
   min-height: 0;
@@ -756,11 +786,30 @@
   }
 }
 
+.agenda-in-this-email {
+  flex-shrink: 0;
+  margin-top: 4px;
+  padding: 8px;
+  border-top: 1px solid @border-color-divider;
+  border-bottom: 1px solid @border-color-divider;
+  background: color-mix(in srgb, @accent-primary 10%, @background-primary);
+
+  .agenda-in-this-email-label {
+    padding-bottom: 4px;
+    font-size: 12px;
+    line-height: 16px;
+    color: fadeout(@text-color, 35%);
+  }
+}
+
 .calendar-right-panel {
   position: relative;
   height: 100%;
+}
 
-  // The agenda under an open event keeps its layout, and so its scroll position.
+// The agenda under an open event keeps its layout, and so its scroll position.
+.calendar-right-panel,
+.sidebar-calendar-panel {
   .is-covered {
     visibility: hidden;
   }
@@ -809,7 +858,8 @@
     gap: 4px;
   }
 
-  .event-panel-more {
+  .event-panel-more,
+  .event-panel-view {
     width: 24px;
     height: 24px;
     padding: 0;
@@ -817,6 +867,10 @@
     align-items: center;
     justify-content: center;
     color: @text-color-very-subtle;
+
+    img.content-mask {
+      background-color: @text-color-very-subtle;
+    }
   }
 
   .event-panel-body {
@@ -863,6 +917,20 @@
     }
   }
 
+  // Times and dates break between their parts, rather than clipping, in a narrow panel.
+  .event-panel-wrap {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 10px;
+
+    > * {
+      white-space: nowrap;
+    }
+  }
+
   .event-panel-icon {
     width: 16px;
     height: 16px;
@@ -874,7 +942,9 @@
   }
 
   .event-panel-subtle {
-    color: @text-color-very-subtle;
+    font-size: 12px;
+    line-height: 16px;
+    color: fadeout(@text-color, 35%);
   }
 
   .event-panel-invitees {
@@ -890,21 +960,100 @@
     gap: 8px;
     padding: 4px 0;
     .attendee-status-colors();
+    .attendee-status-dot();
 
     .attendee-status {
-      width: 12px;
-      height: 12px;
       margin-top: 3px;
-      flex-shrink: 0;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    }
+  }
 
-      svg {
-        width: 7px;
-        height: 7px;
-      }
+  .event-panel-invitee-body {
+    flex: 1;
+    min-width: 0;
+
+    .answer-section {
+      margin-top: 4px;
+    }
+  }
+
+  .event-panel-invitee-line {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .event-panel-invitee-name {
+    flex: 1;
+
+    > div {
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+
+  .event-panel-invitee.removed .event-panel-invitee-name {
+    text-decoration: line-through;
+    color: @text-color-very-subtle;
+  }
+
+  .event-panel-invitee-remove {
+    width: 18px;
+    height: 18px;
+    color: @text-color-very-subtle;
+    visibility: hidden;
+  }
+
+  .event-panel-invitee.removable:hover,
+  .event-panel-invitee.removable:focus-within {
+    .event-panel-invitee-line {
+      margin: -4px -4px -4px -8px;
+      padding: 4px 4px 4px 8px;
+      border-radius: 3px;
+      background: @list-hover-bg;
+    }
+
+    .event-panel-invitee-remove {
+      visibility: visible;
+    }
+  }
+
+  .event-panel-invitee-answer {
+    width: 18px;
+    height: 18px;
+    color: fadeout(@text-color, 35%);
+
+    &:hover,
+    &[aria-expanded='true'] {
+      color: @text-color;
+    }
+  }
+
+  .event-panel-invitee-add {
+    .attendee-status {
+      margin-top: 7px;
+      color: @text-color-very-subtle;
+    }
+
+    .event-attendees-hint {
+      font-size: 12px;
+      line-height: 16px;
+      color: fadeout(@text-color, 35%);
+    }
+
+    .event-panel-invitee-input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    // Pulled left so the text lines up with the guest names; the fill overhangs the 26px row.
+    .tokenizing-field-input {
+      .calendar-field();
+      margin: -2px 0 -2px -8px;
+    }
+
+    .placeholder {
+      left: 8px;
+      color: @text-color-very-subtle;
     }
   }
 
@@ -951,6 +1100,7 @@
     width: 100%;
     height: auto;
     box-sizing: border-box;
+    border-bottom: 1px solid @border-color-divider;
     font-family: inherit;
   }
 
@@ -965,27 +1115,17 @@
     overflow: hidden;
   }
 
-  .event-panel-select {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
+  .event-panel-conflict {
+    align-items: flex-start;
+    min-height: 0;
+    padding: 2px 0 4px;
+    font-size: 12px;
+    line-height: 16px;
+    color: @color-error;
 
-    select {
-      appearance: none;
-      field-sizing: content;
-      padding-right: 14px;
-    }
-
-    img.content-mask {
-      position: absolute;
-      right: 0;
-      pointer-events: none;
-      visibility: hidden;
-      background-color: @text-color-very-subtle;
-    }
-
-    &:hover img.content-mask {
-      visibility: visible;
+    .event-panel-icon {
+      margin-top: 1px;
+      color: @color-error;
     }
   }
 
@@ -1036,6 +1176,33 @@
     background: @background-secondary;
   }
 
+  // The inner div holds no padding, which would keep the row from closing.
+  .event-panel-collapse {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows 0.2s ease, opacity 0.2s ease;
+
+    > div {
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    // The section is its wrapper's only child, but sections still follow it.
+    .event-panel-section:last-child {
+      border-bottom: 1px solid @border-color-divider;
+    }
+
+    &.collapsed {
+      grid-template-rows: 0fr;
+      opacity: 0;
+    }
+  }
+
+  .event-panel-answer {
+    gap: 8px;
+    background: color-mix(in srgb, @accent-primary 10%, @background-primary);
+  }
+
   .event-panel-change {
     display: flex;
     flex-direction: column;
@@ -1080,41 +1247,34 @@
     }
   }
 
-  // Your answer is filled as the invitation header fills it.
-  // Joined like the toolbar's .button-group.
-  .event-panel-rsvp {
-    display: flex;
+  .event-panel-proposal-comment {
+    display: block;
+    width: 100%;
+    height: 62px;
+    padding: 6px 8px;
+    box-sizing: border-box;
+    border: 1px solid @border-color-divider;
+    border-radius: 6px;
+    background: @background-primary;
+    outline: none;
+    resize: none;
+    font: inherit;
+    color: inherit;
 
-    .btn {
-      flex: 1;
-      min-width: 0;
-      padding: 0 8px;
-
-      &:not(:last-child) {
-        border-right: 0;
-        border-top-right-radius: 0;
-        border-bottom-right-radius: 0;
-      }
-      &:not(:first-child) {
-        border-top-left-radius: 0;
-        border-bottom-left-radius: 0;
-      }
+    &:focus {
+      border-color: @accent-primary;
     }
+  }
 
-    .btn.ACCEPTED {
-      background: @color-success;
-      color: @white;
-    }
+  // Someone's own words, so it reads as text rather than as subtext.
+  .event-panel-proposed-comment {
+    padding-left: 8px;
+    border-left: 3px solid color-mix(in srgb, @accent-primary 28%, @background-primary);
+  }
 
-    .btn.TENTATIVE {
-      background: @gray-light;
-      color: @white;
-    }
-
-    .btn.DECLINED {
-      background: @color-error;
-      color: @white;
-    }
+  // 2px from the time row, against the section's usual gap.
+  .event-panel-proposal-hint {
+    margin-bottom: -2px;
   }
 
   .event-panel-calendar-swatch {

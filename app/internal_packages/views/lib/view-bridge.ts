@@ -318,16 +318,22 @@ export class ViewBridge {
       case 'events': {
         requirePermission(grant, 'calendar.read');
         const range = parseRange(params);
-        return Rx.Observable.fromQuery(eventQuery(range)).map((events) => ({
-          data: serializeEvents(grant, events, range),
-        }));
+        return Rx.Observable.combineLatest(
+          Rx.Observable.fromQuery(eventQuery(range)),
+          Rx.Observable.fromQuery(calendarsQuery()),
+          (events, calendars) => ({ data: serializeEvents(grant, events, calendars, range) })
+        );
       }
       case 'freeBusy': {
         requirePermission(grant, 'calendar.read');
         const range = parseRange({ ...params, includeDeclined: false });
-        return Rx.Observable.fromQuery(eventQuery(range)).map((events) => ({
-          data: freeBusy(serializeEvents(grant, events, range), range),
-        }));
+        return Rx.Observable.combineLatest(
+          Rx.Observable.fromQuery(eventQuery(range)),
+          Rx.Observable.fromQuery(calendarsQuery()),
+          (events, calendars) => ({
+            data: freeBusy(serializeEvents(grant, events, calendars, range), range),
+          })
+        );
       }
       case 'calendars': {
         requirePermission(grant, 'calendar.read');

@@ -941,6 +941,7 @@
   "Add to Claude Code": "Přidat do Claude Code",
   "Access Level": "Úroveň přístupu",
   "Read Only": "Jen čtení",
+  "Read & Draft": "Čtení a koncepty",
   "Read & Write": "Čtení a zápis",
   "Read, Write & Send": "Čtení, zápis a odesílání",
   "Endpoint": "URL koncového bodu",

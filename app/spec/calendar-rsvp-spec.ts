@@ -9,9 +9,8 @@ import {
 import { Calendar } from '../src/flux/models/calendar';
 import {
   occurrenceRecurrenceId,
-  offerCounterInsteadOfMove,
   openProposeNewTimePopover,
-  proposeNewTimeForCalendarEvent,
+  proposeNewEventTime,
   respondToCalendarEvent,
 } from '../internal_packages/main-calendar/lib/core/calendar-rsvp';
 import { parseCalendarDate } from '../src/calendar-date';
@@ -121,7 +120,7 @@ describe('answering and countering from the calendar', function () {
     dialog = spyOn(require('@electron/remote').dialog, 'showMessageBoxSync').andReturn(1);
   });
 
-  describe('proposeNewTimeForCalendarEvent', function () {
+  describe('proposeNewEventTime', function () {
     const proposal = {
       start: new Date('2026-03-10T16:00:00Z'),
       end: new Date('2026-03-10T17:00:00Z'),
@@ -129,7 +128,7 @@ describe('answering and countering from the calendar', function () {
     };
 
     it('sends a COUNTER to the organizer naming the occurrence', async function () {
-      await proposeNewTimeForCalendarEvent(occurrence(), proposal);
+      await proposeNewEventTime(occurrence(), proposal);
       const task = queued[0] as EventRSVPTask;
       expect(task instanceof EventRSVPTask).toBe(true);
       expect(task.method).toBe('COUNTER');
@@ -142,7 +141,7 @@ describe('answering and countering from the calendar', function () {
 
     it('keeps an all-day occurrence on dates', async function () {
       event.ics = ALL_DAY_ICS;
-      await proposeNewTimeForCalendarEvent(occurrence({ isAllDay: true }), {
+      await proposeNewEventTime(occurrence({ isAllDay: true }), {
         start: new Date(2026, 2, 12),
         end: new Date(2026, 2, 13),
         comment: '',
@@ -155,7 +154,7 @@ describe('answering and countering from the calendar', function () {
 
     it('explains instead of sending when we are not a guest', async function () {
       event.ics = SERIES_ICS.replace(`mailto:${ME}`, 'mailto:bo@example.com');
-      await proposeNewTimeForCalendarEvent(occurrence(), proposal);
+      await proposeNewEventTime(occurrence(), proposal);
       expect(queued.length).toBe(0);
       expect((AppEnv.showErrorDialog as jasmine.Spy).mostRecentCall.args[0]).toContain(
         'guest list'
@@ -279,25 +278,33 @@ describe('answering and countering from the calendar', function () {
       await respondToCalendarEvent(occurrence(), 'TENTATIVE');
       expect(queued.length).toBe(1);
     });
-  });
-});
 
-describe('offerCounterInsteadOfMove', function () {
-  const remote = require('@electron/remote');
+    describe('on a Google account', function () {
+      beforeEach(function () {
+        (AccountStore.accountForId as jasmine.Spy).andReturn({
+          id: 'acct-1',
+          emailAddress: ME,
+          provider: 'gmail',
+        });
+      });
 
-  it('offers the counter-proposal and opens it when taken up', function () {
-    const dialog = spyOn(remote.dialog, 'showMessageBoxSync').andReturn(0);
-    const openPopover = spyOn(Actions, 'openPopover');
-    offerCounterInsteadOfMove(occurrence());
-    expect(dialog.mostRecentCall.args[0].buttons[0]).toBe('Propose a new time');
-    expect(dialog.mostRecentCall.args[0].message).toContain('Design Review');
-    expect(openPopover.mostRecentCall.args[0].props.start).toBe(START);
-  });
+      it('leaves telling the organizer to Google once the answer is on our copy', async function () {
+        await respondToCalendarEvent(occurrence(), 'ACCEPTED');
+        expect(queued.length).toBe(1);
+        expect(queued[0] instanceof SyncbackEventTask).toBe(true);
+      });
 
-  it('does nothing more when cancelled', function () {
-    spyOn(remote.dialog, 'showMessageBoxSync').andReturn(1);
-    const openPopover = spyOn(Actions, 'openPopover');
-    offerCounterInsteadOfMove(occurrence());
-    expect(openPopover).not.toHaveBeenCalled();
+      it('still emails when the calendar is read-only', async function () {
+        calendar = new Calendar({
+          id: 'cal-1',
+          accountId: 'acct-1',
+          name: ME,
+          readOnly: true,
+        } as any);
+        await respondToCalendarEvent(occurrence(), 'TENTATIVE');
+        expect(queued.length).toBe(1);
+        expect(queued[0] instanceof EventRSVPTask).toBe(true);
+      });
+    });
   });
 });

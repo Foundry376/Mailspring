@@ -114,19 +114,14 @@ h1,
   height: 60px;
 }
 
-#inbox-html-wrapper,
-#inbox-plain-wrapper {
-  margin-top: 10px;
-}
-
+/* The message wrappers sit in shadow roots, so print.js carries their copy of this block
+   (MESSAGE_STYLES). Keep the two in sync. */
 @media only print {
   body,
   #message-list,
   .message-item-wrap,
   .message-item-white-wrap,
-  .message-item-area,
-  #inbox-html-wrapper,
-  #inbox-plain-wrapper {
+  .message-item-area {
     display: block !important;
     width: auto !important;
     height: auto !important;

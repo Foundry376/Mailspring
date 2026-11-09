@@ -1,6 +1,6 @@
 import React from 'react';
 import moment from 'moment-timezone';
-import { ScrollRegion } from 'mailspring-component-kit';
+import { ScrollRegion, SVGIcons } from 'mailspring-component-kit';
 import { localized, Actions, CalendarDate, CalendarDateUtils, DateUtils } from 'mailspring-exports';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
 import { CalendarEventPopover } from './calendar-event-popover';
@@ -12,7 +12,13 @@ import {
   occurrenceStartUnix,
   isEventSelected,
 } from './calendar-data-source';
-import { calcEventColors, dateOf, formatShortTimeRange, momentOf } from './calendar-helpers';
+import {
+  calcEventColors,
+  dateOf,
+  formatOccurrenceTime,
+  formatShortTimeRange,
+  momentOf,
+} from './calendar-helpers';
 
 const DAYS_IN_PANEL = 14;
 
@@ -21,6 +27,9 @@ export type AgendaPanelProps = Pick<
   'dataSource' | 'disabledCalendars' | 'selectedEvents' | 'onEventClick' | 'isCalendarReadOnly'
 > & {
   onEventDoubleClick?: (event: EventOccurrence) => void;
+  onNewEvent?: (button: HTMLElement) => void;
+  /** Pinned above the days, in the mail sidebar, for the event of the email being read. */
+  inThisEmail?: EventOccurrence | null;
 };
 
 interface DayEvents {
@@ -146,7 +155,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
     );
   };
 
-  _renderEvent(event: EventOccurrence, dayKey: string) {
+  _renderEvent(event: EventOccurrence, dayKey: string, time = this._renderEventTime(event)) {
     const colors = calcEventColors(event.calendarId);
     const isSelected = isEventSelected(this.props.selectedEvents, event);
 
@@ -180,8 +189,21 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
               event.title || localized('(No title)')
             )}
           </div>
-          {this._renderEventTime(event)}
+          {time}
         </div>
+      </div>
+    );
+  }
+
+  _renderInThisEmail(event: EventOccurrence) {
+    return (
+      <div className="agenda-in-this-email">
+        <div className="agenda-in-this-email-label">{localized('In this email')}</div>
+        {this._renderEvent(
+          event,
+          'in-this-email',
+          <div className="agenda-event-time">{formatOccurrenceTime(event)}</div>
+        )}
       </div>
     );
   }
@@ -201,6 +223,22 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
     const days = this._getEventsByDay();
     return (
       <aside className="agenda-panel" aria-label={localized('Agenda')}>
+        {this.props.onNewEvent && (
+          <div className="agenda-new-event">
+            <button
+              className="btn-ghost"
+              title={localized('New Event')}
+              aria-label={localized('New Event')}
+              onClick={(e) => {
+                e.stopPropagation();
+                this.props.onNewEvent(e.currentTarget);
+              }}
+            >
+              <SVGIcons.Plus size={16} />
+            </button>
+          </div>
+        )}
+        {this.props.inThisEmail && this._renderInThisEmail(this.props.inThisEmail)}
         <ScrollRegion className="agenda-scroll-region">
           <div className="agenda-event-list">
             {days.length > 0 ? (

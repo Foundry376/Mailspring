@@ -284,10 +284,14 @@ type TokenizingTextFieldProps<T> = {
    * Called when we're ready to add whatever it is we're completing. Either passed
    * an array of objects (the same ones used to render tokens), OR passed the string
    * currently in the input field (the string case happens on paste and blur). It
-   * doesn't need to return anything but is generally responsible for mutating the
-   * parent's state in a way that eventually updates this component's `tokens` prop.
+   * is generally responsible for mutating the parent's state in a way that eventually
+   * updates this component's `tokens` prop. Returning false leaves the typed string in
+   * the field, for the user to finish or fix.
    */
   onAdd: (...args: any[]) => any;
+
+  /** Drawn after the input, given what's typed and a way to clear it that keeps focus. */
+  inputAccessory?: (input: { value: string; clear: () => void }) => React.ReactNode;
 
   /**
    * Fired when the user tries to submit a query with a break character (tab, comma,
@@ -633,6 +637,11 @@ export class TokenizingTextField<T> extends React.Component<
     });
   };
 
+  _clearTypedText = () => {
+    this._clearInput();
+    this.focus();
+  };
+
   _clearInput() {
     this.setState({ inputValue: '' });
     this._refreshCompletions('', { clear: true });
@@ -651,7 +660,7 @@ export class TokenizingTextField<T> extends React.Component<
     if (input.length === 0) {
       return;
     }
-    this.props.onAdd(input, options);
+    if (this.props.onAdd(input, options) === false) return;
     this._clearInput();
   };
 
@@ -1005,6 +1014,10 @@ export class TokenizingTextField<T> extends React.Component<
           )}
           {this._fieldComponents()}
           {this._inputComponent()}
+          {this.props.inputAccessory?.({
+            value: this.state.inputValue,
+            clear: this._clearTypedText,
+          })}
         </div>
       </KeyCommandsRegion>
     );
