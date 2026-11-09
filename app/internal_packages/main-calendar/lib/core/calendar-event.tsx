@@ -1,14 +1,19 @@
 import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
 import { InjectedComponentSet, SVGIcons } from 'mailspring-component-kit';
-import { CalendarDateUtils, CalendarUtils, localized } from 'mailspring-exports';
+import { CalendarDateUtils, CalendarUtils } from 'mailspring-exports';
 import {
   EventOccurrence,
   isTimed,
   occurrenceStartUnix,
   occurrenceEndUnix,
 } from './calendar-data-source';
-import { calcEventColors, formatEventTimeRange, formatShortTime } from './calendar-helpers';
+import {
+  BarEndTime,
+  BarStartTime,
+  calcEventColors,
+  formatEventTimeRange,
+} from './calendar-helpers';
 import { HitZone, ViewDirection } from './calendar-drag-types';
 import { detectHitZone, canAttemptMove, formatDragPreviewTime } from './calendar-drag-utils';
 import { DAY_DUR, columnSpan } from './week-view-helpers';
@@ -347,16 +352,8 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     const { event, direction, scopeStart, scopeEnd } = this.props;
     if (direction !== 'horizontal' || !isTimed(event)) return null;
     // Only where it begins and ends, not on a side that runs past the days shown.
-    if (end === 'start') {
-      return event.start >= scopeStart ? (
-        <span className="calendar-event-time">{formatShortTime(event.start)} </span>
-      ) : null;
-    }
-    return event.end <= scopeEnd ? (
-      <span className="calendar-event-end-time">
-        {localized('ends %@', formatShortTime(event.end))}
-      </span>
-    ) : null;
+    if (end === 'start') return event.start >= scopeStart ? <BarStartTime event={event} /> : null;
+    return event.end <= scopeEnd ? <BarEndTime event={event} /> : null;
   }
 
   render() {

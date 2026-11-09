@@ -1,14 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import classnames from 'classnames';
-import { localized, isRTL } from 'mailspring-exports';
+import { isRTL } from 'mailspring-exports';
 import {
   EventOccurrence,
   isTimed,
   occurrenceStartUnix,
   occurrenceEndUnix,
 } from './calendar-data-source';
-import { calcEventColors, formatShortTime } from './calendar-helpers';
+import { BarEndTime, BarStartTime, calcEventColors } from './calendar-helpers';
 import { HitZone } from './calendar-drag-types';
 import { detectHitZone, canAttemptMove, formatDragPreviewTime } from './calendar-drag-utils';
 
@@ -279,16 +279,10 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
         tabIndex={this.props.isFirstBar ? 0 : -1}
       >
         <span className="month-view-event-title">
-          {!continuesBefore && isTimed(event) && (
-            <span className="month-view-event-time">{formatShortTime(event.start)} </span>
-          )}
+          {!continuesBefore && isTimed(event) && <BarStartTime event={event} />}
           {event.title}
         </span>
-        {!continuesAfter && isTimed(event) && spansDays(event) && (
-          <span className="month-view-event-end-time">
-            {localized('ends %@', formatShortTime(event.end))}
-          </span>
-        )}
+        {!continuesAfter && isTimed(event) && spansDays(event) && <BarEndTime event={event} />}
       </div>
     );
   }
