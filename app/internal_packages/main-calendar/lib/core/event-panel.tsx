@@ -270,7 +270,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     const { event, unsentChange } = this.props;
     const people = [...event.attendees, ...(unsentChange?.attendees?.added ?? [])];
     if (event.organizer) people.push(event.organizer);
-    const emails = [...new Set(people.filter((p) => !p.name).map((p) => p.email.toLowerCase()))];
+    // Mail contacts are stored lowercased, address-book ones as typed, and IN matches case.
+    const unnamed = people.filter((p) => !p.name).map((p) => p.email);
+    const emails = [...new Set([...unnamed, ...unnamed.map((e) => e.toLowerCase())])];
     const key = emails.sort().join('\n');
     if (key === this._contactNamesKey) return;
     this._contactNamesKey = key;
