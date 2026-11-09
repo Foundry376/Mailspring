@@ -8,6 +8,8 @@ import {
 } from './calendar-drag-types';
 import {
   EventOccurrence,
+  inAllDayRow,
+  isTimed,
   occurrenceAt,
   occurrenceStartUnix,
   occurrenceEndUnix,
@@ -294,7 +296,10 @@ export function updateDragState(
   // createRecurrenceException threads one isAllDay through both the exception times and the
   // RECURRENCE-ID, so a convert would misformat the RID and orphan the exception — a recurring
   // event dropped across kinds keeps its own kind (moves to that day) instead.
-  const canConvert = state.mode === 'move' && !state.event.isRecurring;
+  // A timed event of a day or more is already drawn in the all-day row, so it moves along it as
+  // itself, keeping its clock times, rather than turning all-day.
+  const longTimed = isTimed(state.event) && inAllDayRow(state.event);
+  const canConvert = state.mode === 'move' && !state.event.isRecurring && !longTimed;
   const previewIsAllDay =
     containerType === 'all-day-area'
       ? state.event.isAllDay || canConvert
