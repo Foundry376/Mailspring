@@ -12,7 +12,7 @@
   font-size: 12px;
   line-height: 16px;
 
-  // Solid colored left band (Apple Calendar-style)
+  // A solid band in the calendar's color down the left edge
   &:before {
     content: '';
     position: absolute;
@@ -55,7 +55,7 @@
     color: var(--event-text-color, inherit);
   }
 
-  // Selection fills with the calendar's own color, as Apple Calendar does
+  // Selection fills with the calendar's own color
   &.selected {
     background-color: var(--event-band-color) !important;
 
@@ -243,7 +243,7 @@ body.platform-win32 {
     flex-direction: column;
     cursor: default;
 
-    // Apple Calendar-style text uses the theme color
+    // Text in the calendar's text color
     .default-header {
       overflow: hidden;
       text-overflow: ellipsis;
@@ -255,7 +255,7 @@ body.platform-win32 {
       flex-shrink: 0;
     }
 
-    // The time range under the title, as Apple Calendar shows it.
+    // The time range under the title.
     .event-details {
       display: flex;
       flex-direction: column;

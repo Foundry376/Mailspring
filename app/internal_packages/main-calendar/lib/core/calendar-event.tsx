@@ -206,7 +206,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       // Pending events get a gray background with theme-colored left band
       styles.backgroundColor = 'rgba(128, 128, 128, 0.15)';
     } else {
-      // Apple Calendar-style: light pastel background
+      // A light tint of the calendar's color
       styles.backgroundColor = colors.background;
     }
     return styles;

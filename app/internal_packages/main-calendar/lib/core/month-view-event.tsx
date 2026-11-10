@@ -213,7 +213,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
     return 'default';
   }
 
-  // One-day timed chips go bare, as in Apple Calendar; all-day chips and anything
+  // One-day timed chips go bare; all-day chips and anything
   // spanning days keep the tint so they read as a bar. Selection fills either through CSS.
   _backgroundColor(tint: string) {
     const { event } = this.props;

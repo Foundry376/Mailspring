@@ -8,7 +8,7 @@ export interface TimeZoneSelectorProps {
   onChange: (value: string) => void;
 }
 
-// Friendly display names for common timezones (like Apple Calendar)
+// Friendly display names for common timezones
 const TIMEZONE_DISPLAY_NAMES: { [key: string]: string } = {
   'America/New_York': 'Eastern Time',
   'America/Chicago': 'Central Time',

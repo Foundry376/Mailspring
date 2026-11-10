@@ -194,7 +194,7 @@ export function calcColor(calendarId: string) {
 }
 
 /**
- * Get event styling colors for Apple Calendar-style appearance.
+ * An event's colors, from its calendar's.
  * Returns colors for the background (light), left band (solid), and text.
  */
 export function calcEventColors(calendarId: string): {
