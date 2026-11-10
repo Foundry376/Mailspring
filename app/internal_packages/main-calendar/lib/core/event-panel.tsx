@@ -880,8 +880,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     }
     const guests = [...sortedAttendees(this.props.event, this.state.contactNames), ...added];
     const counted = guests.filter((a) => stateOf(a) !== 'removed');
+    // One block, so the section's gap between rows doesn't fall between the count and the guests.
     return (
-      <>
+      <div className="event-panel-invitees">
         <div className="event-panel-row top">
           <SVGIcons.Person className="event-panel-icon" />
           <div className="event-panel-invitee-count">
@@ -889,11 +890,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             <div className="event-panel-subtle">{guestSummary(counted)}</div>
           </div>
         </div>
-        <div className="event-panel-invitees">
-          {guests.map((a) => this._renderInvitee(a, stateOf(a), me))}
-          {addInvitees}
-        </div>
-      </>
+        {guests.map((a) => this._renderInvitee(a, stateOf(a), me))}
+        {addInvitees}
+      </div>
     );
   }
 
