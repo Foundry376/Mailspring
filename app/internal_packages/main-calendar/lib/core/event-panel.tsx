@@ -672,7 +672,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         {this.props.event.isException || !this._canEdit('repeat') ? (
           this._renderRepeatLabel()
         ) : (
-          <div className="event-panel-row editable">
+          <div className="event-panel-row">
             <SVGIcons.Repeat className="event-panel-icon" />
             <TextSelect value={this._repeat()} onChange={this._onRepeatChange}>
               {REPEAT_OPTIONS.map((option) => (
@@ -908,10 +908,10 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       <div className="event-panel-section">
         {invitees}
         {editable ? (
-          <div className="event-panel-row editable">
+          <div className="event-panel-row">
             {this._renderLocationIcon(shownLocation)}
             <EventPanelTextField
-              className="event-panel-location"
+              className="event-panel-location editable"
               value={shownLocation}
               placeholder={localized('Add Location or Video Call')}
               display={shownLocation && linkOrText(shownLocation)}
@@ -990,7 +990,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     return (
       <div className="event-panel-section">
         {(calendar || calendarChoices) && (
-          <div className={`event-panel-row ${calendarChoices ? 'editable' : ''}`}>
+          <div className="event-panel-row">
             <span className="event-panel-icon">
               <span
                 className="event-panel-calendar-swatch"
@@ -1000,7 +1000,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             {calendarChoices ? this._renderCalendarChoice(calendarChoices) : calendar.name}
           </div>
         )}
-        <div className={`event-panel-row indented ${this._canSetShowAs() ? 'editable' : ''}`}>
+        <div className="event-panel-row indented">
           {this._canSetShowAs() ? (
             <TextSelect
               value={this._shown('transp', showAs)}

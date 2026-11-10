@@ -918,9 +918,11 @@
     }
   }
 
-  // Overhangs by the shadow, so the row doesn't move on hover. The times and dates hover one
-  // field at a time.
+  // Overhangs by the shadow, so the row doesn't move on hover. Times, dates and choices hover on
+  // their value alone.
   .editable:hover,
+  .text-select:hover,
+  .event-panel-invitee-add .tokenizing-field-input:hover,
   .time-picker-wrap input:hover,
   .date-picker .day-text:hover {
     border-radius: 2px;
@@ -1041,7 +1043,6 @@
 
   .event-panel-invitee-add {
     .attendee-status {
-      margin-top: 7px;
       color: @text-color-very-subtle;
     }
 
@@ -1056,14 +1057,39 @@
       min-width: 0;
     }
 
-    // Pulled left so the text lines up with the guest names; the fill overhangs the 26px row.
     .tokenizing-field-input {
-      .calendar-field();
-      margin: -2px 0 -2px -8px;
+      position: relative;
+      display: flex;
+      align-items: center;
+
+      &:has(.clear-button) {
+        padding-right: 22px;
+      }
+
+      input {
+        flex: 1;
+        min-width: 0;
+        height: auto;
+      }
+
+      .clear-button {
+        position: absolute;
+        top: 50%;
+        right: 0;
+        width: 18px;
+        height: 18px;
+        transform: translateY(-50%);
+        color: @text-color;
+        opacity: 0.5;
+
+        &:hover {
+          opacity: 1;
+        }
+      }
     }
 
     .placeholder {
-      left: 8px;
+      left: 0;
       color: @text-color-very-subtle;
     }
   }
@@ -1083,6 +1109,11 @@
 
   // Fields read as text until they're focused, as on the design.
   .event-panel-title input,
+  // The rest of the row, so the hover stops short of the icon only.
+  .event-panel-location {
+    flex: 1;
+  }
+
   input.event-panel-location,
   textarea.event-panel-notes,
   .time-picker-wrap input,
@@ -1092,6 +1123,7 @@
     background: transparent;
     box-shadow: none;
     color: inherit;
+  .event-panel-invitee-add input,
     outline: none;
 
     &::placeholder {
@@ -1109,6 +1141,7 @@
   }
 
   .event-panel-title input {
+  .event-panel-invitee-add input,
     width: 100%;
     height: auto;
   }
