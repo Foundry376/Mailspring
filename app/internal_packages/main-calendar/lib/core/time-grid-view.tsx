@@ -17,7 +17,13 @@ import {
   inAllDayRow,
   isTimed,
 } from './calendar-data-source';
-import { centerGridScroll, dateOf, formatShortTime, momentOf } from './calendar-helpers';
+import {
+  centerGridScroll,
+  dateOf,
+  formatShortTime,
+  momentOf,
+  withSmallMeridiem,
+} from './calendar-helpers';
 import { EventGridBackground } from './event-grid-background';
 import { WeekViewEventColumn } from './week-view-event-column';
 import { WeekViewAllDayEvents } from './week-view-all-day-events';
@@ -294,7 +300,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
       }
       labels.push(
         <span className="legend-text" key={y} style={{ top }}>
-          {formatShortTime(time.unix())}
+          {withSmallMeridiem(formatShortTime(time.unix()))}
         </span>
       );
     }

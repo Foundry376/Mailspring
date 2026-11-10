@@ -370,12 +370,31 @@ function shortTimeFormat(time: moment.Moment): string {
   return time.minutes() === 0 ? tight.replace(/[:.]mm/, '') : tight;
 }
 
+/** Time text with its AM/PM a size smaller, so it doesn't crowd the digits. */
+export function withSmallMeridiem(text: string): React.ReactNode {
+  const locale = moment.localeData();
+  const words = [locale.meridiem(1, 0, false), locale.meridiem(13, 0, false)].filter(Boolean);
+  if (!words.length) return text;
+  const pattern = new RegExp(`(${words.map(Utils.escapeRegExp).join('|')})`);
+  return text.split(pattern).map((part, i) =>
+    i % 2 ? (
+      <span key={i} className="meridiem">
+        {part}
+      </span>
+    ) : (
+      part
+    )
+  );
+}
+
 export const BarStartTime = ({ event }: { event: TimedOccurrence }) => (
-  <span className="event-bar-time">{formatShortTime(event.start)} </span>
+  <span className="event-bar-time">{withSmallMeridiem(formatShortTime(event.start))} </span>
 );
 
 export const BarEndTime = ({ event }: { event: TimedOccurrence }) => (
-  <span className="event-bar-end-time">{localized('ends %@', formatShortTime(event.end))}</span>
+  <span className="event-bar-end-time">
+    {withSmallMeridiem(localized('ends %@', formatShortTime(event.end)))}
+  </span>
 );
 
 /**

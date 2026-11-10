@@ -14,6 +14,7 @@ import {
   calcEventColors,
   formatEventTimeRange,
   formatEventTooltip,
+  withSmallMeridiem,
 } from './calendar-helpers';
 import { HitZone, ViewDirection } from './calendar-drag-types';
 import { detectHitZone, canAttemptMove, formatDragPreviewTime } from './calendar-drag-utils';
@@ -319,7 +320,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     }
     return (
       <div className="event-details">
-        <span className="event-time-range">{timeRange}</span>
+        <span className="event-time-range">{withSmallMeridiem(timeRange)}</span>
       </div>
     );
   }

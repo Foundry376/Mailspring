@@ -17,6 +17,7 @@ import {
   dateOf,
   formatOccurrenceTime,
   formatShortTimeRange,
+  withSmallMeridiem,
   momentOf,
 } from './calendar-helpers';
 
@@ -114,7 +115,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
     }
     return (
       <div className="agenda-event-time">
-        {formatShortTimeRange(event.start, event.end)}{' '}
+        {withSmallMeridiem(formatShortTimeRange(event.start, event.end))}{' '}
         <span className="agenda-event-duration">
           {DateUtils.formatDuration(event.end - event.start)}
         </span>
