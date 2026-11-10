@@ -42,7 +42,7 @@ import { WeekdayHeader } from './weekday-header';
 
 // A 20px bar and the gap above it, as Month view's chips.
 const ALL_DAY_LANE_HEIGHT = 23;
-// Half an hour, as Notion sizes it: a 30-minute event holds one 14px line, a 45-minute one two.
+// Half an hour: a 30-minute event holds one 14px line, a 45-minute one two.
 const INTERVAL_HEIGHT = 24;
 const DATE_LABELS_HEIGHT = 28;
 // Half the current-time pill plus half an hour label: nearer than this, the two overlap.
