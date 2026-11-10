@@ -546,12 +546,12 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           {this.props.headerActions}
           {this.props.onDelete && (
             <button
-              className="btn-bare event-panel-more"
+              className="btn-ghost event-panel-more"
               title={localized('More')}
               aria-label={localized('More')}
               onClick={this._onMore}
             >
-              <SVGIcons.More />
+              <SVGIcons.More size={22} />
             </button>
           )}
         </div>

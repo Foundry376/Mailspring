@@ -863,16 +863,17 @@
     gap: 4px;
   }
 
+  // Sized and filled on hover as the toolbar's sidebar toggle; its fill is currentColor's.
   .event-panel-more,
   .event-panel-view {
-    width: 24px;
-    height: 24px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: @text-color-very-subtle;
+    width: 30px;
+    height: 30px;
+    margin: -3px 0; // the header stays as tall as the Back button
+    color: @text-color;
 
+    svg {
+      color: @text-color-very-subtle;
+    }
     img.content-mask {
       background-color: @text-color-very-subtle;
     }
