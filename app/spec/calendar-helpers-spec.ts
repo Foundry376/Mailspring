@@ -12,7 +12,6 @@ import {
   textColorOnFill,
   formatShortTime,
   formatShortTimeRange,
-  formatTime,
   formatEventTimeRange,
   formatOccurrenceTime,
   queueNewCalendarEvent,
@@ -260,55 +259,31 @@ describe('formatShortTime', function () {
   });
 });
 
-describe('formatTime', function () {
-  const at = (hour: number, minute: number) => new Date(2026, 8, 22, hour, minute).getTime() / 1000;
-  afterEach(() => moment.locale('en'));
-
-  it('follows a 12-hour locale', function () {
-    moment.locale('en');
-    expect(formatTime(at(15, 15))).toBe('3:15 PM');
-    expect(formatTime(at(15, 0))).toBe('3:00 PM');
-  });
-
-  it('follows a 24-hour locale', function () {
-    moment.locale('de');
-    expect(formatTime(at(15, 15))).toBe('15:15');
-    expect(formatTime(at(15, 0))).toBe('15:00');
-  });
-
-  it('drops the minutes on the hour only when asked, and only on a 12-hour clock', function () {
-    moment.locale('en');
-    expect(formatTime(at(15, 0), true)).toBe('3 PM');
-    expect(formatTime(at(15, 15), true)).toBe('3:15 PM');
-    moment.locale('de');
-    expect(formatTime(at(15, 0), true)).toBe('15:00');
-  });
-});
-
 describe('formatEventTimeRange', function () {
   const at = (hour: number, minute: number) => new Date(2026, 8, 22, hour, minute).getTime() / 1000;
   afterEach(() => moment.locale('en'));
 
   it('names a shared meridiem once, after the end', function () {
     moment.locale('en');
-    expect(formatEventTimeRange(at(12, 0), at(13, 0), false)).toBe('12 – 1PM');
-    expect(formatEventTimeRange(at(13, 15), at(14, 30), false)).toBe('1:15 – 2:30PM');
+    expect(formatEventTimeRange(at(12, 0), at(13, 0), false)).toBe('12\u2009–\u20091PM');
+    expect(formatEventTimeRange(at(13, 15), at(14, 30), false)).toBe('1:15\u2009–\u20092:30PM');
   });
 
   it('names both meridiems when they differ', function () {
     moment.locale('en');
-    expect(formatEventTimeRange(at(11, 30), at(12, 30), false)).toBe('11:30AM – 12:30PM');
+    expect(formatEventTimeRange(at(11, 30), at(12, 30), false)).toBe('11:30AM\u2009–\u200912:30PM');
   });
 
   it('follows a 24-hour locale', function () {
     moment.locale('de');
-    expect(formatEventTimeRange(at(12, 0), at(13, 0), false)).toBe('12:00 – 13:00');
+    expect(formatEventTimeRange(at(12, 0), at(13, 0), false)).toBe('12:00\u2009–\u200913:00');
   });
 
-  it('gives nothing for an all-day event or one shorter than an hour', function () {
+  it('gives nothing for an all-day event or one shorter than 45 minutes', function () {
     moment.locale('en');
     expect(formatEventTimeRange(at(12, 0), at(13, 0), true)).toBeNull();
-    expect(formatEventTimeRange(at(12, 0), at(12, 59), false)).toBeNull();
+    expect(formatEventTimeRange(at(12, 0), at(12, 44), false)).toBeNull();
+    expect(formatEventTimeRange(at(12, 0), at(12, 45), false)).toBe('12\u2009–\u200912:45PM');
   });
 });
 
@@ -318,9 +293,9 @@ describe('formatOccurrenceTime', function () {
   it('gives a timed occurrence its day and times', function () {
     moment.locale('en');
     const sameDay = timedOccurrence('x', '2026-03-03T15:00:00', '2026-03-03T16:30:00');
-    expect(formatOccurrenceTime(sameDay)).toBe('Tue, Mar 3 \u00B7 3:00 PM - 4:30 PM');
+    expect(formatOccurrenceTime(sameDay)).toBe('Tue, Mar 3 \u00B7 3\u2009–\u20094:30PM');
     const twoDays = timedOccurrence('x', '2026-03-03T15:00:00', '2026-03-04T16:30:00');
-    expect(formatOccurrenceTime(twoDays)).toBe('Mar 3, 3:00 PM - Mar 4, 4:30 PM');
+    expect(formatOccurrenceTime(twoDays)).toBe('Mar 3, 3PM – Mar 4, 4:30PM');
   });
 
   it('gives the times in a 24-hour locale', function () {
@@ -329,7 +304,7 @@ describe('formatOccurrenceTime', function () {
     const sameDay = timedOccurrence('x', '2026-03-03T15:00:00', '2026-03-03T16:30:00');
     moment.locale('de');
     const day = moment('2026-03-03T15:00:00').format('ddd, MMM D');
-    expect(formatOccurrenceTime(sameDay)).toBe(`${day} \u00B7 15:00 - 16:30`);
+    expect(formatOccurrenceTime(sameDay)).toBe(`${day} \u00B7 15:00\u2009–\u200916:30`);
   });
 
   it('gives an all-day occurrence its day, or its first and last days', function () {
@@ -347,31 +322,31 @@ describe('formatShortTimeRange', function () {
 
   it('names the meridiem once when both ends share it', function () {
     moment.locale('en');
-    expect(formatShortTimeRange(at(19, 30), at(20, 30))).toBe('7:30–8:30PM');
+    expect(formatShortTimeRange(at(19, 30), at(20, 30))).toBe('7:30\u2009–\u20098:30PM');
   });
 
   it('names both when the range crosses noon', function () {
     moment.locale('en');
-    expect(formatShortTimeRange(at(11, 30), at(12, 0))).toBe('11:30AM–12PM');
+    expect(formatShortTimeRange(at(11, 30), at(12, 0))).toBe('11:30AM\u2009–\u200912PM');
   });
 
   it('drops the shared meridiem where the locale puts it first', function () {
     moment.locale('ko');
     const end = moment.unix(at(20, 30)).format('A h:mm');
-    expect(formatShortTimeRange(at(19, 0), at(20, 30))).toBe(`7–${end}`);
+    expect(formatShortTimeRange(at(19, 0), at(20, 30))).toBe(`7\u2009–\u2009${end}`);
   });
 
   it('writes a 24-hour clock in full at both ends', function () {
     moment.locale('de');
-    expect(formatShortTimeRange(at(19, 0), at(20, 30))).toBe('19:00–20:30');
+    expect(formatShortTimeRange(at(19, 0), at(20, 30))).toBe('19:00\u2009–\u200920:30');
   });
 
   it("leaves a locale's literal text and a meridiem joined to a word alone", function () {
     moment.locale('lb');
-    expect(formatShortTimeRange(at(9, 0), at(10, 30))).toBe('9:00 Auer–10:30 Auer');
+    expect(formatShortTimeRange(at(9, 0), at(10, 30))).toBe('9:00 Auer\u2009–\u200910:30 Auer');
     moment.locale('ne');
     expect(formatShortTimeRange(at(9, 0), at(10, 30))).toBe(
-      `${formatShortTime(at(9, 0))}–${formatShortTime(at(10, 30))}`
+      `${formatShortTime(at(9, 0))}\u2009–\u2009${formatShortTime(at(10, 30))}`
     );
   });
 });
@@ -383,16 +358,12 @@ describe('calendar times with Use 24-hour clock on, in a 12-hour locale', functi
     use24HourClock(true);
   });
 
-  it('formatTime keeps the minutes on the hour', function () {
-    expect(formatTime(at(15, 0), true)).toBe('15:00');
-  });
-
   it('formatShortTime keeps the minutes on the hour', function () {
     expect(formatShortTime(at(15, 0))).toBe('15:00');
   });
 
   it('formatShortTimeRange writes both ends in full', function () {
-    expect(formatShortTimeRange(at(19, 30), at(20, 30))).toBe('19:30–20:30');
+    expect(formatShortTimeRange(at(19, 30), at(20, 30))).toBe('19:30\u2009–\u200920:30');
   });
 });
 

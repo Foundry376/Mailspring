@@ -61,8 +61,8 @@ import {
 } from '../../main-calendar/lib/core/calendar-rsvp';
 import {
   formatConflict,
+  formatShortTime,
   formatShortTimeRange,
-  formatTime,
 } from '../../main-calendar/lib/core/calendar-helpers';
 import {
   AttendeeStatusIcon,
@@ -204,7 +204,7 @@ function timeLine(
   const zone = end.format('z');
   return start.isSame(end, 'day')
     ? `${start.format(day)}, ${formatShortTimeRange(start.unix(), end.unix())} ${zone}`
-    : `${start.format(day)}, ${formatTime(start.unix())} – ${end.format(day)}, ${formatTime(
+    : `${start.format(day)}, ${formatShortTime(start.unix())} – ${end.format(day)}, ${formatShortTime(
         end.unix()
       )} ${zone}`;
 }
@@ -619,7 +619,7 @@ export class EventHeader extends React.Component<EventHeaderProps, EventHeaderSt
             )}
             {/* The attachment list hides the .ics, so this is the only way to save it. */}
             <button
-              className="btn-bare event-download"
+              className="btn-ghost event-download"
               title={localized('Download')}
               aria-label={localized('Download')}
               onClick={() => Actions.fetchAndOpenFile(this.props.file)}

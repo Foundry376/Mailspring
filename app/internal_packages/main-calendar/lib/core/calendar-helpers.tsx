@@ -1,6 +1,7 @@
 import React from 'react';
 import moment, { Moment } from 'moment';
 import momentTz from 'moment-timezone';
+import { withSmallMeridiem } from 'mailspring-component-kit';
 import {
   CalendarDate,
   Utils,
@@ -193,7 +194,7 @@ export function calcColor(calendarId: string) {
 }
 
 /**
- * Get event styling colors for Apple Calendar-style appearance.
+ * An event's colors, from its calendar's.
  * Returns colors for the background (light), left band (solid), and text.
  */
 export function calcEventColors(calendarId: string): {
@@ -362,29 +363,38 @@ export function formatShortTime(unix: number): string {
 }
 
 function shortTimeFormat(time: moment.Moment): string {
-  const lt = DateUtils.localeTimeFormat();
+  const tight = DateUtils.tightTimeFormat();
   // moment's LT uses h for a 12-hour clock and H for a 24-hour one, as in time-picker.tsx
-  if (!/h/.test(lt)) {
-    return lt;
+  if (!/h/.test(tight)) {
+    return tight;
   }
-  const tight = lt.replace(/\s+([aA])$/, '$1');
   return time.minutes() === 0 ? tight.replace(/[:.]mm/, '') : tight;
 }
 
 export const BarStartTime = ({ event }: { event: TimedOccurrence }) => (
-  <span className="event-bar-time">{formatShortTime(event.start)} </span>
+  <span className="event-bar-time">{withSmallMeridiem(formatShortTime(event.start))} </span>
 );
 
 export const BarEndTime = ({ event }: { event: TimedOccurrence }) => (
-  <span className="event-bar-end-time">{localized('ends %@', formatShortTime(event.end))}</span>
+  <span className="event-bar-end-time">
+    {withSmallMeridiem(localized('ends %@', formatShortTime(event.end)))}
+  </span>
 );
 
 /**
- * A range in formatShortTime's terms, naming the meridiem once when both ends share it, as Notion
- * Calendar does: "7:30–8:30PM", "11:30AM–12PM".
+ * A range in formatShortTime's terms, naming the meridiem once when both ends share it:
+ * "7:30–8:30PM", "11:30AM–12PM".
  */
 export function formatShortTimeRange(startUnix: number, endUnix: number): string {
-  return shortTimeRange(startUnix, endUnix, '–');
+  const start = moment.unix(startUnix);
+  const end = moment.unix(endUnix);
+  let startFormat = shortTimeFormat(start);
+  // Only a meridiem standing alone at either end; lb's "[Auer]" literal and ne's "Aको" stay whole.
+  const separateMeridiem = /^[aA]\s+|\s*[aA]$/;
+  if (/h/.test(startFormat) && start.format('A') === end.format('A')) {
+    startFormat = startFormat.replace(separateMeridiem, '');
+  }
+  return `${start.format(startFormat)}\u2009–\u2009${end.format(shortTimeFormat(end))}`;
 }
 
 /** A conflict on one line, "Standup, 9–9:30AM", naming its day when it isn't the day shown. */
@@ -395,32 +405,6 @@ export function formatConflict(conflict: CalendarConflict, shownDayUnix: number)
     : `${start.format('ddd, MMM D')}, `;
   const title = conflict.title || localized('(No title)');
   return `${title}, ${day}${formatShortTimeRange(conflict.start, conflict.end)}`;
-}
-
-function shortTimeRange(startUnix: number, endUnix: number, separator: string): string {
-  const start = moment.unix(startUnix);
-  const end = moment.unix(endUnix);
-  let startFormat = shortTimeFormat(start);
-  // Only a meridiem standing alone at either end; lb's "[Auer]" literal and ne's "Aको" stay whole.
-  const separateMeridiem = /^[aA]\s+|\s*[aA]$/;
-  if (/h/.test(startFormat) && start.format('A') === end.format('A')) {
-    startFormat = startFormat.replace(separateMeridiem, '');
-  }
-  return `${start.format(startFormat)}${separator}${end.format(shortTimeFormat(end))}`;
-}
-
-/**
- * The locale's time ("3:15 PM", "15:15"), on a 24-hour clock when the user asked for one. With
- * `dropZeroMinutes` a 12-hour clock shows an hour on the hour as "3 PM"; a 24-hour clock keeps
- * "15:00", where a bare "15" would not read as a time.
- */
-export function formatTime(unix: number, dropZeroMinutes = false): string {
-  const time = moment.unix(unix);
-  const lt = DateUtils.localeTimeFormat();
-  if (dropZeroMinutes && /h/.test(lt) && time.minutes() === 0) {
-    return time.format(lt.replace(/[:.]mm/, ''));
-  }
-  return time.format(lt);
 }
 
 /** The line under a search result: the day, or days, and for a timed occurrence its times. */
@@ -436,14 +420,21 @@ export function formatOccurrenceTime(event: EventOccurrence): string {
   const start = moment.unix(event.start);
   const end = moment.unix(event.end);
   if (start.isSame(end, 'day')) {
-    return `${start.format('ddd, MMM D')} \u00B7 ${formatTime(event.start)} - ${formatTime(event.end)}`;
+    return `${start.format('ddd, MMM D')} \u00B7 ${formatShortTimeRange(event.start, event.end)}`;
   }
-  return `${start.format('MMM D')}, ${formatTime(event.start)} - ${end.format('MMM D')}, ${formatTime(event.end)}`;
+  return `${start.format('MMM D')}, ${formatShortTime(event.start)} – ${end.format('MMM D')}, ${formatShortTime(event.end)}`;
+}
+
+/** An event's hover text on the grid: its full title, when it happens, and where. */
+export function formatEventTooltip(event: EventOccurrence): string {
+  return [event.title || localized('(No title)'), formatOccurrenceTime(event), event.location]
+    .filter(Boolean)
+    .join('\n');
 }
 
 /**
- * Format an event's time range for display (e.g., "12 – 1PM").
- * Only returns a string for events that are 1 hour or longer.
+ * Format an event's time range for display (e.g., "12–1PM").
+ * Only for events of 45 minutes or more, whose box has room for a second line.
  * Returns null for shorter events or all-day events.
  */
 export function formatEventTimeRange(
@@ -454,10 +445,10 @@ export function formatEventTimeRange(
   if (isAllDay) {
     return null;
   }
-  if ((endUnix - startUnix) / 60 < 60) {
+  if ((endUnix - startUnix) / 60 < 45) {
     return null;
   }
-  return shortTimeRange(startUnix, endUnix, ' – ');
+  return formatShortTimeRange(startUnix, endUnix);
 }
 
 /**

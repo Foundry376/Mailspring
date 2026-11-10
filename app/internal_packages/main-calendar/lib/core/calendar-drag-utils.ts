@@ -14,7 +14,7 @@ import {
   occurrenceEndUnix,
 } from './calendar-data-source';
 import { CalendarDateUtils } from 'mailspring-exports';
-import { formatTime, inclusiveAllDayEnd } from './calendar-helpers';
+import { formatShortTimeRange, inclusiveAllDayEnd } from './calendar-helpers';
 import {
   DEFAULT_TIMED_EVENT_DURATION_SECONDS,
   MIN_EVENT_DURATION_SECONDS,
@@ -480,7 +480,7 @@ export function formatDragPreviewTime(start: number, end: number, isAllDay: bool
     return `${startDate} - ${endDate}`;
   }
 
-  return `${formatTime(start)} - ${formatTime(end)}`;
+  return formatShortTimeRange(start, end);
 }
 
 /** A press on empty grid space and where the pointer has gone since. */

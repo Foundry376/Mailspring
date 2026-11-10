@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import moment from 'moment-timezone';
 import {
   localized,
   isRTL,
@@ -46,7 +47,6 @@ import {
   extractNotesFromDescription,
   formatConflict,
   formatShortTimeRange,
-  formatTime,
   hasGuests,
   holdsEdits,
   proposesTime,
@@ -59,7 +59,9 @@ import {
   AttendeeStatusIcon,
   attendeeStatusClass,
   contactNamesByEmail,
+  guestCount,
   guestName,
+  guestSummary,
   sortedAttendees,
 } from './attendee-status';
 import {
@@ -101,13 +103,13 @@ const REPEAT_OPTIONS: RepeatOption[] = ['none', 'daily', 'weekly', 'monthly', 'y
 const repeatOptionLabel = (option: RepeatOption) =>
   option === 'none' ? localized('Does not repeat') : repeatLabel(option);
 
-function daysLabel(first: CalendarDate, last: CalendarDate) {
-  const from = momentOf(first).format('ddd MMM D');
-  return first === last ? from : `${from} – ${momentOf(last).format('ddd MMM D')}`;
-}
+const formatDay = (day: CalendarDate) => DateUtils.dayString(momentOf(day));
 
-const formatDay = (day: CalendarDate) =>
-  momentOf(day).format(DateUtils.DATE_FORMAT_llll_NO_TIME).trim();
+const formatPickerTime = (unix: number) => moment.unix(unix).format(DateUtils.tightTimeFormat());
+
+function daysLabel(first: CalendarDate, last: CalendarDate) {
+  return first === last ? formatDay(first) : `${formatDay(first)} – ${formatDay(last)}`;
+}
 
 // As the date pickers show them, so an event that can't be edited reads like one that can.
 function renderDays(first: CalendarDate, last: CalendarDate) {
@@ -120,6 +122,9 @@ function renderDays(first: CalendarDate, last: CalendarDate) {
   );
 }
 const SHOW_AS_OPTIONS: ShowAsOption[] = ['OPAQUE', 'TRANSPARENT'];
+
+// A longer guest list shows this many, organizer and you first, until it's expanded.
+const TRIMMED_GUEST_ROWS = 5;
 
 interface EventPanelProps {
   event: EventOccurrence;
@@ -166,6 +171,7 @@ interface EventPanelState {
   proposals: ProposedTime[];
   /** Your guest row's answer buttons are showing. */
   answerOpen: boolean;
+  allGuestsShown: boolean;
   /** Shown only: the guest list an edit writes back keeps the invitation's own names. */
   contactNames: Map<string, string>;
 }
@@ -208,6 +214,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     times: null,
     proposals: [],
     answerOpen: false,
+    allGuestsShown: false,
     contactNames: new Map(),
   };
 
@@ -545,12 +552,12 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           {this.props.headerActions}
           {this.props.onDelete && (
             <button
-              className="btn-bare event-panel-more"
+              className="btn-ghost event-panel-more"
               title={localized('More')}
               aria-label={localized('More')}
               onClick={this._onMore}
             >
-              <SVGIcons.More />
+              <SVGIcons.More size={22} />
             </button>
           )}
         </div>
@@ -565,7 +572,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       return (
         <EventPanelTextField
           ref={this._title}
-          className="event-panel-title"
+          className="editable"
           value={this._shown('summary', event.title)}
           placeholder={localized('New Event')}
           // Left empty, an unsaved event keeps no title, so leaving it doesn't create it.
@@ -578,7 +585,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         />
       );
     }
-    return <div className="event-panel-title">{event.isCancelled ? <s>{title}</s> : title}</div>;
+    return event.isCancelled ? <s>{title}</s> : title;
   }
 
   /** The last day the times cover: a timed event ending at midnight doesn't reach the next day. */
@@ -724,10 +731,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             <div className="event-panel-row">
               <SVGIcons.Clock className="event-panel-icon" />
               <div className="event-panel-wrap">
-                {/* As the time pickers show them. */}
-                <span>{formatTime(event.start)}</span>
+                <span>{formatPickerTime(event.start)}</span>
                 <SVGIcons.ArrowRight className="event-panel-icon" />
-                <span>{formatTime(event.end)}</span>
+                <span>{formatPickerTime(event.end)}</span>
                 <span className="event-panel-subtle">
                   {DateUtils.formatDuration(event.end - event.start)}
                 </span>
@@ -785,8 +791,10 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         key={attendee.email}
         className={`event-panel-invitee ${attendeeStatusClass(attendee)} ${state}`}
       >
-        <span className="attendee-status">
-          <AttendeeStatusIcon attendee={attendee} />
+        <span className="event-panel-icon">
+          <span className="attendee-status">
+            <AttendeeStatusIcon attendee={attendee} />
+          </span>
         </span>
         <div className="event-panel-invitee-body">
           <div className="event-panel-invitee-line">
@@ -796,7 +804,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             </div>
             {state === 'removable' && (
               <button
-                className="btn-bare event-panel-invitee-remove"
+                className="btn-ghost event-panel-invitee-remove"
                 title={localized('Remove %@', name)}
                 aria-label={localized('Remove %@', name)}
                 onClick={() => this._removeAttendee(attendee)}
@@ -848,31 +856,61 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       return editable && !ours ? 'removable' : '';
     };
     const listed = attendees.length > 0 || added.length > 0;
-    return (
-      <div className="event-panel-row top">
-        <SVGIcons.Person className="event-panel-icon" />
-        <div className="event-panel-invitees">
-          {sortedAttendees(this.props.event, this.state.contactNames).map((a) =>
-            this._renderInvitee(a, stateOf(a), me)
-          )}
-          {added.map((a) => this._renderInvitee(a, stateOf(a), me))}
-          {editable && (
-            <div className="event-panel-invitee event-panel-invitee-add">
-              {listed && (
-                <span className="attendee-status">
-                  <SVGIcons.Plus size={12} />
-                </span>
-              )}
-              <EventAttendeesInput
-                className="event-panel-invitee-input"
-                attendees={[]}
-                placeholder={localized('Add Invitees')}
-                change={this._addAttendees}
-                clearable
-              />
-            </div>
-          )}
+    const addInvitees = editable && (
+      <div className="event-panel-invitee event-panel-invitee-add">
+        {listed && (
+          <span className="event-panel-icon">
+            <span className="attendee-status">
+              <SVGIcons.Plus size={12} />
+            </span>
+          </span>
+        )}
+        <EventAttendeesInput
+          className="event-panel-invitee-input"
+          attendees={[]}
+          placeholder={localized('Add Invitees')}
+          change={this._addAttendees}
+          clearable
+        />
+      </div>
+    );
+    if (!listed) {
+      return (
+        <div className="event-panel-row">
+          <SVGIcons.Person className="event-panel-icon" />
+          <div className="event-panel-invitees">{addInvitees}</div>
         </div>
+      );
+    }
+    const invited = sortedAttendees(this.props.event, this.state.contactNames);
+    const guests = [...invited, ...added];
+    const counted = guests.filter((a) => stateOf(a) !== 'removed');
+    const { allGuestsShown } = this.state;
+    const trims = invited.length > TRIMMED_GUEST_ROWS;
+    // Guests just added always show, so one never disappears into the hidden rows.
+    const shown = trims && !allGuestsShown ? invited.slice(0, TRIMMED_GUEST_ROWS) : invited;
+    // One block, so the section's gap between rows doesn't fall between the count and the guests.
+    return (
+      <div className="event-panel-invitees">
+        <div className="event-panel-row top">
+          <SVGIcons.Person className="event-panel-icon" />
+          <div className="event-panel-invitee-count">
+            <div>{guestCount(counted.length)}</div>
+            <div className="event-panel-subtle">{guestSummary(counted)}</div>
+          </div>
+        </div>
+        {[...shown, ...added].map((a) => this._renderInvitee(a, stateOf(a), me))}
+        {addInvitees}
+        {trims && (
+          <button
+            className="btn-bare event-panel-invitees-toggle"
+            onClick={() => this.setState({ allGuestsShown: !allGuestsShown })}
+          >
+            {allGuestsShown
+              ? localized('Show less')
+              : localized('Show %@ more', invited.length - TRIMMED_GUEST_ROWS)}
+          </button>
+        )}
       </div>
     );
   }
@@ -911,7 +949,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           <div className="event-panel-row">
             {this._renderLocationIcon(shownLocation)}
             <EventPanelTextField
-              className="event-panel-location"
+              className="event-panel-location editable"
               value={shownLocation}
               placeholder={localized('Add Location or Video Call')}
               display={shownLocation && linkOrText(shownLocation)}
@@ -937,7 +975,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       return (
         <div className="event-panel-section">
           <EventPanelTextField
-            className="event-panel-notes"
+            className="event-panel-notes editable"
             multiline
             value={shownNotes}
             placeholder={localized('Add notes or URL...')}
@@ -1323,7 +1361,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       >
         {this._renderHeader()}
         <ScrollRegion className="event-panel-body">
-          {this._renderTitle()}
+          <div className="event-panel-title">{this._renderTitle()}</div>
           {this._renderRsvp()}
           {this._renderProposals()}
           {this._renderWhen()}

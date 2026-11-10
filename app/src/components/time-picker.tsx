@@ -4,10 +4,11 @@ import moment, { Moment } from 'moment-timezone';
 import classnames from 'classnames';
 import { TabGroupContext } from 'mailspring-component-kit';
 import { DateUtils } from 'mailspring-exports';
+import withSmallMeridiem from './small-meridiem';
 
 require('moment-round'); // overrides moment
 
-const INTERVAL: [any, string] = [30, 'minutes'];
+const INTERVAL: [any, string] = [15, 'minutes'];
 
 type TimePickerProps = {
   value?: number;
@@ -66,7 +67,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
   }
 
   _valToTimeString(value: number) {
-    return this._moment(value).format(DateUtils.localeTimeFormat());
+    return this._moment(value).format(DateUtils.tightTimeFormat());
   }
 
   _onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -251,13 +252,15 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
       let relTxt: React.ReactElement | null = null;
       if (this.props.relativeTo) {
         relTxt = (
-          <span className="rel-text">{`(${timeIter.diff(relStart, 'hours', true)}hr)`}</span>
+          <span className="rel-text">
+            {DateUtils.formatDuration(timeIter.diff(relStart, 'seconds'))}
+          </span>
         );
       }
 
       opts.push(
         <div className={className} key={val} onMouseDown={() => this._onSelectOption(val)}>
-          {timeIter.format(DateUtils.localeTimeFormat())}
+          <span>{withSmallMeridiem(timeIter.format(DateUtils.tightTimeFormat()))}</span>
           {relTxt}
         </div>
       );
