@@ -873,18 +873,31 @@ body.platform-win32 {
     border-left: 1px solid @border-color-divider;
     background: @background-primary;
 
+    // The list starts at the + button's top, so a day heading stuck there centres on the button.
+    @under-new-event: 24px;
+
     .agenda-scroll-region {
       flex: 1;
     }
 
-    // Over the list, so the first day's heading tucks up under the button.
+    .agenda-new-event + .agenda-scroll-region {
+      // Below the button, not beside it.
+      > .scrollbar-track {
+        margin-top: @under-new-event;
+      }
+      // The first heading starts where it sticks, beside the button.
+      .agenda-day:first-child {
+        padding-top: 0;
+      }
+    }
+
     .agenda-new-event {
       position: relative;
       z-index: 2;
       display: flex;
       justify-content: flex-end;
-      padding: 8px 14px 0;
-      margin-bottom: -12px;
+      padding: 8px 8px 0; // as the event panel's header, which opens in its place
+      margin-bottom: -@under-new-event;
       pointer-events: none;
 
       .btn-ghost {
@@ -907,11 +920,12 @@ body.platform-win32 {
     }
 
     .agenda-day {
-      padding: 16px 0 2px;
+      padding: 13px 0 2px;
     }
 
     .agenda-day-header {
-      padding-bottom: 6px;
+      padding: 3px 0 6px; // centres a stuck heading's 18px line on the 24px + button
+      line-height: 18px;
       position: sticky;
       top: 0;
       background: @background-primary;
