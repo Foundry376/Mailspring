@@ -866,8 +866,11 @@ body.platform-win32 {
         display: flex;
         align-items: center;
         justify-content: center;
-        color: @text-color-subtle;
         pointer-events: auto;
+
+        img.content-mask {
+          background-color: @text-color-subtle;
+        }
       }
     }
 

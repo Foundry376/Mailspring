@@ -1,6 +1,6 @@
 import React from 'react';
 import moment from 'moment-timezone';
-import { ScrollRegion, SVGIcons } from 'mailspring-component-kit';
+import { RetinaImg, ScrollRegion } from 'mailspring-component-kit';
 import { localized, Actions, CalendarDate, CalendarDateUtils, DateUtils } from 'mailspring-exports';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
 import { CalendarEventPopover } from './calendar-event-popover';
@@ -234,7 +234,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
                 this.props.onNewEvent(e.currentTarget);
               }}
             >
-              <SVGIcons.Plus size={16} />
+              <RetinaImg name="toolbar-compose.png" mode={RetinaImg.Mode.ContentIsMask} />
             </button>
           </div>
         )}
