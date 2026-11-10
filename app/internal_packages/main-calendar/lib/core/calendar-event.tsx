@@ -19,7 +19,7 @@ import { HitZone, ViewDirection } from './calendar-drag-types';
 import { detectHitZone, canAttemptMove, formatDragPreviewTime } from './calendar-drag-utils';
 import { DAY_DUR, columnSpan } from './week-view-helpers';
 
-const EVENT_GAP = 3;
+export const EVENT_GAP = 3;
 
 interface CalendarEventProps {
   event: EventOccurrence;
@@ -189,7 +189,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
         left: `calc(${d.top} + ${EVENT_GAP}px)`,
         width: `calc(${d.height} - ${2 * EVENT_GAP}px)`,
         height: (d.width as number) - EVENT_GAP,
-        top: d.left,
+        top: (d.left as number) + EVENT_GAP,
       };
     }
     const colors = calcEventColors(this.props.event.calendarId);

@@ -240,8 +240,8 @@ describe('TimeGridView scrolling', function () {
     );
     render(moment([2026, 9, 19]));
 
-    expect(height('.date-label-legend')).toBe('53px');
-    expect(height('.all-day-events')).toBe('24px');
+    expect(height('.date-label-legend')).toBe('56px');
+    expect(height('.all-day-events')).toBe('27px');
   });
 
   it('sizes the All Day row for the days on screen, not those drawn off-screen', function () {
@@ -252,8 +252,8 @@ describe('TimeGridView scrolling', function () {
     dataSource.buildObservable.andCallFake(() => Rx.Observable.just({ events: firstDrawn }));
     render(moment([2026, 9, 19]));
 
-    expect(height('.date-label-legend')).toBe('53px');
-    expect(height('.all-day-events')).toBe('24px');
+    expect(height('.date-label-legend')).toBe('56px');
+    expect(height('.all-day-events')).toBe('27px');
   });
 
   it('gives the All Day row a lane for each one its days on screen use', function () {
@@ -264,8 +264,8 @@ describe('TimeGridView scrolling', function () {
     dataSource.buildObservable.andCallFake(() => Rx.Observable.just({ events: onScreen }));
     render(moment([2026, 9, 19]));
 
-    expect(height('.date-label-legend')).toBe('76px');
-    expect(height('.all-day-events')).toBe('47px');
+    expect(height('.date-label-legend')).toBe('79px');
+    expect(height('.all-day-events')).toBe('50px');
   });
 
   it('requeries only once scrolling draws days past the three weeks queried either side', function () {

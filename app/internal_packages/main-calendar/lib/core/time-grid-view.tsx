@@ -23,6 +23,7 @@ import { EventGridBackground } from './event-grid-background';
 import { WeekViewEventColumn } from './week-view-event-column';
 import { WeekViewAllDayEvents } from './week-view-all-day-events';
 import { CalendarEventContainer } from './calendar-event-container';
+import { EVENT_GAP } from './calendar-event';
 import { CurrentTimeIndicator, CurrentTimeLabel, EachMinute } from './current-time-indicator';
 import { CalendarView } from './calendar-constants';
 import {
@@ -39,7 +40,7 @@ import { getEventsWithDragPreview, withNewEventPreview } from './calendar-drag-u
 import { withUnsentChange } from './unsent-change';
 import { WeekdayHeader } from './weekday-header';
 
-// A 20px bar and the gap under it, as Month view's chips.
+// A 20px bar and the gap above it, as Month view's chips.
 const ALL_DAY_LANE_HEIGHT = 23;
 // Half an hour, as Notion sizes it: a 30-minute event holds one 14px line, a 45-minute one two.
 const INTERVAL_HEIGHT = 24;
@@ -277,7 +278,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     const lanes = allDayEvents
       .filter((e) => e.startDate < visibleEnd && e.endDate >= firstVisible)
       .map((e) => allDayOverlap[e.id]?.order || 1);
-    const allDayBarHeight = Math.max(1, ...lanes) * ALL_DAY_LANE_HEIGHT + 1;
+    const allDayBarHeight = Math.max(1, ...lanes) * ALL_DAY_LANE_HEIGHT + EVENT_GAP + 1;
     return { allDayEvents, allDayOverlap, allDayBarHeight };
   }
 
