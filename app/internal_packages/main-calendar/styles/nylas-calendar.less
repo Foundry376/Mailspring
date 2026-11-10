@@ -285,8 +285,14 @@ body.platform-win32 {
         line-height: 14px;
       }
 
+      // Wraps to the lines its box has room for (see title-lines below), ending in an ellipsis.
       .default-header {
         margin-top: 2px;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 1;
+        white-space: normal;
+        overflow-wrap: anywhere;
       }
     }
 
@@ -1046,3 +1052,15 @@ body.platform-win32 {
     margin-top: ~'calc(50cqh - 7px)';
   }
 }
+
+// A title takes every 14px line its box has above the time: 2px margin, then the time's 14px.
+.title-lines(@n) when (@n <= 8) {
+  @height: (16px + 14px * @n);
+  @container (height >= @height) {
+    .mailspring-calendar .calendar-event.vertical .default-header {
+      -webkit-line-clamp: @n;
+    }
+  }
+  .title-lines(@n + 1);
+}
+.title-lines(2);
