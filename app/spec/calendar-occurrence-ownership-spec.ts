@@ -87,4 +87,12 @@ describe('occurrence ownership', function () {
       ).isAwaitingMyResponse
     ).toBe(false);
   });
+
+  it('is tentative, not awaiting an answer, once this account answers Maybe', function () {
+    const maybe = only(
+      eventWith(['ORGANIZER:mailto:ada@example.com', `ATTENDEE;PARTSTAT=TENTATIVE:mailto:${ME}`])
+    );
+    expect(maybe.isPending).toBe(true);
+    expect(maybe.isAwaitingMyResponse).toBe(false);
+  });
 });
