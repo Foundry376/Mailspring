@@ -763,6 +763,11 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
+
+  // The sidebar column draws the divider, as it does for the agenda below.
+  .event-panel {
+    border-left: none;
+  }
 }
 
 .mailspring-calendar.sidebar-agenda-panel {
