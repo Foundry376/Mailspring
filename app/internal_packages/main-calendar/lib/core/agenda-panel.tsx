@@ -1,6 +1,6 @@
 import React from 'react';
 import moment from 'moment-timezone';
-import { RetinaImg, ScrollRegion } from 'mailspring-component-kit';
+import { RetinaImg, ScrollRegion, withSmallMeridiem } from 'mailspring-component-kit';
 import { localized, Actions, CalendarDate, CalendarDateUtils, DateUtils } from 'mailspring-exports';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
 import { CalendarEventPopover } from './calendar-event-popover';
@@ -17,7 +17,6 @@ import {
   dateOf,
   formatOccurrenceTime,
   formatShortTimeRange,
-  withSmallMeridiem,
   momentOf,
 } from './calendar-helpers';
 

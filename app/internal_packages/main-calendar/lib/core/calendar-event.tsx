@@ -1,6 +1,6 @@
 import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
-import { InjectedComponentSet } from 'mailspring-component-kit';
+import { InjectedComponentSet, withSmallMeridiem } from 'mailspring-component-kit';
 import { CalendarDateUtils } from 'mailspring-exports';
 import {
   EventOccurrence,
@@ -14,7 +14,6 @@ import {
   calcEventColors,
   formatEventTimeRange,
   formatEventTooltip,
-  withSmallMeridiem,
 } from './calendar-helpers';
 import { HitZone, ViewDirection } from './calendar-drag-types';
 import { detectHitZone, canAttemptMove, formatDragPreviewTime } from './calendar-drag-utils';

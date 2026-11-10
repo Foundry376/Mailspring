@@ -7,6 +7,7 @@ import {
   InjectedComponentSet,
   SnapScroller,
   SnapScrollTarget,
+  withSmallMeridiem,
 } from 'mailspring-component-kit';
 import { CalendarDate, CalendarDateUtils } from 'mailspring-exports';
 import CalendarHeaderStore from './calendar-header-store';
@@ -17,13 +18,7 @@ import {
   inAllDayRow,
   isTimed,
 } from './calendar-data-source';
-import {
-  centerGridScroll,
-  dateOf,
-  formatShortTime,
-  momentOf,
-  withSmallMeridiem,
-} from './calendar-helpers';
+import { centerGridScroll, dateOf, formatShortTime, momentOf } from './calendar-helpers';
 import { EventGridBackground } from './event-grid-background';
 import { WeekViewEventColumn } from './week-view-event-column';
 import { WeekViewAllDayEvents } from './week-view-all-day-events';
