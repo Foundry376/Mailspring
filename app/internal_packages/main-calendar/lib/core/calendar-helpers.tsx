@@ -383,7 +383,7 @@ export const BarEndTime = ({ event }: { event: TimedOccurrence }) => (
  * Calendar does: "7:30–8:30PM", "11:30AM–12PM".
  */
 export function formatShortTimeRange(startUnix: number, endUnix: number): string {
-  return shortTimeRange(startUnix, endUnix, '–');
+  return shortTimeRange(startUnix, endUnix, '\u2009–\u2009');
 }
 
 /** A conflict on one line, "Standup, 9–9:30AM", naming its day when it isn't the day shown. */
@@ -435,9 +435,9 @@ export function formatOccurrenceTime(event: EventOccurrence): string {
   const start = moment.unix(event.start);
   const end = moment.unix(event.end);
   if (start.isSame(end, 'day')) {
-    return `${start.format('ddd, MMM D')} \u00B7 ${formatTime(event.start)} - ${formatTime(event.end)}`;
+    return `${start.format('ddd, MMM D')} \u00B7 ${formatShortTimeRange(event.start, event.end)}`;
   }
-  return `${start.format('MMM D')}, ${formatTime(event.start)} - ${end.format('MMM D')}, ${formatTime(event.end)}`;
+  return `${start.format('MMM D')}, ${formatShortTime(event.start)} – ${end.format('MMM D')}, ${formatShortTime(event.end)}`;
 }
 
 /** An event's hover text on the grid: its full title, when it happens, and where. */
