@@ -382,8 +382,8 @@ export const BarEndTime = ({ event }: { event: TimedOccurrence }) => (
 );
 
 /**
- * A range in formatShortTime's terms, naming the meridiem once when both ends share it, as Notion
- * Calendar does: "7:30–8:30PM", "11:30AM–12PM".
+ * A range in formatShortTime's terms, naming the meridiem once when both ends share it:
+ * "7:30–8:30PM", "11:30AM–12PM".
  */
 export function formatShortTimeRange(startUnix: number, endUnix: number): string {
   return shortTimeRange(startUnix, endUnix, '\u2009–\u2009');
