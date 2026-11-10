@@ -130,7 +130,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
   componentDidMount() {
     this._mounted = true;
     this._subscribe();
-    this._sizeLegend();
+    this._fitViewport();
     this._publishNavigation();
     // Today's column, the current-time line and its pill are worked out as the view renders.
     this._dayChange = CalendarDateUtils.onDayChange(dateOf(this._now()), () => this.forceUpdate());
@@ -225,7 +225,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     centerGridScroll(this._gridScrollRegion.current.viewportEl, this.props.selectedEvents?.[0]);
   }
 
-  _sizeLegend = () => {
+  _fitViewport = () => {
     if (!this._mounted) {
       return;
     }
@@ -282,7 +282,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     const visibleEnd = CalendarDateUtils.addCalendarDays(firstVisible, this.props.visibleDays);
     const lanes = allDayEvents
       .filter((e) => e.startDate < visibleEnd && e.endDate >= firstVisible)
-      .map((e) => allDayOverlap[e.id]?.order || 1);
+      .map((e) => allDayOverlap[e.id].order);
     const allDayBarHeight = Math.max(1, ...lanes) * ALL_DAY_LANE_HEIGHT + EVENT_GAP + 1;
     return { allDayEvents, allDayOverlap, allDayBarHeight };
   }
@@ -352,7 +352,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
           ref={this._gridScrollRegion}
           scrollbarRef={this._scrollbar}
           onScroll={(event) => (this._legendWrapEl.current.scrollTop = event.target.scrollTop)}
-          onViewportResize={this._sizeLegend}
+          onViewportResize={this._fitViewport}
           onContentResize={this._centerOnceSized}
         >
           <div className="event-grid" style={{ height: totalHeight }}>
