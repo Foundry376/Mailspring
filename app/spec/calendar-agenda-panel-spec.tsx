@@ -192,11 +192,11 @@ describe('MailspringCalendar agenda panel', function () {
     expect(set).toHaveBeenCalledWith('mailspring.calendarAgendaOpen', true);
   });
 
-  it('lets the panel be dragged between 200 and 300px wide, starting at 240', function () {
+  it('lets the panel be dragged between 220 and 300px wide, starting at 240', function () {
     const store = spyOn(AppEnv, 'storeColumnWidth');
     const region = () => shownCalendar()._renderAgendaPanel();
     expect(region().type).toBe(ResizableRegion);
-    expect(region().props.minWidth).toBe(200);
+    expect(region().props.minWidth).toBe(220);
     expect(region().props.maxWidth).toBe(300);
     expect(region().props.initialWidth).toBe(240);
 
