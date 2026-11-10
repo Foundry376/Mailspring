@@ -383,8 +383,9 @@ export const BarEndTime = ({ event }: { event: TimedOccurrence }) => (
  * A range in formatShortTime's terms, naming the meridiem once when both ends share it, as Notion
  * Calendar does: "7:30–8:30PM", "11:30AM–12PM".
  */
-export function formatShortTimeRange(startUnix: number, endUnix: number): string {
-  return shortTimeRange(startUnix, endUnix, '–');
+/** In the machine's zone, or `zone`. */
+export function formatShortTimeRange(startUnix: number, endUnix: number, zone?: string): string {
+  return shortTimeRange(startUnix, endUnix, '–', zone);
 }
 
 /** A conflict on one line, "Standup, 9–9:30AM", naming its day when it isn't the day shown. */
@@ -397,9 +398,15 @@ export function formatConflict(conflict: CalendarConflict, shownDayUnix: number)
   return `${title}, ${day}${formatShortTimeRange(conflict.start, conflict.end)}`;
 }
 
-function shortTimeRange(startUnix: number, endUnix: number, separator: string): string {
-  const start = moment.unix(startUnix);
-  const end = moment.unix(endUnix);
+function shortTimeRange(
+  startUnix: number,
+  endUnix: number,
+  separator: string,
+  zone?: string
+): string {
+  const at = (unix: number) => (zone ? momentTz.tz(unix * 1000, zone) : moment.unix(unix));
+  const start = at(startUnix);
+  const end = at(endUnix);
   let startFormat = shortTimeFormat(start);
   // Only a meridiem standing alone at either end; lb's "[Auer]" literal and ne's "Aको" stay whole.
   const separateMeridiem = /^[aA]\s+|\s*[aA]$/;
@@ -625,6 +632,7 @@ export function hasGuests(event: EventOccurrence): boolean {
 export type PanelField =
   | 'title'
   | 'times'
+  | 'timezone'
   | 'allDay'
   | 'repeat'
   | 'invitees'
@@ -635,6 +643,7 @@ export type PanelField =
 const PANEL_FIELDS: PanelField[] = [
   'title',
   'times',
+  'timezone',
   'allDay',
   'repeat',
   'invitees',
