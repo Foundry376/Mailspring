@@ -124,6 +124,9 @@ function renderDays(first: CalendarDate, last: CalendarDate) {
 }
 const SHOW_AS_OPTIONS: ShowAsOption[] = ['OPAQUE', 'TRANSPARENT'];
 
+// A longer guest list shows this many, organizer and you first, until it's expanded.
+const TRIMMED_GUEST_ROWS = 5;
+
 interface EventPanelProps {
   event: EventOccurrence;
   calendar?: Calendar;
@@ -169,6 +172,8 @@ interface EventPanelState {
   proposals: ProposedTime[];
   /** Your guest row's answer buttons are showing. */
   answerOpen: boolean;
+  /** A long guest list shows everyone, not only its first rows. */
+  allGuestsShown: boolean;
   /** Shown only: the guest list an edit writes back keeps the invitation's own names. */
   contactNames: Map<string, string>;
 }
@@ -211,6 +216,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     times: null,
     proposals: [],
     answerOpen: false,
+    allGuestsShown: false,
     contactNames: new Map(),
   };
 
@@ -878,8 +884,13 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         </div>
       );
     }
-    const guests = [...sortedAttendees(this.props.event, this.state.contactNames), ...added];
+    const invited = sortedAttendees(this.props.event, this.state.contactNames);
+    const guests = [...invited, ...added];
     const counted = guests.filter((a) => stateOf(a) !== 'removed');
+    const { allGuestsShown } = this.state;
+    const trims = invited.length > TRIMMED_GUEST_ROWS;
+    // Guests just added always show, so one never disappears into the hidden rows.
+    const shown = trims && !allGuestsShown ? invited.slice(0, TRIMMED_GUEST_ROWS) : invited;
     // One block, so the section's gap between rows doesn't fall between the count and the guests.
     return (
       <div className="event-panel-invitees">
@@ -890,8 +901,18 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             <div className="event-panel-subtle">{guestSummary(counted)}</div>
           </div>
         </div>
-        {guests.map((a) => this._renderInvitee(a, stateOf(a), me))}
+        {[...shown, ...added].map((a) => this._renderInvitee(a, stateOf(a), me))}
         {addInvitees}
+        {trims && (
+          <button
+            className="event-panel-guests-toggle"
+            onClick={() => this.setState({ allGuestsShown: !allGuestsShown })}
+          >
+            {allGuestsShown
+              ? localized('Show less')
+              : localized('Show %@ more', invited.length - TRIMMED_GUEST_ROWS)}
+          </button>
+        )}
       </div>
     );
   }
