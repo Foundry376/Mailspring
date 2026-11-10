@@ -40,10 +40,11 @@ import { withUnsentChange } from './unsent-change';
 import { WeekdayHeader } from './weekday-header';
 
 const MIN_INTERVAL_HEIGHT = 21;
+// Half an hour, as Notion sizes it: a 30-minute event holds one 14px line, a 45-minute one two.
+const INTERVAL_HEIGHT = 24;
 const DATE_LABELS_HEIGHT = 28;
 // Half the current-time pill plus half an hour label: nearer than this, the two overlap.
 const CURRENT_TIME_LABEL_CLEARANCE = 14;
-const DAY_PORTION_SHOWN_VERTICALLY = 14 / 24;
 const QUERY_MARGIN_DAYS = 21;
 
 function weekStartOf(date: CalendarDate): CalendarDate {
@@ -72,7 +73,6 @@ interface TimeGridViewProps extends MailspringCalendarViewProps {
 
 interface TimeGridViewState {
   events: EventOccurrence[];
-  intervalHeight: number;
   firstVisible: CalendarDate;
   scrollTarget: SnapScrollTarget;
   prevFocusedMoment: Moment;
@@ -100,7 +100,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
   }
 
   _mounted = false;
-  _pendingInitialCenter = false;
+  _pendingInitialCenter = true;
   _scrollbar = React.createRef<any>();
   _sub: EventRangeSubscription;
   _dayChange?: { dispose(): void };
@@ -114,7 +114,6 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     const start = alignedStart(dateOf(props.focusedMoment), props.visibleDays);
     this.state = {
       events: [],
-      intervalHeight: MIN_INTERVAL_HEIGHT,
       firstVisible: start,
       scrollTarget: { date: start, animate: false },
       prevFocusedMoment: props.focusedMoment,
@@ -127,11 +126,8 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
 
   componentDidMount() {
     this._mounted = true;
-    // Center after _setIntervalHeight finalizes the grid height (below); centering now
-    // uses a too-short scrollHeight and pushes edge-of-day events off-screen.
-    this._pendingInitialCenter = true;
     this._subscribe();
-    this._setIntervalHeight();
+    this._sizeLegend();
     this._publishNavigation();
     // Today's column, the current-time line and its pill are worked out as the view renders.
     this._dayChange = CalendarDateUtils.onDayChange(dateOf(this._now()), () => this.forceUpdate());
@@ -226,28 +222,24 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     centerGridScroll(this._gridScrollRegion.current.viewportEl, this.props.selectedEvents?.[0]);
   }
 
-  _setIntervalHeight = () => {
+  _sizeLegend = () => {
     if (!this._mounted) {
       return;
     }
     const viewportHeight = this._gridScrollRegion.current.viewportEl.clientHeight;
     this._legendWrapEl.current.style.height = `${viewportHeight}px`;
+    this._centerOnceSized();
+  };
 
-    this.setState(
-      {
-        intervalHeight: Math.max(
-          viewportHeight / (TICKS_PER_DAY * DAY_PORTION_SHOWN_VERTICALLY),
-          MIN_INTERVAL_HEIGHT
-        ),
-      },
-      () => {
-        // Resize also calls this; only the initial mount should reposition the scroll.
-        if (this._pendingInitialCenter) {
-          this._pendingInitialCenter = false;
-          this._centerScrollRegion();
-        }
-      }
-    );
+  // Once, when there's something to centre: the view mounts behind Mail after a reload, and the
+  // day columns draw after the first render.
+  _centerOnceSized = () => {
+    const viewportEl = this._gridScrollRegion.current?.viewportEl;
+    if (!this._pendingInitialCenter || !viewportEl) return;
+    if (viewportEl.clientHeight > 0 && viewportEl.scrollHeight > viewportEl.clientHeight) {
+      this._pendingInitialCenter = false;
+      this._centerScrollRegion();
+    }
   };
 
   _eventsWithPreviews() {
@@ -286,7 +278,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
 
   _renderEventGridLabels(currentTimeY: number | null) {
     const labels = [];
-    for (const { time, y } of tickGenerator(this.state.intervalHeight)) {
+    for (const { time, y } of tickGenerator(INTERVAL_HEIGHT)) {
       // Centred on its line, except midnight's, which sits below the top edge.
       const top = y === 0 ? y : y - 8;
       if (
@@ -317,7 +309,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     const dayEnds = exclusiveDayEnds(days);
     const todayColumnIdx = days.findIndex((d) => this._isToday(d));
     const firstVisibleIdx = CalendarDateUtils.calendarDaysBetween(dayStarts[0], firstVisible);
-    const totalHeight = TICKS_PER_DAY * this.state.intervalHeight;
+    const totalHeight = TICKS_PER_DAY * INTERVAL_HEIGHT;
     const lastDrawn = dayStarts[dayStarts.length - 1];
 
     return (
@@ -349,7 +341,8 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
           ref={this._gridScrollRegion}
           scrollbarRef={this._scrollbar}
           onScroll={(event) => (this._legendWrapEl.current.scrollTop = event.target.scrollTop)}
-          onViewportResize={this._setIntervalHeight}
+          onViewportResize={this._sizeLegend}
+          onContentResize={this._centerOnceSized}
         >
           <div className="event-grid" style={{ height: totalHeight }}>
             {days.map((day, dayIdx) => (
@@ -381,7 +374,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
             />
             <EventGridBackground
               height={totalHeight}
-              intervalHeight={this.state.intervalHeight}
+              intervalHeight={INTERVAL_HEIGHT}
               numColumns={days.length}
               paintVersion={this.props.paintVersion}
             />
@@ -396,7 +389,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     const { firstVisible } = this.state;
     const view = visibleDays === 1 ? CalendarView.DAY : CalendarView.WEEK;
     const { allDayBarHeight } = this._allDay(this._eventsWithPreviews(), firstVisible);
-    const totalHeight = TICKS_PER_DAY * this.state.intervalHeight;
+    const totalHeight = TICKS_PER_DAY * INTERVAL_HEIGHT;
     const todayOffset = CalendarDateUtils.calendarDaysBetween(firstVisible, dateOf(this._now()));
 
     return (

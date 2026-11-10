@@ -211,12 +211,11 @@ body.platform-win32 {
   }
 
   .calendar-event {
-    @interval-height: 21px;
     .event-chip();
     position: absolute;
     overflow: hidden;
     text-overflow: ellipsis;
-    min-height: @interval-height - 2px; // less the gap calendar-event.tsx cuts from the box
+    min-height: 9px; // a quarter hour, less the gap between events
 
     display: flex;
     flex-direction: column;
@@ -249,6 +248,23 @@ body.platform-win32 {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+      }
+    }
+
+    // Sized by the time it covers, so a query on its height can place the text.
+    &.vertical {
+      container-type: size;
+      padding-top: 0;
+      padding-bottom: 0;
+
+      // A 15-minute box clips its one line, as Notion's does.
+      .default-header,
+      .event-details {
+        line-height: 14px;
+      }
+
+      .default-header {
+        margin-top: 2px;
       }
     }
 
@@ -984,4 +1000,13 @@ body.platform-win32 {
 // Same specificity as `.calendar-source-list`, so a theme's own colour still wins.
 :where(.nav-rail-content) .calendar-source-list {
   background-color: @source-list-inset-bg;
+}
+
+// Too short for two lines: the one line sits in the middle, overhanging both edges evenly in a
+// 15-minute box, which auto margins won't do. 7px is half the 14px line.
+// Outside its block, since LESS 3 drops the parent selector of a nested @container.
+@container (height < 30px) {
+  .mailspring-calendar .calendar-event.vertical .default-header {
+    margin-top: ~'calc(50cqh - 7px)';
+  }
 }
