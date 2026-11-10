@@ -217,6 +217,9 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
   // spanning days keep the tint so they read as a bar. Selection fills either through CSS.
   _backgroundColor(tint: string) {
     const { event } = this.props;
+    if (event.isAwaitingMyResponse) {
+      return 'transparent';
+    }
     if (event.isPending) {
       return 'rgba(128, 128, 128, 0.15)';
     }
@@ -231,6 +234,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
       selected: selected,
       'is-all-day': event.isAllDay,
       pending: event.isPending,
+      'awaiting-response': event.isAwaitingMyResponse && !event.isCancelled,
       dragging: isDragging,
       draggable: this._canDrag(),
       'drag-preview': event.isDragPreview,

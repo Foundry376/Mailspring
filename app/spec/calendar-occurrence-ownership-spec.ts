@@ -65,18 +65,18 @@ describe('occurrence ownership', function () {
     expect(only(eventWith([`ORGANIZER:mailto:${MY_OTHER_ACCOUNT}`])).isMine).toBe(false);
   });
 
-  it('is pending while this account has not answered', function () {
+  it('awaits our answer while this account has not answered', function () {
     expect(
       only(
         eventWith([
           'ORGANIZER:mailto:ada@example.com',
           `ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:${ME}`,
         ])
-      ).isPending
+      ).isAwaitingMyResponse
     ).toBe(true);
   });
 
-  it('is not pending because another of my accounts has not answered', function () {
+  it('does not await our answer because another of my accounts has not answered', function () {
     expect(
       only(
         eventWith([
@@ -84,7 +84,7 @@ describe('occurrence ownership', function () {
           `ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:${MY_OTHER_ACCOUNT}`,
           `ATTENDEE;PARTSTAT=ACCEPTED:mailto:${ME}`,
         ])
-      ).isPending
+      ).isAwaitingMyResponse
     ).toBe(false);
   });
 });

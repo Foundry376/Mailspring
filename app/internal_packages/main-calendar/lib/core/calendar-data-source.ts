@@ -156,13 +156,10 @@ interface OccurrenceBase {
   location: string;
   description: string;
   isCancelled: boolean;
-  /**
-   * True if this event should display with "pending" styling (hatched pattern).
-   * This includes:
-   * - Events with STATUS=TENTATIVE
-   * - Events where the current user is an attendee but hasn't accepted (NEEDS-ACTION or TENTATIVE)
-   */
+  /** Tentative, drawn striped: STATUS=TENTATIVE, or our own answer is Maybe. */
   isPending: boolean;
+  /** An invitation we haven't answered, drawn with a dashed outline. */
+  isAwaitingMyResponse?: boolean;
   /**
    * True when this account organizes the event, or nobody does, or its ORGANIZER is the address
    * of the calendar it sits on and the server says that calendar is ours (Google writes a
@@ -364,7 +361,8 @@ function occurrenceFromICS(args: {
   // Pending styling also covers an event I'm invited to but haven't answered
   const myAttendee = attendees.find((a) => a.email && isThisAccount(a.email));
   const myPartstat = myAttendee?.partstat?.toUpperCase();
-  const isAwaitingMyResponse = myAttendee && myPartstat !== 'ACCEPTED' && myPartstat !== 'DECLINED';
+  const isAwaitingMyResponse =
+    !!myAttendee && !['ACCEPTED', 'DECLINED', 'TENTATIVE'].includes(myPartstat);
 
   const organizerEmail = item.organizer
     ? normalizeEmail(CalendarUtils.emailFromParticipantURI(String(item.organizer)) || '')
@@ -396,7 +394,8 @@ function occurrenceFromICS(args: {
     startDate,
     endDate,
     isCancelled: status === 'CANCELLED',
-    isPending: status === 'TENTATIVE' || !!isAwaitingMyResponse,
+    isPending: status === 'TENTATIVE' || myPartstat === 'TENTATIVE',
+    isAwaitingMyResponse,
     isMine: !organizerEmail || iAmOrganizer,
     isFree: item.component?.getFirstPropertyValue('transp') === 'TRANSPARENT',
     isException: args.isException ?? !!rid,

@@ -24,6 +24,23 @@
     border-radius: 6px 0 0 6px;
   }
 
+  // An invitation not yet answered: a dashed outline in the calendar's colour, drawn inside the
+  // box so the band can sit over its left edge rather than a pixel in from it.
+  &.awaiting-response {
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 1px dashed var(--event-band-color, currentColor);
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    &:before {
+      z-index: 1;
+    }
+  }
+
   .event-bar-time,
   .event-bar-end-time {
     font-size: 11px;

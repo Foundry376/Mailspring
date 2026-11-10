@@ -199,8 +199,8 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     styles['--event-text-color'] = colors.text;
     styles['--event-selected-text-color'] = colors.selectedText;
 
-    if (this.props.event.isCancelled) {
-      // Cancelled events get a transparent background with colored border
+    if (this.props.event.isCancelled || this.props.event.isAwaitingMyResponse) {
+      // A dashed border in the calendar's colour, over no fill
       styles.backgroundColor = 'transparent';
       styles.borderColor = colors.band;
     } else if (this.props.event.isPending) {
@@ -343,6 +343,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       selected && 'selected',
       event.isCancelled && 'cancelled',
       event.isPending && 'pending',
+      event.isAwaitingMyResponse && !event.isCancelled && 'awaiting-response',
       isDragging && 'dragging',
       this._canDrag() && 'draggable',
       event.isDragPreview && 'drag-preview',

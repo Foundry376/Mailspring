@@ -167,7 +167,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
       'agenda-event',
       isSelected && 'selected',
       event.isCancelled && 'cancelled',
-      event.isPending && 'pending',
+      (event.isPending || event.isAwaitingMyResponse) && 'pending',
     ]
       .filter(Boolean)
       .join(' ');
