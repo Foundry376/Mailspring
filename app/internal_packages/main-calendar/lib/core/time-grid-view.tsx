@@ -42,8 +42,8 @@ import { WeekdayHeader } from './weekday-header';
 
 // A 20px bar and the gap above it, as Month view's chips.
 const ALL_DAY_LANE_HEIGHT = 23;
-// Half an hour: a 30-minute event holds one 14px line, a 45-minute one two.
-const INTERVAL_HEIGHT = 24;
+// Half an hour at its smallest: a 30-minute event holds one 14px line, a 45-minute one two.
+const MIN_INTERVAL_HEIGHT = 24;
 const DATE_LABELS_HEIGHT = 28;
 // Half the current-time pill plus half an hour label: nearer than this, the two overlap.
 const CURRENT_TIME_LABEL_CLEARANCE = 14;
@@ -79,6 +79,8 @@ interface TimeGridViewState {
   scrollTarget: SnapScrollTarget;
   prevFocusedMoment: Moment;
   adjustedFocus: Moment | null;
+  /** Half an hour's height: the minimum, or more so the day fills a taller viewport. */
+  intervalHeight: number;
 }
 
 /** The hour grid behind Week view (7 days) and Day view (1). */
@@ -120,6 +122,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
       scrollTarget: { date: start, animate: false },
       prevFocusedMoment: props.focusedMoment,
       adjustedFocus: null,
+      intervalHeight: MIN_INTERVAL_HEIGHT,
     };
     this._sub = new EventRangeSubscription(props.dataSource, QUERY_MARGIN_DAYS, (events) =>
       this.setState({ events })
@@ -230,6 +233,10 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     }
     const viewportHeight = this._gridScrollRegion.current.viewportEl.clientHeight;
     this._legendWrapEl.current.style.height = `${viewportHeight}px`;
+    const intervalHeight = Math.max(MIN_INTERVAL_HEIGHT, viewportHeight / TICKS_PER_DAY);
+    // The whole day shows, so there's nothing to centre.
+    if (viewportHeight >= TICKS_PER_DAY * MIN_INTERVAL_HEIGHT) this._pendingInitialCenter = false;
+    if (intervalHeight !== this.state.intervalHeight) this.setState({ intervalHeight });
     this._centerOnceSized();
   };
 
@@ -284,7 +291,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
 
   _renderEventGridLabels(currentTimeY: number | null) {
     const labels = [];
-    for (const { time, y } of tickGenerator(INTERVAL_HEIGHT)) {
+    for (const { time, y } of tickGenerator(this.state.intervalHeight)) {
       // Centred on its line, except midnight's, which sits below the top edge.
       const top = y === 0 ? y : y - 8;
       if (
@@ -315,7 +322,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     const dayEnds = exclusiveDayEnds(days);
     const todayColumnIdx = days.findIndex((d) => this._isToday(d));
     const firstVisibleIdx = CalendarDateUtils.calendarDaysBetween(dayStarts[0], firstVisible);
-    const totalHeight = TICKS_PER_DAY * INTERVAL_HEIGHT;
+    const totalHeight = TICKS_PER_DAY * this.state.intervalHeight;
     const lastDrawn = dayStarts[dayStarts.length - 1];
 
     return (
@@ -380,7 +387,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
             />
             <EventGridBackground
               height={totalHeight}
-              intervalHeight={INTERVAL_HEIGHT}
+              intervalHeight={this.state.intervalHeight}
               numColumns={days.length}
               paintVersion={this.props.paintVersion}
             />
@@ -395,7 +402,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     const { firstVisible } = this.state;
     const view = visibleDays === 1 ? CalendarView.DAY : CalendarView.WEEK;
     const { allDayBarHeight } = this._allDay(this._eventsWithPreviews(), firstVisible);
-    const totalHeight = TICKS_PER_DAY * INTERVAL_HEIGHT;
+    const totalHeight = TICKS_PER_DAY * this.state.intervalHeight;
     const todayOffset = CalendarDateUtils.calendarDaysBetween(firstVisible, dateOf(this._now()));
 
     return (

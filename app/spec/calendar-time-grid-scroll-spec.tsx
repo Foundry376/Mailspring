@@ -229,6 +229,17 @@ describe('TimeGridView scrolling', function () {
   });
 
   // Oct 11 to Oct 31 are drawn around Oct 18-24.
+  it('keeps a 48px hour, and stretches the day to fill a taller viewport', function () {
+    render(moment([2026, 9, 19]));
+    view._sizeLegend();
+    expect(height('.event-grid')).toBe('1152px');
+
+    document.getElementById('time-grid-scroll-spec').textContent +=
+      ' .event-grid-wrap { height: 1440px; }';
+    view._sizeLegend();
+    expect(height('.event-grid')).toBe('1440px');
+  });
+
   it('sizes the All Day row for the all-day events drawn, not every event loaded', function () {
     const dayAfterDrawn = [
       allDayOccurrence('day-after-drawn-1', '2026-11-01'),
