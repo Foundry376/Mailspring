@@ -633,7 +633,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           </div>
         )}
         {!t.isAllDay && (
-          <div className={`event-panel-row editable ${allDaySwitch ? 'indented' : ''}`}>
+          <div className={`event-panel-row ${allDaySwitch ? 'indented' : ''}`}>
             {!allDaySwitch && clock}
             <div className="event-panel-wrap">
               <TimePicker value={t.start * 1000} onChange={this._changeStart} />
@@ -649,9 +649,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             </div>
           </div>
         )}
-        <div
-          className={`event-panel-row editable ${allDaySwitch || !t.isAllDay ? 'indented' : ''}`}
-        >
+        <div className={`event-panel-row ${allDaySwitch || !t.isAllDay ? 'indented' : ''}`}>
           {!allDaySwitch && t.isAllDay && clock}
           <div className="event-panel-wrap">
             <DatePicker value={t.start * 1000} onChange={this._changeStart} />

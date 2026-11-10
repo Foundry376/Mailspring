@@ -917,8 +917,11 @@
     }
   }
 
-  // Overhangs by the shadow, so the row doesn't move on hover.
-  .editable:hover {
+  // Overhangs by the shadow, so the row doesn't move on hover. The times and dates hover one
+  // field at a time.
+  .editable:hover,
+  .time-picker-wrap input:hover,
+  .date-picker .day-text:hover {
     border-radius: 2px;
     background: @list-hover-bg;
     box-shadow: 0 0 0 4px @list-hover-bg;
