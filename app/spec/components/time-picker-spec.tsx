@@ -215,7 +215,7 @@ describe('TimePicker', function timePicker() {
 
     fireEvent.keyDown(input, { key: 'ArrowDown' });
 
-    expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe(`${EVENT_DAY} 15:30`);
+    expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe(`${EVENT_DAY} 15:15`);
   });
 
   it('stops the arrow keys at the start an end field follows', () => {

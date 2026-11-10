@@ -8,7 +8,7 @@ import withSmallMeridiem from './small-meridiem';
 
 require('moment-round'); // overrides moment
 
-const INTERVAL: [any, string] = [30, 'minutes'];
+const INTERVAL: [any, string] = [15, 'minutes'];
 
 type TimePickerProps = {
   value?: number;
