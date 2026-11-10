@@ -410,6 +410,8 @@ body.platform-win32 {
   }
   .week-view {
     height: 100%;
+    // Its z-indexed legend and All Day row would otherwise paint over the sidebar's divider.
+    isolation: isolate;
 
     @legend-width: 75px;
 
