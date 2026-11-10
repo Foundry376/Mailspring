@@ -234,7 +234,7 @@ body.platform-win32 {
       flex-shrink: 0;
     }
 
-    // Event details (meeting link, time range) - Apple Calendar style
+    // The time range under the title, as Apple Calendar shows it.
     .event-details {
       display: flex;
       flex-direction: column;
@@ -245,20 +245,10 @@ body.platform-win32 {
       opacity: 0.75;
       overflow: hidden;
 
-      .event-meeting-link,
-      .event-location,
       .event-time-range {
-        display: flex;
-        align-items: center;
-        gap: 2px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-
-        .detail-icon {
-          flex-shrink: 0;
-          opacity: 0.7;
-        }
       }
     }
 

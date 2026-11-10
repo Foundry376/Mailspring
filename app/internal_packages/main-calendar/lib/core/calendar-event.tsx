@@ -1,7 +1,7 @@
 import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
-import { InjectedComponentSet, SVGIcons } from 'mailspring-component-kit';
-import { CalendarDateUtils, CalendarUtils } from 'mailspring-exports';
+import { InjectedComponentSet } from 'mailspring-component-kit';
+import { CalendarDateUtils } from 'mailspring-exports';
 import {
   EventOccurrence,
   isTimed,
@@ -298,51 +298,23 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     return <div className="drag-preview-time-tooltip">{timeString}</div>;
   }
 
-  /**
-   * Render additional event details for vertical (week view) events:
-   * - Meeting URL domain (e.g., "zoom.us")
-   * - Time range for events >= 1 hour (e.g., "12 – 1PM")
-   */
+  /** The time range under the title of a Day or Week event of 45 minutes or more ("12–1PM"). */
   _renderEventDetails() {
     const { event, direction } = this.props;
-
-    // Only show details for vertical (week view) events
     if (direction !== 'vertical') {
       return null;
     }
-
-    const meetingDomain = CalendarUtils.extractMeetingDomain(event.location, event.description);
     const timeRange = formatEventTimeRange(
       occurrenceStartUnix(event),
       occurrenceEndUnix(event),
       event.isAllDay
     );
-    const hasPhysicalLocation = !meetingDomain && !!event.location;
-
-    if (!meetingDomain && !hasPhysicalLocation && !timeRange) {
+    if (!timeRange) {
       return null;
     }
-
     return (
       <div className="event-details">
-        {meetingDomain && (
-          <span className="event-meeting-link">
-            <SVGIcons.Video className="detail-icon" size={10} strokeWidth={2.6} />
-            {meetingDomain}
-          </span>
-        )}
-        {hasPhysicalLocation && (
-          <span className="event-location">
-            <SVGIcons.Location className="detail-icon" size={10} strokeWidth={2.4} />
-            {event.location}
-          </span>
-        )}
-        {timeRange && (
-          <span className="event-time-range">
-            <SVGIcons.Clock className="detail-icon" size={10} strokeWidth={2.6} />
-            {timeRange}
-          </span>
-        )}
+        <span className="event-time-range">{timeRange}</span>
       </div>
     );
   }
