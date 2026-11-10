@@ -23,9 +23,8 @@ import { EventGridBackground } from './event-grid-background';
 import { WeekViewEventColumn } from './week-view-event-column';
 import { WeekViewAllDayEvents } from './week-view-all-day-events';
 import { CalendarEventContainer } from './calendar-event-container';
-import { EVENT_GAP } from './calendar-event';
 import { CurrentTimeIndicator, CurrentTimeLabel, EachMinute } from './current-time-indicator';
-import { CalendarView } from './calendar-constants';
+import { BAR_HEIGHT, CalendarView, EVENT_GAP } from './calendar-constants';
 import {
   overlapForEvents,
   drawnInGrid,
@@ -40,8 +39,7 @@ import { getEventsWithDragPreview, withNewEventPreview } from './calendar-drag-u
 import { withUnsentChange } from './unsent-change';
 import { WeekdayHeader } from './weekday-header';
 
-// A 20px bar and the gap above it, as Month view's chips.
-const ALL_DAY_LANE_HEIGHT = 23;
+const ALL_DAY_LANE_HEIGHT = BAR_HEIGHT + EVENT_GAP;
 // Half an hour at its smallest: a 30-minute event holds one 14px line, a 45-minute one two.
 const MIN_INTERVAL_HEIGHT = 24;
 const DATE_LABELS_HEIGHT = 28;

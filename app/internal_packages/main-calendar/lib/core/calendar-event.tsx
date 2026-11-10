@@ -18,8 +18,7 @@ import {
 import { HitZone, ViewDirection } from './calendar-drag-types';
 import { detectHitZone, canAttemptMove, formatDragPreviewTime } from './calendar-drag-utils';
 import { DAY_DUR, columnSpan } from './week-view-helpers';
-
-export const EVENT_GAP = 3;
+import { EVENT_GAP } from './calendar-constants';
 
 interface CalendarEventProps {
   event: EventOccurrence;
