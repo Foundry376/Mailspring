@@ -12,7 +12,7 @@
   .event-invitation {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 6px;
     padding: 12px 16px;
     border-radius: 8px;
     background: color-mix(in srgb, @accent-primary 10%, @background-primary);
@@ -61,7 +61,7 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 2px;
 
     .event-time,
     .event-repeat,
@@ -79,10 +79,15 @@
     }
 
     .event-replaced-time {
-      margin-top: -6px;
       font-size: 12px;
       line-height: 16px;
       color: fadeout(@text-color, 50%);
+    }
+
+    .event-counter-note,
+    .event-newer-invitation,
+    .event-conflicts {
+      margin-top: 4px;
     }
 
     // The proposer's note, set off as the event panel sets it off.
