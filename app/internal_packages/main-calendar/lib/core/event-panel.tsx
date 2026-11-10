@@ -739,12 +739,15 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
               >
                 {this._zoneChoices().map((timezone) => (
                   <option key={timezone} value={timezone}>
-                    {formatTimezone(timezone)}
+                    {formatTimezone(timezone, t.start)}
                   </option>
                 ))}
               </TextSelect>
             ) : (
-              formatTimezone(this._canEdit('timezone') ? this._shownZone() : DateUtils.timeZone)
+              formatTimezone(
+                this._canEdit('timezone') ? this._shownZone() : DateUtils.timeZone,
+                t.start
+              )
             )}
           </div>
         )}
@@ -834,7 +837,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             <div className="event-panel-row">
               <SVGIcons.Globe className="event-panel-icon" />
               {/* The zone the times above are shown in, which may not be the event's own. */}
-              {formatTimezone(DateUtils.timeZone)}
+              {formatTimezone(DateUtils.timeZone, event.start)}
             </div>
           </>
         ) : (
