@@ -1,6 +1,11 @@
 @import 'ui-variables';
 
 // Every calendar view draws its events with this, so they read as the same object.
+// Tentative events, in Month and Day/Week alike: thin stripes in the calendar's colour.
+.pending-stripes() {
+  background-image: ~'repeating-linear-gradient(45deg, transparent, transparent 3px, color-mix(in srgb, var(--event-band-color, rgba(0, 0, 0, 0.1)), transparent 80%) 3px, color-mix(in srgb, var(--event-band-color, rgba(0, 0, 0, 0.1)), transparent 80%) 4px)';
+}
+
 .event-chip() {
   padding: 2px 4px 2px 8px; // Extra left padding for colored band
   border-radius: 6px;
@@ -305,13 +310,7 @@ body.platform-win32 {
         right: 0;
         bottom: 0;
         pointer-events: none;
-        background-image: repeating-linear-gradient(
-          -45deg,
-          transparent,
-          transparent 7px,
-          rgba(128, 128, 128, 0.12) 7px,
-          rgba(128, 128, 128, 0.12) 8.5px
-        );
+        .pending-stripes();
       }
     }
 
@@ -713,9 +712,8 @@ body.platform-win32 {
         opacity: 1;
       }
 
-      // Tentative/pending events: hatched diagonal stripes pattern
       &.pending {
-        background-image: ~'repeating-linear-gradient(45deg, transparent, transparent 3px, color-mix(in srgb, var(--event-band-color, rgba(0, 0, 0, 0.1)), transparent 80%) 3px, color-mix(in srgb, var(--event-band-color, rgba(0, 0, 0, 0.1)), transparent 80%) 4px)';
+        .pending-stripes();
         background-size: auto;
       }
 
