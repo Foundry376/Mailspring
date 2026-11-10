@@ -362,12 +362,11 @@ export function formatShortTime(unix: number): string {
 }
 
 function shortTimeFormat(time: moment.Moment): string {
-  const lt = DateUtils.localeTimeFormat();
+  const tight = DateUtils.tightTimeFormat();
   // moment's LT uses h for a 12-hour clock and H for a 24-hour one, as in time-picker.tsx
-  if (!/h/.test(lt)) {
-    return lt;
+  if (!/h/.test(tight)) {
+    return tight;
   }
-  const tight = lt.replace(/\s+([aA])$/, '$1');
   return time.minutes() === 0 ? tight.replace(/[:.]mm/, '') : tight;
 }
 

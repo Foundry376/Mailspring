@@ -66,7 +66,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
   }
 
   _valToTimeString(value: number) {
-    return this._moment(value).format(DateUtils.localeTimeFormat());
+    return this._moment(value).format(DateUtils.tightTimeFormat());
   }
 
   _onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -257,7 +257,7 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
 
       opts.push(
         <div className={className} key={val} onMouseDown={() => this._onSelectOption(val)}>
-          {timeIter.format(DateUtils.localeTimeFormat())}
+          {timeIter.format(DateUtils.tightTimeFormat())}
           {relTxt}
         </div>
       );

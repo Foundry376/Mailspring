@@ -102,7 +102,7 @@ export class DatePicker extends React.Component<DatePickerProps, DatePickerState
     const val = this.value();
     let dayTxt = 'Click to set date';
     if (val) {
-      dayTxt = this.value().format(DateUtils.DATE_FORMAT_llll_NO_TIME);
+      dayTxt = DateUtils.dayString(val);
     }
 
     return (

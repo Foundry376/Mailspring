@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import moment from 'moment-timezone';
 import {
   localized,
   isRTL,
@@ -46,7 +47,6 @@ import {
   extractNotesFromDescription,
   formatConflict,
   formatShortTimeRange,
-  formatTime,
   hasGuests,
   holdsEdits,
   proposesTime,
@@ -101,13 +101,14 @@ const REPEAT_OPTIONS: RepeatOption[] = ['none', 'daily', 'weekly', 'monthly', 'y
 const repeatOptionLabel = (option: RepeatOption) =>
   option === 'none' ? localized('Does not repeat') : repeatLabel(option);
 
-function daysLabel(first: CalendarDate, last: CalendarDate) {
-  const from = momentOf(first).format('ddd MMM D');
-  return first === last ? from : `${from} – ${momentOf(last).format('ddd MMM D')}`;
-}
+const formatDay = (day: CalendarDate) => DateUtils.dayString(momentOf(day));
 
-const formatDay = (day: CalendarDate) =>
-  momentOf(day).format(DateUtils.DATE_FORMAT_llll_NO_TIME).trim();
+// As the time pickers show them.
+const formatPickerTime = (unix: number) => moment.unix(unix).format(DateUtils.tightTimeFormat());
+
+function daysLabel(first: CalendarDate, last: CalendarDate) {
+  return first === last ? formatDay(first) : `${formatDay(first)} – ${formatDay(last)}`;
+}
 
 // As the date pickers show them, so an event that can't be edited reads like one that can.
 function renderDays(first: CalendarDate, last: CalendarDate) {
@@ -724,10 +725,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             <div className="event-panel-row">
               <SVGIcons.Clock className="event-panel-icon" />
               <div className="event-panel-wrap">
-                {/* As the time pickers show them. */}
-                <span>{formatTime(event.start)}</span>
+                <span>{formatPickerTime(event.start)}</span>
                 <SVGIcons.ArrowRight className="event-panel-icon" />
-                <span>{formatTime(event.end)}</span>
+                <span>{formatPickerTime(event.end)}</span>
                 <span className="event-panel-subtle">
                   {DateUtils.formatDuration(event.end - event.start)}
                 </span>
