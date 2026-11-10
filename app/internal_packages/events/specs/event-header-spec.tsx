@@ -1413,7 +1413,7 @@ describe('EventHeader time line', function () {
 
   it('names both days of a timed event that crosses midnight', function () {
     expect(time('DTSTART:20260302T050000Z', 'DTEND:20260302T070000Z')).toBe(
-      'Sun, Mar 1, 11:00 PM – Mon, Mar 2, 1:00 AM CST'
+      'Sun, Mar 1, 11PM – Mon, Mar 2, 1AM CST'
     );
   });
 });

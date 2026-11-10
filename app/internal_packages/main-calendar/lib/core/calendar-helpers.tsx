@@ -386,7 +386,15 @@ export const BarEndTime = ({ event }: { event: TimedOccurrence }) => (
  * "7:30–8:30PM", "11:30AM–12PM".
  */
 export function formatShortTimeRange(startUnix: number, endUnix: number): string {
-  return shortTimeRange(startUnix, endUnix, '\u2009–\u2009');
+  const start = moment.unix(startUnix);
+  const end = moment.unix(endUnix);
+  let startFormat = shortTimeFormat(start);
+  // Only a meridiem standing alone at either end; lb's "[Auer]" literal and ne's "Aको" stay whole.
+  const separateMeridiem = /^[aA]\s+|\s*[aA]$/;
+  if (/h/.test(startFormat) && start.format('A') === end.format('A')) {
+    startFormat = startFormat.replace(separateMeridiem, '');
+  }
+  return `${start.format(startFormat)}\u2009–\u2009${end.format(shortTimeFormat(end))}`;
 }
 
 /** A conflict on one line, "Standup, 9–9:30AM", naming its day when it isn't the day shown. */
@@ -397,32 +405,6 @@ export function formatConflict(conflict: CalendarConflict, shownDayUnix: number)
     : `${start.format('ddd, MMM D')}, `;
   const title = conflict.title || localized('(No title)');
   return `${title}, ${day}${formatShortTimeRange(conflict.start, conflict.end)}`;
-}
-
-function shortTimeRange(startUnix: number, endUnix: number, separator: string): string {
-  const start = moment.unix(startUnix);
-  const end = moment.unix(endUnix);
-  let startFormat = shortTimeFormat(start);
-  // Only a meridiem standing alone at either end; lb's "[Auer]" literal and ne's "Aको" stay whole.
-  const separateMeridiem = /^[aA]\s+|\s*[aA]$/;
-  if (/h/.test(startFormat) && start.format('A') === end.format('A')) {
-    startFormat = startFormat.replace(separateMeridiem, '');
-  }
-  return `${start.format(startFormat)}${separator}${end.format(shortTimeFormat(end))}`;
-}
-
-/**
- * The locale's time ("3:15 PM", "15:15"), on a 24-hour clock when the user asked for one. With
- * `dropZeroMinutes` a 12-hour clock shows an hour on the hour as "3 PM"; a 24-hour clock keeps
- * "15:00", where a bare "15" would not read as a time.
- */
-export function formatTime(unix: number, dropZeroMinutes = false): string {
-  const time = moment.unix(unix);
-  const lt = DateUtils.localeTimeFormat();
-  if (dropZeroMinutes && /h/.test(lt) && time.minutes() === 0) {
-    return time.format(lt.replace(/[:.]mm/, ''));
-  }
-  return time.format(lt);
 }
 
 /** The line under a search result: the day, or days, and for a timed occurrence its times. */

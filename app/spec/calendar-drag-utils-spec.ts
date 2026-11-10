@@ -1047,9 +1047,9 @@ describe('formatDragPreviewTime', function () {
 
   it("shows the times of a timed event in the locale's clock", function () {
     moment.locale('en');
-    expect(formatDragPreviewTime(at(15, 0), at(16, 30), false)).toBe('3:00 PM - 4:30 PM');
+    expect(formatDragPreviewTime(at(15, 0), at(16, 30), false)).toBe('3\u2009–\u20094:30PM');
     moment.locale('de');
-    expect(formatDragPreviewTime(at(15, 0), at(16, 30), false)).toBe('15:00 - 16:30');
+    expect(formatDragPreviewTime(at(15, 0), at(16, 30), false)).toBe('15:00\u2009–\u200916:30');
   });
 
   it('shows the day, or first and last days, of an all-day event', function () {

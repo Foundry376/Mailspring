@@ -12,7 +12,6 @@ import {
   textColorOnFill,
   formatShortTime,
   formatShortTimeRange,
-  formatTime,
   formatEventTimeRange,
   formatOccurrenceTime,
   queueNewCalendarEvent,
@@ -260,31 +259,6 @@ describe('formatShortTime', function () {
   });
 });
 
-describe('formatTime', function () {
-  const at = (hour: number, minute: number) => new Date(2026, 8, 22, hour, minute).getTime() / 1000;
-  afterEach(() => moment.locale('en'));
-
-  it('follows a 12-hour locale', function () {
-    moment.locale('en');
-    expect(formatTime(at(15, 15))).toBe('3:15 PM');
-    expect(formatTime(at(15, 0))).toBe('3:00 PM');
-  });
-
-  it('follows a 24-hour locale', function () {
-    moment.locale('de');
-    expect(formatTime(at(15, 15))).toBe('15:15');
-    expect(formatTime(at(15, 0))).toBe('15:00');
-  });
-
-  it('drops the minutes on the hour only when asked, and only on a 12-hour clock', function () {
-    moment.locale('en');
-    expect(formatTime(at(15, 0), true)).toBe('3 PM');
-    expect(formatTime(at(15, 15), true)).toBe('3:15 PM');
-    moment.locale('de');
-    expect(formatTime(at(15, 0), true)).toBe('15:00');
-  });
-});
-
 describe('formatEventTimeRange', function () {
   const at = (hour: number, minute: number) => new Date(2026, 8, 22, hour, minute).getTime() / 1000;
   afterEach(() => moment.locale('en'));
@@ -382,10 +356,6 @@ describe('calendar times with Use 24-hour clock on, in a 12-hour locale', functi
   beforeEach(() => {
     moment.locale('en');
     use24HourClock(true);
-  });
-
-  it('formatTime keeps the minutes on the hour', function () {
-    expect(formatTime(at(15, 0), true)).toBe('15:00');
   });
 
   it('formatShortTime keeps the minutes on the hour', function () {

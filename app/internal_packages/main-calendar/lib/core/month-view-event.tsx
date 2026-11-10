@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import classnames from 'classnames';
 import { isRTL } from 'mailspring-exports';
+import { withSmallMeridiem } from 'mailspring-component-kit';
 import {
   EventOccurrence,
   isTimed,
@@ -264,7 +265,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
       return (
         <div className={className} style={style}>
           <span className="month-view-event-title">{event.title}</span>
-          <span className="drag-preview-time-tooltip">{timeString}</span>
+          <span className="drag-preview-time-tooltip">{withSmallMeridiem(timeString)}</span>
         </div>
       );
     }

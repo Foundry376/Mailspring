@@ -298,7 +298,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       occurrenceEndUnix(event),
       event.isAllDay
     );
-    return <div className="drag-preview-time-tooltip">{timeString}</div>;
+    return <div className="drag-preview-time-tooltip">{withSmallMeridiem(timeString)}</div>;
   }
 
   /** The time range under the title of a Day or Week event of 45 minutes or more ("12–1PM"). */
