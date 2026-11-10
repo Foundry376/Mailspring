@@ -59,7 +59,9 @@ import {
   AttendeeStatusIcon,
   attendeeStatusClass,
   contactNamesByEmail,
+  guestCount,
   guestName,
+  guestSummary,
   sortedAttendees,
 } from './attendee-status';
 import {
@@ -785,8 +787,10 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         key={attendee.email}
         className={`event-panel-invitee ${attendeeStatusClass(attendee)} ${state}`}
       >
-        <span className="attendee-status">
-          <AttendeeStatusIcon attendee={attendee} />
+        <span className="event-panel-icon">
+          <span className="attendee-status">
+            <AttendeeStatusIcon attendee={attendee} />
+          </span>
         </span>
         <div className="event-panel-invitee-body">
           <div className="event-panel-invitee-line">
@@ -848,32 +852,48 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       return editable && !ours ? 'removable' : '';
     };
     const listed = attendees.length > 0 || added.length > 0;
-    return (
-      <div className={`event-panel-row ${listed ? 'top' : ''}`}>
-        <SVGIcons.Person className="event-panel-icon" />
-        <div className="event-panel-invitees">
-          {sortedAttendees(this.props.event, this.state.contactNames).map((a) =>
-            this._renderInvitee(a, stateOf(a), me)
-          )}
-          {added.map((a) => this._renderInvitee(a, stateOf(a), me))}
-          {editable && (
-            <div className="event-panel-invitee event-panel-invitee-add">
-              {listed && (
-                <span className="attendee-status">
-                  <SVGIcons.Plus size={12} />
-                </span>
-              )}
-              <EventAttendeesInput
-                className="event-panel-invitee-input"
-                attendees={[]}
-                placeholder={localized('Add Invitees')}
-                change={this._addAttendees}
-                clearable
-              />
-            </div>
-          )}
-        </div>
+    const addInvitees = editable && (
+      <div className="event-panel-invitee event-panel-invitee-add">
+        {listed && (
+          <span className="event-panel-icon">
+            <span className="attendee-status">
+              <SVGIcons.Plus size={12} />
+            </span>
+          </span>
+        )}
+        <EventAttendeesInput
+          className="event-panel-invitee-input"
+          attendees={[]}
+          placeholder={localized('Add Invitees')}
+          change={this._addAttendees}
+          clearable
+        />
       </div>
+    );
+    if (!listed) {
+      return (
+        <div className="event-panel-row">
+          <SVGIcons.Person className="event-panel-icon" />
+          <div className="event-panel-invitees">{addInvitees}</div>
+        </div>
+      );
+    }
+    const guests = [...sortedAttendees(this.props.event, this.state.contactNames), ...added];
+    const counted = guests.filter((a) => stateOf(a) !== 'removed');
+    return (
+      <>
+        <div className="event-panel-row top">
+          <SVGIcons.Person className="event-panel-icon" />
+          <div className="event-panel-invitee-count">
+            <div>{guestCount(counted.length)}</div>
+            <div className="event-panel-subtle">{guestSummary(counted)}</div>
+          </div>
+        </div>
+        <div className="event-panel-invitees">
+          {guests.map((a) => this._renderInvitee(a, stateOf(a), me))}
+          {addInvitees}
+        </div>
+      </>
     );
   }
 

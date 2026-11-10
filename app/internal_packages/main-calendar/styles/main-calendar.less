@@ -967,16 +967,23 @@
     flex-direction: column;
   }
 
+  .event-panel-invitee-count {
+    flex: 1;
+    min-width: 0;
+    padding: 4px 0;
+  }
+
+  // Each guest's dot sits in the icon column, so names line up with the other rows' text.
   .event-panel-invitee {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
+    gap: 10px;
     padding: 4px 0;
     .attendee-status-colors();
     .attendee-status-dot();
 
-    .attendee-status {
-      margin-top: 3px;
+    > .event-panel-icon {
+      margin-top: 1px;
     }
   }
 
@@ -1102,6 +1109,11 @@
     white-space: nowrap;
   }
 
+  // The rest of the row, so the hover stops short of the icon only.
+  .event-panel-location {
+    flex: 1;
+  }
+
   .event-panel-notes {
     white-space: pre-line;
     overflow-wrap: anywhere;
@@ -1109,13 +1121,9 @@
 
   // Fields read as text until they're focused, as on the design.
   .event-panel-title input,
-  // The rest of the row, so the hover stops short of the icon only.
-  .event-panel-location {
-    flex: 1;
-  }
-
   input.event-panel-location,
   textarea.event-panel-notes,
+  .event-panel-invitee-add input,
   .time-picker-wrap input,
   select {
     border: none;
@@ -1123,7 +1131,6 @@
     background: transparent;
     box-shadow: none;
     color: inherit;
-  .event-panel-invitee-add input,
     outline: none;
 
     &::placeholder {
@@ -1134,6 +1141,7 @@
   .event-panel-title input,
   input.event-panel-location,
   textarea.event-panel-notes,
+  .event-panel-invitee-add input,
   .time-picker-wrap input,
   select {
     padding: 0;
@@ -1141,7 +1149,6 @@
   }
 
   .event-panel-title input {
-  .event-panel-invitee-add input,
     width: 100%;
     height: auto;
   }

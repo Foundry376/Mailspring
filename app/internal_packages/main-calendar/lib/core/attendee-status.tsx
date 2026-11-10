@@ -1,5 +1,5 @@
 import React from 'react';
-import { Contact, Utils } from 'mailspring-exports';
+import { Contact, Utils, localized } from 'mailspring-exports';
 import { SVGIcons } from 'mailspring-component-kit';
 import { EventAttendee, EventOccurrence } from './calendar-data-source';
 import { isOrganizer, myAttendeeEmail } from './calendar-rsvp';
@@ -30,6 +30,24 @@ export function attendeeStatusClass(attendee: EventAttendee): string {
     default:
       return 'needs-action';
   }
+}
+
+export function guestCount(count: number): string {
+  return count === 1 ? localized('1 guest') : localized('%@ guests', count);
+}
+
+/** "2 yes, 1 maybe, 3 awaiting": the answers in the Yes, No, Maybe buttons' order, zeros left out. */
+export function guestSummary(attendees: EventAttendee[]): string {
+  const tally = { accepted: 0, declined: 0, tentative: 0, 'needs-action': 0 };
+  for (const a of attendees) tally[attendeeStatusClass(a)] += 1;
+  return [
+    tally.accepted && localized('%@ yes', tally.accepted),
+    tally.declined && localized('%@ no', tally.declined),
+    tally.tentative && localized('%@ maybe', tally.tentative),
+    tally['needs-action'] && localized('%@ awaiting', tally['needs-action']),
+  ]
+    .filter(Boolean)
+    .join(', ');
 }
 
 export const AttendeeStatusIcon = ({ attendee }: { attendee: EventAttendee }) => {
