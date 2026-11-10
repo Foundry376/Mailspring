@@ -109,7 +109,8 @@ export type EventPropertyEdit =
 
 /** Edits to one simple event sent as a single update, so its guests get one email. */
 export interface EventChange {
-  times?: { start: number; end: number; isAllDay: boolean };
+  /** With `timezone` only when the event moves to that zone, which a series does as a whole. */
+  times?: { start: number; end: number; isAllDay: boolean; timezone?: string };
   edits: EventPropertyEdit[];
   attendees?: AttendeeChange;
 }
@@ -283,8 +284,8 @@ export function modifySeriesChange(
   let ics = applyAttendeeChange(change.edits.reduce(applyPropertyEdit, master.ics), master, change);
 
   if (change.times) {
-    const { start, end, isAllDay } = change.times;
-    ics = ICSEventHelpers.updateRecurringEventTimes(ics, slot, start, end, isAllDay);
+    const { start, end, isAllDay, timezone } = change.times;
+    ics = ICSEventHelpers.updateRecurringEventTimes(ics, slot, start, end, isAllDay, timezone);
   }
   master.ics = ICSEventHelpers.bumpEventSequence(ics);
 

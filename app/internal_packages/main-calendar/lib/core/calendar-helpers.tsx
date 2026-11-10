@@ -516,6 +516,8 @@ export interface CreateCalendarEventOptions {
   isAllDay: boolean;
   calendarId: string;
   accountId: string;
+  /** The zone a timed event's times are written in; the machine's when omitted. */
+  timezone?: string;
   description?: string;
   location?: string;
   attendees?: Array<{ email: string; name?: string }>;
@@ -543,7 +545,7 @@ export function queueNewCalendarEvent(options: CreateCalendarEventOptions): {
     start: options.start,
     end: options.end,
     isAllDay: options.isAllDay,
-    timezone: DateUtils.timeZone,
+    timezone: options.timezone ?? DateUtils.timeZone,
     description: options.description,
     location: options.location,
     organizer: organizerForAccount(options.accountId),

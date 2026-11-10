@@ -448,7 +448,8 @@ END:VCALENDAR`;
       T_OCC2_START,
       T_NEW_START,
       T_NEW_END,
-      false
+      false,
+      undefined
     );
   });
 
