@@ -18,6 +18,7 @@ import {
   newEventOptions,
   scopesFor,
 } from '../internal_packages/main-calendar/lib/core/unsent-change';
+import { formatTimezone } from '../internal_packages/main-calendar/lib/core/timezone-selector';
 import * as CalendarDateUtils from '../src/calendar-date';
 
 const HOUR = 3600;
@@ -199,5 +200,17 @@ END:VEVENT`);
     it('is sent to every occurrence', function () {
       expect(scopesFor({ eventId: 'e1', slot, times, edits: [] })).toEqual(['all-occurrences']);
     });
+  });
+});
+
+describe('formatTimezone', function () {
+  it("leads with the zone's GMT offset at the time given, which DST moves", function () {
+    const winter = at('2026-12-11T12:00', 'America/Los_Angeles');
+    const summer = at('2026-07-10T12:00', 'America/Los_Angeles');
+
+    expect(formatTimezone('America/Los_Angeles', winter)).toBe('(GMT-8) Pacific Time');
+    expect(formatTimezone('America/Los_Angeles', summer)).toBe('(GMT-7) Pacific Time');
+    expect(formatTimezone('Asia/Kolkata', winter)).toBe('(GMT+5:30) India Standard Time');
+    expect(formatTimezone('Customized Time Zone', winter)).toBe('Customized Time Zone');
   });
 });
