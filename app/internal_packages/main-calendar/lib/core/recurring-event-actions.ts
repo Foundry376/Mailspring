@@ -285,8 +285,6 @@ export function modifySeriesChange(
   if (change.times) {
     const { start, end, isAllDay } = change.times;
     ics = ICSEventHelpers.updateRecurringEventTimes(ics, slot, start, end, isAllDay);
-    // Exceptions keep their own times; only their RECURRENCE-IDs follow the rule's slots.
-    if (start !== slot) ics = ICSEventHelpers.shiftInlineExceptions(ics, (start - slot) * 1000);
   }
   master.ics = ICSEventHelpers.bumpEventSequence(ics);
 

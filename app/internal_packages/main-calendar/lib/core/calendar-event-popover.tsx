@@ -338,11 +338,6 @@ export class CalendarEventPopover extends React.Component<
         this.state.allDay,
         this.state.timezone !== this.state.originalTimezone ? this.state.timezone : undefined
       );
-      // Shift inline exception RECURRENCE-IDs so they still map to the correct slots
-      const deltaMs = (this.state.start - originalOccurrenceStart) * 1000;
-      if (deltaMs !== 0) {
-        ics = ICSEventHelpers.shiftInlineExceptions(ics, deltaMs);
-      }
     } else {
       // Non-recurring: absolute time update is correct
       ics = ICSEventHelpers.updateEventTimes(ics, {
