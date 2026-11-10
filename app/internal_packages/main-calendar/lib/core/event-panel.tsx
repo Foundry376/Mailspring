@@ -540,7 +540,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   _onAllDayChange = () => {
     const t = this._times();
     const days = { startDate: this._firstDay(t), endDate: this._lastDay(t) };
-    this._changeTimes({ ...allDayToggleTimes(days, !t.isAllDay), isAllDay: !t.isAllDay });
+    // Back to timed, 9 AM is where the fields will read it.
+    const zone = this._zoneOf({ ...t, isAllDay: false });
+    this._changeTimes({ ...allDayToggleTimes(days, !t.isAllDay, zone), isAllDay: !t.isAllDay });
     this._saveTimes();
   };
 

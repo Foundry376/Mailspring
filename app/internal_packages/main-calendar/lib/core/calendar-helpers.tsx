@@ -679,10 +679,14 @@ export function holdsEdits(
   return !isCalendarReadOnly && (hasGuests(event) || asksScope(event) || !!change);
 }
 
-/** The times an event takes when All day is switched: whole days covering it, or 9–10 AM on its first day. */
+/**
+ * The times an event takes when All day is switched: whole days covering it, or 9–10 AM on its
+ * first day, in `zone` when given.
+ */
 export function allDayToggleTimes(
   { startDate, endDate }: Pick<EventOccurrence, 'startDate' | 'endDate'>,
-  allDay: boolean
+  allDay: boolean,
+  zone?: string
 ) {
   if (allDay) {
     return {
@@ -690,6 +694,8 @@ export function allDayToggleTimes(
       end: CalendarDateUtils.nextDayStartUnix(endDate),
     };
   }
-  const start = CalendarDateUtils.secondsIntoDayUnix(startDate, 9 * 3600);
+  const start = zone
+    ? momentTz.tz(`${CalendarDateUtils.formatCalendarDate(startDate)}T09:00`, zone).unix()
+    : CalendarDateUtils.secondsIntoDayUnix(startDate, 9 * 3600);
   return { start, end: start + DEFAULT_TIMED_EVENT_DURATION_SECONDS };
 }

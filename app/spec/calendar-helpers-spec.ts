@@ -1,4 +1,5 @@
 import moment from 'moment';
+import momentTz from 'moment-timezone';
 import { AccountStore, Actions, SyncbackEventTask } from 'mailspring-exports';
 import 'moment/locale/de';
 import 'moment/locale/ko';
@@ -218,6 +219,12 @@ describe('allDayToggleTimes', function () {
     const springForward = allDayOccurrence('d', '2026-03-08', '2026-03-10');
     const { start, end } = allDayToggleTimes(springForward, false);
     expect([clock(start), clock(end)]).toEqual(['2026-03-08 09:00', '2026-03-08 10:00']);
+  });
+
+  it("puts those times in the zone given, the one a timed event's fields read in", function () {
+    const day = allDayOccurrence('e', '2026-11-11', '2026-11-11');
+    const { start } = allDayToggleTimes(day, false, 'Asia/Tokyo');
+    expect(start).toBe(momentTz.tz('2026-11-11T09:00', 'Asia/Tokyo').unix());
   });
 });
 
