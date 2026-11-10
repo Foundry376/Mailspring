@@ -22,7 +22,7 @@ export interface WeekBarsLayout {
 // .month-view-week-bars' bottom inset, then @month-view-event-height and the bars' row-gap.
 const WEEK_CHROME_HEIGHT = 1 + 32 + 2;
 const LANE_HEIGHT = 20;
-const LANE_GAP = 2;
+const LANE_GAP = 3;
 
 /**
  * The lanes a week row `weekHeight` px tall shows in full. A lane cut off at the bottom would hide

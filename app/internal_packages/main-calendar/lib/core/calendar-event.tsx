@@ -19,7 +19,7 @@ import { HitZone, ViewDirection } from './calendar-drag-types';
 import { detectHitZone, canAttemptMove, formatDragPreviewTime } from './calendar-drag-utils';
 import { DAY_DUR, columnSpan } from './week-view-helpers';
 
-const EVENT_GAP = 2;
+const EVENT_GAP = 3;
 
 interface CalendarEventProps {
   event: EventOccurrence;
