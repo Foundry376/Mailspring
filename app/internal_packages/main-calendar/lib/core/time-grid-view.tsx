@@ -26,7 +26,6 @@ import { CurrentTimeIndicator, CurrentTimeLabel, EachMinute } from './current-ti
 import { CalendarView } from './calendar-constants';
 import {
   overlapForEvents,
-  maxConcurrentEvents,
   drawnInGrid,
   eventsGroupedByDay,
   exclusiveDayEnds,
@@ -271,9 +270,13 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
       (e) => this._inRow(e) && e.startDate < drawn.end && e.endDate >= drawn.first
     );
     const allDayOverlap = overlapForEvents(allDayEvents);
-    // An empty row keeps one lane, so "All Day" sits below the headings.
-    const allDayBarHeight =
-      Math.max(maxConcurrentEvents(allDayOverlap), 1) * ALL_DAY_LANE_HEIGHT + 1;
+    // Tall enough for the lanes the days on screen use, not the drawn days either side; an empty
+    // row keeps one lane, so "All Day" sits below the headings.
+    const visibleEnd = CalendarDateUtils.addCalendarDays(firstVisible, this.props.visibleDays);
+    const lanes = allDayEvents
+      .filter((e) => e.startDate < visibleEnd && e.endDate >= firstVisible)
+      .map((e) => allDayOverlap[e.id]?.order || 1);
+    const allDayBarHeight = Math.max(1, ...lanes) * ALL_DAY_LANE_HEIGHT + 1;
     return { allDayEvents, allDayOverlap, allDayBarHeight };
   }
 

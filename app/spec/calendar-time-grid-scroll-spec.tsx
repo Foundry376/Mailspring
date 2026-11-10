@@ -244,12 +244,24 @@ describe('TimeGridView scrolling', function () {
     expect(height('.all-day-events')).toBe('24px');
   });
 
-  it('sizes the All Day row for events on days drawn off-screen too', function () {
+  it('sizes the All Day row for the days on screen, not those drawn off-screen', function () {
     const firstDrawn = [
       allDayOccurrence('first-drawn-1', '2026-10-11'),
       allDayOccurrence('first-drawn-2', '2026-10-11'),
     ];
     dataSource.buildObservable.andCallFake(() => Rx.Observable.just({ events: firstDrawn }));
+    render(moment([2026, 9, 19]));
+
+    expect(height('.date-label-legend')).toBe('53px');
+    expect(height('.all-day-events')).toBe('24px');
+  });
+
+  it('gives the All Day row a lane for each one its days on screen use', function () {
+    const onScreen = [
+      allDayOccurrence('on-screen-1', '2026-10-20'),
+      allDayOccurrence('on-screen-2', '2026-10-20'),
+    ];
+    dataSource.buildObservable.andCallFake(() => Rx.Observable.just({ events: onScreen }));
     render(moment([2026, 9, 19]));
 
     expect(height('.date-label-legend')).toBe('76px');
