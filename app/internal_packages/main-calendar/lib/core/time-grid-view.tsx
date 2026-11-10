@@ -39,7 +39,8 @@ import { getEventsWithDragPreview, withNewEventPreview } from './calendar-drag-u
 import { withUnsentChange } from './unsent-change';
 import { WeekdayHeader } from './weekday-header';
 
-const MIN_INTERVAL_HEIGHT = 21;
+// A 20px bar and the gap under it, as Month view's chips.
+const ALL_DAY_LANE_HEIGHT = 23;
 // Half an hour, as Notion sizes it: a 30-minute event holds one 14px line, a 45-minute one two.
 const INTERVAL_HEIGHT = 24;
 const DATE_LABELS_HEIGHT = 28;
@@ -272,7 +273,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     const allDayOverlap = overlapForEvents(allDayEvents);
     // An empty row keeps one lane, so "All Day" sits below the headings.
     const allDayBarHeight =
-      Math.max(maxConcurrentEvents(allDayOverlap), 1) * MIN_INTERVAL_HEIGHT + 1;
+      Math.max(maxConcurrentEvents(allDayOverlap), 1) * ALL_DAY_LANE_HEIGHT + 1;
     return { allDayEvents, allDayOverlap, allDayBarHeight };
   }
 
@@ -318,7 +319,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
           <div className="date-labels">{days.map(this._renderDateLabel)}</div>
 
           <WeekViewAllDayEvents
-            minorDim={MIN_INTERVAL_HEIGHT}
+            minorDim={ALL_DAY_LANE_HEIGHT}
             height={allDayBarHeight}
             start={CalendarDateUtils.dayStartUnix(dayStarts[0])}
             end={CalendarDateUtils.nextDayStartUnix(lastDrawn) - 1}

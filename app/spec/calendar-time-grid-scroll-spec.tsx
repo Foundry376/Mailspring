@@ -240,8 +240,8 @@ describe('TimeGridView scrolling', function () {
     );
     render(moment([2026, 9, 19]));
 
-    expect(height('.date-label-legend')).toBe('51px');
-    expect(height('.all-day-events')).toBe('22px');
+    expect(height('.date-label-legend')).toBe('53px');
+    expect(height('.all-day-events')).toBe('24px');
   });
 
   it('sizes the All Day row for events on days drawn off-screen too', function () {
@@ -252,8 +252,8 @@ describe('TimeGridView scrolling', function () {
     dataSource.buildObservable.andCallFake(() => Rx.Observable.just({ events: firstDrawn }));
     render(moment([2026, 9, 19]));
 
-    expect(height('.date-label-legend')).toBe('72px');
-    expect(height('.all-day-events')).toBe('43px');
+    expect(height('.date-label-legend')).toBe('76px');
+    expect(height('.all-day-events')).toBe('47px');
   });
 
   it('requeries only once scrolling draws days past the three weeks queried either side', function () {

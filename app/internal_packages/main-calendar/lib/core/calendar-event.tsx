@@ -188,7 +188,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       styles = {
         left: `calc(${d.top} + ${EVENT_GAP}px)`,
         width: `calc(${d.height} - ${2 * EVENT_GAP}px)`,
-        height: d.width,
+        height: (d.width as number) - EVENT_GAP,
         top: d.left,
       };
     }
