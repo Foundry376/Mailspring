@@ -849,7 +849,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     };
     const listed = attendees.length > 0 || added.length > 0;
     return (
-      <div className="event-panel-row top">
+      <div className={`event-panel-row ${listed ? 'top' : ''}`}>
         <SVGIcons.Person className="event-panel-icon" />
         <div className="event-panel-invitees">
           {sortedAttendees(this.props.event, this.state.contactNames).map((a) =>
