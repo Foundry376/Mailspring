@@ -8,7 +8,7 @@ import {
   occurrenceStartUnix,
   occurrenceEndUnix,
 } from './calendar-data-source';
-import { BarEndTime, BarStartTime, calcEventColors } from './calendar-helpers';
+import { BarEndTime, BarStartTime, calcEventColors, formatEventTooltip } from './calendar-helpers';
 import { HitZone } from './calendar-drag-types';
 import { detectHitZone, canAttemptMove, formatDragPreviewTime } from './calendar-drag-utils';
 
@@ -270,6 +270,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
         id={this.props.isFirstBar ? event.id : undefined}
         className={className}
         style={style}
+        title={formatEventTooltip(event)}
         onClick={this._onClick}
         onDoubleClick={this._onDoubleClick}
         onContextMenu={this._onContextMenu}

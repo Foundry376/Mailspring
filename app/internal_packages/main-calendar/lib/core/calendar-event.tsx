@@ -13,6 +13,7 @@ import {
   BarStartTime,
   calcEventColors,
   formatEventTimeRange,
+  formatEventTooltip,
 } from './calendar-helpers';
 import { HitZone, ViewDirection } from './calendar-drag-types';
 import { detectHitZone, canAttemptMove, formatDragPreviewTime } from './calendar-drag-utils';
@@ -367,6 +368,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
         tabIndex={0}
         style={styles}
         className={classNames}
+        title={formatEventTooltip(event)}
         onClick={(e) => {
           e.stopPropagation();
           onClick(e, event);

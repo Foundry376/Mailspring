@@ -440,6 +440,13 @@ export function formatOccurrenceTime(event: EventOccurrence): string {
   return `${start.format('MMM D')}, ${formatTime(event.start)} - ${end.format('MMM D')}, ${formatTime(event.end)}`;
 }
 
+/** An event's hover text on the grid: its full title, when it happens, and where. */
+export function formatEventTooltip(event: EventOccurrence): string {
+  return [event.title || localized('(No title)'), formatOccurrenceTime(event), event.location]
+    .filter(Boolean)
+    .join('\n');
+}
+
 /**
  * Format an event's time range for display (e.g., "12–1PM").
  * Only for events of 45 minutes or more, whose box has room for a second line.
