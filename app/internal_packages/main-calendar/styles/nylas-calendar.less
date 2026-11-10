@@ -471,7 +471,9 @@ body.platform-win32 {
       width: auto;
       z-index: 2;
       overflow: hidden;
-      box-shadow: inset 0 1px 0 @border-color-divider;
+      // A border, not an inset shadow, so the bars are placed below the line.
+      box-sizing: border-box;
+      border-top: 1px solid @border-color-divider;
     }
 
     .all-day-legend {
