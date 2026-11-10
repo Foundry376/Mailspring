@@ -437,6 +437,11 @@ body.platform-win32 {
         width: @legend-width;
         z-index: 2;
       }
+
+      // Scrolled by trackpad and wheel; the track would take the grid's width.
+      > .scrollbar-track {
+        display: none;
+      }
     }
 
     .week-header {
