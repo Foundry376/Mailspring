@@ -178,7 +178,11 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     // Gaps between events are cut from the box, not drawn as borders, so the corners stay round.
     if (this.props.direction === 'vertical') {
       const d = this._getDimensions();
-      styles = { ...d, height: `calc(${d.height} - ${EVENT_GAP}px)` };
+      styles = {
+        ...d,
+        width: `calc(${d.width} - ${EVENT_GAP}px)`,
+        height: `calc(${d.height} - ${EVENT_GAP}px)`,
+      };
     } else if (this.props.direction === 'horizontal') {
       const d = this._getDimensions();
       styles = {
