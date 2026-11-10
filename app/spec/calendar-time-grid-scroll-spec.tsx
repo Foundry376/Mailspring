@@ -248,6 +248,18 @@ describe('TimeGridView scrolling', function () {
     expect(height('.all-day-events')).toBe('27px');
   });
 
+  it('gives the All Day row a lane for each one its days on screen use', function () {
+    const onScreen = [
+      allDayOccurrence('on-screen-1', '2026-10-20'),
+      allDayOccurrence('on-screen-2', '2026-10-20'),
+    ];
+    dataSource.buildObservable.andCallFake(() => Rx.Observable.just({ events: onScreen }));
+    render(moment([2026, 9, 19]));
+
+    expect(height('.date-label-legend')).toBe('79px');
+    expect(height('.all-day-events')).toBe('50px');
+  });
+
   it('requeries only once scrolling draws days past the three weeks queried either side', function () {
     render(moment([2026, 9, 21]));
     const queriedFrom = () =>
