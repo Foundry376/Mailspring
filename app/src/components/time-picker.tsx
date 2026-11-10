@@ -4,6 +4,7 @@ import moment, { Moment } from 'moment-timezone';
 import classnames from 'classnames';
 import { TabGroupContext } from 'mailspring-component-kit';
 import { DateUtils } from 'mailspring-exports';
+import withSmallMeridiem from './small-meridiem';
 
 require('moment-round'); // overrides moment
 
@@ -251,13 +252,15 @@ export default class TimePicker extends React.Component<TimePickerProps, TimePic
       let relTxt: React.ReactElement | null = null;
       if (this.props.relativeTo) {
         relTxt = (
-          <span className="rel-text">{`(${timeIter.diff(relStart, 'hours', true)}hr)`}</span>
+          <span className="rel-text">
+            {DateUtils.formatDuration(timeIter.diff(relStart, 'seconds'))}
+          </span>
         );
       }
 
       opts.push(
         <div className={className} key={val} onMouseDown={() => this._onSelectOption(val)}>
-          {timeIter.format(DateUtils.tightTimeFormat())}
+          <span>{withSmallMeridiem(timeIter.format(DateUtils.tightTimeFormat()))}</span>
           {relTxt}
         </div>
       );
