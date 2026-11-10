@@ -917,6 +917,13 @@
     }
   }
 
+  // Overhangs by the shadow, so the row doesn't move on hover.
+  .editable:hover {
+    border-radius: 2px;
+    background: @list-hover-bg;
+    box-shadow: 0 0 0 4px @list-hover-bg;
+  }
+
   // Times and dates break between their parts, rather than clipping, in a narrow panel.
   .event-panel-wrap {
     flex: 1;
@@ -1071,7 +1078,7 @@
   }
 
   // Fields read as text until they're focused, as on the design.
-  input.event-panel-title,
+  .event-panel-title input,
   input.event-panel-location,
   textarea.event-panel-notes,
   .time-picker-wrap input,
@@ -1088,6 +1095,7 @@
     }
   }
 
+  .event-panel-title input,
   input.event-panel-location,
   textarea.event-panel-notes,
   .time-picker-wrap input,
@@ -1096,12 +1104,9 @@
     font: inherit;
   }
 
-  input.event-panel-title {
+  .event-panel-title input {
     width: 100%;
     height: auto;
-    box-sizing: border-box;
-    border-bottom: 1px solid @border-color-divider;
-    font-family: inherit;
   }
 
   input.event-panel-location,

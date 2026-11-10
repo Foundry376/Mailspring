@@ -566,7 +566,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       return (
         <EventPanelTextField
           ref={this._title}
-          className="event-panel-title"
+          className="editable"
           value={this._shown('summary', event.title)}
           placeholder={localized('New Event')}
           // Left empty, an unsaved event keeps no title, so leaving it doesn't create it.
@@ -579,7 +579,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         />
       );
     }
-    return <div className="event-panel-title">{event.isCancelled ? <s>{title}</s> : title}</div>;
+    return event.isCancelled ? <s>{title}</s> : title;
   }
 
   /** The last day the times cover: a timed event ending at midnight doesn't reach the next day. */
@@ -633,7 +633,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           </div>
         )}
         {!t.isAllDay && (
-          <div className={`event-panel-row ${allDaySwitch ? 'indented' : ''}`}>
+          <div className={`event-panel-row editable ${allDaySwitch ? 'indented' : ''}`}>
             {!allDaySwitch && clock}
             <div className="event-panel-wrap">
               <TimePicker value={t.start * 1000} onChange={this._changeStart} />
@@ -649,7 +649,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             </div>
           </div>
         )}
-        <div className={`event-panel-row ${allDaySwitch || !t.isAllDay ? 'indented' : ''}`}>
+        <div
+          className={`event-panel-row editable ${allDaySwitch || !t.isAllDay ? 'indented' : ''}`}
+        >
           {!allDaySwitch && t.isAllDay && clock}
           <div className="event-panel-wrap">
             <DatePicker value={t.start * 1000} onChange={this._changeStart} />
@@ -672,7 +674,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         {this.props.event.isException || !this._canEdit('repeat') ? (
           this._renderRepeatLabel()
         ) : (
-          <div className="event-panel-row">
+          <div className="event-panel-row editable">
             <SVGIcons.Repeat className="event-panel-icon" />
             <TextSelect value={this._repeat()} onChange={this._onRepeatChange}>
               {REPEAT_OPTIONS.map((option) => (
@@ -908,7 +910,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       <div className="event-panel-section">
         {invitees}
         {editable ? (
-          <div className="event-panel-row">
+          <div className="event-panel-row editable">
             {this._renderLocationIcon(shownLocation)}
             <EventPanelTextField
               className="event-panel-location"
@@ -937,7 +939,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       return (
         <div className="event-panel-section">
           <EventPanelTextField
-            className="event-panel-notes"
+            className="event-panel-notes editable"
             multiline
             value={shownNotes}
             placeholder={localized('Add notes or URL...')}
@@ -990,7 +992,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     return (
       <div className="event-panel-section">
         {(calendar || calendarChoices) && (
-          <div className="event-panel-row">
+          <div className={`event-panel-row ${calendarChoices ? 'editable' : ''}`}>
             <span className="event-panel-icon">
               <span
                 className="event-panel-calendar-swatch"
@@ -1000,7 +1002,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             {calendarChoices ? this._renderCalendarChoice(calendarChoices) : calendar.name}
           </div>
         )}
-        <div className="event-panel-row indented">
+        <div className={`event-panel-row indented ${this._canSetShowAs() ? 'editable' : ''}`}>
           {this._canSetShowAs() ? (
             <TextSelect
               value={this._shown('transp', showAs)}
@@ -1323,7 +1325,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       >
         {this._renderHeader()}
         <ScrollRegion className="event-panel-body">
-          {this._renderTitle()}
+          <div className="event-panel-title">{this._renderTitle()}</div>
           {this._renderRsvp()}
           {this._renderProposals()}
           {this._renderWhen()}
