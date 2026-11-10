@@ -441,8 +441,8 @@ export function formatOccurrenceTime(event: EventOccurrence): string {
 }
 
 /**
- * Format an event's time range for display (e.g., "12 – 1PM").
- * Only returns a string for events that are 1 hour or longer.
+ * Format an event's time range for display (e.g., "12–1PM").
+ * Only for events of 45 minutes or more, whose box has room for a second line.
  * Returns null for shorter events or all-day events.
  */
 export function formatEventTimeRange(
@@ -453,10 +453,10 @@ export function formatEventTimeRange(
   if (isAllDay) {
     return null;
   }
-  if ((endUnix - startUnix) / 60 < 60) {
+  if ((endUnix - startUnix) / 60 < 45) {
     return null;
   }
-  return shortTimeRange(startUnix, endUnix, ' – ');
+  return formatShortTimeRange(startUnix, endUnix);
 }
 
 /**

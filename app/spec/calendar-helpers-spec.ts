@@ -291,24 +291,25 @@ describe('formatEventTimeRange', function () {
 
   it('names a shared meridiem once, after the end', function () {
     moment.locale('en');
-    expect(formatEventTimeRange(at(12, 0), at(13, 0), false)).toBe('12 – 1PM');
-    expect(formatEventTimeRange(at(13, 15), at(14, 30), false)).toBe('1:15 – 2:30PM');
+    expect(formatEventTimeRange(at(12, 0), at(13, 0), false)).toBe('12–1PM');
+    expect(formatEventTimeRange(at(13, 15), at(14, 30), false)).toBe('1:15–2:30PM');
   });
 
   it('names both meridiems when they differ', function () {
     moment.locale('en');
-    expect(formatEventTimeRange(at(11, 30), at(12, 30), false)).toBe('11:30AM – 12:30PM');
+    expect(formatEventTimeRange(at(11, 30), at(12, 30), false)).toBe('11:30AM–12:30PM');
   });
 
   it('follows a 24-hour locale', function () {
     moment.locale('de');
-    expect(formatEventTimeRange(at(12, 0), at(13, 0), false)).toBe('12:00 – 13:00');
+    expect(formatEventTimeRange(at(12, 0), at(13, 0), false)).toBe('12:00–13:00');
   });
 
-  it('gives nothing for an all-day event or one shorter than an hour', function () {
+  it('gives nothing for an all-day event or one shorter than 45 minutes', function () {
     moment.locale('en');
     expect(formatEventTimeRange(at(12, 0), at(13, 0), true)).toBeNull();
-    expect(formatEventTimeRange(at(12, 0), at(12, 59), false)).toBeNull();
+    expect(formatEventTimeRange(at(12, 0), at(12, 44), false)).toBeNull();
+    expect(formatEventTimeRange(at(12, 0), at(12, 45), false)).toBe('12–12:45PM');
   });
 });
 
