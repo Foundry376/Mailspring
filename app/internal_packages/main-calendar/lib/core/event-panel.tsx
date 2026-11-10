@@ -800,7 +800,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             </div>
             {state === 'removable' && (
               <button
-                className="btn-bare event-panel-invitee-remove"
+                className="btn-ghost event-panel-invitee-remove"
                 title={localized('Remove %@', name)}
                 aria-label={localized('Remove %@', name)}
                 onClick={() => this._removeAttendee(attendee)}

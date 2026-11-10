@@ -1023,15 +1023,9 @@
     visibility: hidden;
   }
 
+  // Only the remove button shows: the row itself does nothing on click, so it takes no fill.
   .event-panel-invitee.removable:hover,
   .event-panel-invitee.removable:focus-within {
-    .event-panel-invitee-line {
-      margin: -4px -4px -4px -8px;
-      padding: 4px 4px 4px 8px;
-      border-radius: 3px;
-      background: @list-hover-bg;
-    }
-
     .event-panel-invitee-remove {
       visibility: visible;
     }
@@ -1058,19 +1052,19 @@
       line-height: 16px;
       color: fadeout(@text-color, 35%);
     }
-    // Without the token field's own label indent and padding, to sit like a guest's name.
 
     .event-panel-invitee-input {
       flex: 1;
       min-width: 0;
-      margin: 0;
-      padding: 0;
     }
 
+    // Without the token field's own label indent and padding, to sit like a guest's name.
     .tokenizing-field-input {
       position: relative;
       display: flex;
       align-items: center;
+      margin: 0;
+      padding: 0;
 
       &:has(.clear-button) {
         padding-right: 22px;
