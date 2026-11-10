@@ -129,8 +129,8 @@ describe("an event's own time zone", function () {
       host.querySelectorAll<HTMLInputElement>('.time-picker-wrap input')
     );
 
-    expect(startField.value).toBe('9:30 AM');
-    expect(host.textContent).toContain('Tue Nov 10, 6:30–7:30PM your time');
+    expect(startField.value).toBe('9:30AM');
+    expect(host.textContent).toContain('Tue, Nov 10, 6:30\u2009–\u20097:30PM your time');
 
     fireEvent.change(startField, { target: { value: '10:00am' } });
     fireEvent.blur(startField);

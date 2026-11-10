@@ -2,13 +2,14 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import classnames from 'classnames';
 import { isRTL } from 'mailspring-exports';
+import { withSmallMeridiem } from 'mailspring-component-kit';
 import {
   EventOccurrence,
   isTimed,
   occurrenceStartUnix,
   occurrenceEndUnix,
 } from './calendar-data-source';
-import { BarEndTime, BarStartTime, calcEventColors } from './calendar-helpers';
+import { BarEndTime, BarStartTime, calcEventColors, formatEventTooltip } from './calendar-helpers';
 import { HitZone } from './calendar-drag-types';
 import { detectHitZone, canAttemptMove, formatDragPreviewTime } from './calendar-drag-utils';
 
@@ -213,10 +214,13 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
     return 'default';
   }
 
-  // One-day timed chips go bare, as in Apple and Notion Calendar; all-day chips and anything
-  // spanning days keep the tint so they read as a bar. Selection fills either through CSS.
+  // One-day timed chips go bare; all-day chips and anything spanning days keep the tint so they
+  // read as a bar. Selection fills either through CSS.
   _backgroundColor(tint: string) {
     const { event } = this.props;
+    if (event.isAwaitingMyResponse && !event.isCancelled) {
+      return 'transparent';
+    }
     if (event.isPending) {
       return 'rgba(128, 128, 128, 0.15)';
     }
@@ -231,6 +235,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
       selected: selected,
       'is-all-day': event.isAllDay,
       pending: event.isPending,
+      'awaiting-response': event.isAwaitingMyResponse && !event.isCancelled,
       dragging: isDragging,
       draggable: this._canDrag(),
       'drag-preview': event.isDragPreview,
@@ -260,7 +265,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
       return (
         <div className={className} style={style}>
           <span className="month-view-event-title">{event.title}</span>
-          <span className="drag-preview-time-tooltip">{timeString}</span>
+          <span className="drag-preview-time-tooltip">{withSmallMeridiem(timeString)}</span>
         </div>
       );
     }
@@ -270,6 +275,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
         id={this.props.isFirstBar ? event.id : undefined}
         className={className}
         style={style}
+        title={formatEventTooltip(event)}
         onClick={this._onClick}
         onDoubleClick={this._onDoubleClick}
         onContextMenu={this._onContextMenu}

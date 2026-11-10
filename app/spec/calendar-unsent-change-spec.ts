@@ -544,7 +544,7 @@ describe('editing in the panel', function () {
     });
 
     it('saves a title still being typed, as leaving the field would', function () {
-      const title = host.querySelector('input.event-panel-title') as HTMLInputElement;
+      const title = host.querySelector('.event-panel-title input') as HTMLInputElement;
       title.focus();
       panel._title.current.setState({ draft: 'Interview with Alex' });
       panel.commitEdits();
@@ -581,7 +581,7 @@ describe('editing in the panel', function () {
     });
 
     it('returns to the field last edited once a click has moved focus away', function () {
-      const title = host.querySelector('input.event-panel-title') as HTMLInputElement;
+      const title = host.querySelector('.event-panel-title input') as HTMLInputElement;
       title.focus();
       const clicked = document.createElement('div');
       clicked.tabIndex = -1;

@@ -1,6 +1,6 @@
 import React from 'react';
 import moment from 'moment-timezone';
-import { ScrollRegion, SVGIcons } from 'mailspring-component-kit';
+import { RetinaImg, ScrollRegion, withSmallMeridiem } from 'mailspring-component-kit';
 import { localized, Actions, CalendarDate, CalendarDateUtils, DateUtils } from 'mailspring-exports';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
 import { CalendarEventPopover } from './calendar-event-popover';
@@ -85,7 +85,6 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
     return { first, end: CalendarDateUtils.addCalendarDays(first, DAYS_IN_PANEL) };
   }
 
-  /** Only the days with something on, as Notion Calendar lists them. */
   _getEventsByDay(): DayEvents[] {
     const { first } = this._calculateRange();
     const days: DayEvents[] = [];
@@ -114,7 +113,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
     }
     return (
       <div className="agenda-event-time">
-        {formatShortTimeRange(event.start, event.end)}{' '}
+        {withSmallMeridiem(formatShortTimeRange(event.start, event.end))}{' '}
         <span className="agenda-event-duration">
           {DateUtils.formatDuration(event.end - event.start)}
         </span>
@@ -166,7 +165,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
       'agenda-event',
       isSelected && 'selected',
       event.isCancelled && 'cancelled',
-      event.isPending && 'pending',
+      (event.isPending || event.isAwaitingMyResponse) && 'pending',
     ]
       .filter(Boolean)
       .join(' ');
@@ -234,7 +233,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
                 this.props.onNewEvent(e.currentTarget);
               }}
             >
-              <SVGIcons.Plus size={16} />
+              <RetinaImg name="toolbar-compose.png" mode={RetinaImg.Mode.ContentIsMask} />
             </button>
           </div>
         )}

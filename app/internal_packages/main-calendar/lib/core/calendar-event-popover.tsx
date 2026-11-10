@@ -18,6 +18,7 @@ import {
   ScrollRegion,
   TabGroupRegion,
   TimePicker,
+  withSmallMeridiem,
 } from 'mailspring-component-kit';
 import { EventAttendeesInput } from './event-attendees-input';
 import {
@@ -35,7 +36,7 @@ import {
   shiftEndWithStart,
   clampEnd,
   extractNotesFromDescription,
-  formatTime,
+  formatShortTimeRange,
   fieldZone,
   sameWallClockIn,
 } from './calendar-helpers';
@@ -668,7 +669,7 @@ class CalendarEventPopoverUnenditable extends React.Component<
 
     const startMoment = moment(event.start * 1000);
     const date = startMoment.format('dddd, MMMM D'); // e.g. Tuesday, February 22
-    const timeRange = `${formatTime(event.start, true)} - ${formatTime(event.end, true)}`;
+    const timeRange = withSmallMeridiem(formatShortTimeRange(event.start, event.end));
     return (
       <div>
         {date}

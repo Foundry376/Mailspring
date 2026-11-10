@@ -589,15 +589,16 @@ describe('CalendarEventPopover and the clock', function () {
 
   it("shows a timed event's hours in a 12-hour locale without the minutes on the hour", function () {
     moment.locale('en');
+    const end = moment.unix(END);
     expect(render()).toContain(
-      `${moment.unix(START).format('h A')} - ${moment.unix(END).format('h A')}`
+      `${moment.unix(START).format('h')}\u2009–\u2009${end.format('h')}<span class="meridiem">${end.format('A')}</span>`
     );
   });
 
   it("shows a timed event's hours in a 24-hour locale", function () {
     moment.locale('de');
     expect(render()).toContain(
-      `${moment.unix(START).format('HH:mm')} - ${moment.unix(END).format('HH:mm')}`
+      `${moment.unix(START).format('HH:mm')}\u2009–\u2009${moment.unix(END).format('HH:mm')}`
     );
   });
 });
