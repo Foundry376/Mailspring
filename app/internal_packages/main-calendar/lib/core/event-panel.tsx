@@ -903,7 +903,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         {addInvitees}
         {trims && (
           <button
-            className="event-panel-guests-toggle"
+            className="btn-bare event-panel-invitees-toggle"
             onClick={() => this.setState({ allGuestsShown: !allGuestsShown })}
           >
             {allGuestsShown
