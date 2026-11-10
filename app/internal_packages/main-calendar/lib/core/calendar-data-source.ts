@@ -358,7 +358,6 @@ function occurrenceFromICS(args: {
     return !!account && account.id === event.accountId;
   };
 
-  // Pending styling also covers an event I'm invited to but haven't answered
   const myAttendee = attendees.find((a) => a.email && isThisAccount(a.email));
   const myPartstat = myAttendee?.partstat?.toUpperCase();
   const isAwaitingMyResponse =

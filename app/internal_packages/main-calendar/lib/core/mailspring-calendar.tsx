@@ -575,8 +575,7 @@ export class MailspringCalendar extends React.Component<
 
   onChangeView = (view: CalendarView) => {
     // If an event is selected, jump the new view to where it lives so it stays visible and
-    // selected — switching to a narrow view could otherwise leave the
-    // selected event off-screen.
+    // selected — switching to a narrow view could otherwise leave it off-screen.
     const selected = this.state.selectedEvents[0];
     const focusedMoment = selected
       ? moment.unix(this._pendingMoves.get(selected.id)?.start ?? occurrenceStartUnix(selected))

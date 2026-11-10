@@ -85,7 +85,6 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
     return { first, end: CalendarDateUtils.addCalendarDays(first, DAYS_IN_PANEL) };
   }
 
-  /** Only the days with something on. */
   _getEventsByDay(): DayEvents[] {
     const { first } = this._calculateRange();
     const days: DayEvents[] = [];

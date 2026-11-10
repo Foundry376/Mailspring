@@ -105,7 +105,6 @@ const repeatOptionLabel = (option: RepeatOption) =>
 
 const formatDay = (day: CalendarDate) => DateUtils.dayString(momentOf(day));
 
-// As the time pickers show them.
 const formatPickerTime = (unix: number) => moment.unix(unix).format(DateUtils.tightTimeFormat());
 
 function daysLabel(first: CalendarDate, last: CalendarDate) {
@@ -172,7 +171,6 @@ interface EventPanelState {
   proposals: ProposedTime[];
   /** Your guest row's answer buttons are showing. */
   answerOpen: boolean;
-  /** A long guest list shows everyone, not only its first rows. */
   allGuestsShown: boolean;
   /** Shown only: the guest list an edit writes back keeps the invitation's own names. */
   contactNames: Map<string, string>;
