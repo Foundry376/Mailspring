@@ -107,7 +107,8 @@ const CALENDAR_VIEW = 'mailspring.calendarView';
 const AGENDA_OPEN = 'mailspring.calendarAgendaOpen';
 const AGENDA_WIDTH = 'CalendarAgenda';
 // Below 200px the longer time ranges ("11:30 AM–12:30 PM 1h 30m") no longer fit whole.
-const AGENDA_WIDTHS = { min: 200, initial: 240, max: 300 };
+// At its narrowest the panel still holds the date picker's 200px mini month, 8px in from each side.
+const AGENDA_WIDTHS = { min: 220, initial: 240, max: 300 };
 
 const VISIBLE_DAYS: { [view: string]: 1 | 7 } = {
   [CalendarView.DAY]: 1,

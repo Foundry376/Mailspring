@@ -1145,10 +1145,19 @@
     }
   }
 
+  // As tall as its six weeks, so the padding holds at the bottom too.
   .date-picker .mini-month-view {
     box-sizing: border-box;
+    height: auto;
+    min-height: 0;
     padding: 6px;
     border-radius: 8px;
+  }
+
+  // As the time lists: under the field with a gap. DatePicker keeps it inside the panel.
+  .date-picker .mini-month-view-wrap {
+    top: calc(100% + 8px);
+    height: auto;
   }
 
   .time-picker-wrap {
