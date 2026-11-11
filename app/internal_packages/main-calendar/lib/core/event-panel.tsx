@@ -45,6 +45,7 @@ import {
   clampEnd,
   editableFields,
   extractNotesFromDescription,
+  fieldZone,
   formatConflict,
   formatShortTimeRange,
   hasGuests,
@@ -53,6 +54,7 @@ import {
   inclusiveAllDayEnd,
   momentOf,
   PanelField,
+  sameWallClockIn,
   shiftEndWithStart,
 } from './calendar-helpers';
 import {
@@ -70,7 +72,7 @@ import {
   repeatLabel,
   repeatOptionToRRule,
 } from './repeat-selector';
-import { formatTimezone } from './timezone-selector';
+import { COMMON_TIMEZONES, formatTimezone } from './timezone-selector';
 import { ShowAsOption, showAsLabel } from './show-as-selector';
 import {
   canRespondToEvent,
@@ -82,7 +84,7 @@ import {
   ProposedTime,
   respondToCalendarEvent,
 } from './calendar-rsvp';
-import { ChangeScope, EventPropertyEdit } from './recurring-event-actions';
+import { ChangeScope, EventChange, EventPropertyEdit } from './recurring-event-actions';
 import { EventPanelTextField } from './event-panel-text-field';
 import {
   UnsentChange,
@@ -147,11 +149,7 @@ interface EventPanelProps {
   conflicts?: CalendarConflict[];
 }
 
-interface Times {
-  start: number;
-  end: number;
-  isAllDay: boolean;
-}
+type Times = NonNullable<EventChange['times']>;
 
 interface ChangeRow {
   key: string;
@@ -166,6 +164,8 @@ type InviteeState = 'removed' | 'removable' | 'answerable' | '';
 interface EventPanelState {
   /** Read from the event's row: the occurrence doesn't carry it. */
   repeat: RepeatOption;
+  /** Read from the event's row; null for a time in UTC, floating or an event not yet created. */
+  timezone: string | null;
   /** Times changed in the panel, shown until the saved event comes back. */
   times: Times | null;
   proposals: ProposedTime[];
@@ -211,6 +211,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   state: EventPanelState = {
     repeat: 'none',
+    timezone: null,
     times: null,
     proposals: [],
     answerOpen: false,
@@ -266,7 +267,8 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       const { times } = this.state;
       if (times && !this._pendingTimes && (this._timesSaveLanded || this._storedTimesAre(times))) {
         this._timesSaveLanded = false;
-        this.setState({ times: null });
+        // The zone too, until the row is read, so the new times aren't drawn in the old zone.
+        this.setState({ times: null, ...(times.timezone && { timezone: times.timezone }) });
       }
       this._loadEventRow();
     }
@@ -297,9 +299,14 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
-  _storedTimesAre({ start, end, isAllDay }: Times) {
+  _storedTimesAre({ start, end, isAllDay, timezone }: Times) {
     const stored = this._storedTimes();
-    return stored.start === start && stored.end === end && stored.isAllDay === isAllDay;
+    return (
+      stored.start === start &&
+      stored.end === end &&
+      stored.isAllDay === isAllDay &&
+      (timezone ?? this._storedZone()) === this._storedZone()
+    );
   }
 
   focusTitle() {
@@ -353,6 +360,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     if (this.props.event !== occurrence || !row) return;
     this.setState({
       repeat: frequencyToRepeatOption(ICSEventHelpers.getRecurrenceInfo(row.ics).frequency),
+      timezone: ICSEventHelpers.getEventTimezone(row.ics),
     });
     this._loadProposals(occurrence, row);
   }
@@ -453,6 +461,25 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     return occurrenceTimes(this.props.event);
   }
 
+  _storedZone() {
+    return this.state.timezone ?? DateUtils.timeZone;
+  }
+
+  _shownZone() {
+    return this._times().timezone ?? this._storedZone();
+  }
+
+  /** Where the event's zone can be changed its times read in it; elsewhere in yours (undefined). */
+  _zoneOf(times: Times): string | undefined {
+    if (times.isAllDay || !this._canEdit('timezone')) return undefined;
+    return fieldZone(times.timezone ?? this._storedZone());
+  }
+
+  // An occurrence changed on its own can't have a zone of its own (createRecurrenceException).
+  _canChangeZone() {
+    return this._canEdit('timezone') && !this.props.event.isException;
+  }
+
   _changeTimes(times: Times) {
     this._pendingTimes = times;
     this.setState({ times });
@@ -506,13 +533,33 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   // From the days on screen, which may be picked but not yet saved.
   _onAllDayChange = () => {
     const t = this._times();
-    const days = {
-      startDate: CalendarDateUtils.calendarDateFromUnix(t.start),
-      endDate: this._lastDay(t),
-    };
-    this._changeTimes({ ...allDayToggleTimes(days, !t.isAllDay), isAllDay: !t.isAllDay });
+    const days = { startDate: this._firstDay(t), endDate: this._lastDay(t) };
+    // Switched off, 9 AM lands in the zone the fields will read it in.
+    const zone = this._zoneOf({ ...t, isAllDay: false });
+    this._changeTimes({ ...allDayToggleTimes(days, !t.isAllDay, zone), isAllDay: !t.isAllDay });
     this._saveTimes();
   };
+
+  // The times keep the wall clock they show, so the event moves.
+  _onTimezoneChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const timezone = e.target.value;
+    const t = this._times();
+    const from = this._zoneOf(t) ?? DateUtils.timeZone;
+    const to = fieldZone(timezone);
+    this._changeTimes({
+      start: sameWallClockIn(t.start, from, to),
+      end: sameWallClockIn(t.end, from, to),
+      isAllDay: false,
+      ...(timezone !== this._storedZone() && { timezone }),
+    });
+    this._saveTimes();
+  };
+
+  _zoneChoices() {
+    return [
+      ...new Set([this._shownZone(), this._storedZone(), DateUtils.timeZone, ...COMMON_TIMEZONES]),
+    ];
+  }
 
   _onRepeatChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const repeat = e.target.value as RepeatOption;
@@ -588,19 +635,27 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     return event.isCancelled ? <s>{title}</s> : title;
   }
 
+  _firstDay(times: Times) {
+    return CalendarDateUtils.calendarDateFromUnix(times.start, this._zoneOf(times));
+  }
+
   /** The last day the times cover: a timed event ending at midnight doesn't reach the next day. */
-  _lastDay({ start, end, isAllDay }: Times) {
+  _lastDay(times: Times) {
+    const { start, end, isAllDay } = times;
     return CalendarDateUtils.calendarDateFromUnix(
-      isAllDay ? inclusiveAllDayEnd(end) : Math.max(end - 1, start)
+      isAllDay ? inclusiveAllDayEnd(end) : Math.max(end - 1, start),
+      this._zoneOf(times)
     );
   }
 
   _renderEditableWhen() {
     const t = this._times();
-    const multiDay = CalendarDateUtils.calendarDateFromUnix(t.start) !== this._lastDay(t);
+    const zone = this._zoneOf(t);
+    const multiDay = this._firstDay(t) !== this._lastDay(t);
     const endDatePicker = (
       <DatePicker
         value={(t.isAllDay ? inclusiveAllDayEnd(t.end) : t.end) * 1000}
+        timeZone={zone}
         onChange={(ms) =>
           this._changeEnd(
             t.isAllDay
@@ -642,11 +697,12 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           <div className={`event-panel-row ${allDaySwitch ? 'indented' : ''}`}>
             {!allDaySwitch && clock}
             <div className="event-panel-wrap">
-              <TimePicker value={t.start * 1000} onChange={this._changeStart} />
+              <TimePicker value={t.start * 1000} timeZone={zone} onChange={this._changeStart} />
               <SVGIcons.ArrowRight className="event-panel-icon" />
               <TimePicker
                 value={t.end * 1000}
                 relativeTo={t.start * 1000}
+                timeZone={zone}
                 onChange={(ms) => this._changeEnd(ms / 1000)}
               />
               <span className="event-panel-subtle">
@@ -658,11 +714,12 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         <div className={`event-panel-row ${allDaySwitch || !t.isAllDay ? 'indented' : ''}`}>
           {!allDaySwitch && t.isAllDay && clock}
           <div className="event-panel-wrap">
-            <DatePicker value={t.start * 1000} onChange={this._changeStart} />
+            <DatePicker value={t.start * 1000} timeZone={zone} onChange={this._changeStart} />
             {multiDay && <span>–</span>}
             {multiDay && endDatePicker}
           </div>
         </div>
+        {this._renderYourTime(t)}
         {this._renderConflicts()}
         {!allDaySwitch && t.isAllDay && (
           <div className="event-panel-row indented">{localized('All day')}</div>
@@ -670,8 +727,24 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         {!t.isAllDay && (
           <div className="event-panel-row">
             <SVGIcons.Globe className="event-panel-icon" />
-            {/* The zone the times above are shown in, which may not be the event's own. */}
-            {formatTimezone(DateUtils.timeZone)}
+            {this._canChangeZone() ? (
+              <TextSelect
+                value={this._shownZone()}
+                aria-label={localized('Time zone')}
+                onChange={this._onTimezoneChange}
+              >
+                {this._zoneChoices().map((timezone) => (
+                  <option key={timezone} value={timezone}>
+                    {formatTimezone(timezone, t.start)}
+                  </option>
+                ))}
+              </TextSelect>
+            ) : (
+              formatTimezone(
+                this._canEdit('timezone') ? this._shownZone() : DateUtils.timeZone,
+                t.start
+              )
+            )}
           </div>
         )}
         {/* An occurrence changed on its own takes no scope; its rule is the series'. */}
@@ -689,6 +762,22 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             </TextSelect>
           </div>
         )}
+      </div>
+    );
+  }
+
+  _renderYourTime(times: Times) {
+    const zone = this._zoneOf(times);
+    if (!zone || zone === DateUtils.timeZone) return null;
+    const shownDays = daysLabel(this._firstDay(times), this._lastDay(times));
+    const yourDays = daysLabel(
+      CalendarDateUtils.calendarDateFromUnix(times.start),
+      CalendarDateUtils.calendarDateFromUnix(Math.max(times.end - 1, times.start))
+    );
+    const range = formatShortTimeRange(times.start, times.end);
+    return (
+      <div className="event-panel-row indented event-panel-subtle">
+        {localized('%@ your time', yourDays === shownDays ? range : `${yourDays}, ${range}`)}
       </div>
     );
   }
@@ -744,7 +833,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             <div className="event-panel-row">
               <SVGIcons.Globe className="event-panel-icon" />
               {/* The zone the times above are shown in, which may not be the event's own. */}
-              {formatTimezone(DateUtils.timeZone)}
+              {formatTimezone(DateUtils.timeZone, event.start)}
             </div>
           </>
         ) : (
@@ -1058,12 +1147,15 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
+  // In the zone each reads in, named when the change moves the event to another.
   _timesLabel(times: Times, other: Times) {
-    const days = (t: Times) =>
-      daysLabel(CalendarDateUtils.calendarDateFromUnix(t.start), this._lastDay(t));
+    const days = (t: Times) => daysLabel(this._firstDay(t), this._lastDay(t));
     if (times.isAllDay) return days(times);
-    const range = formatShortTimeRange(times.start, times.end);
-    return days(times) === days(other) ? range : `${days(times)}, ${range}`;
+    const zone = this._zoneOf(times);
+    const range = formatShortTimeRange(times.start, times.end, zone);
+    const label = days(times) === days(other) ? range : `${days(times)}, ${range}`;
+    if (other.isAllDay || zone === this._zoneOf(other)) return label;
+    return `${label} ${formatTimezone(times.timezone ?? this._storedZone(), times.start)}`;
   }
 
   _changeRows(change: UnsentChange) {

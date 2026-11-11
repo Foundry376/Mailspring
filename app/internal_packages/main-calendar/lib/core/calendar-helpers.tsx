@@ -383,11 +383,12 @@ export const BarEndTime = ({ event }: { event: TimedOccurrence }) => (
 
 /**
  * A range in formatShortTime's terms, naming the meridiem once when both ends share it:
- * "7:30–8:30PM", "11:30AM–12PM".
+ * "7:30–8:30PM", "11:30AM–12PM". In the machine's zone, or `zone`.
  */
-export function formatShortTimeRange(startUnix: number, endUnix: number): string {
-  const start = moment.unix(startUnix);
-  const end = moment.unix(endUnix);
+export function formatShortTimeRange(startUnix: number, endUnix: number, zone?: string): string {
+  const at = (unix: number) => (zone ? momentTz.tz(unix * 1000, zone) : moment.unix(unix));
+  const start = at(startUnix);
+  const end = at(endUnix);
   let startFormat = shortTimeFormat(start);
   // Only a meridiem standing alone at either end; lb's "[Auer]" literal and ne's "Aको" stay whole.
   const separateMeridiem = /^[aA]\s+|\s*[aA]$/;
@@ -507,6 +508,8 @@ export interface CreateCalendarEventOptions {
   isAllDay: boolean;
   calendarId: string;
   accountId: string;
+  /** The zone a timed event's times are written in; the machine's when omitted. */
+  timezone?: string;
   description?: string;
   location?: string;
   attendees?: Array<{ email: string; name?: string }>;
@@ -534,7 +537,7 @@ export function queueNewCalendarEvent(options: CreateCalendarEventOptions): {
     start: options.start,
     end: options.end,
     isAllDay: options.isAllDay,
-    timezone: DateUtils.timeZone,
+    timezone: options.timezone ?? DateUtils.timeZone,
     description: options.description,
     location: options.location,
     organizer: organizerForAccount(options.accountId),
@@ -614,6 +617,7 @@ export function hasGuests(event: EventOccurrence): boolean {
 export type PanelField =
   | 'title'
   | 'times'
+  | 'timezone'
   | 'allDay'
   | 'repeat'
   | 'invitees'
@@ -624,6 +628,7 @@ export type PanelField =
 const PANEL_FIELDS: PanelField[] = [
   'title',
   'times',
+  'timezone',
   'allDay',
   'repeat',
   'invitees',
@@ -674,10 +679,14 @@ export function holdsEdits(
   return !isCalendarReadOnly && (hasGuests(event) || asksScope(event) || !!change);
 }
 
-/** The times an event takes when All day is switched: whole days covering it, or 9–10 AM on its first day. */
+/**
+ * The times an event takes when All day is switched: whole days covering it, or 9–10 AM on its
+ * first day, in `zone` when given.
+ */
 export function allDayToggleTimes(
   { startDate, endDate }: Pick<EventOccurrence, 'startDate' | 'endDate'>,
-  allDay: boolean
+  allDay: boolean,
+  zone?: string
 ) {
   if (allDay) {
     return {
@@ -685,6 +694,8 @@ export function allDayToggleTimes(
       end: CalendarDateUtils.nextDayStartUnix(endDate),
     };
   }
-  const start = CalendarDateUtils.secondsIntoDayUnix(startDate, 9 * 3600);
+  const start = zone
+    ? momentTz.tz(`${CalendarDateUtils.formatCalendarDate(startDate)}T09:00`, zone).unix()
+    : CalendarDateUtils.secondsIntoDayUnix(startDate, 9 * 3600);
   return { start, end: start + DEFAULT_TIMED_EVENT_DURATION_SECONDS };
 }
