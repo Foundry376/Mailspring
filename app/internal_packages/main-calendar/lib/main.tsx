@@ -84,6 +84,7 @@ const CalendarNavRailItem = () => (
   <NavRailItem
     label={localized('Calendar')}
     iconName="ic-calendar-month.png"
+    order={2}
     command="application:show-calendar"
     isActive={() => WorkspaceStore.rootSheet() === WorkspaceStore.Sheet.Calendar}
   />
