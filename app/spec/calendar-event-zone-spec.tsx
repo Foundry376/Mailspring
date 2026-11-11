@@ -164,8 +164,9 @@ describe("an event's own time zone", function () {
 UID:zone@test
 DTSTART;TZID=America/Chicago:20260108T090000
 DTEND;TZID=America/Chicago:20260108T100000
-RRULE:FREQ=WEEKLY
-EXDATE;TZID=America/Chicago:20260122T090000
+RRULE:FREQ=WEEKLY;UNTIL=20261231T150000Z
+RDATE;TZID=America/Chicago:20260103T090000
+EXDATE;TZID=America/Chicago:20260122T090000,20260716T090000
 SUMMARY:Planning
 DTSTAMP:20260101T000000Z
 SEQUENCE:0
@@ -192,7 +193,9 @@ END:VEVENT`);
       modifySeriesChange(row, slot, { times, edits: [] });
 
       expect(row.ics).toContain('DTSTART;TZID=Asia/Tokyo:20260108T090000');
-      expect(row.ics).toContain('EXDATE;TZID=Asia/Tokyo:20260122T090000');
+      expect(row.ics).toContain('EXDATE;TZID=Asia/Tokyo:20260122T090000,20260716T090000');
+      expect(row.ics).toContain('RDATE;TZID=Asia/Tokyo:20260103T090000');
+      expect(row.ics).toContain('UNTIL=20261231T000000Z');
       expect(row.ics).toContain('RECURRENCE-ID;TZID=Asia/Tokyo:20260205T090000');
       expect(row.ics).toContain('DTSTART;TZID=America/Chicago:20260205T110000');
     });
