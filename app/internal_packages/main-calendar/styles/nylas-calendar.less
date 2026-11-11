@@ -193,6 +193,11 @@ body.platform-win32 {
     height: 100%;
     flex: 1;
     position: relative;
+
+    // Focused only so the arrow keys scroll it, after Esc or a click on an empty slot.
+    &:focus-visible {
+      outline: none;
+    }
   }
 
   // min-width:0: the default min-width:auto sets a floor that makes a heading wider than its column.

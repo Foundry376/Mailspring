@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom';
 import moment from 'moment';
 import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
 import { TimeGridView } from '../internal_packages/main-calendar/lib/core/time-grid-view';
+import { CalendarEvent } from '../internal_packages/main-calendar/lib/core/calendar-event';
+import { MonthViewEvent } from '../internal_packages/main-calendar/lib/core/month-view-event';
 import {
   DayPlacement,
   eventInDirection,
@@ -98,7 +100,7 @@ class FakeGrid extends React.Component<{ placements: DayPlacement[] }> {
   }
 }
 
-describe('the arrow keys with an event selected', function () {
+describe('the arrow keys and Esc with an event selected', function () {
   const first = timedOccurrence('first', '2026-11-11T09:00:00', '2026-11-11T09:30:00');
   const second = timedOccurrence('second', '2026-11-11T11:00:00', '2026-11-11T11:30:00');
   let host: HTMLDivElement;
@@ -146,5 +148,87 @@ describe('the arrow keys with an event selected', function () {
     document.getElementById('agenda-row').focus();
     calendar._onStepFromSelectedEvent('down');
     expect(calendar.state.selectedEvents.map((o) => o.id)).toEqual(['first']);
+  });
+
+  it('clears the selection on Esc and moves focus from the event to the grid', function () {
+    calendar._onBackToAgenda();
+    expect(calendar.state.selectedEvents).toEqual([]);
+    expect(document.activeElement.className).toBe('calendar-view');
+  });
+
+  it('leaves focus in the agenda on Esc', function () {
+    document.getElementById('agenda-row').focus();
+    calendar._onBackToAgenda();
+    expect(document.activeElement.id).toBe('agenda-row');
+  });
+});
+
+describe('focus on an event', function () {
+  const occurrence = timedOccurrence('planning', '2026-11-11T09:00:00', '2026-11-11T10:00:00');
+  const scopeStart = moment('2026-11-11T00:00:00').unix();
+  const views: [string, any, object][] = [
+    [
+      'CalendarEvent',
+      CalendarEvent,
+      { direction: 'vertical', scopeStart, scopeEnd: scopeStart + 86400 },
+    ],
+    ['MonthViewEvent', MonthViewEvent, {}],
+  ];
+
+  views.forEach(([name, Component, props]) => {
+    describe(`in a ${name}`, function () {
+      let host: HTMLDivElement;
+      let onFocused: jasmine.Spy;
+      const render = (selected: boolean) =>
+        ReactDOM.render(
+          React.createElement(Component, {
+            event: occurrence,
+            focused: false,
+            selected,
+            onClick: () => {},
+            onDoubleClick: () => {},
+            onFocused,
+            ...props,
+          }),
+          host
+        );
+      const element = () => host.firstElementChild as HTMLElement;
+
+      beforeEach(function () {
+        onFocused = jasmine.createSpy('onFocused');
+        host = document.createElement('div');
+        document.body.appendChild(host);
+        (document.activeElement as HTMLElement)?.blur?.();
+      });
+
+      afterEach(function () {
+        ReactDOM.unmountComponentAtNode(host);
+        host.remove();
+      });
+
+      it('selects it when it comes from the keyboard', function () {
+        render(false);
+        element().focus();
+        expect(onFocused).toHaveBeenCalledWith(occurrence);
+      });
+
+      it('leaves selecting to the click when it comes from a press', function () {
+        render(false);
+        element().dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+        element().focus();
+        expect(onFocused).not.toHaveBeenCalled();
+
+        // The press is spent: focus coming back by keyboard selects again.
+        element().blur();
+        element().focus();
+        expect(onFocused.callCount).toBe(1);
+      });
+
+      it('does nothing for an event already selected', function () {
+        render(true);
+        element().focus();
+        expect(onFocused).not.toHaveBeenCalled();
+      });
+    });
   });
 });

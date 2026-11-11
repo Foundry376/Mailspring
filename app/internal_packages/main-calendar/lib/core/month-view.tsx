@@ -244,7 +244,7 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
 
   render() {
     return (
-      <div className="calendar-view month-view">
+      <div className="calendar-view month-view" tabIndex={-1}>
         <CalendarEventContainer
           onCalendarMouseUp={this.props.onCalendarMouseUp}
           onCalendarMouseDown={this.props.onCalendarMouseDown}

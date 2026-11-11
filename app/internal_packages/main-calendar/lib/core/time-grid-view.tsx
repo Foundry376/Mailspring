@@ -452,7 +452,10 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     const todayOffset = CalendarDateUtils.calendarDaysBetween(firstVisible, dateOf(this._now()));
 
     return (
-      <div className={classnames('calendar-view', 'week-view', { 'day-view': visibleDays === 1 })}>
+      <div
+        className={classnames('calendar-view', 'week-view', { 'day-view': visibleDays === 1 })}
+        tabIndex={-1}
+      >
         <CalendarEventContainer
           onCalendarMouseUp={this.props.onCalendarMouseUp}
           onCalendarMouseDown={this.props.onCalendarMouseDown}

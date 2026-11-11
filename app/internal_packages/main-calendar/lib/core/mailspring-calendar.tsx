@@ -306,6 +306,12 @@ export class MailspringCalendar extends React.Component<
     if (!this._mayLeave([])) return;
     this._releaseHeldUnless([]);
     this.setState({ selectedEvents: [], focusedEvent: null });
+    // Off the event, which is no longer selected, so the arrows scroll; the agenda keeps its own.
+    if (!document.activeElement?.closest('.agenda-panel')) {
+      (ReactDOM.findDOMNode(this._gridView()) as HTMLElement | null)?.focus({
+        preventScroll: true,
+      });
+    }
   };
 
   _releaseHeldUnless(selected: EventOccurrence[]) {
