@@ -107,7 +107,7 @@ class WorkspaceStore extends MailspringStore {
 
     if (AppEnv.isMainWindow()) {
       this._rebuildShortcuts();
-      this.listen(() => AppEnv.menu.setSectionMenu(this.rootSheet()?.menu || null));
+      this.listen(() => AppEnv.menu.setSectionMenu(this.rootSheet().menu || null));
     }
   }
 

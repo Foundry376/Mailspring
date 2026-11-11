@@ -23,7 +23,6 @@ class ContactsWindowStore extends MailspringStore {
   _filtered: Contact[] | null = null;
   _editing: string | 'new' | false = false;
 
-  /** Called when Contacts first shows, so the main window doesn't query contacts at launch. */
   start() {
     if (this._contactsSubscription) return;
 

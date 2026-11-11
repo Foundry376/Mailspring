@@ -55,12 +55,12 @@ const contactMenu: (typeof AppEnv.menu.template)[0] = {
   ],
 };
 
+const isShowingContacts = () => WorkspaceStore.rootSheet() === WorkspaceStore.Sheet.Contacts;
+
 // Sent by the main process for application:show-contacts, from the rail, the Window menu, the
 // shortcut or Preferences.
 function onShowContacts() {
-  if (WorkspaceStore.rootSheet() !== WorkspaceStore.Sheet.Contacts) {
-    Actions.selectRootSheet(WorkspaceStore.Sheet.Contacts);
-  }
+  if (!isShowingContacts()) Actions.selectRootSheet(WorkspaceStore.Sheet.Contacts);
 }
 
 const ContactsNavRailItem = () => (
@@ -69,13 +69,13 @@ const ContactsNavRailItem = () => (
     iconName="people.png"
     order={4}
     command="application:show-contacts"
-    isActive={() => WorkspaceStore.rootSheet() === WorkspaceStore.Sheet.Contacts}
+    isActive={isShowingContacts}
   />
 );
 ContactsNavRailItem.displayName = 'ContactsNavRailItem';
 
 function startStoreWhenShowing() {
-  if (WorkspaceStore.rootSheet() === WorkspaceStore.Sheet.Contacts) Store.start();
+  if (isShowingContacts()) Store.start();
 }
 
 let _commandDisposable: { dispose: () => void } | null = null;

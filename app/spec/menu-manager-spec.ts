@@ -79,12 +79,7 @@ describe('MenuManager', function () {
       menu.template = ['File', 'Edit', 'View', 'Thread', 'Window'].map((id) => ({ id, label: id }));
     });
 
-    it('shows the section menu after Edit, in place of View and Thread', function () {
-      menu.setSectionMenu(calendar);
-      expect(ids()).toEqual(['File', 'Edit', 'Calendar', 'Window']);
-    });
-
-    it('swaps one section menu for another without bringing back View and Thread', function () {
+    it('swaps one section menu for another, after Edit and without View and Thread', function () {
       menu.setSectionMenu(calendar);
       menu.setSectionMenu(contact);
       expect(ids()).toEqual(['File', 'Edit', 'Contact', 'Window']);
