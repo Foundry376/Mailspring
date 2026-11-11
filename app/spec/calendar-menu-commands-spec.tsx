@@ -9,6 +9,7 @@ describe('CalendarMenuCommands', function () {
   let host: HTMLDivElement;
   let onNavigatePrevious: jasmine.Spy;
   let onNavigateNext: jasmine.Spy;
+  let onScrollHours: jasmine.Spy;
 
   const render = (hasSelectedEvents: boolean, view = CalendarView.WEEK) =>
     ReactDOM.render(
@@ -17,6 +18,7 @@ describe('CalendarMenuCommands', function () {
         onChangeFocusedMoment={() => {}}
         onNavigateNext={onNavigateNext}
         onNavigatePrevious={onNavigatePrevious}
+        onScrollHours={onScrollHours}
         onDeleteEvent={() => {}}
         onRefreshCalendars={() => {}}
         hasSelectedEvents={hasSelectedEvents}
@@ -30,6 +32,7 @@ describe('CalendarMenuCommands', function () {
   beforeEach(function () {
     onNavigatePrevious = jasmine.createSpy('onNavigatePrevious');
     onNavigateNext = jasmine.createSpy('onNavigateNext');
+    onScrollHours = jasmine.createSpy('onScrollHours');
     host = document.createElement('div');
     document.body.appendChild(host);
     (document.activeElement as HTMLElement)?.blur?.();
@@ -48,7 +51,7 @@ describe('CalendarMenuCommands', function () {
     expect(onNavigateNext.callCount).toBe(1);
   });
 
-  it('steps through months on up and down in Month view only', function () {
+  it('steps through months on up and down in Month view, and scrolls the hours in Week', function () {
     render(false, CalendarView.MONTH);
     AppEnv.commands.dispatch('core:previous-item');
     AppEnv.commands.dispatch('core:next-item');
@@ -60,6 +63,7 @@ describe('CalendarMenuCommands', function () {
     AppEnv.commands.dispatch('core:next-item');
     expect(onNavigatePrevious.callCount).toBe(1);
     expect(onNavigateNext.callCount).toBe(1);
+    expect(onScrollHours.calls.map((c) => c.args)).toEqual([[-1], [1]]);
 
     render(true, CalendarView.MONTH);
     AppEnv.commands.dispatch('core:previous-item');

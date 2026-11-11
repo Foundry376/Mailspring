@@ -18,7 +18,13 @@ import {
   inAllDayRow,
   isTimed,
 } from './calendar-data-source';
-import { centerGridScroll, dateOf, formatShortTime, momentOf } from './calendar-helpers';
+import {
+  DayPlacement,
+  centerGridScroll,
+  dateOf,
+  formatShortTime,
+  momentOf,
+} from './calendar-helpers';
 import { EventGridBackground } from './event-grid-background';
 import { WeekViewEventColumn } from './week-view-event-column';
 import { WeekViewAllDayEvents } from './week-view-all-day-events';
@@ -27,6 +33,8 @@ import { CurrentTimeIndicator, CurrentTimeLabel, EachMinute } from './current-ti
 import { BAR_HEIGHT, CalendarView, EVENT_GAP } from './calendar-constants';
 import {
   overlapForEvents,
+  columnSpan,
+  DAY_DUR,
   drawnInGrid,
   eventsGroupedByDay,
   exclusiveDayEnds,
@@ -216,6 +224,46 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
   _onClickToday = () => {
     this.props.onChangeFocusedMoment(this._now());
   };
+
+  /** The events on the days shown, for the arrow keys: the all-day row's lanes, then the hours. */
+  dayPlacements(): DayPlacement[] {
+    const { firstVisible } = this.state;
+    const events = withUnsentChange(this.state.events, this.props.unsentChange);
+    const dayStarts = Array.from({ length: this.props.visibleDays }, (_, i) =>
+      CalendarDateUtils.addCalendarDays(firstVisible, i)
+    );
+    const days = dayStarts.map(momentOf);
+    const dayEnds = exclusiveDayEnds(days);
+    const placements: DayPlacement[] = [];
+
+    const { allDayEvents, allDayOverlap } = this._allDay(events, firstVisible);
+    dayStarts.forEach((date, day) => {
+      for (const occurrence of allDayEvents) {
+        if (occurrence.startDate <= date && occurrence.endDate >= date) {
+          placements.push({ occurrence, day, rank: allDayOverlap[occurrence.id].order - DAY_DUR });
+        }
+      }
+    });
+
+    const eventsByDay = eventsGroupedByDay(events, days, this._inRow);
+    days.forEach((d, day) => {
+      const column = { start: d.unix(), end: dayEnds[day] };
+      const timed = eventsByDay[d.unix()].filter(isTimed);
+      const overlap = overlapForEvents(timed, column);
+      for (const occurrence of timed) {
+        // Side by side at the same start, left before right.
+        const rank = columnSpan(occurrence, column).top + (overlap[occurrence.id].order - 1) / 100;
+        placements.push({ occurrence, day, rank });
+      }
+    });
+    return placements;
+  }
+
+  /** An hour up or down. */
+  scrollHours(direction: 1 | -1) {
+    const viewportEl = this._gridScrollRegion.current?.viewportEl;
+    if (viewportEl) viewportEl.scrollTop += direction * 2 * this.state.intervalHeight;
+  }
 
   _isToday(day: Moment) {
     return day.isSame(this._now(), 'day');

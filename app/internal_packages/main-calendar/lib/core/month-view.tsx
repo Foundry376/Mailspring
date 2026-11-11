@@ -16,7 +16,7 @@ import {
 } from './month-view-helpers';
 import { getEventsWithDragPreview, withNewEventPreview } from './calendar-drag-utils';
 import { withUnsentChange } from './unsent-change';
-import { momentOf } from './calendar-helpers';
+import { DayPlacement, momentOf } from './calendar-helpers';
 import { WeekdayHeader } from './weekday-header';
 
 const DAYS_IN_WEEK = 7;
@@ -52,6 +52,8 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
 
   _topWeek: CalendarDate;
   _sub: EventRangeSubscription;
+  /** The weeks on screen as last drawn, which hold the "+N more" a bar may be hidden in. */
+  _visibleLayouts: WeekBarsLayout[] = [];
 
   constructor(props: MailspringCalendarViewProps) {
     super(props);
@@ -142,6 +144,21 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
     this.props.onChangeFocusedMoment(newMoment);
   };
 
+  /** The bars on screen, for the arrow keys: day by day through the weeks, down by lane. */
+  dayPlacements(): DayPlacement[] {
+    return this._visibleLayouts.flatMap(({ bars }, week) =>
+      bars
+        .filter(({ event }) => !event.isDragPreview)
+        .flatMap(({ event, firstColumn, lastColumn, lane }) =>
+          Array.from({ length: lastColumn - firstColumn + 1 }, (_, i) => ({
+            occurrence: event,
+            day: week * DAYS_IN_WEEK + firstColumn + i,
+            rank: lane,
+          }))
+        )
+    );
+  }
+
   _onDayClick = (day: Moment) => {
     // Navigate to week view centered on this day
     this.props.onChangeFocusedMoment(day);
@@ -211,9 +228,8 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
     const layouts = weeks.map((days) => layoutWeekBars(events, days, maxLanes));
     const visibleFrom =
       CalendarDateUtils.calendarDaysBetween(weekStarts[0], topWeek) / DAYS_IN_WEEK;
-    const visibleBarIds = firstVisibleBarIds(
-      layouts.slice(visibleFrom, visibleFrom + VISIBLE_WEEKS)
-    );
+    this._visibleLayouts = layouts.slice(visibleFrom, visibleFrom + VISIBLE_WEEKS);
+    const visibleBarIds = firstVisibleBarIds(this._visibleLayouts);
     const currentMonth = momentOf(this.state.shownMonth).month();
     return weeks.map((days, idx) =>
       this._renderWeek(

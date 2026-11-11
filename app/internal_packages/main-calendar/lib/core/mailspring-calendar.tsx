@@ -1,5 +1,6 @@
 import moment, { Moment } from 'moment';
 import React from 'react';
+import ReactDOM from 'react-dom';
 import {
   Rx,
   DatabaseStore,
@@ -62,6 +63,8 @@ import {
   editableFields,
   holdsEdits,
   proposesTime,
+  ArrowDirection,
+  eventInDirection,
 } from './calendar-helpers';
 import { Disposable } from 'rx-core';
 import { CalendarEventArgs } from './calendar-event-container';
@@ -223,6 +226,7 @@ export class MailspringCalendar extends React.Component<
   /** Selected occurrences moved here but not yet synced back, by the id they will be drawn under. */
   _pendingMoves = new Map<string, { start: number; staleIcs: string }>();
   _timeGrid = React.createRef<TimeGridView>();
+  _monthView = React.createRef<MonthView>();
   _eventPanel = React.createRef<EventPanel>();
 
   constructor(props: MailspringCalendarProps) {
@@ -1138,6 +1142,40 @@ export class MailspringCalendar extends React.Component<
     };
   }
 
+  _gridView() {
+    return this.state.view === CalendarView.MONTH
+      ? this._monthView.current
+      : this._timeGrid.current;
+  }
+
+  /** An arrow with an event selected selects the next one that way on the grid. */
+  _onStepFromSelectedEvent = (direction: ArrowDirection) => {
+    const [from] = this.state.selectedEvents;
+    const view = this._gridView();
+    if (
+      !from ||
+      !view ||
+      document.activeElement?.closest('.agenda-panel') ||
+      this._focusInEventPanel()
+    ) {
+      return;
+    }
+    const target = eventInDirection(view.dayPlacements(), from.id, direction);
+    if (!target || !this._select([target])) return;
+
+    // An event across midnight is drawn once per day, the first maybe on a day scrolled out of view.
+    const viewEl = ReactDOM.findDOMNode(view) as HTMLElement;
+    const bounds = viewEl.getBoundingClientRect();
+    const el = Array.from(
+      viewEl.querySelectorAll<HTMLElement>(`[id="${CSS.escape(target.id)}"]`)
+    ).find((e) => {
+      const r = e.getBoundingClientRect();
+      return r.right > bounds.left && r.left < bounds.right;
+    });
+    el?.focus({ preventScroll: true });
+    (el as any)?.scrollIntoViewIfNeeded(false);
+  };
+
   /** Option+arrow: a quarter hour up or down in Day and Week, a day left or right. */
   _onMoveSelectedEvent = (direction: 'up' | 'down' | 'left' | 'right') => {
     // An event selected from the agenda panel may be off the grid, so the keys don't move it.
@@ -1424,7 +1462,7 @@ export class MailspringCalendar extends React.Component<
     }
     const { view } = this.state;
     if (view === CalendarView.MONTH) {
-      return <MonthView {...this._viewProps()} />;
+      return <MonthView ref={this._monthView} {...this._viewProps()} />;
     }
     return (
       <TimeGridView
@@ -1521,6 +1559,7 @@ export class MailspringCalendar extends React.Component<
         onChangeFocusedMoment={this.onChangeFocusedMoment}
         onNavigateNext={this._onNavigateNext}
         onNavigatePrevious={this._onNavigatePrevious}
+        onScrollHours={(direction) => this._timeGrid.current?.scrollHours(direction)}
         onDeleteEvent={this._onDeleteSelectedEvents}
         onRefreshCalendars={this._onRefreshCalendars}
         hasSelectedEvents={this.state.selectedEvents.length > 0}
@@ -1532,6 +1571,10 @@ export class MailspringCalendar extends React.Component<
             'core:pop-sheet': this._onBackToAgenda,
             'core:focus-item': this._unlessFocusInEventPanel(this._onEditSelectedEvent),
             'core:remove-from-view': this._unlessFocusInEventPanel(this._onDeleteSelectedEvents),
+            'core:previous-item': () => this._onStepFromSelectedEvent('up'),
+            'core:next-item': () => this._onStepFromSelectedEvent('down'),
+            'core:move-left': () => this._onStepFromSelectedEvent('left'),
+            'core:move-right': () => this._onStepFromSelectedEvent('right'),
             'calendar:move-event-up': () => this._onMoveSelectedEvent('up'),
             'calendar:move-event-down': () => this._onMoveSelectedEvent('down'),
             'calendar:move-event-left': () => this._onMoveSelectedEvent('left'),

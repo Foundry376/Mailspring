@@ -9,6 +9,7 @@ interface CalendarMenuCommandsProps {
   onChangeFocusedMoment: (m: moment.Moment) => void;
   onNavigateNext: () => void;
   onNavigatePrevious: () => void;
+  onScrollHours: (direction: 1 | -1) => void;
   onDeleteEvent: () => void;
   onRefreshCalendars: () => void;
   hasSelectedEvents: boolean;
@@ -41,10 +42,13 @@ export class CalendarMenuCommands extends React.Component<CalendarMenuCommandsPr
       };
       commands['core:move-left'] = stepBack;
       commands['core:move-right'] = stepForward;
-      // Month view steps vertically; Day and Week leave up/down to scroll the hours.
+      // Month view steps vertically; Day and Week scroll the hours.
       if (this.props.view === CalendarView.MONTH) {
         commands['core:previous-item'] = stepBack;
         commands['core:next-item'] = stepForward;
+      } else {
+        commands['core:previous-item'] = () => this.props.onScrollHours(-1);
+        commands['core:next-item'] = () => this.props.onScrollHours(1);
       }
     }
 
