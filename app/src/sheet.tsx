@@ -17,6 +17,9 @@ const COLUMN_META: Record<string, { role: string; label: () => string }> = {
   CalendarSidebar: { role: 'complementary', label: () => localized('Calendar sidebar') },
   CalendarContent: { role: 'region', label: () => localized('Calendar') },
   ActivityContent: { role: 'region', label: () => localized('Activity') },
+  ContactsSidebar: { role: 'complementary', label: () => localized('Contacts sidebar') },
+  ContactsList: { role: 'region', label: () => localized('Contact list') },
+  ContactsDetail: { role: 'region', label: () => localized('Contact details') },
 };
 
 // The sections share one sidebar width, so switching between them leaves the toolbar in place.
