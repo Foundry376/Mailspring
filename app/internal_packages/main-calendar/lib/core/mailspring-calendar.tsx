@@ -333,7 +333,10 @@ export class MailspringCalendar extends React.Component<
     if (this._proposes(stored) && times.isAllDay !== stored.isAllDay) return true;
     if (!this._select([stored])) return true;
     if (showAsWaitsForScope(change)) return true;
-    this.setState({ unsentChange: withTimes(change, stored, times, occurrenceTimes(stored)) });
+    // A drag moves the times, not the zone the held change picked.
+    const timezone = !times.isAllDay && change?.times?.timezone;
+    const held = timezone ? { ...times, timezone } : times;
+    this.setState({ unsentChange: withTimes(change, stored, held, occurrenceTimes(stored)) });
     return true;
   }
 
