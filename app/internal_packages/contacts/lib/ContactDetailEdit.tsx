@@ -1,7 +1,7 @@
 import React from 'react';
 import { AccountStore, Contact, localized } from 'mailspring-exports';
 import { ContactProfilePhoto, SVGIcons } from 'mailspring-component-kit';
-import { ContactBase } from './ContactInfoMapping';
+import { ContactBase, ContactInteractorMetadata } from './ContactInfoMapping';
 import { BirthdayInput } from './BirthdayInput';
 import { ListEditor } from './ListEditor';
 import { TypeaheadFreeInput } from './TypeaheadFreeInput';
@@ -70,11 +70,14 @@ const TypeField = ({
 export class ContactDetailEdit extends React.Component<{
   data: ContactBase;
   contact: Contact;
+  metadata?: ContactInteractorMetadata;
   onChange: (changes: Partial<ContactBase>) => void;
 }> {
   render() {
-    const { onChange, contact, data } = this.props;
+    const { onChange, contact, data, metadata } = this.props;
     const account = AccountStore.accountForId(contact.accountId);
+    const limits = metadata?.limits || {};
+    const types = metadata?.types || {};
 
     return (
       <div className="contact-detail-content-wrap editing">
@@ -101,6 +104,7 @@ export class ContactDetailEdit extends React.Component<{
             items={data.nicknames || []}
             itemTemplate={{ value: '' }}
             addLabel={localized('Add nickname')}
+            maxItems={limits.nicknames}
             onChange={(items) => onChange({ nicknames: items })}
           >
             {(item, onChange) => (
@@ -131,6 +135,7 @@ export class ContactDetailEdit extends React.Component<{
             items={data.emailAddresses || []}
             itemTemplate={{ type: '', value: '' }}
             addLabel={localized('Add email')}
+            maxItems={limits.emailAddresses}
             onChange={(items) => onChange({ emailAddresses: items })}
           >
             {(item, onChange) => (
@@ -156,6 +161,7 @@ export class ContactDetailEdit extends React.Component<{
             items={data.phoneNumbers || []}
             itemTemplate={{ type: '', value: '' }}
             addLabel={localized('Add phone')}
+            maxItems={limits.phoneNumbers}
             onChange={(items) => onChange({ phoneNumbers: items })}
           >
             {(item, onChange) => (
@@ -168,7 +174,7 @@ export class ContactDetailEdit extends React.Component<{
                 />
                 <TypeField
                   value={item.type}
-                  suggestions={PhoneTypes}
+                  suggestions={types.phoneNumbers || PhoneTypes}
                   onChange={(type) => onChange({ type })}
                 />
               </div>
@@ -190,6 +196,7 @@ export class ContactDetailEdit extends React.Component<{
               extendedAddress: '',
             }}
             addLabel={localized('Add address')}
+            maxItems={limits.addresses}
             onChange={(items) => onChange({ addresses: items })}
           >
             {(item, onChange) => (
@@ -244,6 +251,7 @@ export class ContactDetailEdit extends React.Component<{
             items={data.birthdays || []}
             itemTemplate={{ date: { year: null, month: null, day: null } }}
             addLabel={localized('Add birthday')}
+            maxItems={limits.birthdays}
             onChange={(items) => onChange({ birthdays: items })}
           >
             {(item, onChange) => (
@@ -269,7 +277,7 @@ export class ContactDetailEdit extends React.Component<{
                   />
                   <TypeField
                     value={item.type}
-                    suggestions={RelationTypes}
+                    suggestions={types.relations || RelationTypes}
                     onChange={(type) => onChange({ type })}
                   />
                 </div>
@@ -283,6 +291,7 @@ export class ContactDetailEdit extends React.Component<{
             items={data.urls || []}
             itemTemplate={{ value: '', type: '' }}
             addLabel={localized('Add website')}
+            maxItems={limits.urls}
             onChange={(items) => onChange({ urls: items })}
           >
             {(item, onChange) => (

@@ -1,13 +1,22 @@
 import vCard from 'vcf';
-import { ContactInfoGoogle, ContactInfoVCF, Contact, Utils } from 'mailspring-exports';
+import {
+  ContactInfoGoogle,
+  ContactInfoGraph,
+  ContactInfoGraphAddress,
+  ContactInfoVCF,
+  Contact,
+  ContactBook,
+  AccountStore,
+  Utils,
+} from 'mailspring-exports';
 import * as VCFHelpers from './VCFHelpers';
 import { displayNameForContact } from './ContactDisplayName';
 
 /**
-This file contains business logic that maps two separate "contact.info" formats onto
-a shared "ContactBase" interface. This sucks, but it's much easier to implement in JS
-than in the sync engine, and necessary because Google's CardDav support is very bad
-and we need to use their "Google People" API instead.
+This file contains business logic that maps the "contact.info" formats (vCard, Google
+People, Microsoft Graph) onto a shared "ContactBase" interface. This sucks, but it's much
+easier to implement in JS than in the sync engine, and necessary because Google's CardDav
+support is very bad and Microsoft has none, so we use their "Google People" and Graph APIs.
 */
 export interface ContactBase {
   name: {
@@ -42,6 +51,10 @@ export interface ContactBase {
 export interface ContactInteractorMetadata {
   origin: string;
   readonly: boolean;
+  /** The most entries the service stores in each list; the editor offers no more. */
+  limits?: Partial<Record<keyof ContactBase, number>>;
+  /** Labels the service can tell apart, suggested in place of the editor's own. */
+  types?: { phoneNumbers?: string[]; relations?: string[] };
 }
 
 export interface ContactParseResult {
@@ -289,13 +302,246 @@ export function applyToGoogle(contact: Contact, changes: Partial<ContactBase>) {
   }
 }
 
+/* Outlook's fixed slots: three emails, two business and two home phones and one mobile, one
+ address each of home, business and other, one web page and one birthday. Graph refuses more
+ (ErrorInvalidProperty "exceeds the max allowed value"). */
+const GRAPH_LIMITS: ContactInteractorMetadata['limits'] = {
+  emailAddresses: 3,
+  phoneNumbers: 5,
+  addresses: 3,
+  urls: 1,
+  nicknames: 1,
+  birthdays: 1,
+};
+const GRAPH_PHONE_SLOTS = { Mobile: 1, Work: 2, Home: 2 };
+const GRAPH_ADDRESS_SLOTS: { [type: string]: keyof ContactInfoGraph } = {
+  Home: 'homeAddress',
+  Work: 'businessAddress',
+  Other: 'otherAddress',
+};
+const GRAPH_RELATIONS: { [type: string]: 'spouseName' | 'manager' | 'assistantName' } = {
+  Spouse: 'spouseName',
+  Manager: 'manager',
+  Assistant: 'assistantName',
+};
+// Outlook stores a birthday without a year in 1604, and every birthday at 11:59 UTC.
+const GRAPH_NO_YEAR = 1604;
+
+function graphAddressToBase(
+  address: ContactInfoGraphAddress,
+  type: string
+): ContactBase['addresses'][0] {
+  const [streetAddress, ...rest] = (address.street || '').split(/\r?\n/);
+  const result = {
+    type,
+    formattedValue: '',
+    streetAddress: streetAddress || '',
+    extendedAddress: rest.join(' '),
+    city: address.city || '',
+    region: address.state || '',
+    postalCode: address.postalCode || '',
+    country: address.countryOrRegion || '',
+  };
+  result.formattedValue = VCFHelpers.formatAddress(result);
+  return result;
+}
+
+/* Parse a Contact with Microsoft Graph info into the shared details format. Graph has a fixed
+ slot for each kind of phone and address, which become their labels. */
+export function fromGraph(info: ContactInfoGraph): ContactParseResult {
+  const addresses = Object.entries(GRAPH_ADDRESS_SLOTS)
+    .filter(([, key]) => Object.keys(info[key] || {}).length > 0)
+    .map(([type, key]) => graphAddressToBase(info[key] as ContactInfoGraphAddress, type));
+
+  const birthday = /^(\d{4})-(\d{2})-(\d{2})/.exec(info.birthday || '');
+  const year = birthday && Number(birthday[1]);
+
+  return {
+    metadata: {
+      origin: 'Outlook Contacts',
+      readonly: false,
+      limits: GRAPH_LIMITS,
+      types: {
+        phoneNumbers: Object.keys(GRAPH_PHONE_SLOTS),
+        relations: ['Spouse', 'Child', 'Manager', 'Assistant'],
+      },
+    },
+    data: {
+      name: {
+        displayName: info.displayName || '',
+        givenName: info.givenName || '',
+        familyName: info.surname || '',
+        honorificPrefix: info.title || '',
+        honorificSuffix: info.generation || '',
+      },
+      nicknames: info.nickName ? [{ value: info.nickName }] : [],
+      company: info.companyName || '',
+      title: info.jobTitle || '',
+      emailAddresses: (info.emailAddresses || []).map((e) => ({ value: e.address })),
+      phoneNumbers: [
+        ...(info.mobilePhone ? [{ value: info.mobilePhone, type: 'Mobile' }] : []),
+        ...(info.businessPhones || []).map((value) => ({ value, type: 'Work' })),
+        ...(info.homePhones || []).map((value) => ({ value, type: 'Home' })),
+      ],
+      addresses,
+      urls: info.businessHomePage ? [{ value: info.businessHomePage, type: 'Work' }] : [],
+      birthdays: birthday
+        ? [
+            {
+              date: {
+                year: year === GRAPH_NO_YEAR ? null : year,
+                month: Number(birthday[2]),
+                day: Number(birthday[3]),
+              },
+            },
+          ]
+        : [],
+      relations: [
+        ...Object.entries(GRAPH_RELATIONS)
+          .filter(([, key]) => info[key])
+          .map(([type, key]) => ({ person: info[key] as string, type })),
+        ...(info.children || []).map((person) => ({ person, type: 'Child' })),
+      ],
+      notes: info.personalNotes || undefined,
+    },
+  };
+}
+
+/** Puts each item in the slot its label names, then the rest in whichever slots are free,
+ in `slots` order. Items beyond the slots are dropped; the editor offers no more. */
+function assignToSlots<T extends { type?: string }>(
+  items: T[],
+  slots: { [type: string]: number }
+): { [type: string]: T[] } {
+  const result: { [type: string]: T[] } = {};
+  const free = (type: string) => (result[type] || []).length < slots[type];
+  const slotFor = (label: string) =>
+    Object.keys(slots).find((type) => type.toLowerCase() === (label || '').trim().toLowerCase());
+  const unplaced: T[] = [];
+  for (const item of items) {
+    const type = slotFor(item.type);
+    if (type && free(type)) {
+      result[type] = [...(result[type] || []), item];
+    } else {
+      unplaced.push(item);
+    }
+  }
+  for (const item of unplaced) {
+    const type = Object.keys(slots).find(free);
+    if (type) result[type] = [...(result[type] || []), item];
+  }
+  return result;
+}
+
+/** applyToGraph: Apply the changes from the UI back to a Contact with its info in the
+ * Microsoft Graph format. Only the fields behind changed parts are rewritten, and the
+ * engine PATCHes only the fields that differ.
+ */
+export function applyToGraph(contact: Contact, changes: Partial<ContactBase>) {
+  if (contact.source !== 'graph' || !contact.info) {
+    throw new Error('applyToGraph invoked with wrong contact type.');
+  }
+  const info = { ...(contact.info as ContactInfoGraph) };
+
+  for (const key of Object.keys(changes)) {
+    if (key === 'name') {
+      info.givenName = changes.name.givenName;
+      info.surname = changes.name.familyName;
+      info.displayName = VCFHelpers.formatDisplayName(changes.name);
+      contact.name = info.displayName;
+    } else if (key === 'nicknames') {
+      info.nickName = changes.nicknames[0]?.value || null;
+    } else if (key === 'company') {
+      info.companyName = changes.company;
+    } else if (key === 'title') {
+      info.jobTitle = changes.title;
+    } else if (key === 'emailAddresses') {
+      // Graph keeps a display name beside each address; keep the one an address already had.
+      const names = new Map((info.emailAddresses || []).map((e) => [e.address, e.name]));
+      info.emailAddresses = changes.emailAddresses
+        .filter((e) => e.value)
+        .slice(0, GRAPH_LIMITS.emailAddresses)
+        .map((e) => ({
+          address: e.value,
+          name: names.get(e.value) || info.displayName || e.value,
+        }));
+      contact.email = info.emailAddresses[0]?.address || '';
+    } else if (key === 'phoneNumbers') {
+      const slots = assignToSlots(
+        changes.phoneNumbers.filter((p) => p.value),
+        GRAPH_PHONE_SLOTS
+      );
+      info.mobilePhone = (slots.Mobile || [])[0]?.value || null;
+      info.businessPhones = (slots.Work || []).map((p) => p.value);
+      info.homePhones = (slots.Home || []).map((p) => p.value);
+    } else if (key === 'addresses') {
+      const slots = assignToSlots(changes.addresses, { Home: 1, Work: 1, Other: 1 });
+      for (const [type, field] of Object.entries(GRAPH_ADDRESS_SLOTS)) {
+        const address = (slots[type] || [])[0];
+        (info as any)[field] = address
+          ? {
+              street: [address.streetAddress, address.extendedAddress].filter(Boolean).join('\n'),
+              city: address.city,
+              state: address.region,
+              postalCode: address.postalCode,
+              countryOrRegion: address.country,
+            }
+          : {};
+      }
+    } else if (key === 'urls') {
+      info.businessHomePage = changes.urls[0]?.value || null;
+    } else if (key === 'birthdays') {
+      const date = changes.birthdays[0]?.date;
+      info.birthday =
+        date && date.month && date.day
+          ? `${
+              VCFHelpers.serializeBirthday({ date: { ...date, year: date.year || GRAPH_NO_YEAR } })
+                .value
+            }T11:59:00Z`
+          : null;
+    } else if (key === 'relations') {
+      for (const [type, field] of Object.entries(GRAPH_RELATIONS)) {
+        info[field] = changes.relations.find((r) => r.type === type)?.person || null;
+      }
+      info.children = changes.relations.filter((r) => r.type === 'Child').map((r) => r.person);
+    } else if (key === 'notes') {
+      info.personalNotes = changes.notes;
+    } else {
+      console.log(`Unsure of how to apply changes to ${key}`);
+    }
+  }
+  contact.info = info;
+}
+
+/** The `source` of the account's address book: what a new contact in it is stored as. */
+export function contactSourceForAccount(accountId: string, books: ContactBook[]): string {
+  const book = books.find((b) => b.accountId === accountId);
+  if (book) return book.source;
+  return AccountStore.accountForId(accountId)?.provider === 'gmail' ? 'gpeople' : 'carddav';
+}
+
+export function emptyContactForAccount(accountId: string, source: string) {
+  const info: Contact['info'] =
+    source === 'gpeople'
+      ? { names: [], resourceName: '', etag: '', addresses: [] }
+      : source === 'graph'
+        ? { displayName: '', emailAddresses: [] }
+        : {
+            vcf: `BEGIN:VCARD\r\nVERSION:3.0\r\nUID:${crypto.randomUUID()}\r\nEND:VCARD\r\n`,
+            href: '',
+          };
+  return new Contact({ source, name: '', email: '', accountId, info });
+}
+
 export function parse(contact: Contact): ContactParseResult {
   try {
     return !contact.info || Object.keys(contact.info).length === 0
       ? fromContact(contact)
-      : 'vcf' in contact.info
-        ? fromVCF(contact.info)
-        : fromGoogle(contact.info);
+      : contact.source === 'graph'
+        ? fromGraph(contact.info as ContactInfoGraph)
+        : 'vcf' in contact.info
+          ? fromVCF(contact.info)
+          : fromGoogle(contact.info as ContactInfoGoogle);
   } catch (err) {
     console.warn(`Parsing of contact ${contact.email} failed: ${err.toString()}`);
     return fromContact(contact);
@@ -315,6 +561,8 @@ export function apply(contact: Contact, nextData: ContactBase) {
   try {
     if (!contact.info) {
       // readonly
+    } else if (contact.source === 'graph') {
+      applyToGraph(next, changedData);
     } else if ('vcf' in contact.info) {
       applyToVCF(next, changedData);
     } else {

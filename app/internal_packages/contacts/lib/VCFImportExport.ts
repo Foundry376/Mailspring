@@ -2,8 +2,22 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import vCard from 'vcf';
-import { Contact, SyncbackContactTask, Actions, AccountStore, localized } from 'mailspring-exports';
-import { parse, fromVCF } from './ContactInfoMapping';
+import {
+  Contact,
+  ContactInfoVCF,
+  SyncbackContactTask,
+  Actions,
+  AccountStore,
+  localized,
+} from 'mailspring-exports';
+import {
+  parse,
+  fromVCF,
+  applyToGraph,
+  contactSourceForAccount,
+  emptyContactForAccount,
+} from './ContactInfoMapping';
+import { Store } from './Store';
 import { formatDisplayName, serializeBirthday, serializeAddress } from './VCFHelpers';
 
 /**
@@ -180,12 +194,28 @@ export function exportContactsToFile(contacts: Contact[]) {
   });
 }
 
+/** A contact read from a VCF, as a new contact in a Microsoft Graph account. Outlook keeps
+ only so many of each field, so a card with more loses the extras (see applyToGraph). */
+function vcfContactAsGraphContact(contact: Contact, accountId: string): Contact {
+  const graph = emptyContactForAccount(accountId, 'graph');
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { photoURL, ...data } = fromVCF(contact.info as ContactInfoVCF).data;
+    applyToGraph(graph, data);
+  } catch (err) {
+    console.warn('VCF import: failed to map vCard to an Outlook contact:', err);
+  }
+  graph.name = graph.name || contact.name;
+  graph.email = graph.email || contact.email;
+  return graph;
+}
+
 /**
  * Import contacts from already-resolved file paths into the given account.
  * Used by both the file-dialog import and the drag-drop handler.
  *
- * Import is only supported for CardDAV accounts; Google (gpeople) accounts do
- * not support creating contacts via the VCF path in the sync engine.
+ * Import is supported for CardDAV and Microsoft Graph accounts; Google (gpeople)
+ * accounts do not support creating contacts via the VCF path in the sync engine.
  */
 export function importContactsFromPaths(filePaths: string[], accountId: string) {
   const account = AccountStore.accountForId(accountId);
@@ -223,6 +253,9 @@ export function importContactsFromPaths(filePaths: string[], accountId: string) 
     return;
   }
 
+  if (contactSourceForAccount(accountId, Store.books()) === 'graph') {
+    contacts = contacts.map((c) => vcfContactAsGraphContact(c, accountId));
+  }
   for (const contact of contacts) {
     Actions.queueTask(SyncbackContactTask.forCreating({ contact, accountId }));
   }
