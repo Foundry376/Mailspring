@@ -80,14 +80,14 @@ describe('moving a meeting we do not organize', function () {
 
   it('answers an arrow key the same way', function () {
     calendar.state.selectedEvents = [uninvitedMeeting];
-    calendar._onMoveSelectedEvent('down', false);
+    calendar._onMoveSelectedEvent('down');
     expect(notice).toHaveBeenCalledWith(uninvitedMeeting);
   });
 
   it('says nothing for an arrow key on a read-only calendar', function () {
     calendar.state.readOnlyCalendarIds = new Set(['c']);
     calendar.state.selectedEvents = [uninvitedMeeting];
-    calendar._onMoveSelectedEvent('down', false);
+    calendar._onMoveSelectedEvent('down');
     expect(notice).not.toHaveBeenCalled();
   });
 });

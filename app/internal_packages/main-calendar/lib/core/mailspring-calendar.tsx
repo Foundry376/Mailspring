@@ -55,7 +55,6 @@ import {
   showReadOnlyCalendarError,
   invalidateThemeTextColorCache,
   shiftEndWithStart,
-  clampEnd,
   newEventOccurrence,
   NewEventDraft,
   queueNewCalendarEvent,
@@ -1139,10 +1138,8 @@ export class MailspringCalendar extends React.Component<
     };
   }
 
-  /**
-   * Handle keyboard shortcuts for moving/resizing events
-   */
-  _onMoveSelectedEvent = (direction: 'up' | 'down' | 'left' | 'right', isResize: boolean) => {
+  /** Option+arrow: a quarter hour up or down in Day and Week, a day left or right. */
+  _onMoveSelectedEvent = (direction: 'up' | 'down' | 'left' | 'right') => {
     // An event selected from the agenda panel may be off the grid, so the keys don't move it.
     if (
       this.state.selectedEvents.length === 0 ||
@@ -1204,8 +1201,7 @@ export class MailspringCalendar extends React.Component<
       return;
     }
 
-    // Apply the change
-    this._applyKeyboardEventChange(occurrence, timeDelta, isResize);
+    this._applyKeyboardEventChange(occurrence, timeDelta);
   };
 
   /**
@@ -1213,11 +1209,7 @@ export class MailspringCalendar extends React.Component<
    * Handles recurring events by showing the dialog to choose between
    * modifying this occurrence or all occurrences.
    */
-  async _applyKeyboardEventChange(
-    occurrence: EventOccurrence,
-    timeDelta: number,
-    isResize: boolean
-  ) {
+  async _applyKeyboardEventChange(occurrence: EventOccurrence, timeDelta: number) {
     try {
       // The keyboard pipeline is unix, so derive instants for all-day occurrences (dates only).
       const occStart = occurrenceStartUnix(occurrence);
@@ -1229,29 +1221,16 @@ export class MailspringCalendar extends React.Component<
         // Only left/right reaches here, so the delta is a day in either direction. Shifting
         // by calendar days rather than 86400 seconds keeps the times on midnight across a
         // DST transition, where a seconds shift overshoots and snaps up an extra day.
-        const days = Math.sign(timeDelta);
-        newStart = isResize ? occStart : CalendarDateUtils.shiftedDayStartUnix(occStart, days);
-        newEnd = isResize
-          ? clampEnd(newStart, CalendarDateUtils.shiftedDayStartUnix(occEnd, days), true)
-          : shiftEndWithStart(occStart, occEnd, newStart, true);
-        const snapped = snapAllDayTimes(newStart, newEnd);
+        newStart = CalendarDateUtils.shiftedDayStartUnix(occStart, Math.sign(timeDelta));
+        const snapped = snapAllDayTimes(
+          newStart,
+          shiftEndWithStart(occStart, occEnd, newStart, true)
+        );
         newStart = snapped.start;
         newEnd = snapped.end;
-      } else if (isResize) {
-        // Shift+Arrow: resize the event (change end time only)
-        newStart = occStart;
-        newEnd = clampEnd(newStart, occEnd + timeDelta, false);
       } else {
-        // Arrow: move the event (change both start and end)
         newStart = occStart + timeDelta;
         newEnd = occEnd + timeDelta;
-      }
-
-      // Resizing at the minimum duration clamps back to the current end, so the change can
-      // be a no-op. Bail like the mouse-up path does, rather than queueing a syncback and an
-      // undo toast for an identical event — or prompting for a recurring series that won't move.
-      if (newStart === occStart && newEnd === occEnd) {
-        return;
       }
 
       if (
@@ -1275,16 +1254,12 @@ export class MailspringCalendar extends React.Component<
         newEnd,
         isAllDay: occurrence.isAllDay,
         isException: occurrence.isException,
-        description: isResize ? localized('Resize event') : localized('Move event'),
+        description: localized('Move event'),
       };
 
       // The change is written onto `event` before it is queued.
       const staleIcs = event.ics;
-      const result = await modifyEventWithRecurringSupport(
-        options,
-        isResize ? 'resize' : 'move',
-        occurrence.title
-      );
+      const result = await modifyEventWithRecurringSupport(options, 'move', occurrence.title);
       if (result.success) {
         this._followMove(occurrence, event, newStart, staleIcs);
       }
@@ -1557,14 +1532,10 @@ export class MailspringCalendar extends React.Component<
             'core:pop-sheet': this._onBackToAgenda,
             'core:focus-item': this._unlessFocusInEventPanel(this._onEditSelectedEvent),
             'core:remove-from-view': this._unlessFocusInEventPanel(this._onDeleteSelectedEvents),
-            'calendar:move-event-up': () => this._onMoveSelectedEvent('up', false),
-            'calendar:move-event-down': () => this._onMoveSelectedEvent('down', false),
-            'calendar:move-event-left': () => this._onMoveSelectedEvent('left', false),
-            'calendar:move-event-right': () => this._onMoveSelectedEvent('right', false),
-            'calendar:resize-event-up': () => this._onMoveSelectedEvent('up', true),
-            'calendar:resize-event-down': () => this._onMoveSelectedEvent('down', true),
-            'calendar:resize-event-left': () => this._onMoveSelectedEvent('left', true),
-            'calendar:resize-event-right': () => this._onMoveSelectedEvent('right', true),
+            'calendar:move-event-up': () => this._onMoveSelectedEvent('up'),
+            'calendar:move-event-down': () => this._onMoveSelectedEvent('down'),
+            'calendar:move-event-left': () => this._onMoveSelectedEvent('left'),
+            'calendar:move-event-right': () => this._onMoveSelectedEvent('right'),
           }}
         >
           {this._renderGridArea()}

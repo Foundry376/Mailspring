@@ -103,7 +103,7 @@ describe('clampEnd', function () {
   });
 
   // Shrinking a one-day event returns its own end untouched, so a caller must treat that as
-  // a no-op. _applyKeyboardEventChange relies on this; that guard has no test of its own.
+  // a no-op.
   it('returns the end unchanged when a one-day event is shrunk', function () {
     const start = localDay(2026, 6, 22);
     const end = localDay(2026, 6, 23);

@@ -32,19 +32,19 @@ export class CalendarMenuCommands extends React.Component<CalendarMenuCommandsPr
     if (this.props.hasSelectedEvents) {
       commands['core:delete-item'] = this.props.onDeleteEvent;
     } else {
-      // With nothing selected, the keys that move an event step through time instead.
+      // With nothing selected, the arrows step through time.
       const stepBack = () => {
         if (!PopoverStore.isOpen) this.props.onNavigatePrevious();
       };
       const stepForward = () => {
         if (!PopoverStore.isOpen) this.props.onNavigateNext();
       };
-      commands['calendar:move-event-left'] = stepBack;
-      commands['calendar:move-event-right'] = stepForward;
+      commands['core:move-left'] = stepBack;
+      commands['core:move-right'] = stepForward;
       // Month view steps vertically; Day and Week leave up/down to scroll the hours.
       if (this.props.view === CalendarView.MONTH) {
-        commands['calendar:move-event-up'] = stepBack;
-        commands['calendar:move-event-down'] = stepForward;
+        commands['core:previous-item'] = stepBack;
+        commands['core:next-item'] = stepForward;
       }
     }
 
