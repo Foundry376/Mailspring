@@ -1,3 +1,4 @@
+import { ipcRenderer } from 'electron';
 import {
   WorkspaceStore,
   ComponentRegistry,
@@ -14,56 +15,57 @@ import { FoundInMailEnabledBar } from './FoundInMailEnabledBar';
 import { Store } from './Store';
 import { exportContactsToFile, importContactsFromFile } from './VCFImportExport';
 
-function adjustMenus() {
-  const contactMenu: (typeof AppEnv.menu.template)[0] = {
-    id: 'Contact',
-    label: localized('Contact'),
-    submenu: [
-      {
-        label: localized('New Contact'),
-        command: 'core:add-item',
-      },
-      { type: 'separator' },
-      {
-        label: localized('Import vCards...'),
-        command: 'contacts:import-vcf',
-      },
-      {
-        label: localized('Export All vCards...'),
-        command: 'contacts:export-vcf-all',
-      },
-      {
-        label: localized('Export Selected...'),
-        command: 'contacts:export-vcf-selected',
-      },
-      { type: 'separator' },
-      {
-        label: localized('Edit Contact'),
-        command: 'core:edit-item',
-      },
-      {
-        label: localized('Delete Contact'),
-        command: 'core:delete-item',
-      },
-      { type: 'separator' },
-      {
-        label: localized('Remove from Group'),
-        command: 'core:remove-from-view',
-      },
-    ],
-  };
+const contactMenu: (typeof AppEnv.menu.template)[0] = {
+  id: 'Contact',
+  label: localized('Contact'),
+  submenu: [
+    {
+      label: localized('New Contact'),
+      command: 'core:add-item',
+    },
+    { type: 'separator' },
+    {
+      label: localized('Import vCards...'),
+      command: 'contacts:import-vcf',
+    },
+    {
+      label: localized('Export All vCards...'),
+      command: 'contacts:export-vcf-all',
+    },
+    {
+      label: localized('Export Selected...'),
+      command: 'contacts:export-vcf-selected',
+    },
+    { type: 'separator' },
+    {
+      label: localized('Edit Contact'),
+      command: 'core:edit-item',
+    },
+    {
+      label: localized('Delete Contact'),
+      command: 'core:delete-item',
+    },
+    { type: 'separator' },
+    {
+      label: localized('Remove from Group'),
+      command: 'core:remove-from-view',
+    },
+  ],
+};
 
-  const template = AppEnv.menu.template.filter(
-    (item) => item.id !== 'Thread' && item.id !== 'View'
-  );
-  const editIndex = template.findIndex((item) => item.id === 'Edit');
-  template.splice(editIndex + 1, 0, contactMenu);
+// Sent by the main process for application:show-contacts, from the Window menu or Preferences.
+function onShowContacts() {
+  if (WorkspaceStore.rootSheet() !== WorkspaceStore.Sheet.Contacts) {
+    Actions.selectRootSheet(WorkspaceStore.Sheet.Contacts);
+  }
+}
 
-  AppEnv.menu.template = template;
-  AppEnv.menu.update();
+function startStoreWhenShowing() {
+  if (WorkspaceStore.rootSheet() === WorkspaceStore.Sheet.Contacts) Store.start();
 }
 
 let _commandDisposable: { dispose: () => void } | null = null;
+let _unlistenWorkspace: (() => void) | null = null;
 
 function resolveImportAccountId(): string | null {
   const perspective = Store.perspective();
@@ -78,12 +80,11 @@ function resolveImportAccountId(): string | null {
 export function activate() {
   WorkspaceStore.defineSheet(
     'Contacts',
-    { root: true },
+    { root: true, menu: contactMenu },
     { split: ['ContactsSidebar', 'ContactsList', 'ContactsDetail'] }
   );
-
-  adjustMenus();
-  Actions.selectRootSheet(WorkspaceStore.Sheet.Contacts);
+  _unlistenWorkspace = WorkspaceStore.listen(startStoreWhenShowing);
+  ipcRenderer.on('show-contacts', onShowContacts);
 
   _commandDisposable = AppEnv.commands.add(document.body, {
     'contacts:import-vcf': () => {
@@ -141,4 +142,7 @@ export function deactivate() {
   ComponentRegistry.unregister(AddContactToolbar);
   _commandDisposable?.dispose();
   _commandDisposable = null;
+  _unlistenWorkspace?.();
+  _unlistenWorkspace = null;
+  ipcRenderer.removeListener('show-contacts', onShowContacts);
 }

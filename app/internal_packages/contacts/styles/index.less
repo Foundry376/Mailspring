@@ -10,6 +10,11 @@
   }
 }
 
+// Same specificity as `.contacts-perspective-list`, so a theme's own colour still wins.
+:where(.nav-rail-content) .contacts-perspective-list {
+  background-color: @source-list-inset-bg;
+}
+
 .contact-detail-column {
   height: 100%;
   flex: 1;

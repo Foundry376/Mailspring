@@ -19,8 +19,11 @@ const COLUMN_META: Record<string, { role: string; label: () => string }> = {
   ActivityContent: { role: 'region', label: () => localized('Activity') },
 };
 
-// Mail and Calendar share one sidebar width, so switching sections leaves the toolbar in place.
-const COLUMN_WIDTH_KEYS: Record<string, string> = { CalendarSidebar: 'RootSidebar' };
+// The sections share one sidebar width, so switching between them leaves the toolbar in place.
+const COLUMN_WIDTH_KEYS: Record<string, string> = {
+  CalendarSidebar: 'RootSidebar',
+  ContactsSidebar: 'RootSidebar',
+};
 const columnWidthKey = (id: string) => COLUMN_WIDTH_KEYS[id] || id;
 
 interface SheetLocation {
