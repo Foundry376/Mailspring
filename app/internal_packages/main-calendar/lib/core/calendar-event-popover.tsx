@@ -731,7 +731,7 @@ class CalendarEventPopoverUnenditable extends React.Component<
             <RetinaImg
               className="edit-icon"
               name="edit-icon.png"
-              title="Edit Item"
+              title={localized('Edit Item')}
               mode={RetinaImg.Mode.ContentIsMask}
               onClick={onEdit}
             />

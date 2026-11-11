@@ -9,7 +9,7 @@ import {
   SnapScrollTarget,
   withSmallMeridiem,
 } from 'mailspring-component-kit';
-import { CalendarDate, CalendarDateUtils } from 'mailspring-exports';
+import { CalendarDate, CalendarDateUtils, localized } from 'mailspring-exports';
 import CalendarHeaderStore from './calendar-header-store';
 import VisibleRangeStore from './visible-range-store';
 import {
@@ -425,7 +425,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
                 style={{ height: allDayBarHeight + DATE_LABELS_HEIGHT + 1 }}
               >
                 <div className="all-day-legend" style={{ top: DATE_LABELS_HEIGHT }}>
-                  <span className="legend-text">All Day</span>
+                  <span className="legend-text">{localized('All Day')}</span>
                 </div>
               </div>
               <div className="event-grid-legend-wrap" ref={this._legendWrapEl}>

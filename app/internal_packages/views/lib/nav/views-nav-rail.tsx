@@ -100,7 +100,7 @@ export class ViewsNavRailSection extends React.Component<Record<string, never>, 
           iconName="plugins.png"
           tooltip={{
             title: localized('Views'),
-            description: localized('Your custom views of your mail, and the starters.'),
+            description: localized('Your custom Views of your mail, and the starters.'),
           }}
           active={showing && !viewHasItem}
           onClick={() => ViewsNavStore.showHome()}
