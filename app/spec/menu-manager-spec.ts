@@ -69,4 +69,31 @@ describe('MenuManager', function () {
       });
     });
   });
+
+  describe('::setSectionMenu(menu)', function () {
+    const calendar = { id: 'Calendar', label: 'Calendar', submenu: [] };
+    const contact = { id: 'Contact', label: 'Contact', submenu: [] };
+    const ids = () => menu.visibleTemplate().map((item) => item.id);
+
+    beforeEach(function () {
+      menu.template = ['File', 'Edit', 'View', 'Thread', 'Window'].map((id) => ({ id, label: id }));
+    });
+
+    it('shows the section menu after Edit, in place of View and Thread', function () {
+      menu.setSectionMenu(calendar);
+      expect(ids()).toEqual(['File', 'Edit', 'Calendar', 'Window']);
+    });
+
+    it('swaps one section menu for another without bringing back View and Thread', function () {
+      menu.setSectionMenu(calendar);
+      menu.setSectionMenu(contact);
+      expect(ids()).toEqual(['File', 'Edit', 'Contact', 'Window']);
+    });
+
+    it('restores View and Thread where they were once no section menu shows', function () {
+      menu.setSectionMenu(calendar);
+      menu.setSectionMenu(null);
+      expect(ids()).toEqual(['File', 'Edit', 'View', 'Thread', 'Window']);
+    });
+  });
 });
