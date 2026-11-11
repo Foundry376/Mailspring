@@ -1,3 +1,4 @@
+import React from 'react';
 import { ipcRenderer } from 'electron';
 import {
   WorkspaceStore,
@@ -6,6 +7,7 @@ import {
   AccountStore,
   localized,
 } from 'mailspring-exports';
+import { NavRailItem } from 'mailspring-component-kit';
 import { ContactPerspectivesList } from './ContactPerspectivesList';
 import { ContactDetailToolbar } from './ContactDetailToolbar';
 import { AddContactToolbar } from './AddContactToolbar';
@@ -53,12 +55,24 @@ const contactMenu: (typeof AppEnv.menu.template)[0] = {
   ],
 };
 
-// Sent by the main process for application:show-contacts, from the Window menu or Preferences.
+// Sent by the main process for application:show-contacts, from the rail, the Window menu, the
+// shortcut or Preferences.
 function onShowContacts() {
   if (WorkspaceStore.rootSheet() !== WorkspaceStore.Sheet.Contacts) {
     Actions.selectRootSheet(WorkspaceStore.Sheet.Contacts);
   }
 }
+
+const ContactsNavRailItem = () => (
+  <NavRailItem
+    label={localized('Contacts')}
+    iconName="people.png"
+    order={4}
+    command="application:show-contacts"
+    isActive={() => WorkspaceStore.rootSheet() === WorkspaceStore.Sheet.Contacts}
+  />
+);
+ContactsNavRailItem.displayName = 'ContactsNavRailItem';
 
 function startStoreWhenShowing() {
   if (WorkspaceStore.rootSheet() === WorkspaceStore.Sheet.Contacts) Store.start();
@@ -130,6 +144,7 @@ export function activate() {
   ComponentRegistry.register(AddContactToolbar, {
     location: WorkspaceStore.Location.ContactsSidebar.Toolbar,
   });
+  ComponentRegistry.register(ContactsNavRailItem, { role: 'NavRail:Item' });
 }
 
 export function deactivate() {
@@ -140,6 +155,7 @@ export function deactivate() {
   ComponentRegistry.unregister(ContactDetail);
   ComponentRegistry.unregister(ContactDetailToolbar);
   ComponentRegistry.unregister(AddContactToolbar);
+  ComponentRegistry.unregister(ContactsNavRailItem);
   _commandDisposable?.dispose();
   _commandDisposable = null;
   _unlistenWorkspace?.();
