@@ -84,7 +84,7 @@ import {
   ProposedTime,
   respondToCalendarEvent,
 } from './calendar-rsvp';
-import { ChangeScope, EventPropertyEdit } from './recurring-event-actions';
+import { ChangeScope, EventChange, EventPropertyEdit } from './recurring-event-actions';
 import { EventPanelTextField } from './event-panel-text-field';
 import {
   UnsentChange,
@@ -149,13 +149,7 @@ interface EventPanelProps {
   conflicts?: CalendarConflict[];
 }
 
-interface Times {
-  start: number;
-  end: number;
-  isAllDay: boolean;
-  /** Only when the times move the event to this zone. */
-  timezone?: string;
-}
+type Times = NonNullable<EventChange['times']>;
 
 interface ChangeRow {
   key: string;
@@ -540,7 +534,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   _onAllDayChange = () => {
     const t = this._times();
     const days = { startDate: this._firstDay(t), endDate: this._lastDay(t) };
-    // Back to timed, 9 AM is where the fields will read it.
+    // Switched off, 9 AM lands in the zone the fields will read it in.
     const zone = this._zoneOf({ ...t, isAllDay: false });
     this._changeTimes({ ...allDayToggleTimes(days, !t.isAllDay, zone), isAllDay: !t.isAllDay });
     this._saveTimes();
@@ -1161,7 +1155,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     const range = formatShortTimeRange(times.start, times.end, zone);
     const label = days(times) === days(other) ? range : `${days(times)}, ${range}`;
     if (other.isAllDay || zone === this._zoneOf(other)) return label;
-    return `${label} ${formatTimezone(times.timezone ?? this._storedZone())}`;
+    return `${label} ${formatTimezone(times.timezone ?? this._storedZone(), times.start)}`;
   }
 
   _changeRows(change: UnsentChange) {

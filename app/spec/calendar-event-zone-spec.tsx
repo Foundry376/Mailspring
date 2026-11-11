@@ -17,6 +17,7 @@ import {
 import {
   newEventOptions,
   scopesFor,
+  withTimes,
 } from '../internal_packages/main-calendar/lib/core/unsent-change';
 import { formatTimezone } from '../internal_packages/main-calendar/lib/core/timezone-selector';
 import * as CalendarDateUtils from '../src/calendar-date';
@@ -109,17 +110,18 @@ describe("an event's own time zone", function () {
     });
 
   it('moves a one-off to the zone picked, at the wall clock it showed', async function () {
-    const row = rowFor(oneOff('America/Chicago', '20261110T093000', '20261110T103000'));
-    const start = at('2026-11-10T09:30', 'America/Chicago');
+    // Neither zone is the spec machine's, which the wall clock must not be read in.
+    const row = rowFor(oneOff('Asia/Tokyo', '20261111T093000', '20261111T103000'));
+    const start = at('2026-11-11T09:30', 'Asia/Tokyo');
     const panel = await render(ours(start, start + HOUR), row);
 
-    pickZone('Asia/Tokyo');
+    pickZone('Europe/London');
     await panel._saving;
     modifyEventChange(row, onSaveChange.calls[0].args[0], 'this-occurrence');
 
-    expect(row.ics).toContain('DTSTART;TZID=Asia/Tokyo:20261110T093000');
-    expect(row.ics).toContain('DTEND;TZID=Asia/Tokyo:20261110T103000');
-    expect(row.ics).not.toContain('America/Chicago');
+    expect(row.ics).toContain('DTSTART;TZID=Europe/London:20261111T093000');
+    expect(row.ics).toContain('DTEND;TZID=Europe/London:20261111T103000');
+    expect(row.ics).not.toContain('Asia/Tokyo');
   });
 
   it("reads the times in the event's zone, and saves an edit at that zone's wall clock", async function () {
@@ -155,6 +157,14 @@ describe("an event's own time zone", function () {
 
     expect(ics).toContain('DTSTART;TZID=Asia/Tokyo:20261110T090000');
     expect(ics).toContain('DTEND;TZID=Asia/Tokyo:20261110T100000');
+  });
+
+  it("holds a move to a zone at the same offset, though the times don't change", function () {
+    const start = at('2026-11-10T09:00', 'Europe/Paris');
+    const stored = { start, end: start + HOUR, isAllDay: false };
+    const moved = { ...stored, timezone: 'Europe/Berlin' };
+
+    expect(withTimes(null, ours(start, start + HOUR), moved, stored)?.times).toEqual(moved);
   });
 
   describe('on a series', function () {

@@ -43,7 +43,6 @@ export const COMMON_TIMEZONES = Object.keys(TIMEZONE_DISPLAY_NAMES);
  * DST moves it. A zone tzdata doesn't know keeps its name alone.
  */
 export function formatTimezone(tz: string, atUnix?: number): string {
-  // Use friendly name if available, otherwise format from timezone ID
   const name = TIMEZONE_DISPLAY_NAMES[tz] ?? tz.split('/').pop().replace(/_/g, ' ');
   const zone = atUnix === undefined ? null : CalendarUtils.resolveIanaZone(tz);
   if (!zone) return name;
