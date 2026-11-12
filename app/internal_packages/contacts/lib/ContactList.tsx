@@ -225,29 +225,32 @@ const ContactListSearchWithData = (props: ContactListSearchWithDataProps) => {
   const searchEl = useRef<HTMLInputElement>(null);
   return (
     <div className="contact-search">
-      <RetinaImg
-        className="search-accessory search"
-        name="searchloupe.png"
-        mode={RetinaImg.Mode.ContentDark}
-        onClick={() => searchEl.current?.focus()}
-      />
-      <input
-        type="text"
-        ref={searchEl}
-        value={props.search}
-        placeholder={`${localized('Search')} ${
-          props.perspective.type === 'unified' ? 'All Contacts' : props.perspective.label
-        }`}
-        onChange={(e) => props.setSearch(e.currentTarget.value)}
-      />
-      {props.search.length > 0 && (
+      <div className="contact-search-bar">
         <RetinaImg
-          name="searchclear.png"
-          className="search-accessory clear"
+          className="search-accessory search"
+          name="searchloupe.png"
           mode={RetinaImg.Mode.ContentDark}
-          onMouseDown={() => props.setSearch('')}
+          onClick={() => searchEl.current?.focus()}
         />
-      )}
+        <input
+          type="text"
+          className="contact-search-input"
+          ref={searchEl}
+          value={props.search}
+          placeholder={`${localized('Search')} ${
+            props.perspective.type === 'unified' ? 'All Contacts' : props.perspective.label
+          }`}
+          onChange={(e) => props.setSearch(e.currentTarget.value)}
+        />
+        {props.search.length > 0 && (
+          <RetinaImg
+            name="searchclear.png"
+            className="search-accessory clear"
+            mode={RetinaImg.Mode.ContentDark}
+            onMouseDown={() => props.setSearch('')}
+          />
+        )}
+      </div>
     </div>
   );
 };
