@@ -21,10 +21,10 @@ describe('EventSearchBar results', function () {
 
   it("lists each result with its day and times in the locale's clock", function () {
     moment.locale('en');
-    expect(render()).toContain('Tue, Mar 3 · 3:00 PM - 4:30 PM');
+    expect(render()).toContain('Tue, Mar 3 · 3\u2009–\u20094:30PM');
     moment.locale('de');
     expect(render()).toContain(
-      `${moment('2026-03-03T15:00:00').format('ddd, MMM D')} · 15:00 - 16:30`
+      `${moment('2026-03-03T15:00:00').format('ddd, MMM D')} · 15:00\u2009–\u200916:30`
     );
   });
 });

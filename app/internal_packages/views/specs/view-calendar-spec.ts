@@ -191,6 +191,24 @@ describe('Views calendar API', function () {
       ).toEqual(['ro']);
     });
 
+    it('reports an invitation we have not answered as tentative', () => {
+      spyOn(AccountStore, 'accountForEmail').andCallFake((email) =>
+        email === ME ? ({ id: 'a1' } as any) : null
+      );
+      const range = parseRange({ start: '2026-10-12T00:00:00Z', end: '2026-10-13T00:00:00Z' });
+      const events = [
+        new Event({
+          id: 'e1',
+          accountId: 'a1',
+          calendarId: 'c1',
+          ics: invitationICS(),
+          icsuid: 'abc@example.com',
+        } as any),
+      ];
+      const calendars = [new Calendar({ id: 'c1', accountId: 'a1' } as any)];
+      expect(serializeEvents(WRITE, events, calendars, range)[0].status).toBe('TENTATIVE');
+    });
+
     it('merges busy time, ignoring declined, cancelled and all-day events', () => {
       const range = parseRange({ start: '2026-10-12T00:00:00Z', end: '2026-10-13T00:00:00Z' });
       const result = freeBusy(

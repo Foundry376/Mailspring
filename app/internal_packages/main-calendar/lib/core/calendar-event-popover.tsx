@@ -18,6 +18,7 @@ import {
   ScrollRegion,
   TabGroupRegion,
   TimePicker,
+  withSmallMeridiem,
 } from 'mailspring-component-kit';
 import { EventAttendeesInput } from './event-attendees-input';
 import {
@@ -35,7 +36,7 @@ import {
   shiftEndWithStart,
   clampEnd,
   extractNotesFromDescription,
-  formatTime,
+  formatShortTimeRange,
   fieldZone,
   sameWallClockIn,
 } from './calendar-helpers';
@@ -338,11 +339,6 @@ export class CalendarEventPopover extends React.Component<
         this.state.allDay,
         this.state.timezone !== this.state.originalTimezone ? this.state.timezone : undefined
       );
-      // Shift inline exception RECURRENCE-IDs so they still map to the correct slots
-      const deltaMs = (this.state.start - originalOccurrenceStart) * 1000;
-      if (deltaMs !== 0) {
-        ics = ICSEventHelpers.shiftInlineExceptions(ics, deltaMs);
-      }
     } else {
       // Non-recurring: absolute time update is correct
       ics = ICSEventHelpers.updateEventTimes(ics, {
@@ -673,7 +669,7 @@ class CalendarEventPopoverUnenditable extends React.Component<
 
     const startMoment = moment(event.start * 1000);
     const date = startMoment.format('dddd, MMMM D'); // e.g. Tuesday, February 22
-    const timeRange = `${formatTime(event.start, true)} - ${formatTime(event.end, true)}`;
+    const timeRange = withSmallMeridiem(formatShortTimeRange(event.start, event.end));
     return (
       <div>
         {date}
@@ -735,7 +731,7 @@ class CalendarEventPopoverUnenditable extends React.Component<
             <RetinaImg
               className="edit-icon"
               name="edit-icon.png"
-              title="Edit Item"
+              title={localized('Edit Item')}
               mode={RetinaImg.Mode.ContentIsMask}
               onClick={onEdit}
             />

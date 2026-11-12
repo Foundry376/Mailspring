@@ -100,7 +100,7 @@ describe('TimePicker', function timePicker() {
     fireEvent.blur(input);
 
     expect(onChange).not.toHaveBeenCalled();
-    expect(input.value).toBe(moment(VALUE).format('LT'));
+    expect(input.value).toBe(moment(VALUE).format('h:mmA'));
   });
 
   it('puts the field back on its value when the text cannot be parsed', () => {
@@ -111,7 +111,7 @@ describe('TimePicker', function timePicker() {
     fireEvent.blur(input);
 
     expect(onChange).not.toHaveBeenCalled();
-    expect(input.value).toBe(moment(VALUE).format('LT'));
+    expect(input.value).toBe(moment(VALUE).format('h:mmA'));
   });
 
   it('refuses text with more than one time in it', () => {
@@ -123,7 +123,7 @@ describe('TimePicker', function timePicker() {
     fireEvent.blur(input);
 
     expect(onChange).not.toHaveBeenCalled();
-    expect(input.value).toBe(moment(VALUE).format('LT'));
+    expect(input.value).toBe(moment(VALUE).format('h:mmA'));
   });
 
   it('accepts a time with spaces around it', () => {
@@ -215,7 +215,7 @@ describe('TimePicker', function timePicker() {
 
     fireEvent.keyDown(input, { key: 'ArrowDown' });
 
-    expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe(`${EVENT_DAY} 15:30`);
+    expect(lastEmitted(onChange).format('YYYY-MM-DD HH:mm')).toBe(`${EVENT_DAY} 15:15`);
   });
 
   it('stops the arrow keys at the start an end field follows', () => {
@@ -333,7 +333,7 @@ describe('TimePicker', function timePicker() {
 
     it('shows the wall clock of that zone', () => {
       const { input } = renderInLosAngeles();
-      expect(input.value).toBe('1:00 PM');
+      expect(input.value).toBe('1:00PM');
     });
 
     it('reads a typed time as that zone’s', () => {

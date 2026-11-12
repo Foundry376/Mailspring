@@ -146,7 +146,8 @@ export default class OAuthSignInPage extends React.Component<
       AppEnv.showErrorDialog({
         title: localized('Unable to Start Local Server'),
         message: localized(
-          `To listen for the Gmail Oauth response, Mailspring needs to start a webserver on port ${LOCAL_SERVER_PORT}. Please go back and try linking your account again. If this error persists, use the IMAP/SMTP option with a Gmail App Password.\n\n%@`,
+          'To listen for the Gmail Oauth response, Mailspring needs to start a webserver on port %@. Please go back and try linking your account again. If this error persists, use the IMAP/SMTP option with a Gmail App Password.\n\n%@',
+          LOCAL_SERVER_PORT,
           err
         ),
       });

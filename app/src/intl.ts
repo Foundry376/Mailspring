@@ -245,12 +245,12 @@ export function localizedReactFragment(en, ...subs) {
   const parts = [];
   let match = null;
   let used = 0;
-  while ((match = /%(?:(\d)+\$)?@/g.exec(translated))) {
+  while ((match = /%(?:(\d+)\$)?@/g.exec(translated))) {
     if (match.index > 0) {
       parts.push(translated.substr(0, match.index));
     }
     if (match[1]) {
-      parts.push(subs[match[1] / 1]);
+      parts.push(subs[Number(match[1]) - 1]);
     } else {
       parts.push(subs[used++]);
     }

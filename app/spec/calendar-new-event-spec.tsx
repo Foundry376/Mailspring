@@ -45,6 +45,7 @@ describe('newEventOptions', function () {
       start: new Date((START + HOUR) * 1000),
       end: new Date((START + 2 * HOUR) * 1000),
       isAllDay: false,
+      timezone: undefined,
       calendarId: 'c',
       accountId: 'a',
       location: 'Room 4',

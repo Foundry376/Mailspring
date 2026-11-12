@@ -2,8 +2,8 @@
 
 What the calendar still lacks, checked against the code on 2026-10-16. Create, edit, delete, drag
 and keyboard moves, day/week/month/agenda views, search, RSVP (including propose-a-new-time and
-accepting a counter; see Bugs), and Google plus generic CalDAV sync all work. Verify an item against
-the code before planning from it, and delete it here when it lands.
+accepting a counter; see Bugs), and Google, generic CalDAV and Microsoft Graph sync all work.
+Verify an item against the code before planning from it, and delete it here when it lands.
 
 ## Bugs
 
@@ -11,10 +11,6 @@ the code before planning from it, and delete it here when it lands.
   `DestroyEventTask`, and Google drops a guest's deleted copy without telling the organizer. Deleting
   one occurrence does reach them, because Google turns the EXDATE into a decline. Checked live
   2026-10-15 with an Outlook.com organizer.
-- **Times are always 12-hour.** `formatTime` in `calendar-event-popover.tsx`, `formatEventTimeRange`
-  (`calendar-helpers.tsx`), the drag tooltip (`calendar-drag-utils.ts`) and search results
-  (`event-search-bar.tsx`) hardcode AM/PM, so 24-hour locales see "10 AM". `formatShortTime` already
-  follows the locale.
 - **A moved occurrence can be drawn at its old time.** Every Event row of a series holds the whole
   resource, and the rows can disagree. When the series' main row is older than an exception's row,
   `occurrencesForEvents` expands the main row, and its standalone-exception branch reads the
@@ -25,13 +21,10 @@ the code before planning from it, and delete it here when it lands.
   change, and a resync doesn't correct it because the row's etag still matches the server's. An etag
   conflict (412) does correct itself: the server's etag has changed, so the next sync re-reads it.
 
-## Saved nowhere, though the editor shows it
-
-- **Reminders.** The event editor's Alert control (`alert-selector.tsx`) is editor state only: no
-  VALARM is written and nothing schedules a notification.
-
 ## Partial
 
+- **Reminders.** The Alert control saves the event's first VALARM (an Outlook event's reminder through
+  Graph), but nothing in the app shows a notification when one comes due.
 - **Repeat rules.** `repeat-selector.tsx` offers none, daily, weekly, monthly and yearly. There is no
   interval, weekday choice, count or end date, and no custom rule.
 - **Sending invitations.** Attendees and the organizer are written into the event, but neither the app
@@ -49,11 +42,6 @@ the code before planning from it, and delete it here when it lands.
   sanitized HTML or from Markdown in a plain-text description, is open.
 - **CalDAV server address.** Hosts are discovered through the identity server
   (`DAVWorker.cpp`, `resolve-dav-hosts`); there is no setting to enter one by hand.
-
-## Sync engine
-
-- **Microsoft calendars.** Outlook.com and Office 365 calendars sync and save edits through Microsoft
-  Graph, but answering an invitation does not go through Graph yet.
 
 ## Not built
 
