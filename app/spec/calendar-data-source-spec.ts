@@ -15,7 +15,7 @@ import {
   inAllDayRow,
   EventOccurrence,
 } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
-import { DatabaseStore } from 'mailspring-exports';
+import { CalendarUtils, DatabaseStore, ICSEventHelpers } from 'mailspring-exports';
 import { formatCalendarDate, parseCalendarDate } from '../src/calendar-date';
 
 // All-day-ness comes from the ICS DATE type, never from duration.
@@ -363,6 +363,230 @@ describe('occurrencesForEvents with one meeting on several calendars', function 
   });
 });
 
+describe('occurrencesForEvents when an exception row and its master hold different copies', function () {
+  // Google's shapes: a weekly series in the organizer's zone, overrides written in another, and
+  // each VEVENT stamped with LAST-MODIFIED and an equal DTSTAMP.
+  const unix = (iso: string) => new Date(iso).getTime() / 1000;
+  const september = {
+    startUnix: unix('2026-09-01T00:00:00Z'),
+    endUnix: unix('2026-10-01T00:00:00Z'),
+  };
+  const calendar = (...vevents: string[][]) =>
+    ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Google Inc//Google Calendar 70.9054//EN']
+      .concat(...vevents, ['END:VCALENDAR'])
+      .join('\r\n');
+  const stamped = (stamp: string) => [`LAST-MODIFIED:${stamp}`, `DTSTAMP:${stamp}`];
+  const vevent = (uid: string, lines: string[]) => [
+    'BEGIN:VEVENT',
+    ...lines,
+    `UID:${uid}`,
+    'SUMMARY:Weekly sync',
+    'END:VEVENT',
+  ];
+  const UID = 'series_R20210921T143000@google.com';
+  const weekly = (stamp: string, ...extra: string[]) =>
+    vevent(UID, [
+      'DTSTART;TZID=Europe/Vienna:20210921T163000',
+      'DTEND;TZID=Europe/Vienna:20210921T173000',
+      'RRULE:FREQ=WEEKLY;BYDAY=TU',
+      ...stamped(stamp),
+      ...extra,
+    ]);
+  const override = (stamp: string, start: string, slot = '20260915T163000') =>
+    vevent(UID, [
+      `DTSTART;TZID=America/Indiana/Indianapolis:${start}`,
+      'DURATION:PT1H',
+      `RECURRENCE-ID;TZID=Europe/Vienna:${slot}`,
+      ...stamped(stamp),
+    ]);
+  const rows = (masterIcs: string, exceptionIcs: string) => [
+    makeEvent(masterIcs, {
+      id: 'master',
+      icsuid: UID,
+      recurrenceStart: unix('2021-09-21T14:30:00Z'),
+    }),
+    makeEvent(exceptionIcs, {
+      id: 'exception',
+      icsuid: UID,
+      recurrenceId: '20260915T163000',
+      recurrenceStart: unix('2026-09-15T14:30:00Z'),
+    }),
+  ];
+  const starts = (occs: EventOccurrence[]) => occs.map(occurrenceStartUnix).sort();
+  const tuesdays = (...days: string[]) => days.map((d) => unix(`2026-09-${d}T14:30:00Z`));
+  const EXDATE = 'EXDATE;TZID=Europe/Vienna:20260915T163000';
+
+  beforeEach(function () {
+    spyOn(console, 'error');
+  });
+
+  describe('when the master copy is later', function () {
+    it('draws nothing for an occurrence it has since cancelled', function () {
+      const occs = occurrencesForEvents(
+        rows(
+          calendar(weekly('20261027T151437Z', EXDATE)),
+          calendar(weekly('20260908T145304Z'), override('20260908T145304Z', '20260915T103000'))
+        ),
+        september
+      );
+      expect(starts(occs)).toEqual(tuesdays('01', '08', '22', '29'));
+      expect(console.error).not.toHaveBeenCalled();
+    });
+
+    it('draws an occurrence moved again only where it puts it, when only the override is newer', function () {
+      // The master copy's series VEVENT predates the row's copy; its override doesn't.
+      const occs = occurrencesForEvents(
+        rows(
+          calendar(weekly('20260901T080000Z'), override('20261001T080000Z', '20260916T090000')),
+          calendar(weekly('20260920T080000Z'), override('20260920T080000Z', '20260915T090000'))
+        ),
+        september
+      );
+      expect(starts(occs)).toEqual(
+        [...tuesdays('01', '08', '22', '29'), unix('2026-09-16T13:00:00Z')].sort()
+      );
+    });
+
+    it('draws an occurrence split into a new series once, from the new series', function () {
+      // "This and following" ends the old series with UNTIL and starts a new UID at the split.
+      const NEW_UID = 'series_R20260915T143000@google.com';
+      const [master, exception] = rows(
+        calendar(
+          weekly('20261013T223323Z').map((l) =>
+            l.replace('BYDAY=TU', 'UNTIL=20260914T215959Z;BYDAY=TU')
+          )
+        ),
+        calendar(weekly('20260923T084912Z'), override('20260923T084912Z', '20260915T090000'))
+      );
+      const split = makeEvent(
+        calendar(
+          vevent(NEW_UID, [
+            'DTSTART;TZID=America/Indiana/Indianapolis:20260915T090000',
+            'DTEND;TZID=America/Indiana/Indianapolis:20260915T100000',
+            'RRULE:FREQ=WEEKLY;BYDAY=TU',
+            ...stamped('20261013T223323Z'),
+          ])
+        ),
+        { id: 'split', icsuid: NEW_UID, recurrenceStart: unix('2026-09-15T13:00:00Z') }
+      );
+      const occs = occurrencesForEvents([master, exception, split], september);
+      expect(
+        occs.filter((o) => occurrenceStartUnix(o) === unix('2026-09-15T13:00:00Z')).map((o) => o.id)
+      ).toEqual([`split-e${unix('2026-09-15T13:00:00Z')}`]);
+    });
+  });
+
+  it("draws an occurrence once, from the row's copy, when that copy is later", function () {
+    const occs = occurrencesForEvents(
+      rows(
+        calendar(weekly('20260901T080000Z'), override('20260901T080000Z', '20260916T090000')),
+        calendar(weekly('20260920T080000Z'), override('20260920T080000Z', '20260917T090000'))
+      ),
+      september
+    );
+    expect(starts(occs)).toEqual(
+      [...tuesdays('01', '08', '22', '29'), unix('2026-09-17T13:00:00Z')].sort()
+    );
+    expect(occs.find((o) => occurrenceStartUnix(o) === unix('2026-09-17T13:00:00Z')).id).toBe(
+      'exception-e0'
+    );
+  });
+
+  it("draws the row's own copy when both copies carry the same stamp", function () {
+    // Google can drop an occurrence without changing any LAST-MODIFIED, so neither copy is later.
+    const occs = occurrencesForEvents(
+      rows(
+        calendar(weekly('20261013T223323Z', EXDATE)),
+        calendar(weekly('20261013T223323Z'), override('20261013T223323Z', '20260915T103000'))
+      ),
+      september
+    );
+    expect(starts(occs)).toEqual(tuesdays('01', '08', '15', '22', '29'));
+  });
+
+  it("draws the row's own copy when either copy lacks a DTSTAMP", function () {
+    const unstamped = (ics: string) => ics.replace(/\r\nDTSTAMP:[^\r]*/g, '');
+    const master = calendar(weekly('20261027T151437Z', EXDATE));
+    const exception = calendar(
+      weekly('20260908T145304Z'),
+      override('20260908T145304Z', '20260915T103000')
+    );
+    for (const [m, e] of [
+      [unstamped(master), exception],
+      [master, unstamped(exception)],
+    ]) {
+      expect(starts(occurrencesForEvents(rows(m, e), september))).toEqual(
+        tuesdays('01', '08', '15', '22', '29')
+      );
+    }
+  });
+
+  it('draws an occurrence moved into the window from a later week, from its own row', function () {
+    // The master's expansion stops at the first week past the window, before reaching it.
+    const [master] = rows(
+      calendar(
+        weekly('20261001T080000Z'),
+        override('20261001T080000Z', '20260930T090000', '20261013T163000')
+      ),
+      ''
+    );
+    const moved = makeEvent(
+      calendar(
+        weekly('20260920T080000Z'),
+        override('20260920T080000Z', '20260928T090000', '20261013T163000')
+      ),
+      {
+        id: 'moved',
+        icsuid: UID,
+        recurrenceId: '20261013T163000',
+        recurrenceStart: unix('2026-09-28T13:00:00Z'),
+      }
+    );
+    const occs = occurrencesForEvents([master, moved], september);
+    expect(occs.filter((o) => o.id === 'moved-e0').map(occurrenceStartUnix)).toEqual([
+      unix('2026-09-30T13:00:00Z'),
+    ]);
+  });
+
+  it("draws a row whose copy doesn't name its RECURRENCE-ID from the copy's first VEVENT", function () {
+    const [master, exception] = rows(
+      calendar(weekly('20260901T080000Z')),
+      calendar(override('20260920T080000Z', '20260916T090000', '20260916T163000'))
+    );
+    const occs = occurrencesForEvents([master, exception], september);
+    expect(occs.filter((o) => o.id === 'exception-e0').map(occurrenceStartUnix)).toEqual([
+      unix('2026-09-16T13:00:00Z'),
+    ]);
+  });
+
+  it('parses a series with no exception rows only to expand it', function () {
+    const [master] = rows(calendar(weekly('20261027T151437Z')), '');
+    const parse = spyOn(CalendarUtils, 'parseICSString').andCallThrough();
+    ICSEventHelpers.expandBetween(
+      master.ics,
+      master.recurrenceStart,
+      september.startUnix,
+      september.endUnix
+    );
+    ICSEventHelpers.isRecurringEvent(master.ics);
+    const toExpand = parse.calls.length;
+    parse.reset();
+
+    const occs = occurrencesForEvents([master], september);
+    expect(starts(occs)).toEqual(tuesdays('01', '08', '15', '22', '29'));
+    expect(parse.calls.length).toBe(toExpand);
+  });
+
+  it("logs a row whose copy won't parse and draws the rest of the series", function () {
+    const occs = occurrencesForEvents(
+      rows(calendar(weekly('20260901T080000Z')), 'this is not valid ics'),
+      september
+    );
+    expect(starts(occs)).toEqual(tuesdays('01', '08', '15', '22', '29'));
+    expect(console.error).toHaveBeenCalled();
+  });
+});
+
 describe('eventCoversDate', function () {
   // What the month and agenda day cells filter on. Fed straight from occurrencesForEvents so
   // the fixtures are shapes the app actually produces.
@@ -577,26 +801,28 @@ describe('focusedEventInfoForEvents', function () {
     expect(focusedEventInfoForEvents([series], NOW).start).toBe(unix('2026-06-15T14:00:00Z'));
   });
 
-  it('takes the nearest occurrence when it is an exception stored as its own row', function () {
-    const series = withStart(
-      icsFor('DTSTART:20260105T140000Z', 'DTEND:20260105T150000Z', 'RRULE:FREQ=WEEKLY'),
-      '2026-01-05T14:00:00Z'
-    );
-    // Today's occurrence, moved an hour earlier. Its row comes after the master's occurrences.
-    const moved = makeEvent(
-      icsFor(
+  it('takes the nearest occurrence when it was moved earlier', function () {
+    // Today's occurrence, moved an hour earlier. The engine stores the whole resource on each row.
+    const ics = [
+      ...icsFor('DTSTART:20260105T140000Z', 'DTEND:20260105T150000Z', 'RRULE:FREQ=WEEKLY')
+        .split('\n')
+        .slice(0, -1),
+      ...icsFor(
         'DTSTART:20260615T130000Z',
         'DTEND:20260615T140000Z',
         'RECURRENCE-ID:20260615T140000Z'
-      ),
-      {
-        id: 'event-2',
-        recurrenceId: '20260615T140000Z',
-        recurrenceStart: unix('2026-06-15T13:00:00Z'),
-      }
-    );
+      )
+        .split('\n')
+        .slice(3),
+    ].join('\n');
+    const series = withStart(ics, '2026-01-05T14:00:00Z');
+    const moved = makeEvent(ics, {
+      id: 'event-2',
+      recurrenceId: '20260615T140000Z',
+      recurrenceStart: unix('2026-06-15T13:00:00Z'),
+    });
     expect(focusedEventInfoForEvents([series, moved], NOW)).toEqual({
-      id: 'event-2-e0',
+      id: `event-1-e${unix('2026-06-15T13:00:00Z')}`,
       start: unix('2026-06-15T13:00:00Z'),
     });
   });
