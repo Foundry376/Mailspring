@@ -248,6 +248,11 @@ body.platform-win32 {
     flex-direction: column;
     cursor: default;
 
+    // Inside the box: outside it, the day column clips the ring and the next event covers it.
+    &:focus-visible {
+      outline-offset: -2px;
+    }
+
     .default-header {
       overflow: hidden;
       text-overflow: ellipsis;
@@ -737,9 +742,8 @@ body.platform-win32 {
         opacity: 1;
       }
 
-      &:focus {
-        outline: none;
-        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+      &:focus-visible {
+        outline-offset: -2px;
       }
 
       &.selected .month-view-event-title {
