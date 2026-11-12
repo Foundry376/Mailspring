@@ -115,14 +115,10 @@ export class ContactDetailWithFocus extends React.Component<
   };
 
   onSaveChanges = () => {
-    const { perspective } = this.props;
     const contact = apply(this.state.contact, this.state.data);
-
-    if (!('accountId' in perspective)) return;
-
     const task = contact.id
       ? SyncbackContactTask.forUpdating({ contact })
-      : SyncbackContactTask.forCreating({ contact, accountId: perspective.accountId });
+      : SyncbackContactTask.forCreating({ contact, accountId: contact.accountId });
     Actions.queueTask(task);
     Store.setEditing(false);
 
