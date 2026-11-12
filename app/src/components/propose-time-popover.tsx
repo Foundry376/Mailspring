@@ -2,10 +2,14 @@ import React from 'react';
 import moment, { Moment } from 'moment';
 import { Actions, DateUtils, localized } from 'mailspring-exports';
 import { DatePicker, TimePicker } from 'mailspring-component-kit';
+import { calendarDateFromUnix, calendarDaysBetween, shiftedDayStartUnix } from '../calendar-date';
 
 // The pickers speak milliseconds; events are passed around in unix seconds.
 const toPicker = (unixSeconds: number) => unixSeconds * 1000;
-const DAY = 86400;
+
+/** Days an all-day span covers, counted by date so a 23- or 25-hour day still counts as one. */
+const allDayLength = (start: number, end: number) =>
+  calendarDaysBetween(calendarDateFromUnix(start), calendarDateFromUnix(end));
 
 /** The slot on one line: "Mon, Aug 24 · 12:00 PM – 12:30 PM", or the dates of an all-day one. */
 function compactSlot(start: number, end: number, isAllDay: boolean): string {
@@ -13,13 +17,14 @@ function compactSlot(start: number, end: number, isAllDay: boolean): string {
   const e = moment.unix(end);
   if (isAllDay) {
     // DTEND of an all-day event is the morning after it; show the last day it covers.
-    const last = moment.unix(end - DAY);
+    const last = moment.unix(shiftedDayStartUnix(end, -1));
     return last.isSame(s, 'day')
       ? s.format('ddd, MMM D')
       : `${s.format('ddd, MMM D')} – ${last.format('ddd, MMM D')}`;
   }
-  const time = (m: Moment) => m.format(DateUtils.localeTimeFormat());
-  return `${s.format('ddd, MMM D')} · ${time(s)} – ${time(e)}`;
+  // As the time pickers below show it.
+  const time = (m: Moment) => m.format(DateUtils.tightTimeFormat());
+  return `${s.format('ddd, MMM D')} · ${time(s)}\u2009–\u2009${time(e)}`;
 }
 
 interface ProposeTimePopoverProps {
@@ -59,6 +64,11 @@ export class ProposeTimePopover extends React.Component<
   }
 
   _moveStart(start: Moment) {
+    if (this.props.isAllDay) {
+      const days = allDayLength(this.state.start, this.state.end);
+      this.setState({ start: start.unix(), end: shiftedDayStartUnix(start.unix(), days) });
+      return;
+    }
     const duration = this.state.end - this.state.start;
     this.setState({ start: start.unix(), end: start.unix() + duration });
   }
@@ -80,8 +90,8 @@ export class ProposeTimePopover extends React.Component<
 
   _onChangeLastDay = (pickerMs: number) => {
     // The picker shows the last day covered; DTEND is the midnight after it.
-    const end = moment(pickerMs).startOf('day').unix() + DAY;
-    this.setState({ end: Math.max(end, this.state.start + DAY) });
+    const end = shiftedDayStartUnix(pickerMs / 1000, 1);
+    this.setState({ end: Math.max(end, shiftedDayStartUnix(this.state.start, 1)) });
   };
 
   _onSubmit = () => {
@@ -116,7 +126,7 @@ export class ProposeTimePopover extends React.Component<
   }
 
   _renderAllDay(start: number, end: number) {
-    const days = Math.round((end - start) / DAY);
+    const days = allDayLength(start, end);
     return (
       <div className="propose-time-fields">
         <label className="propose-time-field">
@@ -125,7 +135,10 @@ export class ProposeTimePopover extends React.Component<
         </label>
         <label className="propose-time-field">
           <span className="propose-time-label">{localized('To')}</span>
-          <DatePicker value={toPicker(end - DAY)} onChange={this._onChangeLastDay} />
+          <DatePicker
+            value={toPicker(shiftedDayStartUnix(end, -1))}
+            onChange={this._onChangeLastDay}
+          />
           <span className="propose-time-duration">
             {days === 1 ? localized('1 day') : localized('%@ days', days)}
           </span>

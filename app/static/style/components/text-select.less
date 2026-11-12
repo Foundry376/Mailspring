@@ -4,10 +4,17 @@
   position: relative;
   display: inline-flex;
   align-items: center;
+  // A long choice ends in "…" inside its row, so the caret stays in view.
+  min-width: 0;
+  max-width: 100%;
 
   select {
     appearance: none;
     field-sizing: content;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     padding: 0 14px 0 0;
     border: none;
     border-radius: 0;

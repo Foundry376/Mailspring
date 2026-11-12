@@ -80,6 +80,9 @@ export interface DragState {
   /** Time snapping interval in seconds (e.g., 900 for 15 minutes) */
   snapIntervalSeconds: number;
 
+  /** What the pointer was pressed on, then last over inside the calendar. */
+  containerType: CalendarContainerType | null;
+
   /** Whether the drag threshold has been exceeded (prevents accidental drags) */
   isDragging: boolean;
 }

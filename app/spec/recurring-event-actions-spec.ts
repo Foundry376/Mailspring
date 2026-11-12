@@ -393,9 +393,6 @@ SEQUENCE:1
 END:VEVENT
 END:VCALENDAR`;
 
-  // What shiftInlineExceptions returns (same as input when no exceptions present)
-  const SHIFTED_ICS_AFTER_EXCEPTIONS = SHIFTED_ICS;
-
   // Fake parsed event for CalendarUtils.parseICSString to return
   function makeFakeParsedEvent(startMs: number, endMs: number) {
     return {
@@ -412,7 +409,6 @@ END:VCALENDAR`;
 
   beforeEach(function () {
     spyOn(ICSEventHelpers, 'updateRecurringEventTimes').andCallFake(() => SHIFTED_ICS);
-    spyOn(ICSEventHelpers, 'shiftInlineExceptions').andCallFake((ics) => ics);
     spyOn(ICSEventHelpers, 'bumpEventSequence').andCallFake((ics: string) => ics);
     spyOn(CalendarUtils, 'parseICSString').andCallFake(() =>
       makeFakeParsedEvent(
@@ -452,40 +448,9 @@ END:VCALENDAR`;
       T_OCC2_START,
       T_NEW_START,
       T_NEW_END,
-      false
+      false,
+      undefined
     );
-  });
-
-  it('calls shiftInlineExceptions with the correct deltaMs when delta is non-zero', function () {
-    const event = makeEvent(RECURRING_ICS);
-    // delta = (T_NEW_START - T_OCC2_START) * 1000 = (8:00 - 6:00) = 2h = 7200000ms
-    const expectedDeltaMs = (T_NEW_START - T_OCC2_START) * 1000;
-
-    modifyAllOccurrences({
-      event,
-      originalOccurrenceStart: T_OCC2_START,
-      newStart: T_NEW_START,
-      newEnd: T_NEW_END,
-      isAllDay: false,
-    });
-
-    expect(ICSEventHelpers.shiftInlineExceptions).toHaveBeenCalledWith(
-      SHIFTED_ICS,
-      expectedDeltaMs
-    );
-  });
-
-  it('does NOT call shiftInlineExceptions when deltaMs is 0', function () {
-    const event = makeEvent(RECURRING_ICS);
-    modifyAllOccurrences({
-      event,
-      originalOccurrenceStart: T_OCC2_START,
-      newStart: T_OCC2_START, // same start → delta = 0
-      newEnd: T_OCC2_END,
-      isAllDay: false,
-    });
-
-    expect(ICSEventHelpers.shiftInlineExceptions).not.toHaveBeenCalled();
   });
 
   it('queues a SyncbackEventTask.forUpdating (not forCreating)', function () {
@@ -594,7 +559,6 @@ describe('modifyEventWithRecurringSupport', function () {
     spyOn(ICSEventHelpers, 'updateRecurringEventTimes').andCallFake(
       () => FAKE_MASTER_ICS_WITH_EXCEPTION
     );
-    spyOn(ICSEventHelpers, 'shiftInlineExceptions').andCallFake((ics) => ics);
     spyOn(ICSEventHelpers, 'bumpEventSequence').andCallFake((ics: string) => ics);
     spyOn(Actions, 'queueTask');
     spyOn(SyncbackEventTask, 'forUpdating').andCallFake((opts) => ({ _opts: opts }));

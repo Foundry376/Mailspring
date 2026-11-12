@@ -12,6 +12,7 @@ import {
   isEventSelected,
   focusedEventInfoForEvents,
   focusedOccurrenceForIcsuid,
+  inAllDayRow,
   EventOccurrence,
 } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 import { DatabaseStore } from 'mailspring-exports';
@@ -496,6 +497,31 @@ describe('occurrencesForEvents on a long-running series', function () {
       endUnix: Date.UTC(2026, 8, 6) / 1000,
     });
     expect(occs.length).toBe(1);
+  });
+});
+
+// The runner pins TZ to America/Chicago, where clocks go forward on 8 March 2026.
+describe('inAllDayRow', function () {
+  const at = (iso: string) => new Date(iso).getTime() / 1000;
+  const timed = (start: string, end: string) =>
+    ({ isAllDay: false, start: at(start), end: at(end) }) as EventOccurrence;
+
+  it('takes all-day events, and timed ones of a day or more', function () {
+    expect(inAllDayRow({ isAllDay: true } as EventOccurrence)).toBe(true);
+    expect(inAllDayRow(timed('2026-03-02T15:00:00Z', '2026-03-03T15:00:00Z'))).toBe(true);
+    expect(inAllDayRow(timed('2026-03-02T15:00:00Z', '2026-03-04T20:00:00Z'))).toBe(true);
+  });
+
+  it('leaves shorter timed ones in the grid, including one that crosses midnight', function () {
+    expect(inAllDayRow(timed('2026-03-02T15:00:00Z', '2026-03-03T14:59:00Z'))).toBe(false);
+    // 10 PM to 1 AM, local time.
+    expect(inAllDayRow(timed('2026-03-03T04:00:00Z', '2026-03-03T07:00:00Z'))).toBe(false);
+  });
+
+  it('counts a day to the same clock time, so 9 AM to 9 AM over the clock change is one', function () {
+    // 9 AM CST on Saturday to 9 AM CDT on Sunday: 23 hours.
+    expect(inAllDayRow(timed('2026-03-07T15:00:00Z', '2026-03-08T14:00:00Z'))).toBe(true);
+    expect(inAllDayRow(timed('2026-03-07T15:00:00Z', '2026-03-08T13:59:00Z'))).toBe(false);
   });
 });
 
