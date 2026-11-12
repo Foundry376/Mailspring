@@ -243,8 +243,8 @@ body.platform-win32 {
   }
 }
 
-// Buttons with no fill: a ghost gets one when hovered or focused, a bare one only turns its icon
-// blue (in workspace.less, the toolbar's). Toolbars size both there.
+// Buttons with no fill: a ghost gets the nav rail's when hovered or focused, a bare one only turns
+// its icon blue (in workspace.less, the toolbar's). Toolbars size both there.
 .btn-ghost,
 .btn-bare {
   display: inline-flex;
@@ -257,10 +257,11 @@ body.platform-win32 {
   background: transparent;
 }
 .btn-ghost {
+  border-radius: 4px;
   &:hover,
   &:focus-visible {
     outline: none;
-    background: color-mix(in srgb, currentColor 12%, transparent);
+    background: fade(@text-color, 6%);
   }
   &[aria-pressed='true'] img.content-mask {
     background-color: @component-active-color;

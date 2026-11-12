@@ -1,5 +1,5 @@
 import React from 'react';
-import { Utils } from 'mailspring-exports';
+import { Contact, Utils, localized } from 'mailspring-exports';
 import { SVGIcons } from 'mailspring-component-kit';
 import { EventAttendee, EventOccurrence } from './calendar-data-source';
 import { isOrganizer, myAttendeeEmail } from './calendar-rsvp';
@@ -32,13 +32,48 @@ export function attendeeStatusClass(attendee: EventAttendee): string {
   }
 }
 
+export function guestCount(count: number): string {
+  return count === 1 ? localized('1 guest') : localized('%@ guests', count);
+}
+
+/** "2 yes, 1 maybe, 3 awaiting": the answers in the Yes, No, Maybe buttons' order, zeros left out. */
+export function guestSummary(attendees: EventAttendee[]): string {
+  const tally = { accepted: 0, declined: 0, tentative: 0, 'needs-action': 0 };
+  for (const a of attendees) tally[attendeeStatusClass(a)] += 1;
+  return [
+    tally.accepted && localized('%@ yes', tally.accepted),
+    tally.declined && localized('%@ no', tally.declined),
+    tally.tentative && localized('%@ maybe', tally.tentative),
+    tally['needs-action'] && localized('%@ awaiting', tally['needs-action']),
+  ]
+    .filter(Boolean)
+    .join(', ');
+}
+
 export const AttendeeStatusIcon = ({ attendee }: { attendee: EventAttendee }) => {
   if (attendee.partstat === 'ACCEPTED') return <SVGIcons.Check />;
   if (attendee.partstat === 'DECLINED') return <SVGIcons.Cross />;
   return <SVGIcons.QuestionMark />;
 };
 
-export function sortedAttendees(event: EventOccurrence): EventAttendee[] {
+/** Contacts' names by lowercased email, for the guests an invitation leaves unnamed. */
+export function contactNamesByEmail(contacts: Contact[]): Map<string, string> {
+  const names = new Map<string, string>();
+  for (const { email, name } of contacts) {
+    const key = email.toLowerCase();
+    if (name && name !== email && !names.has(key)) names.set(key, name);
+  }
+  return names;
+}
+
+export function guestName(attendee: EventAttendee, contactNames: Map<string, string>): string {
+  return attendee.name || contactNames.get(attendee.email.toLowerCase()) || attendee.email;
+}
+
+export function sortedAttendees(
+  event: EventOccurrence,
+  contactNames = new Map<string, string>()
+): EventAttendee[] {
   const me = myAttendeeEmail(event);
   const pinOrder = (a: EventAttendee) => {
     if (isOrganizer(event, a)) return 0;
@@ -51,8 +86,8 @@ export function sortedAttendees(event: EventOccurrence): EventAttendee[] {
     const aOrder = statusOrder[a.partstat] ?? 1;
     const bOrder = statusOrder[b.partstat] ?? 1;
     if (aOrder !== bOrder) return aOrder - bOrder;
-    const aName = (a.name || a.email).toLowerCase();
-    const bName = (b.name || b.email).toLowerCase();
+    const aName = guestName(a, contactNames).toLowerCase();
+    const bName = guestName(b, contactNames).toLowerCase();
     return aName.localeCompare(bName);
   });
 }

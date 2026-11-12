@@ -27,7 +27,7 @@ const BACKDROP_VARIANT = 'grid-fine';
 // Building happens remotely; running happens here. Said wherever a View gets created.
 const CLOUD_NOTE = () =>
   localized(
-    "When you build a view, example emails and screenshots you explicitly share are sent to Mailspring's servers. Once built, views are entirely private and use Apple Intelligence or open models to extract data and summarize mail locally on your computer."
+    "When you build a View, example emails and screenshots you explicitly share are sent to Mailspring's servers. Once built, Views are entirely private and use Apple Intelligence or open models to extract data and summarize mail locally on your computer."
   );
 
 interface ViewsHomeState {
@@ -171,7 +171,7 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
             <div className="views-home-create-title">{localized('Create a View')}</div>
             <div className="views-home-create-subtitle">
               {localized(
-                "Describe your view, share example emails, and Mailspring's AI builds it with you."
+                "Describe your View, share example emails, and Mailspring's AI builds it with you."
               )}
             </div>
           </div>

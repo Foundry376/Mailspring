@@ -47,6 +47,7 @@ export * from '../components/snap-scroller';
 export * as SVGIcons from '../components/svg-icons';
 export * from '../components/date-picker';
 export const TimePicker: typeof import('../components/time-picker').default;
+export const withSmallMeridiem: typeof import('../components/small-meridiem').default;
 export const ProposeTimePopover: typeof import('../components/propose-time-popover').ProposeTimePopover;
 export const AnswerSection: typeof import('../components/answer-section').AnswerSection;
 export const rsvpActions: typeof import('../components/answer-section').rsvpActions;

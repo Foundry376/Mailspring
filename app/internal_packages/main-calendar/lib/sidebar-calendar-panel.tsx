@@ -402,12 +402,16 @@ export class SidebarCalendarPanel extends React.Component<
             }
             headerActions={
               <button
-                className="btn-bare event-panel-view"
+                className="btn-ghost event-panel-view"
                 title={localized('View in Calendar')}
                 aria-label={localized('View in Calendar')}
                 onClick={this._onViewInCalendar}
               >
-                <RetinaImg name="ic-calendar-month.png" mode={RetinaImg.Mode.ContentIsMask} />
+                <RetinaImg
+                  name="ic-calendar-month.png"
+                  mode={RetinaImg.Mode.ContentIsMask}
+                  style={{ width: 14, height: 14, WebkitMaskSize: 'contain' }}
+                />
               </button>
             }
           />

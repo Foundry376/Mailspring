@@ -46,9 +46,11 @@ export function emptyChange(occurrence: EventOccurrence): UnsentChange {
   };
 }
 
-/** The occurrences a series' change may go to: one occurrence can't carry a repeat rule of its own. */
+/** The occurrences a series' change may go to: one occurrence can't carry a repeat rule or zone. */
 export function scopesFor(change: UnsentChange): ChangeScope[] {
-  return unsentEdit(change, 'rrule') ? ['all-occurrences'] : ['this-occurrence', 'all-occurrences'];
+  return unsentEdit(change, 'rrule') || change.times?.timezone
+    ? ['all-occurrences']
+    : ['this-occurrence', 'all-occurrences'];
 }
 
 export function scopeLabel(scope: ChangeScope) {
@@ -85,7 +87,10 @@ export function withTimes(
 ): UnsentChange | null {
   const base = change ?? emptyChange(occurrence);
   const same =
-    times.start === stored.start && times.end === stored.end && times.isAllDay === stored.isAllDay;
+    times.start === stored.start &&
+    times.end === stored.end &&
+    times.isAllDay === stored.isAllDay &&
+    !times.timezone;
   return unlessEmpty({
     ...base,
     ...(base.guestCopy && { proposal: base.proposal ?? { comment: '' } }),
@@ -178,6 +183,7 @@ export function newEventOptions(
     start: new Date(start * 1000),
     end: new Date(end * 1000),
     isAllDay,
+    timezone: change?.times?.timezone,
     calendarId: draft.calendarId,
     accountId: draft.accountId,
     location: edited('location'),
