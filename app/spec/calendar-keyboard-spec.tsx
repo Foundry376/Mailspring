@@ -285,6 +285,19 @@ describe('the arrow keys and Esc with an event selected', function () {
     expect(document.activeElement.className).toBe('calendar-view');
   });
 
+  it('moves focus to the grid when a Cmd-click takes the focused event out of the selection', function () {
+    calendar.state.selectedEvents = [first, second];
+    const firstEl = document.querySelector<HTMLElement>('[id="first"][tabindex="0"]');
+    firstEl.focus();
+    calendar._onEventClick({ metaKey: true }, first);
+    expect(calendar.state.selectedEvents.map((o) => o.id)).toEqual(['second']);
+    expect(document.activeElement.className).toBe('calendar-view');
+
+    firstEl.focus();
+    calendar._onEventClick({ metaKey: true }, first);
+    expect(document.activeElement).toBe(firstEl);
+  });
+
   it('leaves focus in the agenda on Esc', function () {
     document.getElementById('agenda-row').focus();
     calendar._onBackToAgenda();

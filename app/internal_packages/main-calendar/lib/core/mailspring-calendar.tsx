@@ -306,13 +306,15 @@ export class MailspringCalendar extends React.Component<
     if (!this._mayLeave([])) return;
     this._releaseHeldUnless([]);
     this.setState({ selectedEvents: [], focusedEvent: null });
-    // Off the event, which is no longer selected, so the arrows scroll; the agenda keeps its own.
-    if (!this._focusInAgenda()) {
-      (ReactDOM.findDOMNode(this._gridView()) as HTMLElement | null)?.focus({
-        preventScroll: true,
-      });
-    }
+    // The agenda keeps its own focus.
+    if (!this._focusInAgenda()) this._focusGrid();
   };
+
+  // Off an event that is no longer selected, so the arrows scroll and a window refocus, which
+  // re-fires focus on the event, doesn't select it.
+  _focusGrid() {
+    (ReactDOM.findDOMNode(this._gridView()) as HTMLElement | null)?.focus({ preventScroll: true });
+  }
 
   _releaseHeldUnless(selected: EventOccurrence[]) {
     const held = this.state.heldInGridEventId;
@@ -647,7 +649,7 @@ export class MailspringCalendar extends React.Component<
     // popover was open, it should close when selecting a different event)
     Actions.closePopover();
 
-    this._select(next);
+    if (this._select(next) && !isEventSelected(next, event)) this._focusGrid();
   };
 
   /**
