@@ -25,6 +25,7 @@ export interface ContactBase {
     givenName: string;
     honorificPrefix: string;
     honorificSuffix: string;
+    middleName?: string;
   };
   photoURL?: string;
   nicknames?: { value: string }[];
@@ -53,11 +54,9 @@ export interface ContactInteractorMetadata {
   readonly: boolean;
   /** The most entries the service stores in each list; the editor offers no more. */
   limits?: Partial<Record<keyof ContactBase, number>>;
-  /** Labels the service can tell apart, suggested in place of the editor's own. */
-  types?: { phoneNumbers?: string[] };
   /** The only labels the service stores for a list, each with the most entries it takes;
-   the editor offers a choice of these in place of a free label. */
-  fixedTypes?: { relations?: { [type: string]: number } };
+   the editor offers a choice of these in place of a free label, and no label when empty. */
+  fixedTypes?: Partial<Record<keyof ContactBase, { [type: string]: number }>>;
 }
 
 export interface ContactParseResult {
@@ -123,6 +122,11 @@ export function fromVCF(info: ContactInfoVCF): ContactParseResult {
   const emails = VCFHelpers.asArray(card.get('email'));
   const urls = VCFHelpers.asArray(card.get('url'));
   const bday = VCFHelpers.asSingle(card.get('bday'));
+  // VALUE=DATE (any case), date-and-or-time, or none; a text BDAY ("circa 1800") has no date.
+  const birthday =
+    bday && (!bday.value || /^date/i.test(bday.value))
+      ? VCFHelpers.parseBirthday(bday._data)
+      : null;
   const note = VCFHelpers.asSingle(card.get('note'));
 
   let photoURL = photo ? photo._data : undefined;
@@ -152,10 +156,7 @@ export function fromVCF(info: ContactInfoVCF): ContactParseResult {
       emailAddresses: VCFHelpers.parseValueAndTypeCollection(emails),
       urls: VCFHelpers.parseValueAndTypeCollection(urls),
       addresses: adrs.length > 0 && adrs.map((item) => VCFHelpers.parseAddress(item)),
-      birthdays:
-        bday && (!bday.value || bday.value === 'date')
-          ? [{ date: VCFHelpers.parseBirthday(bday._data) }]
-          : undefined,
+      birthdays: birthday ? [{ date: birthday }] : undefined,
       notes: note ? note._data.replace(/\\n/g, '\n') : undefined,
     },
   };
@@ -317,6 +318,9 @@ const GRAPH_LIMITS: ContactInteractorMetadata['limits'] = {
   birthdays: 1,
 };
 const GRAPH_PHONE_SLOTS = { Mobile: 1, Work: 2, Home: 2 };
+const GRAPH_ADDRESS_LIMITS = { Home: 1, Work: 1, Other: 1 };
+// vCard's names for the same slots (RFC 6350 TEL TYPE).
+const SLOT_ALIASES: { [label: string]: string } = { cell: 'mobile', business: 'work' };
 const GRAPH_ADDRESS_SLOTS: { [type: string]: keyof ContactInfoGraph } = {
   Home: 'homeAddress',
   Work: 'businessAddress',
@@ -358,16 +362,25 @@ export function fromGraph(info: ContactInfoGraph): ContactParseResult {
     .filter(([, key]) => Object.keys(info[key] || {}).length > 0)
     .map(([type, key]) => graphAddressToBase(info[key] as ContactInfoGraphAddress, type));
 
-  const birthday = /^(\d{4})-(\d{2})-(\d{2})/.exec(info.birthday || '');
-  const year = birthday && Number(birthday[1]);
+  // Outlook stores a birthday at 11:59 UTC; read at noon, one stored at local midnight by another
+  // client (the evening before in UTC east of Greenwich) still falls on its own date.
+  const noon = info.birthday ? new Date(Date.parse(info.birthday) + 12 * 3600 * 1000) : null;
+  const birthday = noon && !isNaN(noon.getTime()) ? noon : null;
+  const year = birthday && birthday.getUTCFullYear();
 
   return {
     metadata: {
       origin: 'Outlook Contacts',
       readonly: false,
       limits: GRAPH_LIMITS,
-      types: { phoneNumbers: Object.keys(GRAPH_PHONE_SLOTS) },
-      fixedTypes: { relations: GRAPH_RELATION_LIMITS },
+      // Graph keeps no label on an email address or a web page.
+      fixedTypes: {
+        phoneNumbers: GRAPH_PHONE_SLOTS,
+        addresses: GRAPH_ADDRESS_LIMITS,
+        relations: GRAPH_RELATION_LIMITS,
+        emailAddresses: {},
+        urls: {},
+      },
     },
     data: {
       name: {
@@ -376,6 +389,7 @@ export function fromGraph(info: ContactInfoGraph): ContactParseResult {
         familyName: info.surname || '',
         honorificPrefix: info.title || '',
         honorificSuffix: info.generation || '',
+        middleName: info.middleName || '',
       },
       nicknames: info.nickName ? [{ value: info.nickName }] : [],
       company: info.companyName || '',
@@ -393,8 +407,8 @@ export function fromGraph(info: ContactInfoGraph): ContactParseResult {
             {
               date: {
                 year: year === GRAPH_NO_YEAR ? null : year,
-                month: Number(birthday[2]),
-                day: Number(birthday[3]),
+                month: birthday.getUTCMonth() + 1,
+                day: birthday.getUTCDate(),
               },
             },
           ]
@@ -410,6 +424,20 @@ export function fromGraph(info: ContactInfoGraph): ContactParseResult {
   };
 }
 
+/** The display name Exchange composes from the name parts, as it does for a contact without one. */
+function composedGraphName(info: ContactInfoGraph) {
+  return [info.title, info.givenName, info.middleName, info.surname, info.generation]
+    .filter(Boolean)
+    .join(' ');
+}
+
+function isRealDate(year: number, month: number, day: number) {
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return (
+    date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
+  );
+}
+
 /** Puts each item in the slot its label names, then the rest in whichever slots are free,
  in `slots` order. Items beyond the slots are dropped; the editor offers no more. */
 function assignToSlots<T extends { type?: string }>(
@@ -418,8 +446,10 @@ function assignToSlots<T extends { type?: string }>(
 ): { [type: string]: T[] } {
   const result: { [type: string]: T[] } = {};
   const free = (type: string) => (result[type] || []).length < slots[type];
-  const slotFor = (label: string) =>
-    Object.keys(slots).find((type) => type.toLowerCase() === (label || '').trim().toLowerCase());
+  const slotFor = (label: string) => {
+    const name = (label || '').trim().toLowerCase();
+    return Object.keys(slots).find((type) => type.toLowerCase() === (SLOT_ALIASES[name] || name));
+  };
   const unplaced: T[] = [];
   for (const item of items) {
     const type = slotFor(item.type);
@@ -448,9 +478,20 @@ export function applyToGraph(contact: Contact, changes: Partial<ContactBase>) {
 
   for (const key of Object.keys(changes)) {
     if (key === 'name') {
-      info.givenName = changes.name.givenName;
-      info.surname = changes.name.familyName;
-      info.displayName = VCFHelpers.formatDisplayName(changes.name);
+      const { name } = changes;
+      // A display name the user chose ("Mom") stays; one Outlook composed is composed again.
+      const chosen = !!info.displayName && info.displayName !== composedGraphName(info);
+      info.givenName = name.givenName;
+      info.surname = name.familyName;
+      const parts = {
+        title: name.honorificPrefix,
+        generation: name.honorificSuffix,
+        middleName: name.middleName,
+      };
+      for (const [field, value] of Object.entries(parts)) {
+        if (value !== undefined && (info[field] || '') !== (value || '')) info[field] = value;
+      }
+      if (!chosen) info.displayName = composedGraphName(info);
       contact.name = info.displayName;
     } else if (key === 'nicknames') {
       info.nickName = changes.nicknames[0]?.value || null;
@@ -478,7 +519,7 @@ export function applyToGraph(contact: Contact, changes: Partial<ContactBase>) {
       info.businessPhones = (slots.Work || []).map((p) => p.value);
       info.homePhones = (slots.Home || []).map((p) => p.value);
     } else if (key === 'addresses') {
-      const slots = assignToSlots(changes.addresses, { Home: 1, Work: 1, Other: 1 });
+      const slots = assignToSlots(changes.addresses, GRAPH_ADDRESS_LIMITS);
       for (const [type, field] of Object.entries(GRAPH_ADDRESS_SLOTS)) {
         const address = (slots[type] || [])[0];
         (info as any)[field] = address
@@ -495,13 +536,15 @@ export function applyToGraph(contact: Contact, changes: Partial<ContactBase>) {
       info.businessHomePage = changes.urls[0]?.value || null;
     } else if (key === 'birthdays') {
       const date = changes.birthdays[0]?.date;
-      info.birthday =
-        date && date.month && date.day
-          ? `${
-              VCFHelpers.serializeBirthday({ date: { ...date, year: date.year || GRAPH_NO_YEAR } })
-                .value
-            }T11:59:00Z`
-          : null;
+      if (!date || !date.month || !date.day) {
+        info.birthday = null;
+      } else if (isRealDate(date.year || GRAPH_NO_YEAR, date.month, date.day)) {
+        const value = VCFHelpers.serializeBirthday({
+          date: { ...date, year: date.year || GRAPH_NO_YEAR },
+        }).value;
+        info.birthday = `${value}T11:59:00Z`;
+      }
+      // Graph refuses an impossible date (30 February) and the whole write with it; keep the old one.
     } else if (key === 'relations') {
       const ofType = (type: string) =>
         changes.relations.filter(

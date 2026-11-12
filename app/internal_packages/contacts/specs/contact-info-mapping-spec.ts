@@ -142,6 +142,7 @@ describe('ContactInfoMapping', function () {
         familyName: 'Lovelace',
         honorificPrefix: 'Dr.',
         honorificSuffix: 'Jr.',
+        middleName: 'K',
       });
       expect(data.emailAddresses.map((e) => e.value)).toEqual([
         'ada@example.com',
@@ -282,13 +283,48 @@ describe('ContactInfoMapping', function () {
       expect(info.children).toEqual(['Byron']);
     });
 
-    it('offers only the relation labels Graph has a field for', () => {
-      expect(parse(graphContact()).metadata.fixedTypes.relations).toEqual({
-        Spouse: 1,
-        Child: Infinity,
-        Manager: 1,
-        Assistant: 1,
+    it('offers only the labels Graph has a field for, and none for emails and web pages', () => {
+      expect(parse(graphContact()).metadata.fixedTypes).toEqual({
+        phoneNumbers: { Mobile: 1, Work: 2, Home: 2 },
+        addresses: { Home: 1, Work: 1, Other: 1 },
+        relations: { Spouse: 1, Child: Infinity, Manager: 1, Assistant: 1 },
+        emailAddresses: {},
+        urls: {},
       });
+    });
+
+    it('reads a birthday another client stored at local midnight as its own date', () => {
+      const contact = graphContact();
+      (contact.info as any).birthday = '1980-01-14T23:00:00Z';
+      expect(parse(contact).data.birthdays).toEqual([{ date: { year: 1980, month: 1, day: 15 } }]);
+    });
+
+    it('keeps the stored birthday instead of writing an impossible date', () => {
+      const contact = graphContact();
+      const { data } = parse(contact);
+      const next = apply(contact, {
+        ...data,
+        birthdays: [{ date: { year: 1990, month: 2, day: 30 } }],
+      });
+      expect((next.info as any).birthday).toBe('1815-12-10T11:59:00Z');
+    });
+
+    it('composes the display name from every name part, as Exchange does', () => {
+      const contact = graphContact();
+      const { data } = parse(contact);
+      const next = apply(contact, { ...data, name: { ...data.name, givenName: 'Augusta' } });
+      expect((next.info as any).displayName).toBe('Dr. Augusta K Lovelace Jr.');
+      expect(next.name).toBe('Dr. Augusta K Lovelace Jr.');
+      expect((next.info as any).middleName).toBe('K');
+    });
+
+    it('keeps a display name the user chose when a name part changes', () => {
+      const contact = graphContact();
+      (contact.info as any).displayName = 'Countess';
+      const { data } = parse(contact);
+      const next = apply(contact, { ...data, name: { ...data.name, familyName: 'King' } });
+      expect((next.info as any).displayName).toBe('Countess');
+      expect((next.info as any).surname).toBe('King');
     });
 
     it('imports a vCard without an address or birthday into an Outlook contact', () => {
@@ -307,6 +343,42 @@ describe('ContactInfoMapping', function () {
       expect(info.mobilePhone).toBe('+44 1234');
       expect(info.birthday).toBe(undefined);
       expect(info.homeAddress).toBe(undefined);
+    });
+
+    it("imports a vCard's escaped text, FN, basic-format birthday and CELL phone", () => {
+      const [card] = vcfStringToContacts(
+        [
+          'BEGIN:VCARD',
+          'VERSION:3.0',
+          'FN:Acme\\, Inc.',
+          'N:;;;;',
+          'ORG:Acme\\, Inc.',
+          'TITLE:Sales\\; Support',
+          'NOTE:Line one\\nLine two',
+          'ADR;TYPE=WORK:;;1 Main St\\, Suite 4;Springfield;IL;62701;USA',
+          'BDAY;VALUE=DATE:19800115',
+          'TEL;TYPE=HOME:1',
+          'TEL;TYPE=HOME:2',
+          'TEL;TYPE=HOME:3',
+          'TEL;TYPE=CELL:4',
+          'EMAIL:sales@acme.example',
+          'END:VCARD',
+          '',
+        ].join('\n'),
+        'acct'
+      );
+      const graph = vcfContactAsGraphContact(card, 'acct');
+      const info = graph.info as any;
+      expect(info.displayName).toBe('Acme, Inc.');
+      expect(graph.name).toBe('Acme, Inc.');
+      expect(info.companyName).toBe('Acme, Inc.');
+      expect(info.jobTitle).toBe('Sales; Support');
+      expect(info.personalNotes).toBe('Line one\nLine two');
+      expect(info.businessAddress.street).toBe('1 Main St, Suite 4');
+      expect(info.birthday).toBe('1980-01-15T11:59:00Z');
+      expect(info.mobilePhone).toBe('4');
+      expect(info.homePhones).toEqual(['1', '2']);
+      expect(info.businessPhones).toEqual(['3']);
     });
   });
 });

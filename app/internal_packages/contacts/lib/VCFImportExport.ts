@@ -5,6 +5,7 @@ import vCard from 'vcf';
 import {
   Contact,
   ContactInfoVCF,
+  ContactInfoGraph,
   SyncbackContactTask,
   Actions,
   AccountStore,
@@ -194,6 +195,21 @@ export function exportContactsToFile(contacts: Contact[]) {
   });
 }
 
+/** The vcf library hands back text values still escaped (RFC 6350 3.4: \, \; \\ \n). A vCard
+ keeps them that way, but Graph stores what it is given. */
+function unescapeVCFText<T>(value: T): T {
+  if (typeof value === 'string') {
+    return value.replace(/\\([nN,;\\])/g, (_, c) => (c === 'n' || c === 'N' ? '\n' : c)) as any;
+  }
+  if (Array.isArray(value)) return value.map(unescapeVCFText) as any;
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([k, v]) => [k, unescapeVCFText(v)])
+    ) as any;
+  }
+  return value;
+}
+
 /** A contact read from a VCF, as a new contact in a Microsoft Graph account. Outlook keeps
  only so many of each field, so a card with more loses the extras (see applyToGraph). */
 export function vcfContactAsGraphContact(contact: Contact, accountId: string): Contact {
@@ -203,11 +219,18 @@ export function vcfContactAsGraphContact(contact: Contact, accountId: string): C
     const { photoURL, ...data } = fromVCF(contact.info as ContactInfoVCF).data;
     // fromVCF leaves a part the card lacks as undefined or false (no ADR, BDAY, NOTE).
     const present = Object.fromEntries(
-      Object.entries(data).filter(
-        ([, value]) => value !== undefined && (value as unknown) !== false
-      )
+      Object.entries(data)
+        .filter(([, value]) => value !== undefined && (value as unknown) !== false)
+        .map(([key, value]) => [key, unescapeVCFText(value)])
     );
     applyToGraph(graph, present);
+    // The card's own display name (FN) over one composed from N: a company card has no N at all.
+    const fn = /^FN[^:\r\n]*:([^\r\n]+)/im.exec((contact.info as ContactInfoVCF).vcf);
+    const displayName = fn ? unescapeVCFText(fn[1].trim()) : '';
+    if (displayName) {
+      (graph.info as ContactInfoGraph).displayName = displayName;
+      graph.name = displayName;
+    }
   } catch (err) {
     console.warn('VCF import: failed to map vCard to an Outlook contact:', err);
   }
