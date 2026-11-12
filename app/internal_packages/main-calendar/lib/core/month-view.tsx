@@ -153,7 +153,8 @@ export class MonthView extends React.Component<MailspringCalendarViewProps, Mont
           Array.from({ length: lastColumn - firstColumn + 1 }, (_, i) => ({
             occurrence: event,
             dayIndex: week * DAYS_IN_WEEK + firstColumn + i,
-            rank: lane,
+            top: lane,
+            bottom: lane,
             order: 1,
           }))
         )

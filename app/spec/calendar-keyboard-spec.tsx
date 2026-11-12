@@ -20,10 +20,11 @@ import {
   timedOccurrence,
 } from './fixtures/calendar-view-props';
 
-const at = (id: string, dayIndex: number, rank: number, order = 1): DayPlacement => ({
+const at = (id: string, dayIndex: number, top: number, order = 1, bottom = top): DayPlacement => ({
   occurrence: { id } as EventOccurrence,
   dayIndex,
-  rank,
+  top,
+  bottom,
   order,
 });
 
@@ -98,6 +99,40 @@ describe('eventInDirection', function () {
       expect(stepIn('next', 'left')).toBe('right');
     });
   });
+
+  describe('into a day with events overlapping this one', function () {
+    // Minutes into the day. Day 1: "early" 9:00-10:00 on the left, two 9:30-10:00 beside it.
+    const days = [
+      at('race', 0, 570, 1, 630),
+      at('early', 1, 540, 1, 600),
+      at('middle', 1, 570, 2, 600),
+      at('last', 1, 570, 3, 600),
+      at('beside', 2, 575, 1, 590),
+    ];
+    const stepIn = (from: string, direction: ArrowDirection) =>
+      eventInDirection(days, from, direction)?.id ?? null;
+
+    it('goes on to the next overlapping event beside it before leaving the day', function () {
+      expect(stepIn('early', 'right')).toBe('middle');
+      expect(stepIn('middle', 'right')).toBe('last');
+      expect(stepIn('last', 'right')).toBe('beside');
+      expect(stepIn('middle', 'left')).toBe('early');
+    });
+
+    it('lands on the overlapping event nearest the side it comes in from', function () {
+      expect(stepIn('race', 'right')).toBe('early');
+      expect(stepIn('beside', 'left')).toBe('last');
+    });
+
+    it('falls back to the nearest start when none overlaps, an end touching a start included', function () {
+      const touching = [
+        at('after', 0, 600, 1, 660),
+        at('long', 1, 540, 1, 600),
+        at('short', 1, 580, 2, 600),
+      ];
+      expect(eventInDirection(touching, 'after', 'right').id).toBe('short');
+    });
+  });
 });
 
 describe('TimeGridView.dayPlacements', function () {
@@ -115,13 +150,20 @@ describe('TimeGridView.dayPlacements', function () {
     const placements: DayPlacement[] = view.dayPlacements();
     const wednesday = placements
       .filter((p) => p.dayIndex === 3)
-      .sort((x, y) => x.rank - y.rank)
+      .sort((x, y) => x.top - y.top)
       .map((p) => p.occurrence.id);
     expect(wednesday).toEqual(['holiday', 'late', 'standup']);
     const daysOf = (id: string) =>
       placements.filter((p) => p.occurrence.id === id).map((p) => p.dayIndex);
     expect(daysOf('late')).toEqual([2, 3]);
     expect(daysOf('holiday')).toEqual([3]);
+
+    const span = (id: string) => {
+      const p = placements.find((x) => x.occurrence.id === id && x.dayIndex === 3);
+      return [p.top, p.bottom];
+    };
+    expect(span('standup')).toEqual([9 * 3600, 9.5 * 3600]);
+    expect(span('late')).toEqual([0, 3600]);
   });
 
   it('places events starting together on one row, left to right', function () {
@@ -135,7 +177,7 @@ describe('TimeGridView.dayPlacements', function () {
     ];
 
     const [a, b] = view.dayPlacements();
-    expect(a.rank).toBe(b.rank);
+    expect(a.top).toBe(b.top);
     expect([a.order, b.order].sort()).toEqual([1, 2]);
   });
 });
@@ -202,8 +244,8 @@ describe('the arrow keys and Esc with an event selected', function () {
         <FakeGrid
           ref={(g) => (grid = g)}
           placements={[
-            { occurrence: first, dayIndex: 0, rank: 32400, order: 1 },
-            { occurrence: second, dayIndex: 0, rank: 39600, order: 1 },
+            { occurrence: first, dayIndex: 0, top: 32400, bottom: 34200, order: 1 },
+            { occurrence: second, dayIndex: 0, top: 39600, bottom: 41400, order: 1 },
           ]}
         />
         <div className="agenda-panel">

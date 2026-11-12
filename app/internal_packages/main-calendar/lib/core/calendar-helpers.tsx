@@ -575,20 +575,22 @@ export function centerGridScroll(viewportEl: HTMLElement, selectedEvent?: EventO
 export type ArrowDirection = 'up' | 'down' | 'left' | 'right';
 
 /**
- * One visible day an event is drawn on, counted from the first; how far down it sits; and, among
- * events starting together, its place from the left.
+ * One visible day an event is drawn on, counted from the first; the span it covers down that day;
+ * and, among events side by side, its place from the left.
  */
 export interface DayPlacement {
   occurrence: EventOccurrence;
   dayIndex: number;
-  rank: number;
+  top: number;
+  bottom: number;
   order: number;
 }
 
 /**
- * The event an arrow steps to, from the first day `fromId` is drawn on. Events starting together
- * form a row that Left and Right cross before leaving the day; past it they skip empty days, stop
- * at the last day shown, and land on the event nearest the same height.
+ * The event an arrow steps to, from the first day `fromId` is drawn on. Left and Right go to the
+ * next event beside this one that overlaps it, then on to the next day with events: there to the
+ * overlapping event on the side they come in from, or failing that the one starting nearest the
+ * same height. They stop at the last day shown.
  */
 export function eventInDirection(
   placements: DayPlacement[],
@@ -602,24 +604,33 @@ export function eventInDirection(
   const others = (dayIndex: number) =>
     placements
       .filter((p) => p.dayIndex === dayIndex && p.occurrence.id !== fromId)
-      .sort((a, b) => a.rank - b.rank || a.order - b.order);
+      .sort((a, b) => a.top - b.top || a.order - b.order);
 
   if (direction === 'up' || direction === 'down') {
     const ahead = others(from.dayIndex).filter((p) =>
-      direction === 'down' ? p.rank > from.rank : p.rank < from.rank
+      direction === 'down' ? p.top > from.top : p.top < from.top
     );
     if (ahead.length === 0) return null;
-    const rowRank = direction === 'down' ? ahead[0].rank : ahead[ahead.length - 1].rank;
-    const row = ahead.filter((p) => p.rank === rowRank);
+    const rowTop = direction === 'down' ? ahead[0].top : ahead[ahead.length - 1].top;
+    const row = ahead.filter((p) => p.top === rowTop);
     const distance = (p: DayPlacement) => Math.abs(p.order - from.order);
     return row.reduce((best, p) => (distance(p) < distance(best) ? p : best)).occurrence;
   }
 
   const step = direction === 'right' ? 1 : -1;
+  const overlaps = (p: DayPlacement) =>
+    p.top === from.top || (p.top < from.bottom && p.bottom > from.top);
+  // The leftmost of them going right, the rightmost going left; the earliest of a tie.
+  const nearestSide = (candidates: DayPlacement[]) => {
+    const orders = candidates.map((p) => p.order);
+    const edge = step > 0 ? Math.min(...orders) : Math.max(...orders);
+    return candidates.find((p) => p.order === edge).occurrence;
+  };
+
   const beside = others(from.dayIndex).filter(
-    (p) => p.rank === from.rank && (p.order - from.order) * step > 0
+    (p) => overlaps(p) && (p.order - from.order) * step > 0
   );
-  if (beside.length > 0) return (step > 0 ? beside[0] : beside[beside.length - 1]).occurrence;
+  if (beside.length > 0) return nearestSide(beside);
 
   const indexes = placements.map((p) => p.dayIndex);
   const [first, last] = [Math.min(...indexes), Math.max(...indexes)];
@@ -630,11 +641,15 @@ export function eventInDirection(
   ) {
     const day = others(dayIndex);
     if (day.length === 0) continue;
-    const distance = (p: DayPlacement) => Math.abs(p.rank - from.rank);
+
+    const overlapping = day.filter(overlaps);
+    if (overlapping.length > 0) return nearestSide(overlapping);
+
+    const distance = (p: DayPlacement) => Math.abs(p.top - from.top);
     return day.reduce((best, p) => {
       if (distance(p) !== distance(best)) return distance(p) < distance(best) ? p : best;
       // Coming in from the right, a row is entered at its right end.
-      return p.rank === best.rank && step < 0 ? p : best;
+      return p.top === best.top && step < 0 ? p : best;
     }).occurrence;
   }
   return null;
