@@ -67,31 +67,6 @@ const calendarMenu: MenuItem = {
   ],
 };
 
-// Thread and View act on a thread list that's unmounted while the calendar shows, so they're
-// swapped for the Calendar menu and restored at their old positions on the way out.
-let _hiddenMenus: { index: number; item: MenuItem }[] | null = null;
-
-function updateMenus() {
-  const showing = WorkspaceStore.rootSheet() === WorkspaceStore.Sheet.Calendar;
-  if (showing === (_hiddenMenus !== null)) return;
-
-  let template = AppEnv.menu.template;
-  if (showing) {
-    _hiddenMenus = [];
-    template.forEach((item, index) => {
-      if (item.id === 'Thread' || item.id === 'View') _hiddenMenus.push({ index, item });
-    });
-    template = template.filter((item) => item.id !== 'Thread' && item.id !== 'View');
-    template.splice(template.findIndex((item) => item.id === 'Edit') + 1, 0, calendarMenu);
-  } else {
-    template = template.filter((item) => item !== calendarMenu);
-    for (const { index, item } of _hiddenMenus) template.splice(index, 0, item);
-    _hiddenMenus = null;
-  }
-  AppEnv.menu.template = template;
-  AppEnv.menu.update();
-}
-
 // Sent by the main process for application:show-calendar, from the Window menu or from an
 // invitation's "View in Calendar" link in any window.
 async function onShowCalendar(_event: Electron.IpcRendererEvent, focus?: EventRef) {
@@ -109,18 +84,17 @@ const CalendarNavRailItem = () => (
   <NavRailItem
     label={localized('Calendar')}
     iconName="ic-calendar-month.png"
+    order={2}
     command="application:show-calendar"
     isActive={() => WorkspaceStore.rootSheet() === WorkspaceStore.Sheet.Calendar}
   />
 );
 CalendarNavRailItem.displayName = 'CalendarNavRailItem';
 
-let _unlistenWorkspace: (() => void) | null = null;
-
 export function activate() {
   WorkspaceStore.defineSheet(
     'Calendar',
-    { root: true },
+    { root: true, menu: calendarMenu },
     { list: ['CalendarSidebar', 'CalendarContent'] }
   );
 
@@ -139,7 +113,6 @@ export function activate() {
   ComponentRegistry.register(CalendarNavRailItem, { role: 'NavRail:Item' });
   ComponentRegistry.register(SidebarCalendarPanel, { role: 'MessageListSidebar:Panel' });
 
-  _unlistenWorkspace = WorkspaceStore.listen(updateMenus);
   ipcRenderer.on('show-calendar', onShowCalendar);
 }
 
@@ -151,6 +124,5 @@ export function deactivate() {
   ComponentRegistry.unregister(CalendarNavRailItem);
   ComponentRegistry.unregister(SidebarCalendarPanel);
 
-  _unlistenWorkspace?.();
   ipcRenderer.removeListener('show-calendar', onShowCalendar);
 }

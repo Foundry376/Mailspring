@@ -157,7 +157,7 @@ export default class ApplicationMenu {
 
     const windows = global.application.windowManager.getOpenWindows();
     const windowsItems = windows
-      .filter((w) => w.windowType !== 'default' && w.windowType !== 'contacts')
+      .filter((w) => w.windowType !== 'default')
       .map((w) => ({
         label: w.loadSettings().title || 'Window',
         click() {

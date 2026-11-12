@@ -6,6 +6,7 @@
   "application:show-mail": ["mod+alt+1", "mod+0"],
   "application:show-calendar": "mod+alt+2",
   "application:show-activity": "mod+alt+3",
+  "application:show-contacts": "mod+alt+4",
 
   "window:toggle-full-screen": "command+ctrl+f",
   "window:reload": "mod+alt+l",

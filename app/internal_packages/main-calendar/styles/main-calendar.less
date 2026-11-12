@@ -602,40 +602,19 @@
   }
 }
 
-// Event Search Bar - matches ThreadSearchBar styling
 .event-search-bar {
-  position: relative;
-  overflow: visible;
-  z-index: 100;
+  .search-bar();
   flex: 0 1 180px;
   min-width: 120px;
-  height: 23px;
-  font-weight: 400;
-  line-height: 23px;
-  background: @input-bg;
-  color: @text-color;
-  padding-left: @padding-xs-horizontal;
-  padding-right: @padding-xs-horizontal;
-  border-radius: @border-radius-base;
-  box-shadow: @shadow-border;
-  display: flex;
-  align-items: center;
 
   &.focused {
     box-shadow: 0 0 0 1px @accent-primary;
   }
 
   .search-accessory {
-    width: 15px;
-    height: 15px;
-    object-fit: contain;
-    zoom: 1 !important;
     flex-shrink: 0;
 
     &.clear {
-      color: @text-color-subtle;
-      width: 21px;
-      height: 21px;
       cursor: pointer;
     }
 
@@ -646,27 +625,7 @@
   }
 
   .event-search-input {
-    flex: 1;
-    height: 100%;
-    border: none;
-    background: transparent;
-    color: @text-color;
-    outline: none;
-    padding-left: @padding-xs-horizontal;
-    padding-right: @padding-xs-horizontal;
-    font-size: inherit;
-    line-height: inherit;
-    min-width: 0;
-
-    &:focus {
-      outline: none;
-      box-shadow: none;
-      border: none;
-    }
-
-    &::placeholder {
-      color: @text-color-very-subtle;
-    }
+    .search-bar-input();
   }
 
   // Wider than the field, which sits at the toolbar's right edge.
@@ -746,15 +705,6 @@
       }
     }
   }
-}
-
-// The macOS 26+ toolbar is taller and uses a capsule-shaped search field.
-:where(body.platform-darwin) .event-search-bar {
-  height: @toolbar-btn-height-darwin;
-  line-height: @toolbar-btn-height-darwin;
-  padding-left: @padding-base-horizontal;
-  padding-right: @padding-base-horizontal;
-  border-radius: (@toolbar-btn-height-darwin / 2);
 }
 
 .sidebar-calendar-panel {

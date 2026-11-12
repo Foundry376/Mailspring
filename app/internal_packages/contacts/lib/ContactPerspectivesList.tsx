@@ -11,11 +11,15 @@ import {
   ChangeContactGroupMembershipTask,
   localized,
 } from 'mailspring-exports';
-import { ContactsPerspective, Store, ContactsPerspectiveForGroup } from './Store';
+import {
+  ContactsPerspective,
+  Store,
+  ContactsPerspectiveForGroup,
+  accountContactsPerspective,
+} from './Store';
 import {
   ScrollRegion,
   OutlineView,
-  OutlineViewItem,
   ListensToFluxStore,
   ListensToObservable,
   IOutlineViewItem,
@@ -48,6 +52,8 @@ interface OutlineViewForAccountProps {
   findInMailDisabled: boolean;
   selected: ContactsPerspective | null;
   onSelect: (item: ContactsPerspective) => void;
+  collapsed: boolean;
+  onCollapseToggled?: () => void;
 }
 
 const OutlineViewForAccount = ({
@@ -57,18 +63,19 @@ const OutlineViewForAccount = ({
   selected,
   onSelect,
   findInMailDisabled,
+  collapsed,
+  onCollapseToggled,
 }: OutlineViewForAccountProps) => {
   const items: IOutlineViewItem[] = [];
 
   if (books.length) {
     items.push({
       id: 'all-contacts',
-      name: localized('All Contacts'),
+      name: localized('Contacts'),
       iconName: 'person.png',
       children: [],
       selected: selected && selected.type === 'all',
-      onSelect: () =>
-        onSelect({ accountId: account.id, type: 'all', label: localized('All Contacts') }),
+      onSelect: () => onSelect(accountContactsPerspective(account)),
       shouldAcceptDrop: () => false,
     });
 
@@ -151,6 +158,8 @@ const OutlineViewForAccount = ({
     <OutlineView
       title={account.label}
       items={items}
+      collapsed={collapsed}
+      onCollapseToggled={onCollapseToggled}
       onItemCreated={
         // Microsoft Graph has no contact groups.
         books.length > 0 && !books.some((b) => b.source === 'graph')
@@ -173,33 +182,49 @@ const ContactsPerspectivesWithData: React.FunctionComponent<ContactsPerspectives
   accounts,
   selected,
   onSelect,
-}) => (
-  <ScrollRegion style={{ flex: 1 }} className="contacts-perspective-list">
-    <section className="outline-view nylas-outline-view" style={{ paddingTop: 15 }}>
-      <OutlineViewItem
-        item={{
-          id: 'bla',
-          name: 'All Contacts',
-          iconName: 'people.png',
-          children: [],
-          selected: selected.type === 'unified',
-          onSelect: () => onSelect({ type: 'unified' }),
-        }}
+}) => {
+  // Kept apart from mail's and calendar's, so hiding an account here leaves its folders and calendars.
+  const [collapsedAccounts, setCollapsedAccounts] = React.useState<{
+    [accountId: string]: boolean;
+  }>(() => AppEnv.savedState.contactsAccountsCollapsed || {});
+  const onCollapseToggled = (accountId: string) => {
+    const next = { ...collapsedAccounts, [accountId]: !collapsedAccounts[accountId] };
+    AppEnv.savedState.contactsAccountsCollapsed = next;
+    setCollapsedAccounts(next);
+  };
+  const collapsible = accounts.length > 1;
+
+  return (
+    <ScrollRegion style={{ flex: 1 }} className="contacts-perspective-list">
+      <OutlineView
+        title={localized('All Accounts')}
+        items={[
+          {
+            id: 'unified',
+            name: localized('All Contacts'),
+            iconName: 'people.png',
+            children: [],
+            selected: selected.type === 'unified',
+            onSelect: () => onSelect({ type: 'unified' }),
+          },
+        ]}
       />
-    </section>
-    {accounts.map((a) => (
-      <OutlineViewForAccount
-        key={a.id}
-        account={a}
-        findInMailDisabled={findInMailDisabled.includes(a.id)}
-        books={books.filter((b) => b.accountId === a.id)}
-        groups={groups.filter((b) => b.accountId === a.id)}
-        selected={'accountId' in selected && selected.accountId === a.id ? selected : null}
-        onSelect={onSelect}
-      />
-    ))}
-  </ScrollRegion>
-);
+      {accounts.map((a) => (
+        <OutlineViewForAccount
+          key={a.id}
+          account={a}
+          findInMailDisabled={findInMailDisabled.includes(a.id)}
+          books={books.filter((b) => b.accountId === a.id)}
+          groups={groups.filter((b) => b.accountId === a.id)}
+          selected={'accountId' in selected && selected.accountId === a.id ? selected : null}
+          onSelect={onSelect}
+          collapsed={collapsible && !!collapsedAccounts[a.id]}
+          onCollapseToggled={collapsible ? () => onCollapseToggled(a.id) : undefined}
+        />
+      ))}
+    </ScrollRegion>
+  );
+};
 
 export const ContactPerspectivesList = ListensToObservable(
   ListensToFluxStore(ContactsPerspectivesWithData, {
