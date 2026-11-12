@@ -1,5 +1,6 @@
 import { Contact } from 'mailspring-exports';
 import { apply, parse } from '../lib/ContactInfoMapping';
+import { vcfContactAsGraphContact, vcfStringToContacts } from '../lib/VCFImportExport';
 
 const VCF = [
   'BEGIN:VCARD',
@@ -262,6 +263,50 @@ describe('ContactInfoMapping', function () {
       expect(info.spouseName).toBe(null);
       expect(info.manager).toBe('Charles');
       expect(info.children).toEqual(['Byron']);
+    });
+
+    it('matches relation labels in any case and skips rows with no person', () => {
+      const contact = graphContact();
+      const { data } = parse(contact);
+      const next = apply(contact, {
+        ...data,
+        relations: [
+          { person: 'Charles', type: 'manager' },
+          { person: '', type: 'Spouse' },
+          { person: 'Byron', type: 'child ' },
+        ],
+      });
+      const info = next.info as any;
+      expect(info.manager).toBe('Charles');
+      expect(info.spouseName).toBe(null);
+      expect(info.children).toEqual(['Byron']);
+    });
+
+    it('offers only the relation labels Graph has a field for', () => {
+      expect(parse(graphContact()).metadata.fixedTypes.relations).toEqual({
+        Spouse: 1,
+        Child: Infinity,
+        Manager: 1,
+        Assistant: 1,
+      });
+    });
+
+    it('imports a vCard without an address or birthday into an Outlook contact', () => {
+      const [card] = vcfStringToContacts(
+        'BEGIN:VCARD\nVERSION:3.0\nFN:Alan Turing\nN:Turing;Alan;;;\n' +
+          'EMAIL:alan@example.com\nTEL;TYPE=CELL:+44 1234\nEND:VCARD\n',
+        'acct'
+      );
+      const graph = vcfContactAsGraphContact(card, 'acct');
+      const info = graph.info as any;
+      expect(graph.source).toBe('graph');
+      expect(info.displayName).toBe('Alan Turing');
+      expect(info.givenName).toBe('Alan');
+      expect(info.surname).toBe('Turing');
+      expect(info.emailAddresses).toEqual([{ address: 'alan@example.com', name: 'Alan Turing' }]);
+      expect(info.mobilePhone).toBe('+44 1234');
+      expect(info.birthday).toBe(undefined);
+      expect(info.homeAddress).toBe(undefined);
     });
   });
 });

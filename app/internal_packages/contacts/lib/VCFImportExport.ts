@@ -196,12 +196,18 @@ export function exportContactsToFile(contacts: Contact[]) {
 
 /** A contact read from a VCF, as a new contact in a Microsoft Graph account. Outlook keeps
  only so many of each field, so a card with more loses the extras (see applyToGraph). */
-function vcfContactAsGraphContact(contact: Contact, accountId: string): Contact {
+export function vcfContactAsGraphContact(contact: Contact, accountId: string): Contact {
   const graph = emptyContactForAccount(accountId, 'graph');
   try {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { photoURL, ...data } = fromVCF(contact.info as ContactInfoVCF).data;
-    applyToGraph(graph, data);
+    // fromVCF leaves a part the card lacks as undefined or false (no ADR, BDAY, NOTE).
+    const present = Object.fromEntries(
+      Object.entries(data).filter(
+        ([, value]) => value !== undefined && (value as unknown) !== false
+      )
+    );
+    applyToGraph(graph, present);
   } catch (err) {
     console.warn('VCF import: failed to map vCard to an Outlook contact:', err);
   }

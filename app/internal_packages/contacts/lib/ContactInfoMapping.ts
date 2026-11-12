@@ -54,7 +54,10 @@ export interface ContactInteractorMetadata {
   /** The most entries the service stores in each list; the editor offers no more. */
   limits?: Partial<Record<keyof ContactBase, number>>;
   /** Labels the service can tell apart, suggested in place of the editor's own. */
-  types?: { phoneNumbers?: string[]; relations?: string[] };
+  types?: { phoneNumbers?: string[] };
+  /** The only labels the service stores for a list, each with the most entries it takes;
+   the editor offers a choice of these in place of a free label. */
+  fixedTypes?: { relations?: { [type: string]: number } };
 }
 
 export interface ContactParseResult {
@@ -324,6 +327,8 @@ const GRAPH_RELATIONS: { [type: string]: 'spouseName' | 'manager' | 'assistantNa
   Manager: 'manager',
   Assistant: 'assistantName',
 };
+// Graph has a field for each of these relations and nowhere to keep any other.
+const GRAPH_RELATION_LIMITS = { Spouse: 1, Child: Infinity, Manager: 1, Assistant: 1 };
 // Outlook stores a birthday without a year in 1604, and every birthday at 11:59 UTC.
 const GRAPH_NO_YEAR = 1604;
 
@@ -361,10 +366,8 @@ export function fromGraph(info: ContactInfoGraph): ContactParseResult {
       origin: 'Outlook Contacts',
       readonly: false,
       limits: GRAPH_LIMITS,
-      types: {
-        phoneNumbers: Object.keys(GRAPH_PHONE_SLOTS),
-        relations: ['Spouse', 'Child', 'Manager', 'Assistant'],
-      },
+      types: { phoneNumbers: Object.keys(GRAPH_PHONE_SLOTS) },
+      fixedTypes: { relations: GRAPH_RELATION_LIMITS },
     },
     data: {
       name: {
@@ -500,10 +503,14 @@ export function applyToGraph(contact: Contact, changes: Partial<ContactBase>) {
             }T11:59:00Z`
           : null;
     } else if (key === 'relations') {
+      const ofType = (type: string) =>
+        changes.relations.filter(
+          (r) => r.person && (r.type || '').trim().toLowerCase() === type.toLowerCase()
+        );
       for (const [type, field] of Object.entries(GRAPH_RELATIONS)) {
-        info[field] = changes.relations.find((r) => r.type === type)?.person || null;
+        info[field] = ofType(type)[0]?.person || null;
       }
-      info.children = changes.relations.filter((r) => r.type === 'Child').map((r) => r.person);
+      info.children = ofType('Child').map((r) => r.person);
     } else if (key === 'notes') {
       info.personalNotes = changes.notes;
     } else {

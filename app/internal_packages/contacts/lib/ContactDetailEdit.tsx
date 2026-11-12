@@ -49,23 +49,47 @@ const EditSection = ({ icon, children }: { icon: React.ReactNode; children: Reac
   </div>
 );
 
+/** A free label with `suggestions`, or a choice of `options` when the service stores no others. */
 const TypeField = ({
   value,
   suggestions,
+  options,
   onChange,
 }: {
   value: string | undefined;
   suggestions: string[];
+  options?: string[];
   onChange: (value: string) => void;
 }) => (
   <ContactField label={localized('Label')} className="type">
-    <TypeaheadFreeInput
-      suggestions={suggestions}
-      value={value || ''}
-      onChange={(e) => onChange(e.currentTarget.value)}
-    />
+    {options ? (
+      <select value={value || ''} onChange={(e) => onChange(e.currentTarget.value)}>
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    ) : (
+      <TypeaheadFreeInput
+        suggestions={suggestions}
+        value={value || ''}
+        onChange={(e) => onChange(e.currentTarget.value)}
+      />
+    )}
   </ContactField>
 );
+
+/** The labels in `limits` still free beside `others`, keeping `own` so a row shows its label. */
+function freeTypes(
+  limits: { [type: string]: number },
+  others: { type?: string }[],
+  own?: string
+): string[] {
+  return Object.keys(limits).filter(
+    (type) => type === own || others.filter((o) => o.type === type).length < limits[type]
+  );
+}
 
 export class ContactDetailEdit extends React.Component<{
   data: ContactBase;
@@ -78,6 +102,7 @@ export class ContactDetailEdit extends React.Component<{
     const account = AccountStore.accountForId(contact.accountId);
     const limits = metadata?.limits || {};
     const types = metadata?.types || {};
+    const relationLimits = metadata?.fixedTypes?.relations;
 
     return (
       <div className="contact-detail-content-wrap editing">
@@ -264,7 +289,15 @@ export class ContactDetailEdit extends React.Component<{
           <EditSection icon={<SVGIcons.PeopleFilled />}>
             <ListEditor<ContactBase['relations'][0]>
               items={data.relations || []}
-              itemTemplate={{ person: '', type: '' }}
+              itemTemplate={{
+                person: '',
+                type: relationLimits
+                  ? freeTypes(
+                      relationLimits,
+                      (data.relations || []).filter((r) => r.person)
+                    )[0]
+                  : '',
+              }}
               addLabel={localized('Add relationship')}
               onChange={(items) => onChange({ relations: items })}
             >
@@ -277,7 +310,15 @@ export class ContactDetailEdit extends React.Component<{
                   />
                   <TypeField
                     value={item.type}
-                    suggestions={types.relations || RelationTypes}
+                    suggestions={RelationTypes}
+                    options={
+                      relationLimits &&
+                      freeTypes(
+                        relationLimits,
+                        (data.relations || []).filter((r) => r !== item),
+                        item.type
+                      )
+                    }
                     onChange={(type) => onChange({ type })}
                   />
                 </div>
