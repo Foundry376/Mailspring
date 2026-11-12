@@ -37,7 +37,7 @@ describe('ProposeTimePopover', function () {
     beforeEach(() => mount({ start: START, end: END }));
 
     it('shows the slot it would replace, and offers times', function () {
-      expect(original()).toBe('Currently Tue, Mar 10 · 2:00 PM – 2:30 PM');
+      expect(original()).toBe('Currently Tue, Mar 10 · 2:00PM\u2009–\u20092:30PM');
       expect(ReactTestUtils.scryRenderedComponentsWithType(popover, TimePicker).length).toBe(2);
       expect(ReactTestUtils.scryRenderedComponentsWithType(popover, DatePicker).length).toBe(1);
     });
@@ -45,7 +45,7 @@ describe('ProposeTimePopover', function () {
     it('shows the slot on a 24-hour clock when Use 24-hour clock is on', function () {
       use24HourClock(true);
       mount({ start: START, end: END });
-      expect(original()).toBe('Currently Tue, Mar 10 · 14:00 – 14:30');
+      expect(original()).toBe('Currently Tue, Mar 10 · 14:00\u2009–\u200914:30');
     });
 
     it('cannot propose the time it already has', function () {

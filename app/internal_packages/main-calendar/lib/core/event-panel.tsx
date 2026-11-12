@@ -1,5 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import moment from 'moment-timezone';
 import {
   localized,
   isRTL,
@@ -44,22 +45,25 @@ import {
   clampEnd,
   editableFields,
   extractNotesFromDescription,
+  fieldZone,
   formatConflict,
   formatShortTimeRange,
-  formatTime,
   hasGuests,
   holdsEdits,
   proposesTime,
   inclusiveAllDayEnd,
   momentOf,
   PanelField,
+  sameWallClockIn,
   shiftEndWithStart,
 } from './calendar-helpers';
 import {
   AttendeeStatusIcon,
   attendeeStatusClass,
   contactNamesByEmail,
+  guestCount,
   guestName,
+  guestSummary,
   sortedAttendees,
 } from './attendee-status';
 import {
@@ -68,7 +72,7 @@ import {
   repeatLabel,
   repeatOptionToRRule,
 } from './repeat-selector';
-import { formatTimezone } from './timezone-selector';
+import { COMMON_TIMEZONES, formatTimezone } from './timezone-selector';
 import { ShowAsOption, showAsLabel } from './show-as-selector';
 import {
   canRespondToEvent,
@@ -80,7 +84,7 @@ import {
   ProposedTime,
   respondToCalendarEvent,
 } from './calendar-rsvp';
-import { ChangeScope, EventPropertyEdit } from './recurring-event-actions';
+import { ChangeScope, EventChange, EventPropertyEdit } from './recurring-event-actions';
 import { EventPanelTextField } from './event-panel-text-field';
 import {
   UnsentChange,
@@ -101,13 +105,13 @@ const REPEAT_OPTIONS: RepeatOption[] = ['none', 'daily', 'weekly', 'monthly', 'y
 const repeatOptionLabel = (option: RepeatOption) =>
   option === 'none' ? localized('Does not repeat') : repeatLabel(option);
 
-function daysLabel(first: CalendarDate, last: CalendarDate) {
-  const from = momentOf(first).format('ddd MMM D');
-  return first === last ? from : `${from} – ${momentOf(last).format('ddd MMM D')}`;
-}
+const formatDay = (day: CalendarDate) => DateUtils.dayString(momentOf(day));
 
-const formatDay = (day: CalendarDate) =>
-  momentOf(day).format(DateUtils.DATE_FORMAT_llll_NO_TIME).trim();
+const formatPickerTime = (unix: number) => moment.unix(unix).format(DateUtils.tightTimeFormat());
+
+function daysLabel(first: CalendarDate, last: CalendarDate) {
+  return first === last ? formatDay(first) : `${formatDay(first)} – ${formatDay(last)}`;
+}
 
 // As the date pickers show them, so an event that can't be edited reads like one that can.
 function renderDays(first: CalendarDate, last: CalendarDate) {
@@ -120,6 +124,9 @@ function renderDays(first: CalendarDate, last: CalendarDate) {
   );
 }
 const SHOW_AS_OPTIONS: ShowAsOption[] = ['OPAQUE', 'TRANSPARENT'];
+
+// A longer guest list shows this many, organizer and you first, until it's expanded.
+const TRIMMED_GUEST_ROWS = 5;
 
 interface EventPanelProps {
   event: EventOccurrence;
@@ -142,11 +149,7 @@ interface EventPanelProps {
   conflicts?: CalendarConflict[];
 }
 
-interface Times {
-  start: number;
-  end: number;
-  isAllDay: boolean;
-}
+type Times = NonNullable<EventChange['times']>;
 
 interface ChangeRow {
   key: string;
@@ -161,11 +164,14 @@ type InviteeState = 'removed' | 'removable' | 'answerable' | '';
 interface EventPanelState {
   /** Read from the event's row: the occurrence doesn't carry it. */
   repeat: RepeatOption;
+  /** Read from the event's row; null for a time in UTC, floating or an event not yet created. */
+  timezone: string | null;
   /** Times changed in the panel, shown until the saved event comes back. */
   times: Times | null;
   proposals: ProposedTime[];
   /** Your guest row's answer buttons are showing. */
   answerOpen: boolean;
+  allGuestsShown: boolean;
   /** Shown only: the guest list an edit writes back keeps the invitation's own names. */
   contactNames: Map<string, string>;
 }
@@ -205,9 +211,11 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
 
   state: EventPanelState = {
     repeat: 'none',
+    timezone: null,
     times: null,
     proposals: [],
     answerOpen: false,
+    allGuestsShown: false,
     contactNames: new Map(),
   };
 
@@ -259,7 +267,8 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       const { times } = this.state;
       if (times && !this._pendingTimes && (this._timesSaveLanded || this._storedTimesAre(times))) {
         this._timesSaveLanded = false;
-        this.setState({ times: null });
+        // The zone too, until the row is read, so the new times aren't drawn in the old zone.
+        this.setState({ times: null, ...(times.timezone && { timezone: times.timezone }) });
       }
       this._loadEventRow();
     }
@@ -290,9 +299,14 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
-  _storedTimesAre({ start, end, isAllDay }: Times) {
+  _storedTimesAre({ start, end, isAllDay, timezone }: Times) {
     const stored = this._storedTimes();
-    return stored.start === start && stored.end === end && stored.isAllDay === isAllDay;
+    return (
+      stored.start === start &&
+      stored.end === end &&
+      stored.isAllDay === isAllDay &&
+      (timezone ?? this._storedZone()) === this._storedZone()
+    );
   }
 
   focusTitle() {
@@ -346,6 +360,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     if (this.props.event !== occurrence || !row) return;
     this.setState({
       repeat: frequencyToRepeatOption(ICSEventHelpers.getRecurrenceInfo(row.ics).frequency),
+      timezone: ICSEventHelpers.getEventTimezone(row.ics),
     });
     this._loadProposals(occurrence, row);
   }
@@ -446,6 +461,25 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     return occurrenceTimes(this.props.event);
   }
 
+  _storedZone() {
+    return this.state.timezone ?? DateUtils.timeZone;
+  }
+
+  _shownZone() {
+    return this._times().timezone ?? this._storedZone();
+  }
+
+  /** Where the event's zone can be changed its times read in it; elsewhere in yours (undefined). */
+  _zoneOf(times: Times): string | undefined {
+    if (times.isAllDay || !this._canEdit('timezone')) return undefined;
+    return fieldZone(times.timezone ?? this._storedZone());
+  }
+
+  // An occurrence changed on its own can't have a zone of its own (createRecurrenceException).
+  _canChangeZone() {
+    return this._canEdit('timezone') && !this.props.event.isException;
+  }
+
   _changeTimes(times: Times) {
     this._pendingTimes = times;
     this.setState({ times });
@@ -499,13 +533,33 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   // From the days on screen, which may be picked but not yet saved.
   _onAllDayChange = () => {
     const t = this._times();
-    const days = {
-      startDate: CalendarDateUtils.calendarDateFromUnix(t.start),
-      endDate: this._lastDay(t),
-    };
-    this._changeTimes({ ...allDayToggleTimes(days, !t.isAllDay), isAllDay: !t.isAllDay });
+    const days = { startDate: this._firstDay(t), endDate: this._lastDay(t) };
+    // Switched off, 9 AM lands in the zone the fields will read it in.
+    const zone = this._zoneOf({ ...t, isAllDay: false });
+    this._changeTimes({ ...allDayToggleTimes(days, !t.isAllDay, zone), isAllDay: !t.isAllDay });
     this._saveTimes();
   };
+
+  // The times keep the wall clock they show, so the event moves.
+  _onTimezoneChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const timezone = e.target.value;
+    const t = this._times();
+    const from = this._zoneOf(t) ?? DateUtils.timeZone;
+    const to = fieldZone(timezone);
+    this._changeTimes({
+      start: sameWallClockIn(t.start, from, to),
+      end: sameWallClockIn(t.end, from, to),
+      isAllDay: false,
+      ...(timezone !== this._storedZone() && { timezone }),
+    });
+    this._saveTimes();
+  };
+
+  _zoneChoices() {
+    return [
+      ...new Set([this._shownZone(), this._storedZone(), DateUtils.timeZone, ...COMMON_TIMEZONES]),
+    ];
+  }
 
   _onRepeatChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const repeat = e.target.value as RepeatOption;
@@ -545,12 +599,12 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           {this.props.headerActions}
           {this.props.onDelete && (
             <button
-              className="btn-bare event-panel-more"
+              className="btn-ghost event-panel-more"
               title={localized('More')}
               aria-label={localized('More')}
               onClick={this._onMore}
             >
-              <SVGIcons.More />
+              <SVGIcons.More size={22} />
             </button>
           )}
         </div>
@@ -565,7 +619,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       return (
         <EventPanelTextField
           ref={this._title}
-          className="event-panel-title"
+          className="editable"
           value={this._shown('summary', event.title)}
           placeholder={localized('New Event')}
           // Left empty, an unsaved event keeps no title, so leaving it doesn't create it.
@@ -578,22 +632,30 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         />
       );
     }
-    return <div className="event-panel-title">{event.isCancelled ? <s>{title}</s> : title}</div>;
+    return event.isCancelled ? <s>{title}</s> : title;
+  }
+
+  _firstDay(times: Times) {
+    return CalendarDateUtils.calendarDateFromUnix(times.start, this._zoneOf(times));
   }
 
   /** The last day the times cover: a timed event ending at midnight doesn't reach the next day. */
-  _lastDay({ start, end, isAllDay }: Times) {
+  _lastDay(times: Times) {
+    const { start, end, isAllDay } = times;
     return CalendarDateUtils.calendarDateFromUnix(
-      isAllDay ? inclusiveAllDayEnd(end) : Math.max(end - 1, start)
+      isAllDay ? inclusiveAllDayEnd(end) : Math.max(end - 1, start),
+      this._zoneOf(times)
     );
   }
 
   _renderEditableWhen() {
     const t = this._times();
-    const multiDay = CalendarDateUtils.calendarDateFromUnix(t.start) !== this._lastDay(t);
+    const zone = this._zoneOf(t);
+    const multiDay = this._firstDay(t) !== this._lastDay(t);
     const endDatePicker = (
       <DatePicker
         value={(t.isAllDay ? inclusiveAllDayEnd(t.end) : t.end) * 1000}
+        timeZone={zone}
         onChange={(ms) =>
           this._changeEnd(
             t.isAllDay
@@ -635,11 +697,12 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           <div className={`event-panel-row ${allDaySwitch ? 'indented' : ''}`}>
             {!allDaySwitch && clock}
             <div className="event-panel-wrap">
-              <TimePicker value={t.start * 1000} onChange={this._changeStart} />
+              <TimePicker value={t.start * 1000} timeZone={zone} onChange={this._changeStart} />
               <SVGIcons.ArrowRight className="event-panel-icon" />
               <TimePicker
                 value={t.end * 1000}
                 relativeTo={t.start * 1000}
+                timeZone={zone}
                 onChange={(ms) => this._changeEnd(ms / 1000)}
               />
               <span className="event-panel-subtle">
@@ -651,11 +714,12 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         <div className={`event-panel-row ${allDaySwitch || !t.isAllDay ? 'indented' : ''}`}>
           {!allDaySwitch && t.isAllDay && clock}
           <div className="event-panel-wrap">
-            <DatePicker value={t.start * 1000} onChange={this._changeStart} />
+            <DatePicker value={t.start * 1000} timeZone={zone} onChange={this._changeStart} />
             {multiDay && <span>–</span>}
             {multiDay && endDatePicker}
           </div>
         </div>
+        {this._renderYourTime(t)}
         {this._renderConflicts()}
         {!allDaySwitch && t.isAllDay && (
           <div className="event-panel-row indented">{localized('All day')}</div>
@@ -663,8 +727,24 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         {!t.isAllDay && (
           <div className="event-panel-row">
             <SVGIcons.Globe className="event-panel-icon" />
-            {/* The zone the times above are shown in, which may not be the event's own. */}
-            {formatTimezone(DateUtils.timeZone)}
+            {this._canChangeZone() ? (
+              <TextSelect
+                value={this._shownZone()}
+                aria-label={localized('Time zone')}
+                onChange={this._onTimezoneChange}
+              >
+                {this._zoneChoices().map((timezone) => (
+                  <option key={timezone} value={timezone}>
+                    {formatTimezone(timezone, t.start)}
+                  </option>
+                ))}
+              </TextSelect>
+            ) : (
+              formatTimezone(
+                this._canEdit('timezone') ? this._shownZone() : DateUtils.timeZone,
+                t.start
+              )
+            )}
           </div>
         )}
         {/* An occurrence changed on its own takes no scope; its rule is the series'. */}
@@ -682,6 +762,22 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             </TextSelect>
           </div>
         )}
+      </div>
+    );
+  }
+
+  _renderYourTime(times: Times) {
+    const zone = this._zoneOf(times);
+    if (!zone || zone === DateUtils.timeZone) return null;
+    const shownDays = daysLabel(this._firstDay(times), this._lastDay(times));
+    const yourDays = daysLabel(
+      CalendarDateUtils.calendarDateFromUnix(times.start),
+      CalendarDateUtils.calendarDateFromUnix(Math.max(times.end - 1, times.start))
+    );
+    const range = formatShortTimeRange(times.start, times.end);
+    return (
+      <div className="event-panel-row indented event-panel-subtle">
+        {localized('%@ your time', yourDays === shownDays ? range : `${yourDays}, ${range}`)}
       </div>
     );
   }
@@ -724,10 +820,9 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             <div className="event-panel-row">
               <SVGIcons.Clock className="event-panel-icon" />
               <div className="event-panel-wrap">
-                {/* As the time pickers show them. */}
-                <span>{formatTime(event.start)}</span>
+                <span>{formatPickerTime(event.start)}</span>
                 <SVGIcons.ArrowRight className="event-panel-icon" />
-                <span>{formatTime(event.end)}</span>
+                <span>{formatPickerTime(event.end)}</span>
                 <span className="event-panel-subtle">
                   {DateUtils.formatDuration(event.end - event.start)}
                 </span>
@@ -738,7 +833,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             <div className="event-panel-row">
               <SVGIcons.Globe className="event-panel-icon" />
               {/* The zone the times above are shown in, which may not be the event's own. */}
-              {formatTimezone(DateUtils.timeZone)}
+              {formatTimezone(DateUtils.timeZone, event.start)}
             </div>
           </>
         ) : (
@@ -785,8 +880,10 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         key={attendee.email}
         className={`event-panel-invitee ${attendeeStatusClass(attendee)} ${state}`}
       >
-        <span className="attendee-status">
-          <AttendeeStatusIcon attendee={attendee} />
+        <span className="event-panel-icon">
+          <span className="attendee-status">
+            <AttendeeStatusIcon attendee={attendee} />
+          </span>
         </span>
         <div className="event-panel-invitee-body">
           <div className="event-panel-invitee-line">
@@ -796,7 +893,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             </div>
             {state === 'removable' && (
               <button
-                className="btn-bare event-panel-invitee-remove"
+                className="btn-ghost event-panel-invitee-remove"
                 title={localized('Remove %@', name)}
                 aria-label={localized('Remove %@', name)}
                 onClick={() => this._removeAttendee(attendee)}
@@ -848,31 +945,61 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       return editable && !ours ? 'removable' : '';
     };
     const listed = attendees.length > 0 || added.length > 0;
-    return (
-      <div className="event-panel-row top">
-        <SVGIcons.Person className="event-panel-icon" />
-        <div className="event-panel-invitees">
-          {sortedAttendees(this.props.event, this.state.contactNames).map((a) =>
-            this._renderInvitee(a, stateOf(a), me)
-          )}
-          {added.map((a) => this._renderInvitee(a, stateOf(a), me))}
-          {editable && (
-            <div className="event-panel-invitee event-panel-invitee-add">
-              {listed && (
-                <span className="attendee-status">
-                  <SVGIcons.Plus size={12} />
-                </span>
-              )}
-              <EventAttendeesInput
-                className="event-panel-invitee-input"
-                attendees={[]}
-                placeholder={localized('Add Invitees')}
-                change={this._addAttendees}
-                clearable
-              />
-            </div>
-          )}
+    const addInvitees = editable && (
+      <div className="event-panel-invitee event-panel-invitee-add">
+        {listed && (
+          <span className="event-panel-icon">
+            <span className="attendee-status">
+              <SVGIcons.Plus size={12} />
+            </span>
+          </span>
+        )}
+        <EventAttendeesInput
+          className="event-panel-invitee-input"
+          attendees={[]}
+          placeholder={localized('Add Invitees')}
+          change={this._addAttendees}
+          clearable
+        />
+      </div>
+    );
+    if (!listed) {
+      return (
+        <div className="event-panel-row">
+          <SVGIcons.Person className="event-panel-icon" />
+          <div className="event-panel-invitees">{addInvitees}</div>
         </div>
+      );
+    }
+    const invited = sortedAttendees(this.props.event, this.state.contactNames);
+    const guests = [...invited, ...added];
+    const counted = guests.filter((a) => stateOf(a) !== 'removed');
+    const { allGuestsShown } = this.state;
+    const trims = invited.length > TRIMMED_GUEST_ROWS;
+    // Guests just added always show, so one never disappears into the hidden rows.
+    const shown = trims && !allGuestsShown ? invited.slice(0, TRIMMED_GUEST_ROWS) : invited;
+    // One block, so the section's gap between rows doesn't fall between the count and the guests.
+    return (
+      <div className="event-panel-invitees">
+        <div className="event-panel-row top">
+          <SVGIcons.Person className="event-panel-icon" />
+          <div className="event-panel-invitee-count">
+            <div>{guestCount(counted.length)}</div>
+            <div className="event-panel-subtle">{guestSummary(counted)}</div>
+          </div>
+        </div>
+        {[...shown, ...added].map((a) => this._renderInvitee(a, stateOf(a), me))}
+        {addInvitees}
+        {trims && (
+          <button
+            className="btn-bare event-panel-invitees-toggle"
+            onClick={() => this.setState({ allGuestsShown: !allGuestsShown })}
+          >
+            {allGuestsShown
+              ? localized('Show less')
+              : localized('Show %@ more', invited.length - TRIMMED_GUEST_ROWS)}
+          </button>
+        )}
       </div>
     );
   }
@@ -911,7 +1038,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
           <div className="event-panel-row">
             {this._renderLocationIcon(shownLocation)}
             <EventPanelTextField
-              className="event-panel-location"
+              className="event-panel-location editable"
               value={shownLocation}
               placeholder={localized('Add Location or Video Call')}
               display={shownLocation && linkOrText(shownLocation)}
@@ -937,7 +1064,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       return (
         <div className="event-panel-section">
           <EventPanelTextField
-            className="event-panel-notes"
+            className="event-panel-notes editable"
             multiline
             value={shownNotes}
             placeholder={localized('Add notes or URL...')}
@@ -1020,12 +1147,15 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
+  // In the zone each reads in, named when the change moves the event to another.
   _timesLabel(times: Times, other: Times) {
-    const days = (t: Times) =>
-      daysLabel(CalendarDateUtils.calendarDateFromUnix(t.start), this._lastDay(t));
+    const days = (t: Times) => daysLabel(this._firstDay(t), this._lastDay(t));
     if (times.isAllDay) return days(times);
-    const range = formatShortTimeRange(times.start, times.end);
-    return days(times) === days(other) ? range : `${days(times)}, ${range}`;
+    const zone = this._zoneOf(times);
+    const range = formatShortTimeRange(times.start, times.end, zone);
+    const label = days(times) === days(other) ? range : `${days(times)}, ${range}`;
+    if (other.isAllDay || zone === this._zoneOf(other)) return label;
+    return `${label} ${formatTimezone(times.timezone ?? this._storedZone(), times.start)}`;
   }
 
   _changeRows(change: UnsentChange) {
@@ -1323,7 +1453,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       >
         {this._renderHeader()}
         <ScrollRegion className="event-panel-body">
-          {this._renderTitle()}
+          <div className="event-panel-title">{this._renderTitle()}</div>
           {this._renderRsvp()}
           {this._renderProposals()}
           {this._renderWhen()}

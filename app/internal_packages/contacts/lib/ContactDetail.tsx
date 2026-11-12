@@ -158,7 +158,7 @@ export class ContactDetailWithFocus extends React.Component<
       return (
         <div className="contact-detail-column">
           <div className="contacts-empty-state">
-            <div className="message">No contact selected.</div>
+            <div className="message">{localized('No contact selected.')}</div>
           </div>
         </div>
       );

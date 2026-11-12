@@ -1,7 +1,7 @@
 import React, { CSSProperties } from 'react';
 import ReactDOM from 'react-dom';
-import { InjectedComponentSet, SVGIcons } from 'mailspring-component-kit';
-import { CalendarDateUtils, CalendarUtils } from 'mailspring-exports';
+import { InjectedComponentSet, withSmallMeridiem } from 'mailspring-component-kit';
+import { CalendarDateUtils } from 'mailspring-exports';
 import {
   EventOccurrence,
   isTimed,
@@ -13,12 +13,12 @@ import {
   BarStartTime,
   calcEventColors,
   formatEventTimeRange,
+  formatEventTooltip,
 } from './calendar-helpers';
 import { HitZone, ViewDirection } from './calendar-drag-types';
 import { detectHitZone, canAttemptMove, formatDragPreviewTime } from './calendar-drag-utils';
 import { DAY_DUR, columnSpan } from './week-view-helpers';
-
-const EVENT_GAP = 2;
+import { EVENT_GAP } from './calendar-constants';
 
 interface CalendarEventProps {
   event: EventOccurrence;
@@ -177,14 +177,18 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     // Gaps between events are cut from the box, not drawn as borders, so the corners stay round.
     if (this.props.direction === 'vertical') {
       const d = this._getDimensions();
-      styles = { ...d, height: `calc(${d.height} - ${EVENT_GAP}px)` };
+      styles = {
+        ...d,
+        width: `calc(${d.width} - ${EVENT_GAP}px)`,
+        height: `calc(${d.height} - ${EVENT_GAP}px)`,
+      };
     } else if (this.props.direction === 'horizontal') {
       const d = this._getDimensions();
       styles = {
         left: `calc(${d.top} + ${EVENT_GAP}px)`,
         width: `calc(${d.height} - ${2 * EVENT_GAP}px)`,
-        height: d.width,
-        top: d.left,
+        height: (d.width as number) - EVENT_GAP,
+        top: (d.left as number) + EVENT_GAP,
       };
     }
     const colors = calcEventColors(this.props.event.calendarId);
@@ -193,15 +197,14 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     styles['--event-text-color'] = colors.text;
     styles['--event-selected-text-color'] = colors.selectedText;
 
-    if (this.props.event.isCancelled) {
-      // Cancelled events get a transparent background with colored border
+    if (this.props.event.isCancelled || this.props.event.isAwaitingMyResponse) {
+      // A dashed border in the calendar's colour, over no fill
       styles.backgroundColor = 'transparent';
       styles.borderColor = colors.band;
     } else if (this.props.event.isPending) {
       // Pending events get a gray background with theme-colored left band
       styles.backgroundColor = 'rgba(128, 128, 128, 0.15)';
     } else {
-      // Apple Calendar-style: light pastel background
       styles.backgroundColor = colors.background;
     }
     return styles;
@@ -295,54 +298,26 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       occurrenceEndUnix(event),
       event.isAllDay
     );
-    return <div className="drag-preview-time-tooltip">{timeString}</div>;
+    return <div className="drag-preview-time-tooltip">{withSmallMeridiem(timeString)}</div>;
   }
 
-  /**
-   * Render additional event details for vertical (week view) events:
-   * - Meeting URL domain (e.g., "zoom.us")
-   * - Time range for events >= 1 hour (e.g., "12 – 1PM")
-   */
+  /** The time range under the title of a Day or Week event of 45 minutes or more ("12–1PM"). */
   _renderEventDetails() {
     const { event, direction } = this.props;
-
-    // Only show details for vertical (week view) events
     if (direction !== 'vertical') {
       return null;
     }
-
-    const meetingDomain = CalendarUtils.extractMeetingDomain(event.location, event.description);
     const timeRange = formatEventTimeRange(
       occurrenceStartUnix(event),
       occurrenceEndUnix(event),
       event.isAllDay
     );
-    const hasPhysicalLocation = !meetingDomain && !!event.location;
-
-    if (!meetingDomain && !hasPhysicalLocation && !timeRange) {
+    if (!timeRange) {
       return null;
     }
-
     return (
       <div className="event-details">
-        {meetingDomain && (
-          <span className="event-meeting-link">
-            <SVGIcons.Video className="detail-icon" size={10} strokeWidth={2.6} />
-            {meetingDomain}
-          </span>
-        )}
-        {hasPhysicalLocation && (
-          <span className="event-location">
-            <SVGIcons.Location className="detail-icon" size={10} strokeWidth={2.4} />
-            {event.location}
-          </span>
-        )}
-        {timeRange && (
-          <span className="event-time-range">
-            <SVGIcons.Clock className="detail-icon" size={10} strokeWidth={2.6} />
-            {timeRange}
-          </span>
-        )}
+        <span className="event-time-range">{withSmallMeridiem(timeRange)}</span>
       </div>
     );
   }
@@ -365,6 +340,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       selected && 'selected',
       event.isCancelled && 'cancelled',
       event.isPending && 'pending',
+      event.isAwaitingMyResponse && !event.isCancelled && 'awaiting-response',
       isDragging && 'dragging',
       this._canDrag() && 'draggable',
       event.isDragPreview && 'drag-preview',
@@ -395,6 +371,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
         tabIndex={0}
         style={styles}
         className={classNames}
+        title={formatEventTooltip(event)}
         onClick={(e) => {
           e.stopPropagation();
           onClick(e, event);

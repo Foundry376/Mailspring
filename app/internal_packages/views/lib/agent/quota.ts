@@ -145,9 +145,9 @@ export function homeUsageLine(usage: AccountUsage) {
   }
   if (limit === 1) {
     return used >= 1
-      ? localized('Custom views are a Mailspring Pro feature - Upgrade today to create more Views!')
+      ? localized('Custom Views are a Mailspring Pro feature - Upgrade today to create more Views!')
       : localized(
-          'Custom views are a Mailspring Pro feature, but you can try building one for free!'
+          'Custom Views are a Mailspring Pro feature, but you can try building one for free!'
         );
   }
   return localized('%1$@ of %2$@ free Views used', Math.min(used, limit), limit);

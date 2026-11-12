@@ -107,7 +107,8 @@ const CALENDAR_VIEW = 'mailspring.calendarView';
 const AGENDA_OPEN = 'mailspring.calendarAgendaOpen';
 const AGENDA_WIDTH = 'CalendarAgenda';
 // Below 200px the longer time ranges ("11:30 AM–12:30 PM 1h 30m") no longer fit whole.
-const AGENDA_WIDTHS = { min: 200, initial: 240, max: 300 };
+// At its narrowest the panel still holds the date picker's 200px mini month, 8px in from each side.
+const AGENDA_WIDTHS = { min: 220, initial: 240, max: 300 };
 
 const VISIBLE_DAYS: { [view: string]: 1 | 7 } = {
   [CalendarView.DAY]: 1,
@@ -332,7 +333,10 @@ export class MailspringCalendar extends React.Component<
     if (this._proposes(stored) && times.isAllDay !== stored.isAllDay) return true;
     if (!this._select([stored])) return true;
     if (showAsWaitsForScope(change)) return true;
-    this.setState({ unsentChange: withTimes(change, stored, times, occurrenceTimes(stored)) });
+    // A drag moves the times, not the zone the held change picked.
+    const timezone = !times.isAllDay && change?.times?.timezone;
+    const held = timezone ? { ...times, timezone } : times;
+    this.setState({ unsentChange: withTimes(change, stored, held, occurrenceTimes(stored)) });
     return true;
   }
 
@@ -574,8 +578,7 @@ export class MailspringCalendar extends React.Component<
 
   onChangeView = (view: CalendarView) => {
     // If an event is selected, jump the new view to where it lives so it stays visible and
-    // selected (matching Apple Calendar) — switching to a narrow view could otherwise leave the
-    // selected event off-screen.
+    // selected — switching to a narrow view could otherwise leave it off-screen.
     const selected = this.state.selectedEvents[0];
     const focusedMoment = selected
       ? moment.unix(this._pendingMoves.get(selected.id)?.start ?? occurrenceStartUnix(selected))

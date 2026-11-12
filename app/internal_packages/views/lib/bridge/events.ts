@@ -95,7 +95,11 @@ function serializeOccurrence(o: EventOccurrence) {
     isAllDay: o.isAllDay === true,
     location: o.location || null,
     description: o.description || null,
-    status: o.isCancelled ? 'CANCELLED' : o.isPending ? 'TENTATIVE' : 'CONFIRMED',
+    status: o.isCancelled
+      ? 'CANCELLED'
+      : o.isPending || o.isAwaitingMyResponse
+        ? 'TENTATIVE'
+        : 'CONFIRMED',
     organizer: organizerEmail
       ? {
           name: organizerAttendee ? organizerAttendee.name : '',

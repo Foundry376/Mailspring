@@ -124,14 +124,6 @@ export function findAvailableOrder(ongoing: EventOccurrence[], overlapById: Over
   return order;
 }
 
-export function maxConcurrentEvents(eventOverlap: OverlapByEventId) {
-  let max = -1;
-  for (const o of Object.values(eventOverlap)) {
-    if (o.concurrentEvents > max) max = o.concurrentEvents;
-  }
-  return max;
-}
-
 /**
  * Each day's EXCLUSIVE end, taken from the next day's start so membership, layout and drag
  * hit-testing cannot drift from the rendered columns. A day is not always 86400 seconds:

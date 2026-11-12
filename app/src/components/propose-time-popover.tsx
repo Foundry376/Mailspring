@@ -22,8 +22,9 @@ function compactSlot(start: number, end: number, isAllDay: boolean): string {
       ? s.format('ddd, MMM D')
       : `${s.format('ddd, MMM D')} – ${last.format('ddd, MMM D')}`;
   }
-  const time = (m: Moment) => m.format(DateUtils.localeTimeFormat());
-  return `${s.format('ddd, MMM D')} · ${time(s)} – ${time(e)}`;
+  // As the time pickers below show it.
+  const time = (m: Moment) => m.format(DateUtils.tightTimeFormat());
+  return `${s.format('ddd, MMM D')} · ${time(s)}\u2009–\u2009${time(e)}`;
 }
 
 interface ProposeTimePopoverProps {

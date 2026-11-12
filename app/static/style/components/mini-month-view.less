@@ -64,7 +64,7 @@
       position: absolute;
       top: 0;
       bottom: 0;
-      border-radius: @border-radius-base;
+      border-radius: 999px;
       background: color-mix(in srgb, @accent-primary 12%, transparent);
     }
     .day {
@@ -74,6 +74,7 @@
       flex: 1;
       position: relative; // above the visible range's band
       min-height: 24px;
+      border-radius: 999px; // as the visible range's band
       font-size: @font-size-smaller;
       font-weight: @font-weight-medium;
       color: fadeout(@text-color, 70%);
