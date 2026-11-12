@@ -38,13 +38,11 @@ mousetrap.prototype.stopCallback = (e: KeyboardEvent, element: HTMLElement, comb
     return true;
   }
 
-  // Slate handles undo/redo itself in slate-react's `after` plugin but doesn't stop
-  // propagation. Because of this, we need to make sure we do not fire core:undo or core:redo.
+  // Let the focused editor or text field handle undo/redo rather than
+  // dispatching a global command that can affect a different compose field.
   const target = e.target as HTMLElement;
-  const withinSlateEditor =
-    target.isContentEditable &&
-    (target.hasAttribute('data-slate-editor') || target.closest('[data-slate-editor]'));
-  if (withinSlateEditor && /(mod|command|ctrl)\+(z|y)/.test(combo)) {
+  const editingField = target.isContentEditable || ['INPUT', 'TEXTAREA'].includes(target.tagName);
+  if (editingField && /^(mod|command|ctrl)\+(shift\+)?(z|y)$/.test(combo)) {
     return true;
   }
 
