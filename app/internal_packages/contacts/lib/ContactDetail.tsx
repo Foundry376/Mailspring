@@ -8,12 +8,14 @@ import {
   ContactGroup,
   DatabaseStore,
   TaskQueue,
+  WorkspaceStore,
 } from 'mailspring-exports';
 import { isEqual } from 'underscore';
 import { FocusContainer, ListensToFluxStore, ScrollRegion } from 'mailspring-component-kit';
 import { parse, ContactBase, ContactInteractorMetadata, apply } from './ContactInfoMapping';
 import { ContactDetailRead } from './ContactDetailRead';
 import { ContactDetailEdit } from './ContactDetailEdit';
+import { displayNameForContact } from './ContactDisplayName';
 import { Store, ContactsPerspective } from './Store';
 
 interface ContactDetailProps {
@@ -55,11 +57,44 @@ function emptyContactForAccountId(accountId: string) {
   });
 }
 
-class ContactDetailWithFocus extends React.Component<ContactDetailProps, ContactDetailState> {
+export class ContactDetailWithFocus extends React.Component<
+  ContactDetailProps,
+  ContactDetailState
+> {
+  _removeLeaveGuard: () => void;
+
   constructor(props: ContactDetailProps) {
     super(props);
     this.state = this.getStateForProps();
   }
+
+  componentDidMount() {
+    this._removeLeaveGuard = WorkspaceStore.setSectionLeaveGuard(this._mayLeaveSection);
+  }
+
+  componentWillUnmount() {
+    this._removeLeaveGuard();
+  }
+
+  // Switching sections unmounts the editor, and the typed changes live only in its state.
+  _mayLeaveSection = () => {
+    const { editing } = this.props;
+    const { contact, data } = this.state;
+    if (!editing || !contact || isEqual(data, parse(contact).data)) return true;
+
+    const name = editing === 'new' ? localized('New Contact') : displayNameForContact(contact);
+    const response = require('@electron/remote').dialog.showMessageBoxSync({
+      type: 'question',
+      buttons: [localized('Save Changes'), localized('Discard'), localized('Keep editing')],
+      defaultId: 0,
+      cancelId: 2,
+      message: localized('"%@" has unsaved changes.', name),
+    });
+    if (response === 2) return false;
+    if (response === 0) this.onSaveChanges();
+    else this.onCancel();
+    return true;
+  };
 
   componentDidUpdate(prevProps: ContactDetailProps) {
     const prevContact = prevProps.contacts?.find((c) => c.id === prevProps.focusedId);
