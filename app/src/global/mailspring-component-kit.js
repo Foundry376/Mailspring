@@ -112,6 +112,7 @@ lazyLoad('SnapScroller', 'snap-scroller');
 lazyLoadWithGetter('SVGIcons', () => require('../components/svg-icons'));
 lazyLoad('DatePicker', 'date-picker');
 lazyLoad('TimePicker', 'time-picker');
+lazyLoad('withSmallMeridiem', 'small-meridiem');
 lazyLoad('Table', 'table/table');
 lazyLoadFrom('TableRow', 'table/table');
 lazyLoadFrom('TableCell', 'table/table');

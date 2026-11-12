@@ -256,7 +256,11 @@ function Chip({ chip, onRemove }: { chip: ExampleChip; onRemove?: () => void }) 
         {chip.bytes ? ` · ${formatBytes(chip.bytes)}` : ''}
       </span>
       {onRemove && (
-        <button className="ap-chip-remove" onClick={onRemove} aria-label="Remove example">
+        <button
+          className="ap-chip-remove"
+          onClick={onRemove}
+          aria-label={localized('Remove example')}
+        >
           ×
         </button>
       )}
@@ -658,7 +662,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
         >
           {this.state.geometry.collapsed ? <SVGIcons.Expand /> : <SVGIcons.Minimize />}
         </button>
-        <button className="ap-icon-btn" onClick={this._close} aria-label="Close">
+        <button className="ap-icon-btn" onClick={this._close} aria-label={localized('Close')}>
           <SVGIcons.Close />
         </button>
       </div>
@@ -822,8 +826,8 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
               />
               {pending.screenshot.capturedAt &&
                 this.state.now - pending.screenshot.capturedAt < LIVE_WINDOW_MS && (
-                  <span className="ap-live" title="Updates as the View changes">
-                    Live
+                  <span className="ap-live" title={localized('Updates as the View changes')}>
+                    {localized('Live')}
                   </span>
                 )}
             </div>
@@ -845,7 +849,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
               className="ap-btn ap-btn-primary"
               onClick={() => this._run((a, v) => a.approveScreenshot(v))}
             >
-              Send screenshot
+              {localized('Send screenshot')}
             </button>
           </div>
         </div>
@@ -908,7 +912,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
         <span className="ap-ready-spacer" />
         <button
           className="ap-btn ap-btn-ghost"
-          title="Restore the version from before the agent's previous set of changes"
+          title={localized("Restore the version from before the agent's previous set of changes")}
           onClick={() => this._run((a, v) => a.revert(v))}
         >
           Revert
@@ -938,7 +942,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
     // Below the warning threshold the header stays quiet; the session's own cost is not shown.
     if (account || !own) return null;
     return (
-      <span className="ap-usage" title="This View's chat so far">
+      <span className="ap-usage" title={localized("This View's chat so far")}>
         {own}
       </span>
     );
@@ -963,7 +967,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
                 className="ap-btn ap-btn-primary"
                 onClick={() => this._run((a, v) => a.startFresh(v))}
               >
-                Start fresh
+                {localized('Start fresh')}
               </button>
             )}
           </div>
@@ -1004,7 +1008,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
               className="ap-btn ap-btn-ghost"
               onClick={() => this._run((a, v) => a.stopBudget(v))}
             >
-              Stop here
+              {localized('Stop here')}
             </button>
             {step > 0 && (
               <button
@@ -1055,7 +1059,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
             ))}
           </div>
         ) : (
-          <div className="ap-drop-hint">Drop emails here</div>
+          <div className="ap-drop-hint">{localized('Drop emails here')}</div>
         )}
         {wantsExamples && (
           <div className="ap-actions ap-actions-end">
@@ -1174,7 +1178,7 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
         onDragLeave={this._onDragLeave}
         onDrop={this._onDrop}
         role="complementary"
-        aria-label="View authoring assistant"
+        aria-label={localized('View authoring assistant')}
       >
         {!geometry.collapsed && !compact && (
           <div className="ap-resize" onMouseDown={this._onResizeMouseDown} title="Resize" />
@@ -1184,8 +1188,10 @@ export class AuthoringPanel extends React.Component<Record<string, unknown>, Sta
         {!geometry.collapsed && this._renderComposer(session)}
         {dragDepth > 0 && (
           <div className="ap-drop-overlay">
-            <div>Drop to attach as examples</div>
-            <div className="ap-drop-sub">You'll see exactly what is shared before it's sent.</div>
+            <div>{localized('Drop to attach as examples')}</div>
+            <div className="ap-drop-sub">
+              {localized("You'll see exactly what is shared before it's sent.")}
+            </div>
           </div>
         )}
       </div>

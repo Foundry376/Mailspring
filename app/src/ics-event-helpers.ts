@@ -1032,8 +1032,8 @@ export function applyEditsToException(
  * series from 1AM to 3AM). Only RECURRENCE-ID shifts so expandBetween can still
  * substitute the exception for the correct (now-shifted) occurrence slot.
  *
- * The master's EXDATEs shift too: they name instants the rule does not occur at, so left
- * behind they would exclude nothing.
+ * The master's EXDATEs, RDATEs and RRULE UNTIL shift too: left behind, an EXDATE excludes
+ * nothing, an RDATE lands at another time of day, and UNTIL drops or adds a last occurrence.
  *
  * The delta is a fixed number of milliseconds, so a move across a DST change leaves the
  * values on the far side of it an hour off, RECURRENCE-IDs and EXDATEs alike.
@@ -1073,17 +1073,20 @@ export function shiftInlineExceptions(ics: string, deltaMs: number): string {
   for (const vevent of vcalendar.getAllSubcomponents('vevent')) {
     const ridProp = vevent.getFirstProperty('recurrence-id');
     if (!ridProp) {
-      const exdateProps = vevent.getAllProperties('exdate');
-      if (exdateProps.length) {
-        for (const exProp of exdateProps) {
-          const values = exProp.getValues() as ICALTime[];
-          const shifted = values
-            .filter((v) => v && typeof v.toJSDate === 'function')
-            .map(shiftTime);
-          if (shifted.length === values.length && shifted.length) {
-            exProp.setValues(shifted);
-          }
+      const dateProps = [...vevent.getAllProperties('exdate'), ...vevent.getAllProperties('rdate')];
+      for (const prop of dateProps) {
+        const values = prop.getValues() as ICALTime[];
+        const shifted = values.filter((v) => v && typeof v.toJSDate === 'function').map(shiftTime);
+        if (shifted.length === values.length && shifted.length) {
+          prop.setValues(shifted);
         }
+      }
+      const rrule = vevent.getFirstPropertyValue('rrule') as ICALRecur | null;
+      if (rrule && rrule.until) {
+        rrule.until = shiftTime(rrule.until);
+        vevent.updatePropertyWithValue('rrule', rrule);
+      }
+      if (dateProps.length || rrule?.until) {
         vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
       }
       continue;
@@ -1101,9 +1104,38 @@ export function shiftInlineExceptions(ics: string, deltaMs: number): string {
   return root.toString();
 }
 
+/** The instant whose wall clock in `toZone` is the one `ms` reads in the zone `like` is in. */
+function sameWallClockMs(ms: number, like: ICALTime, toZone: string, ical: ICAL): number {
+  const instant = new Date(ms);
+  let wall: ICALTime;
+  if (isNamedZone(like.zone, ical)) {
+    wall = ical.Time.fromJSDate(instant, true).convertToZone(like.zone);
+  } else {
+    wall = ical.Time.fromJSDate(instant, like.zone === ical.Timezone.utcTimezone);
+  }
+  const momentTz = require('moment-timezone');
+  return momentTz
+    .tz(
+      {
+        year: wall.year,
+        month: wall.month - 1,
+        date: wall.day,
+        hour: wall.hour,
+        minute: wall.minute,
+        second: wall.second,
+      },
+      toZone
+    )
+    .valueOf();
+}
+
 /**
  * Updates times for all occurrences of a recurring event.
- * Shifts the entire series by the delta between the original occurrence and new times.
+ * Shifts the entire series by the delta between the original occurrence and new times, and the
+ * RECURRENCE-IDs and EXDATEs of its moved and deleted occurrences as far as the series moved.
+ *
+ * A new `timezone` keeps the series' wall clock, which the occurrence's instant delta misses
+ * when only one of the two zones is on DST at one of the dates.
  *
  * @param ics - The master event's ICS data
  * @param originalOccurrenceStart - The original start time of the dragged occurrence (unix seconds)
@@ -1114,6 +1146,27 @@ export function shiftInlineExceptions(ics: string, deltaMs: number): string {
  * @returns The modified ICS string with shifted series times
  */
 export function updateRecurringEventTimes(
+  ics: string,
+  originalOccurrenceStart: number,
+  newStart: number,
+  newEnd: number,
+  isAllDay: boolean,
+  timezone?: string
+): string {
+  const currentStart = parseICSString(ics).event.startDate.toJSDate().getTime();
+  const moved = moveSeriesMaster(
+    ics,
+    originalOccurrenceStart,
+    newStart,
+    newEnd,
+    isAllDay,
+    timezone
+  );
+  const movedStart = parseICSString(moved).event.startDate.toJSDate().getTime();
+  return shiftInlineExceptions(moved, movedStart - currentStart);
+}
+
+function moveSeriesMaster(
   ics: string,
   originalOccurrenceStart: number,
   newStart: number,
@@ -1148,9 +1201,22 @@ export function updateRecurringEventTimes(
 
   // Shift the master start by the occurrence's move delta, then apply the new duration, so a
   // resize (which changes newEnd relative to newStart) actually changes the whole series.
-  const deltaMs = (newStart - originalOccurrenceStart) * 1000;
   const durationMs = (newEnd - newStart) * 1000;
-  const newMasterStart = currentStart + deltaMs;
+  const toZone = timezone ? resolveIanaZone(timezone) : null;
+  let newMasterStart: number;
+  if (toZone) {
+    const ical = getICAL();
+    const rezonedSlot = sameWallClockMs(
+      originalOccurrenceStart * 1000,
+      event.startDate,
+      toZone,
+      ical
+    );
+    newMasterStart =
+      sameWallClockMs(currentStart, event.startDate, toZone, ical) + newStart * 1000 - rezonedSlot;
+  } else {
+    newMasterStart = currentStart + (newStart - originalOccurrenceStart) * 1000;
+  }
   return updateEventTimes(ics, {
     start: newMasterStart / 1000,
     end: (newMasterStart + durationMs) / 1000,

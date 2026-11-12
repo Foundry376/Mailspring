@@ -627,15 +627,21 @@ export default class AppEnvConstructor {
     return this.center();
   }
 
-  // Returns true if the dimensions are useable, false if they should be ignored.
-  // Work around for https://github.com/atom/electron/issues/473
+  // False for a window on no display: Windows' minimized -32000 (electron/electron#473), or a monitor
+  // since unplugged. A display above or left of the main one has negative coordinates.
   isValidDimensions({
     x,
     y,
     width,
     height,
   }: { x?: number; y?: number; width?: number; height?: number } = {}) {
-    return width > 0 && height > 0 && x + width > 0 && y + height > 0;
+    if (!(width > 0 && height > 0)) return false;
+    return require('@electron/remote')
+      .screen.getAllDisplays()
+      .some(
+        ({ workArea: a }) =>
+          x < a.x + a.width && x + width > a.x && y < a.y + a.height && y + height > a.y
+      );
   }
 
   getDefaultWindowDimensions() {

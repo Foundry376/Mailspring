@@ -1,5 +1,5 @@
 import React from 'react';
-import { localized, DateUtils } from 'mailspring-exports';
+import { localized, CalendarUtils, DateUtils } from 'mailspring-exports';
 import { EventPropertyRow } from './event-property-row';
 import moment from 'moment-timezone';
 
@@ -8,7 +8,7 @@ export interface TimeZoneSelectorProps {
   onChange: (value: string) => void;
 }
 
-// Friendly display names for common timezones (like Apple Calendar)
+// Friendly display names for common timezones
 const TIMEZONE_DISPLAY_NAMES: { [key: string]: string } = {
   'America/New_York': 'Eastern Time',
   'America/Chicago': 'Central Time',
@@ -36,16 +36,20 @@ const TIMEZONE_DISPLAY_NAMES: { [key: string]: string } = {
 };
 
 // Common time zones - a curated list of frequently used zones
-const COMMON_TIMEZONES = Object.keys(TIMEZONE_DISPLAY_NAMES);
+export const COMMON_TIMEZONES = Object.keys(TIMEZONE_DISPLAY_NAMES);
 
-export function formatTimezone(tz: string): string {
-  // Use friendly name if available, otherwise format from timezone ID
-  if (TIMEZONE_DISPLAY_NAMES[tz]) {
-    return TIMEZONE_DISPLAY_NAMES[tz];
-  }
-  // Fallback: Convert "America/New_York" to "New York"
-  const name = tz.split('/').pop().replace(/_/g, ' ');
-  return name;
+/**
+ * The zone's name; given `atUnix`, led by its offset then, "(GMT+9) Japan Standard Time", since
+ * DST moves it. A zone tzdata doesn't know keeps its name alone.
+ */
+export function formatTimezone(tz: string, atUnix?: number): string {
+  const name = TIMEZONE_DISPLAY_NAMES[tz] ?? tz.split('/').pop().replace(/_/g, ' ');
+  const zone = atUnix === undefined ? null : CalendarUtils.resolveIanaZone(tz);
+  if (!zone) return name;
+  const minutes = moment.tz(atUnix * 1000, zone).utcOffset();
+  const hours = `${minutes < 0 ? '-' : '+'}${Math.floor(Math.abs(minutes) / 60)}`;
+  const rest = Math.abs(minutes) % 60;
+  return `(GMT${hours}${rest ? `:${String(rest).padStart(2, '0')}` : ''}) ${name}`;
 }
 
 export const TimeZoneSelector: React.FC<TimeZoneSelectorProps> = ({ value, onChange }) => {

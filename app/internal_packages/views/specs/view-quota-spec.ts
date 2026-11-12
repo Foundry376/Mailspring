@@ -120,10 +120,10 @@ describe('View agent quota', () => {
       expect(homeUsageLine(pro(3, 700))).toBe('3 of 10 Views this month · $7.00 of $8.00');
       const single = (used: number) => ({ ...free(used, 0), builds: { used, limit: 1 } });
       expect(homeUsageLine(single(0))).toBe(
-        'Custom views are a Mailspring Pro feature, but you can try building one for free!'
+        'Custom Views are a Mailspring Pro feature, but you can try building one for free!'
       );
       expect(homeUsageLine(single(1))).toBe(
-        'Custom views are a Mailspring Pro feature - Upgrade today to create more Views!'
+        'Custom Views are a Mailspring Pro feature - Upgrade today to create more Views!'
       );
     });
   });

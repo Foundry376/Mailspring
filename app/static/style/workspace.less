@@ -515,11 +515,17 @@ body.is-blurred {
       }
     }
 
-    .btn-ghost,
     .btn-bare {
       height: @toolbar-btn-height-darwin;
       min-width: @toolbar-btn-height-darwin;
       margin-top: ((@toolbar-height-darwin - @toolbar-btn-height-darwin) / 2);
+    }
+    // A ghost's fill shows, so it keeps to the 24px the event panel's icon buttons hover in.
+    .btn-ghost {
+      height: 24px;
+      min-width: 24px;
+      margin-top: ((@toolbar-height-darwin - 24px) / 2);
+      margin-right: ((@toolbar-btn-height-darwin - 24px) / 2); // the icon stays where 30px put it
     }
 
     .button-group {
