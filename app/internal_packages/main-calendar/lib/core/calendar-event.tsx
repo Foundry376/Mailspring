@@ -45,6 +45,9 @@ interface CalendarEventProps {
   /** Whether the calendar containing this event is read-only */
   isCalendarReadOnly?: boolean;
 
+  /** False on the days drawn either side of the view, so Tab doesn't select an event off screen. */
+  isTabStop?: boolean;
+
   onClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
   onDoubleClick: (event: EventOccurrence) => void;
   onContextMenu?: (event: EventOccurrence) => void;
@@ -69,6 +72,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     isDragging: false,
     edgeZoneSize: 12,
     isCalendarReadOnly: false,
+    isTabStop: true,
     onClick: () => {},
     onDoubleClick: () => {},
     onContextMenu: () => {},
@@ -381,7 +385,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     return (
       <div
         id={event.id}
-        tabIndex={0}
+        tabIndex={this.props.isTabStop ? 0 : -1}
         style={styles}
         className={classNames}
         title={formatEventTooltip(event)}

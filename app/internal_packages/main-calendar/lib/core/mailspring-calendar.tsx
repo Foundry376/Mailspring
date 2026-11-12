@@ -307,7 +307,7 @@ export class MailspringCalendar extends React.Component<
     this._releaseHeldUnless([]);
     this.setState({ selectedEvents: [], focusedEvent: null });
     // Off the event, which is no longer selected, so the arrows scroll; the agenda keeps its own.
-    if (!document.activeElement?.closest('.agenda-panel')) {
+    if (!this._focusInAgenda()) {
       (ReactDOM.findDOMNode(this._gridView()) as HTMLElement | null)?.focus({
         preventScroll: true,
       });
@@ -469,6 +469,10 @@ export class MailspringCalendar extends React.Component<
       }
     );
   };
+
+  _focusInAgenda() {
+    return !!document.activeElement?.closest('.agenda-panel');
+  }
 
   // The panel's date picker and switch use the same keys for themselves.
   _focusInEventPanel() {
@@ -1158,36 +1162,26 @@ export class MailspringCalendar extends React.Component<
   _onStepFromSelectedEvent = (direction: ArrowDirection) => {
     const [from] = this.state.selectedEvents;
     const view = this._gridView();
-    if (
-      !from ||
-      !view ||
-      document.activeElement?.closest('.agenda-panel') ||
-      this._focusInEventPanel()
-    ) {
+    if (!from || !view || this._focusInAgenda() || this._focusInEventPanel()) {
       return;
     }
     const target = eventInDirection(view.dayPlacements(), from.id, direction);
     if (!target || !this._select([target])) return;
 
-    // An event across midnight is drawn once per day, the first maybe on a day scrolled out of view.
-    const viewEl = ReactDOM.findDOMNode(view) as HTMLElement;
-    const bounds = viewEl.getBoundingClientRect();
-    const el = Array.from(
-      viewEl.querySelectorAll<HTMLElement>(`[id="${CSS.escape(target.id)}"]`)
-    ).find((e) => {
-      const r = e.getBoundingClientRect();
-      return r.right > bounds.left && r.left < bounds.right;
-    });
+    // An event across midnight is drawn once per day, maybe first on a day out of view.
+    const el = (ReactDOM.findDOMNode(view) as HTMLElement).querySelector<HTMLElement>(
+      `[id="${CSS.escape(target.id)}"][tabindex="0"]`
+    );
     el?.focus({ preventScroll: true });
     (el as any)?.scrollIntoViewIfNeeded(false);
   };
 
   /** Option+arrow: a quarter hour up or down in Day and Week, a day left or right. */
-  _onMoveSelectedEvent = (direction: 'up' | 'down' | 'left' | 'right') => {
+  _onMoveSelectedEvent = (direction: ArrowDirection) => {
     // An event selected from the agenda panel may be off the grid, so the keys don't move it.
     if (
       this.state.selectedEvents.length === 0 ||
-      document.activeElement?.closest('.agenda-panel') ||
+      this._focusInAgenda() ||
       this._focusInEventPanel()
     ) {
       return;
@@ -1565,7 +1559,9 @@ export class MailspringCalendar extends React.Component<
         onChangeFocusedMoment={this.onChangeFocusedMoment}
         onNavigateNext={this._onNavigateNext}
         onNavigatePrevious={this._onNavigatePrevious}
-        onScrollHours={(direction) => this._timeGrid.current?.scrollHours(direction)}
+        onScrollHours={(direction) => {
+          if (!this._focusInEventPanel()) this._timeGrid.current?.scrollHours(direction);
+        }}
         onDeleteEvent={this._onDeleteSelectedEvents}
         onRefreshCalendars={this._onRefreshCalendars}
         hasSelectedEvents={this.state.selectedEvents.length > 0}

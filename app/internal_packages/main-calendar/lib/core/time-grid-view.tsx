@@ -15,6 +15,7 @@ import VisibleRangeStore from './visible-range-store';
 import {
   EventOccurrence,
   EventRangeSubscription,
+  eventCoversDate,
   inAllDayRow,
   isTimed,
 } from './calendar-data-source';
@@ -38,6 +39,7 @@ import {
   drawnInGrid,
   eventsGroupedByDay,
   exclusiveDayEnds,
+  TICK_STEP,
   TICKS_PER_DAY,
   tickGenerator,
   dayFraction,
@@ -237,32 +239,33 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     const placements: DayPlacement[] = [];
 
     const { allDayEvents, allDayOverlap } = this._allDay(events, firstVisible);
-    dayStarts.forEach((date, day) => {
+    dayStarts.forEach((date, dayIndex) => {
       for (const occurrence of allDayEvents) {
-        if (occurrence.startDate <= date && occurrence.endDate >= date) {
-          placements.push({ occurrence, day, rank: allDayOverlap[occurrence.id].order - DAY_DUR });
+        if (eventCoversDate(occurrence, date)) {
+          const rank = allDayOverlap[occurrence.id].order - DAY_DUR;
+          placements.push({ occurrence, dayIndex, rank });
         }
       }
     });
 
     const eventsByDay = eventsGroupedByDay(events, days, this._inRow);
-    days.forEach((d, day) => {
-      const column = { start: d.unix(), end: dayEnds[day] };
-      const timed = eventsByDay[d.unix()].filter(isTimed);
+    days.forEach((d, dayIndex) => {
+      const column = { start: d.unix(), end: dayEnds[dayIndex] };
+      const timed = eventsByDay[d.unix()];
       const overlap = overlapForEvents(timed, column);
       for (const occurrence of timed) {
         // Side by side at the same start, left before right.
         const rank = columnSpan(occurrence, column).top + (overlap[occurrence.id].order - 1) / 100;
-        placements.push({ occurrence, day, rank });
+        placements.push({ occurrence, dayIndex, rank });
       }
     });
     return placements;
   }
 
-  /** An hour up or down. */
   scrollHours(direction: 1 | -1) {
     const viewportEl = this._gridScrollRegion.current?.viewportEl;
-    if (viewportEl) viewportEl.scrollTop += direction * 2 * this.state.intervalHeight;
+    const hour = (3600 / TICK_STEP) * this.state.intervalHeight;
+    if (viewportEl) viewportEl.scrollTop += direction * hour;
   }
 
   _isToday(day: Moment) {
@@ -368,6 +371,8 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     const dayEnds = exclusiveDayEnds(days);
     const todayColumnIdx = days.findIndex((d) => this._isToday(d));
     const firstVisibleIdx = CalendarDateUtils.calendarDaysBetween(dayStarts[0], firstVisible);
+    const isVisible = (dayIdx: number) =>
+      dayIdx >= firstVisibleIdx && dayIdx < firstVisibleIdx + this.props.visibleDays;
     const totalHeight = TICKS_PER_DAY * this.state.intervalHeight;
     const lastDrawn = dayStarts[dayStarts.length - 1];
 
@@ -383,6 +388,8 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
             end={CalendarDateUtils.nextDayStartUnix(lastDrawn) - 1}
             allDayEvents={allDayEvents}
             allDayOverlap={allDayOverlap}
+            firstVisible={firstVisible}
+            visibleEnd={CalendarDateUtils.addCalendarDays(firstVisible, this.props.visibleDays)}
             focusedEvent={this.props.focusedEvent}
             selectedEvents={this.props.selectedEvents}
             onEventClick={this.props.onEventClick}
@@ -408,6 +415,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
               <WeekViewEventColumn
                 day={day}
                 dayEnd={dayEnds[dayIdx]}
+                isTabStop={isVisible(dayIdx)}
                 key={day.valueOf()}
                 events={eventsByDay[day.unix()]}
                 focusedEvent={this.props.focusedEvent}
@@ -423,10 +431,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
               />
             ))}
             <CurrentTimeIndicator
-              visible={
-                todayColumnIdx >= firstVisibleIdx &&
-                todayColumnIdx < firstVisibleIdx + this.props.visibleDays
-              }
+              visible={isVisible(todayColumnIdx)}
               gridHeight={totalHeight}
               numColumns={days.length}
               todayColumnIdx={todayColumnIdx}

@@ -5,10 +5,14 @@ import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/
 import { TimeGridView } from '../internal_packages/main-calendar/lib/core/time-grid-view';
 import { CalendarEvent } from '../internal_packages/main-calendar/lib/core/calendar-event';
 import { MonthViewEvent } from '../internal_packages/main-calendar/lib/core/month-view-event';
+import { MonthView } from '../internal_packages/main-calendar/lib/core/month-view';
+import { layoutWeekBars } from '../internal_packages/main-calendar/lib/core/month-view-helpers';
 import {
+  ArrowDirection,
   DayPlacement,
   eventInDirection,
 } from '../internal_packages/main-calendar/lib/core/calendar-helpers';
+import { addCalendarDays, calendarDateFromUnix } from '../src/calendar-date';
 import { EventOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 import {
   allDayOccurrence,
@@ -16,9 +20,9 @@ import {
   timedOccurrence,
 } from './fixtures/calendar-view-props';
 
-const at = (id: string, day: number, rank: number): DayPlacement => ({
+const at = (id: string, dayIndex: number, rank: number): DayPlacement => ({
   occurrence: { id } as EventOccurrence,
-  day,
+  dayIndex,
   rank,
 });
 
@@ -32,7 +36,7 @@ describe('eventInDirection', function () {
     at('multi', 3, -10),
     at('d', 3, 300),
   ];
-  const step = (from: string, direction: 'up' | 'down' | 'left' | 'right') =>
+  const step = (from: string, direction: ArrowDirection) =>
     eventInDirection(placements, from, direction)?.id ?? null;
 
   it('steps up and down within the day, stopping at its first and last event', function () {
@@ -76,15 +80,45 @@ describe('TimeGridView.dayPlacements', function () {
 
     const placements: DayPlacement[] = view.dayPlacements();
     const wednesday = placements
-      .filter((p) => p.day === 3)
+      .filter((p) => p.dayIndex === 3)
       .sort((x, y) => x.rank - y.rank)
       .map((p) => p.occurrence.id);
     expect(wednesday).toEqual(['holiday', 'late', 'standup']);
-    expect(placements.filter((p) => p.occurrence.id === 'late').map((p) => p.day)).toEqual([2, 3]);
+    const daysOf = (id: string) =>
+      placements.filter((p) => p.occurrence.id === id).map((p) => p.dayIndex);
+    expect(daysOf('late')).toEqual([2, 3]);
+    expect(daysOf('holiday')).toEqual([3]);
   });
 });
 
-// Stands in for Day, Week or Month: its events, and the element focus goes to.
+describe('MonthView.dayPlacements', function () {
+  it('counts days on through the weeks, leaving out bars under "+N more" and previews', function () {
+    const view: any = new MonthView(calendarViewProps());
+    const events = [
+      allDayOccurrence('span', '2026-11-06', '2026-11-09'),
+      allDayOccurrence('a', '2026-11-10'),
+      allDayOccurrence('b', '2026-11-10'),
+      allDayOccurrence('c', '2026-11-10'),
+      { ...allDayOccurrence('preview', '2026-11-03'), isDragPreview: true },
+    ];
+    const sunday = calendarDateFromUnix(moment('2026-11-01T12:00:00').unix());
+    const week = (offset: number) =>
+      Array.from({ length: 7 }, (_, i) => addCalendarDays(sunday, offset + i));
+    view._visibleLayouts = [layoutWeekBars(events, week(0), 2), layoutWeekBars(events, week(7), 2)];
+
+    const daysOf = (id: string) =>
+      view
+        .dayPlacements()
+        .filter((p: DayPlacement) => p.occurrence.id === id)
+        .map((p: DayPlacement) => p.dayIndex);
+    expect(daysOf('span')).toEqual([5, 6, 7, 8]);
+    expect(['a', 'b', 'c'].map((id) => daysOf(id).length)).toEqual([1, 0, 0]);
+    expect(daysOf('preview')).toEqual([]);
+  });
+});
+
+// Stands in for Day, Week or Month: its events, and the element focus goes to. Each event is also
+// drawn first on a day out of view, as one across midnight is.
 class FakeGrid extends React.Component<{ placements: DayPlacement[] }> {
   dayPlacements() {
     return this.props.placements;
@@ -92,6 +126,9 @@ class FakeGrid extends React.Component<{ placements: DayPlacement[] }> {
   render() {
     return (
       <div className="calendar-view" tabIndex={-1}>
+        {this.props.placements.map((p) => (
+          <div key={`${p.occurrence.id}-overscan`} id={p.occurrence.id} tabIndex={-1} />
+        ))}
         {this.props.placements.map((p) => (
           <div key={p.occurrence.id} id={p.occurrence.id} tabIndex={0} />
         ))}
@@ -116,8 +153,8 @@ describe('the arrow keys and Esc with an event selected', function () {
         <FakeGrid
           ref={(g) => (grid = g)}
           placements={[
-            { occurrence: first, day: 0, rank: 32400 },
-            { occurrence: second, day: 0, rank: 39600 },
+            { occurrence: first, dayIndex: 0, rank: 32400 },
+            { occurrence: second, dayIndex: 0, rank: 39600 },
           ]}
         />
         <div className="agenda-panel">
@@ -142,6 +179,7 @@ describe('the arrow keys and Esc with an event selected', function () {
     calendar._onStepFromSelectedEvent('down');
     expect(calendar.state.selectedEvents.map((o) => o.id)).toEqual(['second']);
     expect(document.activeElement.id).toBe('second');
+    expect((document.activeElement as HTMLElement).tabIndex).toBe(0);
   });
 
   it('leaves the selection alone while focus is in the agenda', function () {

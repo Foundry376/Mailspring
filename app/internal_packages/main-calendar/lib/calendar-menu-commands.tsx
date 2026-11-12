@@ -47,8 +47,12 @@ export class CalendarMenuCommands extends React.Component<CalendarMenuCommandsPr
         commands['core:previous-item'] = stepBack;
         commands['core:next-item'] = stepForward;
       } else {
-        commands['core:previous-item'] = () => this.props.onScrollHours(-1);
-        commands['core:next-item'] = () => this.props.onScrollHours(1);
+        commands['core:previous-item'] = () => {
+          if (!PopoverStore.isOpen) this.props.onScrollHours(-1);
+        };
+        commands['core:next-item'] = () => {
+          if (!PopoverStore.isOpen) this.props.onScrollHours(1);
+        };
       }
     }
 

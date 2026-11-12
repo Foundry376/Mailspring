@@ -574,17 +574,16 @@ export function centerGridScroll(viewportEl: HTMLElement, selectedEvent?: EventO
 
 export type ArrowDirection = 'up' | 'down' | 'left' | 'right';
 
-/** One visible day an event is drawn on, by index, and how far down that day it sits. */
+/** One visible day an event is drawn on, counted from the first, and how far down it sits. */
 export interface DayPlacement {
   occurrence: EventOccurrence;
-  day: number;
+  dayIndex: number;
   rank: number;
 }
 
 /**
- * The event an arrow key steps to from `fromId`, judged from the first day it's drawn on. Up and
- * Down stay in that day; Left and Right skip days with nothing else on them and stop at the last
- * day shown, landing on the event nearest the same height.
+ * The event an arrow steps to, from the first day `fromId` is drawn on. Left and Right skip
+ * empty days, stop at the last day shown, and land on the event nearest the same height.
  */
 export function eventInDirection(
   placements: DayPlacement[],
@@ -593,22 +592,26 @@ export function eventInDirection(
 ): EventOccurrence | null {
   const from = placements
     .filter((p) => p.occurrence.id === fromId)
-    .sort((a, b) => a.day - b.day)[0];
+    .sort((a, b) => a.dayIndex - b.dayIndex)[0];
   if (!from) return null;
-  const onDay = (day: number) =>
-    placements.filter((p) => p.day === day).sort((a, b) => a.rank - b.rank);
+  const onDay = (dayIndex: number) =>
+    placements.filter((p) => p.dayIndex === dayIndex).sort((a, b) => a.rank - b.rank);
 
   if (direction === 'up' || direction === 'down') {
-    const column = onDay(from.day);
+    const column = onDay(from.dayIndex);
     const idx = column.findIndex((p) => p.occurrence.id === fromId);
     return column[idx + (direction === 'down' ? 1 : -1)]?.occurrence ?? null;
   }
 
   const step = direction === 'right' ? 1 : -1;
-  const days = placements.map((p) => p.day);
-  const [first, last] = [Math.min(...days), Math.max(...days)];
-  for (let day = from.day + step; day >= first && day <= last; day += step) {
-    const others = onDay(day).filter((p) => p.occurrence.id !== fromId);
+  const indexes = placements.map((p) => p.dayIndex);
+  const [first, last] = [Math.min(...indexes), Math.max(...indexes)];
+  for (
+    let dayIndex = from.dayIndex + step;
+    dayIndex >= first && dayIndex <= last;
+    dayIndex += step
+  ) {
+    const others = onDay(dayIndex).filter((p) => p.occurrence.id !== fromId);
     if (others.length === 0) continue;
     const distance = (p: DayPlacement) => Math.abs(p.rank - from.rank);
     return others.reduce((best, p) => (distance(p) < distance(best) ? p : best)).occurrence;
