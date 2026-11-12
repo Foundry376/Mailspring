@@ -298,6 +298,37 @@ const rules: Rule[] = [
   },
 ];
 
+export function clearTextFormatting(editor: Editor) {
+  const { selection, document } = editor.value;
+  if (selection.isCollapsed) return;
+
+  const marks = new Map<string, any>();
+  document.getTextsAtRange(selection as any).forEach((node) => {
+    node
+      .getMarks()
+      .forEach((mark) => marks.set(mark.type + JSON.stringify(mark.data.toJS()), mark));
+  });
+  marks.forEach((mark) => editor.removeMark(mark));
+  editor.focus();
+}
+
+const ClearFormattingButton = ({ editor, className }: any) => {
+  const clearFormatting = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    clearTextFormatting(editor);
+  };
+
+  return (
+    <button
+      className={className}
+      onMouseDown={clearFormatting}
+      title={localized('Clear Formatting')}
+    >
+      <i className="fa fa-eraser" />
+    </button>
+  );
+};
+
 const BaseMarkPlugin: ComposerEditorPlugin = {
   toolbarComponents: []
     .concat(
@@ -306,6 +337,7 @@ const BaseMarkPlugin: ComposerEditorPlugin = {
         .map(BuildToggleButton)
     )
     .concat([
+      ClearFormattingButton,
       BuildColorPicker({ type: 'color', default: '#000000' }),
       BuildFontPicker({
         type: 'face',
