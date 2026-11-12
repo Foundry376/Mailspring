@@ -8,12 +8,13 @@ import {
 } from './calendar-drag-types';
 import {
   EventOccurrence,
+  inAllDayRow,
   occurrenceAt,
   occurrenceStartUnix,
   occurrenceEndUnix,
 } from './calendar-data-source';
 import { CalendarDateUtils } from 'mailspring-exports';
-import { formatTime, inclusiveAllDayEnd } from './calendar-helpers';
+import { formatShortTimeRange, inclusiveAllDayEnd } from './calendar-helpers';
 import {
   DEFAULT_TIMED_EVENT_DURATION_SECONDS,
   MIN_EVENT_DURATION_SECONDS,
@@ -208,6 +209,7 @@ export function createDragState(
   mouseTime: number,
   mouseX: number,
   mouseY: number,
+  containerType: CalendarContainerType | null,
   config: DragConfig
 ): DragState {
   // The drag pipeline is unix; derive the event's instants once (all-day carries dates only).
@@ -216,15 +218,18 @@ export function createDragState(
 
   // The grab offset keeps the event from jumping when the drag starts. `mouseTime` comes from
   // the grid, so it is measured against the grid's reading of the edge, not the edge itself.
+  // A day-granular surface reads only a day's midnight, so a bar grabbed there and carried into
+  // a day column starts (or ends) at the pointer.
+  const readsClockTime = containerType === 'day-column';
   let clickOffset = 0;
   let grabDayOffset = 0;
   if (hitZone.mode === 'move') {
-    clickOffset = mouseTime - CalendarDateUtils.firstOccurrenceUnix(start);
+    if (readsClockTime) clickOffset = mouseTime - CalendarDateUtils.firstOccurrenceUnix(start);
     grabDayOffset = CalendarDateUtils.calendarDaysBetween(
       event.startDate,
       CalendarDateUtils.calendarDateFromUnix(mouseTime)
     );
-  } else if (hitZone.mode === 'resize-end') {
+  } else if (hitZone.mode === 'resize-end' && readsClockTime) {
     clickOffset = mouseTime - CalendarDateUtils.firstOccurrenceUnix(end);
   }
 
@@ -241,6 +246,7 @@ export function createDragState(
     previewEnd: end,
     previewIsAllDay: event.isAllDay,
     snapIntervalSeconds: config.snapInterval,
+    containerType,
     isDragging: false,
   };
 }
@@ -294,10 +300,12 @@ export function updateDragState(
   // createRecurrenceException threads one isAllDay through both the exception times and the
   // RECURRENCE-ID, so a convert would misformat the RID and orphan the exception — a recurring
   // event dropped across kinds keeps its own kind (moves to that day) instead.
+  // A timed event of a day or more is already drawn in the all-day row, so it moves along it as
+  // itself, keeping its clock times, rather than turning all-day.
   const canConvert = state.mode === 'move' && !state.event.isRecurring;
   const previewIsAllDay =
     containerType === 'all-day-area'
-      ? state.event.isAllDay || canConvert
+      ? state.event.isAllDay || (canConvert && !inAllDayRow(state.event))
       : containerType === 'day-column'
         ? state.event.isAllDay && !canConvert
         : state.event.isAllDay;
@@ -426,7 +434,8 @@ export function updateDragState(
     isDragging === state.isDragging &&
     previewStart === state.previewStart &&
     previewEnd === state.previewEnd &&
-    previewIsAllDay === state.previewIsAllDay
+    previewIsAllDay === state.previewIsAllDay &&
+    containerType === state.containerType
   ) {
     return state;
   }
@@ -437,6 +446,7 @@ export function updateDragState(
     previewStart,
     previewEnd,
     previewIsAllDay,
+    containerType,
   };
 }
 
@@ -470,7 +480,7 @@ export function formatDragPreviewTime(start: number, end: number, isAllDay: bool
     return `${startDate} - ${endDate}`;
   }
 
-  return `${formatTime(start)} - ${formatTime(end)}`;
+  return formatShortTimeRange(start, end);
 }
 
 /** A press on empty grid space and where the pointer has gone since. */

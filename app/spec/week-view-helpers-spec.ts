@@ -8,8 +8,12 @@ import {
 import {
   EventOccurrence,
   coveredDates,
+  inAllDayRow,
 } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
+import { TimeGridView } from '../internal_packages/main-calendar/lib/core/time-grid-view';
+import { dateOf } from '../internal_packages/main-calendar/lib/core/calendar-helpers';
 import moment, { Moment } from 'moment';
+import { calendarViewProps } from './fixtures/calendar-view-props';
 
 // Runner is pinned to America/Chicago (scripts/test.js), so 2025-11-02 is a 25-hour day and
 // 2026-03-08 a 23-hour one. Fixtures are built in that same host zone deliberately: the
@@ -51,8 +55,12 @@ function timedEvent(startISO: string, endISO: string) {
 }
 
 // Which of the rendered columns the event landed in, by ISO date.
-function columnsContaining(event: EventOccurrence, days: Moment[]) {
-  const map = eventsGroupedByDay([event], days);
+function columnsContaining(
+  event: EventOccurrence,
+  days: Moment[],
+  inRow: (e: EventOccurrence) => boolean = inAllDayRow
+) {
+  const map = eventsGroupedByDay([event], days, inRow);
   return days.filter((d) => map[`${d.unix()}`].length > 0).map((d) => d.format('YYYY-MM-DD'));
 }
 
@@ -64,9 +72,18 @@ describe('eventsGroupedByDay', function () {
     ]);
   });
 
-  it('spans every column a multi-day timed event covers', function () {
+  it('puts a timed event of a day or more in the all-day row, not the columns', function () {
     const days = daysFrom('2026-06-08', 7);
-    expect(columnsContaining(timedEvent('2026-06-09 22:00', '2026-06-11 03:00'), days)).toEqual([
+    const long = timedEvent('2026-06-09 22:00', '2026-06-11 03:00');
+    const grid = new TimeGridView({ ...calendarViewProps(), visibleDays: 7 });
+    expect(columnsContaining(long, days, grid._inRow)).toEqual([]);
+    expect(grid._allDay([long], dateOf(days[0])).allDayEvents).toEqual([long]);
+  });
+
+  it('spans every column a multi-day timed event covers while it is kept in the grid', function () {
+    const days = daysFrom('2026-06-08', 7);
+    const long = timedEvent('2026-06-09 22:00', '2026-06-11 03:00');
+    expect(columnsContaining(long, days, () => false)).toEqual([
       '2026-06-09',
       '2026-06-10',
       '2026-06-11',
@@ -129,9 +146,9 @@ describe('eventsGroupedByDay', function () {
   it('routes all-day events to the all-day row rather than a column', function () {
     const days = daysFrom('2026-06-08', 7);
     const allDay = makeOccurrence(at('2026-06-10').unix(), at('2026-06-11').unix(), true);
-    const map = eventsGroupedByDay([allDay], days);
-    expect(map.allDay.length).toBe(1);
-    expect(days.every((d) => map[`${d.unix()}`].length === 0)).toBe(true);
+    const grid = new TimeGridView({ ...calendarViewProps(), visibleDays: 7 });
+    expect(columnsContaining(allDay, days, grid._inRow)).toEqual([]);
+    expect(grid._allDay([allDay], dateOf(days[0])).allDayEvents).toEqual([allDay]);
   });
 });
 

@@ -429,6 +429,21 @@ const DateUtils = {
       .trim();
   },
 
+  /** localeTimeFormat with no space before a trailing meridiem: "1:30AM". */
+  tightTimeFormat(): string {
+    return DateUtils.localeTimeFormat().replace(/\s+([aA])$/, '$1');
+  },
+
+  /** "Wed, Nov 11", with the year when it isn't this year. Reads the day's own wall date. */
+  dayString(day: Moment): string {
+    return new Date(day.year(), day.month(), day.date()).toLocaleDateString(navigator.language, {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: day.year() === moment().year() ? undefined : 'numeric',
+    });
+  },
+
   /**
    * Return a formatting string for displaying time
    *

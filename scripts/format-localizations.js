@@ -36,12 +36,13 @@ let found = 0;
 
 files.forEach((file) => {
 	const file_content = fs.readFileSync(file).toString();
-	const match = /localized(?:ReactFragment)?\([\n\t\s]*['`"](.*?)['`"][\n\t\s]*(?:\,|\)(?!['`"]))/gs;
+	// The closing quote must match the opening one so a backtick string can contain "quotes".
+	const match = /localized(?:ReactFragment)?\([\n\t\s]*(['`"])(.*?)\1[\n\t\s]*(?:\,|\)(?!['`"]))/gs;
 	const localized_matches = file_content.matchAll(match);
 
 	if (localized_matches) {
 		for (const localized_match of localized_matches) {
-			let localized_string = localized_match[1];
+			let localized_string = localized_match[2];
 			// Replace concatenation of strings to a single string
 			localized_string = localized_string.replace(/['`"][\s\n]*\+[\s\n]*['`"]/g, '').replace(/\s+/g, ' ');
 

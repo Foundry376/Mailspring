@@ -763,6 +763,11 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
+
+  // The sidebar column draws the divider, as it does for the agenda below.
+  .event-panel {
+    border-left: none;
+  }
 }
 
 .mailspring-calendar.sidebar-agenda-panel {
@@ -862,10 +867,6 @@
   .event-panel-view {
     width: 24px;
     height: 24px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     color: @text-color-very-subtle;
 
     img.content-mask {
@@ -917,6 +918,18 @@
     }
   }
 
+  // Overhangs by the shadow, so the row doesn't move on hover. Times, dates and choices hover on
+  // their value alone.
+  .editable:hover,
+  .text-select:hover,
+  .event-panel-invitee-add .tokenizing-field-input:hover,
+  .time-picker-wrap input:hover,
+  .date-picker .day-text:hover {
+    border-radius: 2px;
+    background: @list-hover-bg;
+    box-shadow: 0 0 0 4px @list-hover-bg;
+  }
+
   // Times and dates break between their parts, rather than clipping, in a narrow panel.
   .event-panel-wrap {
     flex: 1;
@@ -954,16 +967,38 @@
     flex-direction: column;
   }
 
+  // Under the guests, at their names' indent, as small as the summary line.
+  .event-panel-invitees-toggle {
+    align-self: flex-start;
+    margin: 2px 0 0 26px;
+    padding: 2px 0;
+    font: inherit;
+    font-size: 12px;
+    line-height: 16px;
+    color: fadeout(@text-color, 35%);
+
+    &:hover {
+      color: @text-color;
+    }
+  }
+
+  .event-panel-invitee-count {
+    flex: 1;
+    min-width: 0;
+    padding: 4px 0;
+  }
+
+  // Each guest's dot sits in the icon column, so names line up with the other rows' text.
   .event-panel-invitee {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
+    gap: 10px;
     padding: 4px 0;
     .attendee-status-colors();
     .attendee-status-dot();
 
-    .attendee-status {
-      margin-top: 3px;
+    > .event-panel-icon {
+      margin-top: 1px;
     }
   }
 
@@ -1003,15 +1038,9 @@
     visibility: hidden;
   }
 
+  // Only the remove button shows: the row itself does nothing on click, so it takes no fill.
   .event-panel-invitee.removable:hover,
   .event-panel-invitee.removable:focus-within {
-    .event-panel-invitee-line {
-      margin: -4px -4px -4px -8px;
-      padding: 4px 4px 4px 8px;
-      border-radius: 3px;
-      background: @list-hover-bg;
-    }
-
     .event-panel-invitee-remove {
       visibility: visible;
     }
@@ -1030,7 +1059,6 @@
 
   .event-panel-invitee-add {
     .attendee-status {
-      margin-top: 7px;
       color: @text-color-very-subtle;
     }
 
@@ -1045,14 +1073,42 @@
       min-width: 0;
     }
 
-    // Pulled left so the text lines up with the guest names; the fill overhangs the 26px row.
+    // Without the token field's own label indent and padding, to sit like a guest's name.
     .tokenizing-field-input {
-      .calendar-field();
-      margin: -2px 0 -2px -8px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      margin: 0;
+      padding: 0;
+
+      &:has(.clear-button) {
+        padding-right: 22px;
+      }
+
+      input {
+        flex: 1;
+        min-width: 0;
+        height: auto;
+      }
+
+      .clear-button {
+        position: absolute;
+        top: 50%;
+        right: 0;
+        width: 18px;
+        height: 18px;
+        transform: translateY(-50%);
+        color: @text-color;
+        opacity: 0.5;
+
+        &:hover {
+          opacity: 1;
+        }
+      }
     }
 
     .placeholder {
-      left: 8px;
+      left: 0;
       color: @text-color-very-subtle;
     }
   }
@@ -1065,15 +1121,21 @@
     white-space: nowrap;
   }
 
+  // The rest of the row, so the hover stops short of the icon only.
+  .event-panel-location {
+    flex: 1;
+  }
+
   .event-panel-notes {
     white-space: pre-line;
     overflow-wrap: anywhere;
   }
 
   // Fields read as text until they're focused, as on the design.
-  input.event-panel-title,
+  .event-panel-title input,
   input.event-panel-location,
   textarea.event-panel-notes,
+  .event-panel-invitee-add input,
   .time-picker-wrap input,
   select {
     border: none;
@@ -1088,20 +1150,19 @@
     }
   }
 
+  .event-panel-title input,
   input.event-panel-location,
   textarea.event-panel-notes,
+  .event-panel-invitee-add input,
   .time-picker-wrap input,
   select {
     padding: 0;
     font: inherit;
   }
 
-  input.event-panel-title {
+  .event-panel-title input {
     width: 100%;
     height: auto;
-    box-sizing: border-box;
-    border-bottom: 1px solid @border-color-divider;
-    font-family: inherit;
   }
 
   input.event-panel-location,
@@ -1137,11 +1198,27 @@
     }
   }
 
+  // As tall as its six weeks, so the padding holds at the bottom too.
+  .date-picker .mini-month-view {
+    box-sizing: border-box;
+    height: auto;
+    min-height: 0;
+    padding: 6px;
+    border-radius: 8px;
+  }
+
+  // As the time lists: under the field with a gap. DatePicker keeps it inside the panel.
+  .date-picker .mini-month-view-wrap {
+    top: calc(100% + 8px);
+    height: auto;
+  }
+
   .time-picker-wrap {
     width: auto;
 
     input {
-      width: 5em;
+      width: auto;
+      field-sizing: content;
     }
   }
 
