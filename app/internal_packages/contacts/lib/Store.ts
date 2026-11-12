@@ -1,5 +1,7 @@
 import Rx from 'rx-lite';
 import {
+  Account,
+  AccountStore,
   DatabaseStore,
   Contact,
   ContactGroup,
@@ -120,11 +122,9 @@ class ContactsSectionStore extends MailspringStore {
 
     const group = this._groups.find((g) => g.id === perspective.groupId);
     if (!group) {
-      this.setPerspective({
-        type: 'all',
-        accountId: perspective.accountId,
-        label: localized('All Contacts'),
-      });
+      // Removing an account deletes its groups too.
+      const account = AccountStore.accountForId(perspective.accountId);
+      this.setPerspective(account ? accountContactsPerspective(account) : { type: 'unified' });
     } else if (group.name !== perspective.label) {
       this._perspective = { ...perspective, label: group.name };
     }
@@ -186,5 +186,13 @@ export type ContactsPerspective =
       type: 'found-in-mail';
     }
   | ContactsPerspectiveForGroup;
+
+export function accountContactsPerspective(account: Account): ContactsPerspective {
+  return {
+    type: 'all',
+    accountId: account.id,
+    label: `${localized('Contacts')} (${account.label})`,
+  };
+}
 
 export const Store = new ContactsSectionStore();
