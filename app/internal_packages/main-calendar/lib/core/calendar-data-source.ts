@@ -425,10 +425,12 @@ interface ExceptionSource {
 
 /**
  * The VEVENT an exception row is drawn from, out of the later of its own copy and its series'
- * master row's copy. The engine gives every row of a UID the whole resource (Mailspring-Sync
- * DAVWorker.cpp storeResource, MicrosoftCalendarWorker.cpp ingestEvent), so rows disagree only
- * where an engine before Mailspring-Sync#187 left an older row behind. A later master copy without
- * the row's RECURRENCE-ID cancelled that occurrence or split it into a new series.
+ * master row's copy. A sync gives every row of a UID the whole resource (Mailspring-Sync
+ * DAVWorker.cpp storeResource, MicrosoftCalendarWorker.cpp ingestEvent), but a task's local phase
+ * writes only its own row (TaskProcessor::performLocalSyncbackEvent), so rows disagree until a sync
+ * stores the server's copy again, and an engine before Mailspring-Sync#187 left older rows behind.
+ * A later master copy without the row's RECURRENCE-ID cancelled that occurrence or split it into a
+ * new series.
  */
 function exceptionSource(exception: Event, mastersCopy: ICALComponent | null): ExceptionSource {
   const ICAL: ICAL = require('ical.js');
@@ -553,7 +555,7 @@ function seriesOccurrences(
   // Separate master from exceptions
   const master = events.find((e) => !e.recurrenceId);
   const exceptions = events.filter((e) => e.recurrenceId);
-  const mastersCopy = master ? readableRoot(master.ics) : null;
+  const mastersCopy = master && exceptions.length > 0 ? readableRoot(master.ics) : null;
   const sources: ExceptionSource[] = [];
   for (const exception of exceptions) {
     try {

@@ -15,7 +15,7 @@ import {
   inAllDayRow,
   EventOccurrence,
 } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
-import { DatabaseStore } from 'mailspring-exports';
+import { CalendarUtils, DatabaseStore, ICSEventHelpers } from 'mailspring-exports';
 import { formatCalendarDate, parseCalendarDate } from '../src/calendar-date';
 
 // All-day-ness comes from the ICS DATE type, never from duration.
@@ -557,6 +557,24 @@ describe('occurrencesForEvents when an exception row and its master hold differe
     expect(occs.filter((o) => o.id === 'exception-e0').map(occurrenceStartUnix)).toEqual([
       unix('2026-09-16T13:00:00Z'),
     ]);
+  });
+
+  it('parses a series with no exception rows only to expand it', function () {
+    const [master] = rows(calendar(weekly('20261027T151437Z')), '');
+    const parse = spyOn(CalendarUtils, 'parseICSString').andCallThrough();
+    ICSEventHelpers.expandBetween(
+      master.ics,
+      master.recurrenceStart,
+      september.startUnix,
+      september.endUnix
+    );
+    ICSEventHelpers.isRecurringEvent(master.ics);
+    const toExpand = parse.calls.length;
+    parse.reset();
+
+    const occs = occurrencesForEvents([master], september);
+    expect(starts(occs)).toEqual(tuesdays('01', '08', '15', '22', '29'));
+    expect(parse.calls.length).toBe(toExpand);
   });
 
   it("logs a row whose copy won't parse and draws the rest of the series", function () {
