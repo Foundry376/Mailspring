@@ -11,7 +11,7 @@ import MailspringStore from 'mailspring-store';
 import { ListTabular } from 'mailspring-component-kit';
 import { displayNameForContact } from './ContactDisplayName';
 
-class ContactsWindowStore extends MailspringStore {
+class ContactsSectionStore extends MailspringStore {
   _perspective: ContactsPerspective = { type: 'unified' };
   _listSource = new ListTabular.DataSource.DumbArrayDataSource<Contact>();
 
@@ -187,4 +187,4 @@ export type ContactsPerspective =
     }
   | ContactsPerspectiveForGroup;
 
-export const Store = new ContactsWindowStore();
+export const Store = new ContactsSectionStore();
