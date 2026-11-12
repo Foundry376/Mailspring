@@ -109,6 +109,13 @@ describe('parseBirthday', function () {
     expect(result.day).toBe(-1);
   });
 
+  it('parses the basic format, a date without a year, and a date-time', () => {
+    expect(parseBirthday('19800115')).toEqual({ year: 1980, month: 1, day: 15 });
+    expect(parseBirthday('--0115')).toEqual({ year: null, month: 1, day: 15 });
+    expect(parseBirthday('--01-15')).toEqual({ year: null, month: 1, day: 15 });
+    expect(parseBirthday('1980-01-15T00:00:00Z')).toEqual({ year: 1980, month: 1, day: 15 });
+  });
+
   it('returns numeric types for all fields', () => {
     const result = parseBirthday('1990-05-15');
     expect(typeof result.year).toBe('number');

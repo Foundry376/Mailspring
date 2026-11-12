@@ -2,8 +2,23 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import vCard from 'vcf';
-import { Contact, SyncbackContactTask, Actions, AccountStore, localized } from 'mailspring-exports';
-import { parse, fromVCF } from './ContactInfoMapping';
+import {
+  Contact,
+  ContactInfoVCF,
+  ContactInfoGraph,
+  SyncbackContactTask,
+  Actions,
+  AccountStore,
+  localized,
+} from 'mailspring-exports';
+import {
+  parse,
+  fromVCF,
+  applyToGraph,
+  contactSourceForAccount,
+  emptyContactForAccount,
+} from './ContactInfoMapping';
+import { Store } from './Store';
 import { formatDisplayName, serializeBirthday, serializeAddress } from './VCFHelpers';
 
 /**
@@ -180,12 +195,56 @@ export function exportContactsToFile(contacts: Contact[]) {
   });
 }
 
+/** The vcf library hands back text values still escaped (RFC 6350 3.4: \, \; \\ \n). A vCard
+ keeps them that way, but Graph stores what it is given. */
+function unescapeVCFText<T>(value: T): T {
+  if (typeof value === 'string') {
+    return value.replace(/\\([nN,;\\])/g, (_, c) => (c === 'n' || c === 'N' ? '\n' : c)) as any;
+  }
+  if (Array.isArray(value)) return value.map(unescapeVCFText) as any;
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([k, v]) => [k, unescapeVCFText(v)])
+    ) as any;
+  }
+  return value;
+}
+
+/** A contact read from a VCF, as a new contact in a Microsoft Graph account. Outlook keeps
+ only so many of each field, so a card with more loses the extras (see applyToGraph). */
+export function vcfContactAsGraphContact(contact: Contact, accountId: string): Contact {
+  const graph = emptyContactForAccount(accountId, 'graph');
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { photoURL, ...data } = fromVCF(contact.info as ContactInfoVCF).data;
+    // fromVCF leaves a part the card lacks as undefined or false (no ADR, BDAY, NOTE).
+    const present = Object.fromEntries(
+      Object.entries(data)
+        .filter(([, value]) => value !== undefined && (value as unknown) !== false)
+        .map(([key, value]) => [key, unescapeVCFText(value)])
+    );
+    applyToGraph(graph, present);
+    // The card's own display name (FN) over one composed from N: a company card has no N at all.
+    const fn = /^FN[^:\r\n]*:([^\r\n]+)/im.exec((contact.info as ContactInfoVCF).vcf);
+    const displayName = fn ? unescapeVCFText(fn[1].trim()) : '';
+    if (displayName) {
+      (graph.info as ContactInfoGraph).displayName = displayName;
+      graph.name = displayName;
+    }
+  } catch (err) {
+    console.warn('VCF import: failed to map vCard to an Outlook contact:', err);
+  }
+  graph.name = graph.name || contact.name;
+  graph.email = graph.email || contact.email;
+  return graph;
+}
+
 /**
  * Import contacts from already-resolved file paths into the given account.
  * Used by both the file-dialog import and the drag-drop handler.
  *
- * Import is only supported for CardDAV accounts; Google (gpeople) accounts do
- * not support creating contacts via the VCF path in the sync engine.
+ * Import is supported for CardDAV and Microsoft Graph accounts; Google (gpeople)
+ * accounts do not support creating contacts via the VCF path in the sync engine.
  */
 export function importContactsFromPaths(filePaths: string[], accountId: string) {
   const account = AccountStore.accountForId(accountId);
@@ -223,6 +282,9 @@ export function importContactsFromPaths(filePaths: string[], accountId: string) 
     return;
   }
 
+  if (contactSourceForAccount(accountId, Store.books()) === 'graph') {
+    contacts = contacts.map((c) => vcfContactAsGraphContact(c, accountId));
+  }
   for (const contact of contacts) {
     Actions.queueTask(SyncbackContactTask.forCreating({ contact, accountId }));
   }

@@ -4,7 +4,6 @@ import {
   localized,
   Actions,
   SyncbackContactTask,
-  AccountStore,
   ContactGroup,
   DatabaseStore,
   TaskQueue,
@@ -12,7 +11,14 @@ import {
 } from 'mailspring-exports';
 import { isEqual } from 'underscore';
 import { FocusContainer, ListensToFluxStore, ScrollRegion } from 'mailspring-component-kit';
-import { parse, ContactBase, ContactInteractorMetadata, apply } from './ContactInfoMapping';
+import {
+  parse,
+  ContactBase,
+  ContactInteractorMetadata,
+  apply,
+  contactSourceForAccount,
+  emptyContactForAccount,
+} from './ContactInfoMapping';
 import { ContactDetailRead } from './ContactDetailRead';
 import { ContactDetailEdit } from './ContactDetailEdit';
 import { displayNameForContact } from './ContactDisplayName';
@@ -30,31 +36,6 @@ interface ContactDetailState {
   contact: Contact | null;
   data: ContactBase | null;
   metadata: ContactInteractorMetadata | null;
-}
-
-function emptyContactForAccountId(accountId: string) {
-  const account = AccountStore.accountForId(accountId);
-  const source = account.provider === 'gmail' ? 'gpeople' : 'carddav';
-  const info: Contact['info'] =
-    source === 'gpeople'
-      ? {
-          names: [],
-          resourceName: '',
-          etag: '',
-          addresses: [],
-        }
-      : {
-          vcf: `BEGIN:VCARD\r\nVERSION:3.0\r\nUID:${crypto.randomUUID()}\r\nEND:VCARD\r\n`,
-          href: '',
-        };
-
-  return new Contact({
-    source,
-    name: '',
-    email: '',
-    accountId: account.id,
-    info,
-  });
 }
 
 export class ContactDetailWithFocus extends React.Component<
@@ -110,7 +91,10 @@ export class ContactDetailWithFocus extends React.Component<
 
     const contact =
       editing === 'new' && 'accountId' in perspective
-        ? emptyContactForAccountId(perspective.accountId)
+        ? emptyContactForAccount(
+            perspective.accountId,
+            contactSourceForAccount(perspective.accountId, Store.books())
+          )
         : contacts?.find((c) => c.id === focusedId);
 
     if (!contact) {
@@ -171,6 +155,7 @@ export class ContactDetailWithFocus extends React.Component<
             <ContactDetailEdit
               data={data}
               contact={contact}
+              metadata={metadata}
               onChange={(changes) => this.setState({ data: { ...data, ...changes } })}
             />
           ) : (
