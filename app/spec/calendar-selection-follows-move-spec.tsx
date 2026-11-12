@@ -122,7 +122,7 @@ describe('the selection after an event is moved', function () {
   it('follows a keyboard move to the id the moved occurrence is drawn under', async function () {
     const calendar = calendarWith([occurrenceAt(START)]);
 
-    await calendar._applyKeyboardEventChange(occurrenceAt(START), QUARTER, false);
+    await calendar._applyKeyboardEventChange(occurrenceAt(START), QUARTER);
 
     expect(calendar.state.selectedEvents.map((o) => o.id)).toEqual([`standup-e${START + QUARTER}`]);
   });
@@ -131,7 +131,7 @@ describe('the selection after an event is moved', function () {
     modify.andReturn(Promise.resolve({ success: false, cancelled: true }));
     const calendar = calendarWith([occurrenceAt(START)]);
 
-    await calendar._applyKeyboardEventChange(occurrenceAt(START), QUARTER, false);
+    await calendar._applyKeyboardEventChange(occurrenceAt(START), QUARTER);
 
     expect(calendar.state.selectedEvents.map((o) => o.id)).toEqual([`standup-e${START}`]);
   });
@@ -208,8 +208,7 @@ describe('the selection after an event is moved', function () {
     const calendar = calendarWith([occurrenceAt(wednesday, { isRecurring: true })]);
     await calendar._applyKeyboardEventChange(
       occurrenceAt(wednesday, { isRecurring: true }),
-      -86400,
-      false
+      -86400
     );
     await sendThisOccurrence(calendar);
     // "This occurrence": Wednesday's slot now holds an exception on Tuesday, at Tuesday's own time.
@@ -261,7 +260,7 @@ describe('the selection after an event is moved', function () {
 
   it('drops the selection when the move lands somewhere other than predicted', async function () {
     const calendar = calendarWith([occurrenceAt(START)]);
-    await calendar._applyKeyboardEventChange(occurrenceAt(START), QUARTER, false);
+    await calendar._applyKeyboardEventChange(occurrenceAt(START), QUARTER);
     row = eventAt(START + 2 * QUARTER);
 
     await calendar._refreshSelectedEvents();
@@ -283,7 +282,7 @@ describe('the selection after an event is moved', function () {
     modify.reset();
 
     calendar.state.selectedEvents = [occurrenceAt(START + 3600)];
-    calendar._onMoveSelectedEvent('down', false);
+    calendar._onMoveSelectedEvent('down');
     await settle();
 
     expect(modify).toHaveBeenCalled();
@@ -296,8 +295,7 @@ describe('the selection after an event is moved', function () {
 
     await calendar._applyKeyboardEventChange(
       occurrenceAt(START, { id: 'standup-e0', isException: true }),
-      QUARTER,
-      false
+      QUARTER
     );
 
     expect(calendar.state.selectedEvents.map((o) => o.id)).toEqual(['standup-e0']);
@@ -314,15 +312,15 @@ describe('the selection after an event is moved', function () {
     document.body.appendChild(panel);
     try {
       panelRow.focus();
-      calendar._onMoveSelectedEvent('down', false);
-      calendar._onMoveSelectedEvent('right', false);
+      calendar._onMoveSelectedEvent('down');
+      calendar._onMoveSelectedEvent('right');
       await settle();
     } finally {
       panel.remove();
     }
     expect(modify).not.toHaveBeenCalled();
 
-    calendar._onMoveSelectedEvent('down', false);
+    calendar._onMoveSelectedEvent('down');
     await settle();
     expect(modify).toHaveBeenCalled();
   });
@@ -330,10 +328,10 @@ describe('the selection after an event is moved', function () {
   it('ignores the next arrow key until the move has synced back', async function () {
     const calendar = calendarWith([occurrenceAt(START)]);
     calendar.state.view = CalendarView.WEEK;
-    await calendar._applyKeyboardEventChange(occurrenceAt(START), QUARTER, false);
+    await calendar._applyKeyboardEventChange(occurrenceAt(START), QUARTER);
     modify.reset();
 
-    calendar._onMoveSelectedEvent('down', false);
+    calendar._onMoveSelectedEvent('down');
     await settle();
 
     expect(modify).not.toHaveBeenCalled();
@@ -341,7 +339,7 @@ describe('the selection after an event is moved', function () {
 
   it('ignores Delete until the move has synced back', async function () {
     const calendar = calendarWith([occurrenceAt(START)]);
-    await calendar._applyKeyboardEventChange(occurrenceAt(START), QUARTER, false);
+    await calendar._applyKeyboardEventChange(occurrenceAt(START), QUARTER);
     const dialog = spyOn(require('@electron/remote').dialog, 'showMessageBoxSync');
 
     await calendar._onDeleteSelectedEvents();
@@ -352,7 +350,7 @@ describe('the selection after an event is moved', function () {
   it('switches view to where the event moved to, before it has synced back', async function () {
     spyOn(AppEnv.config, 'set');
     const calendar = calendarWith([occurrenceAt(START)]);
-    await calendar._applyKeyboardEventChange(occurrenceAt(START), 86400, false);
+    await calendar._applyKeyboardEventChange(occurrenceAt(START), 86400);
 
     calendar.onChangeView(CalendarView.DAY);
 
@@ -361,7 +359,7 @@ describe('the selection after an event is moved', function () {
 
   it('takes the moved occurrence from the row once it syncs, and moves on from there', async function () {
     const calendar = calendarWith([occurrenceAt(START)]);
-    await calendar._applyKeyboardEventChange(occurrenceAt(START), QUARTER, false);
+    await calendar._applyKeyboardEventChange(occurrenceAt(START), QUARTER);
     row = eventAt(START + QUARTER);
 
     await calendar._refreshSelectedEvents();
@@ -371,7 +369,7 @@ describe('the selection after an event is moved', function () {
 
     modify.reset();
     calendar.state.view = CalendarView.WEEK;
-    calendar._onMoveSelectedEvent('down', false);
+    calendar._onMoveSelectedEvent('down');
     await settle();
     expect(modify.mostRecentCall.args[0].newStart).toBe(START + 2 * QUARTER);
   });
@@ -379,14 +377,14 @@ describe('the selection after an event is moved', function () {
   it('forgets the move once the event is deselected, so the moved event moves when selected again', async function () {
     const calendar = calendarWith([occurrenceAt(START)]);
     calendar.state.view = CalendarView.WEEK;
-    await calendar._applyKeyboardEventChange(occurrenceAt(START), QUARTER, false);
+    await calendar._applyKeyboardEventChange(occurrenceAt(START), QUARTER);
     calendar.state.selectedEvents = [];
     row = eventAt(START + QUARTER);
     calendar._onDatabaseChange({ objectClass: 'Event' });
     modify.reset();
 
     calendar.state.selectedEvents = [occurrenceAt(START + QUARTER)];
-    calendar._onMoveSelectedEvent('down', false);
+    calendar._onMoveSelectedEvent('down');
     await settle();
 
     expect(modify).toHaveBeenCalled();
@@ -397,11 +395,11 @@ describe('the selection after an event is moved', function () {
     const daily = occurrenceAt(START, { isRecurring: true });
     const calendar = calendarWith([daily]);
     calendar.state.view = CalendarView.WEEK;
-    await calendar._applyKeyboardEventChange(daily, 86400, false);
+    await calendar._applyKeyboardEventChange(daily, 86400);
 
     await calendar._refreshSelectedEvents();
     modify.reset();
-    calendar._onMoveSelectedEvent('right', false);
+    calendar._onMoveSelectedEvent('right');
     await settle();
 
     expect(modify).not.toHaveBeenCalled();

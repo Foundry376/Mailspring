@@ -12,6 +12,11 @@
   font-size: 12px;
   line-height: 16px;
 
+  // Focusing an event selects it, which shows instead.
+  &:focus {
+    outline: none;
+  }
+
   // A solid band in the calendar's color down the left edge
   &:before {
     content: '';
@@ -193,6 +198,11 @@ body.platform-win32 {
     height: 100%;
     flex: 1;
     position: relative;
+
+    // Focused only so the arrow keys scroll it, after Esc or a click on an empty slot.
+    &:focus-visible {
+      outline: none;
+    }
   }
 
   // min-width:0: the default min-width:auto sets a floor that makes a heading wider than its column.
@@ -730,11 +740,6 @@ body.platform-win32 {
         color: var(--event-text-color, inherit);
         font-weight: @font-weight-medium;
         opacity: 1;
-      }
-
-      &:focus {
-        outline: none;
-        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
       }
 
       &.selected .month-view-event-title {

@@ -45,6 +45,9 @@ interface CalendarEventProps {
   /** Whether the calendar containing this event is read-only */
   isCalendarReadOnly?: boolean;
 
+  /** False on the days drawn either side of the view, so Tab doesn't select an event off screen. */
+  isTabStop?: boolean;
+
   onClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
   onDoubleClick: (event: EventOccurrence) => void;
   onContextMenu?: (event: EventOccurrence) => void;
@@ -69,6 +72,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     isDragging: false,
     edgeZoneSize: 12,
     isCalendarReadOnly: false,
+    isTabStop: true,
     onClick: () => {},
     onDoubleClick: () => {},
     onContextMenu: () => {},
@@ -102,7 +106,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
   _refocusFrame = 0;
 
   // A moved event is re-drawn under a new id, so the focus its old element had falls to <body>;
-  // taking it back keeps the arrow keys moving it.
+  // taking it back keeps the keys acting on it.
   _takeFocusIfSelected() {
     if (!this.props.selected || document.activeElement !== document.body) {
       return;
@@ -125,6 +129,18 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     (eventNode as any).scrollIntoViewIfNeeded(false);
     onFocused(event);
   }
+
+  // Set by a press until focus leaves. The click after a press selects for itself, and selecting
+  // on its focus too would drop a Cmd-click's other events.
+  _pressing = false;
+
+  _onFocus = () => {
+    if (!this._pressing && !this.props.selected) this.props.onFocused(this.props.event);
+  };
+
+  _onBlur = () => {
+    this._pressing = false;
+  };
 
   _getDimensions() {
     const event = this.props.event;
@@ -255,6 +271,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
    * Initiate drag on mouse down
    */
   _onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    this._pressing = true;
     if (!this._canDrag() || !this.state.hitZone) {
       return;
     }
@@ -368,7 +385,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     return (
       <div
         id={event.id}
-        tabIndex={0}
+        tabIndex={this.props.isTabStop ? 0 : -1}
         style={styles}
         className={classNames}
         title={formatEventTooltip(event)}
@@ -388,6 +405,8 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
         onMouseMove={this._onMouseMove}
         onMouseLeave={this._onMouseLeave}
         onMouseDown={this._onMouseDown}
+        onFocus={this._onFocus}
+        onBlur={this._onBlur}
       >
         <span className="default-header" style={{ order: 0 }}>
           {this._spanTime('start')}

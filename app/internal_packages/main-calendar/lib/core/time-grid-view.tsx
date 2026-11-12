@@ -15,10 +15,17 @@ import VisibleRangeStore from './visible-range-store';
 import {
   EventOccurrence,
   EventRangeSubscription,
+  eventCoversDate,
   inAllDayRow,
   isTimed,
 } from './calendar-data-source';
-import { centerGridScroll, dateOf, formatShortTime, momentOf } from './calendar-helpers';
+import {
+  DayPlacement,
+  centerGridScroll,
+  dateOf,
+  formatShortTime,
+  momentOf,
+} from './calendar-helpers';
 import { EventGridBackground } from './event-grid-background';
 import { WeekViewEventColumn } from './week-view-event-column';
 import { WeekViewAllDayEvents } from './week-view-all-day-events';
@@ -27,9 +34,12 @@ import { CurrentTimeIndicator, CurrentTimeLabel, EachMinute } from './current-ti
 import { BAR_HEIGHT, CalendarView, EVENT_GAP } from './calendar-constants';
 import {
   overlapForEvents,
+  columnSpan,
+  DAY_DUR,
   drawnInGrid,
   eventsGroupedByDay,
   exclusiveDayEnds,
+  TICK_STEP,
   TICKS_PER_DAY,
   tickGenerator,
   dayFraction,
@@ -217,6 +227,46 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     this.props.onChangeFocusedMoment(this._now());
   };
 
+  /** The events on the days shown, for the arrow keys: the all-day row's lanes, then the hours. */
+  dayPlacements(): DayPlacement[] {
+    const { firstVisible } = this.state;
+    const events = withUnsentChange(this.state.events, this.props.unsentChange);
+    const dayStarts = Array.from({ length: this.props.visibleDays }, (_, i) =>
+      CalendarDateUtils.addCalendarDays(firstVisible, i)
+    );
+    const days = dayStarts.map(momentOf);
+    const dayEnds = exclusiveDayEnds(days);
+    const placements: DayPlacement[] = [];
+
+    const { allDayEvents, allDayOverlap } = this._allDay(events, firstVisible);
+    dayStarts.forEach((date, dayIndex) => {
+      for (const occurrence of allDayEvents) {
+        if (eventCoversDate(occurrence, date)) {
+          const top = allDayOverlap[occurrence.id].order - DAY_DUR;
+          placements.push({ occurrence, dayIndex, top, bottom: top, order: 1 });
+        }
+      }
+    });
+
+    const eventsByDay = eventsGroupedByDay(events, days, this._inRow);
+    days.forEach((d, dayIndex) => {
+      const column = { start: d.unix(), end: dayEnds[dayIndex] };
+      const timed = eventsByDay[d.unix()];
+      const overlap = overlapForEvents(timed, column);
+      for (const occurrence of timed) {
+        const { top, bottom } = columnSpan(occurrence, column);
+        placements.push({ occurrence, dayIndex, top, bottom, order: overlap[occurrence.id].order });
+      }
+    });
+    return placements;
+  }
+
+  scrollHours(direction: 1 | -1) {
+    const viewportEl = this._gridScrollRegion.current?.viewportEl;
+    const hour = (3600 / TICK_STEP) * this.state.intervalHeight;
+    if (viewportEl) viewportEl.scrollTop += direction * hour;
+  }
+
   _isToday(day: Moment) {
     return day.isSame(this._now(), 'day');
   }
@@ -320,6 +370,8 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     const dayEnds = exclusiveDayEnds(days);
     const todayColumnIdx = days.findIndex((d) => this._isToday(d));
     const firstVisibleIdx = CalendarDateUtils.calendarDaysBetween(dayStarts[0], firstVisible);
+    const isVisible = (dayIdx: number) =>
+      dayIdx >= firstVisibleIdx && dayIdx < firstVisibleIdx + this.props.visibleDays;
     const totalHeight = TICKS_PER_DAY * this.state.intervalHeight;
     const lastDrawn = dayStarts[dayStarts.length - 1];
 
@@ -335,6 +387,8 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
             end={CalendarDateUtils.nextDayStartUnix(lastDrawn) - 1}
             allDayEvents={allDayEvents}
             allDayOverlap={allDayOverlap}
+            firstVisible={firstVisible}
+            visibleEnd={CalendarDateUtils.addCalendarDays(firstVisible, this.props.visibleDays)}
             focusedEvent={this.props.focusedEvent}
             selectedEvents={this.props.selectedEvents}
             onEventClick={this.props.onEventClick}
@@ -360,6 +414,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
               <WeekViewEventColumn
                 day={day}
                 dayEnd={dayEnds[dayIdx]}
+                isTabStop={isVisible(dayIdx)}
                 key={day.valueOf()}
                 events={eventsByDay[day.unix()]}
                 focusedEvent={this.props.focusedEvent}
@@ -375,10 +430,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
               />
             ))}
             <CurrentTimeIndicator
-              visible={
-                todayColumnIdx >= firstVisibleIdx &&
-                todayColumnIdx < firstVisibleIdx + this.props.visibleDays
-              }
+              visible={isVisible(todayColumnIdx)}
               gridHeight={totalHeight}
               numColumns={days.length}
               todayColumnIdx={todayColumnIdx}
@@ -404,7 +456,10 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
     const todayOffset = CalendarDateUtils.calendarDaysBetween(firstVisible, dateOf(this._now()));
 
     return (
-      <div className={classnames('calendar-view', 'week-view', { 'day-view': visibleDays === 1 })}>
+      <div
+        className={classnames('calendar-view', 'week-view', { 'day-view': visibleDays === 1 })}
+        tabIndex={-1}
+      >
         <CalendarEventContainer
           onCalendarMouseUp={this.props.onCalendarMouseUp}
           onCalendarMouseDown={this.props.onCalendarMouseDown}

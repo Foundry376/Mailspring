@@ -105,6 +105,17 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
     onFocused(event);
   }
 
+  // See CalendarEvent._pressing.
+  _pressing = false;
+
+  _onFocus = () => {
+    if (!this._pressing && !this.props.selected) this.props.onFocused(this.props.event);
+  };
+
+  _onBlur = () => {
+    this._pressing = false;
+  };
+
   _onClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
     this.props.onClick(e, this.props.event);
@@ -179,6 +190,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
    * Initiate drag on mouse down
    */
   _onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    this._pressing = true;
     if (!this._canDrag() || !this.state.hitZone) {
       return;
     }
@@ -282,6 +294,8 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
         onMouseMove={this._onMouseMove}
         onMouseLeave={this._onMouseLeave}
         onMouseDown={this._onMouseDown}
+        onFocus={this._onFocus}
+        onBlur={this._onBlur}
         tabIndex={this.props.isFirstBar ? 0 : -1}
       >
         <span className="month-view-event-title">

@@ -147,7 +147,7 @@ export function eventsGroupedByDay(
   days: Moment[],
   inRow: (e: EventOccurrence) => boolean
 ) {
-  const map: { [dayUnix: string]: EventOccurrence[] } = {};
+  const map: { [dayUnix: string]: TimedOccurrence[] } = {};
 
   const unixDays = days.map((d) => d.unix());
   unixDays.forEach((day) => {
