@@ -31,7 +31,17 @@ export const setArray = (attr: string, card: any, values: { value: string; type?
   });
 };
 
+/** A vCard BDAY date (RFC 6350 4.3.1): 1980-01-15, 19800115, --01-15 or --0115 (no year), each
+ optionally followed by a time. Reduced accuracy (1985, 1985-06) leaves the missing parts -1. */
 export const parseBirthday = (date: string) => {
+  const match = /^(\d{4}|--)-?(\d{2})-?(\d{2})/.exec(date.trim());
+  if (match) {
+    return {
+      year: match[1] === '--' ? null : Number(match[1]),
+      month: Number(match[2]),
+      day: Number(match[3]),
+    };
+  }
   const [year, month, day] = [...date.split('-'), -1, -1, -1];
   return { year: Number(year), month: Number(month), day: Number(day) };
 };
@@ -54,8 +64,12 @@ export const serializeBirthday = ({
   return { value: `${td(date.year, 4)}-${td(date.month, 2)}-${td(date.day, 2)}` };
 };
 
+/** Joins the parts of a structured value; an escaped semicolon (\;) is text, not a separator. */
 export const removeRandomSemicolons = (value: string) => {
-  return value.replace(/;/g, ' ').replace(/  +/g, ' ').trim();
+  return value
+    .replace(/(?<!\\);/g, ' ')
+    .replace(/  +/g, ' ')
+    .trim();
 };
 
 export const formatAddress = (addr: ContactBase['addresses'][0]) => {
@@ -127,6 +141,7 @@ export const parseName = (name: { _data: string } | null) => {
     familyName: parts[0] || '',
     honorificPrefix: parts[3] || '',
     honorificSuffix: parts[4] || '',
+    middleName: parts[2] || '',
     displayName: [parts[3], parts[1], parts[0], parts[4]].filter(Boolean).join(' '),
   };
 };

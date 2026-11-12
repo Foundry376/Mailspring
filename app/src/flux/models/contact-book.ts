@@ -16,7 +16,7 @@ export class ContactBook extends Model {
   };
 
   readonly: boolean;
-  source: 'carddav' | 'gpeople';
+  source: 'carddav' | 'gpeople' | 'graph';
 
   static sortOrderAttribute = () => {
     return ContactBook.attributes.id;

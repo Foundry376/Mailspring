@@ -152,7 +152,8 @@ const OutlineViewForAccount = ({
       title={account.label}
       items={items}
       onItemCreated={
-        books.length > 0
+        // Microsoft Graph has no contact groups.
+        books.length > 0 && !books.some((b) => b.source === 'graph')
           ? (name) => {
               if (showGPeopleReadonlyNotice(account.id)) {
                 return false;

@@ -81,11 +81,14 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
     if (response !== 0) {
       return;
     }
-    Actions.queueTask(
-      DestroyContactTask.forRemoving({
-        contacts: this.actionSet(),
-      })
-    );
+    // A task runs in one account's sync process, which can only delete that account's contacts.
+    const byAccount = new Map<string, Contact[]>();
+    for (const contact of this.actionSet()) {
+      byAccount.set(contact.accountId, [...(byAccount.get(contact.accountId) || []), contact]);
+    }
+    for (const contacts of byAccount.values()) {
+      Actions.queueTask(DestroyContactTask.forRemoving({ contacts }));
+    }
   };
 
   actionSet() {
