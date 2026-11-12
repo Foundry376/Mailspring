@@ -4,23 +4,10 @@
 @token-color: @accent-primary;
 
 .thread-search-bar {
-  position: relative;
+  .search-bar();
   order: -100;
-  overflow: visible;
-  z-index: 100;
   width: 450px;
-  height: 23px;
-  font-weight: 400;
-  line-height: 23px;
-  background: @input-bg;
-  color: @text-color;
   margin-top: 5px;
-  padding-left: @padding-xs-horizontal;
-  padding-right: @padding-xs-horizontal;
-  border-radius: @border-radius-base;
-  box-shadow: @shadow-border;
-  display: flex;
-  align-items: center;
 
   &:focus {
     border: 0;
@@ -30,17 +17,6 @@
   &.placeholder {
     .tokenizing-contenteditable .layer-tokens {
       color: @text-color-very-subtle;
-    }
-  }
-  .search-accessory {
-    width: 15px;
-    height: 15px;
-    object-fit: contain;
-    zoom: 1 !important;
-    &.clear {
-      color: @text-color-subtle;
-      width: 21px;
-      height: 21px;
     }
   }
 
@@ -126,14 +102,8 @@
   }
 }
 
-// The macOS 26+ toolbar is taller and uses a capsule-shaped search field.
 :where(body.platform-darwin) .thread-search-bar {
-  height: @toolbar-btn-height-darwin;
-  line-height: @toolbar-btn-height-darwin;
   margin-top: ((@toolbar-height-darwin - @toolbar-btn-height-darwin) / 2);
-  padding-left: @padding-base-horizontal;
-  padding-right: @padding-base-horizontal;
-  border-radius: (@toolbar-btn-height-darwin / 2);
   &:focus {
     border-radius: (@toolbar-btn-height-darwin / 2);
   }
