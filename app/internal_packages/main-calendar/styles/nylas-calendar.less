@@ -12,6 +12,11 @@
   font-size: 12px;
   line-height: 16px;
 
+  // Focusing an event selects it, which shows instead.
+  &:focus {
+    outline: none;
+  }
+
   // A solid band in the calendar's color down the left edge
   &:before {
     content: '';
@@ -247,11 +252,6 @@ body.platform-win32 {
     display: flex;
     flex-direction: column;
     cursor: default;
-
-    // Inside the box: outside it, the day column clips the ring and the next event covers it.
-    &:focus-visible {
-      outline-offset: -2px;
-    }
 
     .default-header {
       overflow: hidden;
@@ -740,10 +740,6 @@ body.platform-win32 {
         color: var(--event-text-color, inherit);
         font-weight: @font-weight-medium;
         opacity: 1;
-      }
-
-      &:focus-visible {
-        outline-offset: -2px;
       }
 
       &.selected .month-view-event-title {
