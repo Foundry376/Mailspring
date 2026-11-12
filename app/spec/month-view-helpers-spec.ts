@@ -69,22 +69,22 @@ function barFor(layout: ReturnType<typeof layoutWeekBars>, id: string) {
 }
 
 // A week row is a 1px bottom border, a 32px day header and a 2px bottom inset around the bars,
-// which stack 20px lanes 2px apart.
+// which stack 20px lanes 3px apart.
 describe('lanesThatFit', function () {
   it('counts only lanes that fit whole, so the last one can always show "+N more"', function () {
-    // 122px is the row at an 860px window: 87px of bars, room for four lanes.
-    expect(lanesThatFit(120)).toBe(3);
-    expect(lanesThatFit(121)).toBe(4);
-    expect(lanesThatFit(122)).toBe(4);
-    expect(lanesThatFit(142)).toBe(4);
-    expect(lanesThatFit(143)).toBe(5);
+    // 122px is the row at an 860px window: 87px of bars, room for three lanes.
+    expect(lanesThatFit(122)).toBe(3);
+    expect(lanesThatFit(123)).toBe(3);
+    expect(lanesThatFit(124)).toBe(4);
+    expect(lanesThatFit(146)).toBe(4);
+    expect(lanesThatFit(147)).toBe(5);
   });
 
   it('never cuts the last lane off, at any height', function () {
     for (let height = 60; height <= 400; height++) {
       const lanes = lanesThatFit(height);
-      expect(lanes * 20 + (lanes - 1) * 2).not.toBeGreaterThan(height - 35);
-      expect((lanes + 1) * 20 + lanes * 2).toBeGreaterThan(height - 35);
+      expect(lanes * 20 + (lanes - 1) * 3).not.toBeGreaterThan(height - 35);
+      expect((lanes + 1) * 20 + lanes * 3).toBeGreaterThan(height - 35);
     }
   });
 

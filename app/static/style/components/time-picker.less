@@ -12,43 +12,52 @@
   }
 
   .time-options {
-    max-height: 158px;
-    overflow: auto;
-    border: 1px solid @border-color-divider;
     position: absolute;
+    // Under the field: a start time's list from its left edge, an end time's from its right, so
+    // either opens toward the middle of the row.
+    top: calc(100% + 8px);
+    left: -4px;
     z-index: 10; // above the positioned rows that follow it, as in the event panel
-    width: 100%;
-    text-align: center;
+    width: max-content;
+    max-height: 204px;
+    box-sizing: border-box;
+    overflow: auto;
+    padding: 4px;
+    border: 1px solid @border-color-divider;
+    border-radius: 8px;
     background: @background-primary;
-    border-top: 0;
-    border-radius: 0 0 @border-radius-base @border-radius-base;
-    box-shadow: 0 0 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
 
     &.relative-to {
-      width: 120px;
-      text-align: left;
-
-      .option {
-        padding-left: 12px;
-      }
+      left: auto;
+      right: -4px;
     }
 
     .option {
-      line-height: 1.75;
-      &.selected {
-        color: @text-color;
-        &:hover {
-          background: transparent;
-        }
-      }
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 28px;
+      padding: 0 10px;
+      border-radius: 4px;
+      white-space: nowrap;
+
       &.focused,
       &:hover {
-        background: fade(@text-color, 5%);
+        background: @list-hover-bg;
+      }
+      &.selected {
+        background: color-mix(in srgb, @accent-primary 12%, transparent);
+        color: @accent-primary;
       }
       .rel-text {
-        font-size: 0.8em;
-        margin-left: 4px;
+        color: @text-color-very-subtle;
       }
     }
   }
+}
+
+// From withSmallMeridiem: AM/PM a size down from the time it follows.
+.meridiem {
+  font-size: 85%;
 }

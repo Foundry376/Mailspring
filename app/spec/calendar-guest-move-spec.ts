@@ -51,6 +51,7 @@ describe('moving a meeting we do not organize', function () {
       START,
       100,
       100,
+      'day-column',
       DEFAULT_DRAG_CONFIG
     );
     calendar._onCalendarMouseMove(moveTo(START + 900, 101, 101));
@@ -69,6 +70,7 @@ describe('moving a meeting we do not organize', function () {
       START,
       100,
       100,
+      'day-column',
       DEFAULT_DRAG_CONFIG
     );
     calendar._onCalendarMouseMove(moveTo(START + 1800, 160, 160));

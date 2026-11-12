@@ -24,6 +24,8 @@ export class DatePicker extends React.Component<DatePickerProps, DatePickerState
     onChange: () => {},
   };
 
+  _miniMonth = React.createRef<HTMLDivElement>();
+
   constructor(props) {
     super(props);
     this.state = { focused: false };
@@ -82,10 +84,31 @@ export class DatePicker extends React.Component<DatePickerProps, DatePickerState
     this.context?.shiftFocus(1);
   };
 
+  componentDidUpdate(prevProps: DatePickerProps, prevState: DatePickerState) {
+    if (this.state.focused && !prevState.focused) this._keepMiniMonthInView();
+  }
+
+  // The mini month is wider than most date fields, so it shifts sideways to stay inside whatever
+  // clips it: the event panel's scrolling body, or the window.
+  _keepMiniMonthInView() {
+    const el = this._miniMonth.current;
+    el.style.transform = '';
+    let clip = el.parentElement;
+    while (clip && getComputedStyle(clip).overflowX === 'visible') clip = clip.parentElement;
+    const bounds = clip ? clip.getBoundingClientRect() : { left: 0, right: window.innerWidth };
+    const rect = el.getBoundingClientRect();
+    const MARGIN = 8;
+    const dx = Math.max(
+      bounds.left + MARGIN - rect.left,
+      Math.min(0, bounds.right - MARGIN - rect.right)
+    );
+    if (dx) el.style.transform = `translateX(${dx}px)`;
+  }
+
   _renderMiniMonthView() {
     if (this.state.focused) {
       return (
-        <div className="mini-month-view-wrap">
+        <div className="mini-month-view-wrap" ref={this._miniMonth}>
           <MiniMonthView onChange={this._onSelectDay} value={this.value()} />
         </div>
       );
@@ -102,7 +125,7 @@ export class DatePicker extends React.Component<DatePickerProps, DatePickerState
     const val = this.value();
     let dayTxt = 'Click to set date';
     if (val) {
-      dayTxt = this.value().format(DateUtils.DATE_FORMAT_llll_NO_TIME);
+      dayTxt = DateUtils.dayString(val);
     }
 
     return (
