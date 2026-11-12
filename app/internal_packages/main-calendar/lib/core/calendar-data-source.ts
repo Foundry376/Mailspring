@@ -1,3 +1,4 @@
+import moment from 'moment';
 import Rx from 'rx-lite';
 import {
   Event,
@@ -60,6 +61,14 @@ export function isEventSelected(
  */
 export function isTimed(e: EventOccurrence): e is TimedOccurrence {
   return e.isAllDay === false;
+}
+
+/**
+ * Whether the week and day views draw it in the all-day row: an all-day event, or a timed one of
+ * a day or more, counted to the same clock time a day later so a DST change doesn't tip it.
+ */
+export function inAllDayRow(e: EventOccurrence): boolean {
+  return !isTimed(e) || e.end >= moment.unix(e.start).add(1, 'day').unix();
 }
 
 /**
@@ -147,13 +156,10 @@ interface OccurrenceBase {
   location: string;
   description: string;
   isCancelled: boolean;
-  /**
-   * True if this event should display with "pending" styling (hatched pattern).
-   * This includes:
-   * - Events with STATUS=TENTATIVE
-   * - Events where the current user is an attendee but hasn't accepted (NEEDS-ACTION or TENTATIVE)
-   */
+  /** Tentative, drawn striped: STATUS=TENTATIVE, or our own answer is Maybe. */
   isPending: boolean;
+  /** An invitation we haven't answered, drawn with a dashed outline. */
+  isAwaitingMyResponse?: boolean;
   /**
    * True when this account organizes the event, or nobody does, or its ORGANIZER is the address
    * of the calendar it sits on and the server says that calendar is ours (Google writes a
@@ -352,10 +358,10 @@ function occurrenceFromICS(args: {
     return !!account && account.id === event.accountId;
   };
 
-  // Pending styling also covers an event I'm invited to but haven't answered
   const myAttendee = attendees.find((a) => a.email && isThisAccount(a.email));
   const myPartstat = myAttendee?.partstat?.toUpperCase();
-  const isAwaitingMyResponse = myAttendee && myPartstat !== 'ACCEPTED' && myPartstat !== 'DECLINED';
+  const isAwaitingMyResponse =
+    !!myAttendee && !['ACCEPTED', 'DECLINED', 'TENTATIVE'].includes(myPartstat);
 
   const organizerEmail = item.organizer
     ? normalizeEmail(CalendarUtils.emailFromParticipantURI(String(item.organizer)) || '')
@@ -387,7 +393,8 @@ function occurrenceFromICS(args: {
     startDate,
     endDate,
     isCancelled: status === 'CANCELLED',
-    isPending: status === 'TENTATIVE' || !!isAwaitingMyResponse,
+    isPending: status === 'TENTATIVE' || myPartstat === 'TENTATIVE',
+    isAwaitingMyResponse,
     isMine: !organizerEmail || iAmOrganizer,
     isFree: item.component?.getFirstPropertyValue('transp') === 'TRANSPARENT',
     isException: args.isException ?? !!rid,

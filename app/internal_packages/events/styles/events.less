@@ -12,8 +12,8 @@
   .event-invitation {
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    padding: 10px 12px;
+    gap: 6px;
+    padding: 12px 16px;
     border-radius: 8px;
     background: color-mix(in srgb, @accent-primary 10%, @background-primary);
   }
@@ -44,7 +44,9 @@
 
   .event-download {
     align-self: center;
-    padding: 0;
+    width: 24px;
+    height: 24px;
+    margin: -3px 0; // the title row stays a line tall
     img.content-mask {
       background-color: @text-color-very-subtle;
     }
@@ -61,7 +63,7 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 2px;
 
     .event-time,
     .event-repeat,
@@ -79,10 +81,15 @@
     }
 
     .event-replaced-time {
-      margin-top: -6px;
       font-size: 12px;
       line-height: 16px;
       color: fadeout(@text-color, 50%);
+    }
+
+    .event-counter-note,
+    .event-newer-invitation,
+    .event-conflicts {
+      margin-top: 4px;
     }
 
     // The proposer's note, set off as the event panel sets it off.
@@ -112,8 +119,9 @@
   }
 
   .event-invitation-answer {
-    width: 208px;
-    flex-shrink: 0;
+    flex: 0 1 auto;
+    min-width: 208px;
+    max-width: 50%;
     padding-left: 16px;
     border-left: 1px solid @border-color-divider;
     display: flex;
@@ -143,10 +151,14 @@
 
     .event-reply {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       gap: 6px;
       .attendee-status-colors();
       .attendee-status-dot();
+
+      .attendee-status {
+        margin-top: 2px;
+      }
     }
   }
 }

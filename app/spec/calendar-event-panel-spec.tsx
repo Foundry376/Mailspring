@@ -62,9 +62,8 @@ describe('EventPanel', function () {
     );
 
   // As TimePicker and DatePicker show them in the panel of an event we organize.
-  const pickerTime = (unix: number) => moment.unix(unix).format(DateUtils.localeTimeFormat());
-  const pickerDay = (unix: number) =>
-    moment.unix(unix).format(DateUtils.DATE_FORMAT_llll_NO_TIME).trim();
+  const pickerTime = (unix: number) => moment.unix(unix).format(DateUtils.tightTimeFormat());
+  const pickerDay = (unix: number) => DateUtils.dayString(moment.unix(unix));
 
   it("shows an invitation's times and day as an event we organize shows them", function () {
     render(invitation());

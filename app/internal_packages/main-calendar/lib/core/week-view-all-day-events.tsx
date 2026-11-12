@@ -73,6 +73,7 @@ export class WeekViewAllDayEvents extends React.Component<WeekViewAllDayEventsPr
             concurrentEvents={allDayOverlap[e.id]?.concurrentEvents || 1}
             onClick={this.props.onEventClick}
             onDoubleClick={this.props.onEventDoubleClick}
+            onContextMenu={this.props.onEventContextMenu}
             onFocused={this.props.onEventFocused}
             isDragging={dragState?.event.id === e.id}
             onDragStart={onEventDragStart}

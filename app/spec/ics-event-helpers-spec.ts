@@ -940,6 +940,20 @@ describe('ICSEventHelpers.addExclusionDate', function () {
 // ---------------------------------------------------------------------------
 
 describe('ICSEventHelpers.updateRecurringEventTimes', function () {
+  it("moves a moved occurrence's RECURRENCE-ID with the series, leaving its own times", function () {
+    const result = ICSEventHelpers.updateRecurringEventTimes(
+      RECURRING_WITH_EXCEPTION_ICS,
+      T_OCC2_START,
+      T_NEW_START,
+      T_NEW_END,
+      false
+    );
+
+    expect(result).toContain('RECURRENCE-ID:20260302T080000Z');
+    expect(result).toContain('DTSTART:20260302T080000Z');
+    expect(result).toContain('DTSTART:20260301T080000Z');
+  });
+
   it('shifts the master DTSTART by the delta (not to an absolute new time)', function () {
     // originalOccurrenceStart is the 2nd occurrence: 2026-03-02T06:00Z
     // newStart is 2026-03-02T08:00Z → delta = +2h

@@ -1,13 +1,18 @@
 @import 'ui-variables';
 
 // Every calendar view draws its events with this, so they read as the same object.
+// Tentative events, in Month and Day/Week alike: thin stripes in the calendar's colour.
+.pending-stripes() {
+  background-image: ~'repeating-linear-gradient(45deg, transparent, transparent 3px, color-mix(in srgb, var(--event-band-color, rgba(0, 0, 0, 0.1)), transparent 80%) 3px, color-mix(in srgb, var(--event-band-color, rgba(0, 0, 0, 0.1)), transparent 80%) 4px)';
+}
+
 .event-chip() {
   padding: 2px 4px 2px 8px; // Extra left padding for colored band
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 12px;
   line-height: 16px;
 
-  // Solid colored left band (Apple Calendar-style)
+  // A solid band in the calendar's color down the left edge
   &:before {
     content: '';
     position: absolute;
@@ -16,12 +21,48 @@
     left: 0;
     top: 0;
     background: var(--event-band-color, rgba(0, 0, 0, 0.3));
-    border-radius: 4px 0 0 4px;
+    border-radius: 6px 0 0 6px;
   }
 
-  // Selection fills with the calendar's own color, as Apple and Notion Calendar do
+  // An invitation not yet answered: a dashed outline in the calendar's colour, drawn inside the
+  // box so the band can sit over its left edge rather than a pixel in from it.
+  &.awaiting-response {
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 1px dashed var(--event-band-color, currentColor);
+      border-radius: inherit;
+      pointer-events: none;
+    }
+
+    &:before {
+      z-index: 1;
+    }
+  }
+
+  .event-bar-time,
+  .event-bar-end-time {
+    font-size: 11px;
+    font-weight: normal;
+    opacity: 0.7;
+  }
+
+  .event-bar-end-time {
+    flex-shrink: 0;
+    padding-left: 4px;
+    white-space: nowrap;
+    color: var(--event-text-color, inherit);
+  }
+
+  // Selection fills with the calendar's own color
   &.selected {
     background-color: var(--event-band-color) !important;
+
+    .event-bar-end-time {
+      color: var(--event-selected-text-color);
+      opacity: 1;
+    }
 
     // Darkened in OKLCH so the band keeps its hue; mixing toward black greys out pale colors
     &:before {
@@ -192,18 +233,16 @@ body.platform-win32 {
   }
 
   .calendar-event {
-    @interval-height: 21px;
     .event-chip();
     position: absolute;
     overflow: hidden;
     text-overflow: ellipsis;
-    min-height: @interval-height - 2px; // less the gap calendar-event.tsx cuts from the box
+    min-height: 9px; // a quarter hour, less the gap between events
 
     display: flex;
     flex-direction: column;
     cursor: default;
 
-    // Apple Calendar-style text uses the theme color
     .default-header {
       overflow: hidden;
       text-overflow: ellipsis;
@@ -215,7 +254,6 @@ body.platform-win32 {
       flex-shrink: 0;
     }
 
-    // Event details (meeting link, time range) - Apple Calendar style
     .event-details {
       display: flex;
       flex-direction: column;
@@ -226,20 +264,33 @@ body.platform-win32 {
       opacity: 0.75;
       overflow: hidden;
 
-      .event-meeting-link,
-      .event-location,
       .event-time-range {
-        display: flex;
-        align-items: center;
-        gap: 2px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+      }
+    }
 
-        .detail-icon {
-          flex-shrink: 0;
-          opacity: 0.7;
-        }
+    // Sized by the time it covers, so a query on its height can place the text.
+    &.vertical {
+      container-type: size;
+      padding-top: 0;
+      padding-bottom: 0;
+
+      // A 15-minute box clips its one line rather than growing to fit it.
+      .default-header,
+      .event-details {
+        line-height: 14px;
+      }
+
+      // Wraps to the lines its box has room for (see title-lines below), ending in an ellipsis.
+      .default-header {
+        margin-top: 2px;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 1;
+        white-space: normal;
+        overflow-wrap: anywhere;
       }
     }
 
@@ -280,20 +331,13 @@ body.platform-win32 {
         right: 0;
         bottom: 0;
         pointer-events: none;
-        background-image: repeating-linear-gradient(
-          -45deg,
-          transparent,
-          transparent 7px,
-          rgba(128, 128, 128, 0.12) 7px,
-          rgba(128, 128, 128, 0.12) 8.5px
-        );
+        .pending-stripes();
       }
     }
 
-    // Cancelled events: dotted border, transparent background, strikethrough text
+    // Cancelled events: dashed border, transparent background, strikethrough text
     &.cancelled {
-      border: 2px dashed;
-      border-bottom: 2px dashed;
+      border: 1px dashed var(--event-band-color, currentColor);
       background-color: transparent !important;
       background-image: none;
       .default-header {
@@ -305,6 +349,16 @@ body.platform-win32 {
       &:before {
         display: none; // Hide the left accent bar for cancelled events
       }
+
+      // Selected, it takes the tint other events have before selection, not the full fill.
+      &.selected {
+        background-color: ~'color-mix(in srgb, var(--event-band-color) 15%, transparent)' !important;
+
+        .default-header,
+        .event-details {
+          color: var(--event-text-color);
+        }
+      }
     }
 
     // Dragging state - reduce opacity to show original position
@@ -315,13 +369,17 @@ body.platform-win32 {
     // Drag preview - synthetic event styling
     &.drag-preview {
       opacity: 0.7;
-      outline: 2px dashed var(--event-band-color, inherit);
-      outline-offset: -2px;
+      outline: 1px dashed var(--event-band-color, inherit);
+      outline-offset: -1px;
       pointer-events: none;
       z-index: 1000;
 
       // The time tooltip hangs above the chip, so the preview itself must not clip.
       overflow: visible;
+
+      &:before {
+        display: none;
+      }
 
       .drag-preview-time-tooltip {
         position: absolute;
@@ -356,6 +414,8 @@ body.platform-win32 {
   }
   .week-view {
     height: 100%;
+    // Its z-indexed legend and All Day row would otherwise paint over the sidebar's divider.
+    isolation: isolate;
 
     @legend-width: 75px;
 
@@ -381,6 +441,11 @@ body.platform-win32 {
         width: @legend-width;
         z-index: 2;
       }
+
+      // Scrolled by trackpad and wheel; the track would take the grid's width.
+      > .scrollbar-track {
+        display: none;
+      }
     }
 
     .week-header {
@@ -404,7 +469,9 @@ body.platform-win32 {
       width: auto;
       z-index: 2;
       overflow: hidden;
-      box-shadow: inset 0 1px 0 @border-color-divider;
+      // A border, not an inset shadow, so the bars are placed below the line.
+      box-sizing: border-box;
+      border-top: 1px solid @border-color-divider;
     }
 
     .all-day-legend {
@@ -617,7 +684,7 @@ body.platform-win32 {
       display: grid;
       grid-template-columns: repeat(7, minmax(0, 1fr));
       grid-auto-rows: @month-view-event-height;
-      row-gap: 2px;
+      row-gap: 3px; // EVENT_GAP in calendar-constants.ts
       overflow: hidden;
       pointer-events: none;
     }
@@ -665,44 +732,32 @@ body.platform-win32 {
         opacity: 1;
       }
 
-      .month-view-event-time,
-      .month-view-event-end-time {
-        font-size: 11px;
-        font-weight: normal;
-        opacity: 0.7;
-      }
-
       &:focus {
         outline: none;
         box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
       }
 
-      .month-view-event-end-time {
-        flex-shrink: 0;
-        padding-left: 4px;
-        white-space: nowrap;
-        color: var(--event-text-color, inherit);
-      }
-
-      &.selected .month-view-event-title,
-      &.selected .month-view-event-end-time {
+      &.selected .month-view-event-title {
         color: var(--event-selected-text-color);
         opacity: 1;
       }
 
-      // Tentative/pending events: hatched diagonal stripes pattern
       &.pending {
-        background-image: ~'repeating-linear-gradient(45deg, transparent, transparent 3px, color-mix(in srgb, var(--event-band-color, rgba(0, 0, 0, 0.1)), transparent 80%) 3px, color-mix(in srgb, var(--event-band-color, rgba(0, 0, 0, 0.1)), transparent 80%) 4px)';
+        .pending-stripes();
         background-size: auto;
       }
 
       &.drag-preview {
         opacity: 0.7;
-        outline: 2px dashed var(--event-band-color, inherit);
-        outline-offset: -2px;
+        outline: 1px dashed var(--event-band-color, inherit);
+        outline-offset: -1px;
         pointer-events: none;
         position: relative;
         overflow: visible; // the time tooltip hangs above the chip, as in the week/day preview
+
+        &:before {
+          display: none;
+        }
 
         .drag-preview-time-tooltip {
           position: absolute;
@@ -765,11 +820,11 @@ body.platform-win32 {
   // Styled like the mail sidebar's unread count.
   .legend-text.current-time-label {
     z-index: 1;
-    right: 3px; // its padding, so its text lines up with the hour labels'
+    right: 2px;
     height: 15px;
-    padding: 0 3px;
+    padding: 0 5px;
     line-height: 15px;
-    border-radius: @border-radius-small;
+    border-radius: 999px;
     background: @accent-primary;
     color: @text-color-inverse;
     font-weight: @font-weight-semi-bold;
@@ -824,18 +879,31 @@ body.platform-win32 {
     border-left: 1px solid @border-color-divider;
     background: @background-primary;
 
+    // The list starts at the + button's top, so a day heading stuck there centres on the button.
+    @under-new-event: 24px;
+
     .agenda-scroll-region {
       flex: 1;
     }
 
-    // Over the list, so the first day's heading tucks up under the button.
+    .agenda-new-event + .agenda-scroll-region {
+      // Below the button, not beside it.
+      > .scrollbar-track {
+        margin-top: @under-new-event;
+      }
+      // The first heading starts where it sticks, beside the button.
+      .agenda-day:first-child {
+        padding-top: 0;
+      }
+    }
+
     .agenda-new-event {
       position: relative;
       z-index: 2;
       display: flex;
       justify-content: flex-end;
-      padding: 8px 14px 0;
-      margin-bottom: -12px;
+      padding: 8px 8px 0; // as the event panel's header, which opens in its place
+      margin-bottom: -@under-new-event;
       pointer-events: none;
 
       .btn-ghost {
@@ -845,8 +913,11 @@ body.platform-win32 {
         display: flex;
         align-items: center;
         justify-content: center;
-        color: @text-color-subtle;
         pointer-events: auto;
+
+        img.content-mask {
+          background-color: @text-color-subtle;
+        }
       }
     }
 
@@ -855,11 +926,12 @@ body.platform-win32 {
     }
 
     .agenda-day {
-      padding: 16px 0 2px;
+      padding: 13px 0 2px;
     }
 
     .agenda-day-header {
-      padding-bottom: 6px;
+      padding: 3px 0 6px; // centres a stuck heading's 18px line on the 24px + button
+      line-height: 18px;
       position: sticky;
       top: 0;
       background: @background-primary;
@@ -971,3 +1043,24 @@ body.platform-win32 {
 :where(.nav-rail-content) .calendar-source-list {
   background-color: @source-list-inset-bg;
 }
+
+// Too short for two lines: the one line sits in the middle, overhanging both edges evenly in a
+// 15-minute box, which auto margins won't do. 7px is half the 14px line.
+// Outside its block, since LESS 3 drops the parent selector of a nested @container.
+@container (height < 30px) {
+  .mailspring-calendar .calendar-event.vertical .default-header {
+    margin-top: ~'calc(50cqh - 7px)';
+  }
+}
+
+// A title takes every 14px line its box has above the time: 2px margin, then the time's 14px.
+.title-lines(@n) when (@n <= 8) {
+  @height: (16px + 14px * @n);
+  @container (height >= @height) {
+    .mailspring-calendar .calendar-event.vertical .default-header {
+      -webkit-line-clamp: @n;
+    }
+  }
+  .title-lines(@n + 1);
+}
+.title-lines(2);
