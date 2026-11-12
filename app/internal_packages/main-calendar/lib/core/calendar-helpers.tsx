@@ -574,16 +574,21 @@ export function centerGridScroll(viewportEl: HTMLElement, selectedEvent?: EventO
 
 export type ArrowDirection = 'up' | 'down' | 'left' | 'right';
 
-/** One visible day an event is drawn on, counted from the first, and how far down it sits. */
+/**
+ * One visible day an event is drawn on, counted from the first; how far down it sits; and, among
+ * events starting together, its place from the left.
+ */
 export interface DayPlacement {
   occurrence: EventOccurrence;
   dayIndex: number;
   rank: number;
+  order: number;
 }
 
 /**
- * The event an arrow steps to, from the first day `fromId` is drawn on. Left and Right skip
- * empty days, stop at the last day shown, and land on the event nearest the same height.
+ * The event an arrow steps to, from the first day `fromId` is drawn on. Events starting together
+ * form a row that Left and Right cross before leaving the day; past it they skip empty days, stop
+ * at the last day shown, and land on the event nearest the same height.
  */
 export function eventInDirection(
   placements: DayPlacement[],
@@ -594,16 +599,28 @@ export function eventInDirection(
     .filter((p) => p.occurrence.id === fromId)
     .sort((a, b) => a.dayIndex - b.dayIndex)[0];
   if (!from) return null;
-  const onDay = (dayIndex: number) =>
-    placements.filter((p) => p.dayIndex === dayIndex).sort((a, b) => a.rank - b.rank);
+  const others = (dayIndex: number) =>
+    placements
+      .filter((p) => p.dayIndex === dayIndex && p.occurrence.id !== fromId)
+      .sort((a, b) => a.rank - b.rank || a.order - b.order);
 
   if (direction === 'up' || direction === 'down') {
-    const column = onDay(from.dayIndex);
-    const idx = column.findIndex((p) => p.occurrence.id === fromId);
-    return column[idx + (direction === 'down' ? 1 : -1)]?.occurrence ?? null;
+    const ahead = others(from.dayIndex).filter((p) =>
+      direction === 'down' ? p.rank > from.rank : p.rank < from.rank
+    );
+    if (ahead.length === 0) return null;
+    const rowRank = direction === 'down' ? ahead[0].rank : ahead[ahead.length - 1].rank;
+    const row = ahead.filter((p) => p.rank === rowRank);
+    const distance = (p: DayPlacement) => Math.abs(p.order - from.order);
+    return row.reduce((best, p) => (distance(p) < distance(best) ? p : best)).occurrence;
   }
 
   const step = direction === 'right' ? 1 : -1;
+  const beside = others(from.dayIndex).filter(
+    (p) => p.rank === from.rank && (p.order - from.order) * step > 0
+  );
+  if (beside.length > 0) return (step > 0 ? beside[0] : beside[beside.length - 1]).occurrence;
+
   const indexes = placements.map((p) => p.dayIndex);
   const [first, last] = [Math.min(...indexes), Math.max(...indexes)];
   for (
@@ -611,10 +628,14 @@ export function eventInDirection(
     dayIndex >= first && dayIndex <= last;
     dayIndex += step
   ) {
-    const others = onDay(dayIndex).filter((p) => p.occurrence.id !== fromId);
-    if (others.length === 0) continue;
+    const day = others(dayIndex);
+    if (day.length === 0) continue;
     const distance = (p: DayPlacement) => Math.abs(p.rank - from.rank);
-    return others.reduce((best, p) => (distance(p) < distance(best) ? p : best)).occurrence;
+    return day.reduce((best, p) => {
+      if (distance(p) !== distance(best)) return distance(p) < distance(best) ? p : best;
+      // Coming in from the right, a row is entered at its right end.
+      return p.rank === best.rank && step < 0 ? p : best;
+    }).occurrence;
   }
   return null;
 }

@@ -243,7 +243,7 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
       for (const occurrence of allDayEvents) {
         if (eventCoversDate(occurrence, date)) {
           const rank = allDayOverlap[occurrence.id].order - DAY_DUR;
-          placements.push({ occurrence, dayIndex, rank });
+          placements.push({ occurrence, dayIndex, rank, order: 1 });
         }
       }
     });
@@ -254,9 +254,8 @@ export class TimeGridView extends React.Component<TimeGridViewProps, TimeGridVie
       const timed = eventsByDay[d.unix()];
       const overlap = overlapForEvents(timed, column);
       for (const occurrence of timed) {
-        // Side by side at the same start, left before right.
-        const rank = columnSpan(occurrence, column).top + (overlap[occurrence.id].order - 1) / 100;
-        placements.push({ occurrence, dayIndex, rank });
+        const rank = columnSpan(occurrence, column).top;
+        placements.push({ occurrence, dayIndex, rank, order: overlap[occurrence.id].order });
       }
     });
     return placements;

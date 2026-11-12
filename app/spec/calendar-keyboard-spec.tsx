@@ -20,10 +20,11 @@ import {
   timedOccurrence,
 } from './fixtures/calendar-view-props';
 
-const at = (id: string, dayIndex: number, rank: number): DayPlacement => ({
+const at = (id: string, dayIndex: number, rank: number, order = 1): DayPlacement => ({
   occurrence: { id } as EventOccurrence,
   dayIndex,
   rank,
+  order,
 });
 
 describe('eventInDirection', function () {
@@ -64,6 +65,39 @@ describe('eventInDirection', function () {
   it('returns nothing for an event not on the grid', function () {
     expect(step('elsewhere', 'down')).toBe(null);
   });
+
+  describe('with events starting together', function () {
+    // Day 1: two rows of two side by side; one event on each day either side.
+    const row = [
+      at('before', 0, 100),
+      at('left', 1, 100, 1),
+      at('right', 1, 100, 2),
+      at('after', 1, 200, 1),
+      at('afterRight', 1, 200, 2),
+      at('next', 2, 100),
+    ];
+    const stepIn = (from: string, direction: ArrowDirection) =>
+      eventInDirection(row, from, direction)?.id ?? null;
+
+    it('crosses the row on Left and Right before leaving the day', function () {
+      expect(stepIn('left', 'right')).toBe('right');
+      expect(stepIn('right', 'left')).toBe('left');
+      expect(stepIn('right', 'right')).toBe('next');
+      expect(stepIn('left', 'left')).toBe('before');
+    });
+
+    it('steps past the row on Up and Down, landing in the same place along the next', function () {
+      expect(stepIn('left', 'down')).toBe('after');
+      expect(stepIn('right', 'down')).toBe('afterRight');
+      expect(stepIn('after', 'up')).toBe('left');
+      expect(stepIn('afterRight', 'up')).toBe('right');
+    });
+
+    it('enters a row from the side the arrow comes from', function () {
+      expect(stepIn('before', 'right')).toBe('left');
+      expect(stepIn('next', 'left')).toBe('right');
+    });
+  });
 });
 
 describe('TimeGridView.dayPlacements', function () {
@@ -88,6 +122,21 @@ describe('TimeGridView.dayPlacements', function () {
       placements.filter((p) => p.occurrence.id === id).map((p) => p.dayIndex);
     expect(daysOf('late')).toEqual([2, 3]);
     expect(daysOf('holiday')).toEqual([3]);
+  });
+
+  it('places events starting together on one row, left to right', function () {
+    const view: any = new TimeGridView({
+      ...calendarViewProps({ focusedMoment: moment('2026-11-11T12:00:00') }),
+      visibleDays: 7,
+    });
+    view.state.events = [
+      timedOccurrence('standup', '2026-11-11T09:00:00', '2026-11-11T09:30:00'),
+      timedOccurrence('sync', '2026-11-11T09:00:00', '2026-11-11T10:00:00'),
+    ];
+
+    const [a, b] = view.dayPlacements();
+    expect(a.rank).toBe(b.rank);
+    expect([a.order, b.order].sort()).toEqual([1, 2]);
   });
 });
 
@@ -153,8 +202,8 @@ describe('the arrow keys and Esc with an event selected', function () {
         <FakeGrid
           ref={(g) => (grid = g)}
           placements={[
-            { occurrence: first, dayIndex: 0, rank: 32400 },
-            { occurrence: second, dayIndex: 0, rank: 39600 },
+            { occurrence: first, dayIndex: 0, rank: 32400, order: 1 },
+            { occurrence: second, dayIndex: 0, rank: 39600, order: 1 },
           ]}
         />
         <div className="agenda-panel">
