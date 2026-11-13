@@ -200,6 +200,24 @@
     height: 40px;
   }
 }
+// Activity and Views have no toolbar, so their header controls sit on the toolbar row, centred
+// with Compose, and the title's baseline lines up with the bottom of the first nav rail icon.
+.activity-dashboard .header {
+  margin-top: 10px;
+  align-items: flex-start;
+  h2 {
+    margin-top: 58.5px;
+  }
+}
+.views-home .views-home-content {
+  padding-top: 9px;
+  .views-home-header {
+    align-items: flex-start;
+    h1 {
+      margin-top: 59.5px;
+    }
+  }
+}
 // The calendar's text in the theme's two greys. Today keeps its accent, which core sets on
 // more specific selectors.
 .mailspring-calendar {
