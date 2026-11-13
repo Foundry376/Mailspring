@@ -414,7 +414,8 @@ body.is-blurred {
         position: absolute;
         inset: 0;
         background-repeat: no-repeat;
-        background-size: 14px 14px;
+        // Fills the button, so a theme that resizes it keeps the glyph centered.
+        background-size: 100% 100%;
         opacity: 0;
       }
       &:active {
