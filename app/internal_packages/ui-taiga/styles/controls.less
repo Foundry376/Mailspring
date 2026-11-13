@@ -64,6 +64,30 @@ body.platform-win32 {
   }
 }
 
+// The calendar's accent fills take white text too: this theme's inverse text is a grey.
+.mailspring-calendar {
+  .legend-text.current-time-label,
+  .month-view .month-view-day-cell.is-today .month-view-day-number.is-today,
+  .agenda-panel .agenda-event.selected .agenda-event-time,
+  .agenda-panel .agenda-event.selected .agenda-event-duration,
+  .agenda-panel .agenda-event.selected .agenda-event-title {
+    color: @white;
+  }
+  .agenda-panel .agenda-event.selected .agenda-event-color-bar {
+    background-color: @white !important;
+  }
+}
+.event-search-bar .suggestions .suggestion.selected {
+  &,
+  .suggestion-title {
+    color: @white;
+  }
+  .suggestion-time,
+  .suggestion-location {
+    color: fade(@white, 80%);
+  }
+}
+
 .button-dropdown.bordered {
   .primary-item {
     box-shadow: none !important;
