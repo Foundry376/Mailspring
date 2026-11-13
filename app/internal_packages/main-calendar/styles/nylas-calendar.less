@@ -206,12 +206,13 @@ body.platform-win32 {
   }
 
   // min-width:0: the default min-width:auto sets a floor that makes a heading wider than its column.
+  // One line of text rather than a flex row, so the name and the larger date share a baseline.
+  // Centred as separate boxes they sit 1px apart on a 1x display.
   .weekday-header {
     flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    display: block;
     height: 28px;
+    line-height: 28px;
     padding-left: 10px;
     min-width: 0;
     overflow: hidden;
@@ -223,6 +224,7 @@ body.platform-win32 {
     color: @text-color-subtle;
 
     .weekday-header-date {
+      margin-left: 6px;
       font-size: 12px;
       letter-spacing: 0;
     }
