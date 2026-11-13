@@ -113,10 +113,9 @@ body.platform-win32 {
     border-radius: 3px;
     width: 12px;
     height: 12px;
-    box-shadow:
-      0 0 0.5px rgba(0, 0, 0, 0.4),
-      inset 0 1px 0 rgba(0, 0, 0, 0.13);
-    background: white;
+    // From the row's text, so the empty box shows on any theme's sidebar.
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 30%, transparent);
+    background: transparent;
     .bg-color {
       width: 100%;
       height: 100%;
