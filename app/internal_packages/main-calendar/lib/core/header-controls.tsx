@@ -1,4 +1,5 @@
 import React from 'react';
+import classnames from 'classnames';
 import { Utils, localized } from 'mailspring-exports';
 import { RetinaImg } from 'mailspring-component-kit';
 import { CalendarView } from './calendar-constants';
@@ -22,6 +23,8 @@ export class HeaderControls extends React.Component<{
   onChangeView: (view: CalendarView) => void;
   agendaOpen: boolean;
   onToggleAgenda: () => void;
+  /** While the agenda is on screen, search and its toggle sit in a group this wide, above it. */
+  agendaWidth?: number | null;
   arrows?: 'horizontal' | 'vertical';
   children?: React.ReactNode;
 }> {
@@ -49,9 +52,31 @@ export class HeaderControls extends React.Component<{
     );
   }
 
-  render() {
+  _renderAgendaControls() {
     return (
-      <div className="header-controls">
+      <>
+        {this.props.children}
+        <button
+          className="btn-ghost agenda-toggle"
+          aria-label={localized('Agenda')}
+          aria-pressed={this.props.agendaOpen}
+          title={localized('Agenda')}
+          onClick={this.props.onToggleAgenda}
+        >
+          <RetinaImg
+            name="toolbar-sidebar-right.png"
+            mode={RetinaImg.Mode.ContentIsMask}
+            aria-hidden="true"
+          />
+        </button>
+      </>
+    );
+  }
+
+  render() {
+    const { agendaWidth } = this.props;
+    return (
+      <div className={classnames('header-controls', { 'agenda-split': !!agendaWidth })}>
         <div className="side-controls">
           <button className="btn btn-toolbar" onClick={this.props.todayAction}>
             {localized('Today')}
@@ -80,21 +105,13 @@ export class HeaderControls extends React.Component<{
             {this._renderArrow('prev')}
             {this._renderArrow('next')}
           </div>
-          {this.props.children}
-          <button
-            className="btn-ghost agenda-toggle"
-            aria-label={localized('Agenda')}
-            aria-pressed={this.props.agendaOpen}
-            title={localized('Agenda')}
-            onClick={this.props.onToggleAgenda}
-          >
-            <RetinaImg
-              name="toolbar-sidebar-right.png"
-              mode={RetinaImg.Mode.ContentIsMask}
-              aria-hidden="true"
-            />
-          </button>
+          {!agendaWidth && this._renderAgendaControls()}
         </div>
+        {!!agendaWidth && (
+          <div className="agenda-controls" style={{ width: agendaWidth }}>
+            {this._renderAgendaControls()}
+          </div>
+        )}
       </div>
     );
   }

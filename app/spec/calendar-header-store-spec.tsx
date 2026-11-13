@@ -107,6 +107,33 @@ describe('CalendarHeaderStore', function () {
     expect(CalendarHeaderStore.calendarOptions()).toBe(null);
   });
 
+  it("hands over the agenda's width only while it's on screen, redrawing as it resizes", function () {
+    spyOn(AppEnv.config, 'set');
+    spyOn(AppEnv, 'storeColumnWidth');
+    spyOn(AppEnv, 'getColumnWidth').andReturn(undefined);
+    const calendar: any = new MailspringCalendar({} as any);
+    calendar.setState = (update: object) => Object.assign(calendar.state, update);
+    calendar._publishCalendarOptions();
+    expect(CalendarHeaderStore.calendarOptions().agendaWidth).toBe(240);
+
+    triggered = 0;
+    calendar._onAgendaResize(280);
+    expect(CalendarHeaderStore.calendarOptions().agendaWidth).toBe(280);
+    expect(triggered).toBe(1);
+    // As the resizable region clamps it.
+    calendar._onAgendaResize(400);
+    expect(CalendarHeaderStore.calendarOptions().agendaWidth).toBe(300);
+
+    calendar.setState({ calendarsLoaded: true, calendars: [] });
+    calendar._publishCalendarOptions();
+    expect(CalendarHeaderStore.calendarOptions().agendaWidth).toBe(null);
+
+    calendar.setState({ calendars: [{}] });
+    calendar.onToggleAgenda();
+    calendar._publishCalendarOptions();
+    expect(CalendarHeaderStore.calendarOptions().agendaWidth).toBe(null);
+  });
+
   it("takes the calendar's view and agenda state, redrawing when they change", function () {
     spyOn(AppEnv.config, 'set');
     const calendar: any = new MailspringCalendar({} as any);

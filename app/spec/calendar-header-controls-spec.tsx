@@ -99,4 +99,36 @@ describe('HeaderControls', function () {
     render(true);
     expect(toggle().getAttribute('aria-pressed')).toBe('true');
   });
+
+  it("groups search and the agenda button at the agenda's width only when given one", function () {
+    const renderWith = (agendaWidth: number | null) =>
+      ReactDOM.render(
+        <HeaderControls
+          view={CalendarView.MONTH}
+          nextAction={nextAction}
+          prevAction={prevAction}
+          todayAction={todayAction}
+          onChangeView={onChangeView}
+          agendaOpen
+          agendaWidth={agendaWidth}
+          onToggleAgenda={onToggleAgenda}
+        >
+          <div className="search" />
+        </HeaderControls>,
+        host
+      );
+    renderWith(260);
+    const group = host.querySelector('.agenda-controls') as HTMLElement;
+    expect(group.style.width).toBe('260px');
+    expect(Array.from(group.children).map((c) => c.className)).toEqual([
+      'search',
+      'btn-ghost agenda-toggle',
+    ]);
+    expect(host.querySelector('.side-controls .search')).toBe(null);
+
+    renderWith(null);
+    expect(host.querySelector('.agenda-controls')).toBe(null);
+    expect(host.querySelector('.side-controls .search')).not.toBe(null);
+    expect(host.querySelector('.side-controls .agenda-toggle')).toBe(toggle());
+  });
 });
