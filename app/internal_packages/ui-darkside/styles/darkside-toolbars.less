@@ -70,6 +70,40 @@ body.platform-win32 .sheet-toolbar-container .btn-toolbar:hover {
   margin-right: 0;
 }
 
+// With a thread open in list mode, and in Activity and Views, the top bar is dark and joins the
+// rail, so the content is the one light card.
+.sheet-container .sheet-toolbar .sheet-toolbar-container:is([data-id='Thread'], [data-id='Activity'], [data-id='Views']) {
+  // Shows in the gap the reading pane card leaves beside the sidebar.
+  background-color: @sidebar;
+
+  .toolbar-MessageList,
+  .toolbar-MessageListSidebar {
+    background-color: @sidebar;
+    border: none;
+  }
+  .item-back .item-back-title {
+    color: @white;
+  }
+  .item-back img.content-mask {
+    background-color: @white;
+  }
+  .button-group,
+  .btn-toolbar {
+    box-shadow: none;
+  }
+  .btn-toolbar {
+    background: fade(@white, 8%);
+  }
+  img.content-mask,
+  .btn-bare img.content-mask,
+  .btn-ghost:not([aria-pressed='true']) img.content-mask {
+    background-color: fade(@white, 70%);
+  }
+  .btn-ghost[aria-pressed='true'] img.content-mask {
+    background-color: @accent;
+  }
+}
+
 .btn-ghost[aria-pressed='true'] img.content-mask {
   background-color: @accent;
 }
