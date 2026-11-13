@@ -62,11 +62,10 @@ body.platform-linux .toolbar-window-controls button {
 
 // Compose Button Overrides
 .sheet-toolbar .btn.btn-toolbar.item-compose {
+  color: @sidebar-text;
   background: transparent;
-  box-shadow: none;
+  box-shadow: inset 0 0 0 1px @sidebar-text;
   opacity: 0.5;
-  margin: 0;
-  height: 100%;
   transition: opacity 200ms;
   &:hover {
     opacity: 1;
