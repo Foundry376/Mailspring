@@ -190,14 +190,15 @@
   padding-top: @less-top-inset;
   background: @less-background;
 }
-// These toolbars centre their controls, so they need a row; the toolbar is 0px tall here.
-// Matches the core macOS rule's specificity, which sets them to the toolbar's full height.
+// These toolbars centre their controls, so they need a row; the toolbar is 0px tall here. 46px
+// centres them with mail's Compose and search. Matches the core macOS rule's specificity, which
+// sets them to the toolbar's full height.
 .sheet-toolbar .sheet-toolbar-container {
   > .toolbar-CalendarContent,
   > .toolbar-ContactsSidebar,
   > .toolbar-ContactsList,
   > .toolbar-ContactsDetail {
-    height: 40px;
+    height: 46px;
   }
 }
 // Activity and Views have no toolbar, so their header controls sit on the toolbar row, centred
