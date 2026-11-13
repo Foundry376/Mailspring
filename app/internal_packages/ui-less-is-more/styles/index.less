@@ -219,6 +219,27 @@
     }
   }
 }
+// Their actions take the new-item buttons' pill rather than the theme's filled emphasis.
+.activity-dashboard,
+.views-home {
+  .btn.btn-emphasis {
+    background: fade(@less-background, 85%);
+    color: @less-text;
+    border: none;
+    border-radius: 999px;
+    box-shadow: 0 0 0 1px fade(@less-text, 15%), 0 1px 4px fade(@less-text, 6%);
+    // Core's gradient layer, which the theme's opaque fill otherwise hides.
+    &::before {
+      display: none;
+    }
+    &:hover {
+      background: @less-background;
+    }
+    &:active {
+      background: mix(@less-text, @less-background, 10%);
+    }
+  }
+}
 // The calendar's text in the theme's two greys. Today keeps its accent, which core sets on
 // more specific selectors.
 .mailspring-calendar {
