@@ -16,8 +16,26 @@
   background: @white !important;
   border: 0;
   border-radius: @base-border-radius !important;
-  &.item-compose {
+}
+
+// Toolbar buttons are square outlines; a group shares one, split by hairlines.
+.sheet-toolbar {
+  .btn-toolbar {
     border: 1px solid @taiga-light;
+  }
+  .button-group {
+    box-shadow: none;
+    border: 1px solid @taiga-light;
+    border-radius: @base-border-radius;
+    overflow: hidden;
+
+    .btn-toolbar {
+      border: none;
+      border-radius: 0 !important;
+    }
+    .btn-toolbar + .btn-toolbar {
+      border-left: 1px solid @taiga-light;
+    }
   }
 }
 
