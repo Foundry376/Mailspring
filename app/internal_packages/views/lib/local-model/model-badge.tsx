@@ -1,26 +1,7 @@
 import React from 'react';
 import classnames from 'classnames';
-import { shell } from 'electron';
 import { LocalModelStatus, LocalModelStore, localized } from 'mailspring-exports';
-
-const APPLE_INTELLIGENCE_SETTINGS = 'x-apple.systempreferences:com.apple.Siri-Settings.extension';
-
-function formatBytes(bytes: number) {
-  if (bytes >= 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-  return `${Math.round(bytes / (1024 * 1024))} MB`;
-}
-
-function confirm(message: string, detail: string, action: string) {
-  const choice = require('@electron/remote').dialog.showMessageBoxSync({
-    type: 'question',
-    buttons: [action, localized('Cancel')],
-    defaultId: 0,
-    cancelId: 1,
-    message,
-    detail,
-  });
-  return choice === 0;
-}
+import { LocalModelSettings } from 'mailspring-component-kit';
 
 /**
  * The pill's prefix. The badge is about running Views, not building them (that uses cloud AI),
@@ -99,214 +80,6 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
     }
   };
 
-  _onToggleEnabled = async () => {
-    const { status } = this.state;
-    if (!status) return;
-    if (status.state.kind !== 'disabled') {
-      const freed = status.bytesOnDisk;
-      const ok = confirm(
-        localized('Turn off on-device AI for Views?'),
-        freed
-          ? localized(
-              'This stops any download and deletes the model, freeing %@. Views still work; AI summaries and smart extraction are turned off.',
-              formatBytes(freed)
-            )
-          : localized(
-              'Views still work; AI summaries and smart extraction are turned off. Nothing will be downloaded.'
-            ),
-        localized('Turn Off')
-      );
-      if (ok) await LocalModelStore.setEnabled(false);
-    } else {
-      await LocalModelStore.setEnabled(true);
-    }
-  };
-
-  _onUseSystemModel = async () => {
-    const { status } = this.state;
-    await LocalModelStore.setProvider('auto');
-    if (status && status.bytesOnDisk > 0) {
-      const ok = confirm(
-        localized('Delete the downloaded model?'),
-        localized(
-          'Views will use %@. Deleting %@ frees %@; you can download it again later.',
-          status.system.name,
-          status.downloadable.label,
-          formatBytes(status.bytesOnDisk)
-        ),
-        localized('Delete')
-      );
-      if (ok) await LocalModelStore.deleteDownloaded();
-    }
-  };
-
-  _renderProgress(received: number, total: number) {
-    const pct = Math.min(100, (received / (total || 1)) * 100);
-    return (
-      <div className="model-badge-progress">
-        <div className="model-badge-progress-bar">
-          <div className="model-badge-progress-fill" style={{ width: `${pct}%` }} />
-        </div>
-        <div className="model-badge-progress-text">
-          {localized('%@ of %@', formatBytes(received), formatBytes(total))}
-        </div>
-      </div>
-    );
-  }
-
-  _renderBody(status: LocalModelStatus): React.ReactNode {
-    const { state } = status;
-    const local = (
-      <p className="model-badge-local">
-        {localized(
-          "Some Views summarize mail or pull out details like prices and tracking numbers. They use a model on this computer — your mail isn't sent anywhere."
-        )}
-      </p>
-    );
-    switch (state.kind) {
-      case 'system':
-        return (
-          <>
-            {local}
-            <div className="model-badge-detail">
-              {localized('Provided by macOS (%@)', state.label)}
-            </div>
-          </>
-        );
-      case 'checking':
-        return local;
-      case 'system-preparing':
-        return (
-          <p className="model-badge-local">
-            {localized(
-              '%@ is getting ready. Views will use it as soon as macOS finishes setting it up — nothing extra to download.',
-              state.label
-            )}
-          </p>
-        );
-      case 'system-disabled':
-        return (
-          <>
-            <p className="model-badge-local">
-              {localized(
-                'Turn on %@ in System Settings to use the model built into macOS, or download %@ instead. Either way it runs on your Mac.',
-                state.label,
-                status.downloadable.label
-              )}
-            </p>
-            <div className="model-badge-actions">
-              <button
-                className="btn btn-small"
-                onClick={() => shell.openExternal(APPLE_INTELLIGENCE_SETTINGS)}
-              >
-                {localized('Open System Settings')}
-              </button>
-              <button
-                className="btn btn-small"
-                onClick={() => LocalModelStore.startDownload(false)}
-              >
-                {localized('Download Instead (%@)', formatBytes(state.totalBytes))}
-              </button>
-            </div>
-          </>
-        );
-      case 'ready':
-        return (
-          <>
-            {local}
-            <div className="model-badge-detail">
-              {state.source === 'dev'
-                ? localized('Development copy · %@', formatBytes(state.sizeBytes))
-                : localized('%@ on disk', formatBytes(state.sizeBytes))}
-            </div>
-          </>
-        );
-      case 'downloading':
-        return (
-          <>
-            {local}
-            {this._renderProgress(state.receivedBytes, state.totalBytes)}
-            <div className="model-badge-actions">
-              <button className="btn btn-small" onClick={() => LocalModelStore.cancelDownload()}>
-                {localized('Cancel Download')}
-              </button>
-            </div>
-          </>
-        );
-      case 'error':
-        return (
-          <>
-            {local}
-            <div className="model-badge-error">{state.message}</div>
-            <div className="model-badge-actions">
-              <button
-                className="btn btn-small"
-                onClick={() => LocalModelStore.startDownload(false)}
-              >
-                {localized('Resume Download')}
-              </button>
-            </div>
-          </>
-        );
-      case 'insufficient-disk':
-        return (
-          <>
-            {local}
-            <div className="model-badge-error">
-              {localized(
-                'Only %@ is free on this disk, so the %@ model wasn’t downloaded automatically. Views work without it.',
-                formatBytes(state.freeBytes),
-                formatBytes(state.totalBytes)
-              )}
-            </div>
-            <div className="model-badge-actions">
-              <button className="btn btn-small" onClick={() => LocalModelStore.startDownload(true)}>
-                {localized('Download Anyway')}
-              </button>
-            </div>
-          </>
-        );
-      case 'not-downloaded':
-        return (
-          <>
-            {local}
-            <div className="model-badge-actions">
-              <button
-                className="btn btn-small"
-                onClick={() => LocalModelStore.startDownload(false)}
-              >
-                {localized('Download (%@)', formatBytes(state.totalBytes))}
-              </button>
-            </div>
-          </>
-        );
-      case 'disabled':
-        return (
-          <p className="model-badge-local">
-            {localized(
-              'Views still work; AI summaries and smart extraction are turned off. Nothing is downloaded.'
-            )}
-          </p>
-        );
-    }
-  }
-
-  _renderProviderChoice(status: LocalModelStatus) {
-    if (!status.system.available || status.state.kind === 'disabled') return null;
-    if (status.provider === 'qwen') {
-      return (
-        <button className="model-badge-link" onClick={this._onUseSystemModel}>
-          {localized('Use %@ instead', status.system.name)}
-        </button>
-      );
-    }
-    return (
-      <button className="model-badge-link" onClick={() => LocalModelStore.setProvider('qwen')}>
-        {localized('Use %@ instead', status.downloadable.label)}
-      </button>
-    );
-  }
-
   _renderPopover(status: LocalModelStatus) {
     const enabled = status.state.kind !== 'disabled';
     return (
@@ -315,12 +88,16 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
         <div className="model-badge-model">
           {enabled ? status.state.label : localized('Turned off')}
         </div>
-        {this._renderBody(status)}
-        {this._renderProviderChoice(status)}
-        <label className="model-badge-switch">
-          <input type="checkbox" checked={enabled} onChange={this._onToggleEnabled} />
-          <span>{localized('Download AI models for Views')}</span>
-        </label>
+        <LocalModelSettings
+          status={status}
+          intro={
+            <p className="local-model-intro">
+              {localized(
+                "Some Views summarize mail or pull out details like prices and tracking numbers. They use a model on this computer — your mail isn't sent anywhere."
+              )}
+            </p>
+          }
+        />
       </div>
     );
   }
