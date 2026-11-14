@@ -1,0 +1,83 @@
+@import 'ui-variables';
+
+// The on-device model's controls (components/local-model-settings.tsx).
+.local-model-settings {
+  font-size: 13px;
+
+  .local-model-intro {
+    margin: 0 0 10px;
+    color: @text-color-subtle;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .local-model-detail {
+    color: @text-color-very-subtle;
+    font-size: 12px;
+    margin-bottom: 10px;
+  }
+
+  .local-model-error {
+    color: @text-color;
+    margin-bottom: 10px;
+    line-height: 1.45;
+  }
+
+  .local-model-progress {
+    margin-bottom: 10px;
+  }
+
+  .local-model-progress-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: fade(@text-color, 10%);
+    overflow: hidden;
+  }
+
+  .local-model-progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: @accent-primary;
+    transition: width 250ms linear;
+  }
+
+  .local-model-progress-text {
+    margin-top: 4px;
+    font-size: 11px;
+    color: @text-color-very-subtle;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .local-model-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .local-model-link {
+    display: block;
+    border: 0;
+    padding: 0;
+    margin: 0 0 10px;
+    background: none;
+    color: @text-color-link;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .local-model-switch {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid @border-color-primary;
+    color: @text-color;
+    font-weight: normal;
+
+    // Outranks the preferences pane's default checkbox margin.
+    input[type='checkbox'] {
+      margin: 0;
+      top: 0;
+    }
+  }
+}

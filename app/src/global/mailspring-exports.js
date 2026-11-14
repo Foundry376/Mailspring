@@ -157,6 +157,7 @@ load(`FolderSyncProgressStore`, 'flux/stores/folder-sync-progress-store');
 load(`FocusedPerspectiveStore`, 'flux/stores/focused-perspective-store');
 load(`SearchableComponentStore`, 'flux/stores/searchable-component-store');
 lazyLoad(`LocalModelStore`, 'flux/stores/local-model-store');
+lazyLoad(`AIStore`, 'flux/stores/ai-store');
 lazyLoad(`LocalModelPrompt`, 'flux/stores/local-model-prompt');
 lazyLoad(`LocalModelSummaries`, 'flux/stores/local-model-summaries');
 

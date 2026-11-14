@@ -109,6 +109,14 @@ export function activate() {
       order: 6,
     })
   );
+  PreferencesUIStore.registerPreferencesTab(
+    new PreferencesUIStore.TabItem({
+      tabId: 'AI',
+      displayName: localized('AI'),
+      componentClassFn: () => require('./tabs/preferences-ai').default,
+      order: 7,
+    })
+  );
 
   WorkspaceStore.defineSheet(
     'Preferences',

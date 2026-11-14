@@ -13,6 +13,7 @@ export * from '../components/flexbox';
 
 export * from '../components/retina-img';
 export { NavRailItem, NavRailSection } from '../components/nav-rail';
+export { LocalModelSettings } from '../components/local-model-settings';
 export const SwipeContainer: typeof import('../components/swipe-container').default;
 export const FluxContainer: typeof import('../components/flux-container').default;
 export const FocusContainer: typeof import('../components/focus-container').default;

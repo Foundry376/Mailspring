@@ -160,6 +160,15 @@ export type {
 export const LocalModelPrompt: typeof import('../flux/stores/local-model-prompt');
 export const LocalModelSummaries: typeof import('../flux/stores/local-model-summaries');
 export type { MessageSummary, SummaryInput } from '../flux/stores/local-model-summaries';
+export type AIStore = typeof import('../flux/stores/ai-store').default;
+export const AIStore: AIStore;
+export type {
+  AIAnswer,
+  AIBackend,
+  AICapability,
+  AIFeature,
+  AIRequest,
+} from '../flux/stores/ai-store';
 
 export type ServiceRegistry = typeof import('../registries/service-registry').default;
 export const ServiceRegistry: ServiceRegistry;
