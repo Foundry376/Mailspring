@@ -2,6 +2,7 @@ import React from 'react';
 import { Utils, Contact } from 'mailspring-exports';
 import { AccountColorBar } from 'mailspring-component-kit';
 import { ThreadWithMessagesMetadata } from './types';
+import { renderHighlighted } from './search-highlight';
 
 function getTokensFromMessages(thread: ThreadWithMessagesMetadata) {
   const messages = thread.__messages;
@@ -91,9 +92,10 @@ function renderSpans(
 
   const flush = function () {
     if (accumulated) {
+      const matches = thread.__searchMatch?.highlighter.participants(accumulated);
       spans.push(
         <span key={spans.length} className={`unread-${accumulatedUnread}`}>
-          {accumulated}
+          {matches ? renderHighlighted(matches) : accumulated}
         </span>
       );
     }

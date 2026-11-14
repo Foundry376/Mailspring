@@ -11,6 +11,7 @@ import {
   MutableQuerySubscription,
   RemoteSearchQueryBackend,
 } from 'mailspring-exports';
+import { SearchHighlighter, searchHighlighter } from './search-highlighter';
 
 type SyncProcess = ReturnType<typeof AppEnv.mailsyncBridge.clients>[string];
 
@@ -22,6 +23,7 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
   _searching = false;
   _haveLocalResults = false;
   _parsedQuery = null;
+  _highlighter: SearchHighlighter | null = null;
   // searchId -> the account and the sync process the request went to
   _remoteSearches = new Map<string, { accountId: string; client: SyncProcess }>();
   _remoteThreadIds = new Set<string>();
@@ -48,6 +50,7 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
       console.info('Failed to parse local search query, falling back to generic query', e);
     }
     this._parsedQuery = parsedQuery;
+    this._highlighter = searchHighlighter(parsedQuery);
     this.performLocalSearch();
     this.performRemoteSearch();
     this.performExtensionSearch();
@@ -105,6 +108,11 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
         ...request,
       });
     }
+  }
+
+  // Read by ThreadListDataSource, which highlights the query's terms in each result.
+  searchHighlighter(): SearchHighlighter | null {
+    return this._highlighter;
   }
 
   runningSyncProcess(accountId: string): SyncProcess | null {
