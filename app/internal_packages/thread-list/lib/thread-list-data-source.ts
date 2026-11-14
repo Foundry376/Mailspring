@@ -89,6 +89,30 @@ const _flatMapJoiningMessages = ($threadsResultSet) => {
   );
 };
 
+// A search subscription provides `searchHighlighter`; other perspectives' subscriptions
+// don't. The thread models here are the clones made above, so the match can be set on them.
+const _flatMapJoiningSearchMatches = ($threadsResultSet, subscription) => {
+  return $threadsResultSet.flatMapLatest((threadsResultSet) => {
+    const highlighter = subscription.searchHighlighter();
+    if (!highlighter) {
+      return Rx.Observable.from([threadsResultSet]);
+    }
+    const promise = highlighter
+      .excerpts(threadsResultSet.ids())
+      .catch((err) => {
+        console.warn('Could not load search match excerpts', err);
+        return {};
+      })
+      .then((excerpts) => {
+        for (const thread of threadsResultSet.models()) {
+          thread.__searchMatch = { highlighter, excerpt: excerpts[thread.id] };
+        }
+        return threadsResultSet;
+      });
+    return Rx.Observable.fromPromise(promise);
+  });
+};
+
 class ThreadListDataSource extends ObservableListDataSource {
   constructor(subscription) {
     let $resultSetObservable = Rx.Observable.fromNamedQuerySubscription(
@@ -96,6 +120,9 @@ class ThreadListDataSource extends ObservableListDataSource {
       subscription
     );
     $resultSetObservable = _flatMapJoiningMessages($resultSetObservable);
+    if (typeof subscription.searchHighlighter === 'function') {
+      $resultSetObservable = _flatMapJoiningSearchMatches($resultSetObservable, subscription);
+    }
     super($resultSetObservable, subscription.replaceRange.bind(subscription));
   }
 }
