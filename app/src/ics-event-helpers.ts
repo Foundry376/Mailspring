@@ -113,8 +113,9 @@ export function generateUID(): string {
  * cap is worse - an invitation is untrusted input, and `RRULE:FREQ=SECONDLY` dated 1970
  * would spin forever.
  *
- * So the budget comes from the series itself: how many steps of its own frequency fit
- * between where it starts and the end of the window, plus slack. Real calendars land far
+ * So the budget comes from the series itself: how many periods of its own frequency fit
+ * between where it starts and the end of the window, times the occurrences each period can
+ * yield, plus slack. Real calendars land far
  * below the ceiling - a weekly meeting running since 2020 needs about 300 - while a
  * frequency fine enough to be abusive exceeds it and is truncated instead of expanded.
  *
@@ -142,9 +143,31 @@ export function expansionIterationBudget(
   const step =
     (EXPANSION_STEP_SECONDS[(freq ? freq[1] : '').toUpperCase()] || EXPANSION_STEP_SECONDS.DAILY) *
     interval;
-  const steps = Math.ceil(Math.max(0, windowEndUnix - seriesStartUnix) / step) + 100;
+  const periods = Math.ceil(Math.max(0, windowEndUnix - seriesStartUnix) / step);
+  const steps = periods * occurrencesPerPeriod(rule) + 100;
   return Math.min(MAX_EXPANSION_ITERATIONS, Math.max(MIN_EXPANSION_ITERATIONS, steps));
 }
+
+/**
+ * An upper bound on how many occurrences one FREQ period of a rule yields. Each BY list can
+ * multiply the count, and a weekday without an ordinal matches every week of a month or year:
+ * `FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR` takes five steps a week. Lists that only filter the
+ * period, such as BYDAY under DAILY, are counted too; overestimating only raises the cap.
+ */
+function occurrencesPerPeriod(rule: string): number {
+  const freq = ((/FREQ=([A-Z]+)/i.exec(rule) || [])[1] || '').toUpperCase();
+  let count = 1;
+  for (const [, part, values] of rule.matchAll(/(BY[A-Z]+)=([^;]+)/gi)) {
+    const name = part.toUpperCase();
+    if (name === 'BYSETPOS') continue;
+    const matches = (value: string) =>
+      name === 'BYDAY' && !/\d/.test(value) ? WEEKS_PER_PERIOD[freq] || 1 : 1;
+    count *= values.split(',').reduce((sum, value) => sum + matches(value), 0);
+  }
+  return count;
+}
+
+const WEEKS_PER_PERIOD: { [freq: string]: number } = { MONTHLY: 5, YEARLY: 53 };
 
 /**
  * The RRULE of the first VEVENT, ignoring any that belong to a VTIMEZONE.
@@ -2009,6 +2032,7 @@ export function expandBetween(
         .flatMap((prop) => prop.getValues() as ICALTime[])
         .map((time) => time.toJSDate().getTime())
     );
+    const skipBefore = skippableBefore(event, exceptions, after);
     const iterator = event.iterator();
     for (let i = 0; i < maxIterations; i++) {
       const next = iterator.next();
@@ -2017,6 +2041,7 @@ export function expandBetween(
       // not the rule's. Stopping on the moved start alone would end the series at the first
       // occurrence moved past the window.
       const instant = next.toJSDate().getTime();
+      if (instant < skipBefore) continue;
       const occurrence = event.getOccurrenceDetails(next);
       const occurrenceSpan = span(occurrence);
       if (instant > before && occurrenceSpan.from > before) break;
@@ -2034,6 +2059,27 @@ export function expandBetween(
     }
   }
   return [...shownAsThemselves, ...occurrences];
+}
+
+const DAY_MS = 86400 * 1000;
+
+/**
+ * The instant (ms) before which a series' rule slots can be stepped past without reading their
+ * occurrence details. Those details convert zones and cost most of an expansion, and a series
+ * that began years ago steps through every slot since. A slot ends before the window when it
+ * starts a duration before it, give or take a day for a DST change inside the duration.
+ *
+ * An exception draws its slot at its own times, so one that reaches the window stops skipping
+ * from its slot onwards. One that ends before the window can't put its slot in it, and series
+ * usually carry those from their first weeks. A THISANDFUTURE exception shifts every later slot,
+ * so it stops skipping wherever it ends.
+ */
+function skippableBefore(series: ICALEvent, exceptions: ICALEvent[], windowStart: number) {
+  const duration = series.endDate.toJSDate().getTime() - series.startDate.toJSDate().getTime();
+  const exceptionSlots = exceptions
+    .filter((ex) => ex.modifiesFuture() || ex.endDate.toJSDate().getTime() >= windowStart)
+    .map((ex) => ex.recurrenceId.toJSDate().getTime());
+  return Math.min(windowStart - Math.max(0, duration), ...exceptionSlots) - DAY_MS;
 }
 
 export interface Occurrence {

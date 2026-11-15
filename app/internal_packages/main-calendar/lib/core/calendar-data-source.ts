@@ -239,6 +239,33 @@ export function readOnlyCalendarIds(calendars: Calendar[]): Set<string> {
   return new Set(calendars.filter((c) => c.readOnly).map((c) => c.id));
 }
 
+type CalendarExpansionInputs = Pick<
+  Parameters<typeof occurrencesForEvents>[1],
+  'ownCalendarAddresses' | 'readOnlyCalendarIds'
+>;
+
+/**
+ * What expansion reads from the Calendar rows, emitted only when it changes. A calendar sync
+ * re-persists every row to record its sync state, and re-expanding every series for each of those
+ * deltas stalls the window for a quarter second apiece just after the calendar opens.
+ *
+ * Google rewrites ORGANIZER on a secondary calendar to the calendar's own id, so a meeting
+ * organized by the calendar it sits on is ours when the calendar is.
+ */
+function calendarExpansionInputs(): Rx.Observable<CalendarExpansionInputs> {
+  return Rx.Observable.fromQuery(DatabaseStore.findAll<Calendar>(Calendar))
+    .map((cals: Calendar[]) => ({
+      ownCalendarAddresses: ownCalendarAddresses(cals),
+      readOnlyCalendarIds: readOnlyCalendarIds(cals),
+    }))
+    .distinctUntilChanged((inputs) =>
+      JSON.stringify([
+        [...inputs.ownCalendarAddresses].sort(),
+        [...inputs.readOnlyCalendarIds].sort(),
+      ])
+    );
+}
+
 /** Strip mailto: prefix from email addresses (common in iCalendar data) */
 function normalizeEmail(email: string): string {
   return email.replace(/^mailto:/i, '');
@@ -258,19 +285,11 @@ export class CalendarDataSource {
     }
 
     const query = DatabaseStore.findAll<Event>(Event).where(matcher);
-    // Google rewrites ORGANIZER on a secondary calendar to the calendar's own id, so a meeting
-    // organized by the calendar it sits on is ours when the calendar is.
-    const calendars = Rx.Observable.fromQuery(DatabaseStore.findAll<Calendar>(Calendar));
     this.observable = Rx.Observable.combineLatest(
       Rx.Observable.fromQuery(query),
-      calendars,
-      (results: Event[], cals: Calendar[]) => ({
-        events: occurrencesForEvents(results, {
-          startUnix,
-          endUnix,
-          ownCalendarAddresses: ownCalendarAddresses(cals),
-          readOnlyCalendarIds: readOnlyCalendarIds(cals),
-        }),
+      calendarExpansionInputs(),
+      (results: Event[], inputs: CalendarExpansionInputs) => ({
+        events: occurrencesForEvents(results, { startUnix, endUnix, ...inputs }),
       })
     );
     return this.observable;
