@@ -99,4 +99,33 @@ describe('HeaderControls', function () {
     render(true);
     expect(toggle().getAttribute('aria-pressed')).toBe('true');
   });
+
+  it('keeps search and the agenda button mounted as the agenda opens and closes', function () {
+    const renderWith = (agendaWidth: number | null) =>
+      ReactDOM.render(
+        <HeaderControls
+          view={CalendarView.MONTH}
+          nextAction={nextAction}
+          prevAction={prevAction}
+          todayAction={todayAction}
+          onChangeView={onChangeView}
+          agendaOpen={!!agendaWidth}
+          agendaWidth={agendaWidth}
+          onToggleAgenda={onToggleAgenda}
+        >
+          <input className="search" />
+        </HeaderControls>,
+        host
+      );
+    renderWith(null);
+    const search = host.querySelector('.search');
+    const button = toggle();
+
+    renderWith(260);
+    expect(host.querySelector('.search')).toBe(search);
+    expect(toggle()).toBe(button);
+    renderWith(null);
+    expect(host.querySelector('.search')).toBe(search);
+    expect(toggle()).toBe(button);
+  });
 });
