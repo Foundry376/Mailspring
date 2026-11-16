@@ -52,8 +52,9 @@ export class HeaderControls extends React.Component<{
   }
 
   _renderAgendaControls() {
+    const { agendaWidth } = this.props;
     return (
-      <>
+      <div className="agenda-controls" style={agendaWidth ? { width: agendaWidth } : undefined}>
         {this.props.children}
         <button
           className="btn-ghost agenda-toggle"
@@ -68,7 +69,7 @@ export class HeaderControls extends React.Component<{
             aria-hidden="true"
           />
         </button>
-      </>
+      </div>
     );
   }
 
@@ -104,13 +105,8 @@ export class HeaderControls extends React.Component<{
             {this._renderArrow('prev')}
             {this._renderArrow('next')}
           </div>
-          {!agendaWidth && this._renderAgendaControls()}
         </div>
-        {!!agendaWidth && (
-          <div className="agenda-controls" style={{ width: agendaWidth }}>
-            {this._renderAgendaControls()}
-          </div>
-        )}
+        {this._renderAgendaControls()}
       </div>
     );
   }

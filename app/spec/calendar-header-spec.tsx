@@ -61,10 +61,10 @@ describe('CalendarHeader', function () {
   it('puts search between the arrows and the agenda button', function () {
     CalendarHeaderStore.setViewNavigation(navigation());
     CalendarHeaderStore.setCalendarOptions(options());
-    const items = Array.from(host.querySelector('.side-controls').children);
-    const at = (selector: string) => items.indexOf(host.querySelector(selector));
-    expect(at('.event-search-bar')).toBe(at('.nav-arrows') + 1);
-    expect(at('.agenda-toggle')).toBe(at('.event-search-bar') + 1);
+    const selectors = ['.nav-arrows', '.event-search-bar', '.agenda-toggle'];
+    expect(Array.from(host.querySelectorAll(selectors.join(', ')))).toEqual(
+      selectors.map((s) => host.querySelector(s))
+    );
   });
 
   it("runs the view's latest actions, handed over without a redraw", function () {

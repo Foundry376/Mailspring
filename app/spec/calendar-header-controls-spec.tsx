@@ -65,7 +65,7 @@ describe('HeaderControls', function () {
 
   it('puts Today before the view, and the agenda button last', function () {
     render();
-    const controls = Array.from(host.querySelectorAll('.side-controls button, select'));
+    const controls = Array.from(host.querySelectorAll('.header-controls button, select'));
     expect(controls[0].textContent).toBe('Today');
     expect(controls[1]).toBe(select());
     expect(controls[controls.length - 1]).toBe(toggle());

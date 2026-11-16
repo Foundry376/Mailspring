@@ -574,19 +574,23 @@
 
   // With the agenda open, search and its toggle sit above it, so the header splits at its edge
   // and a theme can colour each part as its column.
+  .agenda-controls {
+    margin-left: 8px;
+  }
   &.agenda-split {
     padding-right: 0;
 
     .side-controls {
       margin-right: 12px;
     }
-  }
-  .agenda-controls {
-    align-self: stretch;
-    flex-shrink: 0;
-    box-sizing: border-box;
-    justify-content: flex-end;
-    padding: 0 8px;
+    .agenda-controls {
+      align-self: stretch;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      justify-content: flex-end;
+      margin-left: 0;
+      padding: 0 8px;
+    }
   }
 
   // The header centres its controls itself, so drop the toolbar's per-button offsets.
