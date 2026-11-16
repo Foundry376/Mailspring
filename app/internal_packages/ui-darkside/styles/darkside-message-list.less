@@ -14,6 +14,186 @@
   border-left: 1px solid @border-color;
 }
 
+// The agenda and event panel on a dark column: the thread view's sidebar and the calendar's
+// agenda.
+.dark-calendar-panels() {
+  .sidebar-agenda-panel,
+  .agenda-panel,
+  .agenda-day-header:not(.is-today),
+  .event-panel {
+    background: transparent;
+  }
+  .agenda-day-header.is-today {
+    background: @sidebar;
+  }
+  .agenda-event-title {
+    color: @white;
+  }
+  .agenda-new-event .btn-ghost img.content-mask {
+    background-color: fade(@white, 60%);
+  }
+  .agenda-event-time,
+  .agenda-event-duration,
+  .agenda-day-header:not(.is-today),
+  .agenda-in-this-email-label {
+    color: fade(@white, 60%);
+  }
+  .agenda-in-this-email {
+    background: color-mix(in srgb, @accent-primary 12%, @sidebar);
+    border-color: fade(@white, 10%);
+  }
+
+  .event-panel {
+    color: @white;
+
+    input,
+    textarea,
+    .btn-bare {
+      color: inherit;
+    }
+    img.content-mask,
+    .event-panel-back img.content-mask {
+      background-color: @white;
+    }
+    .event-panel-subtle,
+    .event-panel-icon,
+    .event-panel-more,
+    .answer-section-note,
+    .event-panel-invitee-add .placeholder,
+    ::placeholder {
+      color: fade(@white, 60%);
+    }
+    .event-panel-title,
+    .event-panel-section,
+    .event-panel-collapse .event-panel-section:last-child {
+      border-color: fade(@white, 10%);
+    }
+    .event-panel-answer {
+      background: color-mix(in srgb, @accent-primary 12%, @sidebar);
+    }
+    .answer-section-buttons {
+      box-shadow: 0 0 0 1px fade(@white, 16%);
+      .btn {
+        color: @white;
+        // The chosen answer keeps its fill.
+        &:not(.ACCEPTED, .TENTATIVE, .DECLINED) {
+          background: fade(@white, 8%);
+        }
+        & + .btn {
+          box-shadow: -1px 0 0 fade(@white, 16%);
+        }
+      }
+    }
+  }
+}
+
+// The calendar's agenda column runs dark from top to bottom; the header above it follows (see
+// darkside-threadlist.less), and the grid beside it stays light.
+.mailspring-calendar .calendar-right-panel {
+  background: @sidebar;
+  color: @white;
+
+  // The agenda's own calendar wrapper paints core's light background otherwise.
+  .mailspring-calendar {
+    background: transparent;
+  }
+  .agenda-panel {
+    border-left: none;
+  }
+  .dark-calendar-panels();
+}
+
+// The light card a sheet's content sits in beside the dark rail and top bar, as the core rail
+// content card is.
+.inset-card() {
+  // Its height is set inline; a cap leaves the bottom margin room.
+  max-height: calc(100% - 4px);
+  margin: 0 4px 4px 0;
+  border: none;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.sheet[data-id='Activity'],
+.sheet[data-id='Views'] {
+  background: @sidebar;
+
+  .column-ActivityContent,
+  .column-ViewContent {
+    .inset-card();
+    background: @background-primary;
+  }
+}
+
+// A thread open in list mode: the reading pane is the light card, and the sidebar beside it runs
+// dark like the rail and top bar.
+.sheet[data-id='Thread'] {
+  background: @sidebar;
+
+  .column-MessageList {
+    .inset-card();
+  }
+
+  .column-MessageListSidebar {
+    background: @sidebar;
+    border-left: none;
+    color: @white;
+
+    .scrollbar-handle {
+      background: fade(@white, 20%);
+    }
+    // The column scrolls natively; drawn like the app's own scrollbar track and handle.
+    &::-webkit-scrollbar {
+      width: 10px;
+    }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+      border: 3px solid transparent;
+      border-radius: 5px;
+      background: fade(@white, 20%) padding-box;
+    }
+
+    .sidebar-panel-switcher {
+      // Level with the reading pane card's top.
+      margin-top: 0;
+      background: fade(@white, 8%);
+    }
+    .sidebar-panel-tab {
+      color: fade(@white, 60%);
+      &.active {
+        background: fade(@white, 16%);
+        color: @white;
+      }
+    }
+
+    .sidebar-section,
+    .contact-profile-photo {
+      background: transparent;
+      border-color: fade(@white, 10%);
+    }
+    .related-threads,
+    .related-thread,
+    .related-threads .toggle {
+      border-color: fade(@white, 10%);
+    }
+    .email,
+    .timestamp,
+    .related-thread {
+      color: fade(@white, 60%);
+    }
+    select,
+    .sidebar-section .btn {
+      background: fade(@white, 8%);
+      border-color: fade(@white, 16%);
+      color: @white;
+    }
+
+    .dark-calendar-panels();
+  }
+}
+
 // Message List top and bottom spacing
 #message-list .messages-wrap .scroll-region-content-inner {
   padding: 20px;

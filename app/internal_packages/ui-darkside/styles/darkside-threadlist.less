@@ -14,6 +14,37 @@
 .toolbar-CalendarContent {
   padding: 0 10px;
 }
+// That inset already lines the agenda toggle up with the agenda panel below.
+.toolbar-CalendarContent .header-controls {
+  padding-right: 0;
+}
+// With the agenda open, its part of the header runs dark to the window's edge, like the agenda
+// column below.
+.toolbar-CalendarContent:has(.agenda-split) {
+  padding-right: 0;
+}
+.toolbar-CalendarContent .agenda-split .agenda-controls {
+  background: @sidebar;
+
+  .event-search-bar {
+    flex: 1;
+    background: fade(@white, 8%);
+    &:not(.focused) {
+      box-shadow: none;
+    }
+  }
+  .event-search-input {
+    color: @white;
+    &::placeholder {
+      color: fade(@white, 50%);
+    }
+  }
+  // An image rather than a mask, so it's whitened and faded.
+  .search-accessory.search {
+    filter: brightness(0) invert(1);
+    opacity: 0.5;
+  }
+}
 
 // jackiehluo -> Hide search bar when buttons appear in list mode
 .toolbar-ThreadList .selection-bar .inner {

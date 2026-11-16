@@ -16,6 +16,7 @@ import {
   WorkspaceStore,
 } from 'mailspring-exports';
 import { KeyCommandsRegion, ResizableRegion } from 'mailspring-component-kit';
+import { showsToolbarMenuControl } from '../../../../src/sheet-toolbar';
 import { CalendarMenuCommands } from '../calendar-menu-commands';
 import { TimeGridView } from './time-grid-view';
 import { MonthView } from './month-view';
@@ -110,6 +111,7 @@ const AGENDA_OPEN = 'mailspring.calendarAgendaOpen';
 const AGENDA_WIDTH = 'CalendarAgenda';
 // Below 200px the longer time ranges ("11:30 AM–12:30 PM 1h 30m") no longer fit whole.
 // At its narrowest the panel still holds the date picker's 200px mini month, 8px in from each side.
+// A theme that pads the panel more raises the minimum with --event-panel-min-width.
 const AGENDA_WIDTHS = { min: 220, initial: 240, max: 300 };
 
 const VISIBLE_DAYS: { [view: string]: 1 | 7 } = {
@@ -490,14 +492,34 @@ export class MailspringCalendar extends React.Component<
     };
   }
 
+  // Kept out of state: a resize redraws only the header, not the grid.
+  _agendaWidth = AppEnv.getColumnWidth(AGENDA_WIDTH) || AGENDA_WIDTHS.initial;
+
+  _agendaMinWidth() {
+    return DOMUtils.getWorkspaceCssNumberProperty('event-panel-min-width', AGENDA_WIDTHS.min);
+  }
+
   _publishCalendarOptions() {
+    // The menu button sits after the header, so the header can't split at the agenda's edge.
+    const split =
+      this.state.agendaOpen && !this._shouldShowEmptyState() && !showsToolbarMenuControl();
     CalendarHeaderStore.setCalendarOptions({
       view: this.state.view,
       onChangeView: this.onChangeView,
       agendaOpen: this.state.agendaOpen,
       onToggleAgenda: this.onToggleAgenda,
+      // As the region clamps it, so the header splits exactly at the agenda's edge.
+      agendaWidth: split
+        ? Math.min(AGENDA_WIDTHS.max, Math.max(this._agendaMinWidth(), this._agendaWidth))
+        : null,
     });
   }
+
+  _onAgendaResize = (width: number) => {
+    AppEnv.storeColumnWidth({ id: AGENDA_WIDTH, width });
+    this._agendaWidth = width;
+    this._publishCalendarOptions();
+  };
 
   componentWillUnmount() {
     CalendarHeaderStore.setCalendarOptions(null);
@@ -1514,10 +1536,10 @@ export class MailspringCalendar extends React.Component<
       <ResizableRegion
         handle={ResizableRegion.Handle.Left}
         style={{ height: '100%', flexShrink: 0 }}
-        initialWidth={AppEnv.getColumnWidth(AGENDA_WIDTH) || AGENDA_WIDTHS.initial}
-        minWidth={AGENDA_WIDTHS.min}
+        initialWidth={this._agendaWidth}
+        minWidth={this._agendaMinWidth()}
         maxWidth={AGENDA_WIDTHS.max}
-        onResize={(width) => AppEnv.storeColumnWidth({ id: AGENDA_WIDTH, width })}
+        onResize={this._onAgendaResize}
       >
         <div className="calendar-right-panel" onFocus={this._onRightPanelFocus}>
           <AgendaContainer

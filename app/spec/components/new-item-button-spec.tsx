@@ -68,4 +68,31 @@ describe('NewItemButton', function () {
     resize(labelled);
     expect(label().textContent).toBe('New Event');
   });
+
+  it("shows a caller's icon in place of the compose icon, and passes on disabled and its classes", function () {
+    ReactDOM.render(
+      <NewItemButton
+        label="New Contact"
+        onClick={() => {}}
+        icon={<svg className="new-person" />}
+        disabled
+        className="btn-new-contact"
+      />,
+      host
+    );
+    const button = host.querySelector('button');
+    expect(button.querySelector('.new-person')).not.toBe(null);
+    expect(button.querySelector('img')).toBe(null);
+    expect(button.disabled).toBe(true);
+    expect(Array.from(button.classList)).toEqual([
+      'btn',
+      'btn-toolbar',
+      'item-compose',
+      'btn-new-contact',
+    ]);
+
+    ReactDOM.render(<NewItemButton label="New Contact" onClick={() => {}} />, host);
+    expect(button.querySelector('img')).not.toBe(null);
+    expect(button.disabled).toBe(false);
+  });
 });

@@ -14,8 +14,15 @@
 
 .sheet-container {
   .sheet-toolbar {
-    .btn-toolbar img.content-mask {
+    .btn-toolbar img.content-mask,
+    .btn-ghost:not([aria-pressed='true']) img.content-mask,
+    .btn-bare img.content-mask,
+    .view-select img.content-mask {
       background-color: @light;
+    }
+    // Its hover fill comes from this colour.
+    .btn-ghost {
+      color: @light;
     }
 
     .sheet-toolbar-container {

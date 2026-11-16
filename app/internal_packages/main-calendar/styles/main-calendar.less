@@ -550,12 +550,18 @@
   // reach both ends. Any flex-grow ratio would still hand each spacer a sliver.
   flex: 1 1 100%;
   min-width: 0;
-  // The agenda toggle sits flush with the toolbar's end, as the mail sidebar toggle does.
   padding-left: 10px;
+  // Lines the agenda toggle's icon up with the agenda panel's new-event icon below it.
+  padding-right: 8px;
   color: @text-color-subtle;
 
-  .side-controls {
+  // The agenda's group spans the header's height, so only its controls opt out of dragging.
+  .side-controls,
+  .agenda-controls > * {
     -webkit-app-region: no-drag;
+  }
+  .side-controls,
+  .agenda-controls {
     display: flex;
     align-items: center;
     white-space: nowrap;
@@ -564,6 +570,27 @@
       flex-shrink: 0;
     }
     gap: 8px;
+  }
+
+  // With the agenda open, search and its toggle sit above it, so the header splits at its edge
+  // and a theme can colour each part as its column.
+  .agenda-controls {
+    margin-left: 8px;
+  }
+  &.agenda-split {
+    padding-right: 0;
+
+    .side-controls {
+      margin-right: 12px;
+    }
+    .agenda-controls {
+      align-self: stretch;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      justify-content: flex-end;
+      margin-left: 0;
+      padding: 0 8px;
+    }
   }
 
   // The header centres its controls itself, so drop the toolbar's per-button offsets.

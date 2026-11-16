@@ -1,7 +1,13 @@
 import React from 'react';
 import { Store, ContactsPerspective } from './Store';
 import { localized, Actions, AccountStore } from 'mailspring-exports';
-import { ListensToFluxStore, BindGlobalCommands, SVGIcons } from 'mailspring-component-kit';
+import classnames from 'classnames';
+import {
+  ListensToFluxStore,
+  BindGlobalCommands,
+  NewItemButton,
+  SVGIcons,
+} from 'mailspring-component-kit';
 import { showGPeopleReadonlyNotice } from './GoogleSupport';
 
 interface AddContactToolbarProps {
@@ -35,25 +41,24 @@ class AddContactToolbarWithData extends React.Component<AddContactToolbarProps> 
     const acct = 'accountId' in perspective && AccountStore.accountForId(perspective.accountId);
 
     return (
-      <div style={{ display: 'flex', order: 1000 }}>
-        <BindGlobalCommands
-          key={`${enabled}`}
-          commands={enabled ? { 'core:add-item': this.onAdd } : {}}
-        >
-          <button
-            disabled={!enabled}
-            className={`btn btn-toolbar btn-new-contact ${!enabled && 'btn-disabled'}`}
-            title={
-              acct
-                ? localized('New contact in %@', acct.label)
-                : localized('Select an account to add a contact.')
-            }
-            onClick={enabled ? this.onAdd : undefined}
-          >
-            <SVGIcons.NewPerson />
-          </button>
-        </BindGlobalCommands>
-      </div>
+      <BindGlobalCommands
+        key={`${enabled}`}
+        commands={enabled ? { 'core:add-item': this.onAdd } : {}}
+      >
+        <NewItemButton
+          label={localized('New Contact')}
+          title={
+            acct
+              ? localized('New contact in %@', acct.label)
+              : localized('Select an account to add a contact.')
+          }
+          matchWidthOf={[localized('Compose'), localized('New Event')]}
+          icon={<SVGIcons.NewPerson />}
+          disabled={!enabled}
+          className={classnames('btn-new-contact', { 'btn-disabled': !enabled })}
+          onClick={enabled ? this.onAdd : undefined}
+        />
+      </BindGlobalCommands>
     );
   }
 }
