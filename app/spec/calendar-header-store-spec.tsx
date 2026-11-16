@@ -12,6 +12,7 @@ import Rx from 'rx-lite';
 import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
 import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
 import { calendarViewProps } from './fixtures/calendar-view-props';
+import * as SheetToolbar from '../src/sheet-toolbar';
 
 describe('CalendarHeaderStore', function () {
   let triggered: number;
@@ -111,6 +112,7 @@ describe('CalendarHeaderStore', function () {
     spyOn(AppEnv.config, 'set');
     spyOn(AppEnv, 'storeColumnWidth');
     spyOn(AppEnv, 'getColumnWidth').andReturn(undefined);
+    const menuButton = spyOn(SheetToolbar, 'showsToolbarMenuControl').andReturn(false);
     const calendar: any = new MailspringCalendar({} as any);
     calendar.setState = (update: object) => Object.assign(calendar.state, update);
     calendar._publishCalendarOptions();
@@ -129,6 +131,13 @@ describe('CalendarHeaderStore', function () {
 
     calendar.setState({ calendars: [{}] });
     calendar.onToggleAgenda();
+    calendar._publishCalendarOptions();
+    expect(CalendarHeaderStore.calendarOptions().agendaWidth).toBe(null);
+
+    calendar.onToggleAgenda();
+    calendar._publishCalendarOptions();
+    expect(CalendarHeaderStore.calendarOptions().agendaWidth).toBe(300);
+    menuButton.andReturn(true);
     calendar._publishCalendarOptions();
     expect(CalendarHeaderStore.calendarOptions().agendaWidth).toBe(null);
   });

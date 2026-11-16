@@ -16,6 +16,7 @@ import {
   WorkspaceStore,
 } from 'mailspring-exports';
 import { KeyCommandsRegion, ResizableRegion } from 'mailspring-component-kit';
+import { showsToolbarMenuControl } from '../../../../src/sheet-toolbar';
 import { CalendarMenuCommands } from '../calendar-menu-commands';
 import { TimeGridView } from './time-grid-view';
 import { MonthView } from './month-view';
@@ -499,14 +500,16 @@ export class MailspringCalendar extends React.Component<
   }
 
   _publishCalendarOptions() {
-    const agendaShown = this.state.agendaOpen && !this._shouldShowEmptyState();
+    // The menu button sits after the header, so the header can't split at the agenda's edge.
+    const split =
+      this.state.agendaOpen && !this._shouldShowEmptyState() && !showsToolbarMenuControl();
     CalendarHeaderStore.setCalendarOptions({
       view: this.state.view,
       onChangeView: this.onChangeView,
       agendaOpen: this.state.agendaOpen,
       onToggleAgenda: this.onToggleAgenda,
       // As the region clamps it, so the header splits exactly at the agenda's edge.
-      agendaWidth: agendaShown
+      agendaWidth: split
         ? Math.min(AGENDA_WIDTHS.max, Math.max(this._agendaMinWidth(), this._agendaWidth))
         : null,
     });
