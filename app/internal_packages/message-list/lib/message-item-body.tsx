@@ -2,6 +2,7 @@ import fs from 'fs';
 import { escapeHTML } from 'underscore.string';
 
 import React from 'react';
+import ReactDOMServer from 'react-dom/server';
 import {
   Utils,
   MessageUtils,
@@ -10,7 +11,7 @@ import {
   AttachmentStore,
   Message,
 } from 'mailspring-exports';
-import { InjectedComponentSet, RetinaImg } from 'mailspring-component-kit';
+import { InjectedComponentSet, LoadingSpinner } from 'mailspring-component-kit';
 
 import EmailFrame from './email-frame';
 import { BrowserWindow } from '@electron/remote';
@@ -18,9 +19,6 @@ import { developerToolsAvailable } from '../../../src/developer-tools';
 
 const TransparentPixel =
   'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNikAQAACIAHF/uBd8AAAAASUVORK5CYII=';
-
-const SpinnerImg =
-  '<img alt="spinner.gif" src="mailspring://message-list/assets/spinner.gif" style="-webkit-user-drag: none;">';
 
 class ConditionalQuotedTextControl extends React.Component<{ body: string; onClick?: () => void }> {
   static displayName = 'ConditionalQuotedTextControl';
@@ -152,8 +150,8 @@ export default class MessageItemBody extends React.Component<
         );
 
         if (download && download.state !== 'finished') {
-          // Render a spinner
-          merged = merged.replace(inlineImgRegexp, () => SpinnerImg);
+          const spinner = ReactDOMServer.renderToStaticMarkup(<LoadingSpinner size={24} />);
+          merged = merged.replace(inlineImgRegexp, () => spinner);
         } else {
           merged = merged.replace(inlineImgRegexp, (match) => {
             const filePath = AttachmentStore.pathForFile(file);
@@ -187,11 +185,7 @@ export default class MessageItemBody extends React.Component<
 
     return (
       <div className="message-body-loading">
-        <RetinaImg
-          name="inline-loading-spinner.gif"
-          mode={RetinaImg.Mode.ContentDark}
-          style={{ width: 14, height: 14 }}
-        />
+        <LoadingSpinner />
       </div>
     );
   }
