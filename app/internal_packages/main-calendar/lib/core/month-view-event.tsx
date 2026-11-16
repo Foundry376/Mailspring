@@ -230,7 +230,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
   // read as a bar. Selection fills either through CSS.
   _backgroundColor(tint: string) {
     const { event } = this.props;
-    if (event.isAwaitingMyResponse && !event.isCancelled) {
+    if (event.isAwaitingMyResponse || event.isCancelled || event.isDeclined) {
       return 'transparent';
     }
     return event.isAllDay || spansDays(event) ? tint : 'transparent';
@@ -243,6 +243,8 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
     const className = classnames('month-view-event', {
       selected: selected,
       'is-all-day': event.isAllDay,
+      cancelled: event.isCancelled,
+      declined: event.isDeclined,
       pending: event.isPending,
       'awaiting-response': event.isAwaitingMyResponse && !event.isCancelled,
       dragging: isDragging,
@@ -297,7 +299,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
       >
         <span className="month-view-event-title">
           {!continuesBefore && isTimed(event) && <BarStartTime event={event} />}
-          {event.title}
+          {event.isCancelled || event.isDeclined ? <s>{event.title}</s> : event.title}
         </span>
         {!continuesAfter && isTimed(event) && spansDays(event) && <BarEndTime event={event} />}
       </div>

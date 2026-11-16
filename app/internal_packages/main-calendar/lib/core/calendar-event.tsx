@@ -213,13 +213,10 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     styles['--event-text-color'] = colors.text;
     styles['--event-selected-text-color'] = colors.selectedText;
 
-    if (this.props.event.isCancelled || this.props.event.isAwaitingMyResponse) {
-      // A dashed border in the calendar's colour, over no fill
-      styles.backgroundColor = 'transparent';
-      styles.borderColor = colors.band;
-    } else {
-      styles.backgroundColor = colors.background;
-    }
+    const { isCancelled, isDeclined, isAwaitingMyResponse } = this.props.event;
+    // Outlined events draw their dashed line over no fill
+    styles.backgroundColor =
+      isCancelled || isDeclined || isAwaitingMyResponse ? 'transparent' : colors.background;
     return styles;
   }
 
@@ -353,6 +350,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       direction,
       selected && 'selected',
       event.isCancelled && 'cancelled',
+      event.isDeclined && 'declined',
       event.isPending && 'pending',
       event.isAwaitingMyResponse && !event.isCancelled && 'awaiting-response',
       isDragging && 'dragging',
@@ -407,7 +405,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       >
         <span className="default-header" style={{ order: 0 }}>
           {this._spanTime('start')}
-          {event.isCancelled ? <s>{event.title}</s> : event.title}
+          {event.isCancelled || event.isDeclined ? <s>{event.title}</s> : event.title}
         </span>
         {this._spanTime('end')}
         {this._renderEventDetails()}

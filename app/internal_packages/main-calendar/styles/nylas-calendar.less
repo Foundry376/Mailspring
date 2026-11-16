@@ -1,7 +1,6 @@
 @import 'ui-variables';
 
 // Every calendar view draws its events with this, so they read as the same object.
-
 .event-chip() {
   padding: 2px 4px 2px 8px; // Extra left padding for colored band
   border-radius: 6px;
@@ -25,9 +24,11 @@
     border-radius: 6px 0 0 6px;
   }
 
-  // An invitation not yet answered: a dashed outline in the calendar's colour, drawn inside the
-  // box so the band can sit over its left edge rather than a pixel in from it.
-  &.awaiting-response {
+  // A dashed outline in the calendar's colour, drawn inside the box so the band can sit over its
+  // left edge rather than a pixel in from it.
+  &.awaiting-response,
+  &.cancelled,
+  &.declined {
     &::after {
       content: '';
       position: absolute;
@@ -39,6 +40,21 @@
 
     &:before {
       z-index: 1;
+    }
+  }
+
+  // Declining takes the event off your calendar, like a cancellation, so both draw alike.
+  &.cancelled,
+  &.declined {
+    background-color: transparent !important;
+
+    &:before {
+      display: none;
+    }
+
+    // Selected, it takes the tint other events have before selection, not the full fill.
+    &.selected {
+      background-color: ~'color-mix(in srgb, var(--event-band-color) 15%, transparent)' !important;
     }
   }
 
@@ -330,25 +346,13 @@ body.platform-win32 {
       }
     }
 
-    // Cancelled events: dashed border, transparent background, strikethrough text
-    &.cancelled {
-      border: 1px dashed var(--event-band-color, currentColor);
-      background-color: transparent !important;
-      background-image: none;
+    &.cancelled,
+    &.declined {
       .default-header {
         opacity: 0.5;
-        s {
-          text-decoration: line-through;
-        }
-      }
-      &:before {
-        display: none; // Hide the left accent bar for cancelled events
       }
 
-      // Selected, it takes the tint other events have before selection, not the full fill.
       &.selected {
-        background-color: ~'color-mix(in srgb, var(--event-band-color) 15%, transparent)' !important;
-
         .default-header,
         .event-details {
           color: var(--event-text-color);
@@ -729,6 +733,17 @@ body.platform-win32 {
       &.selected .month-view-event-title {
         color: var(--event-selected-text-color);
         opacity: 1;
+      }
+
+      &.cancelled,
+      &.declined {
+        .month-view-event-title {
+          opacity: 0.5;
+        }
+
+        &.selected .month-view-event-title {
+          color: var(--event-text-color);
+        }
       }
 
       &.drag-preview {
