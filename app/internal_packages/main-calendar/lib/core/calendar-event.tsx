@@ -4,6 +4,7 @@ import { InjectedComponentSet, withSmallMeridiem } from 'mailspring-component-ki
 import { CalendarDateUtils } from 'mailspring-exports';
 import {
   EventOccurrence,
+  isOffCalendar,
   isTimed,
   occurrenceStartUnix,
   occurrenceEndUnix,
@@ -213,16 +214,10 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     styles['--event-text-color'] = colors.text;
     styles['--event-selected-text-color'] = colors.selectedText;
 
-    if (this.props.event.isCancelled || this.props.event.isAwaitingMyResponse) {
-      // A dashed border in the calendar's colour, over no fill
-      styles.backgroundColor = 'transparent';
-      styles.borderColor = colors.band;
-    } else if (this.props.event.isPending) {
-      // Pending events get a gray background with theme-colored left band
-      styles.backgroundColor = 'rgba(128, 128, 128, 0.15)';
-    } else {
-      styles.backgroundColor = colors.background;
-    }
+    // Unanswered invitations draw their dashed outline over no fill
+    styles.backgroundColor = this.props.event.isAwaitingMyResponse
+      ? 'transparent'
+      : colors.background;
     return styles;
   }
 
@@ -355,9 +350,9 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       'calendar-event',
       direction,
       selected && 'selected',
-      event.isCancelled && 'cancelled',
+      isOffCalendar(event) && 'cancelled',
       event.isPending && 'pending',
-      event.isAwaitingMyResponse && !event.isCancelled && 'awaiting-response',
+      event.isAwaitingMyResponse && !isOffCalendar(event) && 'awaiting-response',
       isDragging && 'dragging',
       this._canDrag() && 'draggable',
       event.isDragPreview && 'drag-preview',
@@ -410,7 +405,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       >
         <span className="default-header" style={{ order: 0 }}>
           {this._spanTime('start')}
-          {event.isCancelled ? <s>{event.title}</s> : event.title}
+          {isOffCalendar(event) ? <s>{event.title}</s> : event.title}
         </span>
         {this._spanTime('end')}
         {this._renderEventDetails()}

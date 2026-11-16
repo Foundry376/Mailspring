@@ -161,6 +161,8 @@ interface OccurrenceBase {
   isPending: boolean;
   /** An invitation we haven't answered, drawn with a dashed outline. */
   isAwaitingMyResponse?: boolean;
+  /** An invitation we declined, drawn like a cancelled event. Exchange removes these itself. */
+  isDeclined?: boolean;
   /**
    * True when this account organizes the event, or nobody does, or its ORGANIZER is the address
    * of the calendar it sits on and the server says that calendar is ours (Google writes a
@@ -201,6 +203,11 @@ export interface TimedOccurrence extends OccurrenceBase {
 }
 
 export type EventOccurrence = AllDayOccurrence | TimedOccurrence;
+
+/** Cancelled, or declined by us: either way it's off our calendar, so both draw alike. */
+export function isOffCalendar(e: EventOccurrence): boolean {
+  return e.isCancelled || !!e.isDeclined;
+}
 
 // Minimal type for focusing/highlighting an event on the calendar
 /**
@@ -415,6 +422,7 @@ function occurrenceFromICS(args: {
     isCancelled: status === 'CANCELLED',
     isPending: status === 'TENTATIVE' || myPartstat === 'TENTATIVE',
     isAwaitingMyResponse,
+    isDeclined: myPartstat === 'DECLINED',
     isMine: !organizerEmail || iAmOrganizer,
     isFree: item.component?.getFirstPropertyValue('transp') === 'TRANSPARENT',
     isException: args.isException ?? !!rid,

@@ -5,6 +5,7 @@ import { isRTL } from 'mailspring-exports';
 import { withSmallMeridiem } from 'mailspring-component-kit';
 import {
   EventOccurrence,
+  isOffCalendar,
   isTimed,
   occurrenceStartUnix,
   occurrenceEndUnix,
@@ -230,12 +231,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
   // read as a bar. Selection fills either through CSS.
   _backgroundColor(tint: string) {
     const { event } = this.props;
-    if (event.isAwaitingMyResponse && !event.isCancelled) {
-      return 'transparent';
-    }
-    if (event.isPending) {
-      return 'rgba(128, 128, 128, 0.15)';
-    }
+    if (event.isAwaitingMyResponse) return 'transparent';
     return event.isAllDay || spansDays(event) ? tint : 'transparent';
   }
 
@@ -246,8 +242,9 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
     const className = classnames('month-view-event', {
       selected: selected,
       'is-all-day': event.isAllDay,
+      cancelled: isOffCalendar(event),
       pending: event.isPending,
-      'awaiting-response': event.isAwaitingMyResponse && !event.isCancelled,
+      'awaiting-response': event.isAwaitingMyResponse && !isOffCalendar(event),
       dragging: isDragging,
       draggable: this._canDrag(),
       'drag-preview': event.isDragPreview,
@@ -300,7 +297,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
       >
         <span className="month-view-event-title">
           {!continuesBefore && isTimed(event) && <BarStartTime event={event} />}
-          {event.title}
+          {isOffCalendar(event) ? <s>{event.title}</s> : event.title}
         </span>
         {!continuesAfter && isTimed(event) && spansDays(event) && <BarEndTime event={event} />}
       </div>
