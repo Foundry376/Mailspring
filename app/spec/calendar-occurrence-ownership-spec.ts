@@ -95,4 +95,79 @@ describe('occurrence ownership', function () {
     expect(maybe.isPending).toBe(true);
     expect(maybe.isAwaitingMyResponse).toBe(false);
   });
+
+  it('is declined, and neither tentative nor awaiting, once this account answers No', function () {
+    const no = only(
+      eventWith(['ORGANIZER:mailto:ada@example.com', `ATTENDEE;PARTSTAT=DECLINED:mailto:${ME}`])
+    );
+    expect(no.isDeclined).toBe(true);
+    expect(no.isPending).toBe(false);
+    expect(no.isAwaitingMyResponse).toBe(false);
+  });
+
+  it('is none of declined, tentative or awaiting once this account accepts', function () {
+    const yes = only(
+      eventWith(['ORGANIZER:mailto:ada@example.com', `ATTENDEE;PARTSTAT=ACCEPTED:mailto:${ME}`])
+    );
+    expect(yes.isDeclined).toBe(false);
+    expect(yes.isPending).toBe(false);
+    expect(yes.isAwaitingMyResponse).toBe(false);
+  });
+
+  it('is not declined because another of my accounts declined', function () {
+    expect(
+      only(
+        eventWith([
+          'ORGANIZER:mailto:ada@example.com',
+          `ATTENDEE;PARTSTAT=DECLINED:mailto:${MY_OTHER_ACCOUNT}`,
+          `ATTENDEE;PARTSTAT=ACCEPTED:mailto:${ME}`,
+        ])
+      ).isDeclined
+    ).toBe(false);
+  });
+
+  it('declines only the occurrence whose override says so', function () {
+    // Google keeps a guest's one-occurrence decline as an override in the same file.
+    const series = new Event({
+      id: 'e1',
+      accountId: 'acct-1',
+      calendarId: 'cal-1',
+      icsuid: 'uid@test',
+      recurrenceStart: Date.UTC(2026, 2, 10, 14) / 1000,
+      recurrenceEnd: Date.UTC(2026, 2, 24, 15) / 1000,
+      ics: [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Test//Test//EN',
+        'BEGIN:VEVENT',
+        'UID:uid@test',
+        'DTSTART:20260310T140000Z',
+        'DTEND:20260310T150000Z',
+        'RRULE:FREQ=WEEKLY;COUNT=3',
+        'SUMMARY:Planning',
+        'DTSTAMP:20260101T000000Z',
+        'ORGANIZER:mailto:ada@example.com',
+        `ATTENDEE;PARTSTAT=ACCEPTED:mailto:${ME}`,
+        'END:VEVENT',
+        'BEGIN:VEVENT',
+        'UID:uid@test',
+        'RECURRENCE-ID:20260317T140000Z',
+        'DTSTART:20260317T140000Z',
+        'DTEND:20260317T150000Z',
+        'SUMMARY:Planning',
+        'DTSTAMP:20260101T000000Z',
+        'ORGANIZER:mailto:ada@example.com',
+        `ATTENDEE;PARTSTAT=DECLINED:mailto:${ME}`,
+        'END:VEVENT',
+        'END:VCALENDAR',
+      ].join('\r\n'),
+    } as any);
+
+    const occurrences = occurrencesForEvents([series], {
+      startUnix: Date.UTC(2026, 2, 9) / 1000,
+      endUnix: Date.UTC(2026, 2, 26) / 1000,
+    }).sort((a, b) => a.startDate - b.startDate);
+
+    expect(occurrences.map((o) => o.isDeclined)).toEqual([false, true, false]);
+  });
 });
