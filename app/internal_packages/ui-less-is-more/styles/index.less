@@ -190,9 +190,8 @@
   padding-top: @less-top-inset;
   background: @less-background;
 }
-// These toolbars centre their controls, so they need a row; the toolbar is 0px tall here. 46px
-// centres them with mail's Compose and search. Matches the core macOS rule's specificity, which
-// sets them to the toolbar's full height.
+// The toolbar is 0px tall here, so these centred toolbars get a 46px row, level with Compose.
+// Matches the specificity of the core macOS rule that sizes them to the toolbar.
 .sheet-toolbar .sheet-toolbar-container {
   > .toolbar-CalendarContent,
   > .toolbar-ContactsSidebar,

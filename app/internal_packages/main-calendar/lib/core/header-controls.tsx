@@ -23,7 +23,6 @@ export class HeaderControls extends React.Component<{
   onChangeView: (view: CalendarView) => void;
   agendaOpen: boolean;
   onToggleAgenda: () => void;
-  /** While the agenda is on screen, search and its toggle sit in a group this wide, above it. */
   agendaWidth?: number | null;
   arrows?: 'horizontal' | 'vertical';
   children?: React.ReactNode;

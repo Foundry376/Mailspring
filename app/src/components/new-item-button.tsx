@@ -12,7 +12,6 @@ interface NewItemButtonProps {
   buttonRef?: React.RefObject<HTMLButtonElement>;
   /** Labels of sibling buttons in other sheets, so the button keeps one width as the user switches. */
   matchWidthOf?: string[];
-  /** In place of the compose icon. */
   icon?: React.ReactNode;
   disabled?: boolean;
   className?: string;
@@ -24,8 +23,8 @@ interface NewItemButtonState {
 }
 
 /*
-Public: The toolbar button that starts a new item, such as Compose or New Event: the compose
-icon and a label, or only the icon when its toolbar row runs out of room.
+Public: The toolbar button that starts a new item, such as Compose or New Event: an icon (the
+compose icon by default) and a label, or only the icon when its toolbar row runs out of room.
 
 Section: Component Kit
 */

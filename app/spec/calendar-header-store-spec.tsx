@@ -120,7 +120,6 @@ describe('CalendarHeaderStore', function () {
     calendar._onAgendaResize(280);
     expect(CalendarHeaderStore.calendarOptions().agendaWidth).toBe(280);
     expect(triggered).toBe(1);
-    // As the resizable region clamps it.
     calendar._onAgendaResize(400);
     expect(CalendarHeaderStore.calendarOptions().agendaWidth).toBe(300);
 
