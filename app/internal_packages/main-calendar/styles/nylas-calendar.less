@@ -1,5 +1,10 @@
 @import 'ui-variables';
 
+// Maybe: only the band is striped.
+.band-stripes(@color) {
+  background: ~'repeating-linear-gradient(135deg, @{color} 0 2px, transparent 2px 4px)';
+}
+
 // Every calendar view draws its events with this, so they read as the same object.
 .event-chip() {
   padding: 2px 4px 2px 8px; // Extra left padding for colored band
@@ -59,9 +64,8 @@
     }
   }
 
-  // Maybe: only the band is striped.
   &.pending:before {
-    background: ~'repeating-linear-gradient(135deg, var(--event-band-color) 0 2px, transparent 2px 4px)';
+    .band-stripes(~'var(--event-band-color)');
   }
 
   .event-bar-time,
@@ -93,7 +97,7 @@
     }
 
     &.pending:before {
-      background: ~'repeating-linear-gradient(135deg, oklch(from var(--event-band-color) calc(l - 0.15) c h) 0 2px, transparent 2px 4px)';
+      .band-stripes(~'oklch(from var(--event-band-color) calc(l - 0.15) c h)');
     }
   }
 }
@@ -986,7 +990,7 @@ body.platform-win32 {
       }
 
       &.pending .agenda-event-color-bar {
-        background: ~'repeating-linear-gradient(135deg, var(--event-band-color) 0 2px, transparent 2px 4px)';
+        .band-stripes(~'var(--event-band-color)');
       }
     }
 
