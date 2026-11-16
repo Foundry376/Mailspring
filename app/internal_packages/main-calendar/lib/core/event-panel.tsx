@@ -33,6 +33,7 @@ import {
 import {
   EventOccurrence,
   EventAttendee,
+  isOffCalendar,
   isTimed,
   occurrenceStartUnix,
   occurrenceTimes,
@@ -632,7 +633,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         />
       );
     }
-    return event.isCancelled ? <s>{title}</s> : title;
+    return isOffCalendar(event) ? <s>{title}</s> : title;
   }
 
   _firstDay(times: Times) {
