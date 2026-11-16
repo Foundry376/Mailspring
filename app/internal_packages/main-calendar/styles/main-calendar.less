@@ -555,9 +555,13 @@
   padding-right: 8px;
   color: @text-color-subtle;
 
+  // The agenda's group spans the header's height, so only its controls opt out of dragging.
+  .side-controls,
+  .agenda-controls > * {
+    -webkit-app-region: no-drag;
+  }
   .side-controls,
   .agenda-controls {
-    -webkit-app-region: no-drag;
     display: flex;
     align-items: center;
     white-space: nowrap;
