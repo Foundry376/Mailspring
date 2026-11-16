@@ -217,9 +217,6 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       // A dashed border in the calendar's colour, over no fill
       styles.backgroundColor = 'transparent';
       styles.borderColor = colors.band;
-    } else if (this.props.event.isPending) {
-      // Pending events get a gray background with theme-colored left band
-      styles.backgroundColor = 'rgba(128, 128, 128, 0.15)';
     } else {
       styles.backgroundColor = colors.background;
     }

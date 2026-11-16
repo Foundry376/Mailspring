@@ -233,9 +233,6 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
     if (event.isAwaitingMyResponse && !event.isCancelled) {
       return 'transparent';
     }
-    if (event.isPending) {
-      return 'rgba(128, 128, 128, 0.15)';
-    }
     return event.isAllDay || spansDays(event) ? tint : 'transparent';
   }
 

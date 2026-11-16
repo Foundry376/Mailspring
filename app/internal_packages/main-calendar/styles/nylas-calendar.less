@@ -1,10 +1,6 @@
 @import 'ui-variables';
 
 // Every calendar view draws its events with this, so they read as the same object.
-// Tentative events, in Month and Day/Week alike: thin stripes in the calendar's colour.
-.pending-stripes() {
-  background-image: ~'repeating-linear-gradient(45deg, transparent, transparent 3px, color-mix(in srgb, var(--event-band-color, rgba(0, 0, 0, 0.1)), transparent 80%) 3px, color-mix(in srgb, var(--event-band-color, rgba(0, 0, 0, 0.1)), transparent 80%) 4px)';
-}
 
 .event-chip() {
   padding: 2px 4px 2px 8px; // Extra left padding for colored band
@@ -46,6 +42,11 @@
     }
   }
 
+  // Maybe: only the band is striped.
+  &.pending:before {
+    background: ~'repeating-linear-gradient(135deg, var(--event-band-color) 0 2px, transparent 2px 4px)';
+  }
+
   .event-bar-time,
   .event-bar-end-time {
     font-size: 11px;
@@ -72,6 +73,10 @@
     // Darkened in OKLCH so the band keeps its hue; mixing toward black greys out pale colors
     &:before {
       background: ~'oklch(from var(--event-band-color) calc(l - 0.15) c h)';
+    }
+
+    &.pending:before {
+      background: ~'repeating-linear-gradient(135deg, oklch(from var(--event-band-color) calc(l - 0.15) c h) 0 2px, transparent 2px 4px)';
     }
   }
 }
@@ -325,27 +330,6 @@ body.platform-win32 {
       }
     }
 
-    // Tentative/pending events: gray background with theme-colored left band
-    &.pending {
-      background-color: rgba(128, 128, 128, 0.15);
-
-      .default-header,
-      .event-details {
-        color: @text-color;
-      }
-
-      &::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        pointer-events: none;
-        .pending-stripes();
-      }
-    }
-
     // Cancelled events: dashed border, transparent background, strikethrough text
     &.cancelled {
       border: 1px dashed var(--event-band-color, currentColor);
@@ -542,7 +526,6 @@ body.platform-win32 {
       z-index: 2;
     }
     .event-grid-bg-wrap {
-
       .event-grid-bg {
         position: absolute;
         top: 0;
@@ -746,11 +729,6 @@ body.platform-win32 {
       &.selected .month-view-event-title {
         color: var(--event-selected-text-color);
         opacity: 1;
-      }
-
-      &.pending {
-        .pending-stripes();
-        background-size: auto;
       }
 
       &.drag-preview {
