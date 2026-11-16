@@ -55,6 +55,10 @@
     // Selected, it takes the tint other events have before selection, not the full fill.
     &.selected {
       background-color: ~'color-mix(in srgb, var(--event-band-color) 15%, transparent)' !important;
+
+      .event-bar-end-time {
+        color: var(--event-text-color);
+      }
     }
   }
 
@@ -985,7 +989,6 @@ body.platform-win32 {
         }
       }
 
-      // Unanswered and Maybe mark the bar the way the grid marks theirs.
       &.awaiting-response .agenda-event-color-bar {
         background: transparent;
         border: 1px dashed var(--event-band-color);
