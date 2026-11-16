@@ -214,10 +214,10 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     styles['--event-text-color'] = colors.text;
     styles['--event-selected-text-color'] = colors.selectedText;
 
-    const { isCancelled, isDeclined, isAwaitingMyResponse } = this.props.event;
-    // Outlined events draw their dashed line over no fill
-    styles.backgroundColor =
-      isCancelled || isDeclined || isAwaitingMyResponse ? 'transparent' : colors.background;
+    // Unanswered invitations draw their dashed outline over no fill
+    styles.backgroundColor = this.props.event.isAwaitingMyResponse
+      ? 'transparent'
+      : colors.background;
     return styles;
   }
 

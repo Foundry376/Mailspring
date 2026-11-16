@@ -231,9 +231,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
   // read as a bar. Selection fills either through CSS.
   _backgroundColor(tint: string) {
     const { event } = this.props;
-    if (event.isAwaitingMyResponse || event.isCancelled || event.isDeclined) {
-      return 'transparent';
-    }
+    if (event.isAwaitingMyResponse) return 'transparent';
     return event.isAllDay || spansDays(event) ? tint : 'transparent';
   }
 
