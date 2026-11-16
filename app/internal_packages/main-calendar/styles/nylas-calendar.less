@@ -947,7 +947,7 @@ body.platform-win32 {
     .agenda-event {
       display: flex;
       gap: 10px;
-      padding: 4px 4px 4px 0;
+      padding: 4px;
       border-radius: 4px;
       white-space: nowrap;
       cursor: default;
@@ -973,7 +973,7 @@ body.platform-win32 {
         }
 
         .agenda-event-color-bar {
-          background-color: @text-color-inverse !important;
+          --event-band-color: @text-color-inverse;
         }
       }
 
@@ -985,17 +985,23 @@ body.platform-win32 {
         }
       }
 
-      &.pending {
-        .agenda-event-color-bar {
-          opacity: 0.5;
-        }
+      // Unanswered and Maybe mark the bar the way the grid marks theirs.
+      &.awaiting-response .agenda-event-color-bar {
+        background: transparent;
+        border: 1px dashed var(--event-band-color);
+      }
+
+      &.pending .agenda-event-color-bar {
+        background: ~'repeating-linear-gradient(135deg, var(--event-band-color) 0 2px, transparent 2px 4px)';
       }
     }
 
     .agenda-event-color-bar {
       width: 4px;
       flex-shrink: 0;
+      box-sizing: border-box;
       border-radius: 2px;
+      background-color: var(--event-band-color);
     }
 
     .agenda-event-details {
