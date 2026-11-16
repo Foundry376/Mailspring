@@ -87,7 +87,7 @@ import {
   CREATE_DRAG_SNAP_SECONDS,
 } from './calendar-drag-utils';
 import {
-  deleteEvent,
+  deleteEvents,
   modifyEventWithRecurringSupport,
   updateEvent,
   ChangeScope,
@@ -749,7 +749,7 @@ export class MailspringCalendar extends React.Component<
       readOnly,
       onOpen: () =>
         this._isEditable(occurrence) ? this._editEvent(occurrence) : this._select([occurrence]),
-      onDelete: () => deleteEvent(occurrence),
+      onDelete: () => deleteEvents([occurrence]),
       onProposeNewTime: () => this._proposeNewTime(occurrence),
     }).displayMenu();
   };
@@ -945,43 +945,7 @@ export class MailspringCalendar extends React.Component<
       showReadOnlyCalendarError();
       return;
     }
-    const skipped = selected.length - deletable.length;
-    // Deleting an invitation declines it; nothing here is one when every event is ours.
-    const ours = deletable.every((o) => o.isMine);
-    let message: string;
-    if (!ours) {
-      message = localized('Delete or decline these events?');
-    } else if (deletable.length === 1) {
-      message = localized('Delete this event?');
-    } else {
-      message = localized('Delete these events?');
-    }
-
-    // Show initial confirmation dialog
-    const response = require('@electron/remote').dialog.showMessageBoxSync({
-      type: 'warning',
-      buttons: [localized('Delete'), localized('Cancel')],
-      message,
-      detail: skipped
-        ? localized(
-            "%1$@ of the %2$@ selected events will be deleted. The rest are on read-only calendars and can't be changed.",
-            deletable.length,
-            selected.length
-          )
-        : ours
-          ? localized('Are you sure you want to delete the selected event(s)?')
-          : localized(
-              `Are you sure you want to delete or decline invitations for the selected event(s)?`
-            ),
-    });
-
-    if (response !== 0) {
-      return; // User cancelled
-    }
-
-    for (const occurrence of deletable) {
-      await deleteEvent(occurrence);
-    }
+    await deleteEvents(deletable, selected.length - deletable.length);
   };
 
   /**
@@ -1567,7 +1531,7 @@ export class MailspringCalendar extends React.Component<
                   ? this._dropNewEvent
                   : this._isCalendarReadOnly(event.calendarId)
                     ? undefined
-                    : () => deleteEvent(event)
+                    : () => deleteEvents([event])
               }
               onDiscard={newEvent ? this._dropNewEvent : undefined}
               calendarChoices={newEvent ? this._newEventCalendarChoices() : undefined}
