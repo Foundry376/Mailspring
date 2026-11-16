@@ -152,6 +152,23 @@ describe('deleting from the calendar', function () {
     );
 
   describe('as a guest', function () {
+    it('on Google, declines a whole series before deleting it, so the organizer is told', async function () {
+      choice = ALL_OCCURRENCES;
+      await deleteEvents([seriesDate(3, false)]);
+
+      expect(sentKinds()).toEqual(['answer DECLINED', 'destroy']);
+      expect(queued[0].event.ics).toContain('PARTSTAT=DECLINED');
+      expect(queued[1].events[0].id).toBe('master-row');
+    });
+
+    it('on Outlook, only deletes: the sync engine declines it there', async function () {
+      provider = 'office365';
+      choice = ALL_OCCURRENCES;
+      await deleteEvents([seriesDate(3, false)]);
+
+      expect(sentKinds()).toEqual(['destroy']);
+    });
+
     it('on Google, takes one date out of the series without answering or deleting', async function () {
       await deleteEvents([seriesDate(3, false)]);
 

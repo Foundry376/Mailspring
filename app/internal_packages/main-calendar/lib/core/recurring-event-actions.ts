@@ -4,6 +4,7 @@ import {
   DateUtils,
   DestroyEventTask,
   Event,
+  EventRSVPTask,
   SyncbackEventTask,
   TaskQueue,
   ICSEventHelpers,
@@ -26,7 +27,7 @@ import {
 } from './calendar-data-source';
 import { ShowAsOption } from './show-as-selector';
 import { hasGuests, momentOf, organizerForAccount } from './calendar-helpers';
-import { occurrenceRecurrenceId } from './calendar-rsvp';
+import { myAttendeeEmail, occurrenceRecurrenceId, recordAndSendRSVP } from './calendar-rsvp';
 import { UnsentChange, unsentEdit } from './unsent-change';
 import type { AttendeeChange } from '../../../../src/ics-event-helpers';
 
@@ -482,7 +483,8 @@ export function deleteRole(occurrence: EventOccurrence): DeleteRole {
 /**
  * Deletes occurrences after one confirmation: every delete in the calendar and the event panels
  * comes through here. One occurrence of a series asks this-or-all; several act on the selected
- * dates only. `skipped` counts selected events left out because their calendars are read-only.
+ * dates only. A guest's delete declines before it removes. `skipped` counts selected events
+ * left out because their calendars are read-only.
  */
 export async function deleteEvents(occurrences: EventOccurrence[], skipped = 0) {
   try {
@@ -501,7 +503,7 @@ export async function deleteEvents(occurrences: EventOccurrence[], skipped = 0) 
     if (choice === 'cancel') return;
 
     if (choice === 'all-occurrences') {
-      await deleteEntireEvent(targets[0].master);
+      await deleteEntireEvent(targets[0].master, targets[0].occurrence);
       return;
     }
 
@@ -513,7 +515,7 @@ export async function deleteEvents(occurrences: EventOccurrence[], skipped = 0) 
       if (isSeries(group[0])) {
         deleteOccurrences(group[0].master, group);
       } else {
-        await deleteEntireEvent(group[0].master);
+        await deleteEntireEvent(group[0].master, group[0].occurrence);
       }
     }
   } catch (error) {
@@ -571,7 +573,14 @@ function deleteOccurrences(masterEvent: Event, targets: DeleteTarget[]) {
   );
 }
 
-/** Deletes an event or a whole series. */
-async function deleteEntireEvent(event: Event) {
+/**
+ * Deletes an event or a whole series. Where a write to our copy is what tells the organizer
+ * (Google), a guest's copy is declined first: Google tells nobody when a guest deletes a series.
+ */
+async function deleteEntireEvent(event: Event, occurrence: EventOccurrence) {
+  const myEmail = deleteRole(occurrence) === 'guest' && myAttendeeEmail(occurrence);
+  if (myEmail && EventRSVPTask.calendarWriteSendsReply(event.accountId)) {
+    await recordAndSendRSVP({ event, myEmail, status: 'DECLINED', recurrenceId: null });
+  }
   Actions.queueTask(DestroyEventTask.forRemoving({ events: [event] }));
 }
