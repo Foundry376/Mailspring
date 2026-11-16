@@ -4,6 +4,7 @@ import { InjectedComponentSet, withSmallMeridiem } from 'mailspring-component-ki
 import { CalendarDateUtils } from 'mailspring-exports';
 import {
   EventOccurrence,
+  isOffCalendar,
   isTimed,
   occurrenceStartUnix,
   occurrenceEndUnix,
@@ -349,10 +350,9 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       'calendar-event',
       direction,
       selected && 'selected',
-      event.isCancelled && 'cancelled',
-      event.isDeclined && 'declined',
+      isOffCalendar(event) && 'cancelled',
       event.isPending && 'pending',
-      event.isAwaitingMyResponse && !event.isCancelled && 'awaiting-response',
+      event.isAwaitingMyResponse && !isOffCalendar(event) && 'awaiting-response',
       isDragging && 'dragging',
       this._canDrag() && 'draggable',
       event.isDragPreview && 'drag-preview',
@@ -405,7 +405,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       >
         <span className="default-header" style={{ order: 0 }}>
           {this._spanTime('start')}
-          {event.isCancelled || event.isDeclined ? <s>{event.title}</s> : event.title}
+          {isOffCalendar(event) ? <s>{event.title}</s> : event.title}
         </span>
         {this._spanTime('end')}
         {this._renderEventDetails()}

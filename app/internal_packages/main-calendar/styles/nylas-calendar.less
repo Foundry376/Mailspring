@@ -27,8 +27,7 @@
   // A dashed outline in the calendar's colour, drawn inside the box so the band can sit over its
   // left edge rather than a pixel in from it.
   &.awaiting-response,
-  &.cancelled,
-  &.declined {
+  &.cancelled {
     &::after {
       content: '';
       position: absolute;
@@ -43,9 +42,7 @@
     }
   }
 
-  // Declining takes the event off your calendar, like a cancellation, so both draw alike.
-  &.cancelled,
-  &.declined {
+  &.cancelled {
     background-color: transparent !important;
 
     &:before {
@@ -350,8 +347,7 @@ body.platform-win32 {
       }
     }
 
-    &.cancelled,
-    &.declined {
+    &.cancelled {
       .default-header {
         opacity: 0.5;
       }
@@ -739,8 +735,7 @@ body.platform-win32 {
         opacity: 1;
       }
 
-      &.cancelled,
-      &.declined {
+      &.cancelled {
         .month-view-event-title {
           opacity: 0.5;
         }

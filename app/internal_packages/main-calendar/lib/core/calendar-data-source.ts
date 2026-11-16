@@ -204,6 +204,11 @@ export interface TimedOccurrence extends OccurrenceBase {
 
 export type EventOccurrence = AllDayOccurrence | TimedOccurrence;
 
+/** Cancelled, or declined by us: either way it's off our calendar, so both draw alike. */
+export function isOffCalendar(e: EventOccurrence): boolean {
+  return e.isCancelled || !!e.isDeclined;
+}
+
 // Minimal type for focusing/highlighting an event on the calendar
 /**
  * What the calendar keeps to hold an event focused: its id and a scroll-to instant. `start`

@@ -11,6 +11,7 @@ import {
   isTimed,
   occurrenceStartUnix,
   isEventSelected,
+  isOffCalendar,
 } from './calendar-data-source';
 import {
   calcEventColors,
@@ -93,7 +94,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
       const date = CalendarDateUtils.addCalendarDays(first, i);
 
       const events = this.state.events
-        .filter((event) => !event.isCancelled && !event.isDeclined && eventCoversDate(event, date))
+        .filter((event) => !isOffCalendar(event) && eventCoversDate(event, date))
         .sort((a, b) => {
           // All-day events first, then sort by start time
           if (a.isAllDay && !b.isAllDay) return -1;
@@ -160,7 +161,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
 
     // Use a day-unique id/key so multi-day events don't produce duplicate DOM ids
     const uniqueId = `${event.id}-${dayKey}`;
-    const isStruck = event.isCancelled || event.isDeclined;
+    const isStruck = isOffCalendar(event);
 
     const className = [
       'agenda-event',
