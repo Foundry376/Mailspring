@@ -160,13 +160,14 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
 
     // Use a day-unique id/key so multi-day events don't produce duplicate DOM ids
     const uniqueId = `${event.id}-${dayKey}`;
+    const isStruck = event.isCancelled || event.isDeclined;
 
     const className = [
       'agenda-event',
       isSelected && 'selected',
-      (event.isCancelled || event.isDeclined) && 'cancelled',
-      event.isPending && 'pending',
-      event.isAwaitingMyResponse && 'awaiting-response',
+      isStruck && 'cancelled',
+      !isStruck && event.isPending && 'pending',
+      !isStruck && event.isAwaitingMyResponse && 'awaiting-response',
     ]
       .filter(Boolean)
       .join(' ');
@@ -184,7 +185,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
         <div className="agenda-event-color-bar" />
         <div className="agenda-event-details">
           <div className="agenda-event-title">
-            {event.isCancelled || event.isDeclined ? (
+            {isStruck ? (
               <s>{event.title || localized('(No title)')}</s>
             ) : (
               event.title || localized('(No title)')
