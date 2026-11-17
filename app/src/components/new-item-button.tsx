@@ -13,7 +13,6 @@ interface NewItemButtonProps {
   /** Labels of sibling buttons in other sheets, so the button keeps one width as the user switches. */
   matchWidthOf?: string[];
   icon?: React.ReactNode;
-  disabled?: boolean;
   className?: string;
 }
 
@@ -67,7 +66,7 @@ export default class NewItemButton extends React.Component<NewItemButtonProps, N
   };
 
   render() {
-    const { label, tabIndex, onClick, matchWidthOf = [], icon, disabled, className } = this.props;
+    const { label, tabIndex, onClick, matchWidthOf = [], icon, className } = this.props;
     const { compact } = this.state;
     const title = this.props.title || (compact ? label : undefined);
     return (
@@ -78,7 +77,6 @@ export default class NewItemButton extends React.Component<NewItemButtonProps, N
         style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
         title={title}
         aria-label={title}
-        disabled={disabled}
         onClick={onClick}
       >
         {icon || (
