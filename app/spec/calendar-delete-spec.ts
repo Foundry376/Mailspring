@@ -79,6 +79,11 @@ const ALL_DAY_SERIES_ICS = [
   'END:VCALENDAR',
 ].join('\r\n');
 
+const ONE_OFF_ICS = SERIES_ICS.split('\r\n')
+  .filter((line) => !line.startsWith('RRULE'))
+  .join('\r\n')
+  .replace(/BEGIN:VEVENT\r\nUID:series@test\r\nRECURRENCE-ID[\s\S]*?END:VEVENT\r\n/, '');
+
 let masterIcs = SERIES_ICS;
 
 const masterRow = () =>
@@ -190,7 +195,22 @@ describe('deleting from the calendar', function () {
 
       expect(sentKinds()).toEqual(['answer DECLINED', 'destroy']);
       expect(queued[0].event.ics).toContain('PARTSTAT=DECLINED');
+      expect(queued[0].rsvp.occurrenceIcs).toBeUndefined();
       expect(queued[1].events[0].id).toBe('master-row');
+    });
+
+    it('on Google, declines a one-off invitation before deleting it', async function () {
+      masterIcs = ONE_OFF_ICS;
+      await deleteEvents([{ ...seriesDate(0, false), isRecurring: false }]);
+
+      expect(sentKinds()).toEqual(['answer DECLINED', 'destroy']);
+    });
+
+    it('only deletes an invitation its organizer cancelled: there is nothing to decline', async function () {
+      masterIcs = ONE_OFF_ICS;
+      await deleteEvents([{ ...seriesDate(0, false), isRecurring: false, isCancelled: true }]);
+
+      expect(sentKinds()).toEqual(['destroy']);
     });
 
     it('on Outlook, only deletes: the sync engine declines it there', async function () {
@@ -232,6 +252,16 @@ describe('deleting from the calendar', function () {
       expect(sentKinds()).toEqual(['update']);
       expect(queued[0].event.ics).toContain('20260304T060000Z');
       expect(queued[0].event.ics).toContain('20260306T060000Z');
+    });
+
+    it('takes a plain and a moved date of one series out in one write', async function () {
+      await deleteEvents([seriesDate(3, true), movedDateInMaster(true)]);
+
+      expect(sentKinds()).toEqual(['update']);
+      const { ics } = queued[0].event;
+      expect((ics.match(/BEGIN:VEVENT/g) || []).length).toBe(1);
+      expect(ics).toContain('20260302T060000Z');
+      expect(ics).toContain('20260304T060000Z');
     });
 
     it('cancels a date moved inside the series’ file at its original slot', async function () {

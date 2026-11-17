@@ -27,7 +27,12 @@ import {
 } from './calendar-data-source';
 import { ShowAsOption } from './show-as-selector';
 import { hasGuests, momentOf, organizerForAccount } from './calendar-helpers';
-import { myAttendeeEmail, occurrenceRecurrenceId, recordAndSendRSVP } from './calendar-rsvp';
+import {
+  canRespondToEvent,
+  myAttendeeEmail,
+  occurrenceRecurrenceId,
+  recordAndSendRSVP,
+} from './calendar-rsvp';
 import { UnsentChange, unsentEdit } from './unsent-change';
 import type { AttendeeChange } from '../../../../src/ics-event-helpers';
 
@@ -472,12 +477,12 @@ function showOccurrenceNotFoundError() {
 }
 
 function isSeries({ event, master }: DeleteTarget) {
-  return event !== master || ICSEventHelpers.isRecurringEvent(master.ics);
+  return event.isRecurrenceException() || ICSEventHelpers.isRecurringEvent(master.ics);
 }
 
-export function deleteRole(occurrence: EventOccurrence): DeleteRole {
-  if (!occurrence.isMine) return 'guest';
-  return hasGuests(occurrence) ? 'organizer' : 'own';
+function deleteRole(occurrence: EventOccurrence): DeleteRole {
+  if (!occurrence.isMine && canRespondToEvent(occurrence)) return 'guest';
+  return occurrence.isMine && hasGuests(occurrence) ? 'organizer' : 'own';
 }
 
 /**
@@ -551,10 +556,9 @@ function deleteOccurrences(masterEvent: Event, targets: DeleteTarget[]) {
       );
       continue;
     }
-    const recurrenceId =
-      event !== masterEvent
-        ? event.recurrenceId
-        : occurrenceRecurrenceId(occurrence).toICALString();
+    const recurrenceId = event.isRecurrenceException()
+      ? event.recurrenceId
+      : occurrenceRecurrenceId(occurrence).toICALString();
     const updated = ICSEventHelpers.removeInlineException(ics, recurrenceId);
     if (updated === ics) {
       // The row and its master disagree about which occurrence this is. Both live in one
