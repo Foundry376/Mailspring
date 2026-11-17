@@ -216,6 +216,16 @@ export function isOffCalendar(e: EventOccurrence): boolean {
   return e.isCancelled || !!e.isDeclined;
 }
 
+/** The class each view draws an event's answers with; off calendar beats unanswered beats Maybe. */
+export function eventAppearance(
+  e: EventOccurrence
+): 'cancelled' | 'awaiting-response' | 'pending' | null {
+  if (isOffCalendar(e)) return 'cancelled';
+  if (e.isAwaitingMyResponse) return 'awaiting-response';
+  if (e.isPending || e.hasRequiredDecline) return 'pending';
+  return null;
+}
+
 // Minimal type for focusing/highlighting an event on the calendar
 /**
  * What the calendar keeps to hold an event focused: its id and a scroll-to instant. `start`

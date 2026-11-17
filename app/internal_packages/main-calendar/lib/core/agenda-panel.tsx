@@ -12,6 +12,7 @@ import {
   occurrenceStartUnix,
   isEventSelected,
   isOffCalendar,
+  eventAppearance,
 } from './calendar-data-source';
 import {
   calcEventColors,
@@ -163,13 +164,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
     const uniqueId = `${event.id}-${dayKey}`;
     const isStruck = isOffCalendar(event);
 
-    const className = [
-      'agenda-event',
-      isSelected && 'selected',
-      isStruck && 'cancelled',
-      !isStruck && (event.isPending || event.hasRequiredDecline) && 'pending',
-      !isStruck && event.isAwaitingMyResponse && 'awaiting-response',
-    ]
+    const className = ['agenda-event', isSelected && 'selected', eventAppearance(event)]
       .filter(Boolean)
       .join(' ');
 
