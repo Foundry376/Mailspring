@@ -84,6 +84,8 @@ const ONE_OFF_ICS = SERIES_ICS.split('\r\n')
   .join('\r\n')
   .replace(/BEGIN:VEVENT\r\nUID:series@test\r\nRECURRENCE-ID[\s\S]*?END:VEVENT\r\n/, '');
 
+const CANCELLED_ONE_OFF_ICS = ONE_OFF_ICS.replace('SEQUENCE:0', 'SEQUENCE:0\r\nSTATUS:CANCELLED');
+
 let masterIcs = SERIES_ICS;
 
 const masterRow = () =>
@@ -206,8 +208,15 @@ describe('deleting from the calendar', function () {
       expect(sentKinds()).toEqual(['answer DECLINED', 'destroy']);
     });
 
+    it('declines the whole series for All occurrences from a date its organizer cancelled', async function () {
+      choice = ALL_OCCURRENCES;
+      await deleteEvents([{ ...seriesDate(3, false), isCancelled: true }]);
+
+      expect(sentKinds()).toEqual(['answer DECLINED', 'destroy']);
+    });
+
     it('only deletes an invitation its organizer cancelled: there is nothing to decline', async function () {
-      masterIcs = ONE_OFF_ICS;
+      masterIcs = CANCELLED_ONE_OFF_ICS;
       await deleteEvents([{ ...seriesDate(0, false), isRecurring: false, isCancelled: true }]);
 
       expect(sentKinds()).toEqual(['destroy']);

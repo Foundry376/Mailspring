@@ -479,6 +479,15 @@ function isSeries({ event, master }: DeleteTarget) {
   return event.isRecurrenceException() || ICSEventHelpers.isRecurringEvent(master.ics);
 }
 
+/** A date its organizer cancelled doesn't cancel the series it belongs to. */
+function wholeEventOccurrence({ occurrence, master }: DeleteTarget): EventOccurrence {
+  const { event } = CalendarUtils.parseICSString(master.ics);
+  return {
+    ...occurrence,
+    isCancelled: event.component.getFirstPropertyValue('status') === 'CANCELLED',
+  };
+}
+
 function deleteRole(occurrence: EventOccurrence): DeleteRole {
   if (!occurrence.isMine && canRespondToEvent(occurrence)) return 'guest';
   return occurrence.isMine && hasGuests(occurrence) ? 'organizer' : 'own';
@@ -493,7 +502,11 @@ export async function deleteEvents(occurrences: EventOccurrence[], skipped = 0) 
     const choice = showDeleteDialog(
       targets.map((target) => ({
         title: target.occurrence.title || localized('(No title)'),
-        role: deleteRole(target.occurrence),
+        role: deleteRole(
+          targets.length === 1 && isSeries(target)
+            ? wholeEventOccurrence(target)
+            : target.occurrence
+        ),
         eventId: target.master.id,
         day: isSeries(target)
           ? DateUtils.dayString(momentOf(target.occurrence.startDate))
@@ -504,7 +517,7 @@ export async function deleteEvents(occurrences: EventOccurrence[], skipped = 0) 
     if (choice === 'cancel') return;
 
     if (choice === 'all-occurrences') {
-      await deleteEntireEvent(targets[0].master, targets[0].occurrence);
+      await deleteEntireEvent(targets[0]);
       return;
     }
 
@@ -516,7 +529,7 @@ export async function deleteEvents(occurrences: EventOccurrence[], skipped = 0) 
       if (isSeries(group[0])) {
         deleteOccurrences(group[0].master, group);
       } else {
-        await deleteEntireEvent(group[0].master, group[0].occurrence);
+        await deleteEntireEvent(group[0]);
       }
     }
   } catch (error) {
@@ -565,8 +578,10 @@ function deleteOccurrences(masterEvent: Event, targets: DeleteTarget[]) {
 }
 
 /** On Google a guest's DELETE tells the organizer nothing, but a declined copy does. */
-async function deleteEntireEvent(event: Event, occurrence: EventOccurrence) {
-  const myEmail = deleteRole(occurrence) === 'guest' && myAttendeeEmail(occurrence);
+async function deleteEntireEvent(target: DeleteTarget) {
+  const { master: event, occurrence } = target;
+  const myEmail =
+    deleteRole(wholeEventOccurrence(target)) === 'guest' && myAttendeeEmail(occurrence);
   if (myEmail && EventRSVPTask.calendarWriteSendsReply(event.accountId)) {
     await recordAndSendRSVP({ event, myEmail, status: 'DECLINED', recurrenceId: null });
   }
