@@ -38,19 +38,34 @@ describe('KeymapManager', function () {
     });
   }
 
-  it('leaves undo and redo to the focused text editor', function () {
-    const field = document.createElement('input');
+  it('leaves undo and shifted redo to Slate, including nested targets', function () {
     const editor = document.createElement('div');
     editor.contentEditable = 'true';
+    editor.setAttribute('data-slate-editor', 'true');
+    const child = document.createElement('span');
+    editor.appendChild(child);
+    document.body.appendChild(editor);
     const callback = mousetrap.prototype.stopCallback;
-
-    for (const target of [field, editor]) {
-      const event = new KeyboardEvent('keydown', { ctrlKey: true, key: 'z' });
-      Object.defineProperty(event, 'target', { value: target });
-      for (const shortcut of ['ctrl+z', 'ctrl+shift+z', 'ctrl+y']) {
-        expect(callback.call(trap, event, target, shortcut)).toBe(true);
+    try {
+      for (const target of [editor, child]) {
+        const event = new KeyboardEvent('keydown');
+        Object.defineProperty(event, 'target', { value: target });
+        for (const shortcut of ['ctrl+z', 'ctrl+shift+z', 'command+shift+z', 'ctrl+y']) {
+          expect(callback.call(trap, event, target, shortcut)).toBe(true);
+        }
       }
+    } finally {
+      editor.remove();
     }
+  });
+
+  it('keeps global undo available when a checkbox is focused', function () {
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    const event = new KeyboardEvent('keydown');
+    Object.defineProperty(event, 'target', { value: checkbox });
+    (event as any).isPropagationStopped = () => false;
+    expect(mousetrap.prototype.stopCallback.call(trap, event, checkbox, 'ctrl+z')).toBe(false);
   });
 
   it('replaces base bindings for the commands a template defines', function () {

@@ -299,6 +299,21 @@ const rules: Rule[] = [
 ];
 
 const BaseMarkPlugin: ComposerEditorPlugin = {
+  onKeyDown: (event, editor, next) => {
+    // Slate's Windows keymap only handles Ctrl+Y. Consume the shifted shortcut
+    // before Chromium redoes an edit in another field in the same frame.
+    if (
+      event.ctrlKey &&
+      event.shiftKey &&
+      !event.altKey &&
+      !event.metaKey &&
+      event.key.toLowerCase() === 'z'
+    ) {
+      event.preventDefault();
+      return editor.redo();
+    }
+    return next();
+  },
   toolbarComponents: []
     .concat(
       Object.values(MARK_CONFIG)
