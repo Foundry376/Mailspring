@@ -124,7 +124,7 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
 
     return (
       <BindGlobalCommands commands={commands}>
-        <TransitionGroup component="div" style={{ display: 'flex', order: 1000, marginRight: 10 }}>
+        <TransitionGroup component="div" style={{ display: 'flex', order: 1000 }}>
           {commands['core:remove-from-view'] &&
             fadeIn(
               'remove-from-group',
