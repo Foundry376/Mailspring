@@ -550,9 +550,7 @@
   // reach both ends. Any flex-grow ratio would still hand each spacer a sliver.
   flex: 1 1 100%;
   min-width: 0;
-  padding-left: 10px;
-  // Lines the agenda toggle's icon up with the agenda panel's new-event icon below it.
-  padding-right: 8px;
+  padding-left: @toolbar-gap;
   color: @text-color-subtle;
 
   // The agenda's group spans the header's height, so only its controls opt out of dragging.
@@ -569,19 +567,17 @@
     > :not(.event-search-bar) {
       flex-shrink: 0;
     }
-    gap: 8px;
+    gap: @toolbar-gap;
   }
 
   // With the agenda open, search and its toggle sit above it, so the header splits at its edge
   // and a theme can colour each part as its column.
   .agenda-controls {
-    margin-left: 8px;
+    margin-left: @toolbar-gap;
   }
   &.agenda-split {
-    padding-right: 0;
-
     .side-controls {
-      margin-right: 12px;
+      margin-right: @toolbar-gap;
     }
     .agenda-controls {
       align-self: stretch;
@@ -589,13 +585,14 @@
       box-sizing: border-box;
       justify-content: flex-end;
       margin-left: 0;
-      padding: 0 8px;
+      // Over the toolbar's right gap, so this part spans the agenda column below it.
+      margin-right: -@toolbar-gap;
+      padding: 0 @toolbar-gap;
     }
   }
 
   // The header centres its controls itself, so drop the toolbar's per-button offsets.
   .btn-toolbar,
-  .btn-toolbar:only-of-type,
   .btn-ghost,
   .btn-bare {
     margin: 0;

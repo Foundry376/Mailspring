@@ -152,6 +152,12 @@ body.is-blurred {
     order: 101;
   }
 
+  // Items carry the gap on their left, so a column ends flush and the next column's first item
+  // makes the one gap between them. Only the window's edge needs its own.
+  .sheet-toolbar-container > [role='toolbar']:last-child > .item-container {
+    padding-right: @toolbar-gap;
+  }
+
   .item-container {
     .window-title {
       position: absolute;
@@ -195,7 +201,7 @@ body.is-blurred {
 
   .btn-toolbar {
     margin-top: 5px;
-    margin-left: @spacing-three-quarters;
+    margin-left: @toolbar-gap;
     margin-right: 0;
     flex-shrink: 0;
     line-height: 1.75em;
@@ -209,9 +215,6 @@ body.is-blurred {
     img.content-mask {
       background-color: fade(@text-color-heading, 90%);
     }
-  }
-  .btn-toolbar:only-of-type {
-    margin-right: 6px;
   }
 
   .btn-ghost,
@@ -236,7 +239,7 @@ body.is-blurred {
 
   .button-group {
     display: flex;
-    margin-left: @spacing-three-quarters;
+    margin-left: @toolbar-gap;
     .btn.btn-toolbar {
       margin-left: 0;
       margin-right: 0;
