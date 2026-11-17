@@ -312,8 +312,12 @@ class WorkspaceStore extends MailspringStore {
     };
   }
 
+  mayLeaveSection() {
+    return this._sectionLeaveGuard?.() !== false;
+  }
+
   _mayLeaveSectionFor(sheet: SheetDeclaration) {
-    return sheet === this.rootSheet() || this._sectionLeaveGuard?.() !== false;
+    return sheet === this.rootSheet() || this.mayLeaveSection();
   }
 
   // Public: Returns an {Array<Sheet>} The stack of sheets

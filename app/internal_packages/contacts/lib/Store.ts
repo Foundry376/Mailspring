@@ -24,6 +24,7 @@ class ContactsSectionStore extends MailspringStore {
   _search = '';
   _filtered: Contact[] | null = null;
   _editing: string | 'new' | false = false;
+  _newContactAccountId: string | null = null;
 
   start() {
     if (this._contactsSubscription) return;
@@ -81,6 +82,20 @@ class ContactsSectionStore extends MailspringStore {
   setEditing(editing: string | 'new' | false) {
     this._editing = editing;
     this.trigger();
+  }
+
+  newContactAccountId() {
+    return this._newContactAccountId;
+  }
+
+  startNewContact(accountId: string) {
+    this._newContactAccountId = accountId;
+    this._editing = 'new';
+    this.trigger();
+  }
+
+  accountsWithContactBooks() {
+    return AccountStore.accounts().filter((a) => this._books.some((b) => b.accountId === a.id));
   }
 
   /** "All Contacts", unified or per-account, means address book entries. Addresses

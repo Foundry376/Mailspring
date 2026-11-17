@@ -3,6 +3,7 @@ import {
   Contact,
   localized,
   Actions,
+  AccountStore,
   SyncbackContactTask,
   ContactGroup,
   DatabaseStore,
@@ -22,13 +23,13 @@ import {
 import { ContactDetailRead } from './ContactDetailRead';
 import { ContactDetailEdit } from './ContactDetailEdit';
 import { displayNameForContact } from './ContactDisplayName';
-import { Store, ContactsPerspective } from './Store';
+import { Store, accountContactsPerspective } from './Store';
 
 interface ContactDetailProps {
   editing: string | 'new' | false;
+  newContactAccountId: string | null;
   groups: ContactGroup[];
   contacts: Contact[];
-  perspective: ContactsPerspective;
   focusedId?: string;
 }
 
@@ -43,6 +44,7 @@ export class ContactDetailWithFocus extends React.Component<
   ContactDetailState
 > {
   _removeLeaveGuard: () => void;
+  _refocusingEdited = false;
 
   constructor(props: ContactDetailProps) {
     super(props);
@@ -72,7 +74,7 @@ export class ContactDetailWithFocus extends React.Component<
       message: localized('"%@" has unsaved changes.', name),
     });
     if (response === 2) return false;
-    if (response === 0) this.onSaveChanges();
+    if (response === 0) this._queueSave();
     else this.onCancel();
     return true;
   };
@@ -81,19 +83,39 @@ export class ContactDetailWithFocus extends React.Component<
     const prevContact = prevProps.contacts?.find((c) => c.id === prevProps.focusedId);
     const newContact = this.props.contacts?.find((c) => c.id === this.props.focusedId);
 
-    if (isEqual(prevContact, newContact) && prevProps.editing === this.props.editing) return;
-    if (newContact && this.props.editing !== newContact.id) Store.setEditing(false);
+    if (
+      isEqual(prevContact, newContact) &&
+      prevProps.editing === this.props.editing &&
+      prevProps.newContactAccountId === this.props.newContactAccountId
+    ) {
+      return;
+    }
+    if (this._refocusingEdited) {
+      this._refocusingEdited = false;
+      return;
+    }
+    // Focus follows a click a frame late, so an edit started since still sees the old focus.
+    const { editing, focusedId } = this.props;
+    if (newContact && focusedId !== prevProps.focusedId && editing !== newContact.id) {
+      // The list has already moved focus, so keeping the edit moves it back.
+      if (editing && !this._mayLeaveSection()) {
+        this._refocusingEdited = true;
+        Actions.setFocus({ collection: 'contact', item: editing === 'new' ? null : prevContact });
+        return;
+      }
+      Store.setEditing(false);
+    }
     this.setState(this.getStateForProps());
   }
 
   getStateForProps() {
-    const { editing, contacts, focusedId, perspective } = this.props;
+    const { editing, contacts, focusedId, newContactAccountId } = this.props;
 
     const contact =
-      editing === 'new' && 'accountId' in perspective
+      editing === 'new'
         ? emptyContactForAccount(
-            perspective.accountId,
-            contactSourceForAccount(perspective.accountId, Store.books())
+            newContactAccountId,
+            contactSourceForAccount(newContactAccountId, Store.books())
           )
         : contacts?.find((c) => c.id === focusedId);
 
@@ -114,20 +136,33 @@ export class ContactDetailWithFocus extends React.Component<
     Store.setEditing(false);
   };
 
-  onSaveChanges = () => {
+  _queueSave() {
     const contact = apply(this.state.contact, this.state.data);
     const task = contact.id
       ? SyncbackContactTask.forUpdating({ contact })
       : SyncbackContactTask.forCreating({ contact, accountId: contact.accountId });
     Actions.queueTask(task);
     Store.setEditing(false);
+    return task;
+  }
 
-    if (!contact.id) {
-      // The sync engine assigns the new contact's id during performLocal.
-      TaskQueue.waitForPerformLocal(task)
-        .then((t) => DatabaseStore.find<Contact>(Contact, t.contact.id).then((c) => c))
-        .then((created) => created && Actions.setFocus({ collection: 'contact', item: created }));
+  // Only an explicit Save shows the new contact; saving on the way elsewhere leaves the user there.
+  onSaveChanges = () => {
+    const isNew = !this.state.contact.id;
+    const task = this._queueSave();
+    if (!isNew) return;
+
+    // Found in Mail and groups don't list a contact created in them.
+    const perspective = Store.perspective();
+    if (perspective.type === 'found-in-mail' || perspective.type === 'group') {
+      Store.setPerspective(
+        accountContactsPerspective(AccountStore.accountForId(task.contact.accountId))
+      );
     }
+    // The sync engine assigns the new contact's id during performLocal.
+    TaskQueue.waitForPerformLocal(task)
+      .then((t) => DatabaseStore.find<Contact>(Contact, t.contact.id).then((c) => c))
+      .then((created) => created && Actions.setFocus({ collection: 'contact', item: created }));
   };
 
   render() {
@@ -174,12 +209,12 @@ export class ContactDetailWithFocus extends React.Component<
 }
 
 export const ContactDetail: React.FunctionComponent<ContactDetailProps> = ListensToFluxStore(
-  ({ contacts, perspective, editing, groups }) => (
+  ({ contacts, editing, newContactAccountId, groups }) => (
     <FocusContainer collection="contact">
       <ContactDetailWithFocus
         contacts={contacts}
         editing={editing}
-        perspective={perspective}
+        newContactAccountId={newContactAccountId}
         groups={groups}
       />
     </FocusContainer>
@@ -188,9 +223,9 @@ export const ContactDetail: React.FunctionComponent<ContactDetailProps> = Listen
     stores: [Store],
     getStateFromStores: () => ({
       editing: Store.editing(),
+      newContactAccountId: Store.newContactAccountId(),
       groups: Store.groups(),
       contacts: Store.filteredContacts(),
-      perspective: Store.perspective(),
     }),
   }
 );
