@@ -31,12 +31,12 @@ describe('clearTextFormatting', () => {
     editor.moveTo(editor.value.document.getFirstText().key as any, 3);
     clearTextFormatting(editor);
     editor.insertText('X');
+    editor.moveAnchorBackward(1);
 
-    const inserted = editor.value.document
-      .getFirstText()
-      .leaves.find((leaf) => leaf.text.includes('X'));
-    expect(inserted.marks.size).toBe(1);
-    expect(inserted.marks.first().type).toBe('link');
-    expect(inserted.marks.first().data.get('href')).toBe('https://example.com/');
+    const marks = editor.value.marks;
+    expect(editor.value.document.text).toBe('redX link blue');
+    expect(marks.size).toBe(1);
+    expect(marks.first().type).toBe('link');
+    expect(marks.first().data.get('href')).toBe('https://example.com/');
   });
 });
