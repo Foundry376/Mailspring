@@ -1,9 +1,27 @@
-import { Account, Actions, WorkspaceStore } from 'mailspring-exports';
+import { Account, AccountStore, Actions, ContactBook, WorkspaceStore } from 'mailspring-exports';
 import { accountForNewContact, startNewContact } from '../lib/AddContactToolbar';
 import { Store } from '../lib/Store';
 
 const work = new Account({ id: 'work', label: 'Work' } as any);
 const home = new Account({ id: 'home', label: 'Home' } as any);
+
+describe('The accounts New Contact offers', function () {
+  let books: ContactBook[];
+
+  beforeEach(function () {
+    books = Store._books;
+    spyOn(AccountStore, 'accounts').andReturn([work, home]);
+  });
+
+  afterEach(function () {
+    Store._books = books;
+  });
+
+  it('are only those with an address book', function () {
+    Store._books = [new ContactBook({ id: 'book', accountId: work.id, source: 'carddav' } as any)];
+    expect(Store.accountsWithContactBooks()).toEqual([work]);
+  });
+});
 
 describe('The account New Contact uses without asking', function () {
   it('is the account whose contacts are shown', function () {
