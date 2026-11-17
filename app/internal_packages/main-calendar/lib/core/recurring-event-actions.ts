@@ -436,7 +436,6 @@ export async function modifyEventWithRecurringSupport(
   }
 }
 
-/** A selected occurrence, its own row, and the row that holds its series. */
 interface DeleteTarget {
   occurrence: EventOccurrence;
   event: Event;
@@ -485,12 +484,7 @@ function deleteRole(occurrence: EventOccurrence): DeleteRole {
   return occurrence.isMine && hasGuests(occurrence) ? 'organizer' : 'own';
 }
 
-/**
- * Deletes occurrences after one confirmation: every delete in the calendar and the event panels
- * comes through here. One occurrence of a series asks this-or-all; several act on the selected
- * dates only. A guest's delete declines before it removes. `skipped` counts selected events
- * left out because their calendars are read-only.
- */
+/** `skipped` counts selected events left out as read-only, which the dialog mentions. */
 export async function deleteEvents(occurrences: EventOccurrence[], skipped = 0) {
   try {
     const targets = (await Promise.all(occurrences.map(deleteTarget))).filter(Boolean);
@@ -498,7 +492,7 @@ export async function deleteEvents(occurrences: EventOccurrence[], skipped = 0) 
 
     const choice = showDeleteDialog(
       targets.map((target) => ({
-        title: target.occurrence.title || localized('(no title)'),
+        title: target.occurrence.title || localized('(No title)'),
         role: deleteRole(target.occurrence),
         eventId: target.master.id,
         day: isSeries(target)
@@ -534,20 +528,11 @@ export async function deleteEvents(occurrences: EventOccurrence[], skipped = 0) 
   }
 }
 
-/**
- * Takes dates out of a series in one write to its master, so two dates of one series can't
- * overwrite each other's change. A plain date gets an EXDATE; a moved or edited one loses its
- * VEVENT too. Supports undo.
- */
 function deleteOccurrences(masterEvent: Event, targets: DeleteTarget[]) {
-  const undoData = {
-    ics: masterEvent.ics,
-    recurrenceStart: masterEvent.recurrenceStart,
-    recurrenceEnd: masterEvent.recurrenceEnd,
-  };
-
+  const undoData = captureEventSnapshot(masterEvent);
   let ics = masterEvent.ics;
   for (const { occurrence, event } of targets) {
+    // On Google a guest's EXDATE reaches the organizer as a decline of that date.
     if (!occurrence.isException) {
       ics = ICSEventHelpers.addExclusionDate(
         ics,
@@ -579,10 +564,7 @@ function deleteOccurrences(masterEvent: Event, targets: DeleteTarget[]) {
   );
 }
 
-/**
- * Deletes an event or a whole series. Where a write to our copy is what tells the organizer
- * (Google), a guest's copy is declined first: Google tells nobody when a guest deletes a series.
- */
+/** On Google a guest's DELETE tells the organizer nothing, but a declined copy does. */
 async function deleteEntireEvent(event: Event, occurrence: EventOccurrence) {
   const myEmail = deleteRole(occurrence) === 'guest' && myAttendeeEmail(occurrence);
   if (myEmail && EventRSVPTask.calendarWriteSendsReply(event.accountId)) {

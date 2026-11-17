@@ -2,7 +2,7 @@ import { localized } from 'mailspring-exports';
 
 export type RecurringEventChoice = 'this-occurrence' | 'all-occurrences' | 'cancel';
 
-export type RecurringEventOperation = 'move' | 'resize' | 'delete' | 'edit' | 'answer';
+export type RecurringEventOperation = 'move' | 'resize' | 'edit' | 'answer';
 
 /**
  * Shows a dialog asking whether to modify this occurrence or all occurrences
@@ -22,7 +22,6 @@ export function showRecurringEventDialog(
     const operationText: Record<RecurringEventOperation, string> = {
       move: localized('Move'),
       resize: localized('Resize'),
-      delete: localized('Delete'),
       edit: localized('Edit'),
       answer: localized('Answer'),
     };
@@ -30,7 +29,6 @@ export function showRecurringEventDialog(
     const operationVerb: Record<RecurringEventOperation, string> = {
       move: localized('move'),
       resize: localized('resize'),
-      delete: localized('delete'),
       edit: localized('edit'),
       answer: localized('answer'),
     };
@@ -57,7 +55,6 @@ export function showRecurringEventDialog(
   });
 }
 
-/** Who a delete tells: a guest's delete declines, an organizer's cancels for the guests. */
 export type DeleteRole = 'own' | 'organizer' | 'guest';
 
 export interface DeleteDialogItem {
@@ -65,7 +62,6 @@ export interface DeleteDialogItem {
   role: DeleteRole;
   /** Groups the selected dates of one series under one title. */
   eventId: string;
-  /** Set for a date of a series, so the list shows that only that date goes. */
   day?: string;
 }
 
@@ -88,11 +84,6 @@ function listedTitles(items: DeleteDialogItem[]): string {
   ].join('\n');
 }
 
-/**
- * The one confirmation for every way of deleting events. A series offers this-or-all as its
- * buttons; a multi-selection acts on the selected dates only, so it never asks.
- * `skipped` counts the selected events on read-only calendars.
- */
 export function showDeleteDialog(
   items: DeleteDialogItem[],
   { series, skipped }: { series: boolean; skipped: number }
@@ -160,5 +151,5 @@ export function showDeleteDialog(
     message,
     detail: detail.join('\n\n'),
   });
-  return choices[response] ?? 'cancel';
+  return choices[response];
 }
