@@ -114,3 +114,33 @@ describe('A new contact whose account is changed while its form is open', functi
     expect(detail.state.contact.accountId).toBe('second-account');
   });
 });
+
+describe('Clicking another contact while editing one', function () {
+  it('keeps the typed changes and the edited contact on Keep editing', function () {
+    const other = new Contact({ ...contact, id: 'c2', name: 'Ben Ito' });
+    const detail: any = new ContactDetailWithFocus({
+      editing: contact.id,
+      newContactAccountId: null,
+      contacts: [contact, other],
+      focusedId: contact.id,
+      groups: [],
+    });
+    detail.setState = (changes) => (detail.state = { ...detail.state, ...changes });
+    const moveFocus = (focusedId: string) => {
+      const prevProps = detail.props;
+      detail.props = { ...prevProps, focusedId };
+      detail.componentDidUpdate(prevProps);
+    };
+    typeCompany(detail);
+    spyOn(require('@electron/remote').dialog, 'showMessageBoxSync').andReturn(KEEP_EDITING);
+    spyOn(Actions, 'setFocus');
+    spyOn(Store, 'setEditing');
+
+    moveFocus(other.id);
+    expect(Actions.setFocus).toHaveBeenCalledWith({ collection: 'contact', item: contact });
+    moveFocus(contact.id);
+
+    expect(Store.setEditing).not.toHaveBeenCalled();
+    expect(detail.state.data.company).toBe('Acme');
+  });
+});

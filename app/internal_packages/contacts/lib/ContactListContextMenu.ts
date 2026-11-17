@@ -1,4 +1,4 @@
-import { localized, Contact } from 'mailspring-exports';
+import { localized, Actions, Contact, WorkspaceStore } from 'mailspring-exports';
 import { Store } from './Store';
 import { exportContactsToFile } from './VCFImportExport';
 import { showGPeopleReadonlyNotice } from './GoogleSupport';
@@ -20,6 +20,8 @@ export class ContactListContextMenu {
       label: localized('Edit'),
       click: () => {
         if (showGPeopleReadonlyNotice(contact.accountId)) return;
+        if (!WorkspaceStore.mayLeaveSection()) return;
+        Actions.setFocus({ collection: 'contact', item: contact });
         Store.setEditing(contact.id);
       },
     };

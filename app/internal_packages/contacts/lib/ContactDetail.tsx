@@ -43,6 +43,7 @@ export class ContactDetailWithFocus extends React.Component<
   ContactDetailState
 > {
   _removeLeaveGuard: () => void;
+  _refocusingEdited = false;
 
   constructor(props: ContactDetailProps) {
     super(props);
@@ -88,7 +89,22 @@ export class ContactDetailWithFocus extends React.Component<
     ) {
       return;
     }
-    if (newContact && this.props.editing !== newContact.id) Store.setEditing(false);
+    if (this._refocusingEdited) {
+      this._refocusingEdited = false;
+      return;
+    }
+    // Focus follows a click a frame late, so an edit started since still sees the old focus.
+    const { editing, focusedId } = this.props;
+    if (newContact && focusedId !== prevProps.focusedId && editing !== newContact.id) {
+      // The list moves focus before anything asks, so keeping the edit moves it back without
+      // rebuilding the form from the stored contact.
+      if (editing && !this._mayLeaveSection()) {
+        this._refocusingEdited = true;
+        Actions.setFocus({ collection: 'contact', item: editing === 'new' ? null : prevContact });
+        return;
+      }
+      Store.setEditing(false);
+    }
     this.setState(this.getStateForProps());
   }
 
