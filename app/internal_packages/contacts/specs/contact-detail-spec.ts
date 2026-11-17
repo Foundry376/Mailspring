@@ -1,6 +1,6 @@
 import { Actions, Contact, SyncbackContactTask, TaskQueue } from 'mailspring-exports';
 import { ContactDetailWithFocus } from '../lib/ContactDetail';
-import { Store, ContactsPerspective } from '../lib/Store';
+import { Store } from '../lib/Store';
 
 const SAVE = 0;
 const DISCARD = 1;
@@ -17,18 +17,12 @@ const contact = new Contact({
     href: '',
   },
 });
-const accountView: ContactsPerspective = {
-  type: 'all',
-  accountId: TEST_ACCOUNT_ID,
-  label: 'All Contacts',
-};
-
-function editor(editing: string, perspective: ContactsPerspective): any {
+function editor(editing: string, newContactAccountId: string | null = null): any {
   return new ContactDetailWithFocus({
     editing,
+    newContactAccountId,
     contacts: [contact],
     focusedId: contact.id,
-    perspective,
     groups: [],
   });
 }
@@ -42,7 +36,7 @@ describe('Leaving Contacts while editing a contact', function () {
   let dialog: jasmine.Spy;
 
   beforeEach(function () {
-    detail = editor(contact.id, accountView);
+    detail = editor(contact.id);
     dialog = spyOn(require('@electron/remote').dialog, 'showMessageBoxSync');
     spyOn(detail, 'onSaveChanges');
     spyOn(Store, 'setEditing');
@@ -86,8 +80,8 @@ describe('Saving a contact', function () {
     spyOn(TaskQueue, 'waitForPerformLocal').andReturn(new Promise(() => {}));
   });
 
-  it('updates an existing contact in its own account from the unified All Contacts', function () {
-    const detail = editor(contact.id, { type: 'unified' });
+  it('updates an existing contact in its own account', function () {
+    const detail = editor(contact.id);
     typeCompany(detail);
     detail.onSaveChanges();
 
@@ -98,13 +92,25 @@ describe('Saving a contact', function () {
     expect(Store.setEditing).toHaveBeenCalledWith(false);
   });
 
-  it('creates a new contact in the account whose view it was started in', function () {
-    const detail = editor('new', accountView);
+  it('creates a new contact in the account it was started in', function () {
+    const detail = editor('new', 'picked-account');
     detail.onSaveChanges();
 
     const task = queued.mostRecentCall.args[0];
     expect(task instanceof SyncbackContactTask).toBe(true);
-    expect(task.accountId).toBe(TEST_ACCOUNT_ID);
+    expect(task.accountId).toBe('picked-account');
     expect(task.contact.id).toBeFalsy();
+  });
+});
+
+describe('A new contact whose account is changed while its form is open', function () {
+  it('is rebuilt for the newly picked account', function () {
+    const detail = editor('new', 'first-account');
+    detail.setState = (changes) => (detail.state = { ...detail.state, ...changes });
+    const prevProps = detail.props;
+    detail.props = { ...prevProps, newContactAccountId: 'second-account' };
+    detail.componentDidUpdate(prevProps);
+
+    expect(detail.state.contact.accountId).toBe('second-account');
   });
 });

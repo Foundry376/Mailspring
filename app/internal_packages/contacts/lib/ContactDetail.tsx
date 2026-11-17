@@ -22,13 +22,13 @@ import {
 import { ContactDetailRead } from './ContactDetailRead';
 import { ContactDetailEdit } from './ContactDetailEdit';
 import { displayNameForContact } from './ContactDisplayName';
-import { Store, ContactsPerspective } from './Store';
+import { Store } from './Store';
 
 interface ContactDetailProps {
   editing: string | 'new' | false;
+  newContactAccountId: string | null;
   groups: ContactGroup[];
   contacts: Contact[];
-  perspective: ContactsPerspective;
   focusedId?: string;
 }
 
@@ -81,19 +81,25 @@ export class ContactDetailWithFocus extends React.Component<
     const prevContact = prevProps.contacts?.find((c) => c.id === prevProps.focusedId);
     const newContact = this.props.contacts?.find((c) => c.id === this.props.focusedId);
 
-    if (isEqual(prevContact, newContact) && prevProps.editing === this.props.editing) return;
+    if (
+      isEqual(prevContact, newContact) &&
+      prevProps.editing === this.props.editing &&
+      prevProps.newContactAccountId === this.props.newContactAccountId
+    ) {
+      return;
+    }
     if (newContact && this.props.editing !== newContact.id) Store.setEditing(false);
     this.setState(this.getStateForProps());
   }
 
   getStateForProps() {
-    const { editing, contacts, focusedId, perspective } = this.props;
+    const { editing, contacts, focusedId, newContactAccountId } = this.props;
 
     const contact =
-      editing === 'new' && 'accountId' in perspective
+      editing === 'new'
         ? emptyContactForAccount(
-            perspective.accountId,
-            contactSourceForAccount(perspective.accountId, Store.books())
+            newContactAccountId,
+            contactSourceForAccount(newContactAccountId, Store.books())
           )
         : contacts?.find((c) => c.id === focusedId);
 
@@ -174,12 +180,12 @@ export class ContactDetailWithFocus extends React.Component<
 }
 
 export const ContactDetail: React.FunctionComponent<ContactDetailProps> = ListensToFluxStore(
-  ({ contacts, perspective, editing, groups }) => (
+  ({ contacts, editing, newContactAccountId, groups }) => (
     <FocusContainer collection="contact">
       <ContactDetailWithFocus
         contacts={contacts}
         editing={editing}
-        perspective={perspective}
+        newContactAccountId={newContactAccountId}
         groups={groups}
       />
     </FocusContainer>
@@ -188,9 +194,9 @@ export const ContactDetail: React.FunctionComponent<ContactDetailProps> = Listen
     stores: [Store],
     getStateFromStores: () => ({
       editing: Store.editing(),
+      newContactAccountId: Store.newContactAccountId(),
       groups: Store.groups(),
       contacts: Store.filteredContacts(),
-      perspective: Store.perspective(),
     }),
   }
 );
