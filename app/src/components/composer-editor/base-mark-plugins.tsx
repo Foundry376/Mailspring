@@ -10,6 +10,7 @@ import {
 } from './toolbar-component-factories';
 
 import BaseBlockPlugins from './base-block-plugins';
+import { LINK_TYPE } from './link-plugins';
 import { ComposerEditorPlugin, Rule } from './types';
 
 export const DEFAULT_FONT_SIZE = 2;
@@ -299,16 +300,9 @@ const rules: Rule[] = [
 ];
 
 export function clearTextFormatting(editor: Editor) {
-  const { selection, document } = editor.value;
-  if (selection.isCollapsed) return;
-
-  const marks = new Map<string, any>();
-  document.getTextsAtRange(selection as any).forEach((node) => {
-    node
-      .getMarks()
-      .forEach((mark) => marks.set(mark.type + JSON.stringify(mark.data.toJS()), mark));
-  });
-  marks.forEach((mark) => editor.removeMark(mark));
+  editor.value.marks
+    .filter((mark) => mark.type !== LINK_TYPE)
+    .forEach((mark) => editor.removeMark(mark));
   editor.focus();
 }
 

@@ -1,44 +1,42 @@
+import { Editor } from 'slate';
 import { clearTextFormatting } from '../src/components/composer-editor/base-mark-plugins';
+import { convertFromHTML } from '../src/components/composer-editor/conversion';
 
-describe('clearTextFormatting', function () {
-  const mark = (type: string, value?: string) => ({
-    type,
-    data: { toJS: () => (value ? { value } : {}) },
+function editorWithFormatting() {
+  return new Editor({
+    value: convertFromHTML(
+      '<div><b><font color="#ff0000" size="5"><a href="https://example.com/">red link</a></font></b>' +
+        '<i><font color="#0000ff"> blue</font></i></div>'
+    ),
+    plugins: [],
+    onChange: () => {},
+  });
+}
+
+describe('clearTextFormatting', () => {
+  it('clears mixed formatting across a real Slate selection', () => {
+    const editor = editorWithFormatting();
+    editor.moveToRangeOfDocument();
+    clearTextFormatting(editor);
+
+    const marks = editor.value.document.getMarks();
+    expect(marks.size).toBe(1);
+    expect(marks.first().type).toBe('link');
+    expect(marks.first().data.get('href')).toBe('https://example.com/');
+    expect(editor.value.document.text).toBe('red link blue');
   });
 
-  it('removes all unique formatting marks from the selected text', function () {
-    const bold = mark('bold');
-    const red = mark('color', '#ff0000');
-    const blue = mark('color', '#0000ff');
-    const marks = [bold, red, blue];
-    const editor: any = {
-      value: {
-        selection: { isCollapsed: false },
-        document: {
-          getTextsAtRange: () => [
-            { getMarks: () => [bold, red] },
-            { getMarks: () => [bold, blue] },
-          ],
-        },
-      },
-      removeMark: jasmine.createSpy('removeMark'),
-      focus: jasmine.createSpy('focus'),
-    };
-
+  it('clears pending formatting at the caret while preserving its link', () => {
+    const editor = editorWithFormatting();
+    editor.moveTo(editor.value.document.getFirstText().key as any, 3);
     clearTextFormatting(editor);
-    expect(editor.removeMark.calls.length).toBe(3);
-    marks.forEach((m) => expect(editor.removeMark).toHaveBeenCalledWith(m));
-    expect(editor.focus).toHaveBeenCalled();
-  });
+    editor.insertText('X');
 
-  it('does not modify formatting without a text selection', function () {
-    const editor: any = {
-      value: { selection: { isCollapsed: true }, document: {} },
-      removeMark: jasmine.createSpy('removeMark'),
-      focus: jasmine.createSpy('focus'),
-    };
-    clearTextFormatting(editor);
-    expect(editor.removeMark).not.toHaveBeenCalled();
-    expect(editor.focus).not.toHaveBeenCalled();
+    const inserted = editor.value.document
+      .getFirstText()
+      .leaves.find((leaf) => leaf.text.includes('X'));
+    expect(inserted.marks.size).toBe(1);
+    expect(inserted.marks.first().type).toBe('link');
+    expect(inserted.marks.first().data.get('href')).toBe('https://example.com/');
   });
 });
