@@ -10,8 +10,11 @@ import {
 import { dialog } from '@electron/remote';
 import { Event as MailspringEvent } from '../src/flux/models/event';
 import { deleteEvents } from '../internal_packages/main-calendar/lib/core/recurring-event-actions';
-import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
-import { calendarDateFromUnix } from '../src/calendar-date';
+import {
+  AllDayOccurrence,
+  TimedOccurrence,
+} from '../internal_packages/main-calendar/lib/core/calendar-data-source';
+import { calendarDateFromUnix, dayStartUnix, parseCalendarDate } from '../src/calendar-date';
 
 // A daily series organized by someone else, with this account as a guest, whose 2 March
 // occurrence has been moved to 08:00 inside the same file.
@@ -50,6 +53,34 @@ const DAY = 86400;
 const SERIES_START = Date.UTC(2026, 2, 1, 6, 0, 0) / 1000;
 const MOVED_START = Date.UTC(2026, 2, 2, 8, 0, 0) / 1000;
 
+// A daily all-day series whose 2 March date has been moved to 5 March inside the same file.
+const ALL_DAY_SERIES_ICS = [
+  'BEGIN:VCALENDAR',
+  'VERSION:2.0',
+  'PRODID:-//Test//Test//EN',
+  'BEGIN:VEVENT',
+  'UID:series@test',
+  'DTSTART;VALUE=DATE:20260301',
+  'DTEND;VALUE=DATE:20260302',
+  'RRULE:FREQ=DAILY;COUNT=10',
+  'SUMMARY:Offsite',
+  'DTSTAMP:20260101T000000Z',
+  'SEQUENCE:0',
+  'END:VEVENT',
+  'BEGIN:VEVENT',
+  'UID:series@test',
+  'RECURRENCE-ID;VALUE=DATE:20260302',
+  'DTSTART;VALUE=DATE:20260305',
+  'DTEND;VALUE=DATE:20260306',
+  'SUMMARY:Offsite',
+  'DTSTAMP:20260101T000000Z',
+  'SEQUENCE:0',
+  'END:VEVENT',
+  'END:VCALENDAR',
+].join('\r\n');
+
+let masterIcs = SERIES_ICS;
+
 const masterRow = () =>
   new MailspringEvent({
     id: 'master-row',
@@ -57,7 +88,7 @@ const masterRow = () =>
     calendarId: 'c',
     icsuid: 'series@test',
     recurrenceId: '',
-    ics: SERIES_ICS,
+    ics: masterIcs,
     recurrenceStart: SERIES_START,
     recurrenceEnd: SERIES_START + 10 * DAY,
   } as any);
@@ -130,6 +161,7 @@ describe('deleting from the calendar', function () {
 
   beforeEach(function () {
     queued = [];
+    masterIcs = SERIES_ICS;
     provider = 'gmail';
     choice = THIS_OCCURRENCE;
     spyOn(Actions, 'queueTask').andCallFake((task) => queued.push(task));
@@ -210,6 +242,25 @@ describe('deleting from the calendar', function () {
       expect((ics.match(/BEGIN:VEVENT/g) || []).length).toBe(1);
       expect(ics).toContain('EXDATE:20260302T060000Z');
       expect(ics).not.toContain('20260302T080000Z');
+    });
+
+    it('cancels an all-day date moved inside the series’ file at its original date', async function () {
+      masterIcs = ALL_DAY_SERIES_ICS;
+      const moved: AllDayOccurrence = {
+        ...seriesDate(4, true),
+        isAllDay: true,
+        isException: true,
+        startDate: parseCalendarDate('2026-03-05'),
+        endDate: parseCalendarDate('2026-03-05'),
+        recurrenceIdStart: dayStartUnix(parseCalendarDate('2026-03-02')),
+      } as any;
+      await deleteEvents([moved]);
+
+      expect(sentKinds()).toEqual(['update']);
+      const { ics } = queued[0].event;
+      expect((ics.match(/BEGIN:VEVENT/g) || []).length).toBe(1);
+      expect(ics).toMatch(/EXDATE;VALUE=DATE:20260302/);
+      expect(ics).not.toContain('20260305');
     });
   });
 
