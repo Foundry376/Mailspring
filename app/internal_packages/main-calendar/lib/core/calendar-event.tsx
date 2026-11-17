@@ -5,6 +5,7 @@ import { CalendarDateUtils } from 'mailspring-exports';
 import {
   EventOccurrence,
   isOffCalendar,
+  eventAppearance,
   isTimed,
   occurrenceStartUnix,
   occurrenceEndUnix,
@@ -215,9 +216,8 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
     styles['--event-selected-text-color'] = colors.selectedText;
 
     // Unanswered invitations draw their dashed outline over no fill
-    styles.backgroundColor = this.props.event.isAwaitingMyResponse
-      ? 'transparent'
-      : colors.background;
+    styles.backgroundColor =
+      eventAppearance(this.props.event) === 'awaiting-response' ? 'transparent' : colors.background;
     return styles;
   }
 
@@ -350,9 +350,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       'calendar-event',
       direction,
       selected && 'selected',
-      isOffCalendar(event) && 'cancelled',
-      event.isPending && 'pending',
-      event.isAwaitingMyResponse && !isOffCalendar(event) && 'awaiting-response',
+      eventAppearance(event),
       isDragging && 'dragging',
       this._canDrag() && 'draggable',
       event.isDragPreview && 'drag-preview',

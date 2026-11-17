@@ -6,6 +6,7 @@ import { withSmallMeridiem } from 'mailspring-component-kit';
 import {
   EventOccurrence,
   isOffCalendar,
+  eventAppearance,
   isTimed,
   occurrenceStartUnix,
   occurrenceEndUnix,
@@ -231,7 +232,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
   // read as a bar. Selection fills either through CSS.
   _backgroundColor(tint: string) {
     const { event } = this.props;
-    if (event.isAwaitingMyResponse) return 'transparent';
+    if (eventAppearance(event) === 'awaiting-response') return 'transparent';
     return event.isAllDay || spansDays(event) ? tint : 'transparent';
   }
 
@@ -239,12 +240,9 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
     const { event, selected, isDragging, continuesBefore, continuesAfter } = this.props;
     const colors = calcEventColors(event.calendarId);
 
-    const className = classnames('month-view-event', {
+    const className = classnames('month-view-event', eventAppearance(event), {
       selected: selected,
       'is-all-day': event.isAllDay,
-      cancelled: isOffCalendar(event),
-      pending: event.isPending,
-      'awaiting-response': event.isAwaitingMyResponse && !isOffCalendar(event),
       dragging: isDragging,
       draggable: this._canDrag(),
       'drag-preview': event.isDragPreview,

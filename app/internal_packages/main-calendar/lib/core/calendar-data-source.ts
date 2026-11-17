@@ -13,6 +13,7 @@ import {
   AccountStore,
   Calendar,
   Utils,
+  ICSParticipant,
 } from 'mailspring-exports';
 
 /** Participation status values from iCalendar spec */
@@ -26,6 +27,7 @@ export interface EventAttendee {
   email: string;
   name?: string | null;
   partstat?: ParticipationStatus;
+  role?: ICSParticipant['role'];
 }
 
 type ICAL = typeof import('ical.js').default;
@@ -163,6 +165,8 @@ interface OccurrenceBase {
   isAwaitingMyResponse?: boolean;
   /** An invitation we declined, drawn like a cancelled event. Exchange removes these itself. */
   isDeclined?: boolean;
+  /** We organize it and a required guest declined: drawn like a Maybe. */
+  hasRequiredDecline?: boolean;
   /**
    * True when this account organizes the event, or nobody does, or its ORGANIZER is the address
    * of the calendar it sits on and the server says that calendar is ours (Google writes a
@@ -207,6 +211,16 @@ export type EventOccurrence = AllDayOccurrence | TimedOccurrence;
 /** Cancelled, or declined by us: either way it's off our calendar, so both draw alike. */
 export function isOffCalendar(e: EventOccurrence): boolean {
   return e.isCancelled || !!e.isDeclined;
+}
+
+/** The class each view draws an event's answers with; off calendar beats unanswered beats Maybe. */
+export function eventAppearance(
+  e: EventOccurrence
+): 'cancelled' | 'awaiting-response' | 'pending' | null {
+  if (isOffCalendar(e)) return 'cancelled';
+  if (e.isAwaitingMyResponse) return 'awaiting-response';
+  if (e.isPending || e.hasRequiredDecline) return 'pending';
+  return null;
 }
 
 // Minimal type for focusing/highlighting an event on the calendar
@@ -376,6 +390,10 @@ function occurrenceFromICS(args: {
     email: normalizeEmail(String(a.getFirstValue() || '')),
     name: a.getFirstParameter('cn') || '',
     partstat: (a.getFirstParameter('partstat') || 'NEEDS-ACTION') as ParticipationStatus,
+    // RFC 5545 3.2.16: a missing ROLE means a required participant
+    role: String(
+      a.getFirstParameter('role') || 'REQ-PARTICIPANT'
+    ).toUpperCase() as ICSParticipant['role'],
   }));
 
   // "Me" is the account this event belongs to, not any connected account: an invitation from
@@ -394,10 +412,24 @@ function occurrenceFromICS(args: {
     ? normalizeEmail(CalendarUtils.emailFromParticipantURI(String(item.organizer)) || '')
     : '';
   const calendarOwnAddress = ownCalendarAddresses.get(event.calendarId);
-  const iAmOrganizer =
-    !!organizerEmail &&
-    (isThisAccount(organizerEmail) ||
-      (!!calendarOwnAddress && Utils.emailIsEquivalent(organizerEmail, calendarOwnAddress)));
+  const isOurAddress = (email: string) =>
+    isThisAccount(email) ||
+    (!!calendarOwnAddress && Utils.emailIsEquivalent(email, calendarOwnAddress));
+  const iAmOrganizer = !!organizerEmail && isOurAddress(organizerEmail);
+  const isMine = !organizerEmail || iAmOrganizer;
+
+  const hasRequiredDecline =
+    isMine &&
+    attendees.some((a, i) => {
+      const cutype = String(item.attendees[i].getFirstParameter('cutype') || '').toUpperCase();
+      return (
+        a.partstat.toUpperCase() === 'DECLINED' &&
+        (a.role === 'REQ-PARTICIPANT' || a.role === 'CHAIR') &&
+        cutype !== 'ROOM' &&
+        cutype !== 'RESOURCE' &&
+        !isOurAddress(a.email)
+      );
+    });
 
   const isAllDay = !!startTime.isDate;
   const startDate = isAllDay
@@ -423,7 +455,8 @@ function occurrenceFromICS(args: {
     isPending: status === 'TENTATIVE' || myPartstat === 'TENTATIVE',
     isAwaitingMyResponse,
     isDeclined: myPartstat === 'DECLINED',
-    isMine: !organizerEmail || iAmOrganizer,
+    hasRequiredDecline,
+    isMine,
     isFree: item.component?.getFirstPropertyValue('transp') === 'TRANSPARENT',
     isException: args.isException ?? !!rid,
     recurrenceIdStart: rid ? (rid as any).toJSDate().getTime() / 1000 : undefined,
