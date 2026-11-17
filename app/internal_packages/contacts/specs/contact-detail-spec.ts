@@ -38,7 +38,7 @@ describe('Leaving Contacts while editing a contact', function () {
   beforeEach(function () {
     detail = editor(contact.id);
     dialog = spyOn(require('@electron/remote').dialog, 'showMessageBoxSync');
-    spyOn(detail, 'onSaveChanges');
+    spyOn(detail, '_queueSave');
     spyOn(Store, 'setEditing');
   });
 
@@ -51,7 +51,7 @@ describe('Leaving Contacts while editing a contact', function () {
     typeCompany(detail);
     dialog.andReturn(KEEP_EDITING);
     expect(detail._mayLeaveSection()).toBe(false);
-    expect(detail.onSaveChanges).not.toHaveBeenCalled();
+    expect(detail._queueSave).not.toHaveBeenCalled();
     expect(Store.setEditing).not.toHaveBeenCalled();
   });
 
@@ -59,7 +59,7 @@ describe('Leaving Contacts while editing a contact', function () {
     typeCompany(detail);
     dialog.andReturn(DISCARD);
     expect(detail._mayLeaveSection()).toBe(true);
-    expect(detail.onSaveChanges).not.toHaveBeenCalled();
+    expect(detail._queueSave).not.toHaveBeenCalled();
     expect(Store.setEditing).toHaveBeenCalledWith(false);
   });
 
@@ -67,7 +67,7 @@ describe('Leaving Contacts while editing a contact', function () {
     typeCompany(detail);
     dialog.andReturn(SAVE);
     expect(detail._mayLeaveSection()).toBe(true);
-    expect(detail.onSaveChanges).toHaveBeenCalled();
+    expect(detail._queueSave).toHaveBeenCalled();
   });
 });
 

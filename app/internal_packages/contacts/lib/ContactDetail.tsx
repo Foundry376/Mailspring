@@ -3,6 +3,7 @@ import {
   Contact,
   localized,
   Actions,
+  AccountStore,
   SyncbackContactTask,
   ContactGroup,
   DatabaseStore,
@@ -22,7 +23,7 @@ import {
 import { ContactDetailRead } from './ContactDetailRead';
 import { ContactDetailEdit } from './ContactDetailEdit';
 import { displayNameForContact } from './ContactDisplayName';
-import { Store } from './Store';
+import { Store, accountContactsPerspective } from './Store';
 
 interface ContactDetailProps {
   editing: string | 'new' | false;
@@ -73,7 +74,7 @@ export class ContactDetailWithFocus extends React.Component<
       message: localized('"%@" has unsaved changes.', name),
     });
     if (response === 2) return false;
-    if (response === 0) this.onSaveChanges();
+    if (response === 0) this._queueSave();
     else this.onCancel();
     return true;
   };
@@ -96,8 +97,7 @@ export class ContactDetailWithFocus extends React.Component<
     // Focus follows a click a frame late, so an edit started since still sees the old focus.
     const { editing, focusedId } = this.props;
     if (newContact && focusedId !== prevProps.focusedId && editing !== newContact.id) {
-      // The list moves focus before anything asks, so keeping the edit moves it back without
-      // rebuilding the form from the stored contact.
+      // The list has already moved focus, so keeping the edit moves it back.
       if (editing && !this._mayLeaveSection()) {
         this._refocusingEdited = true;
         Actions.setFocus({ collection: 'contact', item: editing === 'new' ? null : prevContact });
@@ -136,20 +136,33 @@ export class ContactDetailWithFocus extends React.Component<
     Store.setEditing(false);
   };
 
-  onSaveChanges = () => {
+  _queueSave() {
     const contact = apply(this.state.contact, this.state.data);
     const task = contact.id
       ? SyncbackContactTask.forUpdating({ contact })
       : SyncbackContactTask.forCreating({ contact, accountId: contact.accountId });
     Actions.queueTask(task);
     Store.setEditing(false);
+    return task;
+  }
 
-    if (!contact.id) {
-      // The sync engine assigns the new contact's id during performLocal.
-      TaskQueue.waitForPerformLocal(task)
-        .then((t) => DatabaseStore.find<Contact>(Contact, t.contact.id).then((c) => c))
-        .then((created) => created && Actions.setFocus({ collection: 'contact', item: created }));
+  // Only an explicit Save shows the new contact; saving on the way elsewhere leaves the user there.
+  onSaveChanges = () => {
+    const isNew = !this.state.contact.id;
+    const task = this._queueSave();
+    if (!isNew) return;
+
+    // Found in Mail and groups don't list a contact created in them.
+    const perspective = Store.perspective();
+    if (perspective.type === 'found-in-mail' || perspective.type === 'group') {
+      Store.setPerspective(
+        accountContactsPerspective(AccountStore.accountForId(task.contact.accountId))
+      );
     }
+    // The sync engine assigns the new contact's id during performLocal.
+    TaskQueue.waitForPerformLocal(task)
+      .then((t) => DatabaseStore.find<Contact>(Contact, t.contact.id).then((c) => c))
+      .then((created) => created && Actions.setFocus({ collection: 'contact', item: created }));
   };
 
   render() {
