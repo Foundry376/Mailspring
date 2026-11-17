@@ -30,8 +30,6 @@ export function startNewContact(accountId: string) {
 }
 
 class AddContactToolbarWithData extends React.Component<AddContactToolbarProps> {
-  _button = React.createRef<HTMLButtonElement>();
-
   onAdd = () => {
     const { perspective, accounts } = this.props;
     const account = accountForNewContact(perspective, accounts);
@@ -39,12 +37,11 @@ class AddContactToolbarWithData extends React.Component<AddContactToolbarProps> 
       startNewContact(account.id);
       return;
     }
-    const rect = this._button.current.getBoundingClientRect();
     require('@electron/remote')
       .Menu.buildFromTemplate(
         accounts.map((a) => ({ label: a.label, click: () => startNewContact(a.id) }))
       )
-      .popup({ x: Math.round(rect.left), y: Math.round(rect.bottom) });
+      .popup({});
   };
 
   render() {
@@ -57,7 +54,6 @@ class AddContactToolbarWithData extends React.Component<AddContactToolbarProps> 
           <CSSTransition key="new-contact" classNames="opacity-125ms" timeout={125}>
             <BindGlobalCommands commands={{ 'core:add-item': this.onAdd }}>
               <NewItemButton
-                buttonRef={this._button}
                 label={localized('New Contact')}
                 title={account ? localized('New contact in %@', account.label) : undefined}
                 matchWidthOf={[localized('Compose'), localized('New Event')]}
