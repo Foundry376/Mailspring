@@ -162,7 +162,6 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
 
     // Use a day-unique id/key so multi-day events don't produce duplicate DOM ids
     const uniqueId = `${event.id}-${dayKey}`;
-    const isStruck = isOffCalendar(event);
 
     const className = ['agenda-event', isSelected && 'selected', eventAppearance(event)]
       .filter(Boolean)
@@ -181,7 +180,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
         <div className="agenda-event-color-bar" />
         <div className="agenda-event-details">
           <div className="agenda-event-title">
-            {isStruck ? (
+            {isOffCalendar(event) ? (
               <s>{event.title || localized('(No title)')}</s>
             ) : (
               event.title || localized('(No title)')
