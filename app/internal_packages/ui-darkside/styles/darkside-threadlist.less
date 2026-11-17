@@ -8,21 +8,8 @@
   border-bottom: 1px solid @border-color;
 }
 
-// move search bar edges in slightly
-// The calendar's toolbar shares the inset so search sits in the same place in both sections.
-.toolbar-ThreadList,
-.toolbar-CalendarContent {
-  padding: 0 10px;
-}
-// That inset already lines the agenda toggle up with the agenda panel below.
-.toolbar-CalendarContent .header-controls {
-  padding-right: 0;
-}
 // With the agenda open, its part of the header runs dark to the window's edge, like the agenda
 // column below.
-.toolbar-CalendarContent:has(.agenda-split) {
-  padding-right: 0;
-}
 .toolbar-CalendarContent .agenda-split .agenda-controls {
   background: @sidebar;
 
@@ -44,11 +31,6 @@
     filter: brightness(0) invert(1);
     opacity: 0.5;
   }
-}
-
-// jackiehluo -> Hide search bar when buttons appear in list mode
-.toolbar-ThreadList .selection-bar .inner {
-  background: @threadlist-bg;
 }
 
 .list-tabular .list-tabular-item {

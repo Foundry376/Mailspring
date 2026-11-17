@@ -27,7 +27,7 @@
 @less-highlight: #fafafa; //lightest-gray
 @less-divider: #dddddd; //lighter-gray
 @less-top-inset: calc(3em + 24px); // where the columns start, under the floating toolbar
-@less-side-inset: 2em; // the thread list's sides, which the mail search lines up with
+@less-side-inset: 2em; // the thread list's sides
 @minimize: #fbd852; //yellow
 @maximize: #8dd07d; //green
 @close: #ff5f56; //red
@@ -139,13 +139,6 @@
   border: none;
   height: 0;
   min-height: 0;
-  .selection-bar .absolute {
-    position: absolute;
-    left: 0;
-    right: 0;
-    border-left: none;
-    border-right: none;
-  }
 }
 
 // A pushed sheet's toolbar (an open thread in list mode, Preferences) floats over the root
@@ -751,10 +744,6 @@ input[type='url'] {
     }
   }
 }
-.thread-search-bar {
-  margin-left: @less-side-inset;
-}
-
 // Remove box-shadow on search bar
 body.is-blurred .search-bar .menu .header-container input,
 body.is-blurred .sheet-toolbar-container .btn.btn-toolbar,
