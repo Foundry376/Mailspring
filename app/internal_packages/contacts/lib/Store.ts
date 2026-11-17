@@ -94,7 +94,6 @@ class ContactsSectionStore extends MailspringStore {
     this.trigger();
   }
 
-  /** Accounts with an address book; the others only have contacts found in mail. */
   accountsWithContactBooks() {
     return AccountStore.accounts().filter((a) => this._books.some((b) => b.accountId === a.id));
   }

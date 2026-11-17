@@ -312,7 +312,6 @@ class WorkspaceStore extends MailspringStore {
     };
   }
 
-  /** Runs the section's guard, so a section can resolve its unsaved changes before replacing them. */
   mayLeaveSection() {
     return this._sectionLeaveGuard?.() !== false;
   }
