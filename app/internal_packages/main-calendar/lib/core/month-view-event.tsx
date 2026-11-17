@@ -243,7 +243,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
       selected: selected,
       'is-all-day': event.isAllDay,
       cancelled: isOffCalendar(event),
-      pending: event.isPending,
+      pending: event.isPending || event.hasRequiredDecline,
       'awaiting-response': event.isAwaitingMyResponse && !isOffCalendar(event),
       dragging: isDragging,
       draggable: this._canDrag(),

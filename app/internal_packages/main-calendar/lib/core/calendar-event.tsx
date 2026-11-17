@@ -351,7 +351,7 @@ export class CalendarEvent extends React.Component<CalendarEventProps, CalendarE
       direction,
       selected && 'selected',
       isOffCalendar(event) && 'cancelled',
-      event.isPending && 'pending',
+      (event.isPending || event.hasRequiredDecline) && 'pending',
       event.isAwaitingMyResponse && !isOffCalendar(event) && 'awaiting-response',
       isDragging && 'dragging',
       this._canDrag() && 'draggable',
