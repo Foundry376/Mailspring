@@ -165,10 +165,7 @@ interface OccurrenceBase {
   isAwaitingMyResponse?: boolean;
   /** An invitation we declined, drawn like a cancelled event. Exchange removes these itself. */
   isDeclined?: boolean;
-  /**
-   * We organize it and a required guest declined: drawn like a Maybe. Rooms and resources
-   * don't count.
-   */
+  /** We organize it and a required guest declined: drawn like a Maybe. */
   hasRequiredDecline?: boolean;
   /**
    * True when this account organizes the event, or nobody does, or its ORGANIZER is the address
@@ -430,7 +427,6 @@ function occurrenceFromICS(args: {
         (a.role === 'REQ-PARTICIPANT' || a.role === 'CHAIR') &&
         cutype !== 'ROOM' &&
         cutype !== 'RESOURCE' &&
-        !!a.email &&
         !isOurAddress(a.email)
       );
     });
