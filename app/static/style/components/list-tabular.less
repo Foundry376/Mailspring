@@ -28,6 +28,11 @@
   }
 }
 
+// The bar takes the toolbar's colour, so the rest of its column hides while it's down.
+.sheet-toolbar .item-container:has(> .selection-bar > .absolute) > :not(.selection-bar) {
+  visibility: hidden;
+}
+
 .sheet-toolbar .selection-bar {
   // This item sits in the toolbar and takes up all the remaining
   // space from the toolbar-spacer divs, but flex-shrink means that
@@ -45,18 +50,16 @@
 
   .absolute {
     position: absolute;
-    left: -1px;
-    right: -1px;
+    left: 0;
+    right: 0;
     top: 0;
     height: 33px;
-    border-left: 1px solid @border-color-divider;
-    border-right: 1px solid @border-color-divider;
-    background-color: @background-primary;
     transition: opacity 0.2s ease-in-out;
 
     .inner {
       position: absolute;
       width: 100%;
+      padding-right: @toolbar-gap;
       display: flex;
       -webkit-app-region: no-drag;
       transition: top 0.2s ease-in-out;
