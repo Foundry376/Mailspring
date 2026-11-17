@@ -170,4 +170,104 @@ describe('occurrence ownership', function () {
 
     expect(occurrences.map((o) => o.isDeclined)).toEqual([false, true, false]);
   });
+
+  describe('hasRequiredDecline', function () {
+    const declinedBy = (attendee: string) =>
+      only(
+        eventWith([`ORGANIZER:mailto:${ME}`, `ATTENDEE;PARTSTAT=ACCEPTED:mailto:${ME}`, attendee])
+      ).hasRequiredDecline;
+
+    it('counts a required guest, named or by the default role', function () {
+      expect(declinedBy('ATTENDEE;PARTSTAT=DECLINED:mailto:ada@example.com')).toBe(true);
+      expect(
+        declinedBy('ATTENDEE;ROLE=REQ-PARTICIPANT;PARTSTAT=DECLINED:mailto:ada@example.com')
+      ).toBe(true);
+      expect(declinedBy('ATTENDEE;ROLE=CHAIR;PARTSTAT=DECLINED:mailto:ada@example.com')).toBe(true);
+    });
+
+    it('ignores optional and non-participant guests, rooms and resources', function () {
+      expect(
+        declinedBy('ATTENDEE;ROLE=OPT-PARTICIPANT;PARTSTAT=DECLINED:mailto:ada@example.com')
+      ).toBe(false);
+      expect(
+        declinedBy('ATTENDEE;ROLE=NON-PARTICIPANT;PARTSTAT=DECLINED:mailto:ada@example.com')
+      ).toBe(false);
+      expect(declinedBy('ATTENDEE;CUTYPE=ROOM;PARTSTAT=DECLINED:mailto:room@example.com')).toBe(
+        false
+      );
+      expect(
+        declinedBy('ATTENDEE;CUTYPE=RESOURCE;PARTSTAT=DECLINED:mailto:projector@example.com')
+      ).toBe(false);
+    });
+
+    it('ignores answers other than No', function () {
+      expect(declinedBy('ATTENDEE;PARTSTAT=TENTATIVE:mailto:ada@example.com')).toBe(false);
+      expect(declinedBy('ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:ada@example.com')).toBe(false);
+    });
+
+    it('is only for events we organize, and not for our own No', function () {
+      expect(
+        only(
+          eventWith([
+            'ORGANIZER:mailto:ada@example.com',
+            `ATTENDEE;PARTSTAT=ACCEPTED:mailto:${ME}`,
+            'ATTENDEE;PARTSTAT=DECLINED:mailto:bob@example.com',
+          ])
+        ).hasRequiredDecline
+      ).toBe(false);
+      expect(
+        only(
+          eventWith([
+            `ORGANIZER:mailto:${ME}`,
+            `ATTENDEE;PARTSTAT=DECLINED:mailto:${ME}`,
+            'ATTENDEE;PARTSTAT=ACCEPTED:mailto:ada@example.com',
+          ])
+        ).hasRequiredDecline
+      ).toBe(false);
+    });
+
+    it("marks only the occurrence whose override holds the guest's No", function () {
+      const series = new Event({
+        id: 'e1',
+        accountId: 'acct-1',
+        calendarId: 'cal-1',
+        icsuid: 'uid@test',
+        recurrenceStart: Date.UTC(2026, 2, 10, 14) / 1000,
+        recurrenceEnd: Date.UTC(2026, 2, 24, 15) / 1000,
+        ics: [
+          'BEGIN:VCALENDAR',
+          'VERSION:2.0',
+          'PRODID:-//Test//Test//EN',
+          'BEGIN:VEVENT',
+          'UID:uid@test',
+          'DTSTART:20260310T140000Z',
+          'DTEND:20260310T150000Z',
+          'RRULE:FREQ=WEEKLY;COUNT=3',
+          'SUMMARY:Planning',
+          'DTSTAMP:20260101T000000Z',
+          `ORGANIZER:mailto:${ME}`,
+          'ATTENDEE;PARTSTAT=ACCEPTED:mailto:ada@example.com',
+          'END:VEVENT',
+          'BEGIN:VEVENT',
+          'UID:uid@test',
+          'RECURRENCE-ID:20260317T140000Z',
+          'DTSTART:20260317T140000Z',
+          'DTEND:20260317T150000Z',
+          'SUMMARY:Planning',
+          'DTSTAMP:20260101T000000Z',
+          `ORGANIZER:mailto:${ME}`,
+          'ATTENDEE;PARTSTAT=DECLINED:mailto:ada@example.com',
+          'END:VEVENT',
+          'END:VCALENDAR',
+        ].join('\r\n'),
+      } as any);
+
+      const occurrences = occurrencesForEvents([series], {
+        startUnix: Date.UTC(2026, 2, 9) / 1000,
+        endUnix: Date.UTC(2026, 2, 26) / 1000,
+      }).sort((a, b) => a.startDate - b.startDate);
+
+      expect(occurrences.map((o) => o.hasRequiredDecline)).toEqual([false, true, false]);
+    });
+  });
 });
