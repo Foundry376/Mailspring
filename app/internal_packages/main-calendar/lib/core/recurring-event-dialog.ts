@@ -65,7 +65,8 @@ export interface DeleteDialogItem {
   role: DeleteRole;
   /** Groups the selected dates of one series under one title. */
   eventId: string;
-  day: string;
+  /** Set for a date of a series, so the list shows that only that date goes. */
+  day?: string;
 }
 
 const LISTED_TITLES = 8;
@@ -74,11 +75,11 @@ function listedTitles(items: DeleteDialogItem[]): string {
   const days = new Map<string, { title: string; days: string[] }>();
   for (const item of items) {
     const entry = days.get(item.eventId) || { title: item.title, days: [] };
-    entry.days.push(item.day);
+    if (item.day) entry.days.push(item.day);
     days.set(item.eventId, entry);
   }
   const lines = [...days.values()].map(({ title, days }) =>
-    days.length > 1 ? `${title} (${days.join('; ')})` : title
+    days.length ? `• ${title} · ${days.join('; ')}` : `• ${title}`
   );
   if (lines.length <= LISTED_TITLES) return lines.join('\n');
   return [
@@ -127,8 +128,8 @@ export function showDeleteDialog(
   } else {
     message = localized('Delete or decline %@ events?', items.length);
     confirm = localized('Delete and Decline');
-    detail.push(`${localized('Delete:')}\n${listedTitles(deleted)}`);
-    detail.push(`${localized('Decline and remove:')}\n${listedTitles(declined)}`);
+    detail.push(`${localized('Delete')}\n${listedTitles(deleted)}`);
+    detail.push(`${localized('Decline and remove')}\n${listedTitles(declined)}`);
     detail.push(
       guestsTold
         ? localized('Guests and organizers will be told.')

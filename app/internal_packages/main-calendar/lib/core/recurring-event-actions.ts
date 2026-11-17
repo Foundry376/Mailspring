@@ -492,11 +492,13 @@ export async function deleteEvents(occurrences: EventOccurrence[], skipped = 0) 
     if (targets.length === 0) return;
 
     const choice = showDeleteDialog(
-      targets.map(({ occurrence, master }) => ({
-        title: occurrence.title || localized('(no title)'),
-        role: deleteRole(occurrence),
-        eventId: master.id,
-        day: DateUtils.dayString(momentOf(occurrence.startDate)),
+      targets.map((target) => ({
+        title: target.occurrence.title || localized('(no title)'),
+        role: deleteRole(target.occurrence),
+        eventId: target.master.id,
+        day: isSeries(target)
+          ? DateUtils.dayString(momentOf(target.occurrence.startDate))
+          : undefined,
       })),
       { series: targets.length === 1 && isSeries(targets[0]), skipped }
     );
