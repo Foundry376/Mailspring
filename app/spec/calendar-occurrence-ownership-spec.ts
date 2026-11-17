@@ -38,6 +38,48 @@ function eventWith(lines: string[]): Event {
 const window = { startUnix: Date.UTC(2026, 2, 9) / 1000, endUnix: Date.UTC(2026, 2, 12) / 1000 };
 const only = (event: Event) => occurrencesForEvents([event], window)[0];
 
+/** A weekly series of three from Mar 10, with its Mar 17 occurrence overridden. */
+function seriesWith(masterLines: string[], overrideLines: string[]): Event {
+  return new Event({
+    id: 'e1',
+    accountId: 'acct-1',
+    calendarId: 'cal-1',
+    icsuid: 'uid@test',
+    recurrenceStart: Date.UTC(2026, 2, 10, 14) / 1000,
+    recurrenceEnd: Date.UTC(2026, 2, 24, 15) / 1000,
+    ics: [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Test//Test//EN',
+      'BEGIN:VEVENT',
+      'UID:uid@test',
+      'DTSTART:20260310T140000Z',
+      'DTEND:20260310T150000Z',
+      'RRULE:FREQ=WEEKLY;COUNT=3',
+      'SUMMARY:Planning',
+      'DTSTAMP:20260101T000000Z',
+      ...masterLines,
+      'END:VEVENT',
+      'BEGIN:VEVENT',
+      'UID:uid@test',
+      'RECURRENCE-ID:20260317T140000Z',
+      'DTSTART:20260317T140000Z',
+      'DTEND:20260317T150000Z',
+      'SUMMARY:Planning',
+      'DTSTAMP:20260101T000000Z',
+      ...overrideLines,
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n'),
+  } as any);
+}
+
+const weeksOf = (series: Event) =>
+  occurrencesForEvents([series], {
+    startUnix: Date.UTC(2026, 2, 9) / 1000,
+    endUnix: Date.UTC(2026, 2, 26) / 1000,
+  }).sort((a, b) => a.startDate - b.startDate);
+
 describe('occurrence ownership', function () {
   beforeEach(function () {
     spyOn(AccountStore, 'accountForEmail').andCallFake((email: string) => {
@@ -128,47 +170,12 @@ describe('occurrence ownership', function () {
 
   it('declines only the occurrence whose override says so', function () {
     // Google keeps a guest's one-occurrence decline as an override in the same file.
-    const series = new Event({
-      id: 'e1',
-      accountId: 'acct-1',
-      calendarId: 'cal-1',
-      icsuid: 'uid@test',
-      recurrenceStart: Date.UTC(2026, 2, 10, 14) / 1000,
-      recurrenceEnd: Date.UTC(2026, 2, 24, 15) / 1000,
-      ics: [
-        'BEGIN:VCALENDAR',
-        'VERSION:2.0',
-        'PRODID:-//Test//Test//EN',
-        'BEGIN:VEVENT',
-        'UID:uid@test',
-        'DTSTART:20260310T140000Z',
-        'DTEND:20260310T150000Z',
-        'RRULE:FREQ=WEEKLY;COUNT=3',
-        'SUMMARY:Planning',
-        'DTSTAMP:20260101T000000Z',
-        'ORGANIZER:mailto:ada@example.com',
-        `ATTENDEE;PARTSTAT=ACCEPTED:mailto:${ME}`,
-        'END:VEVENT',
-        'BEGIN:VEVENT',
-        'UID:uid@test',
-        'RECURRENCE-ID:20260317T140000Z',
-        'DTSTART:20260317T140000Z',
-        'DTEND:20260317T150000Z',
-        'SUMMARY:Planning',
-        'DTSTAMP:20260101T000000Z',
-        'ORGANIZER:mailto:ada@example.com',
-        `ATTENDEE;PARTSTAT=DECLINED:mailto:${ME}`,
-        'END:VEVENT',
-        'END:VCALENDAR',
-      ].join('\r\n'),
-    } as any);
+    const series = seriesWith(
+      ['ORGANIZER:mailto:ada@example.com', `ATTENDEE;PARTSTAT=ACCEPTED:mailto:${ME}`],
+      ['ORGANIZER:mailto:ada@example.com', `ATTENDEE;PARTSTAT=DECLINED:mailto:${ME}`]
+    );
 
-    const occurrences = occurrencesForEvents([series], {
-      startUnix: Date.UTC(2026, 2, 9) / 1000,
-      endUnix: Date.UTC(2026, 2, 26) / 1000,
-    }).sort((a, b) => a.startDate - b.startDate);
-
-    expect(occurrences.map((o) => o.isDeclined)).toEqual([false, true, false]);
+    expect(weeksOf(series).map((o) => o.isDeclined)).toEqual([false, true, false]);
   });
 
   describe('hasRequiredDecline', function () {
@@ -226,48 +233,32 @@ describe('occurrence ownership', function () {
       ).toBe(false);
     });
 
+    it("treats a calendar's own address as us, not as a guest", function () {
+      // Google writes a secondary calendar's own id as ORGANIZER and lists it as an attendee.
+      const CALENDAR = 'team@group.calendar.example.com';
+      const onCalendar = (guest: string) =>
+        occurrencesForEvents(
+          [
+            eventWith([
+              `ORGANIZER:mailto:${CALENDAR}`,
+              `ATTENDEE;PARTSTAT=DECLINED:mailto:${CALENDAR}`,
+              guest,
+            ]),
+          ],
+          { ...window, ownCalendarAddresses: new Map([['cal-1', CALENDAR]]) }
+        )[0].hasRequiredDecline;
+
+      expect(onCalendar('ATTENDEE;PARTSTAT=ACCEPTED:mailto:ada@example.com')).toBe(false);
+      expect(onCalendar('ATTENDEE;PARTSTAT=DECLINED:mailto:ada@example.com')).toBe(true);
+    });
+
     it("marks only the occurrence whose override holds the guest's No", function () {
-      const series = new Event({
-        id: 'e1',
-        accountId: 'acct-1',
-        calendarId: 'cal-1',
-        icsuid: 'uid@test',
-        recurrenceStart: Date.UTC(2026, 2, 10, 14) / 1000,
-        recurrenceEnd: Date.UTC(2026, 2, 24, 15) / 1000,
-        ics: [
-          'BEGIN:VCALENDAR',
-          'VERSION:2.0',
-          'PRODID:-//Test//Test//EN',
-          'BEGIN:VEVENT',
-          'UID:uid@test',
-          'DTSTART:20260310T140000Z',
-          'DTEND:20260310T150000Z',
-          'RRULE:FREQ=WEEKLY;COUNT=3',
-          'SUMMARY:Planning',
-          'DTSTAMP:20260101T000000Z',
-          `ORGANIZER:mailto:${ME}`,
-          'ATTENDEE;PARTSTAT=ACCEPTED:mailto:ada@example.com',
-          'END:VEVENT',
-          'BEGIN:VEVENT',
-          'UID:uid@test',
-          'RECURRENCE-ID:20260317T140000Z',
-          'DTSTART:20260317T140000Z',
-          'DTEND:20260317T150000Z',
-          'SUMMARY:Planning',
-          'DTSTAMP:20260101T000000Z',
-          `ORGANIZER:mailto:${ME}`,
-          'ATTENDEE;PARTSTAT=DECLINED:mailto:ada@example.com',
-          'END:VEVENT',
-          'END:VCALENDAR',
-        ].join('\r\n'),
-      } as any);
+      const series = seriesWith(
+        [`ORGANIZER:mailto:${ME}`, 'ATTENDEE;PARTSTAT=ACCEPTED:mailto:ada@example.com'],
+        [`ORGANIZER:mailto:${ME}`, 'ATTENDEE;PARTSTAT=DECLINED:mailto:ada@example.com']
+      );
 
-      const occurrences = occurrencesForEvents([series], {
-        startUnix: Date.UTC(2026, 2, 9) / 1000,
-        endUnix: Date.UTC(2026, 2, 26) / 1000,
-      }).sort((a, b) => a.startDate - b.startDate);
-
-      expect(occurrences.map((o) => o.hasRequiredDecline)).toEqual([false, true, false]);
+      expect(weeksOf(series).map((o) => o.hasRequiredDecline)).toEqual([false, true, false]);
     });
   });
 });
