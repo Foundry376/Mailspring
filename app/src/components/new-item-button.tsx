@@ -1,4 +1,5 @@
 import React from 'react';
+import classnames from 'classnames';
 import { RetinaImg } from './retina-img';
 
 interface NewItemButtonProps {
@@ -11,6 +12,8 @@ interface NewItemButtonProps {
   buttonRef?: React.RefObject<HTMLButtonElement>;
   /** Labels of sibling buttons in other sheets, so the button keeps one width as the user switches. */
   matchWidthOf?: string[];
+  icon?: React.ReactNode;
+  className?: string;
 }
 
 interface NewItemButtonState {
@@ -19,8 +22,8 @@ interface NewItemButtonState {
 }
 
 /*
-Public: The toolbar button that starts a new item, such as Compose or New Event: the compose
-icon and a label, or only the icon when its toolbar row runs out of room.
+Public: The toolbar button that starts a new item, such as Compose or New Event: an icon (the
+compose icon by default) and a label, or only the icon when its toolbar row runs out of room.
 
 Section: Component Kit
 */
@@ -63,24 +66,26 @@ export default class NewItemButton extends React.Component<NewItemButtonProps, N
   };
 
   render() {
-    const { label, tabIndex, onClick, matchWidthOf = [] } = this.props;
+    const { label, tabIndex, onClick, matchWidthOf = [], icon, className } = this.props;
     const { compact } = this.state;
     const title = this.props.title || (compact ? label : undefined);
     return (
       <button
         ref={this._button}
         tabIndex={tabIndex}
-        className="btn btn-toolbar item-compose"
+        className={classnames('btn btn-toolbar item-compose', className)}
         style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
         title={title}
         aria-label={title}
         onClick={onClick}
       >
-        <RetinaImg
-          name="toolbar-compose.png"
-          mode={RetinaImg.Mode.ContentIsMask}
-          aria-hidden="true"
-        />
+        {icon || (
+          <RetinaImg
+            name="toolbar-compose.png"
+            mode={RetinaImg.Mode.ContentIsMask}
+            aria-hidden="true"
+          />
+        )}
         {!compact && (
           // Every label shares one grid cell, so the widest sets the width in any language.
           <span className="text" style={{ display: 'inline-grid', justifyItems: 'center' }}>

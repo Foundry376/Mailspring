@@ -33,6 +33,7 @@ import {
 import {
   EventOccurrence,
   EventAttendee,
+  isOffCalendar,
   isTimed,
   occurrenceStartUnix,
   occurrenceTimes,
@@ -632,7 +633,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         />
       );
     }
-    return event.isCancelled ? <s>{title}</s> : title;
+    return isOffCalendar(event) ? <s>{title}</s> : title;
   }
 
   _firstDay(times: Times) {
@@ -1011,6 +1012,8 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       // An organizer left off the guest list isn't found as `me`; isMine says it's us.
       role =
         isMe || this.props.event.isMine ? localized('Organizer · You') : localized('Organizer');
+    } else if (attendee.role === 'OPT-PARTICIPANT') {
+      role = isMe ? localized('Optional · You') : localized('Optional');
     } else if (isMe) {
       role = localized('You');
     }

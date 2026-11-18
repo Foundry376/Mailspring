@@ -270,6 +270,90 @@ describe('ICSEventHelpers.expandBetween, on the cases ical-expander covers', fun
     expect(entries.filter((e) => !isOccurrence(e)).map(summaryOf)).toEqual(['test recurring']);
   });
 
+  describe('for a series that began years before the window', function () {
+    const series = (rrule: string, extra: string[] = [], end = '20180305T100000Z') =>
+      [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'BEGIN:VEVENT',
+        'UID:old-series@test',
+        'DTSTAMP:20180301T000000Z',
+        'DTSTART:20180305T090000Z',
+        `DTEND:${end}`,
+        `RRULE:${rrule}`,
+        'SUMMARY:Old series',
+        'END:VEVENT',
+        ...extra,
+        'END:VCALENDAR',
+      ].join('\r\n');
+    const starts = (ics: string, after: string, before: string) =>
+      ICSEventHelpers.expandBetween(
+        ics,
+        unix(new Date('2018-03-05T09:00:00Z')),
+        unix(new Date(after)),
+        unix(new Date(before))
+      ).map((e) => iso(e.startDate));
+
+    it('reaches the window when the rule takes several steps a week', function () {
+      // Five weekdays a week since 2018 is over 2,000 steps; budgeted at one a week, the
+      // expander ran out years early and the meeting vanished from the calendar.
+      expect(
+        starts(
+          series('FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR'),
+          '2026-11-09T00:00:00Z',
+          '2026-11-14T00:00:00Z'
+        )
+      ).toEqual([
+        '2026-11-09T09:00:00.000Z',
+        '2026-11-10T09:00:00.000Z',
+        '2026-11-11T09:00:00.000Z',
+        '2026-11-12T09:00:00.000Z',
+        '2026-11-13T09:00:00.000Z',
+      ]);
+    });
+
+    it('includes a slot that starts before the window and runs into it', function () {
+      const threeDays = series('FREQ=WEEKLY', [], '20180308T090000Z');
+      expect(starts(threeDays, '2026-11-11T00:00:00Z', '2026-11-11T23:59:59Z')).toEqual([
+        '2026-11-09T09:00:00.000Z',
+      ]);
+    });
+
+    it('places an occurrence moved from years back into the window', function () {
+      const movedForward = series('FREQ=WEEKLY', [
+        'BEGIN:VEVENT',
+        'UID:old-series@test',
+        'DTSTAMP:20180301T000000Z',
+        'RECURRENCE-ID:20180312T090000Z',
+        'DTSTART:20261111T150000Z',
+        'DTEND:20261111T160000Z',
+        'SUMMARY:Moved a long way',
+        'END:VEVENT',
+      ]);
+      expect(starts(movedForward, '2026-11-11T00:00:00Z', '2026-11-11T23:59:59Z')).toEqual([
+        '2026-11-11T15:00:00.000Z',
+      ]);
+    });
+
+    it('shifts later slots by a THISANDFUTURE exception from years back', function () {
+      // Every Monday from March 2018 on moved to Wednesday, so a Wednesday window holds the
+      // shifted slot of a Monday more than a day before it.
+      const movedToWednesdays = series('FREQ=WEEKLY', [
+        'BEGIN:VEVENT',
+        'UID:old-series@test',
+        'DTSTAMP:20180301T000000Z',
+        'RECURRENCE-ID;RANGE=THISANDFUTURE:20180312T090000Z',
+        'DTSTART:20180314T090000Z',
+        'DTEND:20180314T100000Z',
+        'SUMMARY:Wednesdays from now on',
+        'END:VEVENT',
+      ]);
+      expect(starts(movedToWednesdays, '2026-11-11T00:00:00Z', '2026-11-11T23:59:59Z')).toEqual([
+        '2026-11-11T09:00:00.000Z',
+      ]);
+    });
+  });
+
   it('includes every event that overlaps the window, however little', function () {
     const entries = expand(
       BETWEEN_DATES,

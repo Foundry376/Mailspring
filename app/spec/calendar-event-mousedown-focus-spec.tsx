@@ -25,7 +25,7 @@ const occurrence: TimedOccurrence = {
   end: START + 3600,
 } as TimedOccurrence;
 
-// The calendar's key commands (arrows move, Delete removes) dispatch on document.activeElement,
+// The calendar's key commands (Option+arrows move, Delete removes) dispatch on document.activeElement,
 // so a movable event the user has just pressed must be the active element.
 function mountMovableEvent(Component: any, extraProps: object) {
   const host = document.createElement('div');

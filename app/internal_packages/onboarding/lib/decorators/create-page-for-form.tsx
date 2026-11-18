@@ -1,7 +1,7 @@
 import { shell } from 'electron';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { RetinaImg } from 'mailspring-component-kit';
+import { RetinaImg, LoadingSpinner } from 'mailspring-component-kit';
 import { localized, Account } from 'mailspring-exports';
 
 import * as OnboardingActions from '../onboarding-actions';
@@ -243,12 +243,7 @@ const CreatePageForForm = (FormComponent: React.ComponentType<any> & Record<stri
       if (submitting) {
         return (
           <button className="btn btn-large btn-disabled btn-add-account spinning">
-            <RetinaImg
-              name="sending-spinner.gif"
-              width={15}
-              height={15}
-              mode={RetinaImg.Mode.ContentPreserve}
-            />
+            <LoadingSpinner size={15} />
             {localized('Adding account')}&hellip;
           </button>
         );

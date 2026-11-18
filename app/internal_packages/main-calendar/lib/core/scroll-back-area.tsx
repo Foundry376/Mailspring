@@ -2,8 +2,7 @@ import React from 'react';
 import { localized } from 'mailspring-exports';
 import { SVGIcons } from 'mailspring-component-kit';
 import { EventOccurrence, occurrenceStartUnix } from './calendar-data-source';
-
-type Direction = 'up' | 'down' | 'left' | 'right';
+import { ArrowDirection } from './calendar-helpers';
 
 interface ScrollBackAreaProps {
   /** The event open in the panel; the selected one, so the grid marks it `.selected`. */
@@ -15,7 +14,7 @@ interface ScrollBackAreaProps {
 }
 
 interface ScrollBackAreaState {
-  direction: Direction | null;
+  direction: ArrowDirection | null;
   left: number;
   top: number;
 }
@@ -45,8 +44,8 @@ function clipsOf(el: Element, root: Element): DOMRect[] {
 }
 
 /** Which way `rect` lies outside the clips, sideways first; null while any of it shows. */
-function sideOutside(rect: DOMRect, clips: DOMRect[]): Direction | null {
-  let vertical: Direction | null = null;
+function sideOutside(rect: DOMRect, clips: DOMRect[]): ArrowDirection | null {
+  let vertical: ArrowDirection | null = null;
   for (const clip of clips) {
     if (rect.right <= clip.left) return 'left';
     if (rect.left >= clip.right) return 'right';
@@ -61,7 +60,7 @@ export function scrolledAwayDirection(
   area: Element,
   event: EventOccurrence,
   dayAxis: 'horizontal' | 'vertical'
-): Direction | null {
+): ArrowDirection | null {
   const elements = Array.from(area.querySelectorAll(SELECTED_EVENT));
   if (elements.length > 0) {
     const sides = elements.map((el) => sideOutside(el.getBoundingClientRect(), clipsOf(el, area)));

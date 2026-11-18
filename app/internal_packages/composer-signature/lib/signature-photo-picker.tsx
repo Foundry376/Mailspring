@@ -1,7 +1,7 @@
 import React from 'react';
 import { webUtils } from 'electron';
 import { localized, MailspringAPIRequest, IdentityStore, Utils } from 'mailspring-exports';
-import { RetinaImg, DropZone } from 'mailspring-component-kit';
+import { LoadingSpinner, DropZone } from 'mailspring-component-kit';
 
 const MAX_IMAGE_RES = 250;
 
@@ -185,13 +185,7 @@ export default class SignaturePhotoPicker extends React.Component<
                 }}
                 className={`photo-well ${isDropping && 'dropping'}`}
               >
-                {isUploading && (
-                  <RetinaImg
-                    style={{ width: 14, height: 14 }}
-                    name="inline-loading-spinner.gif"
-                    mode={RetinaImg.Mode.ContentPreserve}
-                  />
-                )}
+                {isUploading && <LoadingSpinner />}
               </DropZone>
             </div>
           )}

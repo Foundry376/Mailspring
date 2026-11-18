@@ -117,6 +117,37 @@ describe('UndoRedoStore', function () {
     expect(queued[0][0].value).toEqual({ expiration: null, isUndoSend: true });
   });
 
+  it('gives an undoable metadata change a description for the toast', function () {
+    const thread = new Thread({ id: 't-1', accountId: 'ac-1' } as any);
+    const task = SyncbackMetadataTask.forSaving({
+      pluginId: 'view-board',
+      model: thread,
+      value: { column: 'done' },
+      undoValue: {},
+    });
+    UndoRedoStore._onQueue(task);
+
+    expect(UndoRedoStore.getMostRecent().description).toBe('Changes saved');
+  });
+
+  it('shows a generic description when an undoable task gives none', function () {
+    const task = new ChangeStarredTask({ threadIds: ['t1'], accountId: 'ac-1', starred: true });
+    spyOn(task, 'description').andReturn(null);
+    UndoRedoStore._onQueue(task);
+
+    expect(UndoRedoStore.getMostRecent().description).toBe('Changes saved');
+  });
+
+  it('keeps the descriptions tasks give and leaves out empty ones', function () {
+    const starred = new ChangeStarredTask({ threadIds: ['t1'], accountId: 'ac-1', starred: true });
+    const blank = new ChangeStarredTask({ threadIds: ['t2'], accountId: 'ac-1', starred: true });
+    spyOn(starred, 'description').andReturn('Starred');
+    spyOn(blank, 'description').andReturn('');
+    UndoRedoStore._onQueue([starred, blank]);
+
+    expect(UndoRedoStore.getMostRecent().description).toBe('Starred');
+  });
+
   it('does not wait for tasks the engine does not annotate', async function () {
     const task = new ChangeStarredTask({ threadIds: ['t1'], accountId: 'ac-1', starred: true });
     spyOn(TaskQueue, 'waitForPerformLocal');
