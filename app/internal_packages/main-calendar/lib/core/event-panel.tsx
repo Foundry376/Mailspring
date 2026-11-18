@@ -77,8 +77,7 @@ import { COMMON_TIMEZONES, formatTimezone } from './timezone-selector';
 import {
   AlertSelector,
   alertLabelFor,
-  alertTrigger,
-  defaultAlert,
+  defaultAlarms,
   maxAlerts,
   secondsBefore,
 } from './alert-selector';
@@ -437,9 +436,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   _alarms(): string[] {
     const { isNewEvent, newEventAlarms } = this.props;
     if (!isNewEvent) return this.state.alarms;
-    if (newEventAlarms) return newEventAlarms;
-    const trigger = alertTrigger(defaultAlert(this._times().isAllDay));
-    return trigger ? [trigger] : [];
+    return newEventAlarms ?? defaultAlarms(this._times().isAllDay);
   }
 
   _editAlarm(index: number, trigger: string | null) {
@@ -452,7 +449,13 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     }
     this.setState({ alarms });
     const { event } = this.props;
-    this._write(() => updateEventAlarm(event, index, trigger));
+    // A failed write leaves the row as it was, so nothing else would put the shown list back.
+    this._write(() =>
+      updateEventAlarm(event, index, trigger).catch((error) => {
+        this._loadEventRow();
+        throw error;
+      })
+    );
   }
 
   _save(change: UnsentChange) {

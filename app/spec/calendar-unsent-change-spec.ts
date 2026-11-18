@@ -12,6 +12,7 @@ import {
 } from 'mailspring-exports';
 import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
 import { EventPanel } from '../internal_packages/main-calendar/lib/core/event-panel';
+import { AlertSelector } from '../internal_packages/main-calendar/lib/core/alert-selector';
 import { TimedOccurrence } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
 import * as UnsentChangeDialog from '../internal_packages/main-calendar/lib/core/unsent-change-dialog';
@@ -436,8 +437,28 @@ describe('editing in the panel', function () {
     await panel._saving;
 
     expect(queueTask.calls.length).toBe(1);
-    expect(ICSEventHelpers.getAlarmTrigger(queueTask.calls[0].args[0].event.ics)).toBe('-PT1H');
+    expect(ICSEventHelpers.getAlarmTriggers(queueTask.calls[0].args[0].event.ics)).toEqual([
+      '-PT1H',
+    ]);
     expect(onUnsentChange).not.toHaveBeenCalled();
+  });
+
+  it('edits the alert a row shows, though rows list the one that goes off first on top', function () {
+    const panel = panelFor(withoutGuests);
+    panel.state.alarms = ['-PT10M', '-P1D'];
+    spyOn(panel, '_editAlarm');
+    const selectors: any[] = [];
+    const collect = (node: any) => {
+      if (!node || typeof node !== 'object') return;
+      if (Array.isArray(node)) return node.forEach(collect);
+      if (node.type === AlertSelector) selectors.push(node);
+      collect(node.props && node.props.children);
+    };
+    collect(panel._renderAlerts());
+
+    expect(selectors[0].props.value).toBe('-P1D');
+    selectors[0].props.onChange('-P2D');
+    expect(panel._editAlarm).toHaveBeenCalledWith(1, '-P2D');
   });
 
   it('holds a title change to an event without guests once a guest is waiting to be added', async function () {

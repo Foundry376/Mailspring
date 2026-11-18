@@ -1155,7 +1155,7 @@ describe('updateEventAlarm', function () {
       'BEGIN:VALARM\nACTION:DISPLAY\nTRIGGER:-PT10M\nEND:VALARM\nEND:VEVENT'
     );
     const ics = await written(reminded, null);
-    expect(ICSEventHelpers.getAlarmTrigger(ics)).toBe(null);
+    expect(ICSEventHelpers.getAlarmTriggers(ics)).toEqual([]);
     expect(ics).toContain('SEQUENCE:0');
   });
 });

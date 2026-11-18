@@ -19,7 +19,7 @@ import {
   DraftFactory,
 } from 'mailspring-exports';
 import { ShowAsOption, defaultShowAs } from './show-as-selector';
-import { alertTrigger, defaultAlert } from './alert-selector';
+import { defaultAlarms } from './alert-selector';
 import {
   MIN_EVENT_DURATION_SECONDS,
   DEFAULT_TIMED_EVENT_DURATION_SECONDS,
@@ -321,8 +321,8 @@ export interface NewEventDraft {
   isAllDay: boolean;
   calendarId: string;
   accountId: string;
-  /** The reminders set in the panel; until they're changed, the default for `isAllDay`. */
-  alarmTriggers?: string[];
+  /** Until set in the panel, the default for `isAllDay`. */
+  alarms?: string[];
 }
 
 /** An event that does not exist yet, as an occurrence, so the grid draws it like any other. */
@@ -518,7 +518,7 @@ export interface CreateCalendarEventOptions {
   recurrenceRule?: string;
   transparency?: ShowAsOption;
   /** The default for `isAllDay` when omitted. */
-  alarmTriggers?: string[];
+  alarms?: string[];
 }
 
 /** The account, as the ORGANIZER the ICS helpers name once an event has guests. */
@@ -535,7 +535,7 @@ export function queueNewCalendarEvent(options: CreateCalendarEventOptions): {
   task: SyncbackEventTask;
 } {
   const icsuid = ICSEventHelpers.generateUID();
-  const created = ICSEventHelpers.createICSString({
+  const ics = ICSEventHelpers.createICSString({
     uid: icsuid,
     summary: options.summary,
     start: options.start,
@@ -548,13 +548,8 @@ export function queueNewCalendarEvent(options: CreateCalendarEventOptions): {
     attendees: options.attendees,
     recurrenceRule: options.recurrenceRule,
     transparency: options.transparency ?? defaultShowAs(options.isAllDay),
-    alarmTrigger: options.alarmTriggers
-      ? (options.alarmTriggers[0] ?? null)
-      : alertTrigger(defaultAlert(options.isAllDay)),
+    alarms: options.alarms ?? defaultAlarms(options.isAllDay),
   });
-  const ics = (options.alarmTriggers ?? [])
-    .slice(1)
-    .reduce((result, trigger, i) => ICSEventHelpers.editAlarm(result, i + 1, trigger), created);
 
   const event = new Event({
     calendarId: options.calendarId,

@@ -190,7 +190,7 @@ export function newEventOptions(
     description: edited('description'),
     recurrenceRule: edited('rrule'),
     transparency: (edited('transp') as ShowAsOption) ?? defaultShowAs(draft.isAllDay),
-    alarmTriggers: draft.alarmTriggers,
+    alarms: draft.alarms,
     attendees: added.length ? added.map(({ email, name }) => ({ email, name })) : undefined,
   };
 }

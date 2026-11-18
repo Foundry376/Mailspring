@@ -3774,7 +3774,7 @@ END:VCALENDAR`;
   };
 
   it('adds a display reminder to a new event', function () {
-    const ics = ICSEventHelpers.createICSString({ ...NEW_EVENT, alarmTrigger: '-PT10M' });
+    const ics = ICSEventHelpers.createICSString({ ...NEW_EVENT, alarms: ['-PT10M'] });
     const [alarm, ...rest] = alarmsOf(ics);
 
     expect(rest.length).toBe(0);
@@ -3790,7 +3790,7 @@ END:VCALENDAR`;
     expect(rest.length).toBe(0);
     expect(alarm.getFirstPropertyValue('action')).toBe('NONE');
     expect(ics).toContain('TRIGGER;VALUE=DATE-TIME:19760401T005545Z');
-    expect(ICSEventHelpers.getAlarmTrigger(ics)).toBe(null);
+    expect(ICSEventHelpers.getAlarmTriggers(ics)).toEqual([]);
   });
 
   it('reads the placeholder another client wrote as no reminder, and replaces it with one', function () {
@@ -3800,15 +3800,10 @@ END:VCALENDAR`;
 
     expect(rest.length).toBe(0);
     expect(alarm.getFirstPropertyValue('action')).toBe('DISPLAY');
-    expect(ICSEventHelpers.getAlarmTrigger(reminded)).toBe('-PT15M');
+    expect(ICSEventHelpers.getAlarmTriggers(reminded)).toEqual(['-PT15M']);
   });
 
-  it("reads the first reminder's offset, however it is spelled", function () {
-    expect(ICSEventHelpers.getAlarmTrigger(REMINDED_ICS)).toBe('-PT30M');
-    expect(ICSEventHelpers.getAlarmTrigger(DAILY_STANDUP_ICS)).toBe(null);
-  });
-
-  it('reads every reminder, in order', function () {
+  it('reads every reminder in order, however its offset is spelled', function () {
     expect(ICSEventHelpers.getAlarmTriggers(REMINDED_ICS)).toEqual(['-PT30M', '-P1D']);
     expect(ICSEventHelpers.getAlarmTriggers(DAILY_STANDUP_ICS)).toEqual([]);
   });
@@ -3818,7 +3813,7 @@ END:VCALENDAR`;
       'TRIGGER:-P0DT0H30M0S',
       'TRIGGER;VALUE=DATE-TIME:20260303T120000Z'
     );
-    expect(ICSEventHelpers.getAlarmTrigger(ics)).toBe('2026-03-03T12:00:00Z');
+    expect(ICSEventHelpers.getAlarmTriggers(ics)).toEqual(['2026-03-03T12:00:00Z', '-P1D']);
   });
 
   it('moves one reminder, keeping its kind, and leaves the others', function () {
@@ -3889,6 +3884,24 @@ END:VCALENDAR`;
     expect(added).toContain('TRIGGER:-PT5M');
   });
 
+  it("changes a moved occurrence's reminder by its time, leaving its own other ones", function () {
+    const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
+      REMINDED_ICS,
+      Date.UTC(2026, 2, 10, 14) / 1000,
+      Date.UTC(2026, 2, 10, 15) / 1000,
+      Date.UTC(2026, 2, 10, 16) / 1000,
+      false
+    );
+    const own = ICSEventHelpers.editAlarm(masterIcs, 0, '-PT2H', recurrenceId);
+
+    const series = ICSEventHelpers.editAlarm(own, 0, '-PT1H');
+    expect(ICSEventHelpers.getAlarmTriggers(series)).toEqual(['-PT1H', '-P1D']);
+    expect(ICSEventHelpers.getAlarmTriggers(series, recurrenceId)).toEqual(['-PT2H', '-P1D']);
+
+    const later = ICSEventHelpers.editAlarm(series, 1, '-P2D');
+    expect(ICSEventHelpers.getAlarmTriggers(later, recurrenceId)).toEqual(['-PT2H', '-P2D']);
+  });
+
   it("reads and edits a moved occurrence's own reminders alone", function () {
     const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
       REMINDED_ICS,
@@ -3944,23 +3957,5 @@ END:VCALENDAR`;
     expect(ICSEventHelpers.getAlarmTriggers(edited, rid)).toEqual(['-PT1H']);
     expect(ICSEventHelpers.getAlarmTriggers(edited)).toEqual(['-PT10M']);
     expect(ICSEventHelpers.getAlarmTriggers(ics, '20260120T150000Z')).toEqual([]);
-  });
-
-  it("sets one occurrence's reminder without touching the series'", function () {
-    const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
-      REMINDED_ICS,
-      Date.UTC(2026, 2, 10, 14) / 1000,
-      Date.UTC(2026, 2, 10, 15) / 1000,
-      Date.UTC(2026, 2, 10, 16) / 1000,
-      false
-    );
-    const ics = ICSEventHelpers.applyEditsToException(masterIcs, recurrenceId, {
-      alarmTrigger: null,
-    });
-    const [master, exception] = ics.split('BEGIN:VEVENT').slice(1);
-
-    expect(master).toContain('ACTION:DISPLAY');
-    expect(exception).not.toContain('ACTION:DISPLAY');
-    expect(exception).toContain('ACTION:NONE');
   });
 });

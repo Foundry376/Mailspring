@@ -52,7 +52,7 @@ describe('newEventOptions', function () {
       description: 'Bring the slides',
       recurrenceRule: 'FREQ=WEEKLY',
       transparency: 'TRANSPARENT',
-      alarmTriggers: undefined,
+      alarms: undefined,
       attendees: [alex],
     });
   });
@@ -105,14 +105,14 @@ describe('newEventOptions', function () {
     });
 
     it('is each one set in the panel', function () {
-      expect(triggersOf(null, { alarmTriggers: ['-PT1H', '-P1D'] })).toEqual([
+      expect(triggersOf(null, { alarms: ['-PT1H', '-P1D'] })).toEqual([
         'TRIGGER:-PT1H',
         'TRIGGER:-P1D',
       ]);
     });
 
     it('is none when every one was removed, not the default', function () {
-      expect(triggersOf(null, { alarmTriggers: [] })).toBe(null);
+      expect(triggersOf(null, { alarms: [] })).toBe(null);
     });
   });
 });
