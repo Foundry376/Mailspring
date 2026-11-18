@@ -17,10 +17,16 @@ const COLUMN_META: Record<string, { role: string; label: () => string }> = {
   CalendarSidebar: { role: 'complementary', label: () => localized('Calendar sidebar') },
   CalendarContent: { role: 'region', label: () => localized('Calendar') },
   ActivityContent: { role: 'region', label: () => localized('Activity') },
+  ContactsSidebar: { role: 'complementary', label: () => localized('Contacts sidebar') },
+  ContactsList: { role: 'region', label: () => localized('Contact list') },
+  ContactsDetail: { role: 'region', label: () => localized('Contact details') },
 };
 
-// Mail and Calendar share one sidebar width, so switching sections leaves the toolbar in place.
-const COLUMN_WIDTH_KEYS: Record<string, string> = { CalendarSidebar: 'RootSidebar' };
+// The sections share one sidebar width, so switching between them leaves the toolbar in place.
+const COLUMN_WIDTH_KEYS: Record<string, string> = {
+  CalendarSidebar: 'RootSidebar',
+  ContactsSidebar: 'RootSidebar',
+};
 const columnWidthKey = (id: string) => COLUMN_WIDTH_KEYS[id] || id;
 
 interface SheetLocation {

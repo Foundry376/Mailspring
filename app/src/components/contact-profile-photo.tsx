@@ -1,7 +1,7 @@
 import React from 'react';
 import { Contact } from '../flux/models/contact';
 import * as Utils from '../flux/models/utils';
-import { RetinaImg } from './retina-img';
+import { LoadingSpinner } from './loading-spinner';
 import crypto from 'crypto';
 
 export class ContactProfilePhoto extends React.Component<{
@@ -33,12 +33,7 @@ export class ContactProfilePhoto extends React.Component<{
     if (loading) {
       content = (
         <div className="default-profile-image">
-          <RetinaImg
-            className="spinner"
-            style={{ width: 20, height: 20 }}
-            name="inline-loading-spinner.gif"
-            mode={RetinaImg.Mode.ContentDark}
-          />
+          <LoadingSpinner size={20} />
         </div>
       );
     }

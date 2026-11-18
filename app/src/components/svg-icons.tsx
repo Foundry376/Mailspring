@@ -458,16 +458,28 @@ export const OpenPage = () => (
   </svg>
 );
 
+/**
+ * Lucide's pin, outlined or filled. The viewBox is cropped so at 16px the drawing fills the box
+ * like the toolbar's 16px PNG icons (about 11px wide, 15.5px tall), and the 1.6 stroke draws about
+ * 1.15px, which matches their 1px lines once the curves are antialiased.
+ */
 export const Pin = ({ filled }: { filled: boolean }) => (
-  <svg viewBox="0 0 20 20" aria-hidden="true">
+  <svg
+    viewBox="1 1 22 22"
+    width="16"
+    height="16"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.6"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
     <path
-      d="M7.5 2.5h5l-.8 5 3 3H5.3l3-3z"
+      d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"
       fill={filled ? 'currentColor' : 'none'}
-      stroke="currentColor"
-      strokeWidth="1.4"
-      strokeLinejoin="round"
     />
-    <path d="M10 10.5v7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    <path d="M12 17v5" />
   </svg>
 );
 

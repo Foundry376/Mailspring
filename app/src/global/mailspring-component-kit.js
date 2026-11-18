@@ -63,6 +63,7 @@ lazyLoad('Menu', 'menu');
 lazyLoad('ContactProfilePhoto', 'contact-profile-photo');
 lazyLoad('DropZone', 'drop-zone');
 lazyLoad('Spinner', 'spinner');
+lazyLoad('LoadingSpinner', 'loading-spinner');
 lazyLoad('Switch', 'switch');
 lazyLoad('FixedPopover', 'fixed-popover');
 lazyLoad('DatePickerPopover', 'date-picker-popover');

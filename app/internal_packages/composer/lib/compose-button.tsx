@@ -14,7 +14,7 @@ export default class ComposeButton extends React.Component {
       <NewItemButton
         label={localized('Compose')}
         title={localized('Compose new message')}
-        matchWidthOf={[localized('New Event')]}
+        matchWidthOf={[localized('New Event'), localized('New Contact')]}
         onClick={this._onNewCompose}
       />
     );

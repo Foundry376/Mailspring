@@ -42,7 +42,8 @@
     border-radius: 4px;
 
     // Set here rather than inherited from .btn-icon, which themes recolour for their toolbars.
-    img.content-mask {
+    img.content-mask,
+    .view-icon {
       background-color: @text-color-subtle;
     }
     &:hover {
@@ -53,11 +54,12 @@
       background: @background-primary;
       box-shadow: 0 1px 2px fade(@black, 14%);
     }
-    &.active img.content-mask {
+    &.active img.content-mask,
+    &.active .view-icon {
       background-color: @source-list-active-color;
     }
 
-    // Items without a bundled image: an emoji, or a monogram for Views without an icon.
+    // Items without a bundled image: a View's own SVG icon or emoji, or a monogram for Views without one.
     .nav-rail-item-glyph {
       display: flex;
       align-items: center;
@@ -66,6 +68,15 @@
       height: 20px;
       font-size: 16px;
       line-height: 1;
+    }
+    // A View's manifest `iconSvg` (lib/view-icon.tsx), sanitized and drawn as a mask.
+    .view-icon {
+      display: block;
+      width: 20px;
+      height: 20px;
+      -webkit-mask-size: contain;
+      -webkit-mask-repeat: no-repeat;
+      -webkit-mask-position: center;
     }
     .nav-rail-monogram {
       width: 20px;

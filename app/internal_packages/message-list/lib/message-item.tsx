@@ -8,7 +8,12 @@ import {
   AttachmentStore,
   MessageStore,
 } from 'mailspring-exports';
-import { RetinaImg, InjectedComponentSet, InjectedComponent } from 'mailspring-component-kit';
+import {
+  RetinaImg,
+  LoadingSpinner,
+  InjectedComponentSet,
+  InjectedComponent,
+} from 'mailspring-component-kit';
 
 import MessageParticipants from './message-participants';
 import MessageItemBody from './message-item-body';
@@ -183,7 +188,7 @@ export default class MessageItem extends React.Component<MessageItemProps, Messa
           exposedProps={{ message: message, thread: thread, messages: messages }}
         />
         <div className="pending-spinner" style={{ position: 'absolute', marginTop: -2 }}>
-          <RetinaImg width={18} name="sending-spinner.gif" mode={RetinaImg.Mode.ContentPreserve} />
+          <LoadingSpinner size={18} />
         </div>
         <div className="message-header-right">
           <MessageTimestamp

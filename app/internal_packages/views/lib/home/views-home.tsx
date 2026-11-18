@@ -4,7 +4,7 @@ import { openManageCredentials } from '../credentials/credential-sheet';
 import React from 'react';
 import classnames from 'classnames';
 import { localized } from 'mailspring-exports';
-import { RetinaImg } from 'mailspring-component-kit';
+import { RetinaImg, ScrollRegion } from 'mailspring-component-kit';
 import { ViewManifest, ViewRegistryEvents, allViews } from '../view-registry';
 import { isPinned, onPinsChanged, setPinned } from '../nav/pins';
 import { ViewBadgeEvents, badgeFor } from '../nav/badges';
@@ -391,7 +391,7 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
     const examples = views.filter((v) => v.source === 'example');
 
     return (
-      <div className="views-home">
+      <ScrollRegion className="views-home">
         <div className={`views-home-backdrop ${BACKDROP_VARIANT}`} aria-hidden="true" />
         <div className="views-home-content">
           <div className="views-home-header">
@@ -435,7 +435,7 @@ export class ViewsHome extends React.Component<Record<string, never>, ViewsHomeS
             </>
           )}
         </div>
-      </div>
+      </ScrollRegion>
     );
   }
 }

@@ -211,7 +211,7 @@ export default class KeymapManager {
   }
 
   suspendAllKeymaps() {
-    AppEnv.menu.sendToBrowserProcess(AppEnv.menu.template, {});
+    AppEnv.menu.sendToBrowserProcess(AppEnv.menu.visibleTemplate(), {});
     suspended = true;
   }
 

@@ -575,6 +575,89 @@ export function centerGridScroll(viewportEl: HTMLElement, selectedEvent?: EventO
   viewportEl.scrollTop = viewportEl.scrollHeight * fraction - viewportEl.clientHeight / 2;
 }
 
+export type ArrowDirection = 'up' | 'down' | 'left' | 'right';
+
+/**
+ * One visible day an event is drawn on, counted from the first; the span it covers down that day;
+ * and, among events side by side, its place from the left.
+ */
+export interface DayPlacement {
+  occurrence: EventOccurrence;
+  dayIndex: number;
+  top: number;
+  bottom: number;
+  order: number;
+}
+
+/**
+ * The event an arrow steps to, from the first day `fromId` is drawn on. Left and Right go to the
+ * next event beside this one that overlaps it, then on to the next day with events: there to the
+ * overlapping event on the side they come in from, or failing that the one starting nearest the
+ * same height. They stop at the last day shown.
+ */
+export function eventInDirection(
+  placements: DayPlacement[],
+  fromId: string,
+  direction: ArrowDirection
+): EventOccurrence | null {
+  const from = placements
+    .filter((p) => p.occurrence.id === fromId)
+    .sort((a, b) => a.dayIndex - b.dayIndex)[0];
+  if (!from) return null;
+  const others = (dayIndex: number) =>
+    placements
+      .filter((p) => p.dayIndex === dayIndex && p.occurrence.id !== fromId)
+      .sort((a, b) => a.top - b.top || a.order - b.order);
+
+  if (direction === 'up' || direction === 'down') {
+    const ahead = others(from.dayIndex).filter((p) =>
+      direction === 'down' ? p.top > from.top : p.top < from.top
+    );
+    if (ahead.length === 0) return null;
+    const rowTop = direction === 'down' ? ahead[0].top : ahead[ahead.length - 1].top;
+    const row = ahead.filter((p) => p.top === rowTop);
+    const distance = (p: DayPlacement) => Math.abs(p.order - from.order);
+    return row.reduce((best, p) => (distance(p) < distance(best) ? p : best)).occurrence;
+  }
+
+  const step = direction === 'right' ? 1 : -1;
+  const overlaps = (p: DayPlacement) =>
+    p.top === from.top || (p.top < from.bottom && p.bottom > from.top);
+  // The leftmost of them going right, the rightmost going left; the earliest of a tie.
+  const nearestSide = (candidates: DayPlacement[]) => {
+    const orders = candidates.map((p) => p.order);
+    const edge = step > 0 ? Math.min(...orders) : Math.max(...orders);
+    return candidates.find((p) => p.order === edge).occurrence;
+  };
+
+  const beside = others(from.dayIndex).filter(
+    (p) => overlaps(p) && (p.order - from.order) * step > 0
+  );
+  if (beside.length > 0) return nearestSide(beside);
+
+  const indexes = placements.map((p) => p.dayIndex);
+  const [first, last] = [Math.min(...indexes), Math.max(...indexes)];
+  for (
+    let dayIndex = from.dayIndex + step;
+    dayIndex >= first && dayIndex <= last;
+    dayIndex += step
+  ) {
+    const day = others(dayIndex);
+    if (day.length === 0) continue;
+
+    const overlapping = day.filter(overlaps);
+    if (overlapping.length > 0) return nearestSide(overlapping);
+
+    const distance = (p: DayPlacement) => Math.abs(p.top - from.top);
+    return day.reduce((best, p) => {
+      if (distance(p) !== distance(best)) return distance(p) < distance(best) ? p : best;
+      // Coming in from the right, a row is entered at its right end.
+      return p.top === best.top && step < 0 ? p : best;
+    }).occurrence;
+  }
+  return null;
+}
+
 // A description is markup from whoever sent the invitation. DOMParser's document is inert, so the
 // images it references are never fetched.
 export function extractNotesFromDescription(description: string) {

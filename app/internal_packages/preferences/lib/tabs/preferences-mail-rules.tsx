@@ -15,6 +15,7 @@ import {
   Flexbox,
   EditableList,
   RetinaImg,
+  LoadingSpinner,
   ScrollRegion,
   ScenarioEditor,
 } from 'mailspring-component-kit';
@@ -305,11 +306,7 @@ class PreferencesMailRules extends React.Component<
           return (
             <Flexbox key={accountId} style={{ alignItems: 'baseline' }}>
               <div style={{ paddingRight: '12px' }}>
-                <RetinaImg
-                  name="sending-spinner.gif"
-                  width={18}
-                  mode={RetinaImg.Mode.ContentPreserve}
-                />
+                <LoadingSpinner size={18} />
               </div>
               <div>
                 <strong>{AccountStore.accountForId(accountId).emailAddress}</strong>

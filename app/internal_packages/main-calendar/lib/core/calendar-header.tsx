@@ -35,6 +35,7 @@ export class CalendarHeader extends React.Component<Record<string, unknown>> {
         arrows={navigation.arrows}
         view={options.view}
         agendaOpen={options.agendaOpen}
+        agendaWidth={options.agendaWidth}
         prevAction={this._prev}
         nextAction={this._next}
         todayAction={this._today}

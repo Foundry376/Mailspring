@@ -33,6 +33,7 @@ const ActivityNavRailItem = () => (
         style={{ width: 20, height: 15, WebkitMaskSize: 'contain' }}
       />
     }
+    order={3}
     command="application:show-activity"
     isActive={() => WorkspaceStore.rootSheet() === WorkspaceStore.Sheet.Activity}
   />
