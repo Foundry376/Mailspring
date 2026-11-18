@@ -57,9 +57,8 @@ export interface CreateEventOptions {
   attendees?: Array<{ email: string; name?: string; role?: string }>;
   recurrenceRule?: string;
   transparency?: Transparency;
-  /** A TRIGGER duration such as "-PT10M" for a reminder; omitted, the event is marked as
-   * having none (see setAlarm). */
-  alarmTrigger?: string | null;
+  /** TRIGGER durations such as "-PT10M"; with none, the event is marked as having none. */
+  alarms?: string[];
 }
 
 /**
@@ -634,7 +633,13 @@ export function createICSString(options: CreateEventOptions): string {
     setTransparency(vevent, options.transparency);
   }
 
-  setAlarm(vevent, options.alarmTrigger || null, ical);
+  if (options.alarms?.length) {
+    options.alarms.forEach((trigger) =>
+      vevent.addSubcomponent(displayAlarm(vevent, trigger, ical))
+    );
+  } else {
+    addNoAlarmPlaceholder(vevent, ical);
+  }
 
   // Set timestamp
   vevent.addPropertyWithValue('dtstamp', nowUTC(ical));
@@ -659,7 +664,7 @@ export function bumpEventSequence(ics: string, recurrenceId?: string): string {
     root.name === 'vevent' ? [root] : (root.getAllSubcomponents('vevent') as ICALComponent[]);
   // Without a recurrenceId the master is revised; a lone occurrence is its own master.
   const target = recurrenceId
-    ? vevents.find((v) => matchesRecurrenceId(v, recurrenceId))
+    ? vevents.find((v) => isOccurrenceAt(v, recurrenceId))
     : vevents.find((v) => !v.getFirstPropertyValue('recurrence-id')) || vevents[0];
   if (!target) {
     throw new Error(
@@ -770,10 +775,20 @@ function contentApartFromRevision(vevent: ICALComponent): string {
   return JSON.stringify([name, content, components]);
 }
 
-/** Whether this VEVENT is the inline exception `recurrenceId` names, in either date form. */
-function matchesRecurrenceId(vevent: ICALComponent, recurrenceId: string): boolean {
-  const rid = vevent.getFirstPropertyValue('recurrence-id');
-  return String(rid).replace(/[^0-9TZ]/g, '') === recurrenceId.replace(/[^0-9TZ]/g, '');
+/**
+ * As written ('20260302T060000Z', '20260302', zoned wall-clock text), or for a UTC instant the same
+ * instant in any form: Google and Apple write an override's RECURRENCE-ID in the series' zone.
+ */
+function isOccurrenceAt(vevent: ICALComponent, recurrenceId: string): boolean {
+  const rid = vevent.getFirstPropertyValue('recurrence-id') as ICALTime | null;
+  if (!rid || typeof rid.toJSDate !== 'function') return false;
+  const wanted = recurrenceId.replace(/[-:]/g, '');
+  if (rid.toICALString() === wanted) return true;
+  const utc = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/.exec(wanted);
+  return (
+    !!utc &&
+    rid.toJSDate().getTime() === Date.UTC(+utc[1], +utc[2] - 1, +utc[3], +utc[4], +utc[5], +utc[6])
+  );
 }
 
 /**
@@ -995,8 +1010,6 @@ export function applyEditsToException(
     attendees?: AttendeeInput[];
     organizer?: Organizer;
     transparency?: Transparency;
-    /** See updateAlarm; undefined leaves the exception's alarms alone. */
-    alarmTrigger?: string | null;
   }
 ): string {
   const ical = getICAL();
@@ -1009,7 +1022,7 @@ export function applyEditsToException(
 
   const exceptionVevent =
     (vcalendar.getAllSubcomponents('vevent') as ICALComponent[]).find((v) =>
-      matchesRecurrenceId(v, recurrenceId)
+      isOccurrenceAt(v, recurrenceId)
     ) || null;
 
   if (!exceptionVevent) {
@@ -1035,9 +1048,6 @@ export function applyEditsToException(
   }
   if (edits.transparency) {
     setTransparency(exceptionVevent, edits.transparency);
-  }
-  if (edits.alarmTrigger !== undefined) {
-    setAlarm(exceptionVevent, edits.alarmTrigger, ical);
   }
 
   exceptionVevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
@@ -1343,28 +1353,15 @@ export function removeInlineException(ics: string, recurrenceId: string): string
   const vcalendar = root.name === 'vcalendar' ? root : null;
   if (!vcalendar) return ics;
 
-  // The row stores the RECURRENCE-ID as written ('20260302T060000Z', '20260302', or wall-clock
-  // text whose zone lives only on the property), so a zoned value is matched as text.
-  const wanted = recurrenceId.replace(/[-:]/g, '');
-  const utc = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/.exec(wanted);
-  const wantedMs = utc ? Date.UTC(+utc[1], +utc[2] - 1, +utc[3], +utc[4], +utc[5], +utc[6]) : null;
-
   let master: ICALComponent | null = null;
   let exception: ICALComponent | null = null;
   let slot: ICALTime | null = null;
   for (const vevent of vcalendar.getAllSubcomponents('vevent')) {
-    const ridProp = vevent.getFirstProperty('recurrence-id');
-    if (!ridProp) {
+    if (!vevent.getFirstProperty('recurrence-id')) {
       if (!master) master = vevent;
-      continue;
-    }
-    const ridValue = ridProp.getFirstValue() as ICALTime | null;
-    if (!ridValue || typeof ridValue.toJSDate !== 'function') continue;
-    const sameText = ridValue.toICALString() === wanted;
-    const sameInstant = wantedMs !== null && ridValue.toJSDate().getTime() === wantedMs;
-    if (sameText || sameInstant) {
+    } else if (isOccurrenceAt(vevent, recurrenceId)) {
       exception = vevent;
-      slot = ridValue;
+      slot = vevent.getFirstPropertyValue('recurrence-id') as ICALTime;
     }
   }
 
@@ -1526,9 +1523,7 @@ export function changeAttendees(
   const ical = getICAL();
   const { root } = parseICSString(ics);
   const vevents = veventsOf(root);
-  const targets = recurrenceId
-    ? vevents.filter((v) => matchesRecurrenceId(v, recurrenceId))
-    : vevents;
+  const targets = recurrenceId ? vevents.filter((v) => isOccurrenceAt(v, recurrenceId)) : vevents;
   if (!targets.length) {
     throw new Error(`No VEVENT to change guests on for RECURRENCE-ID ${recurrenceId}`);
   }
@@ -1570,44 +1565,34 @@ function isNoAlarmPlaceholder(alarm: ICALComponent): boolean {
 }
 
 /**
- * Points a VEVENT's first VALARM at `trigger`, adding a DISPLAY alarm when it has none, or removes
- * every VALARM for null and marks the event as having none. The editor shows only the first, so
- * any others are left as they are.
+ * Of the first VEVENT, or the occurrence at `recurrenceId`. Offsets are normalized (Google's
+ * "-P0DT0H10M0S" reads "-PT10M"); a set time or one relative to the end comes back as written.
  */
-function setAlarm(vevent: ICALComponent, trigger: string | null, ical: ICAL): void {
-  const placeholders = vevent.getAllSubcomponents('valarm').filter(isNoAlarmPlaceholder);
-  placeholders.forEach((alarm) => vevent.removeSubcomponent(alarm));
-  const alarms = vevent.getAllSubcomponents('valarm');
-  if (!trigger) {
-    alarms.forEach((alarm) => vevent.removeSubcomponent(alarm));
-    addNoAlarmPlaceholder(vevent, ical);
-    return;
-  }
-  let alarm = alarms[0];
-  if (!alarm) {
-    alarm = new ical.Component('valarm');
-    alarm.addPropertyWithValue('action', 'DISPLAY');
-    // RFC 5545 section 3.6.6 requires a DESCRIPTION on a DISPLAY alarm.
-    alarm.addPropertyWithValue('description', vevent.getFirstPropertyValue('summary') || '');
-    vevent.addSubcomponent(alarm);
-  }
-  // A new property drops VALUE=DATE-TIME and RELATED=END from the trigger it replaces.
-  alarm.removeAllProperties('trigger');
-  alarm.addPropertyWithValue('trigger', ical.Duration.fromString(trigger));
+export function getAlarmTriggers(ics: string, recurrenceId?: string): string[] {
+  const ical = getICAL();
+  const { root } = parseICSString(ics);
+  const vevent = alarmVevent(root, recurrenceId);
+  return vevent ? remindersOf(vevent).map((alarm) => triggerOf(alarm, ical)) : [];
 }
 
-/**
- * The first VEVENT's first VALARM TRIGGER, or null when it has none or is marked as having none
- * (see addNoAlarmPlaceholder). An offset from the start is normalized, so Google's
- * "-P0DT0H10M0S" reads "-PT10M"; a trigger at a set time or relative to the end comes back as
- * written.
- */
-export function getAlarmTrigger(ics: string): string | null {
-  const ical = getICAL();
-  const { event } = parseICSString(ics);
-  const alarm = event.component.getAllSubcomponents('valarm').find((a) => !isNoAlarmPlaceholder(a));
-  const trigger = alarm?.getFirstProperty('trigger');
-  if (!trigger) return null;
+/** The TRIGGER `seconds` before the start, spelled as getAlarmTriggers reads one back. */
+export function triggerBefore(seconds: number): string {
+  return getICAL().Duration.fromSeconds(-seconds).toString();
+}
+
+function alarmVevent(root: ICALComponent, recurrenceId?: string): ICALComponent | undefined {
+  const vevents = veventsOf(root);
+  return recurrenceId ? vevents.find((v) => isOccurrenceAt(v, recurrenceId)) : vevents[0];
+}
+
+function remindersOf(vevent: ICALComponent): ICALComponent[] {
+  return vevent
+    .getAllSubcomponents('valarm')
+    .filter((alarm) => !isNoAlarmPlaceholder(alarm) && alarm.getFirstProperty('trigger'));
+}
+
+function triggerOf(alarm: ICALComponent, ical: ICAL): string {
+  const trigger = alarm.getFirstProperty('trigger');
   const value = trigger.getFirstValue();
   if (value instanceof ical.Duration && trigger.getParameter('related') !== 'END') {
     return ical.Duration.fromSeconds(value.toSeconds()).toString();
@@ -1616,23 +1601,66 @@ export function getAlarmTrigger(ics: string): string | null {
 }
 
 /**
- * Sets the event's reminder to `trigger` (see setAlarm), or removes its reminders for null. A
- * series' moved occurrences take it too, as Google Calendar and Apple Calendar do for a reminder
- * changed on all events.
+ * Null removes, an `index` past the last adds. Moved occurrences have reminders of their own, so
+ * each follows by TRIGGER, unless `recurrenceId` names one to change alone.
  */
-export function updateAlarm(ics: string, trigger: string | null): string {
+export function editAlarm(
+  ics: string,
+  index: number,
+  trigger: string | null,
+  recurrenceId?: string
+): string {
   const ical = getICAL();
   const { root } = parseICSString(ics);
-  const vevents = root.name === 'vevent' ? [root] : root.getAllSubcomponents('vevent');
-  if (!vevents.length) {
-    throw new Error('Invalid ICS: no VEVENT component found');
+  const first = alarmVevent(root, recurrenceId);
+  if (!first) {
+    throw new Error(`No VEVENT for reminders at RECURRENCE-ID ${recurrenceId}`);
   }
-  const uid = vevents[0].getFirstPropertyValue('uid');
-  for (const vevent of vevents.filter((v) => v.getFirstPropertyValue('uid') === uid)) {
-    setAlarm(vevent, trigger, ical);
+  const uid = first.getFirstPropertyValue('uid');
+  const edited = remindersOf(first)[index];
+  const was = edited ? triggerOf(edited, ical) : null;
+  const vevents = recurrenceId
+    ? [first]
+    : veventsOf(root).filter((v) => v.getFirstPropertyValue('uid') === uid);
+  for (const vevent of vevents) {
+    const reminders = remindersOf(vevent);
+    const alarm =
+      vevent === first ? edited : reminders.find((a) => was !== null && triggerOf(a, ical) === was);
+    if (trigger === null) {
+      if (!alarm) continue;
+      vevent.removeSubcomponent(alarm);
+      if (!remindersOf(vevent).length) addNoAlarmPlaceholder(vevent, ical);
+    } else if (alarm) {
+      setTrigger(alarm, trigger, ical);
+    } else if (was === null) {
+      vevent
+        .getAllSubcomponents('valarm')
+        .filter(isNoAlarmPlaceholder)
+        .forEach((placeholder) => {
+          vevent.removeSubcomponent(placeholder);
+        });
+      vevent.addSubcomponent(displayAlarm(vevent, trigger, ical));
+    } else {
+      continue;
+    }
     vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
   }
   return root.toString();
+}
+
+function displayAlarm(vevent: ICALComponent, trigger: string, ical: ICAL): ICALComponent {
+  const alarm = new ical.Component('valarm');
+  alarm.addPropertyWithValue('action', 'DISPLAY');
+  // RFC 5545 section 3.6.6 requires a DESCRIPTION on a DISPLAY alarm.
+  alarm.addPropertyWithValue('description', vevent.getFirstPropertyValue('summary') || '');
+  setTrigger(alarm, trigger, ical);
+  return alarm;
+}
+
+function setTrigger(alarm: ICALComponent, trigger: string, ical: ICAL): void {
+  // A new property drops VALUE=DATE-TIME and RELATED=END from the trigger it replaces.
+  alarm.removeAllProperties('trigger');
+  alarm.addPropertyWithValue('trigger', ical.Duration.fromString(trigger));
 }
 
 /**
