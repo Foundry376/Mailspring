@@ -16,7 +16,6 @@ import {
   eventsInRangeQuery,
   isOffCalendar,
   isTimed,
-  occurrenceSlot,
   occurrenceStartUnix,
   occurrenceTimes,
   occurrencesForEvents,
@@ -36,11 +35,12 @@ const LONGEST_WAIT = 60;
 
 export interface CalendarAlert {
   /**
-   * The meeting, occurrence and time, so two calendars' copies ringing together show once and a
-   * moved occurrence is a new alert.
+   * The meeting and the time, so copies on two calendars, or a set-time alert every occurrence of
+   * a series shares, show once, and a moved occurrence's alert is a new one.
    */
   key: string;
   at: number;
+  setTime: boolean;
   occurrence: EventOccurrence;
   row: Event;
 }
@@ -65,12 +65,7 @@ export function alertsFor(
           root,
           ownRecurrenceId(occurrence, row),
           occurrenceTimes(occurrence)
-        ).map((at) => ({
-          key: `${row.icsuid}@${occurrenceSlot(occurrence)}@${at}`,
-          at,
-          occurrence,
-          row,
-        }))
+        ).map(({ at, setTime }) => ({ key: `${row.icsuid}@${at}`, at, setTime, occurrence, row }))
       );
     } catch (err) {
       // An ICS that failed to expand (its master is drawn from the row's columns), or a TRIGGER
@@ -82,10 +77,11 @@ export function alertsFor(
 
 /**
  * The last moment an alert may still show: a minute past its event's start, or past its own time
- * when that comes later, so a late one doesn't ring for an event under way.
+ * when that comes later. A set-time alert belongs to no one occurrence, so it gets the minute only.
  */
 function lastChance(alert: CalendarAlert) {
-  return Math.max(alert.at, occurrenceStartUnix(alert.occurrence)) + LATE_GRACE;
+  const start = alert.setTime ? alert.at : occurrenceStartUnix(alert.occurrence);
+  return Math.max(alert.at, start) + LATE_GRACE;
 }
 
 export function dueAlerts(alerts: CalendarAlert[], now: number, fired: FiredAlerts) {

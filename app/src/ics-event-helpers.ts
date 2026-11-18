@@ -1576,14 +1576,14 @@ export function getAlarmTriggers(ics: string, recurrenceId?: string): string[] {
 }
 
 /**
- * When each of an occurrence's reminders goes off, in unix seconds. Days count on the calendar and
- * hours by the clock (RFC 5545 section 3.3.6); EMAIL reminders are the provider's to send.
+ * When each of an occurrence's reminders goes off, in unix seconds, and whether it's set for a
+ * fixed time. Days count on the calendar and hours by the clock (RFC 5545 section 3.3.6).
  */
 export function getAlarmTimes(
   root: ICALComponent,
   recurrenceId: string | undefined,
   { start, end }: { start: number; end: number }
-): number[] {
+): { at: number; setTime: boolean }[] {
   const ical = getICAL();
   const momentTz = require('moment-timezone');
   const vevent = alarmVevent(root, recurrenceId);
@@ -1593,12 +1593,14 @@ export function getAlarmTimes(
     .map((alarm) => {
       const trigger = alarm.getFirstProperty('trigger');
       const value = trigger.getFirstValue();
-      if (!(value instanceof ical.Duration)) return (value as ICALTime).toUnixTime();
+      if (!(value instanceof ical.Duration)) {
+        return { at: (value as ICALTime).toUnixTime(), setTime: true };
+      }
       const from = trigger.getParameter('related') === 'END' ? end : start;
       const sign = value.isNegative ? -1 : 1;
       const days = sign * (value.weeks * 7 + value.days);
       const seconds = sign * (value.hours * 3600 + value.minutes * 60 + value.seconds);
-      return momentTz.unix(from).add(days, 'days').unix() + seconds;
+      return { at: momentTz.unix(from).add(days, 'days').unix() + seconds, setTime: false };
     });
 }
 

@@ -190,6 +190,23 @@ describe('calendar event alerts', () => {
       );
     });
 
+    it('shows a set-time alert on a series once, at its time', () => {
+      const alerts = alertsOf(
+        ics(
+          timed(
+            '20261102T090000',
+            '20261102T093000',
+            'RRULE:FREQ=WEEKLY;COUNT=4',
+            ...alarm('TRIGGER;VALUE=DATE-TIME:20261101T150000Z')
+          )
+        )
+      );
+      expect(alerts.length).toBe(4);
+      const fired = new FiredAlerts(fakeStorage());
+      expect(dueAlerts(alerts, at('2026-11-01 09:00'), fired).length).toBe(1);
+      expect(dueAlerts(alerts, at('2026-11-08 08:00'), fired)).toEqual([]);
+    });
+
     it("rings other events' alerts when one event's alert can't be read", () => {
       const event = (trigger: string) =>
         ics(timed('20261118T140000', '20261118T143000', ...alarm(trigger)));
