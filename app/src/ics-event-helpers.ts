@@ -1575,6 +1575,35 @@ export function getAlarmTriggers(ics: string, recurrenceId?: string): string[] {
   return vevent ? remindersOf(vevent).map((alarm) => triggerOf(alarm, ical)) : [];
 }
 
+/**
+ * When each reminder on an occurrence goes off, in unix seconds, for an occurrence running from
+ * `start` to `end` (an all-day one's local midnights). Weeks and days count on the calendar and
+ * hours by the clock (RFC 5545 section 3.3.6), so "1 day before" a 9 AM event is 9 AM the day
+ * before across a DST change. EMAIL reminders are left out: the provider sends those itself.
+ */
+export function getAlarmTimes(
+  ics: string,
+  recurrenceId: string | undefined,
+  { start, end }: { start: number; end: number }
+): number[] {
+  const ical = getICAL();
+  const momentTz = require('moment-timezone');
+  const vevent = alarmVevent(parseICSString(ics).root, recurrenceId);
+  if (!vevent) return [];
+  return remindersOf(vevent)
+    .filter((alarm) => String(alarm.getFirstPropertyValue('action')).toUpperCase() !== 'EMAIL')
+    .map((alarm) => {
+      const trigger = alarm.getFirstProperty('trigger');
+      const value = trigger.getFirstValue();
+      if (!(value instanceof ical.Duration)) return (value as ICALTime).toUnixTime();
+      const from = trigger.getParameter('related') === 'END' ? end : start;
+      const sign = value.isNegative ? -1 : 1;
+      const days = sign * (value.weeks * 7 + value.days);
+      const seconds = sign * (value.hours * 3600 + value.minutes * 60 + value.seconds);
+      return momentTz.unix(from).add(days, 'days').unix() + seconds;
+    });
+}
+
 /** The TRIGGER `seconds` before the start, spelled as getAlarmTriggers reads one back. */
 export function triggerBefore(seconds: number): string {
   return getICAL().Duration.fromSeconds(-seconds).toString();
