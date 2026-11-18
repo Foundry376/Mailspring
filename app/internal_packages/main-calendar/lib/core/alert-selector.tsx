@@ -142,6 +142,12 @@ export class AlertSelector extends React.Component<AlertSelectorProps, AlertSele
     this._input.current?.blur();
   }
 
+  // Text back to what the field shows lists every choice again, with none picked by Enter.
+  _onTextChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const text = event.target.value;
+    this.setState({ text, optionsOpen: true, highlighted: text === this._label() ? null : 0 });
+  };
+
   _onFocus = () => {
     this.setState({ optionsOpen: true, highlighted: null });
     this._input.current?.select();
@@ -182,9 +188,7 @@ export class AlertSelector extends React.Component<AlertSelectorProps, AlertSele
           className={classnames({ invalid: !!text.trim() && !choices.length })}
           value={text}
           placeholder={this.props.placeholder}
-          onChange={(e) =>
-            this.setState({ text: e.target.value, optionsOpen: true, highlighted: 0 })
-          }
+          onChange={this._onTextChange}
           onFocus={this._onFocus}
           onBlur={this._reset}
           onKeyDown={this._onKeyDown}
