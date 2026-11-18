@@ -44,12 +44,12 @@ const timed = (start: string, end: string, ...rest: string[]) => [
   ...rest,
 ];
 
-const row = (text: string) =>
+const row = (text: string, id = 'e1') =>
   new Event({
-    id: 'e1',
+    id,
     accountId: 'a',
     calendarId: 'c',
-    icsuid: 'alert@test',
+    icsuid: `${id}@test`,
     ics: text,
     recurrenceStart: at('2026-01-01 00:00'),
     recurrenceEnd: at('2027-12-31 00:00'),
@@ -159,6 +159,16 @@ describe('calendar event alerts', () => {
         timed('20261118T140000', '20261118T143000', ...alarm('TRIGGER:-PT10M', 'EMAIL'))
       );
       expect(timesOf(email)).toEqual([]);
+    });
+
+    it("rings other events' alerts when one event's alert can't be read", () => {
+      const event = (trigger: string) =>
+        ics(timed('20261118T140000', '20261118T143000', ...alarm(trigger)));
+      const alerts = alertsFor([row(event('TRIGGER:-PT10'), 'bad'), row(event('TRIGGER:-PT10M'))], {
+        startUnix: at('2026-11-01 00:00'),
+        endUnix: at('2026-12-01 00:00'),
+      });
+      expect(alerts.map((alert) => alert.at)).toEqual([at('2026-11-18 13:50')]);
     });
 
     it('shows a late alert only until a minute after its event starts', () => {

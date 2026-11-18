@@ -53,20 +53,20 @@ export function alertsFor(
   return rows.flatMap((row) => {
     const occurrences = occurrencesByRow.get(row.id);
     if (!occurrences) return [];
-    let root;
     try {
-      ({ root } = CalendarUtils.parseICSString(row.ics));
+      const { root } = CalendarUtils.parseICSString(row.ics);
+      return occurrences.flatMap((occurrence) =>
+        ICSEventHelpers.getAlarmTimes(
+          root,
+          ownRecurrenceId(occurrence, row),
+          occurrenceTimes(occurrence)
+        ).map((at) => ({ key: `${occurrence.id}@${at}`, at, occurrence, row }))
+      );
     } catch (err) {
-      // A master whose ICS failed to expand is still drawn, from its row's columns.
+      // An ICS that failed to expand (its master is drawn from the row's columns), or a TRIGGER
+      // ical.js can't read; either would otherwise end the stream and every alert with it.
       return [];
     }
-    return occurrences.flatMap((occurrence) =>
-      ICSEventHelpers.getAlarmTimes(
-        root,
-        ownRecurrenceId(occurrence, row),
-        occurrenceTimes(occurrence)
-      ).map((at) => ({ key: `${occurrence.id}@${at}`, at, occurrence, row }))
-    );
   });
 }
 
