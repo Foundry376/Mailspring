@@ -1,7 +1,8 @@
 import { Actions, FocusedContentStore, WorkspaceStore } from 'mailspring-exports';
 import { ViewManifest } from '../lib/view-registry';
 import { ViewsNavStore } from '../lib/views-nav';
-import { emojiIcon, monogramFor, railViews, tooltipFor } from '../lib/nav/views-nav-rail';
+import { railViews, tooltipFor } from '../lib/nav/views-nav-rail';
+import { emojiIcon, monogramFor } from '../lib/view-icon';
 
 const manifest = (over: Partial<ViewManifest>): ViewManifest => ({
   id: 'board',

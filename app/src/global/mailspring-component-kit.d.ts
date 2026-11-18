@@ -1,6 +1,7 @@
 export * from '../components/menu';
 export * from '../components/drop-zone';
 export * from '../components/spinner';
+export * from '../components/loading-spinner';
 export * from '../components/contact-profile-photo';
 export const Switch: typeof import('../components/switch').default;
 export const FixedPopover: typeof import('../components/fixed-popover').default;

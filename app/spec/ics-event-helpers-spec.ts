@@ -1367,6 +1367,18 @@ describe('ICSEventHelpers.expansionIterationBudget', function () {
     expect(daily).toBeGreaterThan(budgetFor('FREQ=WEEKLY;BYDAY=TU'));
   });
 
+  it('counts every occurrence a period of the rule yields', function () {
+    // Weekdays since 2022 are about 1,170 occurrences, past a floor that one step a week
+    // would never leave.
+    const weeks = Math.ceil((NOW - START) / WEEK);
+    expect(budgetFor('FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR')).toBe(weeks * 5 + 100);
+    // A weekday without an ordinal matches up to five weeks of a month; with one, a single day.
+    const longAgo = START - 40 * 365 * DAY;
+    const months = Math.ceil((NOW - longAgo) / (28 * DAY));
+    expect(budgetFor('FREQ=MONTHLY;BYDAY=MO,WE', longAgo)).toBe(months * 10 + 100);
+    expect(budgetFor('FREQ=MONTHLY;BYDAY=1MO,3MO', longAgo)).toBe(months * 2 + 100);
+  });
+
   it('returns the floor when the series has no usable start', function () {
     // recurrenceStart can be null or non-finite. A NaN budget is worse than a small one:
     // it survives Math.max/Math.min, and a cap compared with NaN is no cap at all.

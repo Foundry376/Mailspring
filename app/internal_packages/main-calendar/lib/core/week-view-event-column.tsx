@@ -18,6 +18,7 @@ interface WeekViewEventColumnProps {
   day: Moment;
   /** Exclusive — the next column's start, so a DST day is not assumed to be 86400s */
   dayEnd: number;
+  isTabStop: boolean;
   focusedEvent: FocusedEventInfo | null;
   onEventClick: (e: React.MouseEvent<any>, event: EventOccurrence) => void;
   onEventDoubleClick: (event: EventOccurrence) => void;
@@ -91,6 +92,7 @@ export class WeekViewEventColumn extends React.Component<WeekViewEventColumnProp
             isDragging={dragState?.event.id === e.id}
             onDragStart={onEventDragStart}
             isCalendarReadOnly={readOnlyCalendarIds.has(e.calendarId)}
+            isTabStop={this.props.isTabStop}
           />
         ))}
       </div>

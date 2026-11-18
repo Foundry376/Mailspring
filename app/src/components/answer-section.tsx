@@ -1,6 +1,6 @@
 import React from 'react';
 import { ICSParticipantStatus, localized } from 'mailspring-exports';
-import { RetinaImg } from './retina-img';
+import { LoadingSpinner } from './loading-spinner';
 
 /** The answers a guest can give, in the order every place that offers them lists them. */
 export function rsvpActions(): [ICSParticipantStatus, string][] {
@@ -41,15 +41,7 @@ export const AnswerSection = ({
           disabled={disabled}
           onClick={() => onAnswer(status)}
         >
-          {status === sending && status !== answer ? (
-            <RetinaImg
-              width={18}
-              name="sending-spinner.gif"
-              mode={RetinaImg.Mode.ContentPreserve}
-            />
-          ) : (
-            label
-          )}
+          {status === sending && status !== answer ? <LoadingSpinner size={18} /> : label}
         </button>
       ))}
     </div>

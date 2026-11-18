@@ -1,6 +1,7 @@
 import { Task } from './task';
 import * as Attributes from '../attributes';
 import { Model, AttributeValues } from '../models/model';
+import { localized } from '../../intl';
 
 export class SyncbackMetadataTask extends Task {
   static forSaving({
@@ -79,7 +80,9 @@ export class SyncbackMetadataTask extends Task {
   }
 
   description() {
-    return null;
+    // Shown in the undo toast when this task is undoable (it has an undoValue). Undo Send
+    // renders its own toast content and does not use this.
+    return localized('Changes saved');
   }
 
   createUndoTask() {

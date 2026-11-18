@@ -1,6 +1,27 @@
 import { SyncbackEventTask } from '../../src/flux/tasks/syncback-event-task';
 
 describe('SyncbackEventTask', () => {
+  describe('description', () => {
+    const event = () =>
+      ({ id: 'e1', ics: 'BEGIN:VCALENDAR', recurrenceStart: 1, recurrenceEnd: 2 }) as any;
+    const undoData = { ics: 'BEGIN:VCALENDAR', recurrenceStart: 0, recurrenceEnd: 1 };
+
+    it('uses the description it was given', () => {
+      const task = SyncbackEventTask.forUpdating({
+        event: event(),
+        undoData,
+        description: 'Move event',
+      });
+      expect(task.description()).toBe('Move event');
+    });
+
+    it('falls back to a generic line for the undo toast when given none', () => {
+      const task = SyncbackEventTask.forUpdating({ event: event(), undoData });
+      expect(task.canBeUndone).toBe(true);
+      expect(task.description()).toBe('Event saved');
+    });
+  });
+
   describe('onError', () => {
     let showErrorDialog: jasmine.Spy;
 

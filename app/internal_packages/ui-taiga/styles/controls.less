@@ -16,8 +16,26 @@
   background: @white !important;
   border: 0;
   border-radius: @base-border-radius !important;
-  &.item-compose {
+}
+
+// Toolbar buttons are square outlines; a group shares one, split by hairlines.
+.sheet-toolbar {
+  .btn-toolbar {
     border: 1px solid @taiga-light;
+  }
+  .button-group {
+    box-shadow: none;
+    border: 1px solid @taiga-light;
+    border-radius: @base-border-radius;
+    overflow: hidden;
+
+    .btn-toolbar {
+      border: none;
+      border-radius: 0 !important;
+    }
+    .btn-toolbar + .btn-toolbar {
+      border-left: 1px solid @taiga-light;
+    }
   }
 }
 
@@ -43,6 +61,30 @@ body.platform-win32 {
 
   img.content-mask {
     background-color: @white !important;
+  }
+}
+
+// The calendar's accent fills take white text too: this theme's inverse text is a grey.
+.mailspring-calendar {
+  .legend-text.current-time-label,
+  .month-view .month-view-day-cell.is-today .month-view-day-number.is-today,
+  .agenda-panel .agenda-event.selected .agenda-event-time,
+  .agenda-panel .agenda-event.selected .agenda-event-duration,
+  .agenda-panel .agenda-event.selected .agenda-event-title {
+    color: @white;
+  }
+  .agenda-panel .agenda-event.selected .agenda-event-color-bar {
+    --event-band-color: @white;
+  }
+}
+.event-search-bar .suggestions .suggestion.selected {
+  &,
+  .suggestion-title {
+    color: @white;
+  }
+  .suggestion-time,
+  .suggestion-location {
+    color: fade(@white, 80%);
   }
 }
 

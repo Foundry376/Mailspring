@@ -1,6 +1,6 @@
 import React from 'react';
 import { localized, MailspringAPIRequest } from 'mailspring-exports';
-import { CopyButton, RetinaImg } from 'mailspring-component-kit';
+import { CopyButton, LoadingSpinner } from 'mailspring-component-kit';
 
 function buildShareHTML(htmlEl: HTMLElement, styleEl: HTMLStyleElement) {
   // The serialized stylesheet carries the active theme's colours, so the page
@@ -105,13 +105,7 @@ export default class ShareButton extends React.Component<
       <>
         <div className="btn" onClick={this._onShareReport}>
           {localized('Share this Report')}
-          {loading && (
-            <RetinaImg
-              name="inline-loading-spinner.gif"
-              mode={RetinaImg.Mode.ContentDark}
-              style={{ width: 14, height: 14, marginLeft: 10 }}
-            />
-          )}
+          {loading && <LoadingSpinner style={{ marginLeft: 10 }} />}
         </div>
         {link && (
           <div className="share-link">

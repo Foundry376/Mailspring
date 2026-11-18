@@ -3,24 +3,33 @@ import {
   Contact,
   localized,
   Actions,
-  SyncbackContactTask,
   AccountStore,
+  SyncbackContactTask,
   ContactGroup,
   DatabaseStore,
   TaskQueue,
+  WorkspaceStore,
 } from 'mailspring-exports';
 import { isEqual } from 'underscore';
 import { FocusContainer, ListensToFluxStore, ScrollRegion } from 'mailspring-component-kit';
-import { parse, ContactBase, ContactInteractorMetadata, apply } from './ContactInfoMapping';
+import {
+  parse,
+  ContactBase,
+  ContactInteractorMetadata,
+  apply,
+  contactSourceForAccount,
+  emptyContactForAccount,
+} from './ContactInfoMapping';
 import { ContactDetailRead } from './ContactDetailRead';
 import { ContactDetailEdit } from './ContactDetailEdit';
-import { Store, ContactsPerspective } from './Store';
+import { displayNameForContact } from './ContactDisplayName';
+import { Store, accountContactsPerspective } from './Store';
 
 interface ContactDetailProps {
   editing: string | 'new' | false;
+  newContactAccountId: string | null;
   groups: ContactGroup[];
   contacts: Contact[];
-  perspective: ContactsPerspective;
   focusedId?: string;
 }
 
@@ -30,52 +39,84 @@ interface ContactDetailState {
   metadata: ContactInteractorMetadata | null;
 }
 
-function emptyContactForAccountId(accountId: string) {
-  const account = AccountStore.accountForId(accountId);
-  const source = account.provider === 'gmail' ? 'gpeople' : 'carddav';
-  const info: Contact['info'] =
-    source === 'gpeople'
-      ? {
-          names: [],
-          resourceName: '',
-          etag: '',
-          addresses: [],
-        }
-      : {
-          vcf: `BEGIN:VCARD\r\nVERSION:3.0\r\nUID:${crypto.randomUUID()}\r\nEND:VCARD\r\n`,
-          href: '',
-        };
+export class ContactDetailWithFocus extends React.Component<
+  ContactDetailProps,
+  ContactDetailState
+> {
+  _removeLeaveGuard: () => void;
+  _refocusingEdited = false;
 
-  return new Contact({
-    source,
-    name: '',
-    email: '',
-    accountId: account.id,
-    info,
-  });
-}
-
-class ContactDetailWithFocus extends React.Component<ContactDetailProps, ContactDetailState> {
   constructor(props: ContactDetailProps) {
     super(props);
     this.state = this.getStateForProps();
   }
 
+  componentDidMount() {
+    this._removeLeaveGuard = WorkspaceStore.setSectionLeaveGuard(this._mayLeaveSection);
+  }
+
+  componentWillUnmount() {
+    this._removeLeaveGuard();
+  }
+
+  // Switching sections unmounts the editor, and the typed changes live only in its state.
+  _mayLeaveSection = () => {
+    const { editing } = this.props;
+    const { contact, data } = this.state;
+    if (!editing || !contact || isEqual(data, parse(contact).data)) return true;
+
+    const name = editing === 'new' ? localized('New Contact') : displayNameForContact(contact);
+    const response = require('@electron/remote').dialog.showMessageBoxSync({
+      type: 'question',
+      buttons: [localized('Save Changes'), localized('Discard'), localized('Keep editing')],
+      defaultId: 0,
+      cancelId: 2,
+      message: localized('"%@" has unsaved changes.', name),
+    });
+    if (response === 2) return false;
+    if (response === 0) this._queueSave();
+    else this.onCancel();
+    return true;
+  };
+
   componentDidUpdate(prevProps: ContactDetailProps) {
     const prevContact = prevProps.contacts?.find((c) => c.id === prevProps.focusedId);
     const newContact = this.props.contacts?.find((c) => c.id === this.props.focusedId);
 
-    if (isEqual(prevContact, newContact) && prevProps.editing === this.props.editing) return;
-    if (newContact && this.props.editing !== newContact.id) Store.setEditing(false);
+    if (
+      isEqual(prevContact, newContact) &&
+      prevProps.editing === this.props.editing &&
+      prevProps.newContactAccountId === this.props.newContactAccountId
+    ) {
+      return;
+    }
+    if (this._refocusingEdited) {
+      this._refocusingEdited = false;
+      return;
+    }
+    // Focus follows a click a frame late, so an edit started since still sees the old focus.
+    const { editing, focusedId } = this.props;
+    if (newContact && focusedId !== prevProps.focusedId && editing !== newContact.id) {
+      // The list has already moved focus, so keeping the edit moves it back.
+      if (editing && !this._mayLeaveSection()) {
+        this._refocusingEdited = true;
+        Actions.setFocus({ collection: 'contact', item: editing === 'new' ? null : prevContact });
+        return;
+      }
+      Store.setEditing(false);
+    }
     this.setState(this.getStateForProps());
   }
 
   getStateForProps() {
-    const { editing, contacts, focusedId, perspective } = this.props;
+    const { editing, contacts, focusedId, newContactAccountId } = this.props;
 
     const contact =
-      editing === 'new' && 'accountId' in perspective
-        ? emptyContactForAccountId(perspective.accountId)
+      editing === 'new'
+        ? emptyContactForAccount(
+            newContactAccountId,
+            contactSourceForAccount(newContactAccountId, Store.books())
+          )
         : contacts?.find((c) => c.id === focusedId);
 
     if (!contact) {
@@ -95,24 +136,33 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
     Store.setEditing(false);
   };
 
-  onSaveChanges = () => {
-    const { perspective } = this.props;
+  _queueSave() {
     const contact = apply(this.state.contact, this.state.data);
-
-    if (!('accountId' in perspective)) return;
-
     const task = contact.id
       ? SyncbackContactTask.forUpdating({ contact })
-      : SyncbackContactTask.forCreating({ contact, accountId: perspective.accountId });
+      : SyncbackContactTask.forCreating({ contact, accountId: contact.accountId });
     Actions.queueTask(task);
     Store.setEditing(false);
+    return task;
+  }
 
-    if (!contact.id) {
-      // The sync engine assigns the new contact's id during performLocal.
-      TaskQueue.waitForPerformLocal(task)
-        .then((t) => DatabaseStore.find<Contact>(Contact, t.contact.id).then((c) => c))
-        .then((created) => created && Actions.setFocus({ collection: 'contact', item: created }));
+  // Only an explicit Save shows the new contact; saving on the way elsewhere leaves the user there.
+  onSaveChanges = () => {
+    const isNew = !this.state.contact.id;
+    const task = this._queueSave();
+    if (!isNew) return;
+
+    // Found in Mail and groups don't list a contact created in them.
+    const perspective = Store.perspective();
+    if (perspective.type === 'found-in-mail' || perspective.type === 'group') {
+      Store.setPerspective(
+        accountContactsPerspective(AccountStore.accountForId(task.contact.accountId))
+      );
     }
+    // The sync engine assigns the new contact's id during performLocal.
+    TaskQueue.waitForPerformLocal(task)
+      .then((t) => DatabaseStore.find<Contact>(Contact, t.contact.id).then((c) => c))
+      .then((created) => created && Actions.setFocus({ collection: 'contact', item: created }));
   };
 
   render() {
@@ -136,6 +186,7 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
             <ContactDetailEdit
               data={data}
               contact={contact}
+              metadata={metadata}
               onChange={(changes) => this.setState({ data: { ...data, ...changes } })}
             />
           ) : (
@@ -158,12 +209,12 @@ class ContactDetailWithFocus extends React.Component<ContactDetailProps, Contact
 }
 
 export const ContactDetail: React.FunctionComponent<ContactDetailProps> = ListensToFluxStore(
-  ({ contacts, perspective, editing, groups }) => (
+  ({ contacts, editing, newContactAccountId, groups }) => (
     <FocusContainer collection="contact">
       <ContactDetailWithFocus
         contacts={contacts}
         editing={editing}
-        perspective={perspective}
+        newContactAccountId={newContactAccountId}
         groups={groups}
       />
     </FocusContainer>
@@ -172,9 +223,9 @@ export const ContactDetail: React.FunctionComponent<ContactDetailProps> = Listen
     stores: [Store],
     getStateFromStores: () => ({
       editing: Store.editing(),
+      newContactAccountId: Store.newContactAccountId(),
       groups: Store.groups(),
       contacts: Store.filteredContacts(),
-      perspective: Store.perspective(),
     }),
   }
 );

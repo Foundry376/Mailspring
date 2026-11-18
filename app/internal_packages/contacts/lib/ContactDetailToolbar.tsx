@@ -1,4 +1,5 @@
 import React from 'react';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import {
   FocusContainer,
   ListensToFluxStore,
@@ -81,11 +82,14 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
     if (response !== 0) {
       return;
     }
-    Actions.queueTask(
-      DestroyContactTask.forRemoving({
-        contacts: this.actionSet(),
-      })
-    );
+    // A task runs in one account's sync process, which can only delete that account's contacts.
+    const byAccount = new Map<string, Contact[]>();
+    for (const contact of this.actionSet()) {
+      byAccount.set(contact.accountId, [...(byAccount.get(contact.accountId) || []), contact]);
+    }
+    for (const contacts of byAccount.values()) {
+      Actions.queueTask(DestroyContactTask.forRemoving({ contacts }));
+    }
   };
 
   actionSet() {
@@ -97,12 +101,8 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
 
   render() {
     const { perspective, editing } = this.props;
-    const actionSet = this.actionSet();
+    const actionSet = editing ? [] : this.actionSet();
     const editable = actionSet.length === 1 && actionSet[0].source !== 'mail';
-
-    if (editing) {
-      return <span />;
-    }
 
     const commands = {};
     if (perspective.type === 'group' && actionSet.length > 0) {
@@ -116,54 +116,74 @@ class ContactDetailToolbarWithData extends React.Component<ContactDetailToolbarP
       commands['core:edit-item'] = this._onEdit;
     }
 
+    const fadeIn = (key: string, button: React.ReactElement) => (
+      <CSSTransition key={key} classNames="opacity-125ms" timeout={125}>
+        {button}
+      </CSSTransition>
+    );
+
     return (
-      <BindGlobalCommands key={Object.keys(commands).join(',')} commands={commands}>
-        <div style={{ display: 'flex', order: 1000, marginRight: 10 }}>
-          {perspective.type === 'group' && (
-            <button
-              tabIndex={-1}
-              title={localized('Remove from Group')}
-              className={`btn btn-toolbar ${actionSet.length === 0 && 'btn-disabled'}`}
-              onClick={actionSet.length > 0 ? this._onRemoveFromSource : undefined}
-            >
-              {localized('Remove from Group')}
-            </button>
-          )}
-          <button
-            tabIndex={-1}
-            title={localized('Delete')}
-            aria-label={localized('Delete')}
-            className={`btn btn-toolbar ${actionSet.length === 0 && 'btn-disabled'}`}
-            onClick={actionSet.length > 0 ? this._onDelete : undefined}
-          >
-            <RetinaImg
-              name="toolbar-trash.png"
-              mode={RetinaImg.Mode.ContentIsMask}
-              aria-hidden="true"
-            />
-          </button>
-          <button
-            tabIndex={-1}
-            title={localized('Export vCard')}
-            aria-label={localized('Export vCard')}
-            className={`btn btn-toolbar ${actionSet.length === 0 && 'btn-disabled'}`}
-            onClick={actionSet.length > 0 ? () => exportContactsToFile(actionSet) : undefined}
-          >
-            <RetinaImg
-              name="toolbar-download.png"
-              mode={RetinaImg.Mode.ContentIsMask}
-              aria-hidden="true"
-            />
-          </button>
-          <button
-            tabIndex={-1}
-            title={localized('Edit')}
-            className={`btn btn-toolbar ${!editable && 'btn-disabled'}`}
-            onClick={editable ? this._onEdit : undefined}
-          >
-            {localized('Edit')}
-          </button>
-        </div>
+      <BindGlobalCommands commands={commands}>
+        <TransitionGroup component="div" style={{ display: 'flex', order: 1000 }}>
+          {commands['core:remove-from-view'] &&
+            fadeIn(
+              'remove-from-group',
+              <button
+                tabIndex={-1}
+                title={localized('Remove from Group')}
+                className="btn btn-toolbar"
+                onClick={this._onRemoveFromSource}
+              >
+                {localized('Remove from Group')}
+              </button>
+            )}
+          {commands['core:delete-item'] &&
+            fadeIn(
+              'delete',
+              <button
+                tabIndex={-1}
+                title={localized('Delete')}
+                aria-label={localized('Delete')}
+                className="btn btn-toolbar"
+                onClick={this._onDelete}
+              >
+                <RetinaImg
+                  name="toolbar-trash.png"
+                  mode={RetinaImg.Mode.ContentIsMask}
+                  aria-hidden="true"
+                />
+              </button>
+            )}
+          {commands['contacts:export-vcf-selected'] &&
+            fadeIn(
+              'export',
+              <button
+                tabIndex={-1}
+                title={localized('Export vCard')}
+                aria-label={localized('Export vCard')}
+                className="btn btn-toolbar"
+                onClick={commands['contacts:export-vcf-selected']}
+              >
+                <RetinaImg
+                  name="toolbar-download.png"
+                  mode={RetinaImg.Mode.ContentIsMask}
+                  aria-hidden="true"
+                />
+              </button>
+            )}
+          {commands['core:edit-item'] &&
+            fadeIn(
+              'edit',
+              <button
+                tabIndex={-1}
+                title={localized('Edit')}
+                className="btn btn-toolbar"
+                onClick={this._onEdit}
+              >
+                {localized('Edit')}
+              </button>
+            )}
+        </TransitionGroup>
       </BindGlobalCommands>
     );
   }

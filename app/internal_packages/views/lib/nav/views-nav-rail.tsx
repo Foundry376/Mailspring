@@ -2,6 +2,7 @@ import React from 'react';
 import { localized } from 'mailspring-exports';
 import { NavRailItem, NavRailSection } from 'mailspring-component-kit';
 import { ViewManifest, ViewRegistryEvents, allViews } from '../view-registry';
+import { ViewIcon } from '../view-icon';
 import { ViewsNavStore } from '../views-nav';
 import { badgeFor, ViewBadgeEvents } from './badges';
 import { onPinsChanged, pinnedViewIds } from './pins';
@@ -13,41 +14,11 @@ export function railViews(views: ViewManifest[] = allViews(), pinned = pinnedVie
     .filter(Boolean);
 }
 
-// A manifest `icon` is a short emoji; anything else falls back to a monogram.
-export function emojiIcon(icon: unknown): string | null {
-  if (typeof icon !== 'string') return null;
-  const trimmed = icon.trim();
-  if (!trimmed || trimmed.length > 8) return null;
-  if (!/\p{Extended_Pictographic}/u.test(trimmed) || /[\x21-\x7e]/.test(trimmed)) return null;
-  return trimmed;
-}
-
-const MONOGRAM_HUES = [210, 265, 330, 15, 35, 150, 185, 235];
-
-export function monogramFor(name: string) {
-  const letter = (name.trim().match(/[\p{L}\p{N}]/u) || ['?'])[0].toUpperCase();
-  let hash = 0;
-  for (const ch of name) hash = (hash * 31 + ch.charCodeAt(0)) | 0;
-  const hue = MONOGRAM_HUES[Math.abs(hash) % MONOGRAM_HUES.length];
-  return { letter, background: `hsl(${hue}, 55%, 52%)` };
-}
-
 export function tooltipFor(view: ViewManifest) {
   const parts: string[] = [];
   const description = view.json && view.json.description;
   if (typeof description === 'string' && description.trim()) parts.push(description.trim());
   return { title: view.name, description: parts.join(' ') || undefined };
-}
-
-function ViewGlyph({ view }: { view: ViewManifest }) {
-  const emoji = emojiIcon(view.json && view.json.icon);
-  if (emoji) return <>{emoji}</>;
-  const { letter, background } = monogramFor(view.name);
-  return (
-    <span className="nav-rail-monogram" style={{ background }}>
-      {letter}
-    </span>
-  );
 }
 
 interface State {
@@ -109,7 +80,7 @@ export class ViewsNavRailSection extends React.Component<Record<string, never>, 
           <NavRailItem
             key={view.id}
             label={view.name}
-            icon={<ViewGlyph view={view} />}
+            icon={<ViewIcon view={view} />}
             tooltip={tooltipFor(view)}
             badge={badgeFor(view.id)}
             active={showing && viewId === view.id}

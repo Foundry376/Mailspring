@@ -488,18 +488,15 @@ export default class Application extends EventEmitter {
       this.windowManager.get(WindowManager.MAIN_WINDOW)?.sendMessage('show-activity');
     });
 
+    this.on('application:show-contacts', () => {
+      this.ensureWindowsForTokenState();
+      this.windowManager.get(WindowManager.MAIN_WINDOW)?.sendMessage('show-contacts');
+    });
+
     // Only the main window's MailsyncBridge has sync clients, so other windows route a
     // refresh through here.
     this.on('application:sync-calendar', (accountId?: string) => {
       this.sendCalendarSync(accountId);
-    });
-
-    this.on('application:show-contacts', () => {
-      this.windowManager.ensureWindow(WindowManager.CONTACTS_WINDOW, {});
-      const main = this.windowManager.get(WindowManager.MAIN_WINDOW);
-      if (main) {
-        main.sendMessage('run-contact-sync');
-      }
     });
 
     this.on('application:view-help', () => {
