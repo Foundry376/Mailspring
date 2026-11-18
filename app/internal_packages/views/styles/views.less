@@ -205,12 +205,15 @@
   background: none;
 }
 
+// Tinted and sized like the PNG icons beside it, which are 16px masks.
 .view-pin-button {
   color: fade(@text-color-heading, 80%);
+  &:active {
+    color: fade(@text-color-heading, 90%);
+  }
   svg {
-    width: 14px;
-    height: 14px;
-    vertical-align: text-bottom;
+    width: 16px;
+    height: 16px;
   }
 }
 

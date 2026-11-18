@@ -26,6 +26,8 @@
 @less-text: #566c75; //gray
 @less-highlight: #fafafa; //lightest-gray
 @less-divider: #dddddd; //lighter-gray
+@less-top-inset: calc(3em + 24px); // where the columns start, under the floating toolbar
+@less-side-inset: 2em; // the thread list's sides
 @minimize: #fbd852; //yellow
 @maximize: #8dd07d; //green
 @close: #ff5f56; //red
@@ -42,10 +44,11 @@
 // Padding and Color for Account Sidebar, Message List, Message Sidebar,
 // Preference Sidebar and Draft List.
 .column-RootSidebar,
+.column-ContactsSidebar,
 .column-MessageListSidebar,
 .preferences-sidebar,
 .column-DraftList {
-  padding: 3em 0 2em 2em;
+  padding: @less-top-inset 0 2em 2em;
   background: @less-background;
 }
 
@@ -90,11 +93,23 @@
   background-color: @maximize;
 }
 
-// Remove underline and dropshadow on compose button
-.sheet-toolbar .btn-toolbar {
+// Remove underline and dropshadow on toolbar buttons. The new-item buttons and the calendar's
+// Today and view picker keep theirs, as text buttons that would otherwise read as labels.
+.sheet-toolbar .btn-toolbar:where(:not(.item-compose, .toolbar-CalendarContent *)) {
   background: transparent;
   border: none;
   box-shadow: none;
+}
+// Toolbar text and icons in the titles' colour. A pressed ghost button keeps its accent.
+.sheet-toolbar {
+  .btn-toolbar {
+    color: @less-text;
+  }
+  .btn-toolbar img.content-mask,
+  .btn-bare img.content-mask,
+  .btn-ghost:not([aria-pressed='true']) img.content-mask {
+    background-color: @less-text;
+  }
 }
 
 //====================================================
@@ -124,13 +139,6 @@
   border: none;
   height: 0;
   min-height: 0;
-  .selection-bar .absolute {
-    position: absolute;
-    left: 0;
-    right: 0;
-    border-left: none;
-    border-right: none;
-  }
 }
 
 // A pushed sheet's toolbar (an open thread in list mode, Preferences) floats over the root
@@ -155,7 +163,7 @@
   border-radius: 0;
 }
 .nav-rail {
-  padding-top: 3em;
+  padding-top: @less-top-inset;
 
   .nav-rail-item img.content-mask {
     background-color: @sidebar-text;
@@ -163,37 +171,189 @@
   .nav-rail-item:hover {
     background: @less-highlight;
   }
-  .nav-rail-item.active {
-    background: transparent;
-    box-shadow: none;
-  }
   .nav-rail-item.active img.content-mask {
     background-color: @less-text;
   }
 }
 
 .column-CalendarSidebar,
-.column-CalendarContent {
-  padding-top: 3em;
+.column-CalendarContent,
+.column-ContactsList,
+.column-ContactsDetail {
+  padding-top: @less-top-inset;
   background: @less-background;
 }
-// The calendar list matches the account sidebar's headings, rows and inset. The inset sits on the
-// list rather than the column so the mini month keeps its full width.
+// The toolbar is 0px tall here, so these centred toolbars get a 46px row, level with Compose.
+// Matches the specificity of the core macOS rule that sizes them to the toolbar.
+.sheet-toolbar .sheet-toolbar-container {
+  > .toolbar-CalendarContent,
+  > .toolbar-ContactsSidebar,
+  > .toolbar-ContactsList,
+  > .toolbar-ContactsDetail {
+    height: 46px;
+  }
+}
+// Activity and Views have no toolbar, so their header controls sit on the toolbar row, centred
+// with Compose, and the title's baseline lines up with the bottom of the first nav rail icon.
+.activity-dashboard .header {
+  margin-top: 10px;
+  align-items: flex-start;
+  h2 {
+    margin-top: 58.5px;
+  }
+}
+.views-home .views-home-content {
+  padding-top: 9px;
+  .views-home-header {
+    align-items: flex-start;
+    h1 {
+      margin-top: 59.5px;
+    }
+  }
+}
+// Their actions take the new-item buttons' pill rather than the theme's filled emphasis.
+.activity-dashboard,
+.views-home {
+  .btn.btn-emphasis {
+    background: fade(@less-background, 85%);
+    color: @less-text;
+    border: none;
+    border-radius: 999px;
+    box-shadow: 0 0 0 1px fade(@less-text, 15%), 0 1px 4px fade(@less-text, 6%);
+    // Core's gradient layer, which the theme's opaque fill otherwise hides.
+    &::before {
+      display: none;
+    }
+    &:hover {
+      background: @less-background;
+    }
+    &:active {
+      background: mix(@less-text, @less-background, 10%);
+    }
+  }
+}
+// The calendar's text in the theme's two greys. Today keeps its accent, which core sets on
+// more specific selectors.
+.mailspring-calendar {
+  .weekday-header {
+    color: @less-text;
+  }
+  .agenda-panel {
+    .agenda-event-title {
+      color: @less-text;
+    }
+    .agenda-event-time,
+    .agenda-event-duration,
+    .agenda-day-header {
+      color: @sidebar-text;
+    }
+    .agenda-new-event .btn-ghost img.content-mask {
+      background-color: @less-text;
+    }
+  }
+  .month-view {
+    .month-view-day-number {
+      color: @less-text;
+    }
+    .month-view-day-cell.is-other-month .month-view-day-number {
+      color: @sidebar-text;
+    }
+  }
+}
+.event-panel {
+  color: @less-text;
+
+  // Sections part on space alone.
+  .event-panel-title,
+  .event-panel-section,
+  .event-panel-collapse .event-panel-section:last-child {
+    border-bottom: none;
+  }
+
+  input,
+  textarea,
+  .btn-bare {
+    color: inherit;
+  }
+  img.content-mask,
+  .event-panel-back img.content-mask {
+    background-color: @less-text;
+  }
+  .event-panel-subtle,
+  .event-panel-icon,
+  .event-panel-more,
+  .event-panel-invitee-add .placeholder,
+  ::placeholder {
+    color: @sidebar-text;
+  }
+}
+// As the mini month's title, and on its baseline.
+.mailspring-calendar .calendar-title {
+  padding-top: 2.5px;
+  color: @less-text;
+}
+mailspring-workspace {
+  // Core's 165px plus the 18px more the calendar sidebar's mini month is inset here.
+  --account-sidebar-min-width: 183px;
+  // Fits the date picker's 200px mini month beside the panels' 2.5rem left padding and 8px right.
+  --event-panel-min-width: 243px;
+}
+// The agenda and event panels sit beside the grid on space rather than a divider.
+.calendar-right-panel {
+  .agenda-panel,
+  .event-panel {
+    border-left: none;
+    // rem, as the event panel's smaller text would make em narrower than the agenda's.
+    padding-left: 2.5rem;
+  }
+}
+// In Day and Week, the time legend has no lines of its own: the all-day row's lines stop at the
+// days, and the title sits over the first day rather than the times.
+.mailspring-calendar .week-view {
+  .calendar-title {
+    // The calendar's 75px time legend plus the day headers' own 10px.
+    padding-left: 85px;
+  }
+  .date-label-legend {
+    border-bottom: none;
+  }
+  .all-day-legend {
+    border-top: none;
+  }
+  .week-header {
+    border-bottom-color: var(--grid-line);
+  }
+  .all-day-events {
+    border-top-color: var(--grid-line);
+  }
+  .event-grid-wrap {
+    box-shadow: none;
+  }
+  // The legend paints over the line the off-screen day before the first one ends with.
+  .all-day-legend,
+  .event-grid-legend-wrap {
+    box-shadow: 1px 0 0 @less-background;
+  }
+}
+// The calendar list matches the account sidebar's headings, rows and inset.
 .calendar-source-list {
   border-right: none;
   background-color: @less-background;
   color: @sidebar-text;
 
+  // The month title sits level with the first rail item, as the account sidebar's heading does.
+  .mini-month-view-wrap {
+    padding-top: 7px;
+    padding-left: 2em;
+  }
+  // As the account sidebar's selected item.
+  .mini-month-view .month-title {
+    color: @less-text;
+  }
+
   .calendar-source-list-wrap {
     // The account sidebar column's 2em plus its headings' own 10px.
     padding-left: calc(2em + 10px);
-  }
-  .account-label {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: @sidebar-text;
-    margin-bottom: 12px;
   }
   .toggle-wrap {
     font-size: 14px;
@@ -207,12 +367,14 @@
 
 // Change default account sidebar color from default gray to white
 .column-RootSidebar,
-.account-sidebar {
+.account-sidebar,
+.contacts-perspective-list {
   background-color: @less-background;
 }
 
 // Account sidebar label controls
-.account-sidebar .item {
+.account-sidebar .item,
+.contacts-perspective-list .item {
   color: @sidebar-text;
   font-size: 14px;
   font-weight: 400;
@@ -221,7 +383,9 @@
 }
 
 // Account sidebar headings overrides
-.account-sidebar .heading {
+.account-sidebar .heading,
+.calendar-source-list .heading,
+.contacts-perspective-list .heading {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 2px;
@@ -237,7 +401,8 @@
 }
 
 // Account sidebar selected label overrides
-.account-sidebar {
+.account-sidebar,
+.contacts-perspective-list {
   // Fix padding jump
   .item .name {
     padding-left: 0;
@@ -287,12 +452,6 @@
 //  Scrollbars & Resize Handles
 //====================================================
 
-.scrollbar-track {
-  background-color: transparent;
-  width: 10px;
-  border-left: none;
-}
-
 .flexbox-handle-horizontal div {
   border-right: none;
   box-shadow: none;
@@ -320,7 +479,7 @@
 
 // Thread list padding overrides
 .column-ThreadList {
-  padding: 3em 2em 1em;
+  padding: @less-top-inset @less-side-inset 1em;
 }
 
 // Selected thread list items overrides
@@ -457,7 +616,7 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 
 // Re-center message list in sidebar with padding
 .column-MessageListSidebar {
-  padding: 3em 1em;
+  padding: @less-top-inset 1em;
 }
 
 .sidebar-participant-picker {
@@ -572,13 +731,19 @@ input[type='url'] {
   border: none !important;
 }
 
-// Search bar overrides
-.search-bar {
-  background-color: transparent;
-  width: 400px;
-  margin-right: 7.5px;
-}
+// Search fields are bare until hovered or focused.
+.thread-search-bar,
+.event-search-bar,
+.contact-search-bar {
+  &:not(:focus-within) {
+    background: transparent;
+    box-shadow: none;
 
+    &:hover {
+      background: @less-highlight;
+    }
+  }
+}
 // Remove box-shadow on search bar
 body.is-blurred .search-bar .menu .header-container input,
 body.is-blurred .sheet-toolbar-container .btn.btn-toolbar,

@@ -150,8 +150,8 @@ export class SyncbackEventTask extends Task {
     this.canBeUndone = !!this.undoData;
   }
 
-  description(): string | null {
-    return this.taskDescription || null;
+  description(): string {
+    return this.taskDescription || localized('Event saved');
   }
 
   /**

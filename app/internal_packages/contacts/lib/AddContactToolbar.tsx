@@ -1,75 +1,81 @@
 import React from 'react';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import { Store, ContactsPerspective } from './Store';
-import { localized, Actions, AccountStore } from 'mailspring-exports';
-import { ListensToFluxStore, BindGlobalCommands, SVGIcons } from 'mailspring-component-kit';
+import { localized, Account, AccountStore, Actions, WorkspaceStore } from 'mailspring-exports';
+import {
+  ListensToFluxStore,
+  BindGlobalCommands,
+  NewItemButton,
+  SVGIcons,
+} from 'mailspring-component-kit';
 import { showGPeopleReadonlyNotice } from './GoogleSupport';
 
 interface AddContactToolbarProps {
-  editing: string | 'new' | false;
   perspective: ContactsPerspective;
-  focusedId?: string;
+  accounts: Account[];
+}
+
+/** The account a new contact goes in without asking, or null when the user picks one. */
+export function accountForNewContact(perspective: ContactsPerspective, accounts: Account[]) {
+  const shown = 'accountId' in perspective && accounts.find((a) => a.id === perspective.accountId);
+  if (shown) return shown;
+  return accounts.length === 1 ? accounts[0] : null;
+}
+
+export function startNewContact(accountId: string) {
+  if (showGPeopleReadonlyNotice(accountId)) return;
+  if (!WorkspaceStore.mayLeaveSection()) return;
+  Actions.setFocus({ collection: 'contact', item: null });
+  Store.startNewContact(accountId);
 }
 
 class AddContactToolbarWithData extends React.Component<AddContactToolbarProps> {
-  constructor(props: AddContactToolbarProps) {
-    super(props);
-  }
-
   onAdd = () => {
-    const { perspective } = this.props;
-
-    if (!('accountId' in perspective)) return;
-    if (showGPeopleReadonlyNotice(perspective.accountId)) return;
-
-    Actions.setFocus({ collection: 'contact', item: null });
-    Store.setEditing('new');
+    const { perspective, accounts } = this.props;
+    const account = accountForNewContact(perspective, accounts);
+    if (account) {
+      startNewContact(account.id);
+      return;
+    }
+    require('@electron/remote')
+      .Menu.buildFromTemplate(
+        accounts.map((a) => ({ label: a.label, click: () => startNewContact(a.id) }))
+      )
+      .popup({});
   };
 
   render() {
-    const { editing, perspective } = this.props;
-    const enabled =
-      'accountId' in perspective &&
-      editing === false &&
-      perspective.accountId &&
-      perspective.type !== 'found-in-mail';
-    const acct = 'accountId' in perspective && AccountStore.accountForId(perspective.accountId);
+    const { perspective, accounts } = this.props;
+    const account = accountForNewContact(perspective, accounts);
 
     return (
-      <div style={{ display: 'flex', order: 1000 }}>
-        <BindGlobalCommands
-          key={`${enabled}`}
-          commands={enabled ? { 'core:add-item': this.onAdd } : {}}
-        >
-          <button
-            disabled={!enabled}
-            className={`btn btn-toolbar btn-new-contact ${!enabled && 'btn-disabled'}`}
-            title={
-              acct
-                ? localized('New contact in %@', acct.label)
-                : localized('Select an account to add a contact.')
-            }
-            onClick={enabled ? this.onAdd : undefined}
-          >
-            <SVGIcons.NewPerson />
-          </button>
-        </BindGlobalCommands>
-      </div>
+      <TransitionGroup component={null}>
+        {accounts.length > 0 && (
+          <CSSTransition key="new-contact" classNames="opacity-125ms" timeout={125}>
+            <BindGlobalCommands commands={{ 'core:add-item': this.onAdd }}>
+              <NewItemButton
+                label={localized('New Contact')}
+                title={account ? localized('New contact in %@', account.label) : undefined}
+                matchWidthOf={[localized('Compose'), localized('New Event')]}
+                icon={<SVGIcons.NewPerson />}
+                className="btn-new-contact"
+                onClick={this.onAdd}
+              />
+            </BindGlobalCommands>
+          </CSSTransition>
+        )}
+      </TransitionGroup>
     );
   }
 }
 
 export const AddContactToolbar: React.FunctionComponent<AddContactToolbarProps> =
-  ListensToFluxStore(
-    ({ listSource, editing, perspective }) => (
-      <AddContactToolbarWithData editing={editing} perspective={perspective} />
-    ),
-    {
-      stores: [Store],
-      getStateFromStores: () => ({
-        editing: Store.editing(),
-        perspective: Store.perspective(),
-      }),
-    }
-  );
+  ListensToFluxStore(AddContactToolbarWithData, {
+    stores: [Store, AccountStore],
+    getStateFromStores: () => ({
+      perspective: Store.perspective(),
+      accounts: Store.accountsWithContactBooks(),
+    }),
+  });
 
 AddContactToolbar.displayName = 'AddContactToolbar';

@@ -258,10 +258,12 @@ body.platform-win32 {
 }
 .btn-ghost {
   border-radius: 4px;
+  // From the button's own colour, so the fill shows on a theme's dark surfaces too. Its alpha is
+  // dropped, so a subtle grey button doesn't get a fainter fill.
   &:hover,
   &:focus-visible {
     outline: none;
-    background: fade(@text-color, 6%);
+    background: rgb(from currentColor r g b / 6%);
   }
   &[aria-pressed='true'] img.content-mask {
     background-color: @component-active-color;

@@ -1,5 +1,10 @@
 import React, { Component } from 'react';
-import { ListensToFluxStore, RetinaImg, KeyCommandsRegion } from 'mailspring-component-kit';
+import {
+  ListensToFluxStore,
+  RetinaImg,
+  LoadingSpinner,
+  KeyCommandsRegion,
+} from 'mailspring-component-kit';
 import {
   localized,
   Actions,
@@ -341,11 +346,7 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
         }}
       >
         {isSearching ? (
-          <RetinaImg
-            className="search-accessory search loading"
-            name="inline-loading-spinner.gif"
-            mode={RetinaImg.Mode.ContentPreserve}
-          />
+          <LoadingSpinner className="search-accessory search loading" />
         ) : (
           <RetinaImg
             className="search-accessory search"

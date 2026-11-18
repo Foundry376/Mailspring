@@ -71,16 +71,15 @@ class N1SpecLoader {
   _loadSpecsInDir(specDirectory) {
     const { specFilePattern } = this.loadSettings;
 
-    let regex = /-spec\.(js|jsx|es6|es|ts|tsx)$/;
-    if (typeof specFilePattern === 'string' && specFilePattern.length > 0) {
-      regex = new RegExp(specFilePattern);
-    }
+    const specFile = /-spec\.(js|jsx|es6|es|ts|tsx)$/;
+    // The pattern narrows which spec files run; it doesn't widen the set to fixtures or .DS_Store.
+    const pattern = specFilePattern ? new RegExp(specFilePattern) : null;
 
     if (!fs.existsSync(specDirectory)) return;
     for (const specFilePath of (fs.readdirSync(specDirectory, { recursive: true }) as string[]).map(
       (f) => path.join(specDirectory, f)
     )) {
-      if (regex.test(specFilePath)) {
+      if (specFile.test(specFilePath) && (!pattern || pattern.test(specFilePath))) {
         try {
           require(specFilePath);
         } catch (err) {

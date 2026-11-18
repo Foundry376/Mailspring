@@ -7,6 +7,8 @@ interface ListEditorProps<T> {
   items: T[];
   itemTemplate: T;
   addLabel: string;
+  /** The most items the contact's service stores; "Add" is not offered beyond it. */
+  maxItems?: number;
   onChange: (items: T[]) => void;
   children: (item: T, onChange: (item: Partial<T>) => void) => React.ReactNode;
 }
@@ -15,10 +17,12 @@ interface ListEditorProps<T> {
 there's somewhere to type, and "Add" appears once the last row has content. */
 export class ListEditor<T> extends React.Component<ListEditorProps<T>> {
   render() {
-    const { items, itemTemplate, addLabel, children, onChange } = this.props;
+    const { items, itemTemplate, addLabel, children, onChange, maxItems } = this.props;
 
     const displayed = items.length ? items : [itemTemplate];
-    const canAdd = !isEqual(displayed[displayed.length - 1], itemTemplate);
+    const canAdd =
+      !isEqual(displayed[displayed.length - 1], itemTemplate) &&
+      (maxItems === undefined || displayed.length < maxItems);
 
     return (
       <div className="contact-list-editor">

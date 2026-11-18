@@ -218,9 +218,9 @@ describe('moving an event with guests', function () {
   it('holds arrow-key moves, each starting from the held time', async function () {
     const calendar = calendarWith([withGuests]);
 
-    calendar._onMoveSelectedEvent('down', false);
+    calendar._onMoveSelectedEvent('down');
     await settle();
-    calendar._onMoveSelectedEvent('down', false);
+    calendar._onMoveSelectedEvent('down');
     await settle();
 
     expect(queueTask).not.toHaveBeenCalled();
@@ -806,7 +806,7 @@ describe('a repeating event', function () {
     );
     const calendar = calendarWith([]);
     await calendar._persistDragChange(droppedAt(first, START + HOUR));
-    calendar._onMoveSelectedEvent('down', false);
+    calendar._onMoveSelectedEvent('down');
     await settle();
 
     expect(recurringDialog).not.toHaveBeenCalled();

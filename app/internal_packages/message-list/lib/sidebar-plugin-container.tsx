@@ -1,5 +1,5 @@
 import React from 'react';
-import { localized, FocusedContactsStore, Contact } from 'mailspring-exports';
+import { localized, FocusedContactsStore, Contact, DOMUtils } from 'mailspring-exports';
 import { InjectedComponentSet } from 'mailspring-component-kit';
 
 class FocusedContactStorePropsContainer extends React.Component<
@@ -69,7 +69,8 @@ export class SidebarPluginContainer extends React.Component {
   static containerStyles = {
     order: 1,
     flexShrink: 0,
-    minWidth: 150,
+    // The calendar's event panel shows here too, and its date picker needs this width.
+    minWidth: DOMUtils.getWorkspaceCssNumberProperty('event-panel-min-width', 220),
     maxWidth: 300,
   };
 
