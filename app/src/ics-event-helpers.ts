@@ -995,7 +995,7 @@ export function applyEditsToException(
     attendees?: AttendeeInput[];
     organizer?: Organizer;
     transparency?: Transparency;
-    /** See updateAlarm; undefined leaves the exception's alarms alone. */
+    /** See setAlarm; undefined leaves the exception's alarms alone. */
     alarmTrigger?: string | null;
   }
 ): string {
@@ -1571,8 +1571,7 @@ function isNoAlarmPlaceholder(alarm: ICALComponent): boolean {
 
 /**
  * Points a VEVENT's first VALARM at `trigger`, adding a DISPLAY alarm when it has none, or removes
- * every VALARM for null and marks the event as having none. The editor shows only the first, so
- * any others are left as they are.
+ * every VALARM for null and marks the event as having none. Any others are left as they are.
  */
 function setAlarm(vevent: ICALComponent, trigger: string | null, ical: ICAL): void {
   const placeholders = vevent.getAllSubcomponents('valarm').filter(isNoAlarmPlaceholder);
@@ -1583,31 +1582,41 @@ function setAlarm(vevent: ICALComponent, trigger: string | null, ical: ICAL): vo
     addNoAlarmPlaceholder(vevent, ical);
     return;
   }
-  let alarm = alarms[0];
-  if (!alarm) {
-    alarm = new ical.Component('valarm');
-    alarm.addPropertyWithValue('action', 'DISPLAY');
-    // RFC 5545 section 3.6.6 requires a DESCRIPTION on a DISPLAY alarm.
-    alarm.addPropertyWithValue('description', vevent.getFirstPropertyValue('summary') || '');
-    vevent.addSubcomponent(alarm);
+  if (alarms[0]) {
+    setTrigger(alarms[0], trigger, ical);
+  } else {
+    vevent.addSubcomponent(displayAlarm(vevent, trigger, ical));
   }
-  // A new property drops VALUE=DATE-TIME and RELATED=END from the trigger it replaces.
-  alarm.removeAllProperties('trigger');
-  alarm.addPropertyWithValue('trigger', ical.Duration.fromString(trigger));
 }
 
 /**
  * The first VEVENT's first VALARM TRIGGER, or null when it has none or is marked as having none
- * (see addNoAlarmPlaceholder). An offset from the start is normalized, so Google's
- * "-P0DT0H10M0S" reads "-PT10M"; a trigger at a set time or relative to the end comes back as
- * written.
+ * (see addNoAlarmPlaceholder); see getAlarmTriggers.
  */
 export function getAlarmTrigger(ics: string): string | null {
+  return getAlarmTriggers(ics)[0] ?? null;
+}
+
+/**
+ * The TRIGGER of each of the first VEVENT's reminders, in order. An offset from the start is
+ * normalized, so Google's "-P0DT0H10M0S" reads "-PT10M"; a trigger at a set time or relative to
+ * the end comes back as written.
+ */
+export function getAlarmTriggers(ics: string): string[] {
   const ical = getICAL();
   const { event } = parseICSString(ics);
-  const alarm = event.component.getAllSubcomponents('valarm').find((a) => !isNoAlarmPlaceholder(a));
-  const trigger = alarm?.getFirstProperty('trigger');
-  if (!trigger) return null;
+  return remindersOf(event.component).map((alarm) => triggerOf(alarm, ical));
+}
+
+/** A VEVENT's VALARMs that go off: not the placeholder for none, nor one with no TRIGGER. */
+function remindersOf(vevent: ICALComponent): ICALComponent[] {
+  return vevent
+    .getAllSubcomponents('valarm')
+    .filter((alarm) => !isNoAlarmPlaceholder(alarm) && alarm.getFirstProperty('trigger'));
+}
+
+function triggerOf(alarm: ICALComponent, ical: ICAL): string {
+  const trigger = alarm.getFirstProperty('trigger');
   const value = trigger.getFirstValue();
   if (value instanceof ical.Duration && trigger.getParameter('related') !== 'END') {
     return ical.Duration.fromSeconds(value.toSeconds()).toString();
@@ -1616,23 +1625,61 @@ export function getAlarmTrigger(ics: string): string | null {
 }
 
 /**
- * Sets the event's reminder to `trigger` (see setAlarm), or removes its reminders for null. A
- * series' moved occurrences take it too, as Google Calendar and Apple Calendar do for a reminder
- * changed on all events.
+ * Changes the reminder at `index`, as getAlarmTriggers lists them, to `trigger`, removes it for
+ * null, or adds one when `index` is past the last. A series' moved occurrences keep reminders of
+ * their own, so each changes or drops the one at the same TRIGGER, and takes an added one. An
+ * event left with none is marked so (see addNoAlarmPlaceholder).
  */
-export function updateAlarm(ics: string, trigger: string | null): string {
+export function editAlarm(ics: string, index: number, trigger: string | null): string {
   const ical = getICAL();
   const { root } = parseICSString(ics);
   const vevents = root.name === 'vevent' ? [root] : root.getAllSubcomponents('vevent');
   if (!vevents.length) {
     throw new Error('Invalid ICS: no VEVENT component found');
   }
-  const uid = vevents[0].getFirstPropertyValue('uid');
+  const [first] = vevents;
+  const uid = first.getFirstPropertyValue('uid');
+  const edited = remindersOf(first)[index];
+  const was = edited ? triggerOf(edited, ical) : null;
   for (const vevent of vevents.filter((v) => v.getFirstPropertyValue('uid') === uid)) {
-    setAlarm(vevent, trigger, ical);
+    const reminders = remindersOf(vevent);
+    const alarm =
+      vevent === first ? edited : reminders.find((a) => was !== null && triggerOf(a, ical) === was);
+    if (trigger === null) {
+      if (!alarm) continue;
+      vevent.removeSubcomponent(alarm);
+      if (!remindersOf(vevent).length) addNoAlarmPlaceholder(vevent, ical);
+    } else if (alarm) {
+      setTrigger(alarm, trigger, ical);
+    } else if (was === null) {
+      vevent
+        .getAllSubcomponents('valarm')
+        .filter(isNoAlarmPlaceholder)
+        .forEach((a) => {
+          vevent.removeSubcomponent(a);
+        });
+      vevent.addSubcomponent(displayAlarm(vevent, trigger, ical));
+    } else {
+      continue;
+    }
     vevent.updatePropertyWithValue('dtstamp', nowUTC(ical));
   }
   return root.toString();
+}
+
+function displayAlarm(vevent: ICALComponent, trigger: string, ical: ICAL): ICALComponent {
+  const alarm = new ical.Component('valarm');
+  alarm.addPropertyWithValue('action', 'DISPLAY');
+  // RFC 5545 section 3.6.6 requires a DESCRIPTION on a DISPLAY alarm.
+  alarm.addPropertyWithValue('description', vevent.getFirstPropertyValue('summary') || '');
+  setTrigger(alarm, trigger, ical);
+  return alarm;
+}
+
+function setTrigger(alarm: ICALComponent, trigger: string, ical: ICAL): void {
+  // A new property drops VALUE=DATE-TIME and RELATED=END from the trigger it replaces.
+  alarm.removeAllProperties('trigger');
+  alarm.addPropertyWithValue('trigger', ical.Duration.fromString(trigger));
 }
 
 /**
