@@ -555,7 +555,8 @@
     color: @text-color-very-subtle;
   }
 
-  .event-panel-invitee-remove {
+  .event-panel-invitee-remove,
+  .event-panel-alert-remove {
     width: 18px;
     height: 18px;
     color: @text-color-very-subtle;
@@ -567,6 +568,31 @@
   .event-panel-invitee.removable:focus-within {
     .event-panel-invitee-remove {
       visibility: visible;
+    }
+  }
+
+  .event-panel-alert:hover,
+  .event-panel-alert:focus-within {
+    .event-panel-alert-remove {
+      visibility: visible;
+    }
+  }
+
+  .event-panel-alert-add {
+    .attendee-status-dot();
+
+    .attendee-status {
+      color: @text-color-very-subtle;
+    }
+  }
+
+  .time-picker-wrap.alert-selector {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+
+    input {
+      width: 100%;
     }
   }
 

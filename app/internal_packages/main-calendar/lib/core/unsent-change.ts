@@ -168,7 +168,7 @@ export function keepsNewEvent(change: UnsentChange | null) {
 
 /**
  * What creates `draft` with the change made to it in the panel. Show as is the one the panel
- * shows; the alert, which it doesn't, follows whether the event ends up all-day.
+ * shows; the alert, until one is picked, follows whether the event ends up all-day.
  */
 export function newEventOptions(
   draft: NewEventDraft,
@@ -190,6 +190,7 @@ export function newEventOptions(
     description: edited('description'),
     recurrenceRule: edited('rrule'),
     transparency: (edited('transp') as ShowAsOption) ?? defaultShowAs(draft.isAllDay),
+    alarmTriggers: draft.alarmTriggers,
     attendees: added.length ? added.map(({ email, name }) => ({ email, name })) : undefined,
   };
 }

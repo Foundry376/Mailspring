@@ -1,9 +1,11 @@
 import {
   AccountStore,
   Actions,
+  DatabaseStore,
   ICSEventHelpers,
   CalendarUtils,
   SyncbackEventTask,
+  TaskQueue,
 } from 'mailspring-exports';
 import { Event as MailspringEvent } from '../src/flux/models/event';
 
@@ -18,6 +20,7 @@ import {
   modifyEventChange,
   modifyOccurrenceChange,
   modifySeriesChange,
+  updateEventAlarm,
 } from '../internal_packages/main-calendar/lib/core/recurring-event-actions';
 
 // ---------------------------------------------------------------------------
@@ -1118,5 +1121,40 @@ describe('a change to the guest list', function () {
     expect(sequence(series)).toBe(2);
     expect(guests(moved)).toEqual(['mailto:you@example.com', 'mailto:alex@example.com']);
     expect(sequence(moved)).toBe(6);
+  });
+});
+
+describe('updateEventAlarm', function () {
+  let queued: any[];
+  beforeEach(function () {
+    queued = [];
+    spyOn(Actions, 'queueTask').andCallFake((task) => queued.push(task));
+    spyOn(SyncbackEventTask, 'forUpdating').andCallFake((opts) => opts);
+    spyOn(TaskQueue, 'waitForPerformLocal').andReturn(Promise.resolve());
+  });
+
+  const written = async (ics: string, trigger: string | null) => {
+    spyOn(DatabaseStore, 'find').andReturn(Promise.resolve(makeEvent(ics)));
+    await updateEventAlarm('event-id-1', 0, trigger);
+    return queued[0].event.ics as string;
+  };
+  const veventsOf = (ics: string) => ics.split('BEGIN:VEVENT').slice(1);
+
+  it('sets the reminder on the series and its moved occurrence, keeping each SEQUENCE', async function () {
+    const ics = await written(FAKE_MASTER_ICS_WITH_EXCEPTION, '-PT1H');
+    for (const vevent of veventsOf(ics)) {
+      expect(vevent).toContain('TRIGGER:-PT1H');
+    }
+    expect(veventsOf(ics).map((v) => /^SEQUENCE:(\d+)/m.exec(v)[1])).toEqual(['0', '1']);
+  });
+
+  it('removes the reminder for none', async function () {
+    const reminded = SIMPLE_ICS.replace(
+      'END:VEVENT',
+      'BEGIN:VALARM\nACTION:DISPLAY\nTRIGGER:-PT10M\nEND:VALARM\nEND:VEVENT'
+    );
+    const ics = await written(reminded, null);
+    expect(ICSEventHelpers.getAlarmTrigger(ics)).toBe(null);
+    expect(ics).toContain('SEQUENCE:0');
   });
 });

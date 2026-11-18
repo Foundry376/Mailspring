@@ -339,6 +339,25 @@ function occurrenceAtSlot(row: Event, slot: number) {
 }
 
 /**
+ * Changes, removes or adds a reminder on every occurrence (see ICSEventHelpers.editAlarm). A
+ * reminder is the user's own, so it is written at once and the SEQUENCE stays: guests get no
+ * update for it.
+ */
+export async function updateEventAlarm(eventId: string, index: number, trigger: string | null) {
+  const row = await DatabaseStore.find<Event>(Event, eventId);
+  if (!row) return;
+  const undoData = captureEventSnapshot(row);
+  row.ics = ICSEventHelpers.editAlarm(row.ics, index, trigger);
+  const task = SyncbackEventTask.forUpdating({
+    event: row,
+    undoData,
+    description: localized('Edit event'),
+  });
+  Actions.queueTask(task);
+  await TaskQueue.waitForPerformLocal(task);
+}
+
+/**
  * Writes a change made in the panel. `follow.onMove` gets where the shown occurrence lands
  * before the sync engine writes it, so the host can keep it selected.
  */

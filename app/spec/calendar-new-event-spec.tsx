@@ -52,6 +52,7 @@ describe('newEventOptions', function () {
       description: 'Bring the slides',
       recurrenceRule: 'FREQ=WEEKLY',
       transparency: 'TRANSPARENT',
+      alarmTriggers: undefined,
       attendees: [alex],
     });
   });
@@ -89,8 +90,10 @@ describe('newEventOptions', function () {
       spyOn(Actions, 'queueTask');
     });
 
-    const triggersOf = (change: any) =>
-      queueNewCalendarEvent(newEventOptions(draft(), change)).event.ics.match(/^TRIGGER:.*$/gm);
+    const triggersOf = (change: any, overrides: any = {}) =>
+      queueNewCalendarEvent(newEventOptions(draft(overrides), change)).event.ics.match(
+        /^TRIGGER:.*$/gm
+      );
 
     it('is ten minutes before a timed event', function () {
       expect(triggersOf(null)).toEqual(['TRIGGER:-PT10M']);
@@ -99,6 +102,17 @@ describe('newEventOptions', function () {
     it('is none once the event is switched to all day', function () {
       const day = { start: START, end: START + 24 * HOUR, isAllDay: true };
       expect(triggersOf({ eventId: ID, edits: [], times: day })).toBe(null);
+    });
+
+    it('is each one set in the panel', function () {
+      expect(triggersOf(null, { alarmTriggers: ['-PT1H', '-P1D'] })).toEqual([
+        'TRIGGER:-PT1H',
+        'TRIGGER:-P1D',
+      ]);
+    });
+
+    it('is none when every one was removed, not the default', function () {
+      expect(triggersOf(null, { alarmTriggers: [] })).toBe(null);
     });
   });
 });

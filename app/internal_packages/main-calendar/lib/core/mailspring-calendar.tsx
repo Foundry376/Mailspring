@@ -866,6 +866,12 @@ export class MailspringCalendar extends React.Component<
     });
   };
 
+  _onNewEventAlarmsChange = (alarmTriggers: string[]) => {
+    const { newEvent } = this.state;
+    if (!newEvent) return;
+    this.setState({ newEvent: { ...newEvent, draft: { ...newEvent.draft, alarmTriggers } } });
+  };
+
   /**
    * Creates the panel's new event once it has a title or an invitee (with invitees, only after
    * Send invitations), else drops it. False keeps it open; a creation resolves once written.
@@ -1535,6 +1541,8 @@ export class MailspringCalendar extends React.Component<
               onDiscard={newEvent ? this._dropNewEvent : undefined}
               calendarChoices={newEvent ? this._newEventCalendarChoices() : undefined}
               onCalendarChange={this._onNewEventCalendarChange}
+              newEventAlarms={newEvent?.draft.alarmTriggers}
+              onNewEventAlarmsChange={this._onNewEventAlarmsChange}
             />
           )}
         </div>

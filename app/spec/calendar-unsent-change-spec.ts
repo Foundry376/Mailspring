@@ -6,6 +6,7 @@ import {
   CalendarUtils,
   DatabaseStore,
   Event,
+  ICSEventHelpers,
   TaskQueue,
   WorkspaceStore,
 } from 'mailspring-exports';
@@ -426,6 +427,16 @@ describe('editing in the panel', function () {
     await panel._saving;
 
     expect(queueTask.calls.length).toBe(1);
+    expect(onUnsentChange).not.toHaveBeenCalled();
+  });
+
+  it('saves an alert change to an event with guests straight away, holding nothing', async function () {
+    const panel = panelFor(withGuests);
+    panel._editAlarm(0, '-PT1H');
+    await panel._saving;
+
+    expect(queueTask.calls.length).toBe(1);
+    expect(ICSEventHelpers.getAlarmTrigger(queueTask.calls[0].args[0].event.ics)).toBe('-PT1H');
     expect(onUnsentChange).not.toHaveBeenCalled();
   });
 

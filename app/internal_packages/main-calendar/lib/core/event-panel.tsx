@@ -74,6 +74,14 @@ import {
   repeatOptionToRRule,
 } from './repeat-selector';
 import { COMMON_TIMEZONES, formatTimezone } from './timezone-selector';
+import {
+  AlertSelector,
+  alertLabelFor,
+  alertTrigger,
+  defaultAlert,
+  maxAlerts,
+  secondsBefore,
+} from './alert-selector';
 import { ShowAsOption, showAsLabel } from './show-as-selector';
 import {
   canRespondToEvent,
@@ -85,7 +93,12 @@ import {
   ProposedTime,
   respondToCalendarEvent,
 } from './calendar-rsvp';
-import { ChangeScope, EventChange, EventPropertyEdit } from './recurring-event-actions';
+import {
+  ChangeScope,
+  EventChange,
+  EventPropertyEdit,
+  updateEventAlarm,
+} from './recurring-event-actions';
 import { EventPanelTextField } from './event-panel-text-field';
 import {
   UnsentChange,
@@ -146,6 +159,9 @@ interface EventPanelProps {
   onDiscard?: () => void;
   calendarChoices?: Calendar[];
   onCalendarChange?: (calendar: Calendar) => void;
+  /** The new event's reminders as set in the panel; undefined until they're changed. */
+  newEventAlarms?: string[];
+  onNewEventAlarmsChange?: (triggers: string[]) => void;
   /** Given in the mail sidebar, where an invitation is answered; the calendar shows the clash. */
   conflicts?: CalendarConflict[];
 }
@@ -167,6 +183,8 @@ interface EventPanelState {
   repeat: RepeatOption;
   /** Read from the event's row; null for a time in UTC, floating or an event not yet created. */
   timezone: string | null;
+  /** The TRIGGER of each of the event's reminders, read from its row. */
+  alarms: string[];
   /** Times changed in the panel, shown until the saved event comes back. */
   times: Times | null;
   proposals: ProposedTime[];
@@ -206,6 +224,17 @@ function linkOrText(location: string) {
   );
 }
 
+/**
+ * The reminders as listed, the one that goes off first on top; each keeps its place in the event,
+ * which is what an edit names. One at a set time, or after the start, goes last.
+ */
+function earliestFirst(alarms: string[]) {
+  const before = (trigger: string) => secondsBefore(trigger) ?? -1;
+  return alarms
+    .map((trigger, index) => ({ trigger, index }))
+    .sort((a, b) => before(b.trigger) - before(a.trigger));
+}
+
 // Pure: the calendar re-renders on every drag move, and the notes are re-parsed on each render.
 export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelState> {
   static displayName = 'EventPanel';
@@ -213,6 +242,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
   state: EventPanelState = {
     repeat: 'none',
     timezone: null,
+    alarms: [],
     times: null,
     proposals: [],
     answerOpen: false,
@@ -362,6 +392,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     this.setState({
       repeat: frequencyToRepeatOption(ICSEventHelpers.getRecurrenceInfo(row.ics).frequency),
       timezone: ICSEventHelpers.getEventTimezone(row.ics),
+      alarms: ICSEventHelpers.getAlarmTriggers(row.ics),
     });
     this._loadProposals(occurrence, row);
   }
@@ -396,10 +427,44 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     return !(unsentChange?.proposal && asksGuestShowAsScope(event));
   }
 
+  // On someone else's calendar the reminder is theirs, as its Show as is.
+  _canSetAlert() {
+    const { event, calendar } = this.props;
+    if (!this._canEdit('alert')) return false;
+    return event.isMine || !CalendarUtils.isSomeoneElsesCalendar(calendar);
+  }
+
+  _alarms(): string[] {
+    const { isNewEvent, newEventAlarms } = this.props;
+    if (!isNewEvent) return this.state.alarms;
+    if (newEventAlarms) return newEventAlarms;
+    const trigger = alertTrigger(defaultAlert(this._times().isAllDay));
+    return trigger ? [trigger] : [];
+  }
+
+  /** Changes the reminder at `index`, removes it for null, or adds one past the last. */
+  _editAlarm(index: number, trigger: string | null) {
+    const alarms = [...this._alarms()];
+    if (trigger === null) alarms.splice(index, 1);
+    else alarms[index] = trigger;
+    if (this.props.isNewEvent) {
+      this.props.onNewEventAlarmsChange?.(alarms);
+      return;
+    }
+    this.setState({ alarms });
+    const { eventId } = CalendarUtils.parseOccurrenceId(this.props.event.id);
+    this._write(() => updateEventAlarm(eventId, index, trigger));
+  }
+
   _save(change: UnsentChange) {
+    return this._write(() => this.props.onSaveChange(change));
+  }
+
+  /** Queued behind the saves before it, so commitEdits waits for it too. */
+  _write(write: () => Promise<void>) {
     this._savesUnwritten += 1;
     this._saving = this._saving
-      .then(() => this.props.onSaveChange(change))
+      .then(write)
       .catch((error) => console.error('Failed to save the event:', error))
       .finally(() => {
         this._savesUnwritten -= 1;
@@ -1146,7 +1211,73 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             showAsLabel(showAs)
           )}
         </div>
+        {this._renderAlerts()}
       </div>
+    );
+  }
+
+  _renderAlerts() {
+    const alarms = this._alarms();
+    const editable = this._canSetAlert();
+    if (!alarms.length && !editable) return null;
+    const { isAllDay } = this._times();
+    const adder = (
+      <AlertSelector
+        value={null}
+        isAllDay={isAllDay}
+        placeholder={localized('Add alert')}
+        onChange={(trigger) => this._editAlarm(alarms.length, trigger)}
+      />
+    );
+    return (
+      <>
+        {alarms.length === 0 && (
+          <div className="event-panel-row">
+            <SVGIcons.Bell className="event-panel-icon" />
+            {adder}
+          </div>
+        )}
+        {earliestFirst(alarms).map(({ trigger, index }, row) => (
+          <div
+            key={index}
+            className={`event-panel-row event-panel-alert ${row > 0 ? 'indented' : ''}`}
+          >
+            {row === 0 && <SVGIcons.Bell className="event-panel-icon" />}
+            {editable ? (
+              <AlertSelector
+                value={trigger}
+                isAllDay={isAllDay}
+                onChange={(next) => this._editAlarm(index, next)}
+              />
+            ) : (
+              alertLabelFor(trigger, isAllDay)
+            )}
+            {editable && (
+              <button
+                className="btn-ghost event-panel-alert-remove"
+                title={localized('Remove alert')}
+                aria-label={localized('Remove alert')}
+                onClick={() => this._editAlarm(index, null)}
+              >
+                <SVGIcons.Remove />
+              </button>
+            )}
+          </div>
+        ))}
+        {editable && alarms.length > 0 && alarms.length < maxAlerts(this.props.event.accountId) && (
+          <div className="event-panel-row event-panel-alert-add">
+            <span className="event-panel-icon">
+              <span className="attendee-status">
+                <SVGIcons.Plus size={12} />
+              </span>
+            </span>
+            {adder}
+          </div>
+        )}
+        <div className="event-panel-row indented event-panel-subtle">
+          {localized('Sent by your calendar provider, not Mailspring')}
+        </div>
+      </>
     );
   }
 
