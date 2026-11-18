@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Rx, Thread, DatabaseStore, localized, FeatureUsageStore } from 'mailspring-exports';
-import { RetinaImg } from 'mailspring-component-kit';
+import { LoadingSpinner } from 'mailspring-component-kit';
 
 import CopyButton from './copy-button';
 import { sharingURLForThread, syncThreadToWeb, unsyncThread } from './main';
@@ -102,11 +102,7 @@ export default class ThreadSharingPopover extends React.Component<
         <div className="share-toggle">
           {saving ? (
             <label htmlFor="shareCheckbox">
-              <RetinaImg
-                style={{ width: 14, height: 14, marginBottom: 3, marginRight: 4 }}
-                name="inline-loading-spinner.gif"
-                mode={RetinaImg.Mode.ContentPreserve}
-              />
+              <LoadingSpinner style={{ marginBottom: 3, marginRight: 4 }} />
               {localized('Syncing') + '...'}
               <div className="meta">
                 {localized(

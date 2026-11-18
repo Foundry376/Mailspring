@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import { localized, Actions, Message, DraftEditingSession } from 'mailspring-exports';
-import { RetinaImg } from 'mailspring-component-kit';
+import { RetinaImg, LoadingSpinner } from 'mailspring-component-kit';
 import moment from 'moment';
 
 import SendRemindersPopover from './send-reminders-popover';
@@ -30,26 +30,31 @@ export default class SendRemindersComposerButton extends Component<
     };
   }
 
-  componentDidUpdate(prevProps: SendRemindersComposerButtonProps) {
-    if (prevProps.draft !== this.props.draft && this.state.saving) {
-      this.setState({ saving: false });
-    }
+  shouldComponentUpdate(
+    nextProps: SendRemindersComposerButtonProps,
+    nextState: SendRemindersComposerButtonState
+  ) {
+    return (
+      nextState.saving !== this.state.saving ||
+      reminderDateFor(nextProps.draft) !== reminderDateFor(this.props.draft)
+    );
   }
 
-  shouldComponentUpdate(nextProps: SendRemindersComposerButtonProps) {
-    return reminderDateFor(nextProps.draft) !== reminderDateFor(this.props.draft);
-  }
-
-  onSetReminder = (reminderDate: Date | null) => {
+  // Saving ends when the update returns rather than when the draft's reminder date changes,
+  // because choosing the current date or declining the upgrade prompt leaves the date as it is.
+  onSetReminder = async (reminderDate: Date | null) => {
     const { draft, session } = this.props;
     this.setState({ saving: true });
-
-    updateDraftReminderMetadata(session, {
-      expiration: reminderDate,
-      sentHeaderMessageId: draft.headerMessageId,
-    });
-
     Actions.closePopover();
+
+    try {
+      await updateDraftReminderMetadata(session, {
+        expiration: reminderDate,
+        sentHeaderMessageId: draft.headerMessageId,
+      });
+    } finally {
+      this.setState({ saving: false });
+    }
   };
 
   onClick = () => {
@@ -71,11 +76,7 @@ export default class SendRemindersComposerButton extends Component<
     if (this.state.saving) {
       return (
         <button className={className} title={localized('Saving reminder...')} tabIndex={-1}>
-          <RetinaImg
-            name="inline-loading-spinner.gif"
-            mode={RetinaImg.Mode.ContentDark}
-            style={{ width: 14, height: 14 }}
-          />
+          <LoadingSpinner />
         </button>
       );
     }

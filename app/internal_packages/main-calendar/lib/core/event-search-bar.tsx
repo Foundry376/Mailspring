@@ -9,7 +9,12 @@ import {
   Actions,
   CalendarDateUtils,
 } from 'mailspring-exports';
-import { RetinaImg, KeyCommandsRegion, BindGlobalCommands } from 'mailspring-component-kit';
+import {
+  RetinaImg,
+  LoadingSpinner,
+  KeyCommandsRegion,
+  BindGlobalCommands,
+} from 'mailspring-component-kit';
 import {
   EventOccurrence,
   occurrencesForEvents,
@@ -232,11 +237,7 @@ export class EventSearchBar extends Component<Record<string, unknown>, EventSear
       <BindGlobalCommands commands={{ 'core:focus-search': this._focusSearch }}>
         <KeyCommandsRegion className={`event-search-bar ${focused ? 'focused' : ''}`} tabIndex={-1}>
           {loading ? (
-            <RetinaImg
-              className="search-accessory search loading"
-              name="inline-loading-spinner.gif"
-              mode={RetinaImg.Mode.ContentPreserve}
-            />
+            <LoadingSpinner className="search-accessory search loading" />
           ) : (
             <RetinaImg
               className="search-accessory search"

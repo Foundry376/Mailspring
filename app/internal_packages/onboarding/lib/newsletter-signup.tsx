@@ -1,6 +1,6 @@
 import _ from 'underscore';
 import React from 'react';
-import { RetinaImg, Flexbox } from 'mailspring-component-kit';
+import { LoadingSpinner, Flexbox } from 'mailspring-component-kit';
 import { IdentityStore, localized, MailspringAPIRequest } from 'mailspring-exports';
 
 interface NewsletterSignupProps {
@@ -106,13 +106,7 @@ export default class NewsletterSignup extends React.Component<
 
   _renderControl() {
     if (this.state.status === 'Pending') {
-      return (
-        <RetinaImg
-          name="inline-loading-spinner.gif"
-          mode={RetinaImg.Mode.ContentDark}
-          style={{ width: 14, height: 14 }}
-        />
-      );
+      return <LoadingSpinner />;
     }
     if (this.state.status === 'Error') {
       return (

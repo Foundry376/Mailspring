@@ -35,6 +35,8 @@ interface NavRailItemProps {
   tooltip?: NavRailTooltipContent;
   /** A count drawn on the item's corner; hidden when zero or null. */
   badge?: number | null;
+  /** The item's flex `order` in the rail. Without one, items follow package activation order. */
+  order?: number;
 }
 
 interface NavRailItemState {
@@ -123,13 +125,14 @@ export class NavRailItem extends React.Component<NavRailItemProps, NavRailItemSt
   }
 
   render() {
-    const { label, iconName, icon, badge } = this.props;
+    const { label, iconName, icon, badge, order } = this.props;
     const tooltip = this.props.tooltip || { title: label };
     const { active, tooltipAt } = this.state;
     return (
       <button
         ref={this._button}
         className={`btn-icon nav-rail-item${active ? ' active' : ''}`}
+        style={{ order }}
         aria-label={label}
         aria-describedby={tooltipAt ? this._tooltipId : undefined}
         aria-current={active ? 'page' : undefined}
@@ -208,6 +211,7 @@ const MailNavRailItem = () => (
   <NavRailItem
     label={localized('Mail')}
     iconName="inbox.png"
+    order={1}
     command="application:show-mail"
     isActive={() => FocusedPerspectiveStore.isShowingMail()}
   />

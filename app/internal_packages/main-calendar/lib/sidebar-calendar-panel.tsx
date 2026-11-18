@@ -33,7 +33,7 @@ import {
 import { emailedEventIn } from '../../events/lib/invitation-versions';
 import { findEventConflicts, nearbyEventsQuery } from '../../events/lib/rsvp-target';
 import { canRespondToEvent, proposeNewEventTime } from './core/calendar-rsvp';
-import { ChangeScope, deleteEvent, updateEvent } from './core/recurring-event-actions';
+import { ChangeScope, deleteEvents, updateEvent } from './core/recurring-event-actions';
 import { UnsentChange, isUnsentChangeFor } from './core/unsent-change';
 import { showUnsentChangeDialog } from './core/unsent-change-dialog';
 
@@ -394,7 +394,7 @@ export class SidebarCalendarPanel extends React.Component<
             calendar={this.state.calendars.find((c) => c.id === shown.calendarId)}
             isCalendarReadOnly={readOnly}
             onBack={this._onBack}
-            onDelete={readOnly ? undefined : () => deleteEvent(shown)}
+            onDelete={readOnly ? undefined : () => deleteEvents([shown])}
             conflicts={
               this.state.conflicts?.key === panelKey([shown])
                 ? this.state.conflicts.list

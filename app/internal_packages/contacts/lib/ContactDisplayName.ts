@@ -1,6 +1,6 @@
 import { Contact, localized } from 'mailspring-exports';
 
-/** The name to show for a contact in the contacts window.
+/** The name to show for a contact in Contacts.
 
 Contacts found in mail take their name verbatim from the first sent message's header,
 and older clients wrote headers like `"<a@b.com>" <a@b.com>`, `")" <a@b.com>` and
