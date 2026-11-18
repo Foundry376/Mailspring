@@ -80,11 +80,6 @@ export default class AppEnvConstructor {
     document.body.classList.add(`platform-${process.platform}`);
     document.body.classList.add(`window-type-${windowType}`);
 
-    // Make react.js faster
-    if (!devMode && process.env.NODE_ENV == null) {
-      process.env.NODE_ENV = 'production';
-    }
-
     // Setup config and load it immediately so it's available to our singletons
     // and doesn't emit events later when it loads
     this.config = new Config({ configDirPath, resourcePath });

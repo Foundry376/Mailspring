@@ -89,6 +89,12 @@ function setupWindow(loadSettings) {
     require('../src/compile-cache-ts-unsupported');
   }
 
+  // React picks its development or production build the first time it is required, and the
+  // bootstrap's imports (app-env -> intl) require it before AppEnv's constructor runs.
+  if (!loadSettings.devMode && process.env.NODE_ENV == null) {
+    process.env.NODE_ENV = 'production';
+  }
+
   require(loadSettings.bootstrapScript);
 }
 
