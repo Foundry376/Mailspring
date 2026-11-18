@@ -17,6 +17,8 @@ interface NotificationOptions {
   replyPlaceholder?: string;
   actions?: Array<{ type: 'button'; text: string }>;
   playSound?: boolean;
+  /** The system's own notification sound, where `playSound` is the new-mail one. */
+  playDefaultSound?: boolean;
   urgency?: 'low' | 'normal' | 'critical';
   timeoutType?: 'default' | 'never';
   toastXml?: string;
@@ -110,7 +112,7 @@ const displayNotification = (
     title: options.title,
     body: options.subtitle || options.body,
     icon: validatedIconPath ? nativeImage.createFromPath(validatedIconPath) : undefined,
-    silent: true, // Sounds play via SoundRegistry, or via `sound` below on macOS
+    silent: true, // Sounds play via SoundRegistry, via `sound` below on macOS, or playDefaultSound
   };
 
   // macOS-specific options
@@ -130,6 +132,10 @@ const displayNotification = (
       notifOptions.silent = false;
       notifOptions.sound = MAC_NEW_MAIL_SOUND;
     }
+  }
+
+  if (options.playDefaultSound) {
+    notifOptions.silent = false;
   }
 
   // Linux-specific options
