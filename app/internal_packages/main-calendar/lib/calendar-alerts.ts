@@ -2,8 +2,6 @@ import moment from 'moment';
 import Rx from 'rx-lite';
 import {
   Event,
-  Matcher,
-  DatabaseStore,
   CalendarUtils,
   ICSEventHelpers,
   NativeNotifications,
@@ -12,10 +10,11 @@ import {
 import {
   EventOccurrence,
   EventRef,
+  calendarExpansionInputs,
+  eventRefFor,
+  eventsInRangeQuery,
   isOffCalendar,
   isTimed,
-  occurrenceEndUnix,
-  occurrenceSlot,
   occurrenceStartUnix,
   occurrenceTimes,
   occurrencesForEvents,
@@ -29,8 +28,8 @@ const FIRED = 'calendar.firedAlerts';
 const DAY = 86400;
 // Google's longest alert is four weeks before.
 const LOOKAHEAD = 29 * DAY;
-const START_GRACE = 60;
-// Timers stop while the Mac sleeps, so a alert due then shows within this of waking.
+const LATE_GRACE = 60;
+// Timers stop while the Mac sleeps, so an alert due then shows within this of waking.
 const LONGEST_WAIT = 60;
 
 export interface CalendarAlert {
@@ -41,46 +40,51 @@ export interface CalendarAlert {
   row: Event;
 }
 
-/** Every alert the occurrences of `rows` between `startUnix` and `endUnix` ring. */
-export function alertsFor(rows: Event[], startUnix: number, endUnix: number): CalendarAlert[] {
-  const rowsById = new Map(rows.map((row) => [row.id, row]));
-  return occurrencesForEvents(rows, { startUnix, endUnix })
-    .filter((occurrence) => !isOffCalendar(occurrence))
-    .flatMap((occurrence) => {
-      const row = rowsById.get(CalendarUtils.parseOccurrenceId(occurrence.id).eventId);
-      if (!row) return [];
-      let times: number[];
-      try {
-        times = ICSEventHelpers.getAlarmTimes(
-          row.ics,
-          ownRecurrenceId(occurrence, row),
-          occurrenceTimes(occurrence)
-        );
-      } catch (err) {
-        // A master whose ICS failed to expand is still drawn, from its row's columns.
-        return [];
-      }
-      return times.map((at) => ({ key: `${occurrence.id}@${at}`, at, occurrence, row }));
-    });
+export function alertsFor(
+  rows: Event[],
+  options: Parameters<typeof occurrencesForEvents>[1]
+): CalendarAlert[] {
+  const occurrencesByRow = new Map<string, EventOccurrence[]>();
+  for (const occurrence of occurrencesForEvents(rows, options)) {
+    if (isOffCalendar(occurrence)) continue;
+    const eventId = CalendarUtils.parseOccurrenceId(occurrence.id).eventId;
+    occurrencesByRow.set(eventId, [...(occurrencesByRow.get(eventId) || []), occurrence]);
+  }
+  return rows.flatMap((row) => {
+    const occurrences = occurrencesByRow.get(row.id);
+    if (!occurrences) return [];
+    let root;
+    try {
+      ({ root } = CalendarUtils.parseICSString(row.ics));
+    } catch (err) {
+      // A master whose ICS failed to expand is still drawn, from its row's columns.
+      return [];
+    }
+    return occurrences.flatMap((occurrence) =>
+      ICSEventHelpers.getAlarmTimes(
+        root,
+        ownRecurrenceId(occurrence, row),
+        occurrenceTimes(occurrence)
+      ).map((at) => ({ key: `${occurrence.id}@${at}`, at, occurrence, row }))
+    );
+  });
 }
 
 /**
- * The alerts to show at `now`: due, not shown yet, and for an event that hasn't started, give
- * or take a minute so an "At time of event" alert isn't lost to a late timer.
+ * The last moment an alert may still show: a minute past its event's start, or past its own time
+ * when that comes later, so a late one doesn't ring for an event under way.
  */
+function lastChance(alert: CalendarAlert) {
+  return Math.max(alert.at, occurrenceStartUnix(alert.occurrence)) + LATE_GRACE;
+}
+
 export function dueAlerts(alerts: CalendarAlert[], now: number, fired: FiredAlerts) {
   return alerts
-    .filter(
-      (r) =>
-        r.at <= now && occurrenceStartUnix(r.occurrence) + START_GRACE > now && !fired.has(r.key)
-    )
+    .filter((alert) => alert.at <= now && now < lastChance(alert) && !fired.has(alert.key))
     .sort((a, b) => a.at - b.at);
 }
 
-/**
- * The alerts already shown, kept until their event is over so a reload or a relaunch doesn't
- * show them again.
- */
+/** The alerts already shown, kept until they could no longer show, so a reload doesn't repeat them. */
 export class FiredAlerts {
   constructor(private storage: Pick<Storage, 'getItem' | 'setItem'> = window.localStorage) {}
 
@@ -93,7 +97,7 @@ export class FiredAlerts {
     for (const key of Object.keys(fired)) {
       if (fired[key] <= now) delete fired[key];
     }
-    fired[alert.key] = occurrenceEndUnix(alert.occurrence);
+    fired[alert.key] = lastChance(alert);
     this.storage.setItem(FIRED, JSON.stringify(fired));
   }
 
@@ -114,7 +118,6 @@ export function alertTimeLabel(occurrence: EventOccurrence, now: number): string
     : localized('%@, all day', day);
 }
 
-/** Shows each calendar alert as a desktop notification when it comes due. */
 export class CalendarAlerts {
   private fired = new FiredAlerts();
   private alerts: CalendarAlert[] = [];
@@ -149,16 +152,13 @@ export class CalendarAlerts {
     const endUnix = now + LOOKAHEAD;
     this.subscription?.dispose();
     this.coveredFrom = startUnix;
-    // Like Notion Calendar, a calendar unticked in the sidebar doesn't ring.
-    const hidden: string[] = AppEnv.config.get(DISABLED_CALENDARS) || [];
-    const inRange = CalendarUtils.eventsInRangeMatcher(startUnix, endUnix);
-    const query = DatabaseStore.findAll<Event>(Event).where(
-      hidden.length
-        ? new Matcher.And([inRange, Event.attributes.calendarId.notIn(hidden)])
-        : inRange
-    );
-    this.subscription = Rx.Observable.fromQuery(query).subscribe((rows: Event[]) => {
-      this.alerts = alertsFor(rows, startUnix, endUnix);
+    const query = eventsInRangeQuery(startUnix, endUnix, AppEnv.config.get(DISABLED_CALENDARS));
+    this.subscription = Rx.Observable.combineLatest(
+      Rx.Observable.fromQuery(query),
+      calendarExpansionInputs(),
+      (rows: Event[], inputs) => alertsFor(rows, { startUnix, endUnix, ...inputs })
+    ).subscribe((alerts) => {
+      this.alerts = alerts;
       this._check();
     });
   }
@@ -183,7 +183,7 @@ export class CalendarAlerts {
       this.fired.add(alert, now);
       this._show(alert, now);
     }
-    const next = Math.min(...this.alerts.map((r) => r.at).filter((at) => at > now));
+    const next = Math.min(...this.alerts.map((alert) => alert.at).filter((at) => at > now));
     const wait = Math.min(next - now, LONGEST_WAIT);
     this.timer = setTimeout(this._check, Math.max(wait, 1) * 1000);
   };
@@ -196,12 +196,7 @@ export class CalendarAlerts {
       playDefaultSound: true,
       onActivate: () => {
         AppEnv.displayWindow();
-        this.open({
-          icsuid: row.icsuid,
-          accountId: row.accountId,
-          calendarId: row.calendarId,
-          recurrenceIdStart: occurrence.isRecurring ? occurrenceSlot(occurrence) : undefined,
-        });
+        this.open(eventRefFor(occurrence, row));
       },
     });
   }

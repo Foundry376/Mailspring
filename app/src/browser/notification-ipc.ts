@@ -112,7 +112,7 @@ const displayNotification = (
     title: options.title,
     body: options.subtitle || options.body,
     icon: validatedIconPath ? nativeImage.createFromPath(validatedIconPath) : undefined,
-    silent: true, // Sounds play via SoundRegistry, via `sound` below on macOS, or playDefaultSound
+    silent: !options.playDefaultSound, // Mail sounds play via SoundRegistry, or `sound` on macOS
   };
 
   // macOS-specific options
@@ -132,10 +132,6 @@ const displayNotification = (
       notifOptions.silent = false;
       notifOptions.sound = MAC_NEW_MAIL_SOUND;
     }
-  }
-
-  if (options.playDefaultSound) {
-    notifOptions.silent = false;
   }
 
   // Linux-specific options

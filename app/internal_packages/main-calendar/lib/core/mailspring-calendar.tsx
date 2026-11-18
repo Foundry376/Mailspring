@@ -656,11 +656,12 @@ export class MailspringCalendar extends React.Component<
 
   // A drawn event selects itself as it takes focus; one on a hidden calendar isn't drawn.
   async _selectIfHidden(event: FocusedEventInfo) {
+    if (!this.state.disabledCalendars.length) return;
     const row = await DatabaseStore.find<Event>(
       Event,
       CalendarUtils.parseOccurrenceId(event.id).eventId
     );
-    if (!row || !(this.state.disabledCalendars || []).includes(row.calendarId)) return;
+    if (!row || !this.state.disabledCalendars.includes(row.calendarId)) return;
     const occurrence = occurrencesForEvents([row], {
       startUnix: event.start - 86400,
       endUnix: event.start + 86400,
@@ -1572,7 +1573,7 @@ export class MailspringCalendar extends React.Component<
               }
               onDiscard={newEvent ? this._dropNewEvent : undefined}
               onUnhideCalendar={
-                (this.state.disabledCalendars || []).includes(event.calendarId)
+                this.state.disabledCalendars.includes(event.calendarId)
                   ? () => this._unhideCalendar(event.calendarId)
                   : undefined
               }

@@ -8,6 +8,9 @@ import {
 
 const ZONE = 'America/Chicago';
 const at = (wall: string) => momentTz.tz(wall, ZONE).unix();
+// All-day events count from the machine's own midnight, which setDefault doesn't move.
+const localTime = (year: number, month: number, day: number, hour: number) =>
+  new Date(year, month - 1, day, hour).getTime() / 1000;
 const ME = 'me@example.com';
 
 function ics(...vevents: string[][]) {
@@ -30,7 +33,7 @@ function ics(...vevents: string[][]) {
 const alarm = (trigger: string, action = 'DISPLAY') => [
   'BEGIN:VALARM',
   `ACTION:${action}`,
-  'DESCRIPTION:CalendarAlert',
+  'DESCRIPTION:Design review',
   trigger,
   'END:VALARM',
 ];
@@ -53,9 +56,9 @@ const row = (text: string) =>
   } as any);
 
 const alertsOf = (text: string) =>
-  alertsFor([row(text)], at('2026-01-01 00:00'), at('2027-12-31 00:00'));
+  alertsFor([row(text)], { startUnix: at('2026-01-01 00:00'), endUnix: at('2027-12-31 00:00') });
 
-const timesOf = (text: string) => alertsOf(text).map((r) => r.at);
+const timesOf = (text: string) => alertsOf(text).map((alert) => alert.at);
 
 describe('calendar event alerts', () => {
   beforeEach(() => {
@@ -102,7 +105,7 @@ describe('calendar event alerts', () => {
         'DTEND;VALUE=DATE:20261121',
         ...alarm('TRIGGER:-PT15H'),
       ]);
-      expect(timesOf(text)).toEqual([at('2026-11-19 09:00')]);
+      expect(timesOf(text)).toEqual([localTime(2026, 11, 19, 9)]);
     });
 
     it('rings a set-time alert at its time, and a RELATED=END one from the end', () => {
@@ -168,21 +171,38 @@ describe('calendar event alerts', () => {
       expect(dueAlerts([alert], at('2026-11-18 09:00') + 30, fired)).toEqual([alert]);
       expect(dueAlerts([alert], at('2026-11-18 09:01'), fired)).toEqual([]);
     });
+
+    it('rings an alert set for after its event starts, at its own time', () => {
+      const fired = new FiredAlerts(fakeStorage());
+      const [onTheDay] = alertsOf(
+        ics(['DTSTART;VALUE=DATE:20261120', 'DTEND;VALUE=DATE:20261121', ...alarm('TRIGGER:PT9H')])
+      );
+      expect(onTheDay.at).toBe(localTime(2026, 11, 20, 9));
+      expect(dueAlerts([onTheDay], onTheDay.at + 30, fired)).toEqual([onTheDay]);
+      expect(dueAlerts([onTheDay], onTheDay.at + 60, fired)).toEqual([]);
+
+      const [beforeTheEnd] = alertsOf(
+        ics(timed('20261118T140000', '20261118T150000', ...alarm('TRIGGER;RELATED=END:-PT5M')))
+      );
+      expect(dueAlerts([beforeTheEnd], at('2026-11-18 14:55'), fired)).toEqual([beforeTheEnd]);
+    });
   });
 
   describe('the record of alerts already shown', () => {
     const event = (start: string, end: string) =>
       alertsOf(ics(timed(start, end, ...alarm('TRIGGER:-PT10M'))))[0];
 
-    it('keeps a shown alert from showing again after a reload, until its event is over', () => {
+    it('keeps a shown alert from showing again after a reload, until it could no longer show', () => {
       const storage = fakeStorage();
       const morning = event('20261118T090000', '20261118T093000');
+      const later = event('20261118T090500', '20261118T093000');
       const afternoon = event('20261118T140000', '20261118T143000');
       new FiredAlerts(storage).add(morning, at('2026-11-18 08:50'));
 
       const reloaded = new FiredAlerts(storage);
-      expect(reloaded.has(morning.key)).toBe(true);
-      expect(dueAlerts([morning], at('2026-11-18 09:00'), reloaded)).toEqual([]);
+      reloaded.add(later, at('2026-11-18 08:55'));
+      expect(new FiredAlerts(storage).has(morning.key)).toBe(true);
+      expect(dueAlerts([morning], at('2026-11-18 09:00'), new FiredAlerts(storage))).toEqual([]);
 
       reloaded.add(afternoon, at('2026-11-18 13:50'));
       expect(new FiredAlerts(storage).has(morning.key)).toBe(false);

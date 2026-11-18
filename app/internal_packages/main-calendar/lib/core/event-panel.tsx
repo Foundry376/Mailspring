@@ -157,7 +157,6 @@ interface EventPanelProps {
   isNewEvent?: boolean;
   /** Replaces Discard's dropping of the held change, for an event the host would drop whole. */
   onDiscard?: () => void;
-  /** Given when the event's calendar is unticked in the sidebar, to tick it again. */
   onUnhideCalendar?: () => void;
   calendarChoices?: Calendar[];
   onCalendarChange?: (calendar: Calendar) => void;
@@ -1576,7 +1575,6 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
-  // The card sits under the scrolling rows, so a long event never pushes it out of view.
   _renderHiddenCalendar() {
     const { onUnhideCalendar } = this.props;
     if (!onUnhideCalendar) return null;
@@ -1590,6 +1588,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
+  // The card sits under the scrolling rows, so a long event never pushes it out of view.
   render() {
     return (
       <aside

@@ -273,7 +273,7 @@ type CalendarExpansionInputs = Pick<
  * Google rewrites ORGANIZER on a secondary calendar to the calendar's own id, so a meeting
  * organized by the calendar it sits on is ours when the calendar is.
  */
-function calendarExpansionInputs(): Rx.Observable<CalendarExpansionInputs> {
+export function calendarExpansionInputs(): Rx.Observable<CalendarExpansionInputs> {
   return Rx.Observable.fromQuery(DatabaseStore.findAll<Calendar>(Calendar))
     .map((cals: Calendar[]) => ({
       ownCalendarAddresses: ownCalendarAddresses(cals),
@@ -292,22 +292,28 @@ function normalizeEmail(email: string): string {
   return email.replace(/^mailto:/i, '');
 }
 
+/** Every stored event (masters and exceptions) in the range, on calendars that aren't hidden. */
+export function eventsInRangeQuery(
+  startUnix: number,
+  endUnix: number,
+  disabledCalendars?: string[]
+) {
+  let matcher: AndCompositeMatcher | OrCompositeMatcher = CalendarUtils.eventsInRangeMatcher(
+    startUnix,
+    endUnix
+  );
+  if (disabledCalendars && disabledCalendars.length) {
+    matcher = new Matcher.And([matcher, Event.attributes.calendarId.notIn(disabledCalendars)]);
+  }
+  return DatabaseStore.findAll<Event>(Event).where(matcher);
+}
+
 export class CalendarDataSource {
   observable: Rx.Observable<{ events: EventOccurrence[] }>;
 
   buildObservable({ startUnix, endUnix, disabledCalendars }) {
-    // Query all events (masters and exceptions) that fall in the date range
-    const dateMatcher = CalendarUtils.eventsInRangeMatcher(startUnix, endUnix);
-
-    let matcher: AndCompositeMatcher | OrCompositeMatcher = dateMatcher;
-
-    if (disabledCalendars && disabledCalendars.length) {
-      matcher = new Matcher.And([matcher, Event.attributes.calendarId.notIn(disabledCalendars)]);
-    }
-
-    const query = DatabaseStore.findAll<Event>(Event).where(matcher);
     this.observable = Rx.Observable.combineLatest(
-      Rx.Observable.fromQuery(query),
+      Rx.Observable.fromQuery(eventsInRangeQuery(startUnix, endUnix, disabledCalendars)),
       calendarExpansionInputs(),
       (results: Event[], inputs: CalendarExpansionInputs) => ({
         events: occurrencesForEvents(results, { startUnix, endUnix, ...inputs }),
@@ -835,6 +841,16 @@ export interface EventRef {
   /** Picks one copy when the account holds the event on several calendars. */
   calendarId?: string;
   recurrenceIdStart?: number;
+}
+
+/** The EventRef that opens `occurrence`, which `row` stores. */
+export function eventRefFor(occurrence: EventOccurrence, row: Event): EventRef {
+  return {
+    icsuid: row.icsuid,
+    accountId: row.accountId,
+    calendarId: row.calendarId,
+    recurrenceIdStart: occurrence.isRecurring ? occurrenceSlot(occurrence) : undefined,
+  };
 }
 
 /** The occurrence `focusedEventInfoForEvents` picks for an event named by UID. */

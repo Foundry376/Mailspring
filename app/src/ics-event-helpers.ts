@@ -1576,19 +1576,17 @@ export function getAlarmTriggers(ics: string, recurrenceId?: string): string[] {
 }
 
 /**
- * When each reminder on an occurrence goes off, in unix seconds, for an occurrence running from
- * `start` to `end` (an all-day one's local midnights). Weeks and days count on the calendar and
- * hours by the clock (RFC 5545 section 3.3.6), so "1 day before" a 9 AM event is 9 AM the day
- * before across a DST change. EMAIL reminders are left out: the provider sends those itself.
+ * When each of an occurrence's reminders goes off, in unix seconds. Days count on the calendar and
+ * hours by the clock (RFC 5545 section 3.3.6); EMAIL reminders are the provider's to send.
  */
 export function getAlarmTimes(
-  ics: string,
+  root: ICALComponent,
   recurrenceId: string | undefined,
   { start, end }: { start: number; end: number }
 ): number[] {
   const ical = getICAL();
   const momentTz = require('moment-timezone');
-  const vevent = alarmVevent(parseICSString(ics).root, recurrenceId);
+  const vevent = alarmVevent(root, recurrenceId);
   if (!vevent) return [];
   return remindersOf(vevent)
     .filter((alarm) => String(alarm.getFirstPropertyValue('action')).toUpperCase() !== 'EMAIL')
