@@ -1278,9 +1278,6 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             {adder}
           </div>
         )}
-        <div className="event-panel-row indented event-panel-subtle">
-          {localized('Sent by your calendar provider, not Mailspring')}
-        </div>
       </>
     );
   }

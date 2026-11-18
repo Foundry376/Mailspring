@@ -1,0 +1,210 @@
+import momentTz from 'moment-timezone';
+import { AccountStore, Event } from 'mailspring-exports';
+import {
+  FiredAlerts,
+  dueAlerts,
+  alertsFor,
+} from '../internal_packages/main-calendar/lib/calendar-alerts';
+
+const ZONE = 'America/Chicago';
+const at = (wall: string) => momentTz.tz(wall, ZONE).unix();
+const ME = 'me@example.com';
+
+function ics(...vevents: string[][]) {
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Test//Test//EN',
+    ...vevents.flatMap((lines) => [
+      'BEGIN:VEVENT',
+      'UID:alert@test',
+      'DTSTAMP:20261001T000000Z',
+      'SUMMARY:Design review',
+      ...lines,
+      'END:VEVENT',
+    ]),
+    'END:VCALENDAR',
+  ].join('\r\n');
+}
+
+const alarm = (trigger: string, action = 'DISPLAY') => [
+  'BEGIN:VALARM',
+  `ACTION:${action}`,
+  'DESCRIPTION:CalendarAlert',
+  trigger,
+  'END:VALARM',
+];
+
+const timed = (start: string, end: string, ...rest: string[]) => [
+  `DTSTART;TZID=${ZONE}:${start}`,
+  `DTEND;TZID=${ZONE}:${end}`,
+  ...rest,
+];
+
+const row = (text: string) =>
+  new Event({
+    id: 'e1',
+    accountId: 'a',
+    calendarId: 'c',
+    icsuid: 'alert@test',
+    ics: text,
+    recurrenceStart: at('2026-01-01 00:00'),
+    recurrenceEnd: at('2027-12-31 00:00'),
+  } as any);
+
+const alertsOf = (text: string) =>
+  alertsFor([row(text)], at('2026-01-01 00:00'), at('2027-12-31 00:00'));
+
+const timesOf = (text: string) => alertsOf(text).map((r) => r.at);
+
+describe('calendar event alerts', () => {
+  beforeEach(() => {
+    momentTz.tz.setDefault(ZONE);
+    spyOn(AccountStore, 'accountForEmail').andCallFake((email: string) =>
+      email === ME ? ({ id: 'a' } as any) : null
+    );
+  });
+
+  afterEach(() => {
+    momentTz.tz.setDefault();
+  });
+
+  describe('when each alert goes off', () => {
+    it('rings ten minutes before a timed event, for each alert it has', () => {
+      const text = ics(timed('20261118T140000', '20261118T143000', ...alarm('TRIGGER:-PT10M')));
+      expect(timesOf(text)).toEqual([at('2026-11-18 13:50')]);
+
+      const twoAlerts = ics(
+        timed(
+          '20261118T140000',
+          '20261118T143000',
+          ...alarm('TRIGGER:-P0DT0H10M0S'),
+          ...alarm('TRIGGER:-PT1H')
+        )
+      );
+      expect(timesOf(twoAlerts)).toEqual([at('2026-11-18 13:50'), at('2026-11-18 13:00')]);
+    });
+
+    it('keeps the clock time for "1 day before" across a DST change, but counts hours exactly', () => {
+      // Clocks spring forward at 2 AM on 2026-03-08, between the event and its alert.
+      const dayBefore = ics(timed('20260308T090000', '20260308T100000', ...alarm('TRIGGER:-P1D')));
+      expect(timesOf(dayBefore)).toEqual([at('2026-03-07 09:00')]);
+
+      const hoursBefore = ics(
+        timed('20260308T090000', '20260308T100000', ...alarm('TRIGGER:-PT24H'))
+      );
+      expect(timesOf(hoursBefore)).toEqual([at('2026-03-07 08:00')]);
+    });
+
+    it('counts an all-day event from midnight, so -PT15H is 9 AM the day before', () => {
+      const text = ics([
+        'DTSTART;VALUE=DATE:20261120',
+        'DTEND;VALUE=DATE:20261121',
+        ...alarm('TRIGGER:-PT15H'),
+      ]);
+      expect(timesOf(text)).toEqual([at('2026-11-19 09:00')]);
+    });
+
+    it('rings a set-time alert at its time, and a RELATED=END one from the end', () => {
+      const setTime = ics(
+        timed(
+          '20261118T140000',
+          '20261118T150000',
+          ...alarm('TRIGGER;VALUE=DATE-TIME:20261118T180000Z')
+        )
+      );
+      expect(timesOf(setTime)).toEqual([at('2026-11-18 12:00')]);
+
+      const fromEnd = ics(
+        timed('20261118T140000', '20261118T150000', ...alarm('TRIGGER;RELATED=END:-PT5M'))
+      );
+      expect(timesOf(fromEnd)).toEqual([at('2026-11-18 14:55')]);
+    });
+
+    it('rings each occurrence of a series, and a moved occurrence by its own alert', () => {
+      const text = ics(
+        timed(
+          '20261102T090000',
+          '20261102T093000',
+          'RRULE:FREQ=WEEKLY;COUNT=3',
+          ...alarm('TRIGGER:-PT10M')
+        ),
+        timed(
+          '20261109T110000',
+          '20261109T113000',
+          `RECURRENCE-ID;TZID=${ZONE}:20261109T090000`,
+          ...alarm('TRIGGER:-PT30M')
+        )
+      );
+      expect(timesOf(text).sort()).toEqual(
+        [at('2026-11-02 08:50'), at('2026-11-09 10:30'), at('2026-11-16 08:50')].sort()
+      );
+    });
+  });
+
+  describe('which events ring', () => {
+    it('skips declined and cancelled events, and email alerts', () => {
+      const event = (...rest: string[]) =>
+        ics(timed('20261118T140000', '20261118T143000', ...rest, ...alarm('TRIGGER:-PT10M')));
+      expect(timesOf(event(`ATTENDEE;PARTSTAT=ACCEPTED:mailto:${ME}`)).length).toBe(1);
+      expect(timesOf(event(`ATTENDEE;PARTSTAT=TENTATIVE:mailto:${ME}`)).length).toBe(1);
+      expect(timesOf(event(`ATTENDEE;PARTSTAT=NEEDS-ACTION:mailto:${ME}`)).length).toBe(1);
+      expect(timesOf(event(`ATTENDEE;PARTSTAT=DECLINED:mailto:${ME}`))).toEqual([]);
+      expect(timesOf(event('STATUS:CANCELLED'))).toEqual([]);
+
+      const email = ics(
+        timed('20261118T140000', '20261118T143000', ...alarm('TRIGGER:-PT10M', 'EMAIL'))
+      );
+      expect(timesOf(email)).toEqual([]);
+    });
+
+    it('shows a late alert only until a minute after its event starts', () => {
+      const [alert] = alertsOf(
+        ics(timed('20261118T090000', '20261118T093000', ...alarm('TRIGGER:-PT10M')))
+      );
+      const fired = new FiredAlerts(fakeStorage());
+      expect(dueAlerts([alert], at('2026-11-18 08:49'), fired)).toEqual([]);
+      expect(dueAlerts([alert], at('2026-11-18 08:55'), fired)).toEqual([alert]);
+      expect(dueAlerts([alert], at('2026-11-18 09:00') + 30, fired)).toEqual([alert]);
+      expect(dueAlerts([alert], at('2026-11-18 09:01'), fired)).toEqual([]);
+    });
+  });
+
+  describe('the record of alerts already shown', () => {
+    const event = (start: string, end: string) =>
+      alertsOf(ics(timed(start, end, ...alarm('TRIGGER:-PT10M'))))[0];
+
+    it('keeps a shown alert from showing again after a reload, until its event is over', () => {
+      const storage = fakeStorage();
+      const morning = event('20261118T090000', '20261118T093000');
+      const afternoon = event('20261118T140000', '20261118T143000');
+      new FiredAlerts(storage).add(morning, at('2026-11-18 08:50'));
+
+      const reloaded = new FiredAlerts(storage);
+      expect(reloaded.has(morning.key)).toBe(true);
+      expect(dueAlerts([morning], at('2026-11-18 09:00'), reloaded)).toEqual([]);
+
+      reloaded.add(afternoon, at('2026-11-18 13:50'));
+      expect(new FiredAlerts(storage).has(morning.key)).toBe(false);
+      expect(new FiredAlerts(storage).has(afternoon.key)).toBe(true);
+    });
+
+    it('rings again for an event moved to a new time', () => {
+      const storage = fakeStorage();
+      const before = event('20261118T090000', '20261118T093000');
+      new FiredAlerts(storage).add(before, at('2026-11-18 08:50'));
+      const moved = event('20261118T100000', '20261118T103000');
+      expect(dueAlerts([moved], at('2026-11-18 09:50'), new FiredAlerts(storage))).toEqual([moved]);
+    });
+  });
+});
+
+function fakeStorage() {
+  const items: { [key: string]: string } = {};
+  return {
+    getItem: (key: string) => (key in items ? items[key] : null),
+    setItem: (key: string, value: string) => {
+      items[key] = value;
+    },
+  };
+}
