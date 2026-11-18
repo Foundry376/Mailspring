@@ -3889,6 +3889,20 @@ END:VCALENDAR`;
     expect(added).toContain('TRIGGER:-PT5M');
   });
 
+  it("reads and edits a moved occurrence's own reminders alone", function () {
+    const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
+      REMINDED_ICS,
+      Date.UTC(2026, 2, 10, 14) / 1000,
+      Date.UTC(2026, 2, 10, 15) / 1000,
+      Date.UTC(2026, 2, 10, 16) / 1000,
+      false
+    );
+    const own = ICSEventHelpers.editAlarm(masterIcs, 0, '-PT2H', recurrenceId);
+
+    expect(ICSEventHelpers.getAlarmTriggers(own, recurrenceId)).toEqual(['-PT2H', '-P1D']);
+    expect(ICSEventHelpers.getAlarmTriggers(own)).toEqual(['-PT30M', '-P1D']);
+  });
+
   it("sets one occurrence's reminder without touching the series'", function () {
     const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
       REMINDED_ICS,

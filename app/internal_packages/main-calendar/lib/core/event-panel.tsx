@@ -97,6 +97,7 @@ import {
   ChangeScope,
   EventChange,
   EventPropertyEdit,
+  ownRecurrenceId,
   updateEventAlarm,
 } from './recurring-event-actions';
 import { EventPanelTextField } from './event-panel-text-field';
@@ -392,7 +393,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     this.setState({
       repeat: frequencyToRepeatOption(ICSEventHelpers.getRecurrenceInfo(row.ics).frequency),
       timezone: ICSEventHelpers.getEventTimezone(row.ics),
-      alarms: ICSEventHelpers.getAlarmTriggers(row.ics),
+      alarms: ICSEventHelpers.getAlarmTriggers(row.ics, ownRecurrenceId(occurrence, row)),
     });
     this._loadProposals(occurrence, row);
   }
@@ -452,8 +453,8 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
       return;
     }
     this.setState({ alarms });
-    const { eventId } = CalendarUtils.parseOccurrenceId(this.props.event.id);
-    this._write(() => updateEventAlarm(eventId, index, trigger));
+    const { event } = this.props;
+    this._write(() => updateEventAlarm(event, index, trigger));
   }
 
   _save(change: UnsentChange) {

@@ -339,15 +339,30 @@ function occurrenceAtSlot(row: Event, slot: number) {
 }
 
 /**
- * Changes, removes or adds a reminder on every occurrence (see ICSEventHelpers.editAlarm). A
- * reminder is the user's own, so it is written at once and the SEQUENCE stays: guests get no
- * update for it.
+ * The RECURRENCE-ID of an occurrence moved on its own, when its series' row holds it beside the
+ * master: its reminders are its own. Undefined where the row's first VEVENT is the one.
  */
-export async function updateEventAlarm(eventId: string, index: number, trigger: string | null) {
+export function ownRecurrenceId(occurrence: EventOccurrence, row: Event): string | undefined {
+  return occurrence.isException && !row.isRecurrenceException()
+    ? occurrenceRecurrenceId(occurrence).toICALString()
+    : undefined;
+}
+
+/**
+ * Changes, removes or adds a reminder on every occurrence, or on a moved one alone (see
+ * ICSEventHelpers.editAlarm). A reminder is the user's own, so it is written at once and the
+ * SEQUENCE stays: guests get no update for it.
+ */
+export async function updateEventAlarm(
+  occurrence: EventOccurrence,
+  index: number,
+  trigger: string | null
+) {
+  const eventId = CalendarUtils.parseOccurrenceId(occurrence.id).eventId;
   const row = await DatabaseStore.find<Event>(Event, eventId);
   if (!row) return;
   const undoData = captureEventSnapshot(row);
-  row.ics = ICSEventHelpers.editAlarm(row.ics, index, trigger);
+  row.ics = ICSEventHelpers.editAlarm(row.ics, index, trigger, ownRecurrenceId(occurrence, row));
   const task = SyncbackEventTask.forUpdating({
     event: row,
     undoData,

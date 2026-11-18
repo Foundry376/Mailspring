@@ -1598,14 +1598,26 @@ export function getAlarmTrigger(ics: string): string | null {
 }
 
 /**
- * The TRIGGER of each of the first VEVENT's reminders, in order. An offset from the start is
- * normalized, so Google's "-P0DT0H10M0S" reads "-PT10M"; a trigger at a set time or relative to
- * the end comes back as written.
+ * The TRIGGER of each of the first VEVENT's reminders, or of the occurrence at `recurrenceId`, in
+ * order. An offset from the start is normalized, so Google's "-P0DT0H10M0S" reads "-PT10M"; a
+ * trigger at a set time or relative to the end comes back as written.
  */
-export function getAlarmTriggers(ics: string): string[] {
+export function getAlarmTriggers(ics: string, recurrenceId?: string): string[] {
   const ical = getICAL();
-  const { event } = parseICSString(ics);
-  return remindersOf(event.component).map((alarm) => triggerOf(alarm, ical));
+  const { root } = parseICSString(ics);
+  return remindersOf(alarmVevent(root, recurrenceId)).map((alarm) => triggerOf(alarm, ical));
+}
+
+/** The VEVENT whose reminders are read or edited: the first, or the occurrence's own. */
+function alarmVevent(root: ICALComponent, recurrenceId?: string): ICALComponent {
+  const vevents = root.name === 'vevent' ? [root] : root.getAllSubcomponents('vevent');
+  const vevent = recurrenceId
+    ? vevents.find((v) => matchesRecurrenceId(v, recurrenceId))
+    : vevents[0];
+  if (!vevent) {
+    throw new Error(`No VEVENT for reminders at RECURRENCE-ID ${recurrenceId}`);
+  }
+  return vevent;
 }
 
 /** A VEVENT's VALARMs that go off: not the placeholder for none, nor one with no TRIGGER. */
@@ -1627,21 +1639,28 @@ function triggerOf(alarm: ICALComponent, ical: ICAL): string {
 /**
  * Changes the reminder at `index`, as getAlarmTriggers lists them, to `trigger`, removes it for
  * null, or adds one when `index` is past the last. A series' moved occurrences keep reminders of
- * their own, so each changes or drops the one at the same TRIGGER, and takes an added one. An
- * event left with none is marked so (see addNoAlarmPlaceholder).
+ * their own, so each changes or drops the one at the same TRIGGER, and takes an added one; with
+ * `recurrenceId`, only that occurrence's reminders change. An event left with none is marked so
+ * (see addNoAlarmPlaceholder).
  */
-export function editAlarm(ics: string, index: number, trigger: string | null): string {
+export function editAlarm(
+  ics: string,
+  index: number,
+  trigger: string | null,
+  recurrenceId?: string
+): string {
   const ical = getICAL();
   const { root } = parseICSString(ics);
-  const vevents = root.name === 'vevent' ? [root] : root.getAllSubcomponents('vevent');
-  if (!vevents.length) {
-    throw new Error('Invalid ICS: no VEVENT component found');
-  }
-  const [first] = vevents;
+  const first = alarmVevent(root, recurrenceId);
   const uid = first.getFirstPropertyValue('uid');
   const edited = remindersOf(first)[index];
   const was = edited ? triggerOf(edited, ical) : null;
-  for (const vevent of vevents.filter((v) => v.getFirstPropertyValue('uid') === uid)) {
+  const vevents = recurrenceId
+    ? [first]
+    : (root.name === 'vevent' ? [root] : root.getAllSubcomponents('vevent')).filter(
+        (v) => v.getFirstPropertyValue('uid') === uid
+      );
+  for (const vevent of vevents) {
     const reminders = remindersOf(vevent);
     const alarm =
       vevent === first ? edited : reminders.find((a) => was !== null && triggerOf(a, ical) === was);

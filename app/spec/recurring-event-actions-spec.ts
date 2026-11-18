@@ -1135,7 +1135,7 @@ describe('updateEventAlarm', function () {
 
   const written = async (ics: string, trigger: string | null) => {
     spyOn(DatabaseStore, 'find').andReturn(Promise.resolve(makeEvent(ics)));
-    await updateEventAlarm('event-id-1', 0, trigger);
+    await updateEventAlarm({ id: 'event-id-1', isException: false } as any, 0, trigger);
     return queued[0].event.ics as string;
   };
   const veventsOf = (ics: string) => ics.split('BEGIN:VEVENT').slice(1);
