@@ -168,7 +168,11 @@ class FocusedContentStore extends MailspringStore {
         }
         this._focused = {};
       } else {
+        // Focusing a thread opens it and marks it read, so the inbox's cursor stays a cursor
+        // when a split-only section such as Contacts takes over the window.
+        const showingMail = require('./focused-perspective-store').default.isShowingMail();
         for (const [collection, item] of Object.entries(this._keyboardCursor)) {
+          if (collection === 'thread' && !showingMail) continue;
           this._onFocus({ collection, item });
         }
       }

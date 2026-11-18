@@ -11,6 +11,8 @@ import {
   isTimed,
   occurrenceStartUnix,
   isEventSelected,
+  isOffCalendar,
+  eventAppearance,
 } from './calendar-data-source';
 import {
   calcEventColors,
@@ -93,7 +95,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
       const date = CalendarDateUtils.addCalendarDays(first, i);
 
       const events = this.state.events
-        .filter((event) => eventCoversDate(event, date))
+        .filter((event) => !isOffCalendar(event) && eventCoversDate(event, date))
         .sort((a, b) => {
           // All-day events first, then sort by start time
           if (a.isAllDay && !b.isAllDay) return -1;
@@ -161,12 +163,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
     // Use a day-unique id/key so multi-day events don't produce duplicate DOM ids
     const uniqueId = `${event.id}-${dayKey}`;
 
-    const className = [
-      'agenda-event',
-      isSelected && 'selected',
-      event.isCancelled && 'cancelled',
-      (event.isPending || event.isAwaitingMyResponse) && 'pending',
-    ]
+    const className = ['agenda-event', isSelected && 'selected', eventAppearance(event)]
       .filter(Boolean)
       .join(' ');
 
@@ -175,14 +172,15 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
         id={uniqueId}
         key={uniqueId}
         className={className}
+        style={{ '--event-band-color': colors.band } as React.CSSProperties}
         onClick={(e) => this.props.onEventClick(e, event)}
         onDoubleClick={(e) => this._onAgendaEventDoubleClick(e, event)}
         tabIndex={0}
       >
-        <div className="agenda-event-color-bar" style={{ backgroundColor: colors.band }} />
+        <div className="agenda-event-color-bar" />
         <div className="agenda-event-details">
           <div className="agenda-event-title">
-            {event.isCancelled ? (
+            {isOffCalendar(event) ? (
               <s>{event.title || localized('(No title)')}</s>
             ) : (
               event.title || localized('(No title)')

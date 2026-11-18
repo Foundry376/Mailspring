@@ -7,13 +7,11 @@ import MailspringWindow from './mailspring-window';
 const MAIN_WINDOW = 'default';
 const SPEC_WINDOW = 'spec';
 const ONBOARDING_WINDOW = 'onboarding';
-const CONTACTS_WINDOW = 'contacts';
 
 export default class WindowManager {
   static MAIN_WINDOW = MAIN_WINDOW;
   static SPEC_WINDOW = SPEC_WINDOW;
   static ONBOARDING_WINDOW = ONBOARDING_WINDOW;
-  static CONTACTS_WINDOW = CONTACTS_WINDOW;
 
   initializeInBackground: boolean;
   _windows: { [key: string]: MailspringWindow } = {};
@@ -281,17 +279,6 @@ export default class WindowManager {
       resizable: false,
       width: 900,
       height: 600,
-    };
-
-    coreWinOpts[WindowManager.CONTACTS_WINDOW] = {
-      windowKey: WindowManager.CONTACTS_WINDOW,
-      windowType: WindowManager.CONTACTS_WINDOW,
-      title: localized('Contacts'),
-      width: 800,
-      height: 500,
-      toolbar: true,
-      hidden: true,
-      ...(process.platform === 'win32' ? { autoHideMenuBar: false } : {}),
     };
 
     // The SPEC_WINDOW gets passed its own bootstrapScript

@@ -10,7 +10,10 @@
 .toolbar-RootSidebar,
 .column-CalendarSidebar,
 .calendar-source-list,
-.toolbar-CalendarSidebar {
+.toolbar-CalendarSidebar,
+.column-ContactsSidebar,
+.contacts-perspective-list,
+.toolbar-ContactsSidebar {
   height: 100%;
   background-color: @sidebar;
 }
@@ -18,10 +21,6 @@
 .calendar-source-list {
   border-right: none;
   color: @sidebar-text;
-
-  .account-label {
-    color: fade(@sidebar-text, 50%);
-  }
 }
 
 .notifications {
@@ -55,7 +54,8 @@
 
 // Refactored this to make sure all items
 // in sidebar always align left with each other
-.account-sidebar {
+.account-sidebar,
+.contacts-perspective-list {
   // make absolute elements (like compose button)
   // relate to the sidear, not the column
   position: relative;
@@ -67,7 +67,9 @@
 }
 
 // Section headers
-.account-sidebar .heading {
+.account-sidebar .heading,
+.calendar-source-list .heading,
+.contacts-perspective-list .heading {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 2px;
@@ -105,14 +107,17 @@
 }
 
 .account-sidebar .item,
-.account-sidebar .item.selected {
+.account-sidebar .item.selected,
+.contacts-perspective-list .item,
+.contacts-perspective-list .item.selected {
   color: @sidebar-text;
   font-size: 13px;
   font-weight: 400;
   padding-right: 0;
 }
 
-.account-sidebar .item.selected {
+.account-sidebar .item.selected,
+.contacts-perspective-list .item.selected {
   background: transparent;
   color: @active-sidebar-text;
 }
@@ -139,11 +144,13 @@
 //====================================================
 
 .account-sidebar .item img.content-mask,
-.account-sidebar .add-item-button img {
+.account-sidebar .add-item-button img,
+.contacts-perspective-list .item img.content-mask {
   background-color: @sidebar-text;
 }
 
-.account-sidebar .item.selected img.content-mask {
+.account-sidebar .item.selected img.content-mask,
+.contacts-perspective-list .item.selected img.content-mask {
   background-color: @active-sidebar-text;
 }
 
@@ -180,12 +187,6 @@
 //====================================================
 //  Scrollbar Base & Sidebar Scrollbar
 //====================================================
-
-.scrollbar-track {
-  background: transparent;
-  border-left: none;
-  width: 10px;
-}
 
 // transitioning background instead of opacity
 // so the location tooltip isn't affected

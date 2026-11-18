@@ -11,6 +11,7 @@ import { IMenuItem } from './menu-helpers';
 export default class MenuManager {
   resourcePath: string;
   template: IMenuItem[] = [];
+  sectionMenu: IMenuItem | null = null;
   pendingUpdateOperation: boolean;
 
   constructor({ resourcePath }) {
@@ -59,6 +60,21 @@ export default class MenuManager {
     return this.update();
   }
 
+  setSectionMenu(menu: IMenuItem | null) {
+    if (menu === this.sectionMenu) return;
+    this.sectionMenu = menu;
+    this.update();
+  }
+
+  // Thread and View act on the thread list, which is unmounted while another section of the
+  // main window shows, so that section's menu takes their place.
+  visibleTemplate() {
+    if (!this.sectionMenu) return this.template;
+    const template = this.template.filter((item) => item.id !== 'Thread' && item.id !== 'View');
+    template.splice(template.findIndex((item) => item.id === 'Edit') + 1, 0, this.sectionMenu);
+    return template;
+  }
+
   // Public: Refreshes the currently visible menu.
   update = () => {
     if (this.pendingUpdateOperation) {
@@ -68,7 +84,8 @@ export default class MenuManager {
     window.requestAnimationFrame(() => {
       this.pendingUpdateOperation = false;
 
-      MenuHelpers.forEachMenuItem(this.template, (item) => {
+      const template = this.visibleTemplate();
+      MenuHelpers.forEachMenuItem(template, (item) => {
         if (item.command && item.command.startsWith('application:') === false) {
           item.enabled = AppEnv.commands.listenerCountForCommand(item.command) > 0;
         }
@@ -80,7 +97,7 @@ export default class MenuManager {
         }
       });
 
-      this.sendToBrowserProcess(this.template, AppEnv.keymaps.getBindingsForAllCommands());
+      this.sendToBrowserProcess(template, AppEnv.keymaps.getBindingsForAllCommands());
     });
   };
 

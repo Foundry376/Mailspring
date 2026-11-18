@@ -1,5 +1,5 @@
 import React from 'react';
-import { ListensToFluxStore, RetinaImg } from 'mailspring-component-kit';
+import { ListensToFluxStore, LoadingSpinner } from 'mailspring-component-kit';
 import {
   localized,
   Actions,
@@ -50,11 +50,7 @@ class ThreadListEmptyFolderBar extends React.Component<ThreadListEmptyFolderBarP
         </div>
         {busy ? (
           <div className="btn">
-            <RetinaImg
-              style={{ width: 16, height: 16 }}
-              name="inline-loading-spinner.gif"
-              mode={RetinaImg.Mode.ContentPreserve}
-            />
+            <LoadingSpinner size={16} />
           </div>
         ) : (
           <div className="btn" onClick={this._onClick}>

@@ -12,7 +12,7 @@ import {
 } from 'mailspring-exports';
 
 import { translateMessageBody, AllLanguages, TranslationsUsedLexicon } from './service';
-import { Menu, ButtonDropdown, RetinaImg } from 'mailspring-component-kit';
+import { Menu, ButtonDropdown, LoadingSpinner } from 'mailspring-component-kit';
 
 interface TranslateMessageHeaderProps {
   message: Message;
@@ -317,13 +317,7 @@ export class TranslateMessageHeader extends React.Component<
     const toLanguage = AllLanguages[getCurrentLocale().split('-')[0]];
     const prefs = getPrefs();
 
-    const spinner = (
-      <RetinaImg
-        name="inline-loading-spinner.gif"
-        mode={RetinaImg.Mode.ContentDark}
-        style={{ width: 14, height: 14, mixBlendMode: 'multiply' }}
-      />
-    );
+    const spinner = <LoadingSpinner />;
 
     if (this.state.translating === 'auto') {
       return (
@@ -333,11 +327,7 @@ export class TranslateMessageHeader extends React.Component<
               {localized('Translating from %1$@ to %2$@.', fromLanguage, toLanguage)}
             </div>
             <div style={{ flex: 1 }} />
-            <RetinaImg
-              name="inline-loading-spinner.gif"
-              mode={RetinaImg.Mode.ContentDark}
-              style={{ width: 14, height: 14, mixBlendMode: 'multiply' }}
-            />
+            <LoadingSpinner />
           </div>
         </div>
       );

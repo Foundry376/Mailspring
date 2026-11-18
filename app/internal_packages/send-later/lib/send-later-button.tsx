@@ -8,7 +8,7 @@ import {
   Message,
   DraftEditingSession,
 } from 'mailspring-exports';
-import { RetinaImg } from 'mailspring-component-kit';
+import { RetinaImg, LoadingSpinner } from 'mailspring-component-kit';
 
 import SendLaterPopover from './send-later-popover';
 import { PLUGIN_ID } from './send-later-constants';
@@ -135,11 +135,7 @@ class SendLaterButton extends Component<SendLaterButtonProps, SendLaterButtonSta
           tabIndex={-1}
           style={{ order: -99 }}
         >
-          <RetinaImg
-            name="inline-loading-spinner.gif"
-            mode={RetinaImg.Mode.ContentDark}
-            style={{ width: 14, height: 14 }}
-          />
+          <LoadingSpinner />
         </button>
       );
     }

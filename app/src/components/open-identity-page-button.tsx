@@ -2,6 +2,7 @@ import React from 'react';
 import { shell } from 'electron';
 import classnames from 'classnames';
 import { RetinaImg } from './retina-img';
+import { LoadingSpinner } from './loading-spinner';
 import { IdentityStore } from '../flux/stores/identity-store';
 
 type OpenIdentityPageButtonProps = {
@@ -57,12 +58,7 @@ export default class OpenIdentityPageButton extends React.Component<
     if (this.state.loading) {
       return (
         <div className={`${cls} btn-disabled`}>
-          <RetinaImg
-            name="sending-spinner.gif"
-            width={15}
-            height={15}
-            mode={RetinaImg.Mode.ContentPreserve}
-          />
+          <LoadingSpinner size={15} />
           &nbsp;{this.props.label}&hellip;
         </div>
       );

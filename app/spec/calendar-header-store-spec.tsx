@@ -12,6 +12,7 @@ import Rx from 'rx-lite';
 import { MailspringCalendar } from '../internal_packages/main-calendar/lib/core/mailspring-calendar';
 import { CalendarView } from '../internal_packages/main-calendar/lib/core/calendar-constants';
 import { calendarViewProps } from './fixtures/calendar-view-props';
+import * as SheetToolbar from '../src/sheet-toolbar';
 
 describe('CalendarHeaderStore', function () {
   let triggered: number;
@@ -105,6 +106,40 @@ describe('CalendarHeaderStore', function () {
       expect(CalendarHeaderStore.calendarOptions().agendaOpen).toBe(false);
     });
     expect(CalendarHeaderStore.calendarOptions()).toBe(null);
+  });
+
+  it("hands over the agenda's width only while it's on screen, redrawing as it resizes", function () {
+    spyOn(AppEnv.config, 'set');
+    spyOn(AppEnv, 'storeColumnWidth');
+    spyOn(AppEnv, 'getColumnWidth').andReturn(undefined);
+    const menuButton = spyOn(SheetToolbar, 'showsToolbarMenuControl').andReturn(false);
+    const calendar: any = new MailspringCalendar({} as any);
+    calendar.setState = (update: object) => Object.assign(calendar.state, update);
+    calendar._publishCalendarOptions();
+    expect(CalendarHeaderStore.calendarOptions().agendaWidth).toBe(240);
+
+    triggered = 0;
+    calendar._onAgendaResize(280);
+    expect(CalendarHeaderStore.calendarOptions().agendaWidth).toBe(280);
+    expect(triggered).toBe(1);
+    calendar._onAgendaResize(400);
+    expect(CalendarHeaderStore.calendarOptions().agendaWidth).toBe(300);
+
+    calendar.setState({ calendarsLoaded: true, calendars: [] });
+    calendar._publishCalendarOptions();
+    expect(CalendarHeaderStore.calendarOptions().agendaWidth).toBe(null);
+
+    calendar.setState({ calendars: [{}] });
+    calendar.onToggleAgenda();
+    calendar._publishCalendarOptions();
+    expect(CalendarHeaderStore.calendarOptions().agendaWidth).toBe(null);
+
+    calendar.onToggleAgenda();
+    calendar._publishCalendarOptions();
+    expect(CalendarHeaderStore.calendarOptions().agendaWidth).toBe(300);
+    menuButton.andReturn(true);
+    calendar._publishCalendarOptions();
+    expect(CalendarHeaderStore.calendarOptions().agendaWidth).toBe(null);
   });
 
   it("takes the calendar's view and agenda state, redrawing when they change", function () {

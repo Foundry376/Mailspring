@@ -1,7 +1,7 @@
 import { ipcRenderer } from 'electron';
 import React from 'react';
 import { localized, Account } from 'mailspring-exports';
-import { RetinaImg } from 'mailspring-component-kit';
+import { LoadingSpinner } from 'mailspring-component-kit';
 
 import * as OnboardingActions from './onboarding-actions';
 import { finalizeAndValidateAccount } from './onboarding-helpers';
@@ -156,12 +156,7 @@ export default class AccountCertificatePage extends React.Component<
     if (this.state.submitting) {
       return (
         <button className="btn btn-large btn-disabled btn-add-account spinning">
-          <RetinaImg
-            name="sending-spinner.gif"
-            width={15}
-            height={15}
-            mode={RetinaImg.Mode.ContentPreserve}
-          />
+          <LoadingSpinner size={15} />
           {localized('Adding account')}&hellip;
         </button>
       );

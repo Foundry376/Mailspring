@@ -1,3 +1,5 @@
+import React from 'react';
+import { ipcRenderer } from 'electron';
 import {
   WorkspaceStore,
   ComponentRegistry,
@@ -5,6 +7,7 @@ import {
   AccountStore,
   localized,
 } from 'mailspring-exports';
+import { NavRailItem } from 'mailspring-component-kit';
 import { ContactPerspectivesList } from './ContactPerspectivesList';
 import { ContactDetailToolbar } from './ContactDetailToolbar';
 import { AddContactToolbar } from './AddContactToolbar';
@@ -14,56 +17,69 @@ import { FoundInMailEnabledBar } from './FoundInMailEnabledBar';
 import { Store } from './Store';
 import { exportContactsToFile, importContactsFromFile } from './VCFImportExport';
 
-function adjustMenus() {
-  const contactMenu: (typeof AppEnv.menu.template)[0] = {
-    id: 'Contact',
-    label: localized('Contact'),
-    submenu: [
-      {
-        label: localized('New Contact'),
-        command: 'core:add-item',
-      },
-      { type: 'separator' },
-      {
-        label: localized('Import vCards...'),
-        command: 'contacts:import-vcf',
-      },
-      {
-        label: localized('Export All vCards...'),
-        command: 'contacts:export-vcf-all',
-      },
-      {
-        label: localized('Export Selected...'),
-        command: 'contacts:export-vcf-selected',
-      },
-      { type: 'separator' },
-      {
-        label: localized('Edit Contact'),
-        command: 'core:edit-item',
-      },
-      {
-        label: localized('Delete Contact'),
-        command: 'core:delete-item',
-      },
-      { type: 'separator' },
-      {
-        label: localized('Remove from Group'),
-        command: 'core:remove-from-view',
-      },
-    ],
-  };
+const contactMenu: (typeof AppEnv.menu.template)[0] = {
+  id: 'Contact',
+  label: localized('Contact'),
+  submenu: [
+    {
+      label: localized('New Contact'),
+      command: 'core:add-item',
+    },
+    { type: 'separator' },
+    {
+      label: localized('Import vCards...'),
+      command: 'contacts:import-vcf',
+    },
+    {
+      label: localized('Export All vCards...'),
+      command: 'contacts:export-vcf-all',
+    },
+    {
+      label: localized('Export Selected...'),
+      command: 'contacts:export-vcf-selected',
+    },
+    { type: 'separator' },
+    {
+      label: localized('Edit Contact'),
+      command: 'core:edit-item',
+    },
+    {
+      label: localized('Delete Contact'),
+      command: 'core:delete-item',
+    },
+    { type: 'separator' },
+    {
+      label: localized('Remove from Group'),
+      command: 'core:remove-from-view',
+    },
+  ],
+};
 
-  const template = AppEnv.menu.template.filter(
-    (item) => item.id !== 'Thread' && item.id !== 'View'
-  );
-  const editIndex = template.findIndex((item) => item.id === 'Edit');
-  template.splice(editIndex + 1, 0, contactMenu);
+const isShowingContacts = () => WorkspaceStore.rootSheet() === WorkspaceStore.Sheet.Contacts;
 
-  AppEnv.menu.template = template;
-  AppEnv.menu.update();
+// Sent by the main process for application:show-contacts, from the rail, the Window menu, the
+// shortcut or Preferences.
+function onShowContacts() {
+  if (!isShowingContacts()) Actions.selectRootSheet(WorkspaceStore.Sheet.Contacts);
+}
+
+const ContactsNavRailItem = () => (
+  <NavRailItem
+    label={localized('Contacts')}
+    iconName="people.png"
+    order={4}
+    command="application:show-contacts"
+    isActive={isShowingContacts}
+  />
+);
+ContactsNavRailItem.displayName = 'ContactsNavRailItem';
+
+function startStoreWhenShowing() {
+  if (isShowingContacts()) Store.start();
 }
 
 let _commandDisposable: { dispose: () => void } | null = null;
+let _unlistenWorkspace: (() => void) | null = null;
 
 function resolveImportAccountId(): string | null {
   const perspective = Store.perspective();
@@ -78,12 +94,11 @@ function resolveImportAccountId(): string | null {
 export function activate() {
   WorkspaceStore.defineSheet(
     'Contacts',
-    { root: true },
+    { root: true, menu: contactMenu },
     { split: ['ContactsSidebar', 'ContactsList', 'ContactsDetail'] }
   );
-
-  adjustMenus();
-  Actions.selectRootSheet(WorkspaceStore.Sheet.Contacts);
+  _unlistenWorkspace = WorkspaceStore.listen(startStoreWhenShowing);
+  ipcRenderer.on('show-contacts', onShowContacts);
 
   _commandDisposable = AppEnv.commands.add(document.body, {
     'contacts:import-vcf': () => {
@@ -129,6 +144,7 @@ export function activate() {
   ComponentRegistry.register(AddContactToolbar, {
     location: WorkspaceStore.Location.ContactsSidebar.Toolbar,
   });
+  ComponentRegistry.register(ContactsNavRailItem, { role: 'NavRail:Item' });
 }
 
 export function deactivate() {
@@ -139,6 +155,10 @@ export function deactivate() {
   ComponentRegistry.unregister(ContactDetail);
   ComponentRegistry.unregister(ContactDetailToolbar);
   ComponentRegistry.unregister(AddContactToolbar);
+  ComponentRegistry.unregister(ContactsNavRailItem);
   _commandDisposable?.dispose();
   _commandDisposable = null;
+  _unlistenWorkspace?.();
+  _unlistenWorkspace = null;
+  ipcRenderer.removeListener('show-contacts', onShowContacts);
 }

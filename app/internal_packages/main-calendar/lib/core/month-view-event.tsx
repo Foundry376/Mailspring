@@ -5,6 +5,8 @@ import { isRTL } from 'mailspring-exports';
 import { withSmallMeridiem } from 'mailspring-component-kit';
 import {
   EventOccurrence,
+  isOffCalendar,
+  eventAppearance,
   isTimed,
   occurrenceStartUnix,
   occurrenceEndUnix,
@@ -105,6 +107,17 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
     onFocused(event);
   }
 
+  // See CalendarEvent._pressing.
+  _pressing = false;
+
+  _onFocus = () => {
+    if (!this._pressing && !this.props.selected) this.props.onFocused(this.props.event);
+  };
+
+  _onBlur = () => {
+    this._pressing = false;
+  };
+
   _onClick = (e: React.MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
     this.props.onClick(e, this.props.event);
@@ -179,6 +192,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
    * Initiate drag on mouse down
    */
   _onMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    this._pressing = true;
     if (!this._canDrag() || !this.state.hitZone) {
       return;
     }
@@ -218,12 +232,7 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
   // read as a bar. Selection fills either through CSS.
   _backgroundColor(tint: string) {
     const { event } = this.props;
-    if (event.isAwaitingMyResponse && !event.isCancelled) {
-      return 'transparent';
-    }
-    if (event.isPending) {
-      return 'rgba(128, 128, 128, 0.15)';
-    }
+    if (eventAppearance(event) === 'awaiting-response') return 'transparent';
     return event.isAllDay || spansDays(event) ? tint : 'transparent';
   }
 
@@ -231,11 +240,9 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
     const { event, selected, isDragging, continuesBefore, continuesAfter } = this.props;
     const colors = calcEventColors(event.calendarId);
 
-    const className = classnames('month-view-event', {
+    const className = classnames('month-view-event', eventAppearance(event), {
       selected: selected,
       'is-all-day': event.isAllDay,
-      pending: event.isPending,
-      'awaiting-response': event.isAwaitingMyResponse && !event.isCancelled,
       dragging: isDragging,
       draggable: this._canDrag(),
       'drag-preview': event.isDragPreview,
@@ -282,11 +289,13 @@ export class MonthViewEvent extends React.Component<MonthViewEventProps, MonthVi
         onMouseMove={this._onMouseMove}
         onMouseLeave={this._onMouseLeave}
         onMouseDown={this._onMouseDown}
+        onFocus={this._onFocus}
+        onBlur={this._onBlur}
         tabIndex={this.props.isFirstBar ? 0 : -1}
       >
         <span className="month-view-event-title">
           {!continuesBefore && isTimed(event) && <BarStartTime event={event} />}
-          {event.title}
+          {isOffCalendar(event) ? <s>{event.title}</s> : event.title}
         </span>
         {!continuesAfter && isTimed(event) && spansDays(event) && <BarEndTime event={event} />}
       </div>
