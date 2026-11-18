@@ -1,3 +1,4 @@
+import _ from 'underscore';
 import moment from 'moment';
 import Rx from 'rx-lite';
 import {
@@ -15,6 +16,7 @@ import {
   eventsInRangeQuery,
   isOffCalendar,
   isTimed,
+  occurrenceSlot,
   occurrenceStartUnix,
   occurrenceTimes,
   occurrencesForEvents,
@@ -33,7 +35,10 @@ const LATE_GRACE = 60;
 const LONGEST_WAIT = 60;
 
 export interface CalendarAlert {
-  /** Names this alert of this occurrence at this time, so a moved one is a new alert. */
+  /**
+   * The meeting, occurrence and time, so two calendars' copies ringing together show once and a
+   * moved occurrence is a new alert.
+   */
   key: string;
   at: number;
   occurrence: EventOccurrence;
@@ -60,7 +65,12 @@ export function alertsFor(
           root,
           ownRecurrenceId(occurrence, row),
           occurrenceTimes(occurrence)
-        ).map((at) => ({ key: `${occurrence.id}@${at}`, at, occurrence, row }))
+        ).map((at) => ({
+          key: `${row.icsuid}@${occurrenceSlot(occurrence)}@${at}`,
+          at,
+          occurrence,
+          row,
+        }))
       );
     } catch (err) {
       // An ICS that failed to expand (its master is drawn from the row's columns), or a TRIGGER
@@ -79,9 +89,10 @@ function lastChance(alert: CalendarAlert) {
 }
 
 export function dueAlerts(alerts: CalendarAlert[], now: number, fired: FiredAlerts) {
-  return alerts
+  const due = alerts
     .filter((alert) => alert.at <= now && now < lastChance(alert) && !fired.has(alert.key))
     .sort((a, b) => a.at - b.at);
+  return _.uniq(due, false, (alert) => alert.key);
 }
 
 /** The alerts already shown, kept until they could no longer show, so a reload doesn't repeat them. */

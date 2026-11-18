@@ -161,6 +161,35 @@ describe('calendar event alerts', () => {
       expect(timesOf(email)).toEqual([]);
     });
 
+    it("shows one banner when two calendars' copies of a meeting ring together", () => {
+      const copy = (id: string, calendarId: string, trigger: string) =>
+        new Event({
+          id,
+          accountId: 'a',
+          calendarId,
+          icsuid: 'shared@test',
+          ics: ics(timed('20261118T140000', '20261118T143000', ...alarm(trigger))),
+          recurrenceStart: at('2026-11-18 14:00'),
+          recurrenceEnd: at('2026-11-18 14:30'),
+        } as any);
+      const range = { startUnix: at('2026-11-01 00:00'), endUnix: at('2026-12-01 00:00') };
+      const fired = new FiredAlerts(fakeStorage());
+
+      const same = alertsFor(
+        [copy('o', 'c1', 'TRIGGER:-PT10M'), copy('g', 'c2', 'TRIGGER:-PT10M')],
+        range
+      );
+      expect(dueAlerts(same, at('2026-11-18 13:50'), fired).length).toBe(1);
+
+      const apart = alertsFor(
+        [copy('o', 'c1', 'TRIGGER:-PT10M'), copy('g', 'c2', 'TRIGGER:-PT1H')],
+        range
+      );
+      expect(apart.map((alert) => alert.at).sort()).toEqual(
+        [at('2026-11-18 13:00'), at('2026-11-18 13:50')].sort()
+      );
+    });
+
     it("rings other events' alerts when one event's alert can't be read", () => {
       const event = (trigger: string) =>
         ics(timed('20261118T140000', '20261118T143000', ...alarm(trigger)));
