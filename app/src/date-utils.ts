@@ -4,6 +4,20 @@ import { localized } from './intl';
 // Init locale for moment
 moment.locale(navigator.language);
 
+// Building an Intl.DateTimeFormat is far slower than formatting with one, and the thread
+// list formats a timestamp for every row on every render.
+const dateTimeFormats = new Map<string, Intl.DateTimeFormat>();
+
+function cachedDateTimeFormat(opts: Intl.DateTimeFormatOptions) {
+  const key = `${navigator.language}|${JSON.stringify(opts)}`;
+  let format = dateTimeFormats.get(key);
+  if (!format) {
+    format = new Intl.DateTimeFormat(navigator.language, opts);
+    dateTimeFormats.set(key, format);
+  }
+  return format;
+}
+
 /**
  * The current IANA name of a zone: America/Indiana/Indianapolis for America/Indianapolis,
  * Asia/Kolkata for Asia/Calcutta. The machine reports whatever name its zone is configured under,
@@ -515,10 +529,11 @@ const DateUtils = {
         opts.month = 'short';
         opts.day = 'numeric';
       }
-      return datetime.toLocaleDateString(navigator.language, opts);
     }
 
-    return datetime.toLocaleTimeString(navigator.language, opts);
+    // Every branch sets the fields it shows, so this matches toLocaleDateString and
+    // toLocaleTimeString, which only add default fields when none are given.
+    return cachedDateTimeFormat(opts).format(datetime);
   },
 
   /**
