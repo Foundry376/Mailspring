@@ -82,8 +82,7 @@ export interface EventTimeChangeOptions {
   /**
    * True when the occurrence being modified is already an inline exception.
    * When set, `modifyEventWithRecurringSupport` skips the "edit all / this
-   * occurrence" dialog and always edits only this exception — matching the
-   * behaviour of the popover's `saveEdits` path.
+   * occurrence" dialog and always edits only this exception.
    */
   isException?: boolean;
 }

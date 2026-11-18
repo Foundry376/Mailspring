@@ -670,8 +670,7 @@ export class MailspringCalendar extends React.Component<
       next = [event];
     }
 
-    // Close any open popover when clicking an event (e.g., if another event's
-    // popover was open, it should close when selecting a different event)
+    // Close any open popover, such as quick add, when an event is clicked.
     Actions.closePopover();
 
     if (this._select(next) && !isEventSelected(next, event)) this._focusGrid();

@@ -180,7 +180,7 @@ interface OccurrenceBase {
    * For exception occurrences only: the Unix timestamp (seconds) of the **original**
    * unmodified occurrence start, taken from the RECURRENCE-ID property. This differs
    * from `start` when the exception has been moved to a different time.
-   * Used by the edit popover to correctly upsert the existing inline exception VEVENT.
+   * Editing the exception upserts its inline VEVENT by this, not by `start`.
    */
   recurrenceIdStart?: number;
   /** True if this event is part of a recurring series (has RRULE/RDATE) */

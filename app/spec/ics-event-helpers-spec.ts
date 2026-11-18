@@ -1242,7 +1242,7 @@ describe('ICSEventHelpers.updateEventTimes with all-day events', function () {
     expect(getDateOnly(result, 'DTEND')).toBe('20260623');
   });
 
-  it('gives a same-day timed range a full day, as the popover all-day toggle produces', function () {
+  it('gives a same-day timed range a full day', function () {
     const result = ICSEventHelpers.updateEventTimes(ALL_DAY_SIMPLE_ICS, {
       start: localDay(2026, 6, 22) + 10 * 3600, // 10:00
       end: localDay(2026, 6, 22) + 11 * 3600, // 11:00
@@ -3190,7 +3190,7 @@ describe('SEQUENCE, so guests see an update as an update', function () {
   });
 
   it('advances once for a save that touched times, guests and recurrence together', function () {
-    // The popover runs all three on one save, which is still one revision.
+    // One save may run all three, and is still one revision.
     let ics = ICSEventHelpers.updateEventTimes(SIMPLE_ICS, {
       start: Math.round(new Date('2026-03-01T16:00:00Z').getTime() / 1000),
       end: Math.round(new Date('2026-03-01T17:00:00Z').getTime() / 1000),
