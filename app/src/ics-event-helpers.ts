@@ -771,6 +771,23 @@ function contentApartFromRevision(vevent: ICALComponent): string {
 }
 
 /** Whether this VEVENT is the inline exception `recurrenceId` names, in either date form. */
+/**
+ * Whether a VEVENT's RECURRENCE-ID names `recurrenceId`: as written ('20260302T060000Z',
+ * '20260302', or wall-clock text whose zone lives only on the property), or, for a UTC instant,
+ * the same instant in any zone, since Google and Apple write an override's in the series' zone.
+ */
+function isOccurrenceAt(vevent: ICALComponent, recurrenceId: string): boolean {
+  const rid = vevent.getFirstPropertyValue('recurrence-id') as ICALTime | null;
+  if (!rid || typeof rid.toJSDate !== 'function') return false;
+  const wanted = recurrenceId.replace(/[-:]/g, '');
+  if (rid.toICALString() === wanted) return true;
+  const utc = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/.exec(wanted);
+  return (
+    !!utc &&
+    rid.toJSDate().getTime() === Date.UTC(+utc[1], +utc[2] - 1, +utc[3], +utc[4], +utc[5], +utc[6])
+  );
+}
+
 function matchesRecurrenceId(vevent: ICALComponent, recurrenceId: string): boolean {
   const rid = vevent.getFirstPropertyValue('recurrence-id');
   return String(rid).replace(/[^0-9TZ]/g, '') === recurrenceId.replace(/[^0-9TZ]/g, '');
@@ -1343,28 +1360,15 @@ export function removeInlineException(ics: string, recurrenceId: string): string
   const vcalendar = root.name === 'vcalendar' ? root : null;
   if (!vcalendar) return ics;
 
-  // The row stores the RECURRENCE-ID as written ('20260302T060000Z', '20260302', or wall-clock
-  // text whose zone lives only on the property), so a zoned value is matched as text.
-  const wanted = recurrenceId.replace(/[-:]/g, '');
-  const utc = /^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})Z$/.exec(wanted);
-  const wantedMs = utc ? Date.UTC(+utc[1], +utc[2] - 1, +utc[3], +utc[4], +utc[5], +utc[6]) : null;
-
   let master: ICALComponent | null = null;
   let exception: ICALComponent | null = null;
   let slot: ICALTime | null = null;
   for (const vevent of vcalendar.getAllSubcomponents('vevent')) {
-    const ridProp = vevent.getFirstProperty('recurrence-id');
-    if (!ridProp) {
+    if (!vevent.getFirstProperty('recurrence-id')) {
       if (!master) master = vevent;
-      continue;
-    }
-    const ridValue = ridProp.getFirstValue() as ICALTime | null;
-    if (!ridValue || typeof ridValue.toJSDate !== 'function') continue;
-    const sameText = ridValue.toICALString() === wanted;
-    const sameInstant = wantedMs !== null && ridValue.toJSDate().getTime() === wantedMs;
-    if (sameText || sameInstant) {
+    } else if (isOccurrenceAt(vevent, recurrenceId)) {
       exception = vevent;
-      slot = ridValue;
+      slot = vevent.getFirstPropertyValue('recurrence-id') as ICALTime;
     }
   }
 
@@ -1605,19 +1609,14 @@ export function getAlarmTrigger(ics: string): string | null {
 export function getAlarmTriggers(ics: string, recurrenceId?: string): string[] {
   const ical = getICAL();
   const { root } = parseICSString(ics);
-  return remindersOf(alarmVevent(root, recurrenceId)).map((alarm) => triggerOf(alarm, ical));
+  const vevent = alarmVevent(root, recurrenceId);
+  return vevent ? remindersOf(vevent).map((alarm) => triggerOf(alarm, ical)) : [];
 }
 
 /** The VEVENT whose reminders are read or edited: the first, or the occurrence's own. */
-function alarmVevent(root: ICALComponent, recurrenceId?: string): ICALComponent {
+function alarmVevent(root: ICALComponent, recurrenceId?: string): ICALComponent | undefined {
   const vevents = root.name === 'vevent' ? [root] : root.getAllSubcomponents('vevent');
-  const vevent = recurrenceId
-    ? vevents.find((v) => matchesRecurrenceId(v, recurrenceId))
-    : vevents[0];
-  if (!vevent) {
-    throw new Error(`No VEVENT for reminders at RECURRENCE-ID ${recurrenceId}`);
-  }
-  return vevent;
+  return recurrenceId ? vevents.find((v) => isOccurrenceAt(v, recurrenceId)) : vevents[0];
 }
 
 /** A VEVENT's VALARMs that go off: not the placeholder for none, nor one with no TRIGGER. */
@@ -1652,6 +1651,9 @@ export function editAlarm(
   const ical = getICAL();
   const { root } = parseICSString(ics);
   const first = alarmVevent(root, recurrenceId);
+  if (!first) {
+    throw new Error(`No VEVENT for reminders at RECURRENCE-ID ${recurrenceId}`);
+  }
   const uid = first.getFirstPropertyValue('uid');
   const edited = remindersOf(first)[index];
   const was = edited ? triggerOf(edited, ical) : null;

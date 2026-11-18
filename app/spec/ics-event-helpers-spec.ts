@@ -3903,6 +3903,49 @@ END:VCALENDAR`;
     expect(ICSEventHelpers.getAlarmTriggers(own)).toEqual(['-PT30M', '-P1D']);
   });
 
+  it('finds a moved occurrence of a zoned series by its instant', function () {
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Test//Test//EN',
+      'BEGIN:VEVENT',
+      'UID:zoned@test',
+      'DTSTART;TZID=America/Chicago:20260106T090000',
+      'DTEND;TZID=America/Chicago:20260106T100000',
+      'RRULE:FREQ=WEEKLY;COUNT=4',
+      'SUMMARY:Sync',
+      'DTSTAMP:20260101T000000Z',
+      'BEGIN:VALARM',
+      'ACTION:DISPLAY',
+      'DESCRIPTION:Sync',
+      'TRIGGER:-PT10M',
+      'END:VALARM',
+      'END:VEVENT',
+      'BEGIN:VEVENT',
+      'UID:zoned@test',
+      'RECURRENCE-ID;TZID=America/Chicago:20260113T090000',
+      'DTSTART;TZID=America/Chicago:20260113T110000',
+      'DTEND;TZID=America/Chicago:20260113T120000',
+      'SUMMARY:Sync',
+      'DTSTAMP:20260101T000000Z',
+      'BEGIN:VALARM',
+      'ACTION:DISPLAY',
+      'DESCRIPTION:Sync',
+      'TRIGGER:-PT30M',
+      'END:VALARM',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+    // The moved occurrence's slot, 9 AM in Chicago, as the panel names it.
+    const rid = '20260113T150000Z';
+
+    expect(ICSEventHelpers.getAlarmTriggers(ics, rid)).toEqual(['-PT30M']);
+    const edited = ICSEventHelpers.editAlarm(ics, 0, '-PT1H', rid);
+    expect(ICSEventHelpers.getAlarmTriggers(edited, rid)).toEqual(['-PT1H']);
+    expect(ICSEventHelpers.getAlarmTriggers(edited)).toEqual(['-PT10M']);
+    expect(ICSEventHelpers.getAlarmTriggers(ics, '20260120T150000Z')).toEqual([]);
+  });
+
   it("sets one occurrence's reminder without touching the series'", function () {
     const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
       REMINDED_ICS,
