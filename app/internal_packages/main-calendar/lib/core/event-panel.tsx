@@ -160,7 +160,6 @@ interface EventPanelProps {
   onDiscard?: () => void;
   calendarChoices?: Calendar[];
   onCalendarChange?: (calendar: Calendar) => void;
-  /** The new event's reminders as set in the panel; undefined until they're changed. */
   newEventAlarms?: string[];
   onNewEventAlarmsChange?: (triggers: string[]) => void;
   /** Given in the mail sidebar, where an invitation is answered; the calendar shows the clash. */
@@ -226,8 +225,8 @@ function linkOrText(location: string) {
 }
 
 /**
- * The reminders as listed, the one that goes off first on top; each keeps its place in the event,
- * which is what an edit names. One at a set time, or after the start, goes last.
+ * Each keeps its index in the event, which is what an edit names. One at a set time, or after the
+ * start, goes last.
  */
 function earliestFirst(alarms: string[]) {
   const before = (trigger: string) => secondsBefore(trigger) ?? -1;
@@ -443,7 +442,6 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     return trigger ? [trigger] : [];
   }
 
-  /** Changes the reminder at `index`, removes it for null, or adds one past the last. */
   _editAlarm(index: number, trigger: string | null) {
     const alarms = [...this._alarms()];
     if (trigger === null) alarms.splice(index, 1);

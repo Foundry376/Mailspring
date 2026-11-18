@@ -22,6 +22,7 @@ import {
   EventOccurrence,
   focusedEventInfoForEvents,
   occurrenceForRecurrenceId,
+  occurrenceSlot,
   occurrenceStartUnix,
   occurrenceTimes,
 } from './calendar-data-source';
@@ -339,19 +340,17 @@ function occurrenceAtSlot(row: Event, slot: number) {
 }
 
 /**
- * The RECURRENCE-ID of an occurrence moved on its own, when its series' row holds it beside the
- * master: its reminders are its own. Undefined where the row's first VEVENT is the one.
+ * A moved occurrence's slot as a UTC instant, which names its VEVENT whatever form its series
+ * writes RECURRENCE-ID in. Undefined where the row's first VEVENT is the one.
  */
 export function ownRecurrenceId(occurrence: EventOccurrence, row: Event): string | undefined {
-  return occurrence.isException && !row.isRecurrenceException()
-    ? occurrenceRecurrenceId(occurrence).toICALString()
-    : undefined;
+  if (!occurrence.isException || row.isRecurrenceException()) return undefined;
+  return new Date(occurrenceSlot(occurrence) * 1000).toISOString().replace(/[-:]|\.\d+/g, '');
 }
 
 /**
- * Changes, removes or adds a reminder on every occurrence, or on a moved one alone (see
- * ICSEventHelpers.editAlarm). A reminder is the user's own, so it is written at once and the
- * SEQUENCE stays: guests get no update for it.
+ * Written at once with the SEQUENCE kept: a reminder is the user's own, so guests get no update
+ * for it.
  */
 export async function updateEventAlarm(
   occurrence: EventOccurrence,

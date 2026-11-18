@@ -43,7 +43,6 @@ const ALERT_LABELS: Record<Exclude<AlertTiming, 'custom'>, string> = {
   '1week': localized('1 week before'),
 };
 
-/** The timings the Alert picker offers, in order. */
 export const ALERT_TIMINGS = Object.keys(ALERT_LABELS) as Exclude<AlertTiming, 'custom'>[];
 
 export function alertLabel(alert: Exclude<AlertTiming, 'custom'>): string {
@@ -70,9 +69,8 @@ const UNITS: { seconds: number; label: (count: number) => string }[] = [
 ];
 
 /**
- * A reminder none of the timings describes, read out in the largest whole unit ("20 minutes
- * before"). On an all-day event a relative TRIGGER counts from midnight, so Google's "9 AM the
- * day before" is -PT15H, which reads as "Custom" rather than as a misleading 15 hours.
+ * In the largest whole unit. An all-day event's relative TRIGGER counts from midnight, so Google's
+ * "9 AM the day before" (-PT15H) reads as Custom rather than as 15 hours.
  */
 export function customAlertLabel(trigger: string, isAllDay: boolean): string {
   const seconds = secondsBefore(trigger);
@@ -82,7 +80,7 @@ export function customAlertLabel(trigger: string, isAllDay: boolean): string {
   return unit ? unit.label(seconds / unit.seconds) : localized('Custom');
 }
 
-/** How long before the start a TRIGGER, as getAlarmTrigger normalizes it, goes off; null for any other kind. */
+/** Null for a TRIGGER at a set time, after the start, or relative to the end. */
 export function secondsBefore(trigger: string): number | null {
   if (trigger === 'PT0S') return 0;
   const m = /^-P(?:(\d+)W)?(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/.exec(trigger);
@@ -108,7 +106,6 @@ export function defaultAlert(isAllDay: boolean): AlertTiming {
   return isAllDay ? 'none' : '10min';
 }
 
-/** How a reminder reads in the panel: an option's label, or one described from its TRIGGER. */
 export function alertLabelFor(trigger: string, isAllDay: boolean): string {
   const timing = alertForTrigger(trigger);
   return timing === 'custom' ? customAlertLabel(trigger, isAllDay) : alertLabel(timing);
@@ -130,11 +127,6 @@ const TYPED_UNITS: { letter: 'M' | 'H' | 'D' | 'W'; seconds: number; words: stri
   { letter: 'W', seconds: 604800, words: ['weeks', 'wks'] },
 ];
 
-/**
- * The reminders a typed alert offers to pick from: with nothing typed, the timings; for a number,
- * each unit it can mean up to Google's longest reminder ("20" is 20 minutes, hours or days), or
- * the units its letters start ("20 h"); else the timings whose label holds the text.
- */
 export function alertChoices(text: string): string[] {
   const typed = text.trim().toLowerCase();
   const timings = ALERT_TIMINGS.filter((t) => t !== 'none');
@@ -162,19 +154,17 @@ interface AlertSelectorProps {
 interface AlertSelectorState {
   text: string;
   optionsOpen: boolean;
-  highlighted: number;
+  /** Null until typing or an arrow key puts it on a choice. */
+  highlighted: number | null;
 }
 
-/**
- * A reminder picked from a list that typing rebuilds (see alertChoices). Only a pick saves: Enter
- * or a click on a choice; leaving the field puts back the reminder it had.
- */
+/** Only a pick saves; leaving the field puts back the reminder it had. */
 export class AlertSelector extends React.Component<AlertSelectorProps, AlertSelectorState> {
   static displayName = 'AlertSelector';
 
   _input = React.createRef<HTMLInputElement>();
 
-  state: AlertSelectorState = { text: this._label(), optionsOpen: false, highlighted: 0 };
+  state: AlertSelectorState = { text: this._label(), optionsOpen: false, highlighted: null };
 
   componentDidUpdate(prevProps: AlertSelectorProps) {
     if (prevProps.value !== this.props.value || prevProps.isAllDay !== this.props.isAllDay) {
@@ -194,7 +184,7 @@ export class AlertSelector extends React.Component<AlertSelectorProps, AlertSele
   }
 
   _reset = () => {
-    this.setState({ text: this._label(), optionsOpen: false, highlighted: 0 });
+    this.setState({ text: this._label(), optionsOpen: false, highlighted: null });
   };
 
   _pick(trigger: string) {
@@ -204,7 +194,7 @@ export class AlertSelector extends React.Component<AlertSelectorProps, AlertSele
   }
 
   _onFocus = () => {
-    this.setState({ optionsOpen: true, highlighted: 0 });
+    this.setState({ optionsOpen: true, highlighted: null });
     this._input.current?.select();
   };
 
@@ -214,10 +204,13 @@ export class AlertSelector extends React.Component<AlertSelectorProps, AlertSele
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
       const step = event.key === 'ArrowDown' ? 1 : -1;
-      const next = Math.min(Math.max(highlighted + step, 0), choices.length - 1);
-      this.setState({ optionsOpen: true, highlighted: Math.max(next, 0) });
+      const next = highlighted === null ? 0 : highlighted + step;
+      this.setState({
+        optionsOpen: true,
+        highlighted: Math.max(Math.min(next, choices.length - 1), 0),
+      });
     } else if (event.key === 'Enter') {
-      if (this.state.text !== this._label() && choices[highlighted]) {
+      if (highlighted !== null && choices[highlighted]) {
         this._pick(choices[highlighted]);
       } else {
         this._reset();

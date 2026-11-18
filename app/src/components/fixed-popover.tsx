@@ -114,9 +114,8 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
     Actions.closePopover();
   }
 
-  // The content can change size once the popover is placed, and a taller box, still centred on
-  // its anchor, runs past the window. Placement starts over from the requested direction, as
-  // opening at the new size would.
+  // Content that grows once placed runs past the window, so placement starts over from the
+  // requested direction, as opening at the new size would.
   onPopoverResized = () => {
     if (!this.mounted || this.placing) {
       return;

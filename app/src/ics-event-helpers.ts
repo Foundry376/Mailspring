@@ -770,11 +770,9 @@ function contentApartFromRevision(vevent: ICALComponent): string {
   return JSON.stringify([name, content, components]);
 }
 
-/** Whether this VEVENT is the inline exception `recurrenceId` names, in either date form. */
 /**
- * Whether a VEVENT's RECURRENCE-ID names `recurrenceId`: as written ('20260302T060000Z',
- * '20260302', or wall-clock text whose zone lives only on the property), or, for a UTC instant,
- * the same instant in any zone, since Google and Apple write an override's in the series' zone.
+ * As written ('20260302T060000Z', '20260302', zoned wall-clock text), or for a UTC instant the same
+ * instant in any form: Google and Apple write an override's RECURRENCE-ID in the series' zone.
  */
 function isOccurrenceAt(vevent: ICALComponent, recurrenceId: string): boolean {
   const rid = vevent.getFirstPropertyValue('recurrence-id') as ICALTime | null;
@@ -788,6 +786,7 @@ function isOccurrenceAt(vevent: ICALComponent, recurrenceId: string): boolean {
   );
 }
 
+/** Whether this VEVENT is the inline exception `recurrenceId` names, in either date form. */
 function matchesRecurrenceId(vevent: ICALComponent, recurrenceId: string): boolean {
   const rid = vevent.getFirstPropertyValue('recurrence-id');
   return String(rid).replace(/[^0-9TZ]/g, '') === recurrenceId.replace(/[^0-9TZ]/g, '');
@@ -1602,9 +1601,8 @@ export function getAlarmTrigger(ics: string): string | null {
 }
 
 /**
- * The TRIGGER of each of the first VEVENT's reminders, or of the occurrence at `recurrenceId`, in
- * order. An offset from the start is normalized, so Google's "-P0DT0H10M0S" reads "-PT10M"; a
- * trigger at a set time or relative to the end comes back as written.
+ * Of the first VEVENT, or the occurrence at `recurrenceId`. Offsets are normalized (Google's
+ * "-P0DT0H10M0S" reads "-PT10M"); a set time or one relative to the end comes back as written.
  */
 export function getAlarmTriggers(ics: string, recurrenceId?: string): string[] {
   const ical = getICAL();
@@ -1613,13 +1611,11 @@ export function getAlarmTriggers(ics: string, recurrenceId?: string): string[] {
   return vevent ? remindersOf(vevent).map((alarm) => triggerOf(alarm, ical)) : [];
 }
 
-/** The VEVENT whose reminders are read or edited: the first, or the occurrence's own. */
 function alarmVevent(root: ICALComponent, recurrenceId?: string): ICALComponent | undefined {
   const vevents = root.name === 'vevent' ? [root] : root.getAllSubcomponents('vevent');
   return recurrenceId ? vevents.find((v) => isOccurrenceAt(v, recurrenceId)) : vevents[0];
 }
 
-/** A VEVENT's VALARMs that go off: not the placeholder for none, nor one with no TRIGGER. */
 function remindersOf(vevent: ICALComponent): ICALComponent[] {
   return vevent
     .getAllSubcomponents('valarm')
@@ -1636,11 +1632,8 @@ function triggerOf(alarm: ICALComponent, ical: ICAL): string {
 }
 
 /**
- * Changes the reminder at `index`, as getAlarmTriggers lists them, to `trigger`, removes it for
- * null, or adds one when `index` is past the last. A series' moved occurrences keep reminders of
- * their own, so each changes or drops the one at the same TRIGGER, and takes an added one; with
- * `recurrenceId`, only that occurrence's reminders change. An event left with none is marked so
- * (see addNoAlarmPlaceholder).
+ * Null removes, an `index` past the last adds. Moved occurrences have reminders of their own, so
+ * each follows by TRIGGER, unless `recurrenceId` names one to change alone.
  */
 export function editAlarm(
   ics: string,
