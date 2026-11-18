@@ -5,6 +5,7 @@ import {
   dueAlerts,
   alertsFor,
 } from '../internal_packages/main-calendar/lib/calendar-alerts';
+import { occurrenceStartUnix } from '../internal_packages/main-calendar/lib/core/calendar-data-source';
 
 const ZONE = 'America/Chicago';
 const at = (wall: string) => momentTz.tz(wall, ZONE).unix();
@@ -201,10 +202,43 @@ describe('calendar event alerts', () => {
           )
         )
       );
-      expect(alerts.length).toBe(4);
+      expect(alerts.length).toBe(1);
+      expect(occurrenceStartUnix(alerts[0].occurrence)).toBe(at('2026-11-02 09:00'));
       const fired = new FiredAlerts(fakeStorage());
       expect(dueAlerts(alerts, at('2026-11-01 09:00'), fired).length).toBe(1);
       expect(dueAlerts(alerts, at('2026-11-08 08:00'), fired)).toEqual([]);
+    });
+
+    it('shows a missed set-time alert on a one-off event until the event starts', () => {
+      const [alert] = alertsOf(
+        ics(
+          timed(
+            '20261118T140000',
+            '20261118T143000',
+            ...alarm('TRIGGER;VALUE=DATE-TIME:20261118T180000Z')
+          )
+        )
+      );
+      const fired = new FiredAlerts(fakeStorage());
+      expect(dueAlerts([alert], at('2026-11-18 13:00'), fired)).toEqual([alert]);
+      expect(dueAlerts([alert], at('2026-11-18 14:01'), fired)).toEqual([]);
+    });
+
+    it("rings two occurrences' alerts that land on the same moment", () => {
+      const alerts = alertsOf(
+        ics(
+          timed(
+            '20261102T090000',
+            '20261102T093000',
+            'RRULE:FREQ=DAILY;COUNT=3',
+            ...alarm('TRIGGER:-P1D'),
+            ...alarm('TRIGGER:PT0S')
+          )
+        )
+      );
+      const nine = at('2026-11-03 09:00');
+      const due = dueAlerts(alerts, nine, new FiredAlerts(fakeStorage()));
+      expect(due.filter((alert) => alert.at === nine).length).toBe(2);
     });
 
     it("rings other events' alerts when one event's alert can't be read", () => {

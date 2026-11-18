@@ -16,6 +16,7 @@ import {
   eventsInRangeQuery,
   isOffCalendar,
   isTimed,
+  occurrenceSlot,
   occurrenceStartUnix,
   occurrenceTimes,
   occurrencesForEvents,
@@ -35,8 +36,8 @@ const LONGEST_WAIT = 60;
 
 export interface CalendarAlert {
   /**
-   * The meeting and the time, so copies on two calendars, or a set-time alert every occurrence of
-   * a series shares, show once, and a moved occurrence's alert is a new one.
+   * The meeting, occurrence and time, so copies on two calendars ringing together show once and a
+   * moved occurrence's alert is a new one. A set-time alert, which a series shares, has no occurrence.
    */
   key: string;
   at: number;
@@ -60,13 +61,22 @@ export function alertsFor(
     if (!occurrences) return [];
     try {
       const { root } = CalendarUtils.parseICSString(row.ics);
-      return occurrences.flatMap((occurrence) =>
+      const alerts = occurrences.flatMap((occurrence) =>
         ICSEventHelpers.getAlarmTimes(
           root,
           ownRecurrenceId(occurrence, row),
           occurrenceTimes(occurrence)
-        ).map(({ at, setTime }) => ({ key: `${row.icsuid}@${at}`, at, setTime, occurrence, row }))
+        ).map(({ at, setTime }) => ({
+          key: setTime
+            ? `${row.icsuid}@${at}`
+            : `${row.icsuid}@${occurrenceSlot(occurrence)}@${at}`,
+          at,
+          setTime,
+          occurrence,
+          row,
+        }))
       );
+      return alerts.filter((alert) => !alert.setTime || alert === setTimeOwner(alerts, alert));
     } catch (err) {
       // An ICS that failed to expand (its master is drawn from the row's columns), or a TRIGGER
       // ical.js can't read; either would otherwise end the stream and every alert with it.
@@ -75,12 +85,24 @@ export function alertsFor(
   });
 }
 
+/** A series' set-time alert lands on every occurrence at once; it goes with the next to start. */
+function setTimeOwner(alerts: CalendarAlert[], alert: CalendarAlert) {
+  const copies = alerts.filter((other) => other.key === alert.key);
+  const start = (other: CalendarAlert) => occurrenceStartUnix(other.occurrence);
+  const upcoming = copies.filter((other) => start(other) >= other.at);
+  return upcoming.length ? _.min(upcoming, start) : _.max(copies, start);
+}
+
 /**
  * The last moment an alert may still show: a minute past its event's start, or past its own time
- * when that comes later. A set-time alert belongs to no one occurrence, so it gets the minute only.
+ * when that comes later. A series' set-time alert gets the minute only, or the next occurrence
+ * would take it up again once the one it went with is over.
  */
 function lastChance(alert: CalendarAlert) {
-  const start = alert.setTime ? alert.at : occurrenceStartUnix(alert.occurrence);
+  const start =
+    alert.setTime && alert.occurrence.isRecurring
+      ? alert.at
+      : occurrenceStartUnix(alert.occurrence);
   return Math.max(alert.at, start) + LATE_GRACE;
 }
 
