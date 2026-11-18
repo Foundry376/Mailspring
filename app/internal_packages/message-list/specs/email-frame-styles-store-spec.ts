@@ -58,6 +58,28 @@ describe('EmailFrameStylesStore', () => {
     );
   });
 
+  it('follows the active theme in auto mode', () => {
+    spyOn(AppEnv.themes, 'isActiveThemeDark').andReturn(true);
+    expect(stylesFor('auto').renderModeStyles).toContain(
+      'body:not(.adapts-to-dark-mode) { filter: invert(100%) hue-rotate(180deg)'
+    );
+    (AppEnv.themes.isActiveThemeDark as jasmine.Spy).andReturn(false);
+    expect(store.styles().renderModeStyles).toContain('body { filter: none !important;');
+  });
+
+  it('re-renders emails when the active theme changes', () => {
+    let onThemesChanged: () => void;
+    spyOn(AppEnv.themes, 'onDidChangeActiveThemes').andCallFake((callback) => {
+      onThemesChanged = callback;
+      return { dispose: () => {} };
+    });
+    const themedStore = new EmailFrameStylesStore();
+    spyOn(themedStore, 'trigger');
+    onThemesChanged();
+    expect(themedStore.trigger).toHaveBeenCalled();
+    themedStore._unlistenToStyles();
+  });
+
   it('treats legacy theme mode as light email rendering', () => {
     const { themeStyles, renderModeStyles } = stylesFor('theme');
 
