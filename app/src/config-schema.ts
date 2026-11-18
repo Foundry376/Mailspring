@@ -139,6 +139,17 @@ export default {
             ],
             title: localized('When reading messages, mark as read'),
           },
+          unreadViewKeepsRead: {
+            type: 'string',
+            default: 'until-leaving',
+            enum: ['until-leaving', 'until-next', 'never'],
+            enumLabels: [
+              localized('Until you leave the view'),
+              localized('Until you open another thread'),
+              localized('No, remove them right away'),
+            ],
+            title: localized('Keep read threads in the Unread view'),
+          },
           autoloadImages: {
             type: 'boolean',
             default: true,
