@@ -1,7 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 import { localized } from 'mailspring-exports';
-import { RetinaImg } from 'mailspring-component-kit';
+import { LoadingSpinner } from 'mailspring-component-kit';
 import {
   UnsubscribeOption,
   UnsubscribeResult,
@@ -131,11 +131,7 @@ export class UnsubscribeHeader extends React.Component<
     if (state === 'loading') {
       return (
         <span className={className}>
-          <RetinaImg
-            name="inline-loading-spinner.gif"
-            mode={RetinaImg.Mode.ContentPreserve}
-            className="unsubscribe-spinner"
-          />
+          <LoadingSpinner className="unsubscribe-spinner" />
           {localized('Unsubscribing...')}
         </span>
       );

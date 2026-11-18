@@ -108,6 +108,46 @@ export interface ContactInfoGoogle {
   }[];
 }
 
+/** A Microsoft Graph contact as the sync engine stores it: the fields it selects from
+ https://learn.microsoft.com/en-us/graph/api/resources/contact. `id` is empty until the
+ contact has been created in Graph. */
+export interface ContactInfoGraphAddress {
+  street?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
+  countryOrRegion?: string;
+}
+
+export interface ContactInfoGraph {
+  id?: string;
+  changeKey?: string;
+  parentFolderId?: string;
+  displayName?: string;
+  givenName?: string;
+  middleName?: string;
+  surname?: string;
+  title?: string;
+  generation?: string;
+  nickName?: string;
+  emailAddresses?: { name?: string; address: string }[];
+  businessPhones?: string[];
+  homePhones?: string[];
+  mobilePhone?: string;
+  jobTitle?: string;
+  companyName?: string;
+  homeAddress?: ContactInfoGraphAddress;
+  businessAddress?: ContactInfoGraphAddress;
+  otherAddress?: ContactInfoGraphAddress;
+  businessHomePage?: string;
+  birthday?: string;
+  personalNotes?: string;
+  spouseName?: string;
+  manager?: string;
+  assistantName?: string;
+  children?: string[];
+}
+
 const namePrefixes = {};
 const nameSuffixes = {};
 
@@ -464,7 +504,7 @@ export class Contact extends Model {
   public source: string;
   public hidden: boolean;
   public contactGroups: string[];
-  public info?: ContactInfoGoogle | ContactInfoVCF;
+  public info?: ContactInfoGoogle | ContactInfoVCF | ContactInfoGraph;
 
   constructor(data: AttributeValues<typeof Contact.attributes>) {
     super(data);

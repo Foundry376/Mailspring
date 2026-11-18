@@ -1,0 +1,73 @@
+// The toolbar search field of Mail, Calendar and Contacts: a box holding the loupe, the
+// field and the clear button.
+.search-bar() {
+  @clear-size: 21px;
+
+  position: relative;
+  overflow: visible;
+  z-index: 100;
+  height: 23px;
+  font-weight: 400;
+  line-height: 23px;
+  background: @input-bg;
+  color: @text-color;
+  padding-left: @padding-xs-horizontal;
+  padding-right: @padding-xs-horizontal;
+  border-radius: @border-radius-base;
+  box-shadow: @shadow-border;
+  display: flex;
+  align-items: center;
+
+  .search-accessory {
+    width: 15px;
+    height: 15px;
+    object-fit: contain;
+    zoom: 1 !important;
+
+    // As far from the right edge as from the top and bottom.
+    &.clear {
+      color: @text-color-subtle;
+      width: @clear-size;
+      height: @clear-size;
+      margin-right: ((23px - @clear-size) / 2 - @padding-xs-horizontal);
+    }
+  }
+
+  // The macOS 26+ toolbar is taller and uses a capsule-shaped search field.
+  :where(body.platform-darwin) & {
+    height: @toolbar-btn-height-darwin;
+    line-height: @toolbar-btn-height-darwin;
+    padding-left: @padding-base-horizontal;
+    padding-right: @padding-base-horizontal;
+    border-radius: (@toolbar-btn-height-darwin / 2);
+
+    .search-accessory.clear {
+      margin-right: ((@toolbar-btn-height-darwin - @clear-size) / 2 - @padding-base-horizontal);
+    }
+  }
+}
+
+// A plain text input inside .search-bar(), for fields without Mail's token editor.
+.search-bar-input() {
+  flex: 1;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: @text-color;
+  outline: none;
+  padding-left: @padding-xs-horizontal;
+  padding-right: @padding-xs-horizontal;
+  font-size: inherit;
+  line-height: inherit;
+  min-width: 0;
+
+  &:focus {
+    outline: none;
+    box-shadow: none;
+    border: none;
+  }
+
+  &::placeholder {
+    color: @text-color-very-subtle;
+  }
+}

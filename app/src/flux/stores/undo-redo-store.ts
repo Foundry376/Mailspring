@@ -2,6 +2,7 @@ import MailspringStore from 'mailspring-store';
 import * as Actions from '../actions';
 import { Task } from '../tasks/task';
 import TaskQueue from './task-queue';
+import { localized } from '../../intl';
 
 // Tasks with `engineWritesUndoData` can only be reversed exactly with data the engine
 // writes onto them during their local phase (ChangeFolderTask.undoPlacements), so their
@@ -53,7 +54,7 @@ class UndoRedoStore extends MailspringStore {
     if (tasks.every((t) => t.canBeUndone)) {
       const block = {
         tasks: tasks,
-        description: tasks.map((t) => t.description()).join(', '),
+        description: this._describe(tasks),
         do: () => {
           // no-op, tasks queued separately
         },
@@ -87,6 +88,13 @@ class UndoRedoStore extends MailspringStore {
       }
     }
   };
+
+  // The undo toast shows this beside its Undo button, so a task that does not describe itself
+  // gets a generic line rather than an empty box.
+  _describe(tasks: Task[]): string {
+    const parts = tasks.map((t) => t.description()).filter((d) => d && d.trim());
+    return parts.length ? parts.join(', ') : localized('Changes saved');
+  }
 
   // A move whose local phase selected no copy (the engine reports `undoPlacements: {}`)
   // changed nothing, so its entry and toast would offer an undo that does nothing.

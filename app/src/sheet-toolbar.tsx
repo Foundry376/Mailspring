@@ -179,6 +179,16 @@ class ToolbarWindowControls extends React.Component<Record<string, unknown>, { a
   }
 }
 
+// On Wayland, the native menu bar does not render (Electron's ozone-wayland backend bypasses GTK,
+// and KDE Plasma's Global Menu may not be configured), so the menu button is the fallback there.
+export function showsToolbarMenuControl() {
+  return (
+    process.platform === 'win32' ||
+    (process.platform === 'linux' &&
+      (AppEnv.config.get('core.workspace.menubarStyle') === 'hamburger' || isWaylandSession()))
+  );
+}
+
 class ToolbarMenuControl extends React.Component {
   static displayName = 'ToolbarMenuControl';
 
@@ -188,15 +198,7 @@ class ToolbarMenuControl extends React.Component {
   };
 
   render() {
-    // On Wayland, the native menu bar does not render (Electron's ozone-wayland
-    // backend bypasses GTK, and KDE Plasma's Global Menu may not be configured).
-    // Show the hamburger menu button as a fallback so menus are always accessible.
-    const enabled =
-      process.platform === 'win32' ||
-      (process.platform === 'linux' &&
-        (AppEnv.config.get('core.workspace.menubarStyle') === 'hamburger' || isWaylandSession()));
-
-    if (!enabled) {
+    if (!showsToolbarMenuControl()) {
       return <span />;
     }
 

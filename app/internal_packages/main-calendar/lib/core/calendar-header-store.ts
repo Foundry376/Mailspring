@@ -13,6 +13,8 @@ export interface CalendarOptions {
   onChangeView: (view: CalendarView) => void;
   agendaOpen: boolean;
   onToggleAgenda: () => void;
+  /** The agenda panel's width while it's on screen, so the header can split at its edge. */
+  agendaWidth?: number | null;
 }
 
 /** Triggers only when something drawn changes; the actions are kept current without a redraw. */
@@ -39,7 +41,11 @@ class CalendarHeaderStore extends MailspringStore {
   setCalendarOptions(options: CalendarOptions | null) {
     const shown = this._calendarOptions;
     this._calendarOptions = options;
-    if (shown?.view !== options?.view || shown?.agendaOpen !== options?.agendaOpen) {
+    if (
+      shown?.view !== options?.view ||
+      shown?.agendaOpen !== options?.agendaOpen ||
+      shown?.agendaWidth !== options?.agendaWidth
+    ) {
       this.trigger();
     }
   }

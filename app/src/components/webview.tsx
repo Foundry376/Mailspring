@@ -6,7 +6,7 @@ import networkErrors from 'chromium-net-errors';
 import { localized } from 'mailspring-exports';
 
 import { rootURLForServer } from '../flux/mailspring-api-request';
-import { RetinaImg } from './retina-img';
+import { LoadingSpinner } from './loading-spinner';
 import { Disposable } from 'event-kit';
 
 type InitialLoadingCoverProps = {
@@ -62,12 +62,7 @@ class InitialLoadingCover extends React.Component<
     return (
       <div className={classes}>
         <div style={{ flex: 1 }} />
-        <RetinaImg
-          className="spinner"
-          style={{ width: 20, height: 20 }}
-          name="inline-loading-spinner.gif"
-          mode={RetinaImg.Mode.ContentPreserve}
-        />
+        <LoadingSpinner size={20} />
         <div className="message">{message}</div>
         <div className="btn try-again" onClick={this.props.onTryAgain}>
           {localized('Try Again')}
@@ -223,11 +218,7 @@ export default class Webview extends React.Component<WebviewProps, WebviewState>
       <div className="webview-wrap">
         <webview ref="webview" partition="in-memory-only" />
         <div className={`webview-loading-spinner loading-${this.state.webviewLoading}`}>
-          <RetinaImg
-            style={{ width: 20, height: 20 }}
-            name="inline-loading-spinner.gif"
-            mode={RetinaImg.Mode.ContentPreserve}
-          />
+          <LoadingSpinner size={20} />
         </div>
         <InitialLoadingCover
           ready={this.state.ready}

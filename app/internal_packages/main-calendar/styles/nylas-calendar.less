@@ -1,16 +1,21 @@
 @import 'ui-variables';
 
-// Every calendar view draws its events with this, so they read as the same object.
-// Tentative events, in Month and Day/Week alike: thin stripes in the calendar's colour.
-.pending-stripes() {
-  background-image: ~'repeating-linear-gradient(45deg, transparent, transparent 3px, color-mix(in srgb, var(--event-band-color, rgba(0, 0, 0, 0.1)), transparent 80%) 3px, color-mix(in srgb, var(--event-band-color, rgba(0, 0, 0, 0.1)), transparent 80%) 4px)';
+// Maybe: only the band is striped.
+.band-stripes(@color) {
+  background: ~'repeating-linear-gradient(135deg, @{color} 0 2px, transparent 2px 4px)';
 }
 
+// Every calendar view draws its events with this, so they read as the same object.
 .event-chip() {
   padding: 2px 4px 2px 8px; // Extra left padding for colored band
   border-radius: 6px;
   font-size: 12px;
   line-height: 16px;
+
+  // Focusing an event selects it, which shows instead.
+  &:focus {
+    outline: none;
+  }
 
   // A solid band in the calendar's color down the left edge
   &:before {
@@ -24,9 +29,10 @@
     border-radius: 6px 0 0 6px;
   }
 
-  // An invitation not yet answered: a dashed outline in the calendar's colour, drawn inside the
-  // box so the band can sit over its left edge rather than a pixel in from it.
-  &.awaiting-response {
+  // A dashed outline in the calendar's colour, drawn inside the box so the band can sit over its
+  // left edge rather than a pixel in from it.
+  &.awaiting-response,
+  &.cancelled {
     &::after {
       content: '';
       position: absolute;
@@ -39,6 +45,27 @@
     &:before {
       z-index: 1;
     }
+  }
+
+  &.cancelled {
+    background-color: transparent !important;
+
+    &:before {
+      display: none;
+    }
+
+    // Selected, it takes the tint other events have before selection, not the full fill.
+    &.selected {
+      background-color: ~'color-mix(in srgb, var(--event-band-color) 15%, transparent)' !important;
+
+      .event-bar-end-time {
+        color: var(--event-text-color);
+      }
+    }
+  }
+
+  &.pending:before {
+    .band-stripes(~'var(--event-band-color)');
   }
 
   .event-bar-time,
@@ -67,6 +94,10 @@
     // Darkened in OKLCH so the band keeps its hue; mixing toward black greys out pale colors
     &:before {
       background: ~'oklch(from var(--event-band-color) calc(l - 0.15) c h)';
+    }
+
+    &.pending:before {
+      .band-stripes(~'oklch(from var(--event-band-color) calc(l - 0.15) c h)');
     }
   }
 }
@@ -108,10 +139,9 @@ body.platform-win32 {
     border-radius: 3px;
     width: 12px;
     height: 12px;
-    box-shadow:
-      0 0 0.5px rgba(0, 0, 0, 0.4),
-      inset 0 1px 0 rgba(0, 0, 0, 0.13);
-    background: white;
+    // From the row's text, so the empty box shows on any theme's sidebar.
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 30%, transparent);
+    background: transparent;
     .bg-color {
       width: 100%;
       height: 100%;
@@ -193,15 +223,21 @@ body.platform-win32 {
     height: 100%;
     flex: 1;
     position: relative;
+
+    // Focused only so the arrow keys scroll it, after Esc or a click on an empty slot.
+    &:focus-visible {
+      outline: none;
+    }
   }
 
   // min-width:0: the default min-width:auto sets a floor that makes a heading wider than its column.
+  // One line of text rather than a flex row, so the name and the larger date share a baseline.
+  // Centred as separate boxes they sit 1px apart on a 1x display.
   .weekday-header {
     flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    display: block;
     height: 28px;
+    line-height: 28px;
     padding-left: 10px;
     min-width: 0;
     overflow: hidden;
@@ -213,6 +249,7 @@ body.platform-win32 {
     color: @text-color-subtle;
 
     .weekday-header-date {
+      margin-left: 6px;
       font-size: 12px;
       letter-spacing: 0;
     }
@@ -314,46 +351,12 @@ body.platform-win32 {
       }
     }
 
-    // Tentative/pending events: gray background with theme-colored left band
-    &.pending {
-      background-color: rgba(128, 128, 128, 0.15);
-
-      .default-header,
-      .event-details {
-        color: @text-color;
-      }
-
-      &::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        pointer-events: none;
-        .pending-stripes();
-      }
-    }
-
-    // Cancelled events: dashed border, transparent background, strikethrough text
     &.cancelled {
-      border: 1px dashed var(--event-band-color, currentColor);
-      background-color: transparent !important;
-      background-image: none;
       .default-header {
         opacity: 0.5;
-        s {
-          text-decoration: line-through;
-        }
-      }
-      &:before {
-        display: none; // Hide the left accent bar for cancelled events
       }
 
-      // Selected, it takes the tint other events have before selection, not the full fill.
       &.selected {
-        background-color: ~'color-mix(in srgb, var(--event-band-color) 15%, transparent)' !important;
-
         .default-header,
         .event-details {
           color: var(--event-text-color);
@@ -531,7 +534,6 @@ body.platform-win32 {
       z-index: 2;
     }
     .event-grid-bg-wrap {
-
       .event-grid-bg {
         position: absolute;
         top: 0;
@@ -732,19 +734,19 @@ body.platform-win32 {
         opacity: 1;
       }
 
-      &:focus {
-        outline: none;
-        box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
-      }
-
       &.selected .month-view-event-title {
         color: var(--event-selected-text-color);
         opacity: 1;
       }
 
-      &.pending {
-        .pending-stripes();
-        background-size: auto;
+      &.cancelled {
+        .month-view-event-title {
+          opacity: 0.5;
+        }
+
+        &.selected .month-view-event-title {
+          color: var(--event-text-color);
+        }
       }
 
       &.drag-preview {
@@ -948,7 +950,7 @@ body.platform-win32 {
     .agenda-event {
       display: flex;
       gap: 10px;
-      padding: 4px 4px 4px 0;
+      padding: 4px;
       border-radius: 4px;
       white-space: nowrap;
       cursor: default;
@@ -974,29 +976,30 @@ body.platform-win32 {
         }
 
         .agenda-event-color-bar {
-          background-color: @text-color-inverse !important;
+          --event-band-color: @text-color-inverse;
         }
       }
 
       &.cancelled {
         opacity: 0.6;
-
-        .agenda-event-title s {
-          text-decoration: line-through;
-        }
       }
 
-      &.pending {
-        .agenda-event-color-bar {
-          opacity: 0.5;
-        }
+      &.awaiting-response .agenda-event-color-bar {
+        background: transparent;
+        border: 1px dashed var(--event-band-color);
+      }
+
+      &.pending .agenda-event-color-bar {
+        .band-stripes(~'var(--event-band-color)');
       }
     }
 
     .agenda-event-color-bar {
       width: 4px;
       flex-shrink: 0;
+      box-sizing: border-box;
       border-radius: 2px;
+      background-color: var(--event-band-color);
     }
 
     .agenda-event-details {

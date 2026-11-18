@@ -1,5 +1,7 @@
 import Rx from 'rx-lite';
 import {
+  Account,
+  AccountStore,
   DatabaseStore,
   Contact,
   ContactGroup,
@@ -11,7 +13,7 @@ import MailspringStore from 'mailspring-store';
 import { ListTabular } from 'mailspring-component-kit';
 import { displayNameForContact } from './ContactDisplayName';
 
-class ContactsWindowStore extends MailspringStore {
+class ContactsSectionStore extends MailspringStore {
   _perspective: ContactsPerspective = { type: 'unified' };
   _listSource = new ListTabular.DataSource.DumbArrayDataSource<Contact>();
 
@@ -22,39 +24,34 @@ class ContactsWindowStore extends MailspringStore {
   _search = '';
   _filtered: Contact[] | null = null;
   _editing: string | 'new' | false = false;
+  _newContactAccountId: string | null = null;
 
-  constructor() {
-    super();
+  start() {
+    if (this._contactsSubscription) return;
 
-    window.requestAnimationFrame(() => {
-      AppEnv.displayWindow();
+    this._contactsSubscription = new MutableQuerySubscription<Contact>(
+      this._queryForPerspective(this._perspective)
+    );
 
-      this._contactsSubscription = new MutableQuerySubscription<Contact>(
-        this._queryForPerspective(this._perspective)
-      );
+    Rx.Observable.fromNamedQuerySubscription('contacts', this._contactsSubscription).subscribe(
+      (contacts) => {
+        this._contacts = contacts as Contact[];
+        this._filtered = null;
+        this.repopulate();
+      }
+    );
 
-      Rx.Observable.fromNamedQuerySubscription('contacts', this._contactsSubscription).subscribe(
-        (contacts) => {
-          this._contacts = contacts as Contact[];
-          this._filtered = null;
-          this.repopulate();
-        }
-      );
+    Rx.Observable.fromQuery(DatabaseStore.findAll<ContactGroup>(ContactGroup)).subscribe(
+      (groups) => {
+        this._groups = groups;
+        this._syncGroupPerspective();
+        this.trigger();
+      }
+    );
 
-      Rx.Observable.fromQuery(DatabaseStore.findAll<ContactGroup>(ContactGroup)).subscribe(
-        (groups) => {
-          this._groups = groups;
-          this._syncGroupPerspective();
-          this.trigger();
-        }
-      );
-
-      Rx.Observable.fromQuery(DatabaseStore.findAll<ContactBook>(ContactBook)).subscribe(
-        (books) => {
-          this._books = books;
-          this.trigger();
-        }
-      );
+    Rx.Observable.fromQuery(DatabaseStore.findAll<ContactBook>(ContactBook)).subscribe((books) => {
+      this._books = books;
+      this.trigger();
     });
   }
 
@@ -85,6 +82,20 @@ class ContactsWindowStore extends MailspringStore {
   setEditing(editing: string | 'new' | false) {
     this._editing = editing;
     this.trigger();
+  }
+
+  newContactAccountId() {
+    return this._newContactAccountId;
+  }
+
+  startNewContact(accountId: string) {
+    this._newContactAccountId = accountId;
+    this._editing = 'new';
+    this.trigger();
+  }
+
+  accountsWithContactBooks() {
+    return AccountStore.accounts().filter((a) => this._books.some((b) => b.accountId === a.id));
   }
 
   /** "All Contacts", unified or per-account, means address book entries. Addresses
@@ -126,11 +137,9 @@ class ContactsWindowStore extends MailspringStore {
 
     const group = this._groups.find((g) => g.id === perspective.groupId);
     if (!group) {
-      this.setPerspective({
-        type: 'all',
-        accountId: perspective.accountId,
-        label: localized('All Contacts'),
-      });
+      // Removing an account deletes its groups too.
+      const account = AccountStore.accountForId(perspective.accountId);
+      this.setPerspective(account ? accountContactsPerspective(account) : { type: 'unified' });
     } else if (group.name !== perspective.label) {
       this._perspective = { ...perspective, label: group.name };
     }
@@ -193,4 +202,12 @@ export type ContactsPerspective =
     }
   | ContactsPerspectiveForGroup;
 
-export const Store = new ContactsWindowStore();
+export function accountContactsPerspective(account: Account): ContactsPerspective {
+  return {
+    type: 'all',
+    accountId: account.id,
+    label: `${localized('Contacts')} (${account.label})`,
+  };
+}
+
+export const Store = new ContactsSectionStore();

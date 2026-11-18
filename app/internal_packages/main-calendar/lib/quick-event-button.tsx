@@ -25,7 +25,7 @@ export class QuickEventButton extends React.Component<Record<string, unknown>> {
           buttonRef={this._button}
           tabIndex={-1}
           label={localized('New Event')}
-          matchWidthOf={[localized('Compose')]}
+          matchWidthOf={[localized('Compose'), localized('New Contact')]}
           onClick={this.onClick}
         />
       </BindGlobalCommands>

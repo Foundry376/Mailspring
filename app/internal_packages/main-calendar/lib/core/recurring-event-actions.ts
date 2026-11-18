@@ -1,8 +1,10 @@
 import {
   Actions,
   DatabaseStore,
+  DateUtils,
   DestroyEventTask,
   Event,
+  EventRSVPTask,
   SyncbackEventTask,
   TaskQueue,
   ICSEventHelpers,
@@ -10,6 +12,8 @@ import {
   localized,
 } from 'mailspring-exports';
 import {
+  DeleteRole,
+  showDeleteDialog,
   showRecurringEventDialog,
   RecurringEventChoice,
   RecurringEventOperation,
@@ -22,7 +26,13 @@ import {
   occurrenceTimes,
 } from './calendar-data-source';
 import { ShowAsOption } from './show-as-selector';
-import { organizerForAccount } from './calendar-helpers';
+import { hasGuests, momentOf, organizerForAccount } from './calendar-helpers';
+import {
+  canRespondToEvent,
+  myAttendeeEmail,
+  occurrenceRecurrenceId,
+  recordAndSendRSVP,
+} from './calendar-rsvp';
 import { UnsentChange, unsentEdit } from './unsent-change';
 import type { AttendeeChange } from '../../../../src/ics-event-helpers';
 
@@ -426,57 +436,101 @@ export async function modifyEventWithRecurringSupport(
   }
 }
 
-/**
- * Delete a single event occurrence, handling recurring events appropriately
- */
-export async function deleteEvent(occurrence: EventOccurrence) {
-  try {
-    // Parse the event ID from the occurrence ID (handles recurring instance IDs)
-    const eventId = CalendarUtils.parseOccurrenceId(occurrence.id).eventId;
+interface DeleteTarget {
+  occurrence: EventOccurrence;
+  event: Event;
+  master: Event;
+}
 
-    // Fetch the full event from database to get ICS data
-    const event = await DatabaseStore.find<Event>(Event, eventId);
-    if (!event) {
-      console.error('Could not find event to delete:', eventId);
-      return;
-    }
-
-    // Check if this is a recurring event (and not already an exception)
-    const isRecurring = ICSEventHelpers.isRecurringEvent(event.ics);
-
-    if (event.isRecurrenceException()) {
-      // Deleting a moved occurrence means cancelling it on the master; see
-      // removeInlineException for why the row must never be destroyed on its own.
-      const master = await DatabaseStore.findBy<Event>(Event, {
+async function deleteTarget(occurrence: EventOccurrence): Promise<DeleteTarget | null> {
+  const eventId = CalendarUtils.parseOccurrenceId(occurrence.id).eventId;
+  const event = await DatabaseStore.find<Event>(Event, eventId);
+  if (!event) {
+    console.error('Could not find event to delete:', eventId);
+    return null;
+  }
+  // A moved occurrence is cancelled on its master; see removeInlineException for why its row
+  // must never be destroyed on its own.
+  const master = event.isRecurrenceException()
+    ? await DatabaseStore.findBy<Event>(Event, {
         accountId: event.accountId,
         calendarId: event.calendarId,
         icsuid: event.icsuid,
         recurrenceId: '',
-      });
-      if (master) {
-        await cancelExceptionOccurrence(master, event);
-        return;
-      }
+      })
+    : event;
+  if (!master) {
+    showOccurrenceNotFoundError();
+    return null;
+  }
+  return { occurrence, event, master };
+}
+
+function showOccurrenceNotFoundError() {
+  AppEnv.showErrorDialog({
+    title: localized('Delete Failed'),
+    message: localized(
+      'This occurrence could not be found in its series. Refresh the calendar and try again.'
+    ),
+  });
+}
+
+function isSeries({ event, master }: DeleteTarget) {
+  return event.isRecurrenceException() || ICSEventHelpers.isRecurringEvent(master.ics);
+}
+
+/** A date its organizer cancelled doesn't cancel the series it belongs to. */
+function wholeEventOccurrence({ occurrence, master }: DeleteTarget): EventOccurrence {
+  const { event } = CalendarUtils.parseICSString(master.ics);
+  return {
+    ...occurrence,
+    isCancelled: event.component.getFirstPropertyValue('status') === 'CANCELLED',
+  };
+}
+
+function deleteRole(occurrence: EventOccurrence): DeleteRole {
+  if (!occurrence.isMine && canRespondToEvent(occurrence)) return 'guest';
+  return occurrence.isMine && hasGuests(occurrence) ? 'organizer' : 'own';
+}
+
+/** `skipped` counts selected events left out as read-only, which the dialog mentions. */
+export async function deleteEvents(occurrences: EventOccurrence[], skipped = 0) {
+  try {
+    const targets = (await Promise.all(occurrences.map(deleteTarget))).filter(Boolean);
+    if (targets.length === 0) return;
+
+    const choice = showDeleteDialog(
+      targets.map((target) => ({
+        title: target.occurrence.title || localized('(No title)'),
+        role: deleteRole(
+          targets.length === 1 && isSeries(target)
+            ? wholeEventOccurrence(target)
+            : target.occurrence
+        ),
+        eventId: target.master.id,
+        day: isSeries(target)
+          ? DateUtils.dayString(momentOf(target.occurrence.startDate))
+          : undefined,
+      })),
+      { series: targets.length === 1 && isSeries(targets[0]), skipped }
+    );
+    if (choice === 'cancel') return;
+
+    if (choice === 'all-occurrences') {
+      await deleteEntireEvent(targets[0]);
+      return;
     }
 
-    if (isRecurring && !event.isRecurrenceException()) {
-      // Show recurring event dialog
-      const choice = await showRecurringEventDialog('delete', occurrence.title);
-
-      if (choice === 'cancel') {
-        return; // User cancelled this deletion
-      }
-
-      if (choice === 'this-occurrence') {
-        // Delete only this occurrence by adding EXDATE to master
-        await deleteOccurrence(event, occurrence);
+    const byMaster = new Map<string, DeleteTarget[]>();
+    for (const target of targets) {
+      byMaster.set(target.master.id, [...(byMaster.get(target.master.id) || []), target]);
+    }
+    for (const group of byMaster.values()) {
+      if (isSeries(group[0])) {
+        deleteOccurrences(group[0].master, group);
       } else {
-        // Delete entire series
-        await deleteEntireEvent(event);
+        await deleteEntireEvent(group[0]);
       }
-    } else {
-      // Non-recurring event or already an exception - delete normally
-      await deleteEntireEvent(event);
     }
   } catch (error) {
     console.error('Failed to delete event:', error);
@@ -487,61 +541,33 @@ export async function deleteEvent(occurrence: EventOccurrence) {
   }
 }
 
-/**
- * Delete a single occurrence of a recurring event by adding EXDATE to master.
- * Supports undo - restores the original ICS without the EXDATE.
- */
-async function deleteOccurrence(masterEvent: Event, occurrence: EventOccurrence) {
-  // Capture original state for undo BEFORE modifying
-  const undoData = {
-    ics: masterEvent.ics,
-    recurrenceStart: masterEvent.recurrenceStart,
-    recurrenceEnd: masterEvent.recurrenceEnd,
-  };
-
-  // Add EXDATE to exclude this occurrence.
-  masterEvent.ics = ICSEventHelpers.bumpEventSequence(
-    ICSEventHelpers.addExclusionDate(
-      masterEvent.ics,
-      occurrenceStartUnix(occurrence),
-      occurrence.isAllDay
-    )
-  );
-
-  // Queue syncback with undo support
-  const task = SyncbackEventTask.forUpdating({
-    event: masterEvent,
-    undoData,
-    description: localized('Delete occurrence'),
-  });
-  Actions.queueTask(task);
-}
-
-/** Cancels the occurrence an inline exception overrides, by editing the master. */
-async function cancelExceptionOccurrence(masterEvent: Event, exceptionEvent: Event) {
-  const undoData = {
-    ics: masterEvent.ics,
-    recurrenceStart: masterEvent.recurrenceStart,
-    recurrenceEnd: masterEvent.recurrenceEnd,
-  };
-
-  const updated = ICSEventHelpers.removeInlineException(
-    masterEvent.ics,
-    exceptionEvent.recurrenceId
-  );
-  if (updated === masterEvent.ics) {
-    // The row and its master disagree about which occurrence this is. Both live in one
-    // resource, so a DELETE would take the series; refuse rather than guess.
-    AppEnv.showErrorDialog({
-      title: localized('Delete Failed'),
-      message: localized(
-        'This occurrence could not be found in its series. Refresh the calendar and try again.'
-      ),
-    });
-    return;
+function deleteOccurrences(masterEvent: Event, targets: DeleteTarget[]) {
+  const undoData = captureEventSnapshot(masterEvent);
+  let ics = masterEvent.ics;
+  for (const { occurrence, event } of targets) {
+    // On Google a guest's EXDATE reaches the organizer as a decline of that date.
+    if (!occurrence.isException) {
+      ics = ICSEventHelpers.addExclusionDate(
+        ics,
+        occurrenceStartUnix(occurrence),
+        occurrence.isAllDay
+      );
+      continue;
+    }
+    const recurrenceId = event.isRecurrenceException()
+      ? event.recurrenceId
+      : occurrenceRecurrenceId(occurrence).toICALString();
+    const updated = ICSEventHelpers.removeInlineException(ics, recurrenceId);
+    if (updated === ics) {
+      // The row and its master disagree about which occurrence this is. Both live in one
+      // resource, so a DELETE would take the series; refuse rather than guess.
+      showOccurrenceNotFoundError();
+      return;
+    }
+    ics = updated;
   }
 
-  masterEvent.ics = ICSEventHelpers.bumpEventSequence(updated);
+  masterEvent.ics = ICSEventHelpers.bumpEventSequence(ics);
   Actions.queueTask(
     SyncbackEventTask.forUpdating({
       event: masterEvent,
@@ -551,9 +577,13 @@ async function cancelExceptionOccurrence(masterEvent: Event, exceptionEvent: Eve
   );
 }
 
-/**
- * Delete an entire event (or series)
- */
-async function deleteEntireEvent(event: Event) {
+/** On Google a guest's DELETE tells the organizer nothing, but a declined copy does. */
+async function deleteEntireEvent(target: DeleteTarget) {
+  const { master: event, occurrence } = target;
+  const myEmail =
+    deleteRole(wholeEventOccurrence(target)) === 'guest' && myAttendeeEmail(occurrence);
+  if (myEmail && EventRSVPTask.calendarWriteSendsReply(event.accountId)) {
+    await recordAndSendRSVP({ event, myEmail, status: 'DECLINED', recurrenceId: null });
+  }
   Actions.queueTask(DestroyEventTask.forRemoving({ events: [event] }));
 }

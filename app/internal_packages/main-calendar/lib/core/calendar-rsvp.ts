@@ -27,7 +27,7 @@ import {
   occurrenceTimes,
   occurrenceEndUnix,
 } from './calendar-data-source';
-import { formatCalendarDate } from '../../../../src/calendar-date';
+import { calendarDateFromUnix, formatCalendarDate } from '../../../../src/calendar-date';
 import { showRecurringEventDialog } from './recurring-event-dialog';
 
 /**
@@ -195,7 +195,7 @@ export function occurrenceRecurrenceId(occurrence: EventOccurrence): ICAL.Time |
   if (!occurrence.isRecurring && !occurrence.isException) return null;
   const originalStart = occurrenceSlot(occurrence);
   return occurrence.isAllDay
-    ? ICAL.Time.fromDateString(formatCalendarDate(occurrence.startDate))
+    ? ICAL.Time.fromDateString(formatCalendarDate(calendarDateFromUnix(originalStart)))
     : ICAL.Time.fromJSDate(new Date(originalStart * 1000), true);
 }
 
