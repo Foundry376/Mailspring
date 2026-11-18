@@ -1575,6 +1575,35 @@ export function getAlarmTriggers(ics: string, recurrenceId?: string): string[] {
   return vevent ? remindersOf(vevent).map((alarm) => triggerOf(alarm, ical)) : [];
 }
 
+/**
+ * When each of an occurrence's reminders goes off, in unix seconds, and whether it's set for a
+ * fixed time. Days count on the calendar and hours by the clock (RFC 5545 section 3.3.6).
+ */
+export function getAlarmTimes(
+  root: ICALComponent,
+  recurrenceId: string | undefined,
+  { start, end }: { start: number; end: number }
+): { at: number; setTime: boolean }[] {
+  const ical = getICAL();
+  const momentTz = require('moment-timezone');
+  const vevent = alarmVevent(root, recurrenceId);
+  if (!vevent) return [];
+  return remindersOf(vevent)
+    .filter((alarm) => String(alarm.getFirstPropertyValue('action')).toUpperCase() !== 'EMAIL')
+    .map((alarm) => {
+      const trigger = alarm.getFirstProperty('trigger');
+      const value = trigger.getFirstValue();
+      if (!(value instanceof ical.Duration)) {
+        return { at: (value as ICALTime).toUnixTime(), setTime: true };
+      }
+      const from = trigger.getParameter('related') === 'END' ? end : start;
+      const sign = value.isNegative ? -1 : 1;
+      const days = sign * (value.weeks * 7 + value.days);
+      const seconds = sign * (value.hours * 3600 + value.minutes * 60 + value.seconds);
+      return { at: momentTz.unix(from).add(days, 'days').unix() + seconds, setTime: false };
+    });
+}
+
 /** The TRIGGER `seconds` before the start, spelled as getAlarmTriggers reads one back. */
 export function triggerBefore(seconds: number): string {
   return getICAL().Duration.fromSeconds(-seconds).toString();

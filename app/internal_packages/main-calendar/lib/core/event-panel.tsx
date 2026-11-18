@@ -157,6 +157,7 @@ interface EventPanelProps {
   isNewEvent?: boolean;
   /** Replaces Discard's dropping of the held change, for an event the host would drop whole. */
   onDiscard?: () => void;
+  onUnhideCalendar?: () => void;
   calendarChoices?: Calendar[];
   onCalendarChange?: (calendar: Calendar) => void;
   newEventAlarms?: string[];
@@ -1276,9 +1277,6 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
             {adder}
           </div>
         )}
-        <div className="event-panel-row indented event-panel-subtle">
-          {localized('Sent by your calendar provider, not Mailspring')}
-        </div>
       </>
     );
   }
@@ -1577,6 +1575,19 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
     );
   }
 
+  _renderHiddenCalendar() {
+    const { onUnhideCalendar } = this.props;
+    if (!onUnhideCalendar) return null;
+    return (
+      <div className="event-panel-section event-panel-answer event-panel-hidden-calendar">
+        <span className="event-panel-subtle">{localized('On a hidden calendar')}</span>
+        <button className="btn" onClick={onUnhideCalendar}>
+          {localized('Show')}
+        </button>
+      </div>
+    );
+  }
+
   // The card sits under the scrolling rows, so a long event never pushes it out of view.
   render() {
     return (
@@ -1590,6 +1601,7 @@ export class EventPanel extends React.PureComponent<EventPanelProps, EventPanelS
         {this._renderHeader()}
         <ScrollRegion className="event-panel-body">
           <div className="event-panel-title">{this._renderTitle()}</div>
+          {this._renderHiddenCalendar()}
           {this._renderRsvp()}
           {this._renderProposals()}
           {this._renderWhen()}

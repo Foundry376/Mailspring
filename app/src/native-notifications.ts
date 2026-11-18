@@ -33,6 +33,7 @@ type INotificationOptions = {
   threadId?: string;
   messageId?: string;
   playSound?: boolean;
+  playDefaultSound?: boolean;
   onActivate?: INotificationCallback;
 };
 
@@ -58,6 +59,7 @@ interface IIPCNotificationOptions {
   replyPlaceholder?: string;
   actions?: Array<{ type: 'button'; text: string }>;
   playSound?: boolean;
+  playDefaultSound?: boolean;
   urgency?: 'low' | 'normal' | 'critical';
   timeoutType?: 'default' | 'never';
   toastXml?: string;
@@ -333,6 +335,7 @@ ${actionsXml}
     threadId,
     messageId,
     playSound,
+    playDefaultSound,
     onActivate = () => {},
   }: INotificationOptions = {}): Promise<NotificationHandle | null> {
     if (await this.doNotDisturb()) {
@@ -355,6 +358,7 @@ ${actionsXml}
       threadId,
       messageId,
       playSound,
+      playDefaultSound,
     };
 
     // macOS-specific features

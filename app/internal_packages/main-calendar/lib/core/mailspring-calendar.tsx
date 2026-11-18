@@ -40,6 +40,8 @@ import {
   occurrenceEndUnix,
   occurrenceSlot,
   occurrenceTimes,
+  occurrencesForEvents,
+  ownCalendarAddresses,
 } from './calendar-data-source';
 import { CalendarEventContextMenu } from './calendar-event-context-menu';
 import {
@@ -641,7 +643,32 @@ export class MailspringCalendar extends React.Component<
 
   _focusEvent = (event: FocusedEventInfo) => {
     FocusedMomentStore.setFocusedMoment(moment(event.start * 1000), event);
+    this._selectIfHidden(event);
   };
+
+  _unhideCalendar(calendarId: string) {
+    const disabled: string[] = AppEnv.config.get(DISABLED_CALENDARS) || [];
+    AppEnv.config.set(
+      DISABLED_CALENDARS,
+      disabled.filter((id) => id !== calendarId)
+    );
+  }
+
+  // A drawn event selects itself as it takes focus; one on a hidden calendar isn't drawn.
+  async _selectIfHidden(event: FocusedEventInfo) {
+    if (!this.state.disabledCalendars.length) return;
+    const row = await DatabaseStore.find<Event>(
+      Event,
+      CalendarUtils.parseOccurrenceId(event.id).eventId
+    );
+    if (!row || !this.state.disabledCalendars.includes(row.calendarId)) return;
+    const occurrence = occurrencesForEvents([row], {
+      startUnix: event.start - 86400,
+      endUnix: event.start + 86400,
+      ownCalendarAddresses: ownCalendarAddresses(this.state.calendars),
+    }).find((o) => o.id === event.id);
+    if (occurrence) this._select([occurrence]);
+  }
 
   _onOpenNewCalendarEvent = ({
     title,
@@ -1545,6 +1572,11 @@ export class MailspringCalendar extends React.Component<
                     : () => deleteEvents([event])
               }
               onDiscard={newEvent ? this._dropNewEvent : undefined}
+              onUnhideCalendar={
+                this.state.disabledCalendars.includes(event.calendarId)
+                  ? () => this._unhideCalendar(event.calendarId)
+                  : undefined
+              }
               calendarChoices={newEvent ? this._newEventCalendarChoices() : undefined}
               onCalendarChange={this._onNewEventCalendarChange}
               newEventAlarms={newEvent?.draft.alarms}
