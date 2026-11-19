@@ -6,6 +6,7 @@ import ConfigSchemaItem from './config-schema-item';
 import WorkspaceSection from './workspace-section';
 import SendingSection from './sending-section';
 import LanguageSection from './language-section';
+import NotificationsSection from './notifications-section';
 import { ConfigLike, ConfigSchemaLike } from '../types';
 
 class PreferencesGeneral extends React.Component<{
@@ -95,10 +96,8 @@ class PreferencesGeneral extends React.Component<{
 
         <div className="two-columns-flexbox" style={{ paddingTop: 30 }}>
           <div style={{ flex: 1 }}>
-            <ConfigSchemaItem
+            <NotificationsSection
               configSchema={this.props.configSchema.properties.notifications}
-              keyName={localized('Notifications')}
-              keyPath="core.notifications"
               config={this.props.config}
             />
           </div>

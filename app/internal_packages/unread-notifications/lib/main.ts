@@ -11,6 +11,8 @@ import {
   TaskFactory,
 } from 'mailspring-exports';
 
+import { notificationSoundPlaybackOptions } from '../../custom-sounds/lib/notification-sound';
+
 const WAIT_FOR_CHANGES_DELAY = 400;
 const NEW_MAIL_SOUND_QUIET_PERIOD = 5000;
 
@@ -293,10 +295,16 @@ export class Notifier {
       }
       if (!this.hasScheduledNotify) {
         const playSound = this._shouldPlayNewMailSound();
-        if (playSound && !NativeNotifications.playsSoundWithNotification) {
-          SoundRegistry.playSound('new-mail');
+        const soundOptions = notificationSoundPlaybackOptions(AppEnv.config);
+        const playNativeSound =
+          playSound &&
+          NativeNotifications.playsSoundWithNotification &&
+          soundOptions.volume === 1 &&
+          !soundOptions.source;
+        if (playSound && !playNativeSound) {
+          SoundRegistry.playSound('new-mail', soundOptions);
         }
-        this._notifyMessages(playSound && NativeNotifications.playsSoundWithNotification);
+        this._notifyMessages(playNativeSound);
       }
     });
   }
