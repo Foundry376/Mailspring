@@ -8,18 +8,29 @@ moment.locale(navigator.language);
 // list formats a timestamp for every row on every render.
 //
 // A formatter fixes the host's zone when it's built (see calendar-date.ts), so the cache is
-// dropped whenever the host's UTC offset changes: a laptop waking in a new zone, or a DST
-// change. Reading the offset is cheap enough to do on every lookup. A move between two zones
-// that share an offset today keeps the old formatters, which then differ only for dates in a
-// season when the two zones' offsets differ.
+// dropped when the host zone changes, e.g. a laptop waking in a new one. Reading offsets is
+// cheap enough to do on every lookup.
 const dateTimeFormats = new Map<string, Intl.DateTimeFormat>();
-let dateTimeFormatsOffset: number | null = null;
+let dateTimeFormatsZone: string | null = null;
+
+const thisYear = new Date().getFullYear();
+const january = Date.UTC(thisYear, 0, 1);
+const july = Date.UTC(thisYear, 6, 1);
+
+/**
+ * The host zone's UTC offsets now, in January and in July. The seasonal offsets tell apart
+ * zones that share today's offset but not their DST rules: Denver and Phoenix in winter.
+ */
+function hostZoneOffsets() {
+  const now = new Date().getTimezoneOffset();
+  return `${now},${new Date(january).getTimezoneOffset()},${new Date(july).getTimezoneOffset()}`;
+}
 
 function cachedDateTimeFormat(opts: Intl.DateTimeFormatOptions) {
-  const offset = new Date().getTimezoneOffset();
-  if (offset !== dateTimeFormatsOffset) {
+  const zone = hostZoneOffsets();
+  if (zone !== dateTimeFormatsZone) {
     dateTimeFormats.clear();
-    dateTimeFormatsOffset = offset;
+    dateTimeFormatsZone = zone;
   }
   const key = `${navigator.language}|${JSON.stringify(opts)}`;
   let format = dateTimeFormats.get(key);
