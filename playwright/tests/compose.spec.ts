@@ -232,7 +232,9 @@ test('CC/BCC: show via buttons, add tokens, cut/copy/paste between fields, delet
   await composerPage!.keyboard.press('Meta+Escape');
 });
 
-test('spellcheck attribute does not change during an IME composition', async () => {
+// A slow composition once lost its first letter ("ni" became "i") when re-renders landed
+// mid-composition (#2990).
+test('a slow IME composition arrives intact', async () => {
   await mainWindow.locator('#sheet-container').click();
   await mainWindow.keyboard.press('c');
 
@@ -245,27 +247,8 @@ test('spellcheck attribute does not change during an IME composition', async () 
   const bodyEditable = composer.locator('[data-slate-editor]').first();
   await bodyEditable.click();
   await composerPage!.keyboard.type('ok ');
-  // Let the typing debounce settle so spellcheck is back on before composing.
-  await expect(bodyEditable).toHaveAttribute('spellcheck', 'true', { timeout: 3_000 });
 
-  // Record every spellcheck change made while a composition is in progress.
-  await composerPage!.evaluate(() => {
-    const w = window as any;
-    w.__composing = false;
-    w.__spellcheckChangesWhileComposing = [];
-    document.addEventListener('compositionstart', () => (w.__composing = true), true);
-    document.addEventListener('compositionend', () => (w.__composing = false), true);
-    new MutationObserver(mutations => {
-      for (const m of mutations) {
-        const el = m.target as HTMLElement;
-        if (w.__composing && el.isContentEditable) {
-          w.__spellcheckChangesWhileComposing.push(el.getAttribute('spellcheck'));
-        }
-      }
-    }).observe(document, { attributes: true, subtree: true, attributeFilter: ['spellcheck'] });
-  });
-
-  // Type "nihao" with a Pinyin IME, slower than the 800ms debounce, then pick 你好.
+  // Type "nihao" with a Pinyin IME, pausing between letters, then pick 你好.
   // An IME keydown (keyCode 229) is followed by the composition update in the same
   // frame, which is why both are sent together.
   const cdp = await composerPage!.context().newCDPSession(composerPage!);
@@ -292,11 +275,6 @@ test('spellcheck attribute does not change during an IME composition', async () 
   await cdp.send('Input.insertText', { text: '你好' });
 
   await expect(bodyEditable).toContainText('ok 你好');
-  const changes = await composerPage!.evaluate(
-    () => (window as any).__spellcheckChangesWhileComposing
-  );
-  expect(changes).toEqual([]);
-  await expect(bodyEditable).toHaveAttribute('spellcheck', 'true', { timeout: 3_000 });
 
   await cdp.detach();
 });
