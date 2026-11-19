@@ -6,9 +6,21 @@ moment.locale(navigator.language);
 
 // Building an Intl.DateTimeFormat is far slower than formatting with one, and the thread
 // list formats a timestamp for every row on every render.
+//
+// A formatter fixes the host's zone when it's built (see calendar-date.ts), so the cache is
+// dropped whenever the host's UTC offset changes: a laptop waking in a new zone, or a DST
+// change. Reading the offset is cheap enough to do on every lookup. A move between two zones
+// that share an offset today keeps the old formatters, which then differ only for dates in a
+// season when the two zones' offsets differ.
 const dateTimeFormats = new Map<string, Intl.DateTimeFormat>();
+let dateTimeFormatsOffset: number | null = null;
 
 function cachedDateTimeFormat(opts: Intl.DateTimeFormatOptions) {
+  const offset = new Date().getTimezoneOffset();
+  if (offset !== dateTimeFormatsOffset) {
+    dateTimeFormats.clear();
+    dateTimeFormatsOffset = offset;
+  }
   const key = `${navigator.language}|${JSON.stringify(opts)}`;
   let format = dateTimeFormats.get(key);
   if (!format) {
