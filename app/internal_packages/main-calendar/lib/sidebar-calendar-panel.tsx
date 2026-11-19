@@ -27,7 +27,7 @@ import {
   currentOccurrence,
   focusedOccurrenceForIcsuid,
   movedOccurrenceId,
-  occurrenceSlot,
+  eventRefFor,
   panelKey,
 } from './core/calendar-data-source';
 import { emailedEventIn } from '../../events/lib/invitation-versions';
@@ -324,12 +324,7 @@ export class SidebarCalendarPanel extends React.Component<
       CalendarUtils.parseOccurrenceId(shown.id).eventId
     );
     if (!row) return;
-    ipcRenderer.send('command', 'application:show-calendar', {
-      icsuid: row.icsuid,
-      accountId: row.accountId,
-      calendarId: row.calendarId,
-      recurrenceIdStart: shown.isRecurring ? occurrenceSlot(shown) : undefined,
-    });
+    ipcRenderer.send('command', 'application:show-calendar', eventRefFor(shown, row));
   };
 
   _onDatabaseChange = ({ objectClass }: DatabaseChangeRecord<Event>) => {

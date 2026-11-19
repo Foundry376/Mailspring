@@ -1242,7 +1242,7 @@ describe('ICSEventHelpers.updateEventTimes with all-day events', function () {
     expect(getDateOnly(result, 'DTEND')).toBe('20260623');
   });
 
-  it('gives a same-day timed range a full day, as the popover all-day toggle produces', function () {
+  it('gives a same-day timed range a full day', function () {
     const result = ICSEventHelpers.updateEventTimes(ALL_DAY_SIMPLE_ICS, {
       start: localDay(2026, 6, 22) + 10 * 3600, // 10:00
       end: localDay(2026, 6, 22) + 11 * 3600, // 11:00
@@ -3190,7 +3190,7 @@ describe('SEQUENCE, so guests see an update as an update', function () {
   });
 
   it('advances once for a save that touched times, guests and recurrence together', function () {
-    // The popover runs all three on one save, which is still one revision.
+    // One save may run all three, and is still one revision.
     let ics = ICSEventHelpers.updateEventTimes(SIMPLE_ICS, {
       start: Math.round(new Date('2026-03-01T16:00:00Z').getTime() / 1000),
       end: Math.round(new Date('2026-03-01T17:00:00Z').getTime() / 1000),
@@ -3774,7 +3774,7 @@ END:VCALENDAR`;
   };
 
   it('adds a display reminder to a new event', function () {
-    const ics = ICSEventHelpers.createICSString({ ...NEW_EVENT, alarmTrigger: '-PT10M' });
+    const ics = ICSEventHelpers.createICSString({ ...NEW_EVENT, alarms: ['-PT10M'] });
     const [alarm, ...rest] = alarmsOf(ics);
 
     expect(rest.length).toBe(0);
@@ -3790,22 +3790,22 @@ END:VCALENDAR`;
     expect(rest.length).toBe(0);
     expect(alarm.getFirstPropertyValue('action')).toBe('NONE');
     expect(ics).toContain('TRIGGER;VALUE=DATE-TIME:19760401T005545Z');
-    expect(ICSEventHelpers.getAlarmTrigger(ics)).toBe(null);
+    expect(ICSEventHelpers.getAlarmTriggers(ics)).toEqual([]);
   });
 
   it('reads the placeholder another client wrote as no reminder, and replaces it with one', function () {
     const marked = ICSEventHelpers.createICSString(NEW_EVENT);
-    const reminded = ICSEventHelpers.updateAlarm(marked, '-PT15M');
+    const reminded = ICSEventHelpers.editAlarm(marked, 0, '-PT15M');
     const [alarm, ...rest] = alarmsOf(reminded);
 
     expect(rest.length).toBe(0);
     expect(alarm.getFirstPropertyValue('action')).toBe('DISPLAY');
-    expect(ICSEventHelpers.getAlarmTrigger(reminded)).toBe('-PT15M');
+    expect(ICSEventHelpers.getAlarmTriggers(reminded)).toEqual(['-PT15M']);
   });
 
-  it("reads the first reminder's offset, however it is spelled", function () {
-    expect(ICSEventHelpers.getAlarmTrigger(REMINDED_ICS)).toBe('-PT30M');
-    expect(ICSEventHelpers.getAlarmTrigger(DAILY_STANDUP_ICS)).toBe(null);
+  it('reads every reminder in order, however its offset is spelled', function () {
+    expect(ICSEventHelpers.getAlarmTriggers(REMINDED_ICS)).toEqual(['-PT30M', '-P1D']);
+    expect(ICSEventHelpers.getAlarmTriggers(DAILY_STANDUP_ICS)).toEqual([]);
   });
 
   it('reads a reminder at a set time as written', function () {
@@ -3813,11 +3813,11 @@ END:VCALENDAR`;
       'TRIGGER:-P0DT0H30M0S',
       'TRIGGER;VALUE=DATE-TIME:20260303T120000Z'
     );
-    expect(ICSEventHelpers.getAlarmTrigger(ics)).toBe('2026-03-03T12:00:00Z');
+    expect(ICSEventHelpers.getAlarmTriggers(ics)).toEqual(['2026-03-03T12:00:00Z', '-P1D']);
   });
 
-  it('moves the first reminder and leaves the others', function () {
-    const ics = ICSEventHelpers.updateAlarm(REMINDED_ICS, '-PT1H');
+  it('moves one reminder, keeping its kind, and leaves the others', function () {
+    const ics = ICSEventHelpers.editAlarm(REMINDED_ICS, 0, '-PT1H');
     const alarms = alarmsOf(ics);
 
     expect(alarms.length).toBe(2);
@@ -3827,8 +3827,9 @@ END:VCALENDAR`;
   });
 
   it('replaces a reminder at a set time with an offset', function () {
-    const ics = ICSEventHelpers.updateAlarm(
+    const ics = ICSEventHelpers.editAlarm(
       REMINDED_ICS.replace('TRIGGER:-P0DT0H30M0S', 'TRIGGER;VALUE=DATE-TIME:20260303T120000Z'),
+      0,
       '-PT5M'
     );
     expect(ics).toContain('TRIGGER:-PT5M');
@@ -3836,19 +3837,27 @@ END:VCALENDAR`;
   });
 
   it('adds a reminder to an event that had none', function () {
-    const ics = ICSEventHelpers.updateAlarm(DAILY_STANDUP_ICS, '-P1W');
+    const ics = ICSEventHelpers.editAlarm(DAILY_STANDUP_ICS, 0, '-P1W');
     const [alarm] = alarmsOf(ics);
     expect(alarm.getFirstPropertyValue('description')).toBe('Daily Standup');
     expect(ics).toContain('TRIGGER:-P1W');
   });
 
-  it('replaces every reminder with the placeholder for none', function () {
-    const ics = ICSEventHelpers.updateAlarm(REMINDED_ICS, null);
-    const [alarm, ...rest] = alarmsOf(ics);
+  it('adds a reminder after the others', function () {
+    const ics = ICSEventHelpers.editAlarm(REMINDED_ICS, 2, '-PT5M');
+    expect(ICSEventHelpers.getAlarmTriggers(ics)).toEqual(['-PT30M', '-P1D', '-PT5M']);
+    expect(alarmsOf(ics)[2].getFirstPropertyValue('action')).toBe('DISPLAY');
+  });
 
+  it('removes one reminder, and puts the placeholder for none in place of the last', function () {
+    const one = ICSEventHelpers.editAlarm(REMINDED_ICS, 0, null);
+    expect(ICSEventHelpers.getAlarmTriggers(one)).toEqual(['-P1D']);
+
+    const none = ICSEventHelpers.editAlarm(one, 0, null);
+    const [alarm, ...rest] = alarmsOf(none);
     expect(rest.length).toBe(0);
     expect(alarm.getFirstPropertyValue('action')).toBe('NONE');
-    expect(ICSEventHelpers.getAlarmTrigger(ics)).toBe(null);
+    expect(ICSEventHelpers.getAlarmTriggers(none)).toEqual([]);
   });
 
   it("sets the reminder of a series' moved occurrences with the series'", function () {
@@ -3862,17 +3871,20 @@ END:VCALENDAR`;
     const vevents = (ics: string) => ics.split('BEGIN:VEVENT').slice(1);
     expect(vevents(masterIcs).length).toBe(2);
 
-    const [master, exception] = vevents(ICSEventHelpers.updateAlarm(masterIcs, '-PT1H'));
+    const [master, exception] = vevents(ICSEventHelpers.editAlarm(masterIcs, 0, '-PT1H'));
     expect(master).toContain('TRIGGER:-PT1H');
     expect(exception).toContain('TRIGGER:-PT1H');
     expect(exception).not.toContain('TRIGGER:-P0DT0H30M0S');
 
-    const [, cleared] = vevents(ICSEventHelpers.updateAlarm(masterIcs, null));
-    expect(cleared).not.toContain('ACTION:DISPLAY');
-    expect(cleared).toContain('ACTION:NONE');
+    const [, dropped] = vevents(ICSEventHelpers.editAlarm(masterIcs, 0, null));
+    expect(dropped).not.toContain('TRIGGER:-P0DT0H30M0S');
+    expect(dropped).toContain('TRIGGER:-P1D');
+
+    const [, added] = vevents(ICSEventHelpers.editAlarm(masterIcs, 2, '-PT5M'));
+    expect(added).toContain('TRIGGER:-PT5M');
   });
 
-  it("sets one occurrence's reminder without touching the series'", function () {
+  it("changes a moved occurrence's reminder by its time, leaving its own other ones", function () {
     const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
       REMINDED_ICS,
       Date.UTC(2026, 2, 10, 14) / 1000,
@@ -3880,13 +3892,70 @@ END:VCALENDAR`;
       Date.UTC(2026, 2, 10, 16) / 1000,
       false
     );
-    const ics = ICSEventHelpers.applyEditsToException(masterIcs, recurrenceId, {
-      alarmTrigger: null,
-    });
-    const [master, exception] = ics.split('BEGIN:VEVENT').slice(1);
+    const own = ICSEventHelpers.editAlarm(masterIcs, 0, '-PT2H', recurrenceId);
 
-    expect(master).toContain('ACTION:DISPLAY');
-    expect(exception).not.toContain('ACTION:DISPLAY');
-    expect(exception).toContain('ACTION:NONE');
+    const series = ICSEventHelpers.editAlarm(own, 0, '-PT1H');
+    expect(ICSEventHelpers.getAlarmTriggers(series)).toEqual(['-PT1H', '-P1D']);
+    expect(ICSEventHelpers.getAlarmTriggers(series, recurrenceId)).toEqual(['-PT2H', '-P1D']);
+
+    const later = ICSEventHelpers.editAlarm(series, 1, '-P2D');
+    expect(ICSEventHelpers.getAlarmTriggers(later, recurrenceId)).toEqual(['-PT2H', '-P2D']);
+  });
+
+  it("reads and edits a moved occurrence's own reminders alone", function () {
+    const { masterIcs, recurrenceId } = ICSEventHelpers.createRecurrenceException(
+      REMINDED_ICS,
+      Date.UTC(2026, 2, 10, 14) / 1000,
+      Date.UTC(2026, 2, 10, 15) / 1000,
+      Date.UTC(2026, 2, 10, 16) / 1000,
+      false
+    );
+    const own = ICSEventHelpers.editAlarm(masterIcs, 0, '-PT2H', recurrenceId);
+
+    expect(ICSEventHelpers.getAlarmTriggers(own, recurrenceId)).toEqual(['-PT2H', '-P1D']);
+    expect(ICSEventHelpers.getAlarmTriggers(own)).toEqual(['-PT30M', '-P1D']);
+  });
+
+  it('finds a moved occurrence of a zoned series by its instant', function () {
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Test//Test//EN',
+      'BEGIN:VEVENT',
+      'UID:zoned@test',
+      'DTSTART;TZID=America/Chicago:20260106T090000',
+      'DTEND;TZID=America/Chicago:20260106T100000',
+      'RRULE:FREQ=WEEKLY;COUNT=4',
+      'SUMMARY:Sync',
+      'DTSTAMP:20260101T000000Z',
+      'BEGIN:VALARM',
+      'ACTION:DISPLAY',
+      'DESCRIPTION:Sync',
+      'TRIGGER:-PT10M',
+      'END:VALARM',
+      'END:VEVENT',
+      'BEGIN:VEVENT',
+      'UID:zoned@test',
+      'RECURRENCE-ID;TZID=America/Chicago:20260113T090000',
+      'DTSTART;TZID=America/Chicago:20260113T110000',
+      'DTEND;TZID=America/Chicago:20260113T120000',
+      'SUMMARY:Sync',
+      'DTSTAMP:20260101T000000Z',
+      'BEGIN:VALARM',
+      'ACTION:DISPLAY',
+      'DESCRIPTION:Sync',
+      'TRIGGER:-PT30M',
+      'END:VALARM',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+    // The moved occurrence's slot, 9 AM in Chicago, as the panel names it.
+    const rid = '20260113T150000Z';
+
+    expect(ICSEventHelpers.getAlarmTriggers(ics, rid)).toEqual(['-PT30M']);
+    const edited = ICSEventHelpers.editAlarm(ics, 0, '-PT1H', rid);
+    expect(ICSEventHelpers.getAlarmTriggers(edited, rid)).toEqual(['-PT1H']);
+    expect(ICSEventHelpers.getAlarmTriggers(edited)).toEqual(['-PT10M']);
+    expect(ICSEventHelpers.getAlarmTriggers(ics, '20260120T150000Z')).toEqual([]);
   });
 });

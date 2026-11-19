@@ -22,6 +22,7 @@ import {
   EventOccurrence,
   focusedEventInfoForEvents,
   occurrenceForRecurrenceId,
+  occurrenceSlot,
   occurrenceStartUnix,
   occurrenceTimes,
 } from './calendar-data-source';
@@ -82,8 +83,7 @@ export interface EventTimeChangeOptions {
   /**
    * True when the occurrence being modified is already an inline exception.
    * When set, `modifyEventWithRecurringSupport` skips the "edit all / this
-   * occurrence" dialog and always edits only this exception — matching the
-   * behaviour of the popover's `saveEdits` path.
+   * occurrence" dialog and always edits only this exception.
    */
   isException?: boolean;
 }
@@ -337,6 +337,38 @@ function occurrenceAtSlot(row: Event, slot: number) {
   const occurrence = occurrenceForRecurrenceId([row], slot);
   if (!occurrence) throw new Error(`No occurrence of ${row.id} at ${slot} to change`);
   return occurrence;
+}
+
+/**
+ * A moved occurrence's slot as a UTC instant, which names its VEVENT whatever form its series
+ * writes RECURRENCE-ID in. Undefined where the row's first VEVENT is the one.
+ */
+export function ownRecurrenceId(occurrence: EventOccurrence, row: Event): string | undefined {
+  if (!occurrence.isException || row.isRecurrenceException()) return undefined;
+  return new Date(occurrenceSlot(occurrence) * 1000).toISOString().replace(/[-:]|\.\d+/g, '');
+}
+
+/**
+ * Written at once with the SEQUENCE kept: a reminder is the user's own, so guests get no update
+ * for it.
+ */
+export async function updateEventAlarm(
+  occurrence: EventOccurrence,
+  index: number,
+  trigger: string | null
+) {
+  const eventId = CalendarUtils.parseOccurrenceId(occurrence.id).eventId;
+  const row = await DatabaseStore.find<Event>(Event, eventId);
+  if (!row) return;
+  const undoData = captureEventSnapshot(row);
+  row.ics = ICSEventHelpers.editAlarm(row.ics, index, trigger, ownRecurrenceId(occurrence, row));
+  const task = SyncbackEventTask.forUpdating({
+    event: row,
+    undoData,
+    description: localized('Edit event'),
+  });
+  Actions.queueTask(task);
+  await TaskQueue.waitForPerformLocal(task);
 }
 
 /**
