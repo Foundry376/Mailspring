@@ -74,6 +74,7 @@ class WorkspaceStore extends MailspringStore {
 
   private _preferredLayoutMode: string;
   private _hiddenLocations: { [locationId: string]: SheetLocations[''] };
+  private _threadFocused = false;
   private _sheetStack: SheetDeclaration[];
   private _stackChangeAnimates = true;
   private _shortcuts?: Disposable;
@@ -205,6 +206,8 @@ class WorkspaceStore extends MailspringStore {
 
   _onSetFocus = ({ collection, item }) => {
     if (collection === 'thread') {
+      const changed = !!item !== this._threadFocused;
+      this._threadFocused = !!item;
       if (this.layoutMode() === 'list') {
         if (item && this.topSheet() !== Sheet.Thread) {
           this.pushSheet(Sheet.Thread);
@@ -212,6 +215,8 @@ class WorkspaceStore extends MailspringStore {
         if (!item && this.topSheet() === Sheet.Thread) {
           this.popSheet();
         }
+      } else if (changed) {
+        this.trigger(this);
       }
     }
 
@@ -340,12 +345,24 @@ class WorkspaceStore extends MailspringStore {
   }
 
   // Public: Returns a {Boolean} indicating whether the location provided is hidden.
-  // You should provide one of the WorkspaceStore.Location constant values.
+  // You should provide one of the WorkspaceStore.Location constant values. The split layouts
+  // also hide the thread sidebar while no thread is open.
   isLocationHidden(loc: { id: string } | null) {
     if (!loc) {
       return false;
     }
+    if (
+      loc === this.Location.MessageListSidebar &&
+      !this._threadFocused &&
+      this.layoutMode() !== 'list'
+    ) {
+      return true;
+    }
     return this._hiddenLocations[loc.id] != null;
+  }
+
+  isThreadFocused() {
+    return this._threadFocused;
   }
 
   /*
