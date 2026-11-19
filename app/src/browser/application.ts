@@ -1116,6 +1116,11 @@ export default class Application extends EventEmitter {
         main.show();
         main.focus();
         main.sendMessage('open-preferences');
+      } else if (parts.host === 'open-calendar') {
+        // Lets desktop launchers and scripts open straight into the calendar.
+        main.show();
+        main.focus();
+        this.emit('application:show-calendar');
       } else if (parts.host === 'plugins') {
         main.sendMessage('changePluginStateFromUrl', urlToOpen);
       } else if (parts.host === 'install-view') {
