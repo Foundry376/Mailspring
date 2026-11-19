@@ -63,4 +63,16 @@ describe('claimSingleInstance', () => {
 
     expect(onSecondInstance).toHaveBeenCalledWith(forwardedCommandLine);
   });
+
+  it('passes on the forwarded command line when a later launch sent malformed arguments', () => {
+    const app = buildApp(true);
+    const onSecondInstance = jasmine.createSpy('onSecondInstance');
+    claimSingleInstance(app, launcherArgv, onSecondInstance);
+
+    for (const additionalData of [{}, { argv: 'mailto:a@example.com' }, { argv: ['ok', 42] }]) {
+      onSecondInstance.reset();
+      app.emit('second-instance', {}, forwardedCommandLine, '/home/user', additionalData);
+      expect(onSecondInstance).toHaveBeenCalledWith(forwardedCommandLine);
+    }
+  });
 });

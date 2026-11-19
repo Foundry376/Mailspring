@@ -13,9 +13,16 @@ function claimSingleInstance(app, argv, onSecondInstance) {
   }
   app.on('second-instance', (event, commandLine, workingDirectory, additionalData) => {
     // A launch from an install that predates this lock data sends none.
-    onSecondInstance(additionalData ? additionalData.argv : commandLine);
+    const sentArgv = additionalData && additionalData.argv;
+    onSecondInstance(isArgv(sentArgv) ? sentArgv : commandLine);
   });
   return true;
+}
+
+// `additionalData` is whatever JSON the launching process chose to send, and parseCommandLine
+// assumes an array of strings: anything else would throw in the main process.
+function isArgv(value) {
+  return Array.isArray(value) && value.every(arg => typeof arg === 'string');
 }
 
 module.exports = { claimSingleInstance };
