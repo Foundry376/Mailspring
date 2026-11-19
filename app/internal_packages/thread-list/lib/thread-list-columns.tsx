@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   ListTabular,
+  AccountTag,
   RetinaImg,
   MailLabelSet,
   MailImportantIcon,
@@ -128,6 +129,7 @@ const c3 = new ListTabular.Column({
           {getSnippet(thread)}
         </span>
         {attachment}
+        <AccountTag accountId={thread.accountId} />
       </span>
     );
   },
@@ -235,6 +237,7 @@ const cNarrow = new ListTabular.Column({
             </div>
             <div style={{ flex: 1, flexShrink: 1 }} />
             <MailLabelSet thread={thread} />
+            <AccountTag accountId={thread.accountId} />
           </div>
         </div>
       </div>

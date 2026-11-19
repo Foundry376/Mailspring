@@ -164,6 +164,18 @@ const WorkspaceSection = (props: { config: any; configSchema: any }) => {
       />
 
       <ConfigSchemaItem
+        configSchema={props.configSchema.properties.workspace.properties.showAccountColorBar}
+        keyPath="core.workspace.showAccountColorBar"
+        config={props.config}
+      />
+
+      <ConfigSchemaItem
+        configSchema={props.configSchema.properties.workspace.properties.showAccountLabel}
+        keyPath="core.workspace.showAccountLabel"
+        config={props.config}
+      />
+
+      <ConfigSchemaItem
         configSchema={props.configSchema.properties.workspace.properties.showUnreadForAllCategories}
         keyPath="core.workspace.showUnreadForAllCategories"
         config={props.config}

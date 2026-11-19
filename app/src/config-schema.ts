@@ -68,6 +68,16 @@ export default {
             default: true,
             title: localized('Show Gmail-style important markers (Gmail Only)'),
           },
+          showAccountColorBar: {
+            type: 'boolean',
+            default: true,
+            title: localized('Show account color bar in the thread list'),
+          },
+          showAccountLabel: {
+            type: 'boolean',
+            default: true,
+            title: localized('Show account label on threads in multi-account views'),
+          },
           showUnreadForAllCategories: {
             type: 'boolean',
             default: false,
