@@ -145,9 +145,10 @@ test('Cmd+Z after trash creates a reverse ChangeFolderTask', async () => {
   const trashTask = await waitForCapturedTask(mainWindow, (t) => t.__cls === 'ChangeFolderTask');
   expect(trashTask).not.toBeNull();
 
-  // Now press Cmd+Z to undo (focus must NOT be in a text input)
-  await mainWindow.locator('#sheet-container').click();
-  await mainWindow.waitForTimeout(300);
+  // Focus stays on the thread list. Don't click into the sheet: that can land in the message
+  // body iframe, whose key events never reach the window's keymap (Cmd+Z there arrives through
+  // the native Edit menu, which Playwright's synthetic keys don't trigger).
+  await expect(mainWindow.locator('.thread-list .list-rows')).toBeFocused();
   await clearCapturedTasks(electronApp);
 
   await mainWindow.keyboard.press('Meta+z');
