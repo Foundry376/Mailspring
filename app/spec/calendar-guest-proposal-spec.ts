@@ -145,6 +145,7 @@ describe('editableFields', function () {
   it('gives the organizer every field', function () {
     expect(fields(ours)).toEqual(
       [
+        'alert',
         'allDay',
         'invitees',
         'location',
@@ -158,8 +159,8 @@ describe('editableFields', function () {
     );
   });
 
-  it('gives a guest the time, as a proposal, and their own Show as', function () {
-    expect(fields(invitation)).toEqual(['showAs', 'times']);
+  it('gives a guest the time, as a proposal, and their own Show as and alert', function () {
+    expect(fields(invitation)).toEqual(['alert', 'showAs', 'times']);
   });
 
   it('gives nothing on a read-only calendar', function () {

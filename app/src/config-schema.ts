@@ -352,6 +352,11 @@ export default {
             default: true,
             title: localized('Show notifications for new unread messages'),
           },
+          enabledForCalendarAlerts: {
+            type: 'boolean',
+            default: true,
+            title: localized('Show notifications for calendar alerts'),
+          },
           enabledForRepeatedTrackingEvents: {
             type: 'boolean',
             default: true,

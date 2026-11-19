@@ -1,9 +1,8 @@
 import React from 'react';
 import moment from 'moment-timezone';
 import { RetinaImg, ScrollRegion, withSmallMeridiem } from 'mailspring-component-kit';
-import { localized, Actions, CalendarDate, CalendarDateUtils, DateUtils } from 'mailspring-exports';
+import { localized, CalendarDate, CalendarDateUtils, DateUtils } from 'mailspring-exports';
 import { MailspringCalendarViewProps } from './mailspring-calendar';
-import { CalendarEventPopover } from './calendar-event-popover';
 import {
   EventOccurrence,
   EventRangeSubscription,
@@ -26,7 +25,7 @@ const DAYS_IN_PANEL = 14;
 
 export type AgendaPanelProps = Pick<
   MailspringCalendarViewProps,
-  'dataSource' | 'disabledCalendars' | 'selectedEvents' | 'onEventClick' | 'isCalendarReadOnly'
+  'dataSource' | 'disabledCalendars' | 'selectedEvents' | 'onEventClick'
 > & {
   onEventDoubleClick?: (event: EventOccurrence) => void;
   onNewEvent?: (button: HTMLElement) => void;
@@ -131,31 +130,6 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
     );
   }
 
-  /**
-   * Open the event popover anchored to the actual clicked element, rather than
-   * relying on the parent's getElementById lookup which would fail for
-   * multi-day events rendered with day-unique DOM ids.
-   */
-  _onAgendaEventDoubleClick = (e: React.MouseEvent, event: EventOccurrence) => {
-    if (this.props.onEventDoubleClick) {
-      this.props.onEventDoubleClick(event);
-      return;
-    }
-    const eventEl = e.currentTarget as HTMLElement;
-    Actions.openPopover(
-      <CalendarEventPopover
-        event={event}
-        isCalendarReadOnly={this.props.isCalendarReadOnly(event.calendarId)}
-      />,
-      {
-        originRect: eventEl.getBoundingClientRect(),
-        direction: 'left',
-        fallbackDirection: 'right',
-        closeOnAppBlur: false,
-      }
-    );
-  };
-
   _renderEvent(event: EventOccurrence, dayKey: string, time = this._renderEventTime(event)) {
     const colors = calcEventColors(event.calendarId);
     const isSelected = isEventSelected(this.props.selectedEvents, event);
@@ -174,7 +148,7 @@ export class AgendaPanel extends React.Component<AgendaPanelProps, AgendaPanelSt
         className={className}
         style={{ '--event-band-color': colors.band } as React.CSSProperties}
         onClick={(e) => this.props.onEventClick(e, event)}
-        onDoubleClick={(e) => this._onAgendaEventDoubleClick(e, event)}
+        onDoubleClick={() => this.props.onEventDoubleClick?.(event)}
         tabIndex={0}
       >
         <div className="agenda-event-color-bar" />
