@@ -21,14 +21,11 @@ interface AgendaContainerProps {
 interface AgendaContainerState {
   selectedEvents: EventOccurrence[];
   disabledCalendars: string[];
-  calendarsLoaded: boolean;
-  readOnlyCalendarIds: Set<string>;
 }
 
 /**
  * An AgendaPanel that loads its own calendars and events and keeps its own selection, for
- * places outside the calendar grid. Double-clicking an event opens its popover from AgendaPanel
- * unless the host passes onEventDoubleClick.
+ * places outside the calendar grid.
  */
 export class AgendaContainer extends React.Component<AgendaContainerProps, AgendaContainerState> {
   static displayName = 'AgendaContainer';
@@ -40,8 +37,6 @@ export class AgendaContainer extends React.Component<AgendaContainerProps, Agend
   state: AgendaContainerState = {
     selectedEvents: [],
     disabledCalendars: AppEnv.config.get(DISABLED_CALENDARS) || [],
-    calendarsLoaded: false,
-    readOnlyCalendarIds: new Set<string>(),
   };
 
   componentDidMount() {
@@ -52,9 +47,7 @@ export class AgendaContainer extends React.Component<AgendaContainerProps, Agend
       // Event colours come from this cache, which nothing else fills until the Calendar opens.
       setCalendarColors(calendars);
       this.setState({
-        calendarsLoaded: true,
         disabledCalendars: disabledCalendars || [],
-        readOnlyCalendarIds: new Set(calendars.filter((c) => c.readOnly).map((c) => c.id)),
       });
     });
     // Titles mix in the theme's cached text colour, which MailspringCalendar only clears while
@@ -70,11 +63,6 @@ export class AgendaContainer extends React.Component<AgendaContainerProps, Agend
     this._disposable?.dispose();
     this._themeDisposable?.dispose();
   }
-
-  // Fails closed until calendars load, matching MailspringCalendar._isCalendarReadOnly.
-  _isCalendarReadOnly = (calendarId: string) => {
-    return !this.state.calendarsLoaded || this.state.readOnlyCalendarIds.has(calendarId);
-  };
 
   _onEventClick = (e: React.MouseEvent, event: EventOccurrence) => {
     this.setState({ selectedEvents: [event] });
@@ -92,7 +80,6 @@ export class AgendaContainer extends React.Component<AgendaContainerProps, Agend
           onEventDoubleClick={this.props.onEventDoubleClick}
           onNewEvent={this.props.onNewEvent}
           inThisEmail={this.props.inThisEmail}
-          isCalendarReadOnly={this._isCalendarReadOnly}
         />
       </div>
     );

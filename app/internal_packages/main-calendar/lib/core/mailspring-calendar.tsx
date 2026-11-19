@@ -40,6 +40,8 @@ import {
   occurrenceEndUnix,
   occurrenceSlot,
   occurrenceTimes,
+  occurrencesForEvents,
+  ownCalendarAddresses,
 } from './calendar-data-source';
 import { CalendarEventContextMenu } from './calendar-event-context-menu';
 import {
@@ -104,6 +106,7 @@ import {
   withUnsentChange,
 } from './unsent-change';
 import { showUnsentChangeDialog } from './unsent-change-dialog';
+import { maxAlerts } from './alert-selector';
 
 const DISABLED_CALENDARS = 'mailspring.disabledCalendars';
 const CALENDAR_VIEW = 'mailspring.calendarView';
@@ -640,7 +643,32 @@ export class MailspringCalendar extends React.Component<
 
   _focusEvent = (event: FocusedEventInfo) => {
     FocusedMomentStore.setFocusedMoment(moment(event.start * 1000), event);
+    this._selectIfHidden(event);
   };
+
+  _unhideCalendar(calendarId: string) {
+    const disabled: string[] = AppEnv.config.get(DISABLED_CALENDARS) || [];
+    AppEnv.config.set(
+      DISABLED_CALENDARS,
+      disabled.filter((id) => id !== calendarId)
+    );
+  }
+
+  // A drawn event selects itself as it takes focus; one on a hidden calendar isn't drawn.
+  async _selectIfHidden(event: FocusedEventInfo) {
+    if (!this.state.disabledCalendars.length) return;
+    const row = await DatabaseStore.find<Event>(
+      Event,
+      CalendarUtils.parseOccurrenceId(event.id).eventId
+    );
+    if (!row || !this.state.disabledCalendars.includes(row.calendarId)) return;
+    const occurrence = occurrencesForEvents([row], {
+      startUnix: event.start - 86400,
+      endUnix: event.start + 86400,
+      ownCalendarAddresses: ownCalendarAddresses(this.state.calendars),
+    }).find((o) => o.id === event.id);
+    if (occurrence) this._select([occurrence]);
+  }
 
   _onOpenNewCalendarEvent = ({
     title,
@@ -670,8 +698,7 @@ export class MailspringCalendar extends React.Component<
       next = [event];
     }
 
-    // Close any open popover when clicking an event (e.g., if another event's
-    // popover was open, it should close when selecting a different event)
+    // Close any open popover, such as quick add, when an event is clicked.
     Actions.closePopover();
 
     if (this._select(next) && !isEventSelected(next, event)) this._focusGrid();
@@ -861,10 +888,21 @@ export class MailspringCalendar extends React.Component<
   _onNewEventCalendarChange = (calendar: Calendar) => {
     const { newEvent } = this.state;
     if (!newEvent) return;
-    const draft = { ...newEvent.draft, calendarId: calendar.id, accountId: calendar.accountId };
+    const draft = {
+      ...newEvent.draft,
+      calendarId: calendar.id,
+      accountId: calendar.accountId,
+      alarms: newEvent.draft.alarms?.slice(0, maxAlerts(calendar.accountId)),
+    };
     this.setState({
       newEvent: { draft, occurrence: newEventOccurrence(newEvent.occurrence.id, draft) },
     });
+  };
+
+  _onNewEventAlarmsChange = (alarms: string[]) => {
+    const { newEvent } = this.state;
+    if (!newEvent) return;
+    this.setState({ newEvent: { ...newEvent, draft: { ...newEvent.draft, alarms } } });
   };
 
   /**
@@ -1534,8 +1572,15 @@ export class MailspringCalendar extends React.Component<
                     : () => deleteEvents([event])
               }
               onDiscard={newEvent ? this._dropNewEvent : undefined}
+              onUnhideCalendar={
+                this.state.disabledCalendars.includes(event.calendarId)
+                  ? () => this._unhideCalendar(event.calendarId)
+                  : undefined
+              }
               calendarChoices={newEvent ? this._newEventCalendarChoices() : undefined}
               onCalendarChange={this._onNewEventCalendarChange}
+              newEventAlarms={newEvent?.draft.alarms}
+              onNewEventAlarmsChange={this._onNewEventAlarmsChange}
             />
           )}
         </div>

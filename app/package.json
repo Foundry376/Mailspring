@@ -77,7 +77,7 @@
     "zod": "4.4.3"
   },
   "overrides": {
-    "electron": "44.9.1",
+    "electron": "44.11.4",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0"
   },
