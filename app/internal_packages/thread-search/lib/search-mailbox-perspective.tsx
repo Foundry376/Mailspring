@@ -5,6 +5,8 @@ import {
   TaskFactory,
   MailboxPerspective,
   Actions,
+  SearchQueryParser,
+  searchHighlighter,
 } from 'mailspring-exports';
 import SearchQuerySubscription from './search-query-subscription';
 
@@ -61,16 +63,25 @@ class SearchMailboxPerspective extends MailboxPerspective {
     return super.isEqual(other) && other.searchQuery === this.searchQuery;
   }
 
-  threads() {
-    // If your query doesn't explicitly ask for results in trash or in spam, we exclude
-    // them to increase the quality of results, and a button in the empty state (above)
-    // allows you to switch to showing trash results.
-    let finalQuery = this.searchQuery.trim();
-    if (!this.isSearchingTrash()) {
-      finalQuery = `(${finalQuery}) NOT (in:trash OR in:spam)`;
-    }
+  // If your query doesn't explicitly ask for results in trash or in spam, we exclude
+  // them to increase the quality of results, and a button in the empty state (above)
+  // allows you to switch to showing trash results.
+  finalQuery() {
+    const query = this.searchQuery.trim();
+    return this.isSearchingTrash() ? query : `(${query}) NOT (in:trash OR in:spam)`;
+  }
 
-    return new SearchQuerySubscription(finalQuery, this.accountIds);
+  threads() {
+    return new SearchQuerySubscription(this.finalQuery(), this.accountIds);
+  }
+
+  searchHighlighter() {
+    try {
+      return searchHighlighter(SearchQueryParser.parse(this.finalQuery()));
+    } catch (e) {
+      // SearchQuerySubscription falls back to a plain text search, with nothing to highlight
+      return null;
+    }
   }
 
   canReceiveThreadsFromAccountIds() {

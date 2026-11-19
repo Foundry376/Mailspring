@@ -93,6 +93,7 @@ lazyLoadAndRegisterModel(`ProviderSyncbackRequest`, 'provider-syncback-request')
 lazyLoad(`SearchQueryAST`, 'services/search/search-query-ast');
 lazyLoad(`SearchQueryParser`, 'services/search/search-query-parser');
 lazyLoad(`RemoteSearchQueryBackend`, 'services/search/search-query-backend-remote');
+lazyLoad(`searchHighlighter`, 'services/search/search-highlighter');
 
 // Tasks
 lazyLoad(`TaskFactory`, 'flux/tasks/task-factory');

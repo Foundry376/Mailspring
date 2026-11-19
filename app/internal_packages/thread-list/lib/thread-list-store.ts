@@ -36,9 +36,13 @@ class ThreadListStore extends MailspringStore {
       this._dataSource = null;
     }
 
-    const threadsSubscription = FocusedPerspectiveStore.current().threads();
+    const perspective = FocusedPerspectiveStore.current();
+    const threadsSubscription = perspective.threads();
     if (threadsSubscription) {
-      this._dataSource = new ThreadListDataSource(threadsSubscription);
+      this._dataSource = new ThreadListDataSource(
+        threadsSubscription,
+        perspective.searchHighlighter()
+      );
       this._dataSourceUnlisten = this._dataSource.listen(this._onDataChanged, this);
     } else {
       this._dataSource = new ListTabular.DataSource.Empty();

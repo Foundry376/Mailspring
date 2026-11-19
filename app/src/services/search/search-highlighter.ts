@@ -1,4 +1,14 @@
-import { DatabaseStore, SearchQueryAST } from 'mailspring-exports';
+import DatabaseStore from '../../flux/stores/database-store';
+import {
+  QueryExpression,
+  AndQueryExpression,
+  OrQueryExpression,
+  NotQueryExpression,
+  GenericQueryExpression,
+  SubjectQueryExpression,
+  FromQueryExpression,
+  ToQueryExpression,
+} from './search-query-ast';
 
 export type Highlighted = { text: string; match: boolean }[];
 export type Highlighter = (text: string) => Highlighted | null;
@@ -20,8 +30,6 @@ const EXCERPT_TOKENS = 32;
 // are cut to this many, or the match can fall past the row's ellipsis.
 const WORDS_BEFORE_MATCH = 4;
 
-type QueryExpression = InstanceType<typeof SearchQueryAST.QueryExpression>;
-
 // The text terms of a query, by the field they search: free text matches any column,
 // including the body. Terms under the right side of a NOT are what the results must not
 // contain, so they are left out.
@@ -30,15 +38,6 @@ function textTerms(
   negated = false,
   out = { free: [] as string[], subject: [] as string[], people: [] as string[] }
 ) {
-  const {
-    AndQueryExpression,
-    OrQueryExpression,
-    NotQueryExpression,
-    GenericQueryExpression,
-    SubjectQueryExpression,
-    FromQueryExpression,
-    ToQueryExpression,
-  } = SearchQueryAST;
   if (node instanceof NotQueryExpression) {
     textTerms(node.e1, negated, out);
     textTerms(node.e2, !negated, out);
@@ -109,24 +108,51 @@ function cutLeadingContext(parts: Highlighted): Highlighted {
   return [{ text: `…${tail}`, match: false }, ...parts.slice(1)];
 }
 
-// FTS5's snippet() picks the window of the body around the best match. The window's words
-// are then marked by the same highlighter as subjects, so a word found only through Porter
-// stemming ("runs" for "running") is not marked, and its thread keeps the plain snippet.
+// snippet() wraps each phrase the index matched in these, stems included.
+const MATCH_START = '\u0001';
+const MATCH_END = '\u0002';
+const MARKED = new RegExp(`${MATCH_START}([^${MATCH_END}]*)${MATCH_END}`, 'g');
+
+// Splits a snippet on its match markers. A marked phrase is trimmed to the typed prefix
+// when it spells the terms literally ("Wall" in "Wallpaper"), and marked whole when the
+// index matched it through Porter stemming ("invoicing" for "invoice").
+function excerptParts(snippet: string, literal: Highlighter): Highlighted | null {
+  const parts: Highlighted = [];
+  let last = 0;
+  for (const { 0: marked, 1: phrase, index } of snippet.matchAll(MARKED)) {
+    pushPart(parts, snippet.slice(last, index), false);
+    const literalParts = literal(phrase);
+    if (literalParts && literalParts[0].match) {
+      literalParts.forEach((part) => pushPart(parts, part.text, part.match));
+    } else {
+      pushPart(parts, phrase, true);
+    }
+    last = index + marked.length;
+  }
+  if (!parts.some((part) => part.match)) {
+    return null;
+  }
+  pushPart(parts, snippet.slice(last), false);
+  return parts;
+}
+
+// FTS5's snippet() picks the window of the body around the best match and marks the
+// phrases that matched.
 async function loadExcerpts(
   matchExpression: string,
-  highlight: Highlighter,
+  literal: Highlighter,
   threadIds: string[]
 ): Promise<{ [threadId: string]: Highlighted }> {
   const placeholders = threadIds.map(() => '?').join(',');
   const rows = await DatabaseStore._query(
-    `SELECT \`content_id\` AS id, snippet(\`ThreadSearch\`, ${BODY_COLUMN}, '', '', '…', ${EXCERPT_TOKENS}) AS excerpt ` +
+    `SELECT \`content_id\` AS id, snippet(\`ThreadSearch\`, ${BODY_COLUMN}, char(1), char(2), '…', ${EXCERPT_TOKENS}) AS excerpt ` +
       `FROM \`ThreadSearch\` WHERE \`ThreadSearch\` MATCH ? AND \`content_id\` IN (${placeholders})`,
     [matchExpression, ...threadIds],
     true
   );
   const excerpts = {};
   for (const { id, excerpt } of rows) {
-    const parts = highlight((excerpt || '').trim());
+    const parts = excerptParts((excerpt || '').trim(), literal);
     if (parts) {
       excerpts[id] = cutLeadingContext(parts);
     }

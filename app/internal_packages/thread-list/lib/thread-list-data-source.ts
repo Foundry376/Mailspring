@@ -6,6 +6,8 @@ import {
   Message,
   QueryResultSet,
   QuerySubscription,
+  Highlighted,
+  SearchHighlighter,
 } from 'mailspring-exports';
 
 const _observableForThreadMessages = (id: string, initialModels: Message[]) => {
@@ -89,39 +91,68 @@ const _flatMapJoiningMessages = ($threadsResultSet) => {
   );
 };
 
-// A search subscription provides `searchHighlighter`; other perspectives' subscriptions
-// don't. The thread models here are the clones made above, so the match can be set on them.
-const _flatMapJoiningSearchMatches = ($threadsResultSet, subscription) => {
-  return $threadsResultSet.flatMapLatest((threadsResultSet) => {
-    const highlighter = subscription.searchHighlighter();
-    if (!highlighter) {
-      return Rx.Observable.from([threadsResultSet]);
+// The thread models here are the clones made above, so the match can be set on them.
+//
+// A thread's excerpt doesn't change while the query is the same, so each is loaded once,
+// when the thread first appears. Results are emitted without waiting for that query, and
+// again with fresh clones once it finishes, so the list rows see a changed item and redraw.
+const _flatMapJoiningSearchMatches = ($threadsResultSet, highlighter: SearchHighlighter) => {
+  const excerpts = new Map<string, Highlighted | undefined>();
+  const loading = new Map<string, Promise<void>>();
+
+  const applyMatches = (threadsResultSet) => {
+    for (const thread of threadsResultSet.models()) {
+      thread.__searchMatch = { highlighter, excerpt: excerpts.get(thread.id) };
     }
-    const promise = highlighter
-      .excerpts(threadsResultSet.ids())
-      .catch((err) => {
-        console.warn('Could not load search match excerpts', err);
-        return {};
-      })
-      .then((excerpts) => {
-        for (const thread of threadsResultSet.models()) {
-          thread.__searchMatch = { highlighter, excerpt: excerpts[thread.id] };
-        }
-        return threadsResultSet;
-      });
-    return Rx.Observable.fromPromise(promise);
+    return threadsResultSet;
+  };
+
+  return $threadsResultSet.flatMapLatest((threadsResultSet) => {
+    const ids: string[] = threadsResultSet.ids();
+    const unrequested = ids.filter((id) => !excerpts.has(id) && !loading.has(id));
+    if (unrequested.length) {
+      const request = highlighter
+        .excerpts(unrequested)
+        .catch((err) => {
+          console.warn('Could not load search match excerpts', err);
+          return {};
+        })
+        .then((found) => {
+          for (const id of unrequested) {
+            excerpts.set(id, found[id]);
+            loading.delete(id);
+          }
+        });
+      for (const id of unrequested) {
+        loading.set(id, request);
+      }
+    }
+
+    const now = Rx.Observable.from([applyMatches(threadsResultSet)]);
+    const pending = [...new Set(ids.filter((id) => loading.has(id)).map((id) => loading.get(id)))];
+    if (pending.length === 0) {
+      return now;
+    }
+    const withExcerpts = Promise.all(pending).then(() => {
+      const clones = {};
+      for (const thread of threadsResultSet.models()) {
+        clones[thread.id] = Object.assign(Object.create(Object.getPrototypeOf(thread)), thread);
+      }
+      return applyMatches(QueryResultSet.setByApplyingModels(threadsResultSet, clones));
+    });
+    return now.concat(Rx.Observable.fromPromise(withExcerpts));
   });
 };
 
 class ThreadListDataSource extends ObservableListDataSource {
-  constructor(subscription) {
+  constructor(subscription, highlighter: SearchHighlighter | null) {
     let $resultSetObservable = Rx.Observable.fromNamedQuerySubscription(
       'thread-list',
       subscription
     );
     $resultSetObservable = _flatMapJoiningMessages($resultSetObservable);
-    if (typeof subscription.searchHighlighter === 'function') {
-      $resultSetObservable = _flatMapJoiningSearchMatches($resultSetObservable, subscription);
+    if (highlighter) {
+      $resultSetObservable = _flatMapJoiningSearchMatches($resultSetObservable, highlighter);
     }
     super($resultSetObservable, subscription.replaceRange.bind(subscription));
   }

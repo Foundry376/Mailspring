@@ -1,11 +1,7 @@
-import { Message, Thread } from 'mailspring-exports';
-
-// Mirrors thread-search's search-highlighter types, which this package can't import.
-export type Highlighted = { text: string; match: boolean }[];
-type Highlighter = (text: string) => Highlighted | null;
+import { Message, Thread, Highlighted, SearchHighlighter } from 'mailspring-exports';
 
 export interface SearchMatch {
-  highlighter: { subject: Highlighter; participants: Highlighter };
+  highlighter: SearchHighlighter;
   // The words around the match, when the body matched.
   excerpt?: Highlighted;
 }

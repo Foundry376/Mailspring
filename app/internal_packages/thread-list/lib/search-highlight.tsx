@@ -1,5 +1,5 @@
 import React from 'react';
-import { Highlighted } from './types';
+import { Highlighted } from 'mailspring-exports';
 
 export function renderHighlighted(parts: Highlighted, contextClassName?: string) {
   return parts.map((part, idx) =>

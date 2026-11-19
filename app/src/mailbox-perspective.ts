@@ -20,6 +20,7 @@ import { Folder } from './flux/models/folder';
 import { Task } from './flux/tasks/task';
 import * as Actions from './flux/actions';
 import { QuerySubscription } from 'mailspring-exports';
+import type { SearchHighlighter } from './services/search/search-highlighter';
 
 let WorkspaceStore = null;
 let ChangeStarredTask = null;
@@ -181,6 +182,11 @@ export class MailboxPerspective {
 
   threads(): QuerySubscription<Thread> {
     throw new Error('threads: Not implemented in base class.');
+  }
+
+  // Marks the query's terms in each thread list row. Only a search has one.
+  searchHighlighter(): SearchHighlighter | null {
+    return null;
   }
 
   unreadCount(): number {

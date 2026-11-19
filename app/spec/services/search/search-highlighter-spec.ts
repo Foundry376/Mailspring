@@ -1,5 +1,8 @@
 import { DatabaseStore, SearchQueryParser } from 'mailspring-exports';
-import { searchHighlighter, termHighlighter } from '../lib/search-highlighter';
+import {
+  searchHighlighter,
+  termHighlighter,
+} from '../../../src/services/search/search-highlighter';
 
 const highlighterFor = (query: string) => searchHighlighter(SearchQueryParser.parse(query));
 
@@ -77,24 +80,38 @@ describe('searchHighlighter', function () {
       expect(values).toEqual(['body : ("invoice"* OR "say""hi"*)', 't1', 't2']);
     });
 
-    it('marks matches, and keeps only the last few words before the first one', async function () {
+    it('asks snippet() to mark the matches', async function () {
+      await highlighterFor('invoice').excerpts(['t1']);
+      const [sql] = (DatabaseStore._query as jasmine.Spy).calls[0].args;
+      expect(sql).toContain('char(1), char(2)');
+    });
+
+    it('marks what the index matched, and keeps only the last few words before it', async function () {
       (DatabaseStore._query as jasmine.Spy).andCallFake(() =>
         Promise.resolve([
           {
             id: 't1',
-            excerpt: ' Finance needs the confirmation before they reimburse the costs I invoiced…',
+            excerpt:
+              ' Finance needs the confirmation before they reimburse the costs I \u0001invoiced\u0002…',
           },
-          { id: 't2', excerpt: 'Ten invoicing tips' },
+          { id: 't2', excerpt: 'Ten \u0001invoicing\u0002 tips' },
+          { id: 't3', excerpt: 'No marker in this window' },
         ])
       );
-      const excerpts = await highlighterFor('invoice').excerpts(['t1', 't2']);
+      const excerpts = await highlighterFor('invoice').excerpts(['t1', 't2', 't3']);
+      // A literal match is trimmed to the typed prefix
       expect(excerpts.t1).toEqual([
         { text: '…reimburse the costs I ', match: false },
         { text: 'invoice', match: true },
         { text: 'd…', match: false },
       ]);
-      // A body found only through stemming has no word to mark, and keeps its snippet
-      expect(excerpts.t2).toBeUndefined();
+      // A match found through stemming is marked whole
+      expect(excerpts.t2).toEqual([
+        { text: 'Ten ', match: false },
+        { text: 'invoicing', match: true },
+        { text: ' tips', match: false },
+      ]);
+      expect(excerpts.t3).toBeUndefined();
     });
 
     it('does not query without free text or threads', async function () {
