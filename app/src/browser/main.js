@@ -36,6 +36,7 @@ console.inspect = function consoleInspect(val) {
 const { app, session, protocol } = require('electron');
 const path = require('path');
 const { developerToolsAvailable } = require('../developer-tools');
+const { claimSingleInstance } = require('./single-instance');
 
 if (typeof process.setFdLimit === 'function') {
   process.setFdLimit(1024);
@@ -363,18 +364,15 @@ const start = () => {
   }
 
   if (!options.devMode) {
-    const gotTheLock = app.requestSingleInstanceLock();
+    const gotTheLock = claimSingleInstance(app, process.argv, argv => {
+      global.application.handleLaunchOptions(parseCommandLine(argv));
+    });
 
     if (!gotTheLock) {
       console.log('Exiting because another instance of the app is already running.');
       app.exit(1);
       return;
     }
-
-    app.on('second-instance', (event, commandLine, workingDirectory) => {
-      const otherOpts = parseCommandLine(commandLine);
-      global.application.handleLaunchOptions(otherOpts);
-    });
   }
 
   setupCompileCache(configDirPath, options.devMode);
