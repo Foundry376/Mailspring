@@ -18,9 +18,7 @@ Verify an item against the code before planning from it, and delete it here when
 
 ## Partial
 
-- **Reminders.** The Alert control saves the event's first VALARM (an Outlook event's reminder through
-  Graph), but nothing in the app shows a notification when one comes due.
-- **Repeat rules.** `repeat-selector.tsx` offers none, daily, weekly, monthly and yearly. There is no
+- **Repeat rules.** The event panel's Repeat offers none, daily, weekly, monthly and yearly. There is no
   interval, weekday choice, count or end date, and no custom rule.
 - **Sending invitations.** Attendees and the organizer are written into the event, but neither the app
   nor the sync engine sends an iMIP REQUEST or CANCEL; the engine sends only REPLY and COUNTER

@@ -114,9 +114,8 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
     Actions.closePopover();
   }
 
-  // The content can change size once the popover is placed: the event card becomes the editor
-  // in place, and the taller box, still centred on its anchor, runs past the window. Placement
-  // starts over from the requested direction, as opening at the new size would.
+  // Content that grows once placed runs past the window, so placement starts over from the
+  // requested direction, as opening at the new size would.
   onPopoverResized = () => {
     if (!this.mounted || this.placing) {
       return;
@@ -215,10 +214,9 @@ class FixedPopover extends Component<FixedPopoverProps, FixedPopoverState> {
   The extra translate that brings an off-screen popover back inside the window.
 
   Reached when flipping the direction and nudging across it have both failed, which happens
-  when the popover is simply taller or wider than the room beside its anchor - a full event
-  editor next to an event low in a short window, say. The popover is moved off its anchor to
-  stay reachable, so the pointer no longer touches it; an unreachable footer is the worse of
-  the two.
+  when the popover is simply taller or wider than the room beside its anchor. The popover is
+  moved off its anchor to stay reachable, so the pointer no longer touches it; an unreachable
+  footer is the worse of the two.
 
   `offset` must be the one currentRect already reflects, since the correction is added to it
   rather than replacing it. Pulling an edge in can push the opposite edge out when the

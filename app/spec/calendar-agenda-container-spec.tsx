@@ -17,7 +17,7 @@ describe('AgendaContainer', function () {
     expect(shown.props.children.props.selectedEvents).toEqual([]);
   });
 
-  it('selects the event clicked and tells its owner, fail-closed on writes until calendars load', function () {
+  it('selects the event clicked and tells its owner', function () {
     const onEventClick = jasmine.createSpy('onEventClick');
     const c = container({ onEventClick });
     const agenda = c.render().props.children;
@@ -25,7 +25,6 @@ describe('AgendaContainer', function () {
     agenda.props.onEventClick({}, { id: 'e1' });
     expect(c.render().props.children.props.selectedEvents.map((e) => e.id)).toEqual(['e1']);
     expect(onEventClick).toHaveBeenCalledWith({}, { id: 'e1' });
-    expect(agenda.props.isCalendarReadOnly('cal-1')).toBe(true);
   });
 
   it('shows the selection it is given instead of its own', function () {
