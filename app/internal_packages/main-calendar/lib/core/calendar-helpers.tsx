@@ -19,7 +19,7 @@ import {
   DraftFactory,
 } from 'mailspring-exports';
 import { ShowAsOption, defaultShowAs } from './show-as-selector';
-import { alertTrigger, defaultAlert } from './alert-selector';
+import { defaultAlarms } from './alert-selector';
 import {
   MIN_EVENT_DURATION_SECONDS,
   DEFAULT_TIMED_EVENT_DURATION_SECONDS,
@@ -321,6 +321,8 @@ export interface NewEventDraft {
   isAllDay: boolean;
   calendarId: string;
   accountId: string;
+  /** Until set in the panel, the default for `isAllDay`. */
+  alarms?: string[];
 }
 
 /** An event that does not exist yet, as an occurrence, so the grid draws it like any other. */
@@ -515,6 +517,8 @@ export interface CreateCalendarEventOptions {
   attendees?: Array<{ email: string; name?: string }>;
   recurrenceRule?: string;
   transparency?: ShowAsOption;
+  /** The default for `isAllDay` when omitted. */
+  alarms?: string[];
 }
 
 /** The account, as the ORGANIZER the ICS helpers name once an event has guests. */
@@ -544,7 +548,7 @@ export function queueNewCalendarEvent(options: CreateCalendarEventOptions): {
     attendees: options.attendees,
     recurrenceRule: options.recurrenceRule,
     transparency: options.transparency ?? defaultShowAs(options.isAllDay),
-    alarmTrigger: alertTrigger(defaultAlert(options.isAllDay)),
+    alarms: options.alarms ?? defaultAlarms(options.isAllDay),
   });
 
   const event = new Event({
@@ -706,7 +710,8 @@ export type PanelField =
   | 'invitees'
   | 'location'
   | 'notes'
-  | 'showAs';
+  | 'showAs'
+  | 'alert';
 
 const PANEL_FIELDS: PanelField[] = [
   'title',
@@ -718,17 +723,18 @@ const PANEL_FIELDS: PanelField[] = [
   'location',
   'notes',
   'showAs',
+  'alert',
 ];
 
 /**
  * What the event panel lets you change: all of an event you organize; on an invitation, its time
- * as a proposal to the organizer and your own Show as; nothing on a read-only calendar.
+ * as a proposal to the organizer and your own Show as and alert; nothing on a read-only calendar.
  */
 export function editableFields(event: EventOccurrence, isCalendarReadOnly: boolean) {
   if (isCalendarReadOnly) return new Set<PanelField>();
   if (event.isMine) return new Set(PANEL_FIELDS);
   return new Set<PanelField>(
-    canRespondToEvent(event) && !event.isCancelled ? ['times', 'showAs'] : []
+    canRespondToEvent(event) && !event.isCancelled ? ['times', 'showAs', 'alert'] : []
   );
 }
 

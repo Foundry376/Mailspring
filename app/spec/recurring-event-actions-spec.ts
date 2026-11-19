@@ -1,9 +1,11 @@
 import {
   AccountStore,
   Actions,
+  DatabaseStore,
   ICSEventHelpers,
   CalendarUtils,
   SyncbackEventTask,
+  TaskQueue,
 } from 'mailspring-exports';
 import { Event as MailspringEvent } from '../src/flux/models/event';
 
@@ -18,6 +20,8 @@ import {
   modifyEventChange,
   modifyOccurrenceChange,
   modifySeriesChange,
+  ownRecurrenceId,
+  updateEventAlarm,
 } from '../internal_packages/main-calendar/lib/core/recurring-event-actions';
 
 // ---------------------------------------------------------------------------
@@ -1118,5 +1122,84 @@ describe('a change to the guest list', function () {
     expect(sequence(series)).toBe(2);
     expect(guests(moved)).toEqual(['mailto:you@example.com', 'mailto:alex@example.com']);
     expect(sequence(moved)).toBe(6);
+  });
+});
+
+describe('updateEventAlarm', function () {
+  let queued: any[];
+  beforeEach(function () {
+    queued = [];
+    spyOn(Actions, 'queueTask').andCallFake((task) => queued.push(task));
+    spyOn(SyncbackEventTask, 'forUpdating').andCallFake((opts) => opts);
+    spyOn(TaskQueue, 'waitForPerformLocal').andReturn(Promise.resolve());
+  });
+
+  const written = async (ics: string, trigger: string | null) => {
+    spyOn(DatabaseStore, 'find').andReturn(Promise.resolve(makeEvent(ics)));
+    await updateEventAlarm({ id: 'event-id-1', isException: false } as any, 0, trigger);
+    return queued[0].event.ics as string;
+  };
+  const veventsOf = (ics: string) => ics.split('BEGIN:VEVENT').slice(1);
+
+  it('sets the reminder on the series and its moved occurrence, keeping each SEQUENCE', async function () {
+    const ics = await written(FAKE_MASTER_ICS_WITH_EXCEPTION, '-PT1H');
+    for (const vevent of veventsOf(ics)) {
+      expect(vevent).toContain('TRIGGER:-PT1H');
+    }
+    expect(veventsOf(ics).map((v) => /^SEQUENCE:(\d+)/m.exec(v)[1])).toEqual(['0', '1']);
+  });
+
+  it('removes the reminder for none', async function () {
+    const reminded = SIMPLE_ICS.replace(
+      'END:VEVENT',
+      'BEGIN:VALARM\nACTION:DISPLAY\nTRIGGER:-PT10M\nEND:VALARM\nEND:VEVENT'
+    );
+    const ics = await written(reminded, null);
+    expect(ICSEventHelpers.getAlarmTriggers(ics)).toEqual([]);
+    expect(ics).toContain('SEQUENCE:0');
+  });
+});
+
+describe('ownRecurrenceId', function () {
+  it("names a timed series' occurrence moved into the all-day row by its slot", function () {
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Test//Test//EN',
+      'BEGIN:VEVENT',
+      'UID:weekly@test',
+      'DTSTART:20260106T150000Z',
+      'DTEND:20260106T160000Z',
+      'RRULE:FREQ=WEEKLY;COUNT=4',
+      'SUMMARY:Sync',
+      'BEGIN:VALARM',
+      'ACTION:DISPLAY',
+      'DESCRIPTION:Sync',
+      'TRIGGER:-PT30M',
+      'END:VALARM',
+      'END:VEVENT',
+      'BEGIN:VEVENT',
+      'UID:weekly@test',
+      'RECURRENCE-ID:20260113T150000Z',
+      'DTSTART;VALUE=DATE:20260113',
+      'DTEND;VALUE=DATE:20260114',
+      'SUMMARY:Sync',
+      'BEGIN:VALARM',
+      'ACTION:DISPLAY',
+      'DESCRIPTION:Sync',
+      'TRIGGER:-PT2H',
+      'END:VALARM',
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+    const moved = {
+      id: 'event-id-1-e1',
+      isException: true,
+      isAllDay: true,
+      recurrenceIdStart: Date.UTC(2026, 0, 13, 15) / 1000,
+    } as any;
+
+    const rid = ownRecurrenceId(moved, makeEvent(ics));
+    expect(ICSEventHelpers.getAlarmTriggers(ics, rid)).toEqual(['-PT2H']);
   });
 });

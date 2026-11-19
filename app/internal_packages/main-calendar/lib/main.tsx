@@ -12,6 +12,7 @@ import {
   occurrenceStartUnix,
 } from './core/calendar-data-source';
 import { SidebarCalendarPanel } from './sidebar-calendar-panel';
+import { CalendarAlerts } from './calendar-alerts';
 
 type MenuItem = (typeof AppEnv.menu.template)[0];
 
@@ -80,6 +81,8 @@ async function onShowCalendar(_event: Electron.IpcRendererEvent, focus?: EventRe
   }
 }
 
+const alerts = new CalendarAlerts((focus) => onShowCalendar(null, focus));
+
 const CalendarNavRailItem = () => (
   <NavRailItem
     label={localized('Calendar')}
@@ -114,6 +117,7 @@ export function activate() {
   ComponentRegistry.register(SidebarCalendarPanel, { role: 'MessageListSidebar:Panel' });
 
   ipcRenderer.on('show-calendar', onShowCalendar);
+  alerts.start();
 }
 
 export function deactivate() {
@@ -125,4 +129,5 @@ export function deactivate() {
   ComponentRegistry.unregister(SidebarCalendarPanel);
 
   ipcRenderer.removeListener('show-calendar', onShowCalendar);
+  alerts.dispose();
 }
