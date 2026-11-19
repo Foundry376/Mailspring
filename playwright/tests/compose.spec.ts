@@ -301,6 +301,48 @@ test('spellcheck attribute does not change during an IME composition', async () 
   await cdp.detach();
 });
 
+// Chromium only spellchecks text the user typed natively (crbug.com/415712674), and Slate
+// inserts every keystroke itself, so the body relies on the UnrestrictSpellingAndGrammarForTesting
+// switch in main.js. Spelling markers aren't exposed to the DOM; turning spellcheck off removes
+// them, so the body renders identically with it on and off exactly when nothing is underlined.
+test('misspelled words in the composer body are underlined', async () => {
+  await mainWindow.locator('#sheet-container').click();
+  await mainWindow.keyboard.press('c');
+
+  const composerPage = await findComposer(electronApp);
+  expect(composerPage).not.toBeNull();
+
+  const composer = composerPage!.locator('.composer-inner-wrap').last();
+  await expect(composer).toBeVisible({ timeout: 5_000 });
+
+  const bodyEditable = composer.locator('[data-slate-editor]').first();
+  await bodyEditable.click();
+  await composerPage!.keyboard.type('Ths sentnce has sevral typos ');
+  await expect(bodyEditable).toHaveAttribute('spellcheck', 'true', { timeout: 3_000 });
+  await composerPage!.addStyleTag({
+    content: '[data-slate-editor] { caret-color: transparent !important; }',
+  });
+
+  const setSpellcheck = (value: string) =>
+    bodyEditable.evaluate((el, v) => el.setAttribute('spellcheck', v), value);
+
+  // Results arrive asynchronously from the platform spellchecker, so poll.
+  await expect
+    .poll(
+      async () => {
+        const checked = await bodyEditable.screenshot();
+        await setSpellcheck('false');
+        const unchecked = await bodyEditable.screenshot();
+        await setSpellcheck('true');
+        return checked.equals(unchecked);
+      },
+      { timeout: 10_000 }
+    )
+    .toBe(false);
+
+  await composerPage!.keyboard.press('Meta+Escape');
+});
+
 // --- Rich text formatting ---
 
 test('Cmd+B toggles bold in composer', async () => {

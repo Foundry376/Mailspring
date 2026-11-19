@@ -348,6 +348,11 @@ const start = () => {
   app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
   app.commandLine.appendSwitch('js-flags', '--harmony');
 
+  // Since Chromium 146 (Electron 41), spellcheck ignores edits made by script, to stop pages
+  // probing the user's dictionary (crbug.com/415712674, chromium 291d50cbac). Slate inserts
+  // every keystroke itself, so without this the composer body is never spellchecked.
+  app.commandLine.appendSwitch('enable-features', 'UnrestrictSpellingAndGrammarForTesting');
+
   const options = parseCommandLine(process.argv);
   global.errorLogger = setupErrorLogger(options);
   const configDirPath = setupConfigDir(options);
