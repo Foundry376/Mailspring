@@ -1,12 +1,5 @@
-import React from 'react';
-import { localized, CalendarUtils, DateUtils } from 'mailspring-exports';
-import { EventPropertyRow } from './event-property-row';
+import { CalendarUtils } from 'mailspring-exports';
 import moment from 'moment-timezone';
-
-export interface TimeZoneSelectorProps {
-  value: string;
-  onChange: (value: string) => void;
-}
 
 // Friendly display names for common timezones
 const TIMEZONE_DISPLAY_NAMES: { [key: string]: string } = {
@@ -51,22 +44,3 @@ export function formatTimezone(tz: string, atUnix?: number): string {
   const rest = Math.abs(minutes) % 60;
   return `(GMT${hours}${rest ? `:${String(rest).padStart(2, '0')}` : ''}) ${name}`;
 }
-
-export const TimeZoneSelector: React.FC<TimeZoneSelectorProps> = ({ value, onChange }) => {
-  // Ensure current value is in the list
-  const timezones = COMMON_TIMEZONES.includes(value)
-    ? COMMON_TIMEZONES
-    : [value, ...COMMON_TIMEZONES];
-
-  return (
-    <EventPropertyRow label={localized('time zone:')}>
-      <select className="timezone-select" value={value} onChange={(e) => onChange(e.target.value)}>
-        {timezones.map((tz) => (
-          <option key={tz} value={tz}>
-            {formatTimezone(tz)}
-          </option>
-        ))}
-      </select>
-    </EventPropertyRow>
-  );
-};
