@@ -4,6 +4,43 @@ import { localized } from './intl';
 // Init locale for moment
 moment.locale(navigator.language);
 
+// Building an Intl.DateTimeFormat is far slower than formatting with one, and the thread
+// list formats a timestamp for every row on every render.
+//
+// A formatter fixes the host's zone when it's built (see calendar-date.ts), so the cache is
+// dropped when the host zone changes, e.g. a laptop waking in a new one. Reading offsets is
+// cheap enough to do on every lookup.
+const dateTimeFormats = new Map<string, Intl.DateTimeFormat>();
+let dateTimeFormatsZone: string | null = null;
+
+const thisYear = new Date().getFullYear();
+const january = Date.UTC(thisYear, 0, 1);
+const july = Date.UTC(thisYear, 6, 1);
+
+/**
+ * The host zone's UTC offsets now, in January and in July. The seasonal offsets tell apart
+ * zones that share today's offset but not their DST rules: Denver and Phoenix in winter.
+ */
+function hostZoneOffsets() {
+  const now = new Date().getTimezoneOffset();
+  return `${now},${new Date(january).getTimezoneOffset()},${new Date(july).getTimezoneOffset()}`;
+}
+
+function cachedDateTimeFormat(opts: Intl.DateTimeFormatOptions) {
+  const zone = hostZoneOffsets();
+  if (zone !== dateTimeFormatsZone) {
+    dateTimeFormats.clear();
+    dateTimeFormatsZone = zone;
+  }
+  const key = `${navigator.language}|${JSON.stringify(opts)}`;
+  let format = dateTimeFormats.get(key);
+  if (!format) {
+    format = new Intl.DateTimeFormat(navigator.language, opts);
+    dateTimeFormats.set(key, format);
+  }
+  return format;
+}
+
 /**
  * The current IANA name of a zone: America/Indiana/Indianapolis for America/Indianapolis,
  * Asia/Kolkata for Asia/Calcutta. The machine reports whatever name its zone is configured under,
@@ -515,10 +552,11 @@ const DateUtils = {
         opts.month = 'short';
         opts.day = 'numeric';
       }
-      return datetime.toLocaleDateString(navigator.language, opts);
     }
 
-    return datetime.toLocaleTimeString(navigator.language, opts);
+    // Every branch sets the fields it shows, so this matches toLocaleDateString and
+    // toLocaleTimeString, which only add default fields when none are given.
+    return cachedDateTimeFormat(opts).format(datetime);
   },
 
   /**

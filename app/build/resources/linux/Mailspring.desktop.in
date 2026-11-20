@@ -8,7 +8,7 @@ Type=Application
 Categories=GNOME;GTK;Network;Email;
 Keywords=email;internet;
 MimeType=x-scheme-handler/mailto;x-scheme-handler/mailspring;
-Actions=NewMessage
+Actions=NewMessage;Calendar
 X-GNOME-UsesNotifications=true
 
 [Desktop Action NewMessage]
@@ -109,3 +109,20 @@ Name[zh_TW]=新增郵件
 Name[zh]=新信息
 Name[zu]=Umyalezo omusha
 Exec=mailspring mailto:
+
+[Desktop Action Calendar]
+Name=Calendar
+Name[cs]=Kalendář
+Name[de]=Kalender
+Name[es]=Calendario
+Name[fr]=Calendrier
+Name[it]=Calendario
+Name[ja]=カレンダー
+Name[nl]=Agenda
+Name[pl]=Kalendarz
+Name[pt_BR]=Calendário
+Name[pt]=Calendário
+Name[ru]=Календарь
+Name[uk]=Календар
+Name[zh_CN]=日历
+Exec=mailspring mailspring://open-calendar

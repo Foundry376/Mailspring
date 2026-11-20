@@ -67,12 +67,10 @@ function handleSetupError(error) {
 }
 
 function copyEnvFromMainProcess() {
-  const newEnv = Object.assign(
-    {},
-    process.env,
-    JSON.parse(JSON.stringify(require('@electron/remote').process.env))
-  );
-  process.env = newEnv;
+  // Copied into the existing process.env rather than replacing it: process.env is Node's view
+  // of the real environment, and writes to it reach native code (setenv, and V8 re-reading the
+  // host zone when TZ changes). A plain object in its place would take writes silently.
+  Object.assign(process.env, JSON.parse(JSON.stringify(require('@electron/remote').process.env)));
 }
 
 function setupWindow(loadSettings) {
@@ -87,6 +85,12 @@ function setupWindow(loadSettings) {
     CompileCache.setHomeDirectory(loadSettings.configDirPath);
   } else {
     require('../src/compile-cache-ts-unsupported');
+  }
+
+  // React picks its development or production build the first time it is required, and the
+  // bootstrap's imports (app-env -> intl) require it before AppEnv's constructor runs.
+  if (!loadSettings.devMode && process.env.NODE_ENV == null) {
+    process.env.NODE_ENV = 'production';
   }
 
   require(loadSettings.bootstrapScript);

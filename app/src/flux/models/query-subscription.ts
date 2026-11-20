@@ -248,44 +248,66 @@ export class QuerySubscription<T extends Model> {
       rangeQuery.background();
     }
 
-    DatabaseStore.run<T[] | string[]>(rangeQuery, { format: false }).then(async (results) => {
-      if (this._queryVersion !== version) {
-        return;
-      }
+    DatabaseStore.run<T[] | string[]>(rangeQuery, { format: false }).then(
+      async (results) => {
+        if (this._queryVersion !== version) {
+          return;
+        }
 
-      // Use the actual results length (not the requested range limit) to check
-      // contiguity. If fewer items were returned than requested (end of list,
-      // or items deleted since the scroll position was computed), the actual
-      // data may not reach the existing set — treating the requested range as
-      // contiguous would pass the check but then throw inside addIdsInRange.
-      // For infinite ranges keep the original `range` so isContiguousWith can
-      // short-circuit with `return true` as it always did for infinite ranges.
-      const contiguityRange = range.isInfinite()
-        ? range
-        : new QueryRange({ offset: range.offset, limit: results.length });
-      if (this._set && !this._set.range().isContiguousWith(contiguityRange)) {
-        this._set = null;
-      }
-      this._set = this._set || new MutableQueryResultSet();
+        // Use the actual results length (not the requested range limit) to check
+        // contiguity. If fewer items were returned than requested (end of list,
+        // or items deleted since the scroll position was computed), the actual
+        // data may not reach the existing set — treating the requested range as
+        // contiguous would pass the check but then throw inside addIdsInRange.
+        // For infinite ranges keep the original `range` so isContiguousWith can
+        // short-circuit with `return true` as it always did for infinite ranges.
+        const contiguityRange = range.isInfinite()
+          ? range
+          : new QueryRange({ offset: range.offset, limit: results.length });
+        if (this._set && !this._set.range().isContiguousWith(contiguityRange)) {
+          this._set = null;
+        }
+        this._set = this._set || new MutableQueryResultSet();
 
-      if (fetchEntireModels) {
-        this._set.addModelsInRange(results as T[], range);
-      } else {
-        this._set.addIdsInRange(results as string[], range);
-      }
+        if (fetchEntireModels) {
+          this._set.addModelsInRange(results as T[], range);
+        } else {
+          this._set.addIdsInRange(results as string[], range);
+        }
 
-      this._set.clipToRange(this._query.range());
+        this._set.clipToRange(this._query.range());
 
-      // todo: this is returning fewer objects because they're being deleted immediately after being saved
-      const models = await this._fetchMissingModels();
-      if (this._queryVersion !== version) {
-        return;
+        // todo: this is returning fewer objects because they're being deleted immediately after being saved
+        const models = await this._fetchMissingModels();
+        if (this._queryVersion !== version) {
+          return;
+        }
+        for (const m of models) {
+          this._set.updateModel(m);
+        }
+        this._createResultAndTrigger();
+      },
+      (error) => {
+        if (this._queryVersion !== version) {
+          return;
+        }
+        // The last result stays in place. Left set, the in-flight flag would keep the
+        // subscription from ever processing a change record again. Records that queued during
+        // the fetch are applied now if there is a result set to apply them to; without one,
+        // _processChangeRecords would refetch at once and could retry a failing query in a loop,
+        // so the next record to arrive retries it instead.
+        this._updateInFlight = false;
+        this._onQueryFailed(error);
+        if (this._set) {
+          this._processChangeRecords();
+        }
       }
-      for (const m of models) {
-        this._set.updateModel(m);
-      }
-      this._createResultAndTrigger();
-    });
+    );
+  }
+
+  // Subclasses that report progress, like search, settle it here.
+  _onQueryFailed(error: Error) {
+    AppEnv.reportError(error);
   }
 
   async _fetchMissingModels() {
