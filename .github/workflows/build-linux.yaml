@@ -427,7 +427,8 @@ jobs:
 
             # Update package database and install required tools and libraries
             pacman -Syu --noconfirm
-            pacman -S --noconfirm xorg-server-xvfb binutils nspr nss gtk3 alsa-lib tidy
+            # mailsync links libssl.so.3; Arch's openssl package ships libssl.so.4, so 3.x comes from openssl-3
+            pacman -S --noconfirm xorg-server-xvfb binutils nspr nss gtk3 alsa-lib tidy openssl-3
 
             # Extract the DEB package manually (ar + tar)
             cd /workspace

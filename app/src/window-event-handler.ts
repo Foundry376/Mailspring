@@ -132,11 +132,11 @@ export default class WindowEventHandler {
           : AppEnv.commands.dispatch('multiselect-list:select-all'),
     });
 
-    webContents.on('input-event', (e, input) => {
-      if (input.type === 'gestureScrollBegin') {
+    ipcRenderer.on('gesture-scroll', (event, type: string) => {
+      if (type === 'gestureScrollBegin') {
         window.dispatchEvent(new Event('gesture-scroll-begin'));
       }
-      if (input.type === 'gestureScrollEnd') {
+      if (type === 'gestureScrollEnd') {
         window.dispatchEvent(new Event('gesture-scroll-end'));
       }
     });

@@ -21,6 +21,11 @@ const BASE_RETRY_LOCK_DELAY = 50;
 const MAX_RETRY_LOCK_DELAY = 500;
 
 type AgentResponse = { results: any[]; agentTime: number; error?: string };
+type AgentOpenQuery = {
+  query: SQLString;
+  values: SQLValue[];
+  resolve: (args: AgentResponse) => void;
+};
 type SQLString = string;
 type SQLValue = boolean | string | number;
 
@@ -222,58 +227,57 @@ class DatabaseStore extends MailspringStore {
   //
   // If a query is made before the database has been opened, the query will be
   // held in a queue and run / resolved when the database is ready.
-  _query(query: SQLString, values: SQLValue[] = [], background = false) {
-    // eslint-disable-next-line no-async-promise-executor
-    return new Promise<{ [key: string]: any }[]>(async (resolve, reject) => {
-      if (!this._open) {
-        this._waiting.push(() => this._query(query, values).then(resolve, reject));
-        return;
-      }
-
-      // Undefined, True, and False are not valid SQLite datatypes:
-      // https://www.sqlite.org/datatype3.html
-      values.forEach((val, idx) => {
-        if (val === false) {
-          values[idx] = 0;
-        } else if (val === true) {
-          values[idx] = 1;
-        } else if (val === undefined) {
-          values[idx] = null;
-        }
+  async _query(query: SQLString, values: SQLValue[] = [], background = false) {
+    if (!this._open) {
+      return new Promise<{ [key: string]: any }[]>((resolve, reject) => {
+        this._waiting.push(() => this._query(query, values, background).then(resolve, reject));
       });
+    }
 
-      const start = Date.now();
-
-      if (!background) {
-        const results = await this._executeLocally(query, values);
-        const msec = Date.now() - start;
-        if (msec > 100) {
-          this._prettyConsoleLog(
-            `DatabaseStore._executeLocally took more than 100ms - ${msec}msec: ${query}`
-          );
-        }
-        resolve(results);
-      } else {
-        const { results, agentTime, error } = await this._executeInBackground(query, values);
-        if (error) {
-          reject(new Error(`DatabaseStore: Query ${query} failed in background: ${error}`));
-          return;
-        }
-        const msec = Date.now() - start;
-        if (debugVerbose.enabled) {
-          const q = `🔶 (${msec}ms) Background: ${query}`;
-          debugVerbose(trimTo(q));
-        }
-
-        if (msec > 100) {
-          const msgPrefix = msec > 100 ? '_executeInBackground took more than 100ms - ' : '';
-          this._prettyConsoleLog(
-            `${msgPrefix}${msec}msec (${agentTime}msec in background): ${query}`
-          );
-        }
-        resolve(results);
+    // Undefined, True, and False are not valid SQLite datatypes:
+    // https://www.sqlite.org/datatype3.html
+    values.forEach((val, idx) => {
+      if (val === false) {
+        values[idx] = 0;
+      } else if (val === true) {
+        values[idx] = 1;
+      } else if (val === undefined) {
+        values[idx] = null;
       }
     });
+
+    const start = Date.now();
+
+    if (!background) {
+      const results = await this._executeLocally(query, values);
+      const msec = Date.now() - start;
+      if (msec > 100) {
+        this._prettyConsoleLog(
+          `DatabaseStore._executeLocally took more than 100ms - ${msec}msec: ${query}`
+        );
+      }
+      return results;
+    }
+
+    const { results, agentTime, error } = await this._executeInBackground(query, values);
+    if (error) {
+      // The agent opens its own connection, so _executeLocally's check never sees this.
+      if (/database disk image is malformed/i.test(error)) {
+        handleUnrecoverableDatabaseError(new Error(error));
+      }
+      throw new Error(`DatabaseStore: Query ${query} failed in background: ${error}`);
+    }
+    const msec = Date.now() - start;
+    if (debugVerbose.enabled) {
+      const q = `🔶 (${msec}ms) Background: ${query}`;
+      debugVerbose(trimTo(q));
+    }
+
+    if (msec > 100) {
+      const msgPrefix = msec > 100 ? '_executeInBackground took more than 100ms - ' : '';
+      this._prettyConsoleLog(`${msgPrefix}${msec}msec (${agentTime}msec in background): ${query}`);
+    }
+    return results;
   }
 
   async _executeLocally(query: SQLString, values: SQLValue[]) {
@@ -358,37 +362,51 @@ class DatabaseStore extends MailspringStore {
 
   _agent?: ChildProcess;
   _agentSpawnFailed = false;
-  _agentOpenQueries: { [id: string]: (args: AgentResponse) => void };
+  _agentOpenQueries: { [id: string]: AgentOpenQuery };
 
-  _executeInBackground(query: SQLString, values: SQLValue[]) {
+  async _executeInBackground(query: SQLString, values: SQLValue[]): Promise<AgentResponse> {
     if (!this._agent && !this._agentSpawnFailed) {
-      this._agentOpenQueries = {};
+      // Each agent answers only the queries sent to it, so an agent that exits after its
+      // replacement started settles its own queries and leaves the replacement alone.
+      const openQueries: { [id: string]: AgentOpenQuery } = {};
+      this._agentOpenQueries = openQueries;
       try {
         // Pass a null-prototype copy of the environment so a prototype-pollution
         // bug elsewhere in the process cannot inject inherited properties into
         // this forked Node agent's environment. See GHSA-gjr7-3mj2-cr54.
-        this._agent = childProcess.fork(AGENT_PATH, [], {
+        const agent = childProcess.fork(AGENT_PATH, [], {
           silent: true,
           env: Object.assign(Object.create(null), process.env),
         });
-        if (this._agent.stdout)
-          this._agent.stdout.on('data', (data) => console.log(data.toString()));
-        if (this._agent.stderr)
-          this._agent.stderr.on('data', (data) => console.error(data.toString()));
-        this._agent.on('close', (code) => {
+        this._agent = agent;
+        if (agent.stdout) agent.stdout.on('data', (data) => console.log(data.toString()));
+        if (agent.stderr) agent.stderr.on('data', (data) => console.error(data.toString()));
+        agent.on('close', (code) => {
           debug(`Query Agent: exited with code ${code}`);
-          this._agent = null;
+          if (this._agent === agent) this._agent = null;
+          // The agent exits after 5s idle, which can race a query sent just before, and when
+          // it can't open the database (database-agent.js). Its unanswered queries run in this
+          // process instead of waiting forever; if the database can't be opened, they fail.
+          for (const id of Object.keys(openQueries)) {
+            const { query, values, resolve } = openQueries[id];
+            delete openQueries[id];
+            this._executeLocally(query, values).then(
+              (results) => resolve({ results, agentTime: -1 }),
+              (err) =>
+                resolve({ results: null, agentTime: -1, error: `${err} (agent exited ${code})` })
+            );
+          }
         });
-        this._agent.on('error', (err) => {
+        agent.on('error', (err) => {
           console.error(`Query Agent: failed to start or receive message: ${err.toString()}`);
-          if (this._agent) this._agent.kill('SIGTERM');
-          this._agent = null;
+          agent.kill('SIGTERM');
+          if (this._agent === agent) this._agent = null;
         });
-        this._agent.on('message', (message: Record<string, any>) => {
+        agent.on('message', (message: Record<string, any>) => {
           const { type, id, results, agentTime, error } = message;
-          if ((type === 'results' || type === 'error') && this._agentOpenQueries[id]) {
-            this._agentOpenQueries[id]({ results, agentTime, error });
-            delete this._agentOpenQueries[id];
+          if ((type === 'results' || type === 'error') && openQueries[id]) {
+            openQueries[id].resolve({ results, agentTime, error });
+            delete openQueries[id];
           }
         });
       } catch (err) {
@@ -405,18 +423,18 @@ class DatabaseStore extends MailspringStore {
       }
     }
 
-    // eslint-disable-next-line no-async-promise-executor
-    return new Promise<AgentResponse>(async (resolve) => {
-      if (!this._agent) {
-        // Something bad has happened and we were immediately unable to spawn the query helper.
-        // Fall back to running the query in-process.
-        const results = await this._executeLocally(query, values);
-        resolve({ results, agentTime: -1 });
-        return;
-      }
+    if (!this._agent) {
+      // Something bad has happened and we were immediately unable to spawn the query helper.
+      // Fall back to running the query in-process.
+      const results = await this._executeLocally(query, values);
+      return { results, agentTime: -1 };
+    }
+    const agent = this._agent;
+    const openQueries = this._agentOpenQueries;
+    return new Promise<AgentResponse>((resolve) => {
       const id = Utils.generateTempId();
-      this._agentOpenQueries[id] = resolve;
-      this._agent.send({ query, values, id, dbpath: this._databasePath });
+      openQueries[id] = { query, values, resolve };
+      agent.send({ query, values, id, dbpath: this._databasePath });
     });
   }
 

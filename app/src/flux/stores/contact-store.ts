@@ -53,8 +53,13 @@ class ContactStore extends MailspringStore {
     // return contacts with distinct email addresses, and the same contact
     // could exist in every account. Rather than make SQLite do a SELECT DISTINCT
     // (which is very slow), we just ask for more items.
+    // The full-text match is uncapped: a prefix shared by thousands of addresses never written
+    // to (info@, support@, noreply@) would otherwise fill the cap before refs and hidden are
+    // applied and leave none of the contacts the user writes to. Uncapped, a one-letter prefix
+    // over a very large address book takes a few hundred ms, so it runs off the UI thread.
     const query = DatabaseStore.findAll<Contact>(Contact)
-      .search(search)
+      .search(search, { matchLimit: null })
+      .background()
       .limit(limit * accountCount)
       .where(Contact.attributes.refs.greaterThan(0))
       .where(Contact.attributes.hidden.equal(false))
