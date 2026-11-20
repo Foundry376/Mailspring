@@ -560,3 +560,26 @@ body.is-blurred {
     -webkit-app-region: none;
   }
 }
+
+.unread-view-options-button {
+  // Right after the search bar, which sits at order -100.
+  order: -99;
+  svg {
+    vertical-align: middle;
+  }
+}
+
+.fixed-popover .unread-view-options-popover {
+  width: 260px;
+  padding: 8px 10px;
+  label {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    line-height: 1.4;
+  }
+  input[type='checkbox'] {
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+}

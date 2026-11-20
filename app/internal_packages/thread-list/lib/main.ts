@@ -7,6 +7,7 @@ import ThreadListEmptyFolderBar from './thread-list-empty-folder-bar';
 import MessageListToolbar from './message-list-toolbar';
 import SelectedItemsStack from './selected-items-stack';
 import * as ThreadPermalinkHandler from './thread-permalink-handler';
+import { UnreadViewOptionsButton } from './unread-view-options';
 
 import { UpButton, DownButton, MoveButtons, FlagButtons } from './thread-toolbar-buttons';
 
@@ -39,6 +40,11 @@ export function activate() {
     modes: ['list'],
   });
 
+  // Shown only while the Unread view is open, next to the search bar.
+  ComponentRegistry.register(UnreadViewOptionsButton, {
+    location: WorkspaceStore.Location.ThreadList.Toolbar,
+  });
+
   ComponentRegistry.register(MessageListToolbar, {
     location: WorkspaceStore.Location.MessageList.Toolbar,
   });
@@ -66,6 +72,7 @@ export function deactivate() {
   ComponentRegistry.unregister(ThreadList);
   ComponentRegistry.unregister(SelectedItemsStack);
   ComponentRegistry.unregister(ThreadListToolbar);
+  ComponentRegistry.unregister(UnreadViewOptionsButton);
   ComponentRegistry.unregister(MessageListToolbar);
   ComponentRegistry.unregister(MoveButtons);
   ComponentRegistry.unregister(FlagButtons);
