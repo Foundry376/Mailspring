@@ -33,14 +33,11 @@ test('clicking Shortcuts tab shows shortcut preferences', async () => {
   await expect(mainWindow.locator('text=Shortcut set')).toBeVisible({ timeout: 3_000 });
 });
 
-test('clicking back arrow closes preferences', async () => {
-  const backButton = mainWindow.locator('.sheet-toolbar .btn-back, .sheet-toolbar-container .item-back');
-  if (await backButton.count() > 0) {
-    await backButton.click();
-  } else {
-    await mainWindow.keyboard.press('Escape');
-  }
+// Preferences is a section of the main window (#2970), so it's left by picking another section.
+test('picking Mail on the nav rail leaves preferences', async () => {
+  await mainWindow.locator('.nav-rail-item[aria-label="Mail"]').click();
   await expect(mainWindow.locator('.preferences-wrap')).not.toBeVisible({ timeout: 5_000 });
+  await expect(mainWindow.locator('.thread-list')).toBeVisible();
 });
 
 // Note: '/ focuses the search bar' is tested in search.spec.ts

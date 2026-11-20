@@ -372,6 +372,14 @@ export default class MailspringWindow extends EventEmitter {
       this.browserWindow.webContents.send('browser-window-hide');
     });
 
+    // Filtered here because the renderer only needs trackpad scroll boundaries, and a renderer
+    // listener over @electron/remote costs a synchronous IPC round trip on every mouse move.
+    this.browserWindow.webContents.on('input-event', (event, input) => {
+      if (input.type === 'gestureScrollBegin' || input.type === 'gestureScrollEnd') {
+        this.browserWindow.webContents.send('gesture-scroll', input.type);
+      }
+    });
+
     this.browserWindow.webContents.on('will-navigate', (event, url) => {
       event.preventDefault();
     });

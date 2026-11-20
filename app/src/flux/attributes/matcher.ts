@@ -328,12 +328,14 @@ class StructuredSearchMatcher extends Matcher {
 
 class SearchMatcher extends Matcher {
   searchQuery: string;
+  matchLimit: number | null;
 
-  constructor(searchQuery: string) {
+  constructor(searchQuery: string, matchLimit: number | null = 1000) {
     if (typeof searchQuery !== 'string' || searchQuery.length === 0) {
       throw new Error('You must pass a string with non-zero length to search.');
     }
     super(null, null, null);
+    this.matchLimit = matchLimit;
     this.searchQuery = searchQuery
       .trim()
       .replace(/^['"]/, '')
@@ -360,6 +362,7 @@ class SearchMatcher extends Matcher {
 
   whereSQL(klass: typeof Model) {
     const searchTable = `${klass.name}Search`;
-    return `\`${klass.name}\`.\`id\` IN (SELECT \`content_id\` FROM \`${searchTable}\` WHERE \`${searchTable}\` MATCH '"${this.searchQuery}"*' LIMIT 1000)`;
+    const limit = this.matchLimit === null ? '' : ` LIMIT ${this.matchLimit}`;
+    return `\`${klass.name}\`.\`id\` IN (SELECT \`content_id\` FROM \`${searchTable}\` WHERE \`${searchTable}\` MATCH '"${this.searchQuery}"*'${limit})`;
   }
 }
