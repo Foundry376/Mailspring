@@ -1,5 +1,6 @@
 import React from 'react';
-import { renderIntoDocument } from 'react-dom/test-utils';
+import ReactDOM from 'react-dom';
+import { renderIntoDocument, Simulate } from 'react-dom/test-utils';
 import { Account } from 'mailspring-exports';
 
 import PreferencesAccountDetails from '../lib/tabs/preferences-account-details';
@@ -24,11 +25,13 @@ describe('PreferencesAccountDetails', function preferencesAccountDetails() {
     spyOn(this.component, 'setState');
   });
 
-  function assertAccountState(actual, expected) {
+  // setState is spied on, so apply the updater it was handed to the component's current state.
+  const assertAccountState = (update, expected) => {
+    const actual = typeof update === 'function' ? update(this.component.state) : update;
     for (const key of Object.keys(expected)) {
       expect(actual.account[key]).toEqual(expected[key]);
     }
-  }
+  };
 
   describe('_makeAlias', () => {
     it('returns correct alias when empty string provided', () => {
@@ -175,6 +178,119 @@ describe('PreferencesAccountDetails', function preferencesAccountDetails() {
           defaultAlias: this.currentAlias,
         });
       });
+    });
+  });
+
+  describe('when the store hands over a new account instance', () => {
+    const accountJSON = {
+      id: 'acct-1',
+      name: 'Someone',
+      label: 'someone@example.com',
+      emailAddress: 'someone@example.com',
+      provider: 'imap',
+      syncState: Account.SYNC_STATE_OK,
+      aliases: [],
+      defaultAlias: null,
+      autoaddress: { type: 'bcc', value: '' },
+      color: '',
+    };
+    const fromStore = (overrides = {}) => new Account({ ...accountJSON, ...overrides });
+
+    beforeEach(() => {
+      this.container = document.createElement('div');
+      this.render = (acct: Account) =>
+        ReactDOM.render(
+          <PreferencesAccountDetails
+            account={acct}
+            isOffline={false}
+            onAccountUpdated={this.onAccountUpdated}
+          />,
+          this.container
+        ) as any;
+      this.details = this.render(fromStore());
+      this.type = (id: string, value: string) =>
+        Simulate.change(this.container.querySelector(`#${id}`), { target: { value } } as any);
+    });
+
+    afterEach(() => {
+      ReactDOM.unmountComponentAtNode(this.container);
+    });
+
+    it('keeps an unsaved label and sender name while taking the store changes', () => {
+      this.type('account-label', 'Work');
+      this.type('account-sender-name', 'Someone Else');
+
+      this.render(fromStore({ syncState: Account.SYNC_STATE_AUTH_FAILED, color: '#ff0000' }));
+
+      const { account } = this.details.state;
+      expect(account.label).toEqual('Work');
+      expect(account.name).toEqual('Someone Else');
+      expect(account.syncState).toEqual(Account.SYNC_STATE_AUTH_FAILED);
+      expect(account.color).toEqual('#ff0000');
+      expect(this.container.querySelector('#account-label').value).toEqual('Work');
+      expect(this.container.querySelector('#account-sender-name').value).toEqual('Someone Else');
+    });
+
+    it('keeps unsaved automatic CC / BCC and color edits', () => {
+      this.details._onAccountAutoaddressUpdated({ type: 'cc', value: 'boss@example.com' });
+      this.details._onSetColor({ color: '#00ff00' });
+
+      this.render(fromStore({ syncState: Account.SYNC_STATE_AUTH_FAILED }));
+
+      const { account } = this.details.state;
+      expect(account.autoaddress).toEqual({ type: 'cc', value: 'boss@example.com' });
+      expect(account.color).toEqual('#00ff00');
+      expect(account.syncState).toEqual(Account.SYNC_STATE_AUTH_FAILED);
+    });
+
+    it('takes the store value of fields the user has not edited', () => {
+      this.type('account-label', 'Work');
+
+      this.render(
+        fromStore({ name: 'Renamed', autoaddress: { type: 'cc', value: 'team@example.com' } })
+      );
+
+      const { account } = this.details.state;
+      expect(account.label).toEqual('Work');
+      expect(account.name).toEqual('Renamed');
+      expect(account.autoaddress).toEqual({ type: 'cc', value: 'team@example.com' });
+    });
+
+    it('keeps an edit across several refreshes until it is saved', () => {
+      this.type('account-label', 'Work');
+      this.render(fromStore({ syncState: Account.SYNC_STATE_AUTH_FAILED }));
+      this.render(fromStore({ syncState: Account.SYNC_STATE_OK }));
+      expect(this.details.state.account.label).toEqual('Work');
+    });
+
+    it('saves the edited label with the latest store state on blur', () => {
+      this.type('account-label', 'Work');
+      this.render(fromStore({ syncState: Account.SYNC_STATE_AUTH_FAILED }));
+
+      Simulate.blur(this.container.querySelector('#account-label'));
+
+      const saved = this.onAccountUpdated.mostRecentCall.args[1];
+      expect(saved.label).toEqual('Work');
+      expect(saved.syncState).toEqual(Account.SYNC_STATE_AUTH_FAILED);
+    });
+
+    it('discards edits when switching to a different account', () => {
+      this.type('account-label', 'Work');
+      this.type('account-sender-name', 'Someone Else');
+
+      this.render(
+        fromStore({
+          id: 'acct-2',
+          name: 'Other',
+          label: 'other@example.com',
+          emailAddress: 'other@example.com',
+        })
+      );
+
+      const { account } = this.details.state;
+      expect(account.id).toEqual('acct-2');
+      expect(account.label).toEqual('other@example.com');
+      expect(account.name).toEqual('Other');
     });
   });
 });
