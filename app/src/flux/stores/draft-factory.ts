@@ -329,14 +329,31 @@ class DraftFactory {
       return null;
     }
 
+    DraftStore = DraftStore || require('./draft-store').default;
+    const isReplyToMessage = (other: Message) =>
+      other && other.draft === true && other.replyToHeaderMessageId === message.headerMessageId;
+
     const messages =
       message.threadId === MessageStore.threadId()
         ? MessageStore.items()
         : await DatabaseStore.findAll<Message>(Message, { threadId: message.threadId });
 
-    const candidateDrafts = messages.filter(
-      (other) => other.replyToHeaderMessageId === message.headerMessageId && other.draft === true
-    );
+    const candidateDrafts = messages.filter(isReplyToMessage);
+
+    // A reply created moments ago is in no query result until the sync engine reports saving
+    // it, so a second Reply in that window must find it through its session.
+    for (const headerMessageId of DraftStore._draftsAwaitingFirstSave) {
+      const draft = DraftStore._draftSessions[headerMessageId]?.draft();
+      if (
+        isReplyToMessage(draft) &&
+        draft.accountId === message.accountId &&
+        draft.threadId === message.threadId &&
+        !DraftStore.isSendingDraft(headerMessageId) &&
+        !candidateDrafts.some((d) => d.headerMessageId === headerMessageId)
+      ) {
+        candidateDrafts.push(draft);
+      }
+    }
 
     if (candidateDrafts.length === 0) {
       return null;
@@ -345,7 +362,6 @@ class DraftFactory {
       return candidateDrafts.pop();
     }
     if (behavior === 'prefer-existing-if-pristine') {
-      DraftStore = DraftStore || require('./draft-store').default;
       const sessions = await Promise.all(
         candidateDrafts.map((candidateDraft) =>
           DraftStore.sessionForClientId(candidateDraft.headerMessageId)

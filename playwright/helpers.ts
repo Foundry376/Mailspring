@@ -169,6 +169,14 @@ export async function launchApp(): Promise<{
 
   const mainWindow = await waitForMainWindow(electronApp);
 
+  // With no saved window state the app sizes itself to the display's work area, capped at
+  // 1440x900, so smaller screens would get a smaller window and different visual snapshots.
+  // Column widths need no pinning: they live in the profile's localStorage, which every run
+  // starts without.
+  await mainWindow.evaluate(() => {
+    require('@electron/remote').getCurrentWindow().setContentSize(1440, 900);
+  });
+
   // Auto-dismiss native Electron dialogs (sync error, credential issues, etc.)
   // so they don't block the renderer during tests. Must run after the main
   // window is ready to avoid "context destroyed" errors during init.

@@ -43,6 +43,10 @@ Section: Drafts
 class DraftStore extends MailspringStore {
   _draftSessions: { [headerMessageId: string]: DraftEditingSession } = {};
   _draftsSending: { [headerMessageId: string]: boolean } = {};
+  _pendingReplies = new Map<string, Promise<{ headerMessageId: string; draft: Message } | void>>();
+  // Drafts created in this window that the sync engine hasn't reported saving yet. Until it
+  // does, they are in no query result, so replying must look for them here.
+  _draftsAwaitingFirstSave = new Set<string>();
 
   constructor() {
     super();
@@ -112,6 +116,7 @@ class DraftStore extends MailspringStore {
   _doneWithSession(session: DraftEditingSession) {
     session.teardown();
     delete this._draftSessions[session.headerMessageId];
+    this._draftsAwaitingFirstSave.delete(session.headerMessageId);
   }
 
   _cleanupAllSessions() {
@@ -178,6 +183,9 @@ class DraftStore extends MailspringStore {
     if (change.objectClass !== Message.name) {
       return;
     }
+    for (const msg of change.objects) {
+      this._draftsAwaitingFirstSave.delete(msg.headerMessageId);
+    }
     const drafts = change.objects.filter((msg) => msg.draft);
     if (drafts.length === 0) {
       return;
@@ -229,10 +237,43 @@ class DraftStore extends MailspringStore {
     type: ReplyType;
     behavior: ReplyBehavior;
   }) => {
-    const resolved = await this._modelifyContext({ thread, threadId, message, messageId });
-    if (!resolved.message || !resolved.thread) return;
-    const draft = await DraftFactory.createOrUpdateDraftForReply({ ...resolved, type, behavior });
-    return this._finalizeAndPersistNewMessage(draft, { popout });
+    // A second identical request (a double-clicked Reply, a repeated shortcut) shares the first
+    // until the new draft has a session; candidateDraftForUpdating finds it there from then on.
+    // The entry is dropped at that point, not when the save completes, so a save that never
+    // completes can't hold every later reply to the message.
+    const key = JSON.stringify([
+      thread?.id || threadId,
+      message?.id || messageId,
+      type,
+      behavior,
+      !!popout,
+    ]);
+    const pending = this._pendingReplies.get(key);
+    if (pending) return pending;
+
+    let operation: Promise<{ headerMessageId: string; draft: Message } | void> = null;
+    const release = () => {
+      if (operation && this._pendingReplies.get(key) === operation) {
+        this._pendingReplies.delete(key);
+      }
+    };
+    operation = (async () => {
+      const resolved = await this._modelifyContext({ thread, threadId, message, messageId });
+      if (!resolved.message || !resolved.thread) return;
+      const draft = await DraftFactory.createOrUpdateDraftForReply({
+        ...resolved,
+        type,
+        behavior,
+      });
+      // Creates the draft's session before its first await.
+      const finalized = this._finalizeAndPersistNewMessage(draft, { popout });
+      release();
+      return finalized;
+    })();
+    this._pendingReplies.set(key, operation);
+    // Also covers a failure before the first await, when `operation` wasn't assigned yet.
+    operation.then(release, release);
+    return operation;
   };
 
   _onComposeForward = async ({
@@ -347,6 +388,9 @@ class DraftStore extends MailspringStore {
     // Optimistically create a draft session and hand it the draft so that it
     // doesn't need to do a query for it a second from now when the composer wants it.
     this._createSession(draft.headerMessageId, draft);
+    if (!draft.id) {
+      this._draftsAwaitingFirstSave.add(draft.headerMessageId);
+    }
 
     const task = new SyncbackDraftTask({ draft });
     Actions.queueTask(task);

@@ -192,6 +192,15 @@ describe('SearchQuerySubscription', function () {
       expect(completed.callCount).toBe(1);
     });
 
+    it('turns off when the local query fails', function () {
+      spyOn(AppEnv, 'reportError');
+      const sub = subscribe('pineapple', ['a1']);
+      sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: true, threadIds: [] });
+      expect(completed).not.toHaveBeenCalled();
+      sub._onQueryFailed(new Error('DatabaseStore: Query failed in background'));
+      expect(completed.callCount).toBe(1);
+    });
+
     it('waits for the local results when the servers answer first', function () {
       const sub = subscribe('pineapple', ['a1']);
       sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: true, threadIds: [] });

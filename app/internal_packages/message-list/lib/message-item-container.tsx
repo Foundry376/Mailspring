@@ -3,6 +3,7 @@ import React from 'react';
 import { Utils, DraftStore, ComponentRegistry, Thread, Message } from 'mailspring-exports';
 
 import MessageItem from './message-item';
+import { messageRenderPropsEqual } from './message-render-props-equal';
 
 interface MessageItemContainerProps {
   thread: Thread;
@@ -48,7 +49,9 @@ export default class MessageItemContainer extends React.Component<
     nextProps: MessageItemContainerProps,
     nextState: MessageItemContainerState
   ) {
-    return !Utils.isEqualReact(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state);
+    return (
+      !messageRenderPropsEqual(nextProps, this.props) || !Utils.isEqualReact(nextState, this.state)
+    );
   }
 
   componentWillUnmount() {
