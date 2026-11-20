@@ -306,6 +306,34 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
     });
   });
 
+  describe('when the query fails', () => {
+    it('reports the failure and lets the next change record query again', () => {
+      const query = DatabaseStore.findAll<Thread>(Thread).where(
+        Thread.attributes.accountId.equal('a')
+      );
+      spyOn(QuerySubscription.prototype, 'update').andReturn(undefined);
+      const subscription = new QuerySubscription(query);
+      subscription._updateInFlight = true;
+
+      spyOn(DatabaseStore, 'run').andReturn(Promise.reject(new Error('no such column')));
+      let failed = null;
+      spyOn(subscription, '_onQueryFailed').andCallFake((error) => {
+        failed = error;
+      });
+
+      subscription._fetchRange(new QueryRange({ offset: 0, limit: 20 }), {
+        version: subscription._queryVersion,
+        fetchEntireModels: true,
+      });
+
+      waitsFor(() => failed !== null, 'failure to be reported', 1000);
+      runs(() => {
+        expect(failed.message).toBe('no such column');
+        expect(subscription._updateInFlight).toBe(false);
+      });
+    });
+  });
+
   describe('update', () => {
     beforeEach(() =>
       spyOn(QuerySubscription.prototype, '_fetchRange').andCallFake(() => {

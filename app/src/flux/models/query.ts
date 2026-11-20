@@ -147,9 +147,11 @@ export default class ModelQuery<T extends Model | Model[]> {
     return this;
   }
 
-  search(query: string) {
+  // The full-text match is capped at `matchLimit` rows (null for none) before the query's own
+  // conditions and ordering apply.
+  search(query: string, { matchLimit = 1000 }: { matchLimit?: number | null } = {}) {
     this._assertNotFinalized();
-    this._matchers.push(new Matcher.Search(query));
+    this._matchers.push(new Matcher.Search(query, matchLimit));
     return this;
   }
 

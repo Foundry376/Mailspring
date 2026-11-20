@@ -4,7 +4,7 @@ import React from 'react';
 
 export default class ModeToggle extends React.Component<
   Record<string, unknown>,
-  { hidden: boolean }
+  { hidden: boolean; threadFocused: boolean }
 > {
   static displayName = 'ModeToggle';
 
@@ -32,6 +32,7 @@ export default class ModeToggle extends React.Component<
   _getStateFromStores() {
     return {
       hidden: WorkspaceStore.isLocationHidden(this.column),
+      threadFocused: WorkspaceStore.isThreadFocused(),
     };
   }
 
@@ -58,6 +59,7 @@ export default class ModeToggle extends React.Component<
       <button
         className={`btn-ghost mode-toggle mode-${this.state.hidden}`}
         style={{ order: 500 }}
+        hidden={!this.state.threadFocused}
         title={this.state.hidden ? localized('Show Sidebar') : localized('Hide Sidebar')}
         aria-label={this.state.hidden ? localized('Show Sidebar') : localized('Hide Sidebar')}
         aria-pressed={!this.state.hidden}

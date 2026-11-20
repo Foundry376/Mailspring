@@ -8,6 +8,7 @@ describe('ContactStore.searchContacts', () => {
   it('asks the database for ten matches per account unless told otherwise', async () => {
     const query: any = {
       search: () => query,
+      background: () => query,
       where: () => query,
       order: () => query,
       limit: jasmine.createSpy('limit').andCallFake(() => query),
@@ -22,6 +23,24 @@ describe('ContactStore.searchContacts', () => {
 
     await ContactStore.searchContacts('andrew', { limit: 1 });
     expect(query.limit).toHaveBeenCalledWith(2);
+  });
+
+  it('does not cap the full-text match before filtering and ranking contacts', async () => {
+    const query: any = {
+      search: jasmine.createSpy('search').andCallFake(() => query),
+      background: jasmine.createSpy('background').andCallFake(() => query),
+      where: () => query,
+      order: () => query,
+      limit: () => query,
+      then: (callback) => Promise.resolve([]).then(callback),
+    };
+    spyOn(DatabaseStore, 'findAll').andReturn(query);
+    spyOn(AccountStore, 'accounts').andReturn([{ id: 'a' }]);
+    spyOn(AppEnv.config, 'get').andReturn([]);
+
+    await ContactStore.searchContacts('info');
+    expect(query.search).toHaveBeenCalledWith('info', { matchLimit: null });
+    expect(query.background).toHaveBeenCalled();
   });
 });
 
