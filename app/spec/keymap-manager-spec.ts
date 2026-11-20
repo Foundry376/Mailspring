@@ -116,5 +116,10 @@ describe('KeymapManager', function () {
       const user = loadWithUserKeymap({ 'core:archive-item': ['y', 'mod+e'] });
       expect(user.getBindingsForCommand('core:archive-item')).toEqual(['y', 'mod+e']);
     });
+
+    it("still knows a command's keys from before the user keymap", function () {
+      const user = loadWithUserKeymap({ 'core:archive-item': ['y'] });
+      expect(user.getDefaultBindingsForCommand('core:archive-item')).toEqual(['e']);
+    });
   });
 });
