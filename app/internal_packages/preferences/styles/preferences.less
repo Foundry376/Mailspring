@@ -233,7 +233,6 @@
         display: inline-block;
         padding-left: @padding-small-horizontal;
         padding-right: @padding-small-horizontal;
-        cursor: text;
 
         .shortcut-value {
           .then {
@@ -249,21 +248,23 @@
         }
       }
 
-      &:hover {
-        .values {
-          background: @input-bg;
-          border-radius: @border-radius-base;
-          outline: 1px solid @input-border-color;
-        }
+      .add-shortcut {
+        padding: 0 6px;
+        line-height: 1.4;
+        opacity: 0.5;
       }
-      &.editing {
-        .values {
-          background: @input-bg;
-          color: @component-active-color;
-
-          border-radius: @border-radius-base;
-          outline: 1px solid @input-border-color;
-        }
+      &:hover .add-shortcut,
+      .add-shortcut:focus {
+        opacity: 1;
+      }
+      .shortcut-recorder {
+        display: inline-block;
+        padding: 0 @padding-small-horizontal;
+        font-family: @font-family-monospace;
+        color: @component-active-color;
+        background: @input-bg;
+        border-radius: @border-radius-base;
+        outline: 1px solid @input-border-color;
       }
     }
   }
