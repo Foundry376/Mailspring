@@ -719,6 +719,82 @@ describe('DraftFactory', function draftFactory() {
       });
     });
 
+    describe('when a reply draft has a session but has not reached the database yet', () => {
+      let savedSessions;
+      let pendingDraft;
+
+      beforeEach(() => {
+        pendingDraft = new Message({
+          accountId: TEST_ACCOUNT_ID,
+          headerMessageId: 'pending-reply@mailspring',
+          replyToHeaderMessageId: fakeMessage1.headerMessageId,
+          threadId: fakeMessage1.threadId,
+          to: fakeMessage1.participantsForReply().to,
+          cc: [],
+          draft: true,
+        });
+        savedSessions = DraftStore._draftSessions;
+        DraftStore._draftSessions = {
+          [pendingDraft.headerMessageId]: { draft: () => pendingDraft } as any,
+        };
+        DraftStore._draftsAwaitingFirstSave.add(pendingDraft.headerMessageId);
+        spyOn(DatabaseStore, 'run').andCallFake(async () => [fakeMessage1]);
+        spyOn(DraftFactory, 'createDraftForReply').andCallFake(async () => new Message({}));
+      });
+
+      afterEach(() => {
+        DraftStore._draftSessions = savedSessions;
+        DraftStore._draftsSending = {};
+        DraftStore._draftsAwaitingFirstSave.clear();
+      });
+
+      it('reuses that draft instead of creating a second reply', async () => {
+        const draft = await DraftFactory.createOrUpdateDraftForReply({
+          thread: fakeThread,
+          message: fakeMessage1,
+          type: 'reply',
+          behavior: 'prefer-existing',
+        });
+        expect(draft).toBe(pendingDraft);
+        expect(DraftFactory.createDraftForReply).not.toHaveBeenCalled();
+      });
+
+      it('does not reuse a session draft once the sync engine has reported it', async () => {
+        // Saved drafts are found through the query; a session left behind by a draft that was
+        // since discarded or sent elsewhere must not bring it back.
+        DraftStore._draftsAwaitingFirstSave.clear();
+        await DraftFactory.createOrUpdateDraftForReply({
+          thread: fakeThread,
+          message: fakeMessage1,
+          type: 'reply',
+          behavior: 'prefer-existing',
+        });
+        expect(DraftFactory.createDraftForReply).toHaveBeenCalled();
+      });
+
+      it('does not reuse a draft in another account', async () => {
+        pendingDraft.accountId = 'another-account';
+        await DraftFactory.createOrUpdateDraftForReply({
+          thread: fakeThread,
+          message: fakeMessage1,
+          type: 'reply',
+          behavior: 'prefer-existing',
+        });
+        expect(DraftFactory.createDraftForReply).toHaveBeenCalled();
+      });
+
+      it('does not reuse a draft that is being sent', async () => {
+        DraftStore._draftsSending = { [pendingDraft.headerMessageId]: true };
+        await DraftFactory.createOrUpdateDraftForReply({
+          thread: fakeThread,
+          message: fakeMessage1,
+          type: 'reply',
+          behavior: 'prefer-existing',
+        });
+        expect(DraftFactory.createDraftForReply).toHaveBeenCalled();
+      });
+    });
+
     describe('when there is not an existing draft at the bottom of the thread', () => {
       beforeEach(() => {
         spyOn(DatabaseStore, 'run').andCallFake(async () => [fakeMessage1]);

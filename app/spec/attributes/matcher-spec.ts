@@ -407,9 +407,7 @@ describe('Matcher', function matcherSpecs() {
     describe('startsWith comparator', () => {
       it('generates a LIKE clause with a trailing wildcard', () => {
         const matcher = new Matcher(Thread.attributes.subject, 'startsWith', 'Hello');
-        expect(matcher.whereSQL(Thread)).toBe(
-          "`Thread`.`subject` LIKE 'Hello%' ESCAPE '\\'"
-        );
+        expect(matcher.whereSQL(Thread)).toBe("`Thread`.`subject` LIKE 'Hello%' ESCAPE '\\'");
       });
 
       it('escapes LIKE special characters (%, _, \\) in the prefix', () => {
@@ -421,9 +419,7 @@ describe('Matcher', function matcherSpecs() {
 
       it('escapes single quotes in the prefix', () => {
         const matcher = new Matcher(Thread.attributes.subject, 'startsWith', "it's");
-        expect(matcher.whereSQL(Thread)).toBe(
-          "`Thread`.`subject` LIKE 'it''s%' ESCAPE '\\'"
-        );
+        expect(matcher.whereSQL(Thread)).toBe("`Thread`.`subject` LIKE 'it''s%' ESCAPE '\\'");
       });
     });
 
@@ -623,6 +619,14 @@ describe('Matcher', function matcherSpecs() {
       const matcher = new SearchMatcher('hello');
       expect(matcher.whereSQL(Thread)).toBe(
         '`Thread`.`id` IN (SELECT `content_id` FROM `ThreadSearch` WHERE `ThreadSearch` MATCH \'"hello"*\' LIMIT 1000)'
+      );
+    });
+
+    it('leaves the full-text match uncapped when matchLimit is null', () => {
+      const SearchMatcher = Matcher.Search;
+      const matcher = new SearchMatcher('info', null);
+      expect(matcher.whereSQL(Thread)).toBe(
+        '`Thread`.`id` IN (SELECT `content_id` FROM `ThreadSearch` WHERE `ThreadSearch` MATCH \'"info"*\')'
       );
     });
 

@@ -53,6 +53,15 @@ describe('LocalSearchQueryBackend', function () {
     expect(run('(nothing OR missing) AND hello')).toEqual([]);
   });
 
+  it('leaves out a date term it cannot read instead of emitting invalid SQL', function () {
+    expect(run('before:foo')).toEqual(['t1']);
+    expect(run('hello after:sometime-ish')).toEqual(['t1']);
+    expect(run('nothing before:foo')).toEqual([]);
+    expect(run('nothing OR before:foo')).toEqual([]);
+    expect(run('hello OR before:foo')).toEqual(['t1']);
+    expect(run('hello NOT before:foo')).toEqual(['t1']);
+  });
+
   describe('in:', function () {
     beforeEach(function () {
       db.exec(`

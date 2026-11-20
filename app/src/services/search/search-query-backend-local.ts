@@ -213,26 +213,34 @@ class StructuredSearchQueryVisitor extends SearchQueryExpressionVisitor {
     this._className = className;
   }
 
+  // A term that constrains nothing (a date chrono can't read) compiles to '' and is left out
+  // of the expression around it; a query of only such terms matches everything.
   visit(root) {
-    return this.visitAndGetResult(root);
+    return this.visitAndGetResult(root) || '(1)';
   }
 
   visitNot(node) {
     const lhs = this.visitAndGetResult(node.e1);
     const rhs = this.visitAndGetResult(node.e2);
-    this._result = `(${lhs} AND NOT ${rhs})`;
+    if (!rhs) {
+      this._result = lhs;
+    } else if (!lhs) {
+      this._result = `(NOT ${rhs})`;
+    } else {
+      this._result = `(${lhs} AND NOT ${rhs})`;
+    }
   }
 
   visitAnd(node) {
     const lhs = this.visitAndGetResult(node.e1);
     const rhs = this.visitAndGetResult(node.e2);
-    this._result = `(${lhs} AND ${rhs})`;
+    this._result = lhs && rhs ? `(${lhs} AND ${rhs})` : lhs || rhs;
   }
 
   visitOr(node) {
     const lhs = this.visitAndGetResult(node.e1);
     const rhs = this.visitAndGetResult(node.e2);
-    this._result = `(${lhs} OR ${rhs})`;
+    this._result = lhs && rhs ? `(${lhs} OR ${rhs})` : lhs || rhs;
   }
 
   visitFrom(node) {
@@ -293,6 +301,7 @@ class StructuredSearchQueryVisitor extends SearchQueryExpressionVisitor {
   visitDate(node) {
     const comparator = node.direction === 'before' ? '<' : '>';
     const date = DateUtils.getChronoPast().parseDate(node.text.token.s);
+    // A date chrono can't read (`before:foo`, a half-typed date) constrains nothing.
     if (!date) {
       this._result = '';
       return;
