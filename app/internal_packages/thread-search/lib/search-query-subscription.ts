@@ -151,6 +151,13 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
     this._completeWhenAnswered();
   }
 
+  // A failed local query counts as answered, or the searching indicator would stay on.
+  _onQueryFailed(error: Error) {
+    super._onQueryFailed(error);
+    this._haveLocalResults = true;
+    this._completeWhenAnswered();
+  }
+
   // The searching indicator stays on until the local results are in and every server
   // asked has answered: a server can take 10 s or more (Yahoo, live 2026-10-25), and its
   // matches join the list when they arrive.

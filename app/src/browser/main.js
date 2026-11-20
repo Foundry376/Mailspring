@@ -36,6 +36,7 @@ console.inspect = function consoleInspect(val) {
 const { app, session, protocol } = require('electron');
 const path = require('path');
 const { developerToolsAvailable } = require('../developer-tools');
+const { claimSingleInstance } = require('./single-instance');
 
 if (typeof process.setFdLimit === 'function') {
   process.setFdLimit(1024);
@@ -348,6 +349,11 @@ const start = () => {
   app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
   app.commandLine.appendSwitch('js-flags', '--harmony');
 
+  // Since Chromium 146 (Electron 41), spellcheck ignores edits made by script, to stop pages
+  // probing the user's dictionary (crbug.com/415712674, chromium 291d50cbac). Slate inserts
+  // every keystroke itself, so without this the composer body is never spellchecked.
+  app.commandLine.appendSwitch('enable-features', 'UnrestrictSpellingAndGrammarForTesting');
+
   const options = parseCommandLine(process.argv);
   global.errorLogger = setupErrorLogger(options);
   const configDirPath = setupConfigDir(options);
@@ -363,18 +369,15 @@ const start = () => {
   }
 
   if (!options.devMode) {
-    const gotTheLock = app.requestSingleInstanceLock();
+    const gotTheLock = claimSingleInstance(app, process.argv, argv => {
+      global.application.handleLaunchOptions(parseCommandLine(argv));
+    });
 
     if (!gotTheLock) {
       console.log('Exiting because another instance of the app is already running.');
       app.exit(1);
       return;
     }
-
-    app.on('second-instance', (event, commandLine, workingDirectory) => {
-      const otherOpts = parseCommandLine(commandLine);
-      global.application.handleLaunchOptions(otherOpts);
-    });
   }
 
   setupCompileCache(configDirPath, options.devMode);
