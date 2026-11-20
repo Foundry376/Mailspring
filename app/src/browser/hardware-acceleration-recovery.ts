@@ -3,6 +3,7 @@ import path from 'path';
 
 type RecoveryApp = {
   disableHardwareAcceleration(): void;
+  commandLine: { appendSwitch(name: string): void };
   relaunch(): void;
   exit(code?: number): void;
 };
@@ -132,6 +133,12 @@ export function applyPersistentSoftwareRendering(
   }
 
   app.disableHardwareAcceleration();
+  // disableHardwareAcceleration() alone can leave Chromium starting a GPU process that hangs
+  // without ending the renderer, and a DirectComposition surface that can't reach the video
+  // device on the software adapter, which leaves only the window caption painted. Field
+  // reports from affected machines (SummerMail fork 868a1174f, 9eb07533a).
+  app.commandLine.appendSwitch('disable-gpu');
+  app.commandLine.appendSwitch('disable-direct-composition');
   softwareRenderingApplied = true;
 
   const cacheClearedPath = path.join(configDirPath, CACHE_CLEARED_MARKER);
