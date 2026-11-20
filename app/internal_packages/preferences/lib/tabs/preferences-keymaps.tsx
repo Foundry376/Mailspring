@@ -7,11 +7,38 @@ import { localized } from 'mailspring-exports';
 
 import displayedKeybindings from './keymaps/displayed-keybindings';
 import CommandItem from './keymaps/command-item';
+import {
+  readUserKeymap,
+  writeUserKeymap,
+  clearedKeymap,
+  withoutBinding,
+  addedBindings,
+  findConflicts,
+  Conflicts,
+  UserKeymap,
+} from './keymaps/user-keymap';
+
+const LABELS: { [command: string]: string } = Object.fromEntries(
+  displayedKeybindings.flatMap((section) =>
+    section.items.map(([command, label]) => [command, label])
+  )
+);
+import { matchesQuery, runsOnKey } from './keymaps/shortcut-search';
+import { ShortcutRecorder } from './keymaps/shortcut-recorder';
+import { formatKeystrokes, renderKeystrokes } from './keymaps/keystrokes';
 import { Disposable } from 'event-kit';
 
 export default class PreferencesKeymaps extends React.Component<
   { config: any },
-  { templates: string[]; bindings: { [command: string]: [] } }
+  {
+    templates: string[];
+    bindings: { [command: string]: [] };
+    userKeymap: UserKeymap;
+    query: string;
+    /** The key whose commands are listed, after Find by key. */
+    keyQuery: string | null;
+    findingKey: boolean;
+  }
 > {
   static displayName = 'PreferencesKeymaps';
 
@@ -22,13 +49,20 @@ export default class PreferencesKeymaps extends React.Component<
     this.state = {
       templates: [],
       bindings: this._getStateFromKeymaps(),
+      userKeymap: readUserKeymap(AppEnv.keymaps.getUserKeymapPath()),
+      query: '',
+      keyQuery: null,
+      findingKey: false,
     };
     this._loadTemplates();
   }
 
   componentDidMount() {
     this._disposable = AppEnv.keymaps.onDidReloadKeymap(() => {
-      this.setState({ bindings: this._getStateFromKeymaps() });
+      this.setState({
+        bindings: this._getStateFromKeymaps(),
+        userKeymap: readUserKeymap(AppEnv.keymaps.getUserKeymapPath()),
+      });
     });
   }
 
@@ -82,17 +116,150 @@ export default class PreferencesKeymaps extends React.Component<
     }
   }
 
-  _renderBindingsSection = (section: { title: string; items: string[][] }) => {
+  /** Keys the user added to each command they changed, which the conflict check is about. */
+  _addedBindings(all: { [command: string]: string[] }) {
+    const added: { [command: string]: string[] } = {};
+    for (const command of Object.keys(this.state.userKeymap)) {
+      added[command] = addedBindings(
+        all[command] || [],
+        AppEnv.keymaps.getDefaultBindingsForCommand(command),
+        process.platform
+      );
+    }
+    return added;
+  }
+
+  _onRemoveFrom = (command: string, binding: string) => {
+    const keymapPath = AppEnv.keymaps.getUserKeymapPath();
+    const keymap = readUserKeymap(keymapPath);
+    keymap[command] = withoutBinding(
+      AppEnv.keymaps.getBindingsForCommand(command),
+      binding,
+      process.platform
+    );
+    writeUserKeymap(keymapPath, keymap);
+  };
+
+  _onClear(commands: string[]) {
+    const keymapPath = AppEnv.keymaps.getUserKeymapPath();
+    writeUserKeymap(keymapPath, clearedKeymap(readUserKeymap(keymapPath), commands));
+  }
+
+  _onClearAll = () => {
+    const chosen = require('@electron/remote').dialog.showMessageBoxSync({
+      type: 'info',
+      message: localized('Are you sure?'),
+      detail: localized(
+        'Remove every shortcut in this list? Add back the ones you want with +, or use Restore Defaults.'
+      ),
+      buttons: [localized('Cancel'), localized('Clear All')],
+    });
+    if (chosen === 1) {
+      this._onClear(displayedKeybindings.flatMap((section) => section.items.map(([c]) => c)));
+    }
+  };
+
+  _isSearching() {
+    return !!(this.state.query.trim() || this.state.keyQuery);
+  }
+
+  _visibleItems(section: { items: string[][] }) {
+    const { query, keyQuery, bindings } = this.state;
+    return section.items.filter(([command, label]) =>
+      keyQuery
+        ? runsOnKey(bindings[command], keyQuery, process.platform)
+        : matchesQuery(label, bindings[command], query, process.platform)
+    );
+  }
+
+  _renderSearch() {
+    const { query, keyQuery, findingKey } = this.state;
+    let field: React.ReactNode;
+    if (findingKey) {
+      field = (
+        <ShortcutRecorder
+          placeholder={localized('Press the keys to look up, Esc to cancel')}
+          onRecord={(key) => this.setState({ keyQuery: key, findingKey: false })}
+          onCancel={() => this.setState({ findingKey: false })}
+        />
+      );
+    } else if (keyQuery) {
+      field = (
+        <span className="shortcut-key-query">
+          {localized('Runs on')} {renderKeystrokes(keyQuery, 0)}
+          <button
+            className="clear-key-query"
+            title={localized('Clear')}
+            onClick={() => this.setState({ keyQuery: null })}
+          >
+            ×
+          </button>
+        </span>
+      );
+    } else {
+      field = (
+        <input
+          type="search"
+          className="shortcut-search-input"
+          placeholder={localized('Search commands or keys')}
+          value={query}
+          onChange={(e) => this.setState({ query: e.target.value })}
+        />
+      );
+    }
+    return (
+      <Flexbox className="shortcut-search">
+        {field}
+        <button
+          className="btn find-by-key"
+          disabled={findingKey}
+          onClick={() => this.setState({ findingKey: true, keyQuery: null, query: '' })}
+        >
+          {localized('Find by key')}
+        </button>
+      </Flexbox>
+    );
+  }
+
+  _renderBindingsSection = (
+    section: { title: string; items: string[][] },
+    conflicts: Conflicts,
+    added: { [command: string]: string[] }
+  ) => {
+    const items = this._visibleItems(section);
+    if (items.length === 0) {
+      return null;
+    }
     return (
       <section key={`section-${section.title}`}>
-        <div className="shortcut-section-title">{section.title}</div>
-        {section.items.map(([command, label]) => {
+        <Flexbox className="shortcut-section-title">
+          <div style={{ flex: 1 }}>{section.title}</div>
+          {!this._isSearching() && (
+            <a
+              className="clear-section"
+              onClick={() => this._onClear(section.items.map(([command]) => command))}
+            >
+              {localized('Clear')}
+            </a>
+          )}
+        </Flexbox>
+        {items.map(([command, label]) => {
           return (
             <CommandItem
               key={command}
               command={command}
               label={label}
               bindings={this.state.bindings[command]}
+              customized={command in this.state.userKeymap}
+              added={added[command] || []}
+              conflicts={Object.fromEntries(
+                Object.entries(conflicts[command] || {}).map(([binding, others]) => [
+                  binding,
+                  others.map((other) => ({ command: other, label: LABELS[other] || other })),
+                ])
+              )}
+              onRemoveFrom={this._onRemoveFrom}
+              singleKeysOff={!this.props.config.get('core.keymapSingleKeys')}
             />
           );
         })}
@@ -101,6 +268,15 @@ export default class PreferencesKeymaps extends React.Component<
   };
 
   render() {
+    const all = AppEnv.keymaps.getBindingsForAllCommands();
+    const added = this._addedBindings(all);
+    const conflicts = findConflicts(all, added, process.platform);
+    const conflictCount = Object.keys(added).reduce(
+      (count, command) => count + added[command].filter((b) => conflicts[command]?.[b]).length,
+      0
+    );
+    const renderSection = (section) => this._renderBindingsSection(section, conflicts, added);
+
     return (
       <div className="container-keymaps">
         <section>
@@ -124,30 +300,53 @@ export default class PreferencesKeymaps extends React.Component<
               </select>
             </div>
             <div style={{ flex: 1 }} />
+            <button className="btn" style={{ marginRight: 8 }} onClick={this._onClearAll}>
+              {localized('Clear All')}
+            </button>
             <button className="btn" onClick={this._onDeleteUserKeymap}>
               {localized('Restore Defaults')}
             </button>
           </Flexbox>
           <p style={{ maxWidth: 600 }}>
             {localized(
-              'You can choose a shortcut set to use keyboard shortcuts of familiar email clients. To edit a shortcut, click it in the list below and enter a replacement on the keyboard.'
+              'You can choose a shortcut set to use keyboard shortcuts of familiar email clients. To add a shortcut, click + next to a command and press the keys.'
             )}
           </p>
-          <div className="two-columns-flexbox">
-            <div style={{ flex: 1 }}>
-              {displayedKeybindings.slice(0, 3).map(this._renderBindingsSection)}
+          {conflictCount > 0 && (
+            <div className="shortcut-conflict-count">
+              {conflictCount === 1
+                ? localized('1 shortcut you added also runs another command.')
+                : localized('%@ shortcuts you added also run other commands.', conflictCount)}
             </div>
-            <div style={{ width: 30 }} />
-            <div style={{ flex: 1 }}>
-              {displayedKeybindings.slice(3).map(this._renderBindingsSection)}
-            </div>
+          )}
+          <label className="single-key-switch">
+            <input
+              type="checkbox"
+              checked={!!this.props.config.get('core.keymapSingleKeys')}
+              onChange={(e) => this.props.config.set('core.keymapSingleKeys', e.target.checked)}
+            />
+            {localized('Single-key shortcuts, like E to archive')}
+          </label>
+          <div className="single-key-switch-note">
+            {localized(
+              'Turn these off to keep keys pressed without Ctrl, Alt or Cmd from running commands, for example while dictating.'
+            )}
           </div>
+          {this._renderSearch()}
+          <div className="shortcut-sections">{displayedKeybindings.map(renderSection)}</div>
+          {displayedKeybindings.every((section) => this._visibleItems(section).length === 0) && (
+            <div className="shortcut-no-matches">
+              {this.state.keyQuery
+                ? localized('Nothing runs on %@.', formatKeystrokes(this.state.keyQuery))
+                : localized('No shortcuts match.')}
+            </div>
+          )}
         </section>
         <section>
           <h2>{localized('Customization')}</h2>
           <p>
             {localized(
-              'Click shortcuts above to edit them. For even more control, you can edit the shortcuts file directly below.'
+              'Add shortcuts above with +. For even more control, you can edit the shortcuts file directly below.'
             )}
           </p>
           <button className="btn" onClick={this._onShowUserKeymaps}>
