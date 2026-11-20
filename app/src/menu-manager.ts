@@ -97,7 +97,7 @@ export default class MenuManager {
         }
       });
 
-      this.sendToBrowserProcess(template, AppEnv.keymaps.getBindingsForAllCommands());
+      this.sendToBrowserProcess(template, AppEnv.keymaps.getActiveBindingsForAllCommands());
     });
   };
 
