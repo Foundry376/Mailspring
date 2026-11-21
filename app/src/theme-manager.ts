@@ -31,7 +31,37 @@ export function isDarkColor(color: string) {
   return dark;
 }
 
-function buildSystemAccentCSS(color: string): string {
+// WCAG 2's minimum for UI components and large text. The macOS blue, purple, pink and red
+// accents already meet it with white, and stay as the OS draws them.
+const MIN_WHITE_ON_ACCENT_CONTRAST = 3;
+
+function contrastWithWhite(rgb: number[]) {
+  const [r, g, b] = rgb.map((c) => {
+    const s = c / 255;
+    return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  });
+  return 1.05 / (0.2126 * r + 0.7152 * g + 0.0722 * b + 0.05);
+}
+
+/**
+ * The system accent `color` (#rrggbb), darkened just enough for white text on it to reach
+ * 3:1. Themes draw white text and icons on the accent, and the macOS yellow, orange, green and
+ * light graphite accents are too light for it (white on yellow #ffc600 is 1.6:1).
+ */
+export function readableSystemAccent(color: string): string {
+  const match = /^#([0-9a-f]{6})$/i.exec(color);
+  if (!match) return color;
+  const rgb = [0, 2, 4].map((i) => parseInt(match[1].slice(i, i + 2), 16));
+  let shade = rgb;
+  for (let scale = 1; scale > 0; scale -= 0.01) {
+    shade = rgb.map((c) => Math.round(c * scale));
+    if (contrastWithWhite(shade) >= MIN_WHITE_ON_ACCENT_CONTRAST) break;
+  }
+  return `#${shade.map((c) => c.toString(16).padStart(2, '0')).join('')}`;
+}
+
+function buildSystemAccentCSS(systemColor: string): string {
+  const color = readableSystemAccent(systemColor);
   return `:root {
   --system-accent: ${color};
   --system-accent-dark: color-mix(in srgb, ${color}, black 10%);
