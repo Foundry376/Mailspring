@@ -418,14 +418,20 @@ class DraftFactory {
   _fromContactForReply(message: Message) {
     const account = AccountStore.accountForId(message.accountId);
     const defaultMe = account.defaultMe();
+    const aliases = account.aliases.map((a) => account.meUsingAlias(a));
+    const recipients = [...message.to, ...message.cc];
+
+    // Addresses are compared without regard to case: mail to Ben@Example.com was delivered to
+    // the alias ben@example.com. Unlike Utils.emailIsEquivalent (Contact.isMe), `+tags` are
+    // significant, since an account can have aliases that differ only by tag.
+    const norm = (email: string) => (email || '').trim().toLowerCase();
 
     let result = defaultMe;
 
-    for (const aliasString of account.aliases) {
-      const alias = account.meUsingAlias(aliasString);
-      for (const recipient of [...message.to, ...message.cc]) {
-        const emailIsNotDefault = alias.email !== defaultMe.email;
-        const emailsMatch = recipient.email === alias.email;
+    for (const alias of aliases) {
+      for (const recipient of recipients) {
+        const emailIsNotDefault = norm(alias.email) !== norm(defaultMe.email);
+        const emailsMatch = norm(recipient.email) === norm(alias.email);
         const nameIsNotDefault = alias.name !== defaultMe.name;
         const namesMatch = recipient.name === alias.name;
 
@@ -442,7 +448,27 @@ class DraftFactory {
         }
       }
     }
-    return result;
+    if (result !== defaultMe) {
+      return result;
+    }
+
+    // Mail to a subaddress of an alias (sales+leads@example.com for the alias
+    // sales@example.com) was delivered to that alias, so reply from it. Reply from the
+    // configured address rather than the tagged one: providers reject or rewrite a From
+    // address that isn't set up for sending.
+    for (const recipient of recipients) {
+      if (!norm(recipient.email).includes('+')) {
+        continue;
+      }
+      const untagged = Utils.toEquivalentEmailForm(recipient.email);
+      const alias = aliases.find(
+        (a) => norm(a.email) === untagged && norm(a.email) !== norm(defaultMe.email)
+      );
+      if (alias) {
+        return alias;
+      }
+    }
+    return defaultMe;
   }
 
   _accountForNewDraft() {

@@ -5,6 +5,7 @@ import path from 'path';
 
 import {
   File,
+  Account,
   Actions,
   Thread,
   Contact,
@@ -902,6 +903,16 @@ describe('DraftFactory', function draftFactory() {
           cc: [new Contact({ email: 'second+third@gmail.com' })], // exact alias match, but in CC
           expected: new Contact({ name: 'Second', email: 'second+third@gmail.com' }),
         },
+        {
+          to: [new Contact({ email: 'Second+Alternate@Gmail.com' })], // alias match, different case
+          cc: [],
+          expected: new Contact({ name: 'Second Alternate', email: 'second+alternate@gmail.com' }),
+        },
+        {
+          to: [new Contact({ email: 'second+news@gmail.com' })], // tagged account address, no such alias
+          cc: [],
+          expected: account.defaultMe(),
+        },
       ];
       cases.forEach(({ to, cc, expected }) => {
         const contact = DraftFactory._fromContactForReply(
@@ -913,6 +924,35 @@ describe('DraftFactory', function draftFactory() {
         );
         expect(contact.name).toEqual(expected.name);
         expect(contact.email).toEqual(expected.email);
+      });
+    });
+
+    describe('when the message was sent to a subaddress of an alias', () => {
+      const fromForReply = (to: Contact[], cc: Contact[] = []) =>
+        DraftFactory._fromContactForReply(new Message({ accountId: account.id, to, cc }));
+
+      beforeEach(() => {
+        account = new Account({
+          id: 'subaddress-test-account-id',
+          name: 'Second',
+          emailAddress: 'second@gmail.com',
+          aliases: ['Second Sales <sales@second.com>', 'Second <second+third@gmail.com>'],
+        });
+        spyOn(AccountStore, 'accountForId').andReturn(account);
+      });
+
+      it('replies from the alias, not the tagged address', () => {
+        const contact = fromForReply([new Contact({ email: 'Sales+Leads@second.com' })]);
+        expect(contact.name).toEqual('Second Sales');
+        expect(contact.email).toEqual('sales@second.com');
+      });
+
+      it('prefers an alias the message was sent to exactly', () => {
+        const contact = fromForReply(
+          [new Contact({ email: 'sales+leads@second.com' })],
+          [new Contact({ email: 'second+third@gmail.com' })]
+        );
+        expect(contact.email).toEqual('second+third@gmail.com');
       });
     });
   });
