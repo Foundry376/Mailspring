@@ -1,6 +1,12 @@
 import { z } from 'zod';
 import { AccountStore, CategoryStore, Matcher, SearchQueryParser } from 'mailspring-exports';
 import { knownAddresses } from './identity';
+import {
+  ADDRESS_FIELDS,
+  messageHasAddressSQL,
+  sqlString,
+  wholeAddress,
+} from '../message-address-sql';
 
 /**
  * A JSON mail filter, compiled straight to SQL on the host. It is the structured alternative
@@ -121,11 +127,9 @@ export function validateFilter(filter: any): Filter {
 
 // ── SQL helpers ─────────────────────────────────────────────────────────────
 
-const sqlString = (s: string) => `'${s.replace(/'/g, "''")}'`;
 const likeEscape = (s: string) => s.replace(/[\\%_]/g, (c) => `\\${c}`);
 const list = (v: string | string[]) => (Array.isArray(v) ? v : [v]);
 
-const EXACT = /^[^\s@]+@[^\s@]+$/;
 const DOMAIN = /^@?(?:[a-z0-9-]+\.)+[a-z0-9-]{2,}$/i;
 
 // `a@b.com` matches that address; `b.com` or `@b.com` matches the domain and its subdomains.
@@ -133,11 +137,12 @@ function addressMatchSQL(column: string, values: string[]) {
   const exact: string[] = [];
   const clauses: string[] = [];
   for (const raw of values) {
-    const v = raw.trim().toLowerCase();
-    if (EXACT.test(v)) {
-      exact.push(v);
+    const v = raw.trim();
+    const address = wholeAddress(v);
+    if (address) {
+      exact.push(address);
     } else if (DOMAIN.test(v)) {
-      const domain = likeEscape(v.replace(/^@/, ''));
+      const domain = likeEscape(v.replace(/^@/, '').toLowerCase());
       clauses.push(`${column} LIKE ${sqlString(`%@${domain}`)} ESCAPE '\\'`);
       clauses.push(`${column} LIKE ${sqlString(`%.${domain}`)} ESCAPE '\\'`);
     } else {
@@ -148,16 +153,8 @@ function addressMatchSQL(column: string, values: string[]) {
   return `(${clauses.join(' OR ')})`;
 }
 
-function contactsMatchSQL(fields: string[], values: string[]) {
-  const email = "lower(json_extract(`c`.`value`, '$.email'))";
-  const match = addressMatchSQL(email, values);
-  return `(${fields
-    .map(
-      (f) =>
-        `EXISTS (SELECT 1 FROM json_each(\`Message\`.\`data\`, '$.${f}') AS \`c\` WHERE ${match})`
-    )
-    .join(' OR ')})`;
-}
+const contactsMatchSQL = (fields: string[], values: string[]) =>
+  messageHasAddressSQL(fields, (email) => addressMatchSQL(email, values));
 
 const seconds = (iso: string) => Math.floor(new Date(iso).getTime() / 1000);
 
@@ -245,11 +242,11 @@ const MESSAGE_LEAVES = new Set([
 function messageLeafSQL(key: string, value: any, ctx: CompileContext): string {
   switch (key) {
     case 'from':
-      return contactsMatchSQL(['from'], list(value));
+      return contactsMatchSQL(ADDRESS_FIELDS.from, list(value));
     case 'to':
-      return contactsMatchSQL(['to', 'cc', 'bcc'], list(value));
+      return contactsMatchSQL(ADDRESS_FIELDS.to, list(value));
     case 'participant':
-      return contactsMatchSQL(['from', 'to', 'cc', 'bcc'], list(value));
+      return contactsMatchSQL([...ADDRESS_FIELDS.from, ...ADDRESS_FIELDS.to], list(value));
     case 'direction': {
       const mine = knownAddresses();
       const sent = mine.length
