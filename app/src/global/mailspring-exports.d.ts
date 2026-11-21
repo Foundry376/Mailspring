@@ -60,6 +60,8 @@ export * from '../services/search/search-query-parser';
 export type RemoteSearchQueryBackend =
   typeof import('../services/search/search-query-backend-remote').default;
 export const RemoteSearchQueryBackend: RemoteSearchQueryBackend;
+export { searchHighlighter } from '../services/search/search-highlighter';
+export type { Highlighted, SearchHighlighter } from '../services/search/search-highlighter';
 
 // Tasks
 export * from '../flux/tasks/task';

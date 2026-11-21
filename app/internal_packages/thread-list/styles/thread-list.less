@@ -433,6 +433,24 @@ body.platform-win32 {
   background-size: 16px;
 }
 
+// The snippet's dimming moves to the words around a search match (opacities below), so the
+// highlight is drawn at full strength.
+.thread-list,
+.thread-list-narrow {
+  .snippet:has(> mark.search-match) {
+    opacity: 1;
+  }
+  .snippet .match-context {
+    opacity: 0.62;
+  }
+  mark.search-match {
+    background: @list-search-match-bg;
+    color: @list-search-match-color;
+    border-radius: @border-radius-base;
+    padding: 0 1px;
+  }
+}
+
 .thread-list-narrow {
   .icons-column {
     display: flex;
@@ -503,6 +521,10 @@ body.platform-win32 {
       text-align: left;
       min-height: 21px;
       margin-right: 4px;
+
+      .match-context {
+        opacity: 0.7;
+      }
     }
   }
 }

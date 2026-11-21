@@ -14,6 +14,7 @@ import { ThreadArchiveQuickAction, ThreadTrashQuickAction } from './thread-list-
 import ThreadListParticipants from './thread-list-participants';
 import ThreadListIcon from './thread-list-icon';
 import { ThreadWithMessagesMetadata } from './types';
+import { renderHighlighted } from './search-highlight';
 
 // Get and format either last sent or last received timestamp depending on thread-list being viewed
 const ThreadListTimestamp = function ({ thread }: { thread: Thread }) {
@@ -59,6 +60,18 @@ const getSnippet = function (thread: ThreadWithMessagesMetadata) {
     if (messages[ii].snippet) return messages[ii].snippet;
   }
   return null;
+};
+
+const threadSubject = function (thread: ThreadWithMessagesMetadata) {
+  const parts = thread.__searchMatch?.highlighter.subject(thread.subject || '');
+  return parts ? renderHighlighted(parts) : subject(thread.subject);
+};
+
+// A search result whose body matched shows the words around the match instead of the
+// start of the latest message, as Apple Mail does.
+const snippetOrMatchExcerpt = function (thread: ThreadWithMessagesMetadata) {
+  const excerpt = thread.__searchMatch?.excerpt;
+  return excerpt ? renderHighlighted(excerpt, 'match-context') : getSnippet(thread);
 };
 
 const c1 = new ListTabular.Column({
@@ -122,10 +135,10 @@ const c3 = new ListTabular.Column({
       <span className="details">
         <MailLabelSet thread={thread} />
         <span className="subject" dir="auto">
-          {subject(thread.subject)}
+          {threadSubject(thread)}
         </span>
         <span className="snippet" dir="auto">
-          {getSnippet(thread)}
+          {snippetOrMatchExcerpt(thread)}
         </span>
         {attachment}
       </span>
@@ -227,11 +240,11 @@ const cNarrow = new ListTabular.Column({
             />
           </div>
           <div className="subject" dir="auto">
-            {subject(thread.subject)}
+            {threadSubject(thread)}
           </div>
           <div className="snippet-and-labels">
             <div className="snippet" dir="auto">
-              {getSnippet(thread)}&nbsp;
+              {snippetOrMatchExcerpt(thread)}&nbsp;
             </div>
             <div style={{ flex: 1, flexShrink: 1 }} />
             <MailLabelSet thread={thread} />
