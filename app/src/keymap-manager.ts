@@ -44,7 +44,7 @@ mousetrap.prototype.stopCallback = (e: KeyboardEvent, element: HTMLElement, comb
   const withinSlateEditor =
     target.isContentEditable &&
     (target.hasAttribute('data-slate-editor') || target.closest('[data-slate-editor]'));
-  if (withinSlateEditor && /(mod|command|ctrl)\+(z|y)/.test(combo)) {
+  if (withinSlateEditor && /^(mod|command|ctrl)\+(shift\+)?(z|y)$/.test(combo)) {
     return true;
   }
 
