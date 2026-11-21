@@ -29,6 +29,7 @@ interface IThreadMessageModelOrId {
 }
 
 const { DefaultSendActionKey } = SendActionsStore;
+const SendWaitForAddsMSec = 20 * 1000;
 /*
 Public: DraftStore responds to Actions that interact with Drafts and exposes
 public getter methods to return Draft objects and sessions.
@@ -43,6 +44,9 @@ Section: Drafts
 class DraftStore extends MailspringStore {
   _draftSessions: { [headerMessageId: string]: DraftEditingSession } = {};
   _draftsSending: { [headerMessageId: string]: boolean } = {};
+  // Drafts whose Send is waiting for attachment adds. Kept apart from _draftsSending because the
+  // message list replaces an inline composer with the sending message once that is set.
+  _draftsAwaitingAddsToSend = new Set<string>();
   _pendingReplies = new Map<string, Promise<{ headerMessageId: string; draft: Message } | void>>();
   // Drafts created in this window that the sync engine hasn't reported saving yet. Until it
   // does, they are in no query result, so replying must look for them here.
@@ -111,6 +115,11 @@ class DraftStore extends MailspringStore {
   // In popout windows the existance of the window is the sending state.
   isSendingDraft(headerMessageId: string) {
     return this._draftsSending[headerMessageId] || false;
+  }
+
+  // Public: Whether Send was pressed for the draft and is waiting for its attachments to land.
+  isAwaitingAddsToSend(headerMessageId: string) {
+    return this._draftsAwaitingAddsToSend.has(headerMessageId);
   }
 
   _doneWithSession(session: DraftEditingSession) {
@@ -503,6 +512,8 @@ class DraftStore extends MailspringStore {
     id?: string;
   }) => {
     const session = this._draftSessions[headerMessageId];
+    // A Send waiting for attachments checks this once they land, and gives up.
+    this._draftsAwaitingAddsToSend.delete(headerMessageId);
 
     // Immediately reset any pending changes so no saves occur
     if (session) {
@@ -555,12 +566,22 @@ class DraftStore extends MailspringStore {
     const { delay = AppEnv.config.get('core.sending.undoSend'), actionKey = DefaultSendActionKey } =
       options;
 
-    this._draftsSending[headerMessageId] = true;
-
     const sendAction = SendActionsStore.sendActionForKey(actionKey);
     if (!sendAction) {
       throw new Error(`Cant find send action ${actionKey} `);
     }
+
+    if (this._draftsAwaitingAddsToSend.has(headerMessageId)) {
+      return;
+    }
+    if (
+      AttachmentStore.hasPendingAdds(headerMessageId) &&
+      !(await this._waitForAddsToSend(headerMessageId))
+    ) {
+      return;
+    }
+
+    this._draftsSending[headerMessageId] = true;
 
     const sendLaterMetadataValue = delay > 0 && {
       expiration: new Date(Date.now() + delay),
@@ -572,6 +593,7 @@ class DraftStore extends MailspringStore {
     // We need to call `changes.commit` here to ensure the body of the draft is
     // completely saved and the user won't see old content briefly.
     const session = await this.sessionForClientId(headerMessageId);
+    session.applyMountedEditorValue();
 
     // Collect diagnostic context as we proceed so we can attach it to any error
     // report if the draft is not found at the end. This helps us understand which
@@ -697,6 +719,38 @@ class DraftStore extends MailspringStore {
       AppEnv.close();
     }
   };
+
+  // A file pasted or dropped just before Send may still be copying into the draft. Waiting
+  // before the undo-send deadline is set keeps that window full length. While it waits the
+  // composer is read-only and stays mounted (the message list swaps an inline composer for the
+  // sending message once isSendingDraft is true). Resolves false if the send should stop: an add
+  // failed (the user has just been shown why, and may send without it), an add is still running
+  // after SendWaitForAddsMSec (the file is never left out silently; a later Send waits again), or
+  // the draft was discarded or its session closed meanwhile, which sessionForClientId would
+  // otherwise reopen and send.
+  async _waitForAddsToSend(headerMessageId: string) {
+    const sessionBeforeWait = this._draftSessions[headerMessageId];
+    this._draftsAwaitingAddsToSend.add(headerMessageId);
+    this.trigger({ headerMessageId });
+
+    const outcome = await AttachmentStore.waitForPendingAdds(headerMessageId, SendWaitForAddsMSec);
+    const notDestroyed = this._draftsAwaitingAddsToSend.delete(headerMessageId);
+    // With no session before, any session now was opened by the adds themselves.
+    const sessionReplaced =
+      sessionBeforeWait && this._draftSessions[headerMessageId] !== sessionBeforeWait;
+    if (outcome === 'attached' && notDestroyed && !sessionReplaced) {
+      // No trigger, so the composer stays read-only through the commit: an edit made then would
+      // not be sent. The trigger that follows the commit shows the draft as sending.
+      return true;
+    }
+    this.trigger({ headerMessageId });
+    if (outcome === 'timed-out' && notDestroyed) {
+      AppEnv.showErrorDialog(
+        localized('Files are still being attached to this message. Try sending again.')
+      );
+    }
+    return false;
+  }
 
   _onUnexpectedNotFoundDuringSend = (
     headerMessageId?: string,

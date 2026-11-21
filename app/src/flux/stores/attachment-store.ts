@@ -34,6 +34,7 @@ class AttachmentStore extends MailspringStore {
   _filesDirectory: string = path.join(AppEnv.getConfigDirPath(), 'files');
   _lastDownloadDirectory: string;
   _pendingAddsByDraft: { [headerMessageId: string]: Promise<void> } = {};
+  _failedAddCountByDraft: { [headerMessageId: string]: number } = {};
 
   constructor() {
     super();
@@ -385,18 +386,21 @@ class AttachmentStore extends MailspringStore {
       );
   }
 
-  _copyToInternalPath(originPath: string, targetPath: string) {
-    return new Promise<void>((resolve, reject) => {
-      const readStream = fs.createReadStream(originPath);
-      const writeStream = fs.createWriteStream(targetPath);
-
-      readStream.on('error', () => reject(new Error(`Could not read file at path: ${originPath}`)));
-      writeStream.on('error', () =>
-        reject(new Error(`Could not write ${path.basename(targetPath)} to files directory.`))
+  async _copyToInternalPath(originPath: string, targetPath: string) {
+    try {
+      // Copy-on-write clone on APFS, btrfs and ReFS; a plain copy elsewhere.
+      await _fs.promises.copyFile(originPath, targetPath, _fs.constants.COPYFILE_FICLONE);
+    } catch (err) {
+      const readable = await _fs.promises.access(originPath, _fs.constants.R_OK).then(
+        () => true,
+        () => false
       );
-      readStream.on('end', () => resolve());
-      readStream.pipe(writeStream);
-    });
+      throw new Error(
+        readable
+          ? `Could not write ${path.basename(targetPath)} to files directory.`
+          : `Could not read file at path: ${originPath}`
+      );
+    }
   }
 
   // Synchronous so a closing composer window finishes it: a draft holds only a few files.
@@ -461,7 +465,8 @@ class AttachmentStore extends MailspringStore {
   };
 
   // Adds are serialized per draft so files land on the draft in dispatch
-  // order rather than the order their copies happen to finish.
+  // order rather than the order their copies happen to finish. `filePath` may
+  // be a promise for a file that is still being written, such as a pasted image.
   _onAddAttachment = ({
     headerMessageId,
     filePath,
@@ -469,18 +474,40 @@ class AttachmentStore extends MailspringStore {
     onCreated = (file: File) => {},
   }: {
     headerMessageId: string;
-    filePath: string;
+    filePath: string | Promise<string>;
     inline?: boolean;
     onCreated?: (file: File) => void;
   }) => {
     this._assertIdPresent(headerMessageId);
+
+    // A Send waits only for the adds queued before it, so a later one would land mid-send. The
+    // composer refuses files from Send onward; this covers any other caller.
+    if (
+      DraftStore.isAwaitingAddsToSend(headerMessageId) ||
+      DraftStore.isSendingDraft(headerMessageId)
+    ) {
+      return Promise.resolve();
+    }
+
+    // The path is awaited only when this add's turn comes; until then, keep a rejection
+    // from being reported as unhandled.
+    Promise.resolve(filePath).catch(() => {});
 
     // Chain links swallow rejections so a single failed add can't poison the
     // rest of the chain for this draft.
     const previous = this._pendingAddsByDraft[headerMessageId] || Promise.resolve();
     const current = previous
       .then(() => this._addAttachmentNow({ headerMessageId, filePath, inline, onCreated }))
-      .catch((err) => AppEnv.reportError(err));
+      .catch((err) => {
+        AppEnv.reportError(err);
+        return false;
+      })
+      .then((attached) => {
+        if (!attached) {
+          this._failedAddCountByDraft[headerMessageId] =
+            (this._failedAddCountByDraft[headerMessageId] || 0) + 1;
+        }
+      });
     this._pendingAddsByDraft[headerMessageId] = current;
     current.then(() => {
       if (this._pendingAddsByDraft[headerMessageId] === current) {
@@ -490,20 +517,47 @@ class AttachmentStore extends MailspringStore {
     return current;
   };
 
+  // Public: Whether files are still being added to the draft.
+  hasPendingAdds(headerMessageId: string) {
+    return !!this._pendingAddsByDraft[headerMessageId];
+  }
+
+  // Public: Resolves once every add queued for the draft has settled, or after `timeoutMs` if one
+  // is still running (say, a copy from an unresponsive network volume): 'failed' if any of them
+  // failed while waiting (the user has been shown why).
+  async waitForPendingAdds(
+    headerMessageId: string,
+    timeoutMs: number
+  ): Promise<'attached' | 'failed' | 'timed-out'> {
+    const failedBefore = this._failedAddCountByDraft[headerMessageId] || 0;
+    let timer: ReturnType<typeof setTimeout>;
+    const timedOut = await Promise.race([
+      Promise.resolve(this._pendingAddsByDraft[headerMessageId]).then(() => false),
+      new Promise<boolean>((resolve) => (timer = setTimeout(() => resolve(true), timeoutMs))),
+    ]);
+    clearTimeout(timer);
+    if (timedOut) {
+      return 'timed-out';
+    }
+    const failedAfter = this._failedAddCountByDraft[headerMessageId] || 0;
+    return failedAfter === failedBefore ? 'attached' : 'failed';
+  }
+
   // Errors are surfaced in a dialog rather than rejected so one failed file
   // never blocks the rest of the chain for the same draft.
   async _addAttachmentNow({
     headerMessageId,
-    filePath,
+    filePath: filePathOrPromise,
     inline,
     onCreated,
   }: {
     headerMessageId: string;
-    filePath: string;
+    filePath: string | Promise<string>;
     inline: boolean;
     onCreated: (file: File) => void;
-  }) {
+  }): Promise<boolean> {
     try {
+      const filePath = await filePathOrPromise;
       const filename = path.basename(filePath);
       const stats = await this._getFileStats(filePath);
       if (stats.isDirectory()) {
@@ -535,9 +589,13 @@ class AttachmentStore extends MailspringStore {
         }
         return files.concat([file]);
       });
+      // The add (and a Send waiting for it) settles after this, so the composer's inline image
+      // is in the editor when the Send goes on.
       onCreated(file);
+      return true;
     } catch (err) {
       AppEnv.showErrorDialog(err.message);
+      return false;
     }
   }
 

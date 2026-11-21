@@ -644,6 +644,7 @@ describe('DraftFactory', function draftFactory() {
       beforeEach(() => {
         this.existingDraft = new Message({
           id: 'asd',
+          headerMessageId: 'existing-reply@mailspring',
           accountId: TEST_ACCOUNT_ID,
           replyToHeaderMessageId: fakeMessage1.headerMessageId,
           threadId: fakeMessage1.threadId,
@@ -656,6 +657,31 @@ describe('DraftFactory', function draftFactory() {
         };
         spyOn(DatabaseStore, 'run').andReturn(Promise.resolve([fakeMessage1, this.existingDraft]));
         spyOn(DraftStore, 'sessionForClientId').andReturn(Promise.resolve(this.sessionStub));
+      });
+
+      afterEach(() => {
+        DraftStore._draftsSending = {};
+        DraftStore._draftsAwaitingAddsToSend.clear();
+      });
+
+      it('does not reuse it while its Send waits for attachments or is sending', async () => {
+        spyOn(DraftFactory, 'createDraftForReply').andCallFake(async () => new Message({}));
+        const reply = () =>
+          DraftFactory.createOrUpdateDraftForReply({
+            thread: fakeThread,
+            message: fakeMessage1,
+            type: 'reply',
+            behavior: 'prefer-existing',
+          });
+
+        DraftStore._draftsAwaitingAddsToSend.add(this.existingDraft.headerMessageId);
+        await reply();
+        expect((DraftFactory.createDraftForReply as jasmine.Spy).callCount).toBe(1);
+
+        DraftStore._draftsAwaitingAddsToSend.clear();
+        DraftStore._draftsSending = { [this.existingDraft.headerMessageId]: true };
+        await reply();
+        expect((DraftFactory.createDraftForReply as jasmine.Spy).callCount).toBe(2);
       });
 
       describe('when reply-all is passed', () => {
@@ -745,6 +771,7 @@ describe('DraftFactory', function draftFactory() {
       afterEach(() => {
         DraftStore._draftSessions = savedSessions;
         DraftStore._draftsSending = {};
+        DraftStore._draftsAwaitingAddsToSend.clear();
         DraftStore._draftsAwaitingFirstSave.clear();
       });
 
@@ -774,6 +801,17 @@ describe('DraftFactory', function draftFactory() {
 
       it('does not reuse a draft in another account', async () => {
         pendingDraft.accountId = 'another-account';
+        await DraftFactory.createOrUpdateDraftForReply({
+          thread: fakeThread,
+          message: fakeMessage1,
+          type: 'reply',
+          behavior: 'prefer-existing',
+        });
+        expect(DraftFactory.createDraftForReply).toHaveBeenCalled();
+      });
+
+      it('does not reuse a draft whose Send is waiting for attachments', async () => {
+        DraftStore._draftsAwaitingAddsToSend.add(pendingDraft.headerMessageId);
         await DraftFactory.createOrUpdateDraftForReply({
           thread: fakeThread,
           message: fakeMessage1,

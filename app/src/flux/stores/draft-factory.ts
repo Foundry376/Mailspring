@@ -330,25 +330,29 @@ class DraftFactory {
     }
 
     DraftStore = DraftStore || require('./draft-store').default;
-    const isReplyToMessage = (other: Message) =>
-      other && other.draft === true && other.replyToHeaderMessageId === message.headerMessageId;
+    // A draft whose Send has started is not reusable: replacing its session would cancel the send.
+    const isReusableReply = (other: Message) =>
+      other &&
+      other.draft === true &&
+      other.replyToHeaderMessageId === message.headerMessageId &&
+      !DraftStore.isSendingDraft(other.headerMessageId) &&
+      !DraftStore.isAwaitingAddsToSend(other.headerMessageId);
 
     const messages =
       message.threadId === MessageStore.threadId()
         ? MessageStore.items()
         : await DatabaseStore.findAll<Message>(Message, { threadId: message.threadId });
 
-    const candidateDrafts = messages.filter(isReplyToMessage);
+    const candidateDrafts = messages.filter(isReusableReply);
 
     // A reply created moments ago is in no query result until the sync engine reports saving
     // it, so a second Reply in that window must find it through its session.
     for (const headerMessageId of DraftStore._draftsAwaitingFirstSave) {
       const draft = DraftStore._draftSessions[headerMessageId]?.draft();
       if (
-        isReplyToMessage(draft) &&
+        isReusableReply(draft) &&
         draft.accountId === message.accountId &&
         draft.threadId === message.threadId &&
-        !DraftStore.isSendingDraft(headerMessageId) &&
         !candidateDrafts.some((d) => d.headerMessageId === headerMessageId)
       ) {
         candidateDrafts.push(draft);
