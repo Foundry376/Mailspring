@@ -38,6 +38,36 @@ describe('KeymapManager', function () {
     });
   }
 
+  it('leaves undo and shifted redo to Slate, including nested targets', function () {
+    const editor = document.createElement('div');
+    editor.contentEditable = 'true';
+    editor.setAttribute('data-slate-editor', 'true');
+    const child = document.createElement('span');
+    editor.appendChild(child);
+    document.body.appendChild(editor);
+    const callback = mousetrap.prototype.stopCallback;
+    try {
+      for (const target of [editor, child]) {
+        const event = new KeyboardEvent('keydown');
+        Object.defineProperty(event, 'target', { value: target });
+        for (const shortcut of ['ctrl+z', 'ctrl+shift+z', 'command+shift+z', 'ctrl+y']) {
+          expect(callback.call(trap, event, target, shortcut)).toBe(true);
+        }
+      }
+    } finally {
+      editor.remove();
+    }
+  });
+
+  it('keeps global undo available when a checkbox is focused', function () {
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    const event = new KeyboardEvent('keydown');
+    Object.defineProperty(event, 'target', { value: checkbox });
+    (event as any).isPropagationStopped = () => false;
+    expect(mousetrap.prototype.stopCallback.call(trap, event, checkbox, 'ctrl+z')).toBe(false);
+  });
+
   it('replaces base bindings for the commands a template defines', function () {
     manager.loadKeymap(path.join(keymapsDir, 'base.json'), { layer: 'base' });
     manager.loadKeymap(path.join(keymapsDir, 'templates', 'Outlook.json'), { layer: 'template' });
