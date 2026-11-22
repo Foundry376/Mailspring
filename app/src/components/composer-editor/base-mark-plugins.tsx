@@ -10,6 +10,7 @@ import {
 } from './toolbar-component-factories';
 
 import BaseBlockPlugins from './base-block-plugins';
+import { LINK_TYPE } from './link-plugins';
 import { ComposerEditorPlugin, Rule } from './types';
 
 export const DEFAULT_FONT_SIZE = 2;
@@ -298,6 +299,30 @@ const rules: Rule[] = [
   },
 ];
 
+export function clearTextFormatting(editor: Editor) {
+  editor.value.marks
+    .filter((mark) => mark.type !== LINK_TYPE)
+    .forEach((mark) => editor.removeMark(mark));
+  editor.focus();
+}
+
+const ClearFormattingButton = ({ editor, className }: any) => {
+  const clearFormatting = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    clearTextFormatting(editor);
+  };
+
+  return (
+    <button
+      className={className}
+      onMouseDown={clearFormatting}
+      title={localized('Clear Formatting')}
+    >
+      <i className="fa fa-eraser" />
+    </button>
+  );
+};
+
 const BaseMarkPlugin: ComposerEditorPlugin = {
   toolbarComponents: []
     .concat(
@@ -306,6 +331,7 @@ const BaseMarkPlugin: ComposerEditorPlugin = {
         .map(BuildToggleButton)
     )
     .concat([
+      ClearFormattingButton,
       BuildColorPicker({ type: 'color', default: '#000000' }),
       BuildFontPicker({
         type: 'face',
