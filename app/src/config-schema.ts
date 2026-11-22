@@ -149,6 +149,13 @@ export default {
             ],
             title: localized('When reading messages, mark as read'),
           },
+          unreadViewReleaseReadOnNext: {
+            type: 'boolean',
+            default: false,
+            title: localized(
+              'Remove read threads from the Unread view when you open another thread'
+            ),
+          },
           autoloadImages: {
             type: 'boolean',
             default: true,
