@@ -1,8 +1,7 @@
 import React from 'react';
 import { RetinaImg } from 'mailspring-component-kit';
 import { localized } from 'mailspring-exports';
-
-const EMAIL_RENDER_MODE_KEY = 'core.reading.emailRenderMode';
+import { EMAIL_RENDER_MODE_KEY, resolvedEmailRenderMode } from './email-render-mode';
 
 interface SubjectLineIconsProps {
   canCollapse: boolean;
@@ -16,25 +15,27 @@ interface SubjectLineIconsProps {
 
 class EmailRenderModeToggle extends React.Component<Record<string, never>, { mode: string }> {
   _configDisposable?: { dispose: () => void };
+  _themesDisposable?: { dispose: () => void };
 
   constructor(props: Record<string, never>) {
     super(props);
-    this.state = { mode: this._mode() };
+    this.state = { mode: resolvedEmailRenderMode() };
   }
 
   componentDidMount() {
-    this._configDisposable = AppEnv.config.onDidChange(EMAIL_RENDER_MODE_KEY, () => {
-      this.setState({ mode: this._mode() });
-    });
+    const refresh = () => this.setState({ mode: resolvedEmailRenderMode() });
+    this._configDisposable = AppEnv.config.onDidChange(EMAIL_RENDER_MODE_KEY, refresh);
+    this._themesDisposable = AppEnv.themes.onDidChangeActiveThemes(refresh);
   }
 
   componentWillUnmount() {
     if (this._configDisposable) {
       this._configDisposable.dispose();
     }
+    if (this._themesDisposable) {
+      this._themesDisposable.dispose();
+    }
   }
-
-  _mode = () => (AppEnv.config.get(EMAIL_RENDER_MODE_KEY) === 'dark' ? 'dark' : 'light');
 
   _isDark = () => this.state.mode === 'dark';
 

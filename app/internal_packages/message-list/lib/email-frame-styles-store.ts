@@ -1,15 +1,17 @@
 import MailspringStore from 'mailspring-store';
-
-const EMAIL_RENDER_MODE_KEY = 'core.reading.emailRenderMode';
+import { EMAIL_RENDER_MODE_KEY, resolvedEmailRenderMode } from './email-render-mode';
 
 class EmailFrameStylesStore extends MailspringStore {
   _styles?: string;
   _mutationObserver: MutationObserver;
   _configDisposable?: { dispose: () => void };
+  _themesDisposable?: { dispose: () => void };
 
   constructor() {
     super();
     this._configDisposable = AppEnv.config.onDidChange(EMAIL_RENDER_MODE_KEY, this._findStyles);
+    // In `auto` the resolved mode changes with the theme, including OS light/dark switches.
+    this._themesDisposable = AppEnv.themes.onDidChangeActiveThemes(this._findStyles);
   }
 
   styles() {
@@ -43,7 +45,7 @@ class EmailFrameStylesStore extends MailspringStore {
   };
 
   _emailRenderModeOverrideStyles() {
-    const mode = AppEnv.config.get(EMAIL_RENDER_MODE_KEY) === 'dark' ? 'dark' : 'light';
+    const mode = resolvedEmailRenderMode();
     if (mode === 'light') {
       return '\nbody { filter: none !important; }' + '\nimg { filter: none !important; }';
     }
@@ -73,6 +75,10 @@ class EmailFrameStylesStore extends MailspringStore {
     if (this._configDisposable) {
       this._configDisposable.dispose();
       this._configDisposable = undefined;
+    }
+    if (this._themesDisposable) {
+      this._themesDisposable.dispose();
+      this._themesDisposable = undefined;
     }
   }
 }
