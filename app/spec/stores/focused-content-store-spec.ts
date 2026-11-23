@@ -3,6 +3,9 @@ import { Contact } from '../../src/flux/models/contact';
 import FocusedContentStore from '../../src/flux/stores/focused-content-store';
 import FocusedPerspectiveStore from '../../src/flux/stores/focused-perspective-store';
 import WorkspaceStore from '../../src/flux/stores/workspace-store';
+import { AccountStore } from '../../src/flux/stores/account-store';
+import { DatabaseChangeRecord } from '../../src/flux/stores/database-change-record';
+import * as Actions from '../../src/flux/actions';
 
 const testThread = new Thread({ id: '123', accountId: TEST_ACCOUNT_ID });
 
@@ -74,6 +77,36 @@ describe('FocusedContentStore', function () {
       showingMail = true;
       FocusedContentStore._onWorkspaceChange();
       expect(FocusedContentStore.focused('thread')).toBe(testThread);
+    });
+  });
+
+  describe('when the focused thread goes away', function () {
+    beforeEach(function () {
+      FocusedContentStore._resetInstanceVars();
+      FocusedContentStore._onFocus({ collection: 'thread', item: testThread });
+      spyOn(Actions, 'setFocus');
+    });
+
+    afterEach(function () {
+      FocusedContentStore._resetInstanceVars();
+    });
+
+    it('closes it through setFocus when it is deleted', function () {
+      FocusedContentStore._onDataChange(
+        new DatabaseChangeRecord({
+          type: 'unpersist',
+          objectClass: 'Thread',
+          objects: [testThread],
+          objectsRawJSON: [],
+        })
+      );
+      expect(Actions.setFocus).toHaveBeenCalledWith({ collection: 'thread', item: null });
+    });
+
+    it('closes it through setFocus when its account is removed', function () {
+      spyOn(AccountStore, 'accountForId').andReturn(null);
+      FocusedContentStore._onAccountsChange();
+      expect(Actions.setFocus).toHaveBeenCalledWith({ collection: 'thread', item: null });
     });
   });
 });

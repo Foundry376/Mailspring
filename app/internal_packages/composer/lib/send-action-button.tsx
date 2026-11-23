@@ -13,6 +13,8 @@ interface SendActionButtonProps {
   tabIndex: number;
   style: any;
   draft: Message;
+  // Send was pressed and is waiting for files still being added to the draft.
+  attaching?: boolean;
   isValidDraft: () => boolean;
 }
 
@@ -67,8 +69,9 @@ export class SendActionButton extends React.Component<
   We only use the draft prop when you click send, so update with more discretion. */
   shouldComponentUpdate(nextProps: SendActionButtonProps, nextState: SendActionButtonState) {
     return (
+      nextProps.attaching !== this.props.attaching ||
       nextState.sendActions.map((a) => a.configKey).join(',') !==
-      this.state.sendActions.map((a) => a.configKey).join(',')
+        this.state.sendActions.map((a) => a.configKey).join(',')
     );
   }
 
@@ -88,6 +91,17 @@ export class SendActionButton extends React.Component<
       Actions.sendDraft(this.props.draft.headerMessageId, { actionKey: sendAction.configKey });
     }
   };
+
+  _renderAttachingItem = () => (
+    <span aria-busy="true">
+      <RetinaImg
+        name="icon-composer-send.png"
+        mode={RetinaImg.Mode.ContentIsMask}
+        aria-hidden="true"
+      />
+      <span className="text">{localized('Attaching…')}</span>
+    </span>
+  );
 
   _renderSendActionItem = ({ iconUrl }) => {
     let plusHTML: React.ReactChild = '';
@@ -119,7 +133,11 @@ export class SendActionButton extends React.Component<
       <ButtonDropdown
         className={'btn-send btn-emphasis btn-text'}
         style={{ order: -100 }}
-        primaryItem={this._renderSendActionItem(this.state.sendActions[0])}
+        primaryItem={
+          this.props.attaching
+            ? this._renderAttachingItem()
+            : this._renderSendActionItem(this.state.sendActions[0])
+        }
         primaryTitle={this.state.sendActions[0].title}
         primaryClick={this._onPrimaryClick}
         closeOnMenuClick

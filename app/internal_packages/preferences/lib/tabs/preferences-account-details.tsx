@@ -1,5 +1,6 @@
 /* eslint global-require: 0 */
 import fs from 'fs';
+import _ from 'underscore';
 import React, { Component } from 'react';
 import { shell, ipcRenderer } from 'electron';
 import { EditableList } from 'mailspring-component-kit';
@@ -51,6 +52,9 @@ class AutoaddressControl extends Component<AutoaddressControlProps> {
   }
 }
 
+// Edited in local state and saved on blur, so they can hold text the store hasn't seen yet.
+const FIELDS_SAVED_ON_BLUR = ['label', 'name', 'autoaddress', 'color'] as const;
+
 class PreferencesAccountDetails extends Component<
   {
     account: Account;
@@ -70,9 +74,22 @@ class PreferencesAccountDetails extends Component<
     account: Account;
     onAccountUpdated: (account: Account, newAccount: Account) => void;
   }) {
-    if (prevProps.account !== this.props.account) {
-      this.setState({ account: this.props.account.clone() });
+    const incoming = this.props.account;
+    if (prevProps.account === incoming) {
+      return;
     }
+    if (prevProps.account.id !== incoming.id) {
+      this.setState({ account: incoming.clone() });
+      return;
+    }
+    // The store hands over a new instance of the same account whenever it reloads, which can
+    // land while the user is typing. Take its changes, but keep fields the user has edited.
+    this.setState(({ account: edited }) => {
+      const unsaved = FIELDS_SAVED_ON_BLUR.filter(
+        (field) => !_.isEqual(edited[field], prevProps.account[field])
+      );
+      return { account: Object.assign(incoming.clone(), _.pick(edited, unsaved)) };
+    });
   }
 
   componentWillUnmount() {
@@ -111,8 +128,10 @@ class PreferencesAccountDetails extends Component<
   };
 
   _setState = (updates, callback = () => {}) => {
-    const account = Object.assign(this.state.account.clone(), updates);
-    this.setState({ account }, callback);
+    this.setState(
+      ({ account }) => ({ account: Object.assign(account.clone(), updates) }),
+      callback
+    );
   };
 
   _setStateAndSave = (updates: Partial<Account>) => {

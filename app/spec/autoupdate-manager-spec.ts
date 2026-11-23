@@ -3,6 +3,7 @@ import AutoUpdateManager from '../src/browser/autoupdate-manager';
 describe('AutoUpdateManager', function () {
   beforeEach(function () {
     this.mailspringIdentityId = null;
+    this.checkAutomatically = undefined;
     this.specMode = true;
     this.config = {
       set: jasmine.createSpy('config.set'),
@@ -12,6 +13,9 @@ describe('AutoUpdateManager', function () {
         }
         if (key === 'env') {
           return 'production';
+        }
+        if (key === 'core.updates.checkAutomatically') {
+          return this.checkAutomatically;
         }
       },
       onDidChange: (key, callback) => {
@@ -29,7 +33,8 @@ describe('AutoUpdateManager', function () {
           process.platform +
           '/' +
           process.arch +
-          '/3.222.1-abc/anonymous/stable'
+          '/3.222.1-abc/anonymous/stable?osVersion=' +
+          encodeURIComponent(process.getSystemVersion())
       );
     }));
 
@@ -42,7 +47,8 @@ describe('AutoUpdateManager', function () {
           process.platform +
           '/' +
           process.arch +
-          '/3.222.1/anonymous/stable'
+          '/3.222.1/anonymous/stable?osVersion=' +
+          encodeURIComponent(process.getSystemVersion())
       );
     }));
 
@@ -55,7 +61,8 @@ describe('AutoUpdateManager', function () {
           process.platform +
           '/' +
           process.arch +
-          '/3.222.1/test-mailspring-id/stable'
+          '/3.222.1/test-mailspring-id/stable?osVersion=' +
+          encodeURIComponent(process.getSystemVersion())
       );
     }));
 
@@ -68,4 +75,30 @@ describe('AutoUpdateManager', function () {
       m.updateFeedURL();
       expect(m.feedURL.includes(this.mailspringIdentityId)).toEqual(true);
     }));
+
+  describe('checkAutomatically', function () {
+    beforeEach(function () {
+      this.m = new AutoUpdateManager('3.222.1', this.config, this.specMode);
+      spyOn(this.m, 'check');
+    });
+
+    it('checks when the preference is unset or on', function () {
+      this.m.checkAutomatically();
+      this.checkAutomatically = true;
+      this.m.checkAutomatically();
+      expect(this.m.check.calls.length).toEqual(2);
+    });
+
+    it('does not check when the preference is off', function () {
+      this.checkAutomatically = false;
+      this.m.checkAutomatically();
+      expect(this.m.check).not.toHaveBeenCalled();
+    });
+
+    it('does not check again once an update is ready to install', function () {
+      this.m.setState('update-available');
+      this.m.checkAutomatically();
+      expect(this.m.check).not.toHaveBeenCalled();
+    });
+  });
 });

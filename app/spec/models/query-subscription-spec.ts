@@ -334,6 +334,20 @@ describe('QuerySubscription', function QuerySubscriptionSpecs() {
     });
   });
 
+  describe('_onQueryFailed', () => {
+    it('reports only the first failure of a subscription whose query keeps failing', () => {
+      spyOn(QuerySubscription.prototype, 'update').andReturn(undefined);
+      const subscription = new QuerySubscription(DatabaseStore.findAll<Thread>(Thread));
+      spyOn(AppEnv, 'reportError');
+      spyOn(console, 'warn');
+      subscription._onQueryFailed(new Error('no such table'));
+      subscription._onQueryFailed(new Error('no such table'));
+      subscription._onQueryFailed(new Error('no such table'));
+      expect((AppEnv.reportError as any).callCount).toBe(1);
+      expect((console.warn as any).callCount).toBe(2);
+    });
+  });
+
   describe('update', () => {
     beforeEach(() =>
       spyOn(QuerySubscription.prototype, '_fetchRange').andCallFake(() => {
