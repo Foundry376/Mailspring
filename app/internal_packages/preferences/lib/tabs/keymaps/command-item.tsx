@@ -277,7 +277,12 @@ export default class CommandKeybinding extends React.Component<
 
     return (
       <Flexbox className={recording ? 'shortcut recording' : 'shortcut'}>
-        <div className="col-left shortcut-name">{this.props.label}</div>
+        <div className="col-left">
+          {customized && (
+            <span className="changed-dot" title={localized('Changed from the default')} />
+          )}
+          <span className="shortcut-name">{this.props.label}</span>
+        </div>
         <div className="col-right">
           <div className="values">{value}</div>
           {recording ? (
@@ -289,7 +294,7 @@ export default class CommandKeybinding extends React.Component<
               title={localized('Add a shortcut')}
               onClick={this._onStartRecording}
             >
-              +
+              + {localized('Add')}
             </button>
           )}
           {customized && !recording && (

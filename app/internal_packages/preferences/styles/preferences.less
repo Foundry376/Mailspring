@@ -192,8 +192,7 @@
     }
   }
 
-  .container-general,
-  .container-keymaps {
+  .container-general {
     .two-columns-flexbox {
       display: flex;
     }
@@ -201,7 +200,7 @@
 
   .container-keymaps {
     width: 100%;
-    max-width: 800px;
+    max-width: 1100px;
     min-width: 430px;
     margin: 0 auto;
 
@@ -227,50 +226,89 @@
       }
     }
 
+    // One column in a narrow window, two side by side once each can be 460px wide.
+    .shortcut-sections {
+      columns: 2 460px;
+      column-gap: 48px;
+      section {
+        break-inside: avoid;
+      }
+    }
+
     .shortcut-section-title {
       border-bottom: 1px solid @border-color-divider;
-      margin: @padding-large-vertical * 1.5 0;
+      margin: @padding-large-vertical * 1.5 0 @padding-base-vertical;
+      font-weight: @font-weight-semi-bold;
       .clear-section {
-        font-size: 0.9em;
+        font-weight: normal;
+        font-size: @font-size-small;
       }
     }
 
     .shortcut {
-      padding: 3px 0;
-      color: @text-color-very-subtle;
+      padding: 5px 8px;
+      align-items: center;
+      font-size: @font-size-base;
+      color: @text-color-subtle;
+      border-radius: @border-radius-base;
+      &:hover {
+        background: fade(@text-color, 4%);
+      }
+
+      .col-left {
+        flex: 0 0 38%;
+        margin-right: 16px;
+      }
+      .changed-dot {
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        margin-right: 6px;
+        border-radius: 50%;
+        vertical-align: middle;
+        background: @component-active-color;
+      }
       .col-right {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        gap: 4px;
+        gap: 6px;
       }
       .values {
-        font-family: @font-family-monospace;
-        font-weight: @font-weight-semi-bold;
-        color: @text-color;
         display: flex;
         flex-wrap: wrap;
-        gap: 4px;
-        padding-left: @padding-small-horizontal;
+        gap: 6px;
+        color: @text-color;
 
         .shortcut-value .then {
-          font-size: 0.9em;
+          font-family: @font-family;
+          font-size: 0.85em;
           color: @text-color-very-subtle;
         }
       }
 
+      // A keycap: the deeper bottom border reads as a key's raised edge.
       .shortcut-chip {
+        display: inline-flex;
+        align-items: center;
         white-space: nowrap;
-        padding: 0 2px 0 6px;
-        border-radius: @border-radius-base;
-        background: fade(@text-color, 6%);
+        padding: 1px 3px 1px 8px;
+        font-family: @font-family-monospace;
+        font-size: @font-size-small;
+        font-weight: @font-weight-semi-bold;
+        background: @input-bg;
+        border: 1px solid @input-border-color;
+        border-bottom-width: 2px;
+        border-radius: 5px;
         .remove-shortcut {
           border: none;
           background: none;
-          padding: 0 2px;
-          margin-left: 1px;
+          padding: 0 4px;
+          margin-left: 2px;
+          font-size: 1.1em;
+          line-height: 1;
           color: @text-color-very-subtle;
-          opacity: 0.4;
+          opacity: 0;
           cursor: pointer;
           &:hover,
           &:focus {
@@ -279,17 +317,16 @@
           }
         }
       }
-      .reset-shortcut {
-        font-size: 0.9em;
+      &:hover .remove-shortcut {
+        opacity: 0.7;
       }
       .shortcut-chip.conflict {
         background: fade(@color-warning, 18%);
-        outline: 1px solid fade(@color-warning, 60%);
+        border-color: fade(@color-warning, 70%);
       }
       .shortcut-conflict {
         flex-basis: 100%;
-        padding-left: @padding-small-horizontal;
-        font-size: 0.9em;
+        font-size: @font-size-small;
         color: @text-color;
         &:before {
           content: '⚠ ';
@@ -301,25 +338,31 @@
         }
         a {
           margin-left: @padding-small-horizontal;
+          white-space: nowrap;
         }
       }
       .add-shortcut {
-        padding: 0 6px;
-        line-height: 1.4;
-        opacity: 0.5;
+        padding: 0 8px;
+        line-height: 1.6;
+        font-size: @font-size-small;
+        opacity: 0.6;
       }
       &:hover .add-shortcut,
       .add-shortcut:focus {
         opacity: 1;
       }
+      .reset-shortcut {
+        font-size: @font-size-small;
+      }
       .shortcut-recorder {
         display: inline-block;
-        padding: 0 @padding-small-horizontal;
+        padding: 1px 8px;
         font-family: @font-family-monospace;
+        font-size: @font-size-small;
         color: @component-active-color;
         background: @input-bg;
-        border-radius: @border-radius-base;
-        outline: 1px solid @input-border-color;
+        border-radius: 5px;
+        outline: 2px solid @component-active-color;
       }
     }
   }
@@ -353,7 +396,6 @@ body.platform-win32 {
 
 @media (max-width: 680px) {
   .preferences-wrap {
-    .container-keymaps,
     .container-general {
       .two-columns-flexbox {
         flex-direction: column;
