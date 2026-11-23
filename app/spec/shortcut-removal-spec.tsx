@@ -66,6 +66,9 @@ describe('Removing shortcuts on the Shortcuts page', function () {
         label="Archive"
         bindings={bindings}
         customized={customized}
+        added={[]}
+        conflicts={{}}
+        onRemoveFrom={() => {}}
       />,
       host
     );

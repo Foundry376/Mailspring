@@ -22,6 +22,11 @@ interface CommandKeybindingProps {
   command: string;
   /** Whether the user keymap sets this command's keys, so it can be reset to the template's. */
   customized: boolean;
+  /** The keys the user added to this command, beyond its default keys. */
+  added: string[];
+  /** For each of this command's keys that another command also runs on, those commands. */
+  conflicts: { [binding: string]: { command: string; label: string }[] };
+  onRemoveFrom: (command: string, binding: string) => void;
 }
 interface CommandKeybindingState {
   recording: boolean;
@@ -219,9 +224,29 @@ export default class CommandKeybinding extends React.Component<
     );
   }
 
+  // Shown on the command the key was added to, which is the change the user can take back.
+  _renderConflict = (binding: string) => {
+    const others = this.props.conflicts[binding];
+    const names = others.map((o) => o.label).join(', ');
+    return (
+      <div key={binding} className="shortcut-conflict">
+        {this._renderKeystrokes(binding, 0)} {localized('also runs %@.', names)}{' '}
+        <a
+          className="remove-from-others"
+          onClick={() => others.forEach((o) => this.props.onRemoveFrom(o.command, binding))}
+        >
+          {localized('Remove from %@', names)}
+        </a>{' '}
+        <a className="remove-here" onClick={() => this._onRemove(binding)}>
+          {localized('Remove here')}
+        </a>
+      </div>
+    );
+  };
+
   render() {
     const { recording } = this.state;
-    const { bindings, customized } = this.props;
+    const { bindings, customized, added, conflicts } = this.props;
 
     let value: React.ReactChild | React.ReactChild[] = localized('None');
     if (bindings.length > 0) {
@@ -229,7 +254,15 @@ export default class CommandKeybinding extends React.Component<
       // on Windows and Linux, so dedupe by what the user would actually press.
       const byKey = new Map(bindings.map((b) => [pressedKeys(b, process.platform), b]));
       value = [...byKey.values()].map((binding, idx) => (
-        <span key={binding} className="shortcut-chip">
+        <span
+          key={binding}
+          className={conflicts[binding] ? 'shortcut-chip conflict' : 'shortcut-chip'}
+          title={
+            conflicts[binding]
+              ? localized('Also runs %@', conflicts[binding].map((o) => o.label).join(', '))
+              : undefined
+          }
+        >
           {this._renderKeystrokes(binding, idx)}
           <button
             className="remove-shortcut"
@@ -264,6 +297,7 @@ export default class CommandKeybinding extends React.Component<
               {localized('Reset')}
             </a>
           )}
+          {added.filter((binding) => conflicts[binding]).map(this._renderConflict)}
         </div>
       </Flexbox>
     );

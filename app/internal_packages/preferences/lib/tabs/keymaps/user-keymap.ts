@@ -58,3 +58,47 @@ export function clearedKeymap(keymap: UserKeymap, commands: string[]): UserKeyma
   }
   return cleared;
 }
+
+/** The command's keys that its default keys don't already include. */
+export function addedBindings(bindings: string[], defaults: string[], platform: string): string[] {
+  const defaultKeys = defaults.map((b) => pressedKeys(b, platform));
+  return bindings.filter((b) => !defaultKeys.includes(pressedKeys(b, platform)));
+}
+
+/** For each command, which of its keys clash, and with which other commands. */
+export type Conflicts = { [command: string]: { [binding: string]: string[] } };
+
+/**
+ * Keys the user added that another command also has. Every command bound to a key runs when it
+ * is pressed, so both act. The defaults' own overlaps are left out: templates give one key to
+ * commands that act in different places, like Outlook's Ctrl+U, which underlines in the composer
+ * and marks unread in the mail list.
+ */
+export function findConflicts(
+  bindings: { [command: string]: string[] },
+  added: { [command: string]: string[] },
+  platform: string
+): Conflicts {
+  const conflicts: Conflicts = {};
+  const note = (command: string, binding: string, other: string) => {
+    conflicts[command] = conflicts[command] || {};
+    conflicts[command][binding] = conflicts[command][binding] || [];
+    if (!conflicts[command][binding].includes(other)) {
+      conflicts[command][binding].push(other);
+    }
+  };
+  for (const command of Object.keys(added)) {
+    for (const binding of added[command]) {
+      const key = pressedKeys(binding, platform);
+      for (const other of Object.keys(bindings)) {
+        const clash =
+          other !== command && bindings[other].find((b) => pressedKeys(b, platform) === key);
+        if (clash) {
+          note(command, binding, other);
+          note(other, clash, command);
+        }
+      }
+    }
+  }
+  return conflicts;
+}
