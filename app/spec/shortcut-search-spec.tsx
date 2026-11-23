@@ -9,6 +9,7 @@ import {
   matchesQuery,
   runsOnKey,
 } from '../internal_packages/preferences/lib/tabs/keymaps/shortcut-search';
+import { formatKeystrokes } from '../internal_packages/preferences/lib/tabs/keymaps/keystrokes';
 
 describe('matchesQuery', function () {
   it('matches everything when nothing is typed', function () {
@@ -94,7 +95,7 @@ describe('Searching the Shortcuts page', function () {
   });
 
   it('narrows the list to commands with a key that matches', function () {
-    type('ctrl+shift+r');
+    type(process.platform === 'darwin' ? 'cmd+shift+r' : 'ctrl+shift+r');
     expect(rows()).toEqual(['Reply All']);
   });
 
@@ -129,12 +130,16 @@ describe('Searching the Shortcuts page', function () {
     expect(AppEnv.keymaps.suspendAllKeymaps).toHaveBeenCalled();
     expect(AppEnv.keymaps.resumeAllKeymaps).toHaveBeenCalled();
     expect(rows()).toEqual(['Star']);
-    expect(host.querySelector('.shortcut-key-query').textContent).toContain('Runs on S');
+    expect(host.querySelector('.shortcut-key-query').textContent).toContain(
+      `Runs on ${formatKeystrokes('s')}`
+    );
   });
 
   it('says when nothing runs on the pressed key, and lists everything again once cleared', function () {
     findByKey('q', 81);
-    expect(host.querySelector('.shortcut-no-matches').textContent).toBe('Nothing runs on Q.');
+    expect(host.querySelector('.shortcut-no-matches').textContent).toBe(
+      `Nothing runs on ${formatKeystrokes('q')}.`
+    );
     ReactTestUtils.Simulate.click(host.querySelector('.clear-key-query'));
     expect(rows().length).toBeGreaterThan(4);
     expect(host.querySelector('.shortcut-search-input')).not.toBe(null);
