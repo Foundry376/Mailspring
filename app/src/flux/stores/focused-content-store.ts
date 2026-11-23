@@ -88,12 +88,17 @@ class FocusedContentStore extends MailspringStore {
     // Ensure internal consistency by removing any focused items that belong
     // to accounts which no longer exist.
     const changed = [];
+    const unfocused = [];
 
     for (const dict of [this._focused, this._keyboardCursor]) {
       for (const [collection, item] of Object.entries(dict)) {
         if (item && item.accountId && !AccountStore.accountForId(item.accountId)) {
-          delete dict[collection];
-          changed.push(collection);
+          if (dict === this._focused) {
+            unfocused.push(collection);
+          } else {
+            delete dict[collection];
+            changed.push(collection);
+          }
         }
       }
     }
@@ -101,7 +106,15 @@ class FocusedContentStore extends MailspringStore {
     if (changed.length > 0) {
       this.trigger({ impactsCollection: (c) => changed.includes(c) });
     }
+    this._unfocus(unfocused);
   };
+
+  // Through the action rather than in place, so WorkspaceStore also closes the thread's sheet and sidebar.
+  _unfocus(collections: string[]) {
+    for (const collection of collections) {
+      Actions.setFocus({ collection, item: null });
+    }
+  }
 
   _onFocusKeyboard = ({ collection, item }: { collection: string; item: Model | null }) => {
     if (item && !(item instanceof Model)) {
@@ -189,6 +202,7 @@ class FocusedContentStore extends MailspringStore {
     }
 
     const touched = [];
+    const unfocused = [];
 
     for (const data of [this._focused, this._keyboardCursor]) {
       for (const [key, val] of Object.entries(data)) {
@@ -197,8 +211,12 @@ class FocusedContentStore extends MailspringStore {
         }
         for (const obj of change.objects) {
           if (val.id === obj.id) {
-            data[key] = change.type === 'unpersist' ? null : obj;
-            touched.push(key);
+            if (change.type === 'unpersist' && data === this._focused) {
+              unfocused.push(key);
+            } else {
+              data[key] = change.type === 'unpersist' ? null : obj;
+              touched.push(key);
+            }
           }
         }
       }
@@ -207,6 +225,7 @@ class FocusedContentStore extends MailspringStore {
     if (touched.length > 0) {
       this.trigger({ impactsCollection: (c) => c in touched });
     }
+    this._unfocus(unfocused);
   };
 
   // Public Methods

@@ -9,6 +9,7 @@ describe('LocalSearchQueryBackend', function () {
     db = new Sqlite3(':memory:');
     db.exec(`
       CREATE TABLE Thread (id TEXT PRIMARY KEY, unread INTEGER);
+      CREATE TABLE Message (id TEXT PRIMARY KEY, threadId TEXT, data TEXT);
       CREATE VIRTUAL TABLE ThreadSearch USING fts5(tokenize = 'porter unicode61',
         content_id UNINDEXED, subject, to_, from_, categories, body);
     `);
@@ -21,7 +22,19 @@ describe('LocalSearchQueryBackend', function () {
       'inbox',
       'body'
     );
+    addMessage('t1', { from: ['p39@example.invalid'], to: ['me@example.com'] });
   });
+
+  // Rows shaped as the sync engine writes them: Message.data holds from/to/cc/bcc as
+  // [{name, email}], and ThreadSearch's to_/from_ hold each address and name after a space.
+  const addMessage = (threadId: string, fields: { [field: string]: string[] }) => {
+    const data = { from: [], to: [], cc: [], bcc: [] };
+    for (const [field, emails] of Object.entries(fields)) {
+      data[field] = emails.map((email) => ({ name: 'Someone', email }));
+    }
+    const id = `${threadId}-${db.prepare('SELECT count(*) AS n FROM Message').get().n}`;
+    db.prepare('INSERT INTO Message VALUES (?, ?, ?)').run(id, threadId, JSON.stringify(data));
+  };
 
   afterEach(function () {
     db.close();
@@ -60,6 +73,141 @@ describe('LocalSearchQueryBackend', function () {
     expect(run('nothing OR before:foo')).toEqual([]);
     expect(run('hello OR before:foo')).toEqual(['t1']);
     expect(run('hello NOT before:foo')).toEqual(['t1']);
+  });
+
+  describe('from: and to: with a whole address', function () {
+    const thread = (id: string, from: string[], to: string[], indexedFrom = from) => {
+      db.prepare('INSERT INTO Thread VALUES (?, ?)').run(id, 0);
+      db.prepare('INSERT INTO ThreadSearch VALUES (?, ?, ?, ?, ?, ?)').run(
+        id,
+        'Hello',
+        ` ${to.join(' ')} Someone`,
+        ` ${indexedFrom.join(' ')} Someone`,
+        'inbox',
+        'body'
+      );
+      addMessage(id, { from, to });
+    };
+
+    beforeEach(function () {
+      thread('bob', ['bob@example.com'], ['me@example.com']);
+      thread('alice.bob', ['alice.bob@example.com'], ['me@example.com']);
+      thread('community', ['bob@example.community'], ['me@example.com']);
+      thread('upper', ['Bob@Example.COM'], ['me@example.com']);
+      thread('to-bob', ['alice.bob@example.com'], ['bob@example.com']);
+      thread('to-alice.bob', ['me@example.com'], ['alice.bob@example.com']);
+      thread('quoted', ["o'brien@example.com"], ['me@example.com']);
+      // The sync engine leaves an address out of ThreadSearch when one it already indexed for
+      // the thread starts with it (stringByAppendingOrSkipping in MailProcessor.cpp).
+      thread(
+        'skipped',
+        ['bob@example.community', 'bob@example.com'],
+        ['me@example.com'],
+        ['bob@example.community']
+      );
+      addMessage('cc-bob', { to: ['me@example.com'], cc: ['bob@example.com'] });
+      db.prepare('INSERT INTO Thread VALUES (?, ?)').run('cc-bob', 0);
+      db.prepare('INSERT INTO ThreadSearch VALUES (?, ?, ?, ?, ?, ?)').run(
+        'cc-bob',
+        'Hello',
+        ' me@example.com bob@example.com',
+        ' alice@example.com',
+        'inbox',
+        'body'
+      );
+    });
+
+    const sorted = (query: string) => run(query).sort();
+
+    it('matches only that address, ignoring case', function () {
+      expect(sorted('from:bob@example.com')).toEqual(['bob', 'skipped', 'upper']);
+      expect(sorted('from:BOB@Example.com')).toEqual(['bob', 'skipped', 'upper']);
+      expect(sorted(`from:o'brien@example.com`)).toEqual(['quoted']);
+    });
+
+    it('ignores ASCII case only, as SQLite lower() does', function () {
+      thread('umlaut', ['JÖRG@example.de'], ['me@example.com']);
+      expect(sorted('from:jÖrg@EXAMPLE.de')).toEqual(['umlaut']);
+      expect(sorted('from:jörg@example.de')).toEqual([]);
+    });
+
+    it('keeps prefix matching for a value with brackets, separators or wildcards', function () {
+      const prefixMatches = ['alice.bob', 'bob', 'community', 'skipped', 'to-bob', 'upper'];
+      for (const value of ['<bob@example.com>', 'bob@example.com,', 'bob@example.com;']) {
+        expect(sorted(`from:${value}`)).toEqual(prefixMatches);
+      }
+      expect(sorted('from:*@example.com')).toEqual(sorted('from:example.com'));
+    });
+
+    it('matches to: against the To, Cc and Bcc addresses', function () {
+      expect(sorted('to:bob@example.com')).toEqual(['cc-bob', 'to-bob']);
+    });
+
+    it('keeps prefix matching for a partial address or a name', function () {
+      expect(sorted('from:bob')).toEqual([
+        'alice.bob',
+        'bob',
+        'community',
+        'skipped',
+        'to-bob',
+        'upper',
+      ]);
+      expect(run('from:example.com')).toContain('community');
+      expect(run('from:someone')).toContain('bob');
+      expect(sorted('to:bob@example')).toEqual(['cc-bob', 'to-alice.bob', 'to-bob']);
+    });
+
+    it('combines with other terms', function () {
+      expect(sorted('from:bob@example.com hello')).toEqual(['bob', 'skipped', 'upper']);
+      expect(sorted('from:bob@example.com nothing')).toEqual([]);
+      expect(sorted('from:bob@example.com OR from:alice.bob@example.com')).toEqual([
+        'alice.bob',
+        'bob',
+        'skipped',
+        'to-bob',
+        'upper',
+      ]);
+      expect(sorted('from:alice.bob@example.com NOT to:bob@example.com')).toEqual(['alice.bob']);
+      expect(sorted('hello NOT from:bob@example.com')).toEqual([
+        'alice.bob',
+        'cc-bob',
+        'community',
+        'quoted',
+        't1',
+        'to-alice.bob',
+        'to-bob',
+      ]);
+      expect(sorted('from:bob@example.com is:unread')).toEqual([]);
+      expect(sorted('(from:bob@example.com OR to:bob@example.com) AND from:bob')).toEqual([
+        'bob',
+        'skipped',
+        'to-bob',
+        'upper',
+      ]);
+    });
+
+    it('compiles the terms MATCH can express around a whole address as one MATCH', function () {
+      const where = new LocalSearchQueryBackend('Thread').compile(
+        SearchQueryParser.parse('hello OR subject:hello OR from:bob OR from:bob@example.com')
+      );
+      expect(where.match(/ MATCH /g).length).toBe(2);
+      expect(sorted('hello OR subject:hello OR from:bob OR from:bob@example.com')).toEqual(
+        sorted('hello')
+      );
+    });
+
+    it('compiles a long chain mixing whole and partial addresses', function () {
+      const terms = Array.from({ length: 200 }, (_, i) =>
+        i % 2 ? `from:p${i}@example.invalid` : `to:p${i}`
+      );
+      expect(run(terms.join(' OR '))).toEqual(['t1']);
+      expect(sorted(`${terms.join(' OR ')} OR from:bob@example.com`)).toEqual([
+        'bob',
+        'skipped',
+        't1',
+        'upper',
+      ]);
+    });
   });
 
   describe('in:', function () {

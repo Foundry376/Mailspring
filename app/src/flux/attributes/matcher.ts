@@ -313,10 +313,10 @@ class StructuredSearchMatcher extends Matcher {
     return null;
   }
 
-  // The only way to truly check if a model matches this matcher is to run the query
-  // again and check if the model is in the results. This is too expensive, so we
-  // will always return true so models aren't excluded from the
-  // SearchQuerySubscription result set
+  // Only running the query again can tell whether a model matches, so every model counts as
+  // matching. A saved thread a search does not list therefore makes its QuerySubscription run
+  // the query again, which is how a thread whose body the sync engine just indexed joins the
+  // results (SearchQuerySubscription).
   evaluate() {
     return true;
   }

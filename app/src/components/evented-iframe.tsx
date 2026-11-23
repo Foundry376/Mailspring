@@ -310,6 +310,14 @@ export class EventedIFrame extends React.Component<
     ReactDOM.findDOMNode(this).dispatchEvent(eventInParentDoc);
   };
 
+  // Copies the selection the way Cmd+C does (core:copy in WindowEventHandler), so the clipboard
+  // holds its HTML, with the formatting of the elements around it, as well as its plain text.
+  // webContents.copy() acts on the focused frame.
+  _copySelection() {
+    (ReactDOM.findDOMNode(this) as HTMLIFrameElement).contentWindow.focus();
+    AppEnv.getCurrentWindow().webContents.copy();
+  }
+
   _onIFrameContextualMenu = (event: MouseEvent) => {
     // Build a standard-looking contextual menu with options like "Copy Link",
     // "Copy Image" and "Search Google for 'Bla'"
@@ -439,9 +447,9 @@ export class EventedIFrame extends React.Component<
       menu.append(
         new MenuItem({
           label: localized('Copy'),
-          click() {
-            clipboard.writeText(text);
-          },
+          // Blurring the frame empties its selection (_onIFrameBlur), so check it again on click.
+          click: () =>
+            selection.toString().trim() ? this._copySelection() : clipboard.writeText(text),
         })
       );
       menu.append(
