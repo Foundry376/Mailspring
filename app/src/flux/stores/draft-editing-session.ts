@@ -261,6 +261,16 @@ export class DraftEditingSession extends MailspringStore {
     this._mountedEditor = editor;
   }
 
+  // Public: Brings the draft's body up to date with the mounted editor. Slate applies an edit to
+  // the editor's value at once but reports it through onChange, which feeds this session, a
+  // microtask later; a send reads the body right after an inline image is inserted.
+  applyMountedEditorValue() {
+    const value = this._mountedEditor?.value;
+    if (value && this._draft && value !== this._draft.bodyEditorState) {
+      this.changes.add({ bodyEditorState: value });
+    }
+  }
+
   // ensureCorrectAccount cannot send from an address that matches no account or
   // alias, eg: a draft synced from another client, or an alias since removed.
   hasSendableFromAddress() {

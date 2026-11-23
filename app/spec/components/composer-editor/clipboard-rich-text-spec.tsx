@@ -84,7 +84,7 @@ describe('handleFilePasted', () => {
   it('attaches every file copied from a file manager, not just the first', () => {
     const { webUtils } = require('electron');
     spyOn(webUtils, 'getPathForFile').andCallFake((f: any) => `/Users/me/${f.name}`);
-    const received: string[] = [];
+    const received: (string | Promise<string>)[] = [];
     const event = {
       clipboardData: {
         items: [{ kind: 'string', type: 'text/plain' }, fileItem('a.pdf'), fileItem('b.pdf')],

@@ -64,7 +64,11 @@ export default class AutoUpdateManager extends EventEmitter {
       host = `updates-staging.getmailspring.com`;
     }
 
-    this.feedURL = `https://${host}/check/${params.platform}/${params.arch}/${params.version}/${params.id}/${params.channel}`;
+    // osVersion lets the server hold back releases this OS can't run (#3074). Squirrel.Windows
+    // can't take query params (Squirrel/Squirrel.Windows#132), but Update.exe is only ever
+    // handed the release directory from the response, never this URL.
+    const osVersion = encodeURIComponent(process.getSystemVersion());
+    this.feedURL = `https://${host}/check/${params.platform}/${params.arch}/${params.version}/${params.id}/${params.channel}?osVersion=${osVersion}`;
     if (autoUpdater) {
       autoUpdater.setFeedURL(this.feedURL);
     }
@@ -116,21 +120,21 @@ export default class AutoUpdateManager extends EventEmitter {
       return;
     }
 
-    //check immediately at startup
-    this.check({ hidePopups: true });
-
-    //check every 30 minutes
-    setInterval(
-      () => {
-        if ([UpdateAvailableState, UnsupportedState].includes(this.state)) {
-          console.log('Skipping update check... update ready to install, or updater unavailable.');
-          return;
-        }
-        this.check({ hidePopups: true });
-      },
-      1000 * 60 * 30
-    );
+    this.checkAutomatically();
+    setInterval(this.checkAutomatically, 1000 * 60 * 30);
   }
+
+  // People pinned to an older build (eg: the last release for their OS version) turn this off.
+  // "Check for Updates" in the menu still checks and installs.
+  checkAutomatically = () => {
+    if (this.config.get('core.updates.checkAutomatically') === false) {
+      return;
+    }
+    if ([UpdateAvailableState, UnsupportedState].includes(this.state)) {
+      return;
+    }
+    this.check({ hidePopups: true });
+  };
 
   emitUpdateAvailableEvent() {
     if (!this.releaseVersion) {

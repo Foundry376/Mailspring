@@ -1,5 +1,8 @@
 import _ from 'underscore';
-import { Actions, Account, AccountStore, CategoryStore, Folder } from 'mailspring-exports';
+import { Actions, Account, AccountStore, CategoryStore, Folder, Thread } from 'mailspring-exports';
+import { DatabaseChangeRecord } from '../../../src/flux/stores/database-change-record';
+import { MutableQueryResultSet } from '../../../src/flux/models/mutable-query-result-set';
+import { QueryRange } from '../../../src/flux/models/query-range';
 import SearchQuerySubscription from '../lib/search-query-subscription';
 import SearchMailboxPerspective from '../lib/search-mailbox-perspective';
 
@@ -25,7 +28,7 @@ describe('SearchQuerySubscription', function () {
   };
   const searchIdFor = (accountId: string) =>
     sent.find((s) => s.accountId === accountId).packet.searchId;
-  const lastQuerySQL = (sub) => (sub.replaceQuery as jasmine.Spy).mostRecentCall.args[0].sql();
+  const lastQuery = (sub) => (sub.replaceQuery as jasmine.Spy).mostRecentCall.args[0];
 
   beforeEach(function () {
     sent = [];
@@ -52,11 +55,13 @@ describe('SearchQuerySubscription', function () {
     expect(sent[0].packet).toEqual({
       type: 'search-remote',
       searchId: sent[0].packet.searchId,
+      fetchLimit: 500,
       gmailRaw: 'pineapple',
     });
     expect(sent[1].packet).toEqual({
       type: 'search-remote',
       searchId: sent[1].packet.searchId,
+      fetchLimit: 500,
       criteria: [
         'or',
         ['from', 'pineapple'],
@@ -134,28 +139,64 @@ describe('SearchQuerySubscription', function () {
     expect(sent).toEqual([]);
   });
 
-  it("adds the server's threads to the local matches", function () {
-    const sub = subscribe('pineapple', ['a1']);
-    expect(lastQuerySQL(sub)).not.toContain("'t1'");
-    sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: false, threadIds: ['t1', 't2'] });
-    expect(lastQuerySQL(sub)).toContain("in ('t1','t2')");
-    expect(lastQuerySQL(sub)).toContain('MATCH');
-  });
-
-  it('ignores results for other searches and threads it already has', function () {
+  it('keeps the local query as server results arrive', function () {
     const sub = subscribe('pineapple', ['a1']);
     const queries = (sub.replaceQuery as jasmine.Spy).callCount;
-    sub._onRemoteSearchResult({ id: 'someone-elses', done: true, threadIds: ['t9'] });
+    expect(lastQuery(sub).sql()).toContain('MATCH');
+    for (const phase of ['searching', 'fetching', 'done']) {
+      sub._onRemoteSearchResult({
+        id: searchIdFor('a1'),
+        done: phase === 'done',
+        phase,
+        threadIds: ['t1', 't2'],
+        candidates: 2,
+        fetched: 1,
+      } as any);
+    }
     expect((sub.replaceQuery as jasmine.Spy).callCount).toBe(queries);
-    sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: false, threadIds: ['t1'] });
-    sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: false, threadIds: ['t1'] });
-    sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: false, threadIds: [] });
-    expect((sub.replaceQuery as jasmine.Spy).callCount).toBe(queries + 1);
+  });
+
+  describe('when the sync engine saves a thread', function () {
+    const date = new Date(2026, 10, 1);
+    const thread = (id: string) =>
+      new Thread({ id, accountId: 'a1', lastMessageReceivedTimestamp: date });
+    const saved = (t: Thread) =>
+      new DatabaseChangeRecord({
+        type: 'persist',
+        objectClass: 'Thread',
+        objects: [t],
+        objectsRawJSON: [t.toJSON()],
+      });
+    let sub;
+
+    // A search showing `listed`, with no query in flight.
+    beforeEach(function () {
+      sub = subscribe('pineapple', ['a1']);
+      sub._query = lastQuery(sub);
+      sub._query.finalize();
+      sub._set = new MutableQueryResultSet();
+      sub._set.addModelsInRange([thread('listed')], new QueryRange({ offset: 0, limit: 1000 }));
+      spyOn(sub, 'update');
+      spyOn(sub, '_createResultAndTrigger');
+    });
+
+    // The engine saves the thread of every body it stores (Message::afterSave in Mailspring-Sync),
+    // so this is how a thread whose newly indexed body matches joins the results.
+    it('runs the local query again for a thread the results lack', function () {
+      sub.applyChangeRecord(saved(thread('indexed')));
+      expect(sub.update).toHaveBeenCalledWith({ mustRefetchEntireRange: true });
+    });
+
+    it('updates a listed thread in place', function () {
+      sub.applyChangeRecord(saved(thread('listed')));
+      expect(sub.update).not.toHaveBeenCalled();
+      expect(sub._createResultAndTrigger).toHaveBeenCalled();
+    });
   });
 
   it('cancels the server searches still running when it is torn down', function () {
     const sub = subscribe('pineapple', ['a1', 'a2']);
-    sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: true, threadIds: [] });
+    sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: true });
     const running = searchIdFor('a2');
     sent = [];
     sub.onLastCallbackRemoved();
@@ -181,21 +222,28 @@ describe('SearchQuerySubscription', function () {
       const sub = subscribe('pineapple', ['a1', 'a2']);
       resultsArrive(sub);
       expect(completed).not.toHaveBeenCalled();
-      sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: false, threadIds: ['t1'] });
+      sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: false });
       resultsArrive(sub);
       expect(completed).not.toHaveBeenCalled();
-      sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: true, threadIds: [] });
+      sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: true });
       expect(completed).not.toHaveBeenCalled();
-      sub._onRemoteSearchResult({ id: searchIdFor('a2'), done: true, error: 'ErrorConnection' });
+      sub._onRemoteSearchResult({ id: 'someone-elses', done: true });
+      expect(completed).not.toHaveBeenCalled();
+      sub._onRemoteSearchResult({
+        id: searchIdFor('a2'),
+        done: true,
+        error: 'ErrorConnection',
+      } as any);
       expect(completed.callCount).toBe(1);
       resultsArrive(sub);
+      sub._onRemoteSearchResult({ id: searchIdFor('a2'), done: true });
       expect(completed.callCount).toBe(1);
     });
 
     it('turns off when the local query fails', function () {
       spyOn(AppEnv, 'reportError');
       const sub = subscribe('pineapple', ['a1']);
-      sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: true, threadIds: [] });
+      sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: true });
       expect(completed).not.toHaveBeenCalled();
       sub._onQueryFailed(new Error('DatabaseStore: Query failed in background'));
       expect(completed.callCount).toBe(1);
@@ -203,8 +251,19 @@ describe('SearchQuerySubscription', function () {
 
     it('waits for the local results when the servers answer first', function () {
       const sub = subscribe('pineapple', ['a1']);
-      sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: true, threadIds: [] });
+      sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: true });
       expect(completed).not.toHaveBeenCalled();
+      resultsArrive(sub);
+      expect(completed.callCount).toBe(1);
+    });
+
+    it('waits for a local query still running when the servers answer', function () {
+      const sub = subscribe('pineapple', ['a1']);
+      resultsArrive(sub);
+      sub._updateInFlight = true;
+      sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: true });
+      expect(completed).not.toHaveBeenCalled();
+      sub._updateInFlight = false;
       resultsArrive(sub);
       expect(completed.callCount).toBe(1);
     });
@@ -228,13 +287,5 @@ describe('SearchQuerySubscription', function () {
       resultsArrive(sub);
       expect(completed.callCount).toBe(1);
     });
-  });
-
-  it('ignores results that arrive after a search is done', function () {
-    const sub = subscribe('pineapple', ['a1']);
-    sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: true, threadIds: ['t1'] });
-    const queries = (sub.replaceQuery as jasmine.Spy).callCount;
-    sub._onRemoteSearchResult({ id: searchIdFor('a1'), done: true, threadIds: ['t2'] });
-    expect((sub.replaceQuery as jasmine.Spy).callCount).toBe(queries);
   });
 });

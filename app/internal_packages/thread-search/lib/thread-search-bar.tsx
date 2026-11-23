@@ -53,6 +53,11 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
 
   _fieldEl: TokenizingContenteditable;
 
+  // Bumped by every suggestion lookup and on unmount. Contact and subject lookups run on the
+  // background query agent and resolve out of order, so a lookup only applies its results if
+  // no newer one has started since.
+  _suggestionRequest = 0;
+
   constructor(props: ThreadSearchBarProps) {
     super(props);
     this.state = {
@@ -61,6 +66,10 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
       selected: null,
       selectedIdx: -1,
     };
+  }
+
+  componentWillUnmount() {
+    this._suggestionRequest++;
   }
 
   componentDidUpdate(prevProps: ThreadSearchBarProps) {
@@ -96,6 +105,7 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
   }
 
   async _generateSuggestionsForQuery(query: string) {
+    const request = ++this._suggestionRequest;
     let insertionIndex = this._fieldEl.insertionIndex();
 
     // Treat the initial query (eg: "in:starred AND ") as if it's
@@ -173,10 +183,9 @@ class ThreadSearchBar extends Component<ThreadSearchBarProps, ThreadSearchBarSta
 
     if (promises.length) {
       await Promise.all(promises);
-      this._setSuggestionState(suggestions);
-    } else {
-      this._setSuggestionState(suggestions);
+      if (request !== this._suggestionRequest) return;
     }
+    this._setSuggestionState(suggestions);
   }
 
   _onFocus = (e: React.FocusEvent) => {

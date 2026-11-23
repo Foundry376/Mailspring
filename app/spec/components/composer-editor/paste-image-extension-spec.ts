@@ -63,14 +63,15 @@ describe('handleFilePasted', () => {
     return evt as unknown as ClipboardEvent;
   }
 
-  function waitForFileReceived(evt: ClipboardEvent): Promise<string> {
-    const { promise, resolve } = Promise.withResolvers<string>();
-    const handled = handleFilePasted(evt, (receivedPath: string) => {
-      tmpDirsCreated.push(path.dirname(receivedPath));
-      resolve(receivedPath);
-    });
+  async function waitForFileReceived(evt: ClipboardEvent): Promise<string> {
+    let received: string | Promise<string> = null;
+    const handled = handleFilePasted(evt, (pathOrPromise) => (received = pathOrPromise));
     expect(handled).toBe(true);
-    return promise;
+    // Handed over synchronously, so the add is queued before the temp file is written.
+    expect(received instanceof Promise).toBe(true);
+    const receivedPath = await received;
+    tmpDirsCreated.push(path.dirname(receivedPath));
+    return receivedPath;
   }
 
   it('writes a pasted image/jpeg blob to a temp file with a .jpeg extension', async () => {
@@ -89,6 +90,13 @@ describe('handleFilePasted', () => {
 
     expect(receivedPath.endsWith('.png')).toBe(true);
     expect(fs.existsSync(receivedPath)).toBe(true);
+  });
+
+  it('writes the pasted bytes to the temp file', async () => {
+    const blob = new Blob([new Uint8Array([9, 8, 7])], { type: 'image/png' });
+    const receivedPath = await waitForFileReceived(fakePasteEventFor(blob, 'image/png'));
+
+    expect(Array.from(fs.readFileSync(receivedPath))).toEqual([9, 8, 7]);
   });
 });
 

@@ -7,9 +7,10 @@ interface ComposerEditorPlaintextProps {
   propsForPlugins: any;
   onChange: (value: string) => void;
   className?: string;
+  readOnly?: boolean;
   onBlur?: (e: React.FocusEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
-  onFileReceived?: (path: string) => void;
+  onFileReceived?: (path: string | Promise<string>) => void;
 }
 
 export class ComposerEditorPlaintext extends React.Component<ComposerEditorPlaintextProps> {
@@ -145,6 +146,7 @@ export class ComposerEditorPlaintext extends React.Component<ComposerEditorPlain
       >
         <textarea
           value={this.props.value}
+          readOnly={this.props.readOnly}
           cols={72}
           wrap="hard"
           onFocus={this.onFocus}

@@ -278,3 +278,37 @@ xdescribe('DraftEditingSession Specs', function () {
     });
   });
 });
+
+describe('DraftEditingSession.applyMountedEditorValue', () => {
+  const { convertFromHTML } = require('../../src/components/composer-editor/conversion');
+  let session: DraftEditingSession;
+
+  beforeEach(() => {
+    const draft = new Message({ headerMessageId: 'h-1', draft: true, body: '<div>Hi</div>' });
+    session = new DraftEditingSession('h-1', draft);
+    spyOn(session.changes, 'add').andCallThrough();
+  });
+
+  afterEach(() => session.teardown());
+
+  // Slate reports an edit to onChange a microtask after applying it to the editor's value.
+  it("takes the editor's value when the draft has not caught up with it", () => {
+    session.setMountedEditor({
+      value: convertFromHTML('<div>Hi<img src="cid:abc" width="10" height="10"></div>'),
+    } as any);
+    session.applyMountedEditorValue();
+    expect(session.draft().body).toContain('cid:abc');
+    expect(session.changes.dirtyFields()).toContain('body');
+  });
+
+  it('leaves the draft alone when it already has the editor value', () => {
+    session.setMountedEditor({ value: session.draft().bodyEditorState } as any);
+    session.applyMountedEditorValue();
+    expect(session.changes.add).not.toHaveBeenCalled();
+  });
+
+  it('does nothing without a mounted editor', () => {
+    session.applyMountedEditorValue();
+    expect(session.changes.add).not.toHaveBeenCalled();
+  });
+});
