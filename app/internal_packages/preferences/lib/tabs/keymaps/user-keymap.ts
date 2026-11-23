@@ -35,3 +35,26 @@ export function bindingFromKeys(keys: string[], modifiers: string[], platform: s
 export function withBinding(bindings: string[], binding: string): string[] {
   return bindings.includes(binding) ? bindings : [...bindings, binding];
 }
+
+/** The keys a binding stands for here: "mod" is Cmd on macOS and Ctrl elsewhere. */
+export function pressedKeys(binding: string, platform: string): string {
+  return binding.replace(/\bmod\b/g, platform === 'darwin' ? 'command' : 'ctrl');
+}
+
+/**
+ * The command's keys without `binding`, and without any other spelling of the same keys: a
+ * template may list mod+a beside ctrl+a, which are one key on Windows and Linux.
+ */
+export function withoutBinding(bindings: string[], binding: string, platform: string): string[] {
+  const removed = pressedKeys(binding, platform);
+  return bindings.filter((b) => pressedKeys(b, platform) !== removed);
+}
+
+/** The keymap with each of `commands` set to no keys, which unbinds it over the template. */
+export function clearedKeymap(keymap: UserKeymap, commands: string[]): UserKeymap {
+  const cleared = { ...keymap };
+  for (const command of commands) {
+    cleared[command] = [];
+  }
+  return cleared;
+}

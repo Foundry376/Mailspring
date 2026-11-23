@@ -62,7 +62,12 @@ describe('Recording a shortcut on the Shortcuts page', function () {
     host = document.createElement('div');
     document.body.appendChild(host);
     ReactDOM.render(
-      <CommandItem command="core:archive-item" label="Archive" bindings={['e']} />,
+      <CommandItem
+        command="core:archive-item"
+        label="Archive"
+        bindings={['e']}
+        customized={false}
+      />,
       host
     );
   });

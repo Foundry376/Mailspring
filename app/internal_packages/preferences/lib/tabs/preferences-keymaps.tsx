@@ -7,11 +7,12 @@ import { localized } from 'mailspring-exports';
 
 import displayedKeybindings from './keymaps/displayed-keybindings';
 import CommandItem from './keymaps/command-item';
+import { readUserKeymap, writeUserKeymap, clearedKeymap, UserKeymap } from './keymaps/user-keymap';
 import { Disposable } from 'event-kit';
 
 export default class PreferencesKeymaps extends React.Component<
   { config: any },
-  { templates: string[]; bindings: { [command: string]: [] } }
+  { templates: string[]; bindings: { [command: string]: [] }; userKeymap: UserKeymap }
 > {
   static displayName = 'PreferencesKeymaps';
 
@@ -22,13 +23,17 @@ export default class PreferencesKeymaps extends React.Component<
     this.state = {
       templates: [],
       bindings: this._getStateFromKeymaps(),
+      userKeymap: readUserKeymap(AppEnv.keymaps.getUserKeymapPath()),
     };
     this._loadTemplates();
   }
 
   componentDidMount() {
     this._disposable = AppEnv.keymaps.onDidReloadKeymap(() => {
-      this.setState({ bindings: this._getStateFromKeymaps() });
+      this.setState({
+        bindings: this._getStateFromKeymaps(),
+        userKeymap: readUserKeymap(AppEnv.keymaps.getUserKeymapPath()),
+      });
     });
   }
 
@@ -82,10 +87,37 @@ export default class PreferencesKeymaps extends React.Component<
     }
   }
 
+  _onClear(commands: string[]) {
+    const keymapPath = AppEnv.keymaps.getUserKeymapPath();
+    writeUserKeymap(keymapPath, clearedKeymap(readUserKeymap(keymapPath), commands));
+  }
+
+  _onClearAll = () => {
+    const chosen = require('@electron/remote').dialog.showMessageBoxSync({
+      type: 'info',
+      message: localized('Are you sure?'),
+      detail: localized(
+        'Remove every shortcut in this list? Add back the ones you want with +, or use Restore Defaults.'
+      ),
+      buttons: [localized('Cancel'), localized('Clear All')],
+    });
+    if (chosen === 1) {
+      this._onClear(displayedKeybindings.flatMap((section) => section.items.map(([c]) => c)));
+    }
+  };
+
   _renderBindingsSection = (section: { title: string; items: string[][] }) => {
     return (
       <section key={`section-${section.title}`}>
-        <div className="shortcut-section-title">{section.title}</div>
+        <Flexbox className="shortcut-section-title">
+          <div style={{ flex: 1 }}>{section.title}</div>
+          <a
+            className="clear-section"
+            onClick={() => this._onClear(section.items.map(([command]) => command))}
+          >
+            {localized('Clear')}
+          </a>
+        </Flexbox>
         {section.items.map(([command, label]) => {
           return (
             <CommandItem
@@ -93,6 +125,7 @@ export default class PreferencesKeymaps extends React.Component<
               command={command}
               label={label}
               bindings={this.state.bindings[command]}
+              customized={command in this.state.userKeymap}
             />
           );
         })}
@@ -124,6 +157,9 @@ export default class PreferencesKeymaps extends React.Component<
               </select>
             </div>
             <div style={{ flex: 1 }} />
+            <button className="btn" style={{ marginRight: 8 }} onClick={this._onClearAll}>
+              {localized('Clear All')}
+            </button>
             <button className="btn" onClick={this._onDeleteUserKeymap}>
               {localized('Restore Defaults')}
             </button>
