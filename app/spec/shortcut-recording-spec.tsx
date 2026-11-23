@@ -11,7 +11,7 @@ import {
   readUserKeymap,
 } from '../internal_packages/preferences/lib/tabs/keymaps/user-keymap';
 
-const KEY_CODES = { e: 69, g: 71, i: 73, k: 75, esc: 27, ctrl: 17 };
+const KEY_CODES = { e: 69, g: 71, i: 73, k: 75, esc: 27, ctrl: 17, meta: 91 };
 
 describe('bindingFromKeys', function () {
   it('joins plain keys pressed in turn as a sequence', function () {
@@ -77,7 +77,7 @@ describe('Recording a shortcut on the Shortcuts page', function () {
   const recorder = () => host.querySelector('.shortcut-recorder') as HTMLElement;
   const press = (
     key: keyof typeof KEY_CODES,
-    mods: { ctrlKey?: boolean; preventDefault?: () => void } = {}
+    mods: { ctrlKey?: boolean; metaKey?: boolean; preventDefault?: () => void } = {}
   ) =>
     ReactTestUtils.Simulate.keyDown(recorder(), {
       key,
@@ -117,9 +117,11 @@ describe('Recording a shortcut on the Shortcuts page', function () {
   });
 
   it('records a key with a modifier at once', function () {
+    const isMac = process.platform === 'darwin';
+    const commandKey = isMac ? { metaKey: true } : { ctrlKey: true };
     startRecording();
-    press('ctrl', { ctrlKey: true });
-    press('k', { ctrlKey: true });
+    press(isMac ? 'meta' : 'ctrl', commandKey);
+    press('k', commandKey);
     expect(saved()['core:archive-item']).toEqual(['e', 'mod+k']);
   });
 
