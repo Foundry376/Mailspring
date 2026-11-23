@@ -39,6 +39,17 @@ Build a changelog entry for a new Mailspring release by analyzing git history.
    ```
    Note the date here is ISO format (`YYYY-MM-DD`), unlike the `M/D/YYYY` format used in the changelog heading. In both the the version string and the URL, 1.X.Y is a placeholder for the new version number.
 
+8. **Check whether this release raises the minimum macOS version.** Electron upgrades periodically drop old macOS releases, and the update server will otherwise push the new build to Macs that can't open it (#3074). Compare the macOS this build requires with the newest floor the backend already knows about:
+   ```bash
+   plutil -extract LSMinimumSystemVersion raw node_modules/electron/dist/Electron.app/Contents/Info.plist
+   grep -A3 'LAST_VERSION_FOR_MACOS =' ../backend/src/routes/autoupdate.js
+   ```
+   If the Electron minimum's major version is higher than the largest `belowMacOS` in `LAST_VERSION_FOR_MACOS`, **stop and call this out to the user prominently before anything else in your summary**:
+
+   > ⚠️ **This release requires macOS N.** Before publishing it, update and deploy the backend's update server: append `{ belowMacOS: N, version: '<previous release tag>' }` to `LAST_VERSION_FOR_MACOS` in `backend/src/routes/autoupdate.js`. Otherwise Macs on older macOS versions will auto-update to a build that won't launch.
+
+   Also add a line to the changelog's **Improvements** section, e.g. "Mailspring now requires macOS N or later. Macs on older versions stay on 1.X.Y." Skip this step silently if the minimum is unchanged.
+
 ## Changelog Format
 
 ```markdown

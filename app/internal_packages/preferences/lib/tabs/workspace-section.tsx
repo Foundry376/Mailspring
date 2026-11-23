@@ -175,6 +175,14 @@ const WorkspaceSection = (props: { config: any; configSchema: any }) => {
         config={props.config}
       />
 
+      {!process.env.SNAP && (
+        <ConfigSchemaItem
+          configSchema={props.configSchema.properties.updates.properties.checkAutomatically}
+          keyPath="core.updates.checkAutomatically"
+          config={props.config}
+        />
+      )}
+
       <ConfigSchemaItem
         configSchema={props.configSchema.properties.workspace.properties.interfaceZoom}
         keyPath="core.workspace.interfaceZoom"

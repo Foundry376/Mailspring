@@ -21,6 +21,7 @@ describe('hardware acceleration recovery', () => {
   });
   const buildApp = () => ({
     disableHardwareAcceleration: jasmine.createSpy('disableHardwareAcceleration'),
+    commandLine: { appendSwitch: jasmine.createSpy('appendSwitch') },
     exit: jasmine.createSpy('exit'),
     relaunch: jasmine.createSpy('relaunch'),
   });
@@ -56,6 +57,7 @@ describe('hardware acceleration recovery', () => {
   it('writes the marker and relaunches at most once', () => {
     const app = {
       disableHardwareAcceleration: jasmine.createSpy('disableHardwareAcceleration'),
+      commandLine: { appendSwitch: jasmine.createSpy('appendSwitch') },
       exit: jasmine.createSpy('exit'),
       relaunch: jasmine.createSpy('relaunch'),
     };
@@ -124,6 +126,7 @@ describe('hardware acceleration recovery', () => {
         false
       );
       expect(app.disableHardwareAcceleration).not.toHaveBeenCalled();
+      expect(app.commandLine.appendSwitch).not.toHaveBeenCalled();
     });
 
     it('disables acceleration and clears Chromium caches once when the marker exists', () => {
@@ -132,6 +135,10 @@ describe('hardware acceleration recovery', () => {
 
       expect(applyPersistentSoftwareRendering(app, CONFIG_DIR, 'win32', fileSystem)).toBe(true);
       expect(app.disableHardwareAcceleration).toHaveBeenCalled();
+      expect(app.commandLine.appendSwitch.argsForCall).toEqual([
+        ['disable-gpu'],
+        ['disable-direct-composition'],
+      ]);
       expect(fileSystem.rmSync.callCount).toBe(3);
       expect(fileSystem.writeFileSync).toHaveBeenCalled();
     });

@@ -11,6 +11,7 @@ import {
   Message,
   Contact,
   File,
+  Folder,
   Label,
   DraftFactory,
   SyncbackDraftTask,
@@ -20,11 +21,13 @@ import {
   ChangeStarredTask,
   ChangeLabelsTask,
   ChangeFolderTask,
+  SyncbackCategoryTask,
   TaskFactory,
   TaskQueue,
   Actions,
   SanitizeTransformer,
   InlineStyleTransformer,
+  imapUtf7,
 } from 'mailspring-exports';
 import {
   AccessCategory,
@@ -243,6 +246,65 @@ async function attachmentPathOnDisk(file: File): Promise<string | null> {
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+type CategoryKind = 'folder' | 'label';
+
+// Creating or renaming a folder is a round trip to the mail server; past this the tool
+// reports the change as pending rather than holding the agent's request open.
+const CATEGORY_TASK_TIMEOUT_MS = 30000;
+
+function capitalize(str: string) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+// Gmail accounts organize mail with labels and every other provider with folders, the
+// same split move_to_folder and set_labels follow.
+function checkAccountCategoryKind(accountId: string, kind: CategoryKind): string | null {
+  const account = AccountStore.accountForId(accountId);
+  if (!account) return `Account '${accountId}' not found`;
+  if (account.usesLabels() === (kind === 'label')) return null;
+  return kind === 'label'
+    ? `Account '${accountId}' uses folders, not labels. Use create_folder instead.`
+    : `Account '${accountId}' is a Gmail account and uses labels, not folders. Use create_label instead.`;
+}
+
+// Renaming a parent changes the path, and so the ID, of every folder nested inside it. An
+// excluded child would come back under an ID the exclusion list doesn't contain.
+function checkNoExcludedDescendants(
+  accountId: string,
+  category: { id: string; path: string; displayName: string }
+): string | null {
+  const excludedIds = mcpGrant().excludedFolderIds[accountId] || [];
+  const nested = excludedIds
+    .map((id) => CategoryStore.byId(accountId, id))
+    .find(
+      (c) =>
+        c && /^[./\\]/.test(c.path.slice(category.path.length)) && c.path.startsWith(category.path)
+    );
+  if (!nested) return null;
+  return `Access denied: '${category.displayName}' contains a folder that is excluded from MCP access, so it can't be renamed.`;
+}
+
+async function runCategoryTask(accountId: string, task: SyncbackCategoryTask) {
+  Actions.queueTask(task);
+  const finished = await Promise.race([
+    TaskQueue.waitForPerformRemote(task),
+    delay(CATEGORY_TASK_TIMEOUT_MS).then(() => null),
+  ]);
+  if (!finished) {
+    return textResult({
+      status: 'pending',
+      message: 'The mail server has not confirmed the change yet. Check list_folders shortly.',
+    });
+  }
+  if (!finished.created) {
+    const reason = finished.error ? `: ${JSON.stringify(finished.error)}` : '';
+    return errorResult(`The mail server refused the change${reason}`);
+  }
+  const { id, path } = finished.created;
+  const name = CategoryStore.byId(accountId, id)?.displayName || imapUtf7.decode(path);
+  return textResult({ id, name, path });
 }
 
 export type { AuditEntry };
@@ -1002,7 +1064,7 @@ export function registerTools(server: McpServer) {
         .optional()
         .describe('Account ID to send from (uses default if omitted)'),
     },
-    'draft',
+    'write',
     async ({ to, cc, bcc, subject, body, accountId }) => {
       // Decided once and pinned on the draft, so the await below can't race createDraft's
       // own check of the Alt key.
@@ -1053,7 +1115,7 @@ export function registerTools(server: McpServer) {
         .default('reply')
         .describe('Reply type (default: reply)'),
     },
-    'draft',
+    'write',
     async ({ threadId, body, type }) => {
       const thread = await DatabaseStore.find<Thread>(Thread, threadId);
       if (!thread || !isThreadAllowed(thread)) return errorResult(`Thread '${threadId}' not found`);
@@ -1247,6 +1309,67 @@ export function registerTools(server: McpServer) {
       return textResult({ updated: threadIds.length, starred });
     }
   );
+
+  // ── Folder & Label Tools ──
+
+  for (const kind of ['folder', 'label'] as CategoryKind[]) {
+    const other = kind === 'folder' ? 'label' : 'folder';
+    const accounts = kind === 'folder' ? 'non-Gmail accounts' : 'Gmail accounts';
+
+    defineTool(
+      server,
+      `create_${kind}`,
+      `Create a ${kind} on one of the ${accounts} (use create_${other} for the others). Separate nested ${kind}s with "/", e.g. "Receipts/2024". Returns the new ${kind}'s ID once the mail server has created it.`,
+      {
+        accountId: z.string().describe('The account to create it in'),
+        name: z.string().min(1).describe(`Name of the ${kind}, with "/" between nested levels`),
+      },
+      'write',
+      async ({ accountId, name }) => {
+        const err = checkAccountAccess(accountId) || checkAccountCategoryKind(accountId, kind);
+        if (err) return errorResult(err);
+        return runCategoryTask(accountId, SyncbackCategoryTask.forCreating({ name, accountId }));
+      }
+    );
+
+    defineTool(
+      server,
+      `rename_${kind}`,
+      `Rename a user-created ${kind}; standard ${kind}s like Inbox or Sent can't be renamed. \`name\` is the new full name, with "/" between nested levels, so it can also move the ${kind} under a different parent.`,
+      {
+        accountId: z.string().describe('The account the ' + kind + ' belongs to'),
+        [`${kind}Id`]: z.string().describe(`ID of the ${kind} to rename, from list_folders`),
+        name: z.string().min(1).describe(`New full name, with "/" between nested levels`),
+      },
+      'write',
+      async (args) => {
+        const { accountId, name } = args;
+        const categoryId: string = args[`${kind}Id`];
+        const err = checkFolderAccess(accountId, categoryId);
+        if (err) return errorResult(err);
+
+        const category = CategoryStore.byId(accountId, categoryId);
+        const Klass = kind === 'folder' ? Folder : Label;
+        if (!(category instanceof Klass)) {
+          return errorResult(
+            `${capitalize(kind)} '${categoryId}' not found in account '${accountId}'`
+          );
+        }
+        if (!category.isUserCategory()) {
+          return errorResult(
+            `'${category.displayName}' is a standard ${kind} and can't be renamed.`
+          );
+        }
+        const nestedErr = checkNoExcludedDescendants(accountId, category);
+        if (nestedErr) return errorResult(nestedErr);
+
+        return runCategoryTask(
+          accountId,
+          SyncbackCategoryTask.forRenaming({ accountId, path: category.path, newName: name })
+        );
+      }
+    );
+  }
 
   // ── Send Tool ──
 

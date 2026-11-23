@@ -10,12 +10,71 @@ import {
   InQueryExpression,
   MatchQueryExpression,
   QueryExpression,
+  FromQueryExpression,
+  ToQueryExpression,
 } from './search-query-ast';
 import { DateUtils } from 'mailspring-exports';
 import { imapUtf7 } from '../../utils/imap-utf7';
+import {
+  ADDRESS_FIELDS,
+  messageHasAddressSQL,
+  sqlString,
+  wholeAddress as parseWholeAddress,
+} from '../message-address-sql';
 
 // Category.displayName drops one of these and the delimiter after it.
 const DISPLAY_NAME_PREFIXES = ['INBOX', '[Gmail]', '[Mailspring]', 'Mailspring'];
+
+type Chain = typeof AndQueryExpression | typeof OrQueryExpression;
+
+// The parser builds right-nested binary trees, and FTS5's parser overflows its stack on
+// deeply nested parentheses (about 40 levels), so chains of the same operator are emitted
+// flat: `(a OR b OR c)` rather than `(a OR (b OR c))`.
+function operands(node: QueryExpression, type: Chain) {
+  const out: QueryExpression[] = [];
+  const stack = [node];
+  while (stack.length) {
+    const n = stack.pop();
+    if (n instanceof type) {
+      stack.push(n.e2, n.e1);
+    } else {
+      out.push(n);
+    }
+  }
+  return out;
+}
+
+const chainOf = (type: Chain, nodes: QueryExpression[]) =>
+  nodes.reduceRight((rest, n) => new type(n, rest));
+
+// The Message fields a whole-address `from:`/`to:` term is checked against. ThreadSearch.to_
+// holds To, Cc and Bcc (MailProcessor::appendToThreadSearchContent).
+const addressFields = (node: FromQueryExpression | ToQueryExpression) =>
+  node instanceof FromQueryExpression
+    ? { column: 'from_', keys: ADDRESS_FIELDS.from }
+    : { column: 'to_', keys: ADDRESS_FIELDS.to };
+
+// A `from:`/`to:` value that is a whole address, or null for a partial value such as a name,
+// `bob` or `example.com`, which keeps prefix matching.
+const wholeAddress = (node: FromQueryExpression | ToQueryExpression) =>
+  parseWholeAddress(node.text.token.s);
+
+function hasWholeAddressTerm(root: QueryExpression) {
+  const stack = [root];
+  while (stack.length) {
+    const n = stack.pop();
+    if (n instanceof FromQueryExpression || n instanceof ToQueryExpression) {
+      if (wholeAddress(n)) return true;
+    } else if (
+      n instanceof AndQueryExpression ||
+      n instanceof OrQueryExpression ||
+      n instanceof NotQueryExpression
+    ) {
+      stack.push(n.e1, n.e2);
+    }
+  }
+  return false;
+}
 
 /*
  * This class visits a match-compatible subtree and condenses it into a single
@@ -33,26 +92,9 @@ class MatchQueryExpressionVisitor extends SearchQueryExpressionVisitor {
     }
   }
 
-  // The parser builds right-nested binary trees, and FTS5's parser overflows its stack on
-  // deeply nested parentheses (about 40 levels), so chains of the same operator are emitted
-  // flat: `(a OR b OR c)` rather than `(a OR (b OR c))`.
-  _operands(node, type) {
-    const out = [];
-    const stack = [node];
-    while (stack.length) {
-      const n = stack.pop();
-      if (n instanceof type) {
-        stack.push(n.e2, n.e1);
-      } else {
-        out.push(n);
-      }
-    }
-    return out;
-  }
-
   visitAnd(node) {
     this._assertIsMatchCompatible(node);
-    const parts = this._operands(node, AndQueryExpression).map((n) => this.visitAndGetResult(n));
+    const parts = operands(node, AndQueryExpression).map((n) => this.visitAndGetResult(n));
     this._result = `(${parts.join(' AND ')})`;
   }
 
@@ -64,7 +106,7 @@ class MatchQueryExpressionVisitor extends SearchQueryExpressionVisitor {
   }
 
   visitOr(node) {
-    const parts = this._operands(node, OrQueryExpression).map((n) => this.visitAndGetResult(n));
+    const parts = operands(node, OrQueryExpression).map((n) => this.visitAndGetResult(n));
     this._result = `(${parts.join(' OR ')})`;
   }
 
@@ -122,35 +164,47 @@ class MatchQueryExpressionVisitor extends SearchQueryExpressionVisitor {
  */
 class MatchCompatibleQueryCondenser extends SearchQueryExpressionVisitor {
   private _matchVisitor = new MatchQueryExpressionVisitor();
+  private _wholeAddresses: boolean;
+
+  // With `wholeAddresses`, `from:`/`to:` terms whose value is a whole address are left for
+  // StructuredSearchQueryVisitor to compile on their own, as no MATCH expression can say it.
+  constructor({ wholeAddresses }: { wholeAddresses: boolean }) {
+    super();
+    this._wholeAddresses = wholeAddresses;
+  }
 
   visit(root: QueryExpression) {
     return this.visitAndGetResult(root);
   }
 
-  visitAnd(node) {
-    if (node.isMatchCompatible()) {
-      this._result = this._matchVisitor.visit(node);
-      return;
-    }
+  _condensable(node: QueryExpression) {
+    return node.isMatchCompatible() && !(this._wholeAddresses && hasWholeAddressTerm(node));
+  }
 
-    const lhs = this.visitAndGetResult(node.e1);
-    const rhs = this.visitAndGetResult(node.e2);
-    this._result = new AndQueryExpression(lhs, rhs);
+  visitAnd(node) {
+    this._result = this._condenseChain(node, AndQueryExpression);
   }
 
   visitOr(node) {
-    if (node.isMatchCompatible()) {
-      this._result = this._matchVisitor.visit(node);
-      return;
-    }
+    this._result = this._condenseChain(node, OrQueryExpression);
+  }
 
-    const lhs = this.visitAndGetResult(node.e1);
-    const rhs = this.visitAndGetResult(node.e2);
-    this._result = new OrQueryExpression(lhs, rhs);
+  // The operands of a chain that MATCH can express become one MATCH, wherever they sit in it.
+  _condenseChain(node: QueryExpression, type: Chain) {
+    if (this._condensable(node)) {
+      return this._matchVisitor.visit(node);
+    }
+    const parts = operands(node, type);
+    const matchable = parts.filter((n) => this._condensable(n));
+    const rest = parts.filter((n) => !this._condensable(n)).map((n) => this.visitAndGetResult(n));
+    if (matchable.length) {
+      rest.unshift(this._matchVisitor.visit(chainOf(type, matchable)));
+    }
+    return chainOf(type, rest);
   }
 
   visitNot(node) {
-    if (node.isMatchCompatible()) {
+    if (this._condensable(node)) {
       this._result = this._matchVisitor.visit(node);
       return;
     }
@@ -160,11 +214,11 @@ class MatchCompatibleQueryCondenser extends SearchQueryExpressionVisitor {
   }
 
   visitFrom(node) {
-    this._result = this._matchVisitor.visit(node);
+    this._result = this._condensable(node) ? this._matchVisitor.visit(node) : node;
   }
 
   visitTo(node) {
-    this._result = this._matchVisitor.visit(node);
+    this._result = this._condensable(node) ? this._matchVisitor.visit(node) : node;
   }
 
   visitSubject(node) {
@@ -244,11 +298,27 @@ class StructuredSearchQueryVisitor extends SearchQueryExpressionVisitor {
   }
 
   visitFrom(node) {
-    throw new Error(`Unreachable: ${node}`);
+    this._result = this._wholeAddressSQL(node);
   }
 
   visitTo(node) {
-    throw new Error(`Unreachable: ${node}`);
+    this._result = this._wholeAddressSQL(node);
+  }
+
+  // `from:bob@example.com` matches threads with a message whose field holds exactly that
+  // address, case-insensitively. The FTS phrase alone would also match alice.bob@example.com
+  // and bob@example.community, since the tokenizer splits addresses at `.` and `@`; it narrows
+  // the per-message check to threads the index found. It is a prefix phrase because the sync
+  // engine doesn't index an address when one it already indexed for the thread begins with it
+  // (stringByAppendingOrSkipping in MailProcessor.cpp).
+  _wholeAddressSQL(node: FromQueryExpression | ToQueryExpression) {
+    const address = wholeAddress(node);
+    const { column, keys } = addressFields(node);
+    const searchTable = `${this._className}Search`;
+    const hasAddress = messageHasAddressSQL(keys, (email) => `${email} = ${sqlString(address)}`);
+    const onMessage = `EXISTS (SELECT 1 FROM \`Message\` WHERE \`Message\`.\`threadId\` = \`${searchTable}\`.\`content_id\` AND ${hasAddress})`;
+    const match = sqlString(`${column} : "${address}"*`);
+    return `(\`${this._className}\`.\`id\` IN (SELECT \`content_id\` FROM \`${searchTable}\` WHERE \`${searchTable}\` MATCH ${match} AND ${onMessage}))`;
   }
 
   visitSubject(node) {
@@ -268,17 +338,16 @@ class StructuredSearchQueryVisitor extends SearchQueryExpressionVisitor {
   // (Category.displayName), case-insensitively.
   visitIn(node) {
     const name: string = node.text.token.s;
-    const quote = (s: string) => `'${s.replace(/'/g, "''")}'`;
     const likeEscape = (s: string) => s.replace(/[\\%_]/g, '\\$&');
 
     const pathMatches = [...new Set([name, imapUtf7.encode(name)])].flatMap((path) => [
-      `\`path\` = ${quote(path)} COLLATE NOCASE`,
+      `\`path\` = ${sqlString(path)} COLLATE NOCASE`,
       ...DISPLAY_NAME_PREFIXES.map(
         (prefix) =>
-          `\`path\` LIKE ${quote(`${likeEscape(prefix)}_${likeEscape(path)}`)} ESCAPE '\\'`
+          `\`path\` LIKE ${sqlString(`${likeEscape(prefix)}_${likeEscape(path)}`)} ESCAPE '\\'`
       ),
     ]);
-    const where = [`\`role\` = ${quote(name)} COLLATE NOCASE`, ...pathMatches].join(' OR ');
+    const where = [`\`role\` = ${sqlString(name)} COLLATE NOCASE`, ...pathMatches].join(' OR ');
     const named = (table: string) => `SELECT \`id\` FROM \`${table}\` WHERE ${where}`;
     const categoryIds = `${named('Folder')} UNION ${named('Label')}`;
     this._result = `(\`${this._className}\`.\`id\` IN (SELECT \`id\` FROM \`${this._className}Category\` WHERE \`value\` IN (${categoryIds})))`;
@@ -328,7 +397,10 @@ export default class LocalSearchQueryBackend {
   }
 
   compile(ast: QueryExpression) {
-    const condenser = new MatchCompatibleQueryCondenser();
+    // The whole-address check reads Message rows by threadId, which only Thread search has.
+    const condenser = new MatchCompatibleQueryCondenser({
+      wholeAddresses: this._modelClassName === 'Thread',
+    });
     const intermediateAST = condenser.visit(ast);
 
     const codegen = new StructuredSearchQueryVisitor(`${this._modelClassName}`);
