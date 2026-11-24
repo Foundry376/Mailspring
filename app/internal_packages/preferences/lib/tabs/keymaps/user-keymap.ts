@@ -52,9 +52,6 @@ export function pressedKeys(binding: string, platform: string): string {
   return binding
     .split(' ')
     .map((keystroke) => {
-      if (keystroke === '+') {
-        return keystroke;
-      }
       // As in Mousetrap's _keysFromString, "mod++" is mod and the + key.
       const parts = keystroke.replace(/\+{2}/g, '+plus').split('+');
       const key = parts.pop();
