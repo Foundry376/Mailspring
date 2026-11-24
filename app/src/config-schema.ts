@@ -24,6 +24,16 @@ export default {
           },
         },
       },
+      updates: {
+        type: 'object',
+        properties: {
+          checkAutomatically: {
+            type: 'boolean',
+            default: true,
+            title: localized('Automatically check for updates'),
+          },
+        },
+      },
       appearance: {
         type: 'object',
         properties: {

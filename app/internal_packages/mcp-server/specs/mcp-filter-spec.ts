@@ -150,6 +150,11 @@ describe('JSON mail filters', function () {
       expect(messages({ from: 'bob@example.net' })).toEqual(['m-bob-1']);
     });
 
+    it('ignores case in the value too', function () {
+      expect(messages({ from: 'BOB@EXAMPLE.NET' })).toEqual(['m-bob-1']);
+      expect(messages({ to: 'Carol@X.org' })).toEqual(['m-bob-2']);
+    });
+
     it('matches a domain and its subdomains, with or without @', function () {
       expect(messages({ from: 'lyft.com' })).toEqual(['m-lyft']);
       expect(messages({ from: '@uber.com' })).toEqual(['m-uber']);
@@ -168,6 +173,8 @@ describe('JSON mail filters', function () {
 
     it('rejects values that are neither an address nor a domain', function () {
       expect(() => messages({ from: 'uber' })).toThrow();
+      expect(() => messages({ from: 'root@localhost' })).toThrow();
+      expect(() => messages({ from: '<bob@example.net>' })).toThrow();
     });
   });
 

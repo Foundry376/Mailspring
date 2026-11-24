@@ -5,6 +5,7 @@ import path from 'path';
 
 import {
   File,
+  Account,
   Actions,
   Thread,
   Contact,
@@ -644,6 +645,7 @@ describe('DraftFactory', function draftFactory() {
       beforeEach(() => {
         this.existingDraft = new Message({
           id: 'asd',
+          headerMessageId: 'existing-reply@mailspring',
           accountId: TEST_ACCOUNT_ID,
           replyToHeaderMessageId: fakeMessage1.headerMessageId,
           threadId: fakeMessage1.threadId,
@@ -656,6 +658,31 @@ describe('DraftFactory', function draftFactory() {
         };
         spyOn(DatabaseStore, 'run').andReturn(Promise.resolve([fakeMessage1, this.existingDraft]));
         spyOn(DraftStore, 'sessionForClientId').andReturn(Promise.resolve(this.sessionStub));
+      });
+
+      afterEach(() => {
+        DraftStore._draftsSending = {};
+        DraftStore._draftsAwaitingAddsToSend.clear();
+      });
+
+      it('does not reuse it while its Send waits for attachments or is sending', async () => {
+        spyOn(DraftFactory, 'createDraftForReply').andCallFake(async () => new Message({}));
+        const reply = () =>
+          DraftFactory.createOrUpdateDraftForReply({
+            thread: fakeThread,
+            message: fakeMessage1,
+            type: 'reply',
+            behavior: 'prefer-existing',
+          });
+
+        DraftStore._draftsAwaitingAddsToSend.add(this.existingDraft.headerMessageId);
+        await reply();
+        expect((DraftFactory.createDraftForReply as jasmine.Spy).callCount).toBe(1);
+
+        DraftStore._draftsAwaitingAddsToSend.clear();
+        DraftStore._draftsSending = { [this.existingDraft.headerMessageId]: true };
+        await reply();
+        expect((DraftFactory.createDraftForReply as jasmine.Spy).callCount).toBe(2);
       });
 
       describe('when reply-all is passed', () => {
@@ -745,6 +772,7 @@ describe('DraftFactory', function draftFactory() {
       afterEach(() => {
         DraftStore._draftSessions = savedSessions;
         DraftStore._draftsSending = {};
+        DraftStore._draftsAwaitingAddsToSend.clear();
         DraftStore._draftsAwaitingFirstSave.clear();
       });
 
@@ -774,6 +802,17 @@ describe('DraftFactory', function draftFactory() {
 
       it('does not reuse a draft in another account', async () => {
         pendingDraft.accountId = 'another-account';
+        await DraftFactory.createOrUpdateDraftForReply({
+          thread: fakeThread,
+          message: fakeMessage1,
+          type: 'reply',
+          behavior: 'prefer-existing',
+        });
+        expect(DraftFactory.createDraftForReply).toHaveBeenCalled();
+      });
+
+      it('does not reuse a draft whose Send is waiting for attachments', async () => {
+        DraftStore._draftsAwaitingAddsToSend.add(pendingDraft.headerMessageId);
         await DraftFactory.createOrUpdateDraftForReply({
           thread: fakeThread,
           message: fakeMessage1,
@@ -864,6 +903,16 @@ describe('DraftFactory', function draftFactory() {
           cc: [new Contact({ email: 'second+third@gmail.com' })], // exact alias match, but in CC
           expected: new Contact({ name: 'Second', email: 'second+third@gmail.com' }),
         },
+        {
+          to: [new Contact({ email: 'Second+Alternate@Gmail.com' })], // alias match, different case
+          cc: [],
+          expected: new Contact({ name: 'Second Alternate', email: 'second+alternate@gmail.com' }),
+        },
+        {
+          to: [new Contact({ email: 'second+news@gmail.com' })], // tagged account address, no such alias
+          cc: [],
+          expected: account.defaultMe(),
+        },
       ];
       cases.forEach(({ to, cc, expected }) => {
         const contact = DraftFactory._fromContactForReply(
@@ -875,6 +924,35 @@ describe('DraftFactory', function draftFactory() {
         );
         expect(contact.name).toEqual(expected.name);
         expect(contact.email).toEqual(expected.email);
+      });
+    });
+
+    describe('when the message was sent to a subaddress of an alias', () => {
+      const fromForReply = (to: Contact[], cc: Contact[] = []) =>
+        DraftFactory._fromContactForReply(new Message({ accountId: account.id, to, cc }));
+
+      beforeEach(() => {
+        account = new Account({
+          id: 'subaddress-test-account-id',
+          name: 'Second',
+          emailAddress: 'second@gmail.com',
+          aliases: ['Second Sales <sales@second.com>', 'Second <second+third@gmail.com>'],
+        });
+        spyOn(AccountStore, 'accountForId').andReturn(account);
+      });
+
+      it('replies from the alias, not the tagged address', () => {
+        const contact = fromForReply([new Contact({ email: 'Sales+Leads@second.com' })]);
+        expect(contact.name).toEqual('Second Sales');
+        expect(contact.email).toEqual('sales@second.com');
+      });
+
+      it('prefers an alias the message was sent to exactly', () => {
+        const contact = fromForReply(
+          [new Contact({ email: 'sales+leads@second.com' })],
+          [new Contact({ email: 'second+third@gmail.com' })]
+        );
+        expect(contact.email).toEqual('second+third@gmail.com');
       });
     });
   });

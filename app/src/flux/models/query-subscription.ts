@@ -14,6 +14,7 @@ export class QuerySubscription<T extends Model> {
   _callbacks: QuerySubscriptionCallback<T>[] = [];
   _lastResult: QuerySubscriptionResult<T> | undefined = undefined; // null is a valid result!
   _updateInFlight = false;
+  _queryFailureReported = false;
   _queuedChangeRecords = [];
   _queryVersion = 1;
   _query: ModelQuery<T> | ModelQuery<T[]>;
@@ -305,8 +306,14 @@ export class QuerySubscription<T extends Model> {
     );
   }
 
-  // Subclasses that report progress, like search, settle it here.
+  // Subclasses that report progress, like search, settle it here. A query that keeps failing
+  // runs again on every change record, so only its first failure is reported.
   _onQueryFailed(error: Error) {
+    if (this._queryFailureReported) {
+      console.warn('QuerySubscription: query failed again', error);
+      return;
+    }
+    this._queryFailureReported = true;
     AppEnv.reportError(error);
   }
 
