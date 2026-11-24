@@ -23,11 +23,22 @@ const LABELS: { [command: string]: string } = Object.fromEntries(
     section.items.map(([command, label]) => [command, label])
   )
 );
+import { matchesQuery, runsOnKey } from './keymaps/shortcut-search';
+import { ShortcutRecorder } from './keymaps/shortcut-recorder';
+import { formatKeystrokes, renderKeystrokes } from './keymaps/keystrokes';
 import { Disposable } from 'event-kit';
 
 export default class PreferencesKeymaps extends React.Component<
   { config: any },
-  { templates: string[]; bindings: { [command: string]: [] }; userKeymap: UserKeymap }
+  {
+    templates: string[];
+    bindings: { [command: string]: [] };
+    userKeymap: UserKeymap;
+    query: string;
+    /** The key whose commands are listed, after Find by key. */
+    keyQuery: string | null;
+    findingKey: boolean;
+  }
 > {
   static displayName = 'PreferencesKeymaps';
 
@@ -39,6 +50,9 @@ export default class PreferencesKeymaps extends React.Component<
       templates: [],
       bindings: this._getStateFromKeymaps(),
       userKeymap: readUserKeymap(AppEnv.keymaps.getUserKeymapPath()),
+      query: '',
+      keyQuery: null,
+      findingKey: false,
     };
     this._loadTemplates();
   }
@@ -145,23 +159,91 @@ export default class PreferencesKeymaps extends React.Component<
     }
   };
 
+  _isSearching() {
+    return !!(this.state.query.trim() || this.state.keyQuery);
+  }
+
+  _visibleItems(section: { items: string[][] }) {
+    const { query, keyQuery, bindings } = this.state;
+    return section.items.filter(([command, label]) =>
+      keyQuery
+        ? runsOnKey(bindings[command], keyQuery, process.platform)
+        : matchesQuery(label, bindings[command], query, process.platform)
+    );
+  }
+
+  _renderSearch() {
+    const { query, keyQuery, findingKey } = this.state;
+    let field: React.ReactNode;
+    if (findingKey) {
+      field = (
+        <ShortcutRecorder
+          placeholder={localized('Press the keys to look up, Esc to cancel')}
+          onRecord={(key) => this.setState({ keyQuery: key, findingKey: false })}
+          onCancel={() => this.setState({ findingKey: false })}
+        />
+      );
+    } else if (keyQuery) {
+      field = (
+        <span className="shortcut-key-query">
+          {localized('Runs on')} {renderKeystrokes(keyQuery, 0)}
+          <button
+            className="clear-key-query"
+            title={localized('Clear')}
+            onClick={() => this.setState({ keyQuery: null })}
+          >
+            ×
+          </button>
+        </span>
+      );
+    } else {
+      field = (
+        <input
+          type="search"
+          className="shortcut-search-input"
+          placeholder={localized('Search commands or keys')}
+          value={query}
+          onChange={(e) => this.setState({ query: e.target.value })}
+        />
+      );
+    }
+    return (
+      <Flexbox className="shortcut-search">
+        {field}
+        <button
+          className="btn find-by-key"
+          disabled={findingKey}
+          onClick={() => this.setState({ findingKey: true, keyQuery: null, query: '' })}
+        >
+          {localized('Find by key')}
+        </button>
+      </Flexbox>
+    );
+  }
+
   _renderBindingsSection = (
     section: { title: string; items: string[][] },
     conflicts: Conflicts,
     added: { [command: string]: string[] }
   ) => {
+    const items = this._visibleItems(section);
+    if (items.length === 0) {
+      return null;
+    }
     return (
       <section key={`section-${section.title}`}>
         <Flexbox className="shortcut-section-title">
           <div style={{ flex: 1 }}>{section.title}</div>
-          <a
-            className="clear-section"
-            onClick={() => this._onClear(section.items.map(([command]) => command))}
-          >
-            {localized('Clear')}
-          </a>
+          {!this._isSearching() && (
+            <a
+              className="clear-section"
+              onClick={() => this._onClear(section.items.map(([command]) => command))}
+            >
+              {localized('Clear')}
+            </a>
+          )}
         </Flexbox>
-        {section.items.map(([command, label]) => {
+        {items.map(([command, label]) => {
           return (
             <CommandItem
               key={command}
@@ -236,7 +318,15 @@ export default class PreferencesKeymaps extends React.Component<
                 : localized('%@ shortcuts you added also run other commands.', conflictCount)}
             </div>
           )}
+          {this._renderSearch()}
           <div className="shortcut-sections">{displayedKeybindings.map(renderSection)}</div>
+          {displayedKeybindings.every((section) => this._visibleItems(section).length === 0) && (
+            <div className="shortcut-no-matches">
+              {this.state.keyQuery
+                ? localized('Nothing runs on %@.', formatKeystrokes(this.state.keyQuery))
+                : localized('No shortcuts match.')}
+            </div>
+          )}
         </section>
         <section>
           <h2>{localized('Customization')}</h2>
