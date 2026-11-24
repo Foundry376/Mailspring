@@ -8,13 +8,12 @@ import {
   ConfigPropContainer,
 } from 'mailspring-component-kit';
 import { PreferencesUIStore } from 'mailspring-exports';
-import PreferencesTabsBar from './preferences-tabs-bar';
 
 const stopPropagation = (e: CustomEvent) => {
   e.stopPropagation();
 };
 
-class PreferencesRoot extends React.Component<{ tab: any; tabs: any[]; selection: any }> {
+class PreferencesRoot extends React.Component<{ tab: any; selection: any }> {
   static displayName = 'PreferencesRoot';
 
   // This prevents some basic commands from propagating to the threads list and
@@ -48,7 +47,7 @@ class PreferencesRoot extends React.Component<{ tab: any; tabs: any[]; selection
     this._focusContent();
   }
 
-  componentDidUpdate(oldProps: { tab: any; tabs: any[]; selection: any }) {
+  componentDidUpdate(oldProps: { tab: any; selection: any }) {
     if (oldProps.tab !== this.props.tab) {
       const scrollRegion = document.querySelector('.preferences-content .scroll-region-content');
       scrollRegion.scrollTop = 0;
@@ -69,7 +68,7 @@ class PreferencesRoot extends React.Component<{ tab: any; tabs: any[]; selection
   }
 
   render() {
-    const { tab, selection, tabs } = this.props;
+    const { tab, selection } = this.props;
     const TabComponent = tab && tab.componentClassFn();
 
     return (
@@ -79,7 +78,6 @@ class PreferencesRoot extends React.Component<{ tab: any; tabs: any[]; selection
         localHandlers={this._localHandlers}
       >
         <Flexbox direction="column">
-          <PreferencesTabsBar tabs={tabs} selection={selection} />
           <ScrollRegion className="preferences-content">
             <ConfigPropContainer
               ref={(el) => {
@@ -98,9 +96,8 @@ class PreferencesRoot extends React.Component<{ tab: any; tabs: any[]; selection
 export default ListensToFluxStore(PreferencesRoot, {
   stores: [PreferencesUIStore],
   getStateFromStores() {
-    const tabs = PreferencesUIStore.tabs();
     const selection = PreferencesUIStore.selection();
-    const tab = tabs.find((t) => t.tabId === selection.tabId);
-    return { tabs, selection, tab };
+    const tab = PreferencesUIStore.tabs().find((t) => t.tabId === selection.tabId);
+    return { selection, tab };
   },
 });

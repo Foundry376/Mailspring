@@ -11,5 +11,5 @@ export function activate() {
 }
 
 export function deactivate() {
-  PreferencesUIStore.unregisterPreferencesTab(this.preferencesTab.sectionId);
+  PreferencesUIStore.unregisterPreferencesTab(this.preferencesTab.tabId);
 }

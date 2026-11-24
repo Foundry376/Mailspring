@@ -13,6 +13,7 @@ import {
 import { NavRailItem } from 'mailspring-component-kit';
 
 import PreferencesRoot from './preferences-root';
+import { PreferencesSidebar } from './preferences-sidebar';
 
 // Names the Mailspring ID, or the first account while signed out of it.
 function whoMenuItems(): Electron.MenuItemConstructorOptions[] {
@@ -114,12 +115,15 @@ export function activate() {
     'Preferences',
     { root: true },
     {
-      list: ['Preferences'],
-      split: ['Preferences'],
-      splitVertical: ['Preferences'],
+      list: ['PreferencesSidebar', 'Preferences'],
+      split: ['PreferencesSidebar', 'Preferences'],
+      splitVertical: ['PreferencesSidebar', 'Preferences'],
     }
   );
 
+  ComponentRegistry.register(PreferencesSidebar, {
+    location: WorkspaceStore.Location.PreferencesSidebar,
+  });
   ComponentRegistry.register(PreferencesRoot, {
     location: WorkspaceStore.Location.Preferences,
   });

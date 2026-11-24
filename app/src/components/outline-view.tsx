@@ -9,6 +9,8 @@ export interface IOutlineViewItem {
   id?: string;
   title?: string;
   iconName?: string;
+  /** Drawn instead when there's no `iconName`, e.g. an SVGIcons icon. */
+  icon?: React.ReactNode;
   name?: string;
   children?: IOutlineViewItem[];
   contextMenuLabel?: string;
@@ -369,10 +371,11 @@ export class OutlineView extends Component<OutlineViewProps, OutlineViewState> {
     const collapsible = this.props.onCollapseToggled;
     const collapsed = this.props.collapsed;
     const allowCreate = this.props.onItemCreated != null && !collapsed;
+    const hasHeading = !!(this.props.title || collapsible || allowCreate);
 
     return (
       <div className="outline-view nylas-outline-view">
-        {this._renderHeading(allowCreate, collapsed, collapsible)}
+        {hasHeading && this._renderHeading(allowCreate, collapsed, collapsible)}
         {this._renderOutline(allowCreate, collapsed)}
       </div>
     );

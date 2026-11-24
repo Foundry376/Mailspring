@@ -52,6 +52,11 @@
   background: @less-background;
 }
 
+// Its first row is centred on the first rail item, as the account sidebar's heading is.
+.preferences-sidebar {
+  padding-top: calc(@less-top-inset + 2.5px);
+}
+
 // Message List padding
 .column-MessageList {
   padding: 2.5em 2em 0;
@@ -374,7 +379,8 @@ mailspring-workspace {
 
 // Account sidebar label controls
 .account-sidebar .item,
-.contacts-perspective-list .item {
+.contacts-perspective-list .item,
+.preferences-sidebar .item {
   color: @sidebar-text;
   font-size: 14px;
   font-weight: 400;
@@ -402,7 +408,8 @@ mailspring-workspace {
 
 // Account sidebar selected label overrides
 .account-sidebar,
-.contacts-perspective-list {
+.contacts-perspective-list,
+.preferences-sidebar {
   // Fix padding jump
   .item .name {
     padding-left: 0;
@@ -429,7 +436,8 @@ mailspring-workspace {
 }
 
 // Remove default nylas icon images
-.outline-view .item .icon img {
+.outline-view .item .icon img,
+.preferences-sidebar .item .icon {
   display: none;
 }
 
@@ -698,14 +706,13 @@ body.is-blurred .thread-list.handler-split .list-item.selected {
 //  Preferences
 //====================================================
 
-// Extra padding and color adjust needed for preferences top panel
-.preferences-wrap .container-preference-tabs .preferences-tabs {
-  padding-top: 40px;
+.preferences-wrap .preferences-content {
   background-color: @less-background;
 }
 
-// Padding for bottom of preferences panel
+// The content starts under the floating toolbar, level with the sidebar's first row.
 .preferences-wrap .preferences-content > .scroll-region-content {
+  padding-top: @less-top-inset;
   padding-bottom: 100px;
 }
 

@@ -25,7 +25,7 @@ export function activate() {
 
 export function deactivate() {
   ExtensionRegistry.Composer.unregister(SignatureComposerExtension);
-  PreferencesUIStore.unregisterPreferencesTab(this.preferencesTab.sectionId);
+  PreferencesUIStore.unregisterPreferencesTab(this.preferencesTab.tabId);
 
   ComponentRegistry.unregister(SignatureComposerDropdown);
 }

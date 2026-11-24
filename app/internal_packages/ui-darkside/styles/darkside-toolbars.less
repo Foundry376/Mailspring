@@ -15,6 +15,7 @@
 .toolbar-MessageList,
 .toolbar-MessageListSidebar,
 .toolbar-Center,
+.toolbar-PreferencesSidebar,
 .toolbar-Preferences,
 .toolbar-ContactsSidebar,
 .toolbar-ContactsList,
@@ -30,8 +31,12 @@
   padding-right: @toolbar-gap;
 }
 
-// Slightly darker toolbar for Prefs, Single Panel Messages, and Popout
-.toolbar-Preferences,
+// The page's colour (preferences.less), so the page runs to the top beside the dark sidebar.
+.toolbar-Preferences {
+  background-color: lighten(@background-secondary, 1%);
+}
+
+// Slightly darker toolbar for Single Panel Messages and Popout
 .layout-mode-list .toolbar-MessageList,
 .sheet-toolbar-container.mode-popout {
   background: transparent;
