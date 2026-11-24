@@ -115,6 +115,76 @@ export const BriefcaseOutline = lineIcon(
   </>
 );
 
+// Lucide's, for the Preferences sections; PersonCircle is its circle-user.
+export const Settings = lineIcon(
+  'Settings',
+  <>
+    <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915" />
+    <circle cx="12" cy="12" r="3" />
+  </>
+);
+
+export const AtSign = lineIcon(
+  'AtSign',
+  <>
+    <circle cx="12" cy="12" r="4" />
+    <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8" />
+  </>
+);
+
+export const PersonCircle = lineIcon(
+  'PersonCircle',
+  <>
+    <circle cx="12" cy="12" r="10" />
+    <circle cx="12" cy="10" r="3" />
+    <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662" />
+  </>
+);
+
+export const Palette = lineIcon(
+  'Palette',
+  <>
+    <path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z" />
+    <circle cx="13.5" cy="6.5" r=".5" fill="currentColor" />
+    <circle cx="17.5" cy="10.5" r=".5" fill="currentColor" />
+    <circle cx="6.5" cy="12.5" r=".5" fill="currentColor" />
+    <circle cx="8.5" cy="7.5" r=".5" fill="currentColor" />
+  </>
+);
+
+export const Keyboard = lineIcon(
+  'Keyboard',
+  <>
+    <path d="M10 8h.01M12 12h.01M14 8h.01M16 12h.01M18 8h.01M6 8h.01M7 16h10M8 12h.01" />
+    <rect width="20" height="16" x="2" y="4" rx="2" />
+  </>
+);
+
+export const Split = lineIcon(
+  'Split',
+  <path d="M16 3h5v5M8 3H3v5M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3M15 9l6-6" />
+);
+
+export const Plug = lineIcon(
+  'Plug',
+  <path d="M12 22v-5M15 8V2M17 8a1 1 0 0 1 1 1v4a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1zM9 8V2" />
+);
+
+export const Signature = lineIcon(
+  'Signature',
+  <path d="M21 17l-2.156-1.868A.5.5 0 0 0 18 15.5v.5a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1c0-2.545-3.991-3.97-8.5-4a1 1 0 0 0 0 5c4.153 0 4.745-11.295 5.708-13.5a2.5 2.5 0 1 1 3.31 3.284M3 21h18" />
+);
+
+export const Folder = lineIcon(
+  'Folder',
+  <path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z" />
+);
+
+export const FileText = lineIcon(
+  'FileText',
+  <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2zM14 2v5a1 1 0 0 0 1 1h5M10 9H8M16 13H8M16 17H8" />
+);
+
 /**
  * The knob is part of the outline, and the rim is notched where the clapper hangs. Its fill is
  * the sidebar icons' faint gradient, so each instance needs its own gradient and mask ids. The
