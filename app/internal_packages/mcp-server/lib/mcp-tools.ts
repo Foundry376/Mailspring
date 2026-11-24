@@ -5,11 +5,14 @@ import { z } from 'zod';
 import {
   AccountStore,
   AttachmentStore,
+  Calendar,
+  CalendarUtils,
   CategoryStore,
   DatabaseStore,
   Thread,
   Message,
   Contact,
+  Event,
   File,
   Folder,
   Label,
@@ -34,6 +37,7 @@ import {
   checkAccessLevel,
   checkAccountAccess,
   checkFolderAccess,
+  isAccountAllowed,
   isFolderAllowed,
   isThreadAllowed,
   allowedMessages,
@@ -46,7 +50,14 @@ import {
   serializeThreadSummary,
   serializeThreadDetail,
   serializeMessageDetail,
+  serializeCalendar,
+  serializeEventOccurrence,
 } from './mcp-serializers';
+import {
+  occurrencesForEvents,
+  occurrenceStartUnix,
+} from '../../main-calendar/lib/core/calendar-data-source';
+import { queueNewCalendarEvent } from '../../main-calendar/lib/core/calendar-helpers';
 import {
   type AuditEntry,
   addAuditEntry,
@@ -306,6 +317,31 @@ async function runCategoryTask(accountId: string, task: SyncbackCategoryTask) {
   const name = CategoryStore.byId(accountId, id)?.displayName || imapUtf7.decode(path);
   return textResult({ id, name, path });
 }
+
+// ── Calendar helpers ──────────────────────────────────────────────────────
+
+// Bounds a list_events call the way Views bound theirs (views/lib/bridge/events.ts): expanding
+// a daily series over decades would stall the window and swamp the agent's context.
+const MAX_EVENT_RANGE_DAYS = 400;
+
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * `new Date('2026-12-17')` is UTC midnight, the previous evening west of Greenwich. A date
+ * without a time means that day in the user's zone, as the calendar reads it.
+ */
+function parseDateInput(value: string): Date | null {
+  const date = new Date(DATE_ONLY.test(value) ? `${value}T00:00` : value);
+  return isNaN(date.getTime()) ? null : date;
+}
+
+/** A calendar on an account MCP may see; a hidden one reads as missing, as excluded mail does. */
+async function findAllowedCalendar(calendarId: string): Promise<Calendar | null> {
+  const calendar = await DatabaseStore.find<Calendar>(Calendar, calendarId);
+  return calendar && isAccountAllowed(calendar.accountId) ? calendar : null;
+}
+
+const notNull = <T>(value: T | null): value is T => value !== null;
 
 export type { AuditEntry };
 export { getAuditLog, clearAuditLog, onAuditLogChanged };
@@ -1521,6 +1557,123 @@ export function registerTools(server: McpServer) {
         }));
 
       return textResult(results);
+    }
+  );
+  // ── Calendar Tools ──
+  // create_event takes no guests, so it never emails anyone and counts as a write, not a send.
+
+  defineTool(
+    server,
+    'list_calendars',
+    'List calendars. Each entry has the calendar `id` to pass to list_events and create_event, its `name`, the `accountId` it syncs through, and `readOnly` (events cannot be created on a read-only calendar, such as a subscribed holiday calendar).',
+    { accountId: z.string().optional().describe('Restrict to a single account') },
+    'read',
+    async ({ accountId }) => {
+      if (accountId) {
+        const err = checkAccountAccess(accountId);
+        if (err) return errorResult(err);
+      }
+      const query = DatabaseStore.findAll<Calendar>(Calendar);
+      const calendars = await (accountId ? query.where({ accountId }) : query);
+      return textResult(calendars.map(serializeCalendar).filter(notNull));
+    }
+  );
+
+  defineTool(
+    server,
+    'list_events',
+    `List the events on a calendar between two dates, with recurring events expanded into one entry per occurrence. Timed events have \`start\`/\`end\` in ISO 8601 with the user's UTC offset; all-day events have dates (YYYY-MM-DD) and an exclusive \`end\`, the day after the last day. \`id\` names one occurrence; \`eventId\` is the stored event (the whole series for a recurring one). The range can span at most ${MAX_EVENT_RANGE_DAYS} days.`,
+    {
+      calendarId: z.string().describe('Calendar ID from list_calendars'),
+      start: z
+        .string()
+        .describe(
+          "Start of the range: an ISO 8601 date-time, or a date (YYYY-MM-DD) meaning that day's start in the user's time zone"
+        ),
+      end: z.string().describe('End of the range (exclusive), in the same forms as `start`'),
+    },
+    'read',
+    async ({ calendarId, start, end }) => {
+      const calendar = await findAllowedCalendar(calendarId);
+      if (!calendar) return errorResult(`Calendar '${calendarId}' not found`);
+
+      const startDate = parseDateInput(start);
+      const endDate = parseDateInput(end);
+      if (!startDate || !endDate) return errorResult('start and end must be ISO 8601 dates');
+      const startUnix = Math.floor(startDate.getTime() / 1000);
+      const endUnix = Math.floor(endDate.getTime() / 1000);
+      if (endUnix <= startUnix) return errorResult('end must be after start');
+      if (endUnix - startUnix > MAX_EVENT_RANGE_DAYS * 86400) {
+        return errorResult(`The range can span at most ${MAX_EVENT_RANGE_DAYS} days`);
+      }
+
+      const rows = await DatabaseStore.findAll<Event>(Event)
+        .where(CalendarUtils.eventsInRangeMatcher(startUnix, endUnix))
+        .where({ calendarId: calendar.id });
+      const occurrences = occurrencesForEvents(rows, { startUnix, endUnix }).sort(
+        (a, b) => occurrenceStartUnix(a) - occurrenceStartUnix(b)
+      );
+      return textResult(occurrences.map(serializeEventOccurrence).filter(notNull));
+    }
+  );
+
+  defineTool(
+    server,
+    'create_event',
+    "Create an event on a calendar, as the calendar's New Event does: it syncs to the server with the user's default alerts. It has no guests, so no invitations are sent. Give `start` and `end` as ISO 8601 date-times for a timed event (without an offset they are read in the user's time zone), or as dates (YYYY-MM-DD) for an all-day event, whose `end` is exclusive: the day after the last day (an `end` equal to `start` also makes a one-day event).",
+    {
+      calendarId: z.string().describe('Calendar ID from list_calendars; it must not be read-only'),
+      title: z.string().min(1).describe('Event title'),
+      start: z.string().describe('Start: an ISO 8601 date-time, or a date for an all-day event'),
+      end: z.string().describe('End: an ISO 8601 date-time, or a date for an all-day event'),
+      description: z.string().optional().describe('Event notes'),
+      location: z.string().optional().describe('Event location'),
+      allDay: z
+        .boolean()
+        .optional()
+        .describe('Whether the event is all-day (default: true when start and end are dates)'),
+    },
+    'write',
+    async ({ calendarId, title, start, end, description, location, allDay }) => {
+      const calendar = await findAllowedCalendar(calendarId);
+      if (!calendar) return errorResult(`Calendar '${calendarId}' not found`);
+      if (calendar.readOnly) {
+        return errorResult(`Calendar '${calendar.name}' is read-only, so events can't be added`);
+      }
+
+      const startDate = parseDateInput(start);
+      const endDate = parseDateInput(end);
+      if (!startDate || !endDate) return errorResult('start and end must be ISO 8601 dates');
+      const isAllDay = allDay ?? (DATE_ONLY.test(start) && DATE_ONLY.test(end));
+      // An all-day end equal to its start is read as that one day (ics-event-helpers
+      // createAllDayEndTime); a timed event needs some length.
+      if (isAllDay ? endDate < startDate : endDate <= startDate) {
+        return errorResult('end must be after start');
+      }
+
+      const { event, task } = queueNewCalendarEvent({
+        summary: title,
+        start: startDate,
+        end: endDate,
+        isAllDay,
+        calendarId: calendar.id,
+        accountId: calendar.accountId,
+        description,
+        location,
+      });
+      // The sync engine gives a new event its id while running the task locally, and writes
+      // it back onto the task (Mailspring-Sync TaskProcessor::performLocalSyncbackEvent).
+      const performed = await TaskQueue.waitForPerformLocal(task);
+      if (performed.error) {
+        return errorResult(`The event could not be created: ${JSON.stringify(performed.error)}`);
+      }
+      event.id = performed.event?.id;
+
+      const [created] = occurrencesForEvents([event], {
+        startUnix: event.recurrenceStart,
+        endUnix: Math.max(event.recurrenceEnd, event.recurrenceStart + 1),
+      });
+      return textResult({ ...serializeEventOccurrence(created), icsuid: event.icsuid });
     }
   );
 }
