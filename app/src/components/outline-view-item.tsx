@@ -355,7 +355,7 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
             {item.count}
           </div>
         )}
-        {item.iconName && (
+        {item.iconName ? (
           <div className="icon">
             <RetinaImg
               name={item.iconName}
@@ -363,6 +363,8 @@ class OutlineViewItem extends Component<OutlineViewItemProps, OutlineViewItemSta
               mode={RetinaImg.Mode.ContentIsMask}
             />
           </div>
+        ) : (
+          item.icon && <div className="icon">{item.icon}</div>
         )}
         {state.editing ? (
           <input
