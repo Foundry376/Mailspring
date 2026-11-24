@@ -1,7 +1,10 @@
-import type { Thread, Message, Category, Contact, File } from 'mailspring-exports';
-import { isThreadAllowed, isMessageAllowed } from './mcp-access-control';
+import moment from 'moment';
+import { CalendarDateUtils, CalendarUtils } from 'mailspring-exports';
+import type { Thread, Message, Category, Contact, File, Calendar } from 'mailspring-exports';
+import { EventOccurrence, isTimed } from '../../main-calendar/lib/core/calendar-data-source';
+import { isThreadAllowed, isMessageAllowed, isAccountAllowed } from './mcp-access-control';
 
-// Authorization + output-shaping, combined. Every thread/message that leaves
+// Authorization + output-shaping, combined. Every thread/message/calendar/event that leaves
 // this process for an MCP client passes through one of these functions,
 // which return `null` when the underlying model fails the account/folder
 // access-control check — that makes it structurally impossible to add a new
@@ -93,5 +96,55 @@ export function serializeThreadDetail(
     messages: messages
       .map(serializeMessageDetail)
       .filter((m): m is Record<string, any> => m !== null),
+  };
+}
+
+export function serializeCalendar(calendar: Calendar): Record<string, any> | null {
+  if (!isAccountAllowed(calendar.accountId)) return null;
+  return {
+    id: calendar.id,
+    name: calendar.name || '',
+    description: calendar.description || null,
+    accountId: calendar.accountId,
+    readOnly: !!calendar.readOnly,
+  };
+}
+
+/**
+ * Times read the way create_event takes them, so an agent can copy one back: a timed
+ * occurrence as ISO 8601 with the user's UTC offset, an all-day one as dates with `end`
+ * exclusive (the day after the last day covered, as iCalendar's DTEND).
+ */
+function occurrenceTimes(o: EventOccurrence) {
+  if (isTimed(o)) {
+    return { start: moment.unix(o.start).format(), end: moment.unix(o.end).format() };
+  }
+  return {
+    start: CalendarDateUtils.formatCalendarDate(o.startDate),
+    end: CalendarDateUtils.formatCalendarDate(CalendarDateUtils.addCalendarDays(o.endDate, 1)),
+  };
+}
+
+export function serializeEventOccurrence(o: EventOccurrence): Record<string, any> | null {
+  if (!isAccountAllowed(o.accountId)) return null;
+  return {
+    id: o.id,
+    eventId: CalendarUtils.parseOccurrenceId(o.id).eventId,
+    calendarId: o.calendarId,
+    accountId: o.accountId,
+    title: o.title,
+    ...occurrenceTimes(o),
+    isAllDay: o.isAllDay,
+    location: o.location || null,
+    description: o.description || null,
+    status: o.isCancelled ? 'cancelled' : o.isPending ? 'tentative' : 'confirmed',
+    isRecurring: o.isRecurring,
+    isException: o.isException,
+    organizer: o.organizer ? { name: o.organizer.name || '', email: o.organizer.email } : null,
+    attendees: (o.attendees || []).map((a) => ({
+      name: a.name || '',
+      email: a.email,
+      status: (a.partstat || 'NEEDS-ACTION').toLowerCase(),
+    })),
   };
 }
