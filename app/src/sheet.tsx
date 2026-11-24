@@ -26,6 +26,7 @@ const COLUMN_META: Record<string, { role: string; label: () => string }> = {
 const COLUMN_WIDTH_KEYS: Record<string, string> = {
   CalendarSidebar: 'RootSidebar',
   ContactsSidebar: 'RootSidebar',
+  PreferencesSidebar: 'RootSidebar',
 };
 const columnWidthKey = (id: string) => COLUMN_WIDTH_KEYS[id] || id;
 

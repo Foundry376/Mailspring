@@ -1,6 +1,12 @@
 import React from 'react';
-import { OutlineView, SVGIcons } from 'mailspring-component-kit';
-import { Actions, PreferencesUIStoreTab, localized } from 'mailspring-exports';
+import { ListensToFluxStore, OutlineView, SVGIcons } from 'mailspring-component-kit';
+import {
+  Actions,
+  DOMUtils,
+  PreferencesUIStore,
+  PreferencesUIStoreTab,
+  localized,
+} from 'mailspring-exports';
 
 const ICONS_BY_TAB_ID = {
   General: SVGIcons.Settings,
@@ -23,7 +29,7 @@ interface PreferencesSidebarProps {
   };
 }
 
-export const PreferencesSidebar = ({ tabs, selection }: PreferencesSidebarProps) => (
+const PreferencesSectionList = ({ tabs, selection }: PreferencesSidebarProps) => (
   <nav className="preferences-sidebar" aria-label={localized('Preferences')}>
     <OutlineView
       items={tabs.map(({ tabId, displayName }) => {
@@ -40,3 +46,16 @@ export const PreferencesSidebar = ({ tabs, selection }: PreferencesSidebarProps)
     />
   </nav>
 );
+
+export const PreferencesSidebar = ListensToFluxStore(PreferencesSectionList, {
+  stores: [PreferencesUIStore],
+  getStateFromStores: () => ({
+    tabs: PreferencesUIStore.tabs(),
+    selection: PreferencesUIStore.selection(),
+  }),
+});
+PreferencesSidebar.displayName = 'PreferencesSidebar';
+PreferencesSidebar.containerStyles = {
+  minWidth: DOMUtils.getWorkspaceCssNumberProperty('account-sidebar-min-width', 165),
+  maxWidth: DOMUtils.getWorkspaceCssNumberProperty('account-sidebar-max-width', 250),
+};

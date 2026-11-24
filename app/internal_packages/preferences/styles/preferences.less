@@ -5,12 +5,11 @@
 
 // One class, so a theme's own `.preferences-sidebar` rule wins.
 .preferences-sidebar {
-  width: 200px;
-  flex-shrink: 0;
+  height: 100%;
   overflow-y: auto;
-  padding-top: @padding-small-horizontal;
+  // Centres the first row (27px) on the rail's first icon (32px).
+  padding-top: 2.5px;
   background-color: @source-list-bg;
-  border-right: 1px solid @border-color-divider;
 
   // No section has children, so rows keep no slot for the disclosure triangle.
   .disclosure-triangle {
