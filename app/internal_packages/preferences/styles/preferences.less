@@ -3,6 +3,24 @@
 
 // Preferences Specific
 
+// One class, so a theme's own `.preferences-sidebar` rule wins.
+.preferences-sidebar {
+  width: 200px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  padding-top: @padding-small-horizontal;
+  background-color: @source-list-bg;
+  border-right: 1px solid @border-color-divider;
+
+  // No section has children, so rows keep no slot for the disclosure triangle.
+  .disclosure-triangle {
+    display: none;
+  }
+  .item {
+    padding-left: @padding-small-horizontal;
+  }
+}
+
 .preferences-wrap {
   input[type='checkbox'] {
     margin: 0 7px 0 0;
@@ -52,23 +70,6 @@
     .item {
       padding-top: @padding-small-vertical;
       padding-bottom: @padding-small-vertical;
-    }
-  }
-
-  .preferences-sidebar {
-    width: 200px;
-    flex-shrink: 0;
-    overflow-y: auto;
-    padding-top: @padding-small-horizontal;
-    background-color: @source-list-bg;
-    border-right: 1px solid @border-color-divider;
-
-    // No section has children, so rows keep no slot for the disclosure triangle.
-    .disclosure-triangle {
-      display: none;
-    }
-    .item {
-      padding-left: @padding-small-horizontal;
     }
   }
 
