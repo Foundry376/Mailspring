@@ -13,7 +13,9 @@
 .toolbar-CalendarSidebar,
 .column-ContactsSidebar,
 .contacts-perspective-list,
-.toolbar-ContactsSidebar {
+.toolbar-ContactsSidebar,
+.preferences-sidebar,
+.toolbar-PreferencesSidebar {
   height: 100%;
   background-color: @sidebar;
 }
@@ -109,7 +111,9 @@
 .account-sidebar .item,
 .account-sidebar .item.selected,
 .contacts-perspective-list .item,
-.contacts-perspective-list .item.selected {
+.contacts-perspective-list .item.selected,
+.preferences-sidebar .item,
+.preferences-sidebar .item.selected {
   color: @sidebar-text;
   font-size: 13px;
   font-weight: 400;
@@ -117,7 +121,8 @@
 }
 
 .account-sidebar .item.selected,
-.contacts-perspective-list .item.selected {
+.contacts-perspective-list .item.selected,
+.preferences-sidebar .item.selected {
   background: transparent;
   color: @active-sidebar-text;
 }
