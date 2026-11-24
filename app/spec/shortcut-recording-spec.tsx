@@ -74,6 +74,7 @@ describe('Recording a shortcut on the Shortcuts page', function () {
         added={[]}
         conflicts={{}}
         onRemoveFrom={() => {}}
+        singleKeysOff={false}
       />,
       host
     );

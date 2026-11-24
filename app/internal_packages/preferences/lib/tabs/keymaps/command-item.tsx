@@ -23,6 +23,8 @@ interface CommandKeybindingProps {
   /** For each of this command's keys that another command also runs on, those commands. */
   conflicts: { [binding: string]: { command: string; label: string }[] };
   onRemoveFrom: (command: string, binding: string) => void;
+  /** Whether keys without Ctrl, Alt or Cmd are turned off, so this row shows them as off. */
+  singleKeysOff: boolean;
 }
 interface CommandKeybindingState {
   recording: boolean;
@@ -77,6 +79,10 @@ export default class CommandKeybinding extends React.Component<
     this._stopRecording({ refocus: true });
   };
 
+  _isOff(binding: string) {
+    return this.props.singleKeysOff && AppEnv.keymaps.isCharacterKeyShortcut(binding);
+  }
+
   _onRemove = (binding: string) => {
     this._saveBindings(withoutBinding(this.props.bindings, binding, process.platform));
   };
@@ -117,11 +123,19 @@ export default class CommandKeybinding extends React.Component<
       value = [...byKey.values()].map((binding, idx) => (
         <span
           key={binding}
-          className={conflicts[binding] ? 'shortcut-chip conflict' : 'shortcut-chip'}
+          className={[
+            'shortcut-chip',
+            conflicts[binding] && 'conflict',
+            this._isOff(binding) && 'off',
+          ]
+            .filter(Boolean)
+            .join(' ')}
           title={
-            conflicts[binding]
-              ? localized('Also runs %@', conflicts[binding].map((o) => o.label).join(', '))
-              : undefined
+            this._isOff(binding)
+              ? localized('Off: single-key shortcuts are turned off')
+              : conflicts[binding]
+                ? localized('Also runs %@', conflicts[binding].map((o) => o.label).join(', '))
+                : undefined
           }
         >
           {renderKeystrokes(binding, idx)}

@@ -119,6 +119,10 @@ export default {
         type: 'string',
         default: 'Gmail',
       },
+      keymapSingleKeys: {
+        type: 'boolean',
+        default: true,
+      },
       attachments: {
         type: 'object',
         properties: {

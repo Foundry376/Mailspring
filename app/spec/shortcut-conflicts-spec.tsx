@@ -99,6 +99,7 @@ describe('Shortcut conflicts on the Shortcuts page', function () {
           added={added}
           conflicts={{ s: star }}
           onRemoveFrom={onRemoveFrom}
+          singleKeysOff={false}
         />,
         host
       );
@@ -148,7 +149,10 @@ describe('Shortcut conflicts on the Shortcuts page', function () {
       'contenteditable:underline': ['ctrl+u'],
       'core:mark-as-unread': ['ctrl+u'],
     };
-    const config = { get: () => 'Gmail', set: () => {} };
+    const config = {
+      get: (key: string) => (key === 'core.keymapTemplate' ? 'Gmail' : true),
+      set: () => {},
+    };
     const render = (userKeymap: object) => {
       fs.writeFileSync(keymapPath, JSON.stringify(userKeymap));
       ReactDOM.render(<PreferencesKeymaps config={config} />, host);

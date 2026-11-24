@@ -226,6 +226,19 @@
       }
     }
 
+    .single-key-switch {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: @padding-base-vertical;
+      color: @text-color;
+    }
+    .single-key-switch-note {
+      margin: 2px 0 0 22px;
+      font-size: @font-size-small;
+      color: @text-color-very-subtle;
+    }
+
     .shortcut-search {
       align-items: center;
       gap: 8px;
@@ -364,6 +377,10 @@
       }
       &:hover .remove-shortcut {
         opacity: 0.7;
+      }
+      .shortcut-chip.off {
+        opacity: 0.45;
+        text-decoration: line-through;
       }
       .shortcut-chip.conflict {
         background: fade(@color-warning, 18%);
