@@ -78,12 +78,17 @@ describe('Searching the Shortcuts page', function () {
     const input = host.querySelector('.shortcut-search-input') as HTMLInputElement;
     ReactTestUtils.Simulate.change(input, { target: { value: text } } as any);
   };
-  const findByKey = (key: string, code: number) => {
+  const findByKey = (
+    key: string,
+    code: number,
+    mods: { metaKey?: boolean; ctrlKey?: boolean; shiftKey?: boolean } = {}
+  ) => {
     ReactTestUtils.Simulate.click(host.querySelector('.find-by-key'));
     ReactTestUtils.Simulate.keyDown(host.querySelector('.shortcut-recorder'), {
       key,
       keyCode: code,
       which: code,
+      ...mods,
     });
     advanceClock(1000);
   };
@@ -133,6 +138,12 @@ describe('Searching the Shortcuts page', function () {
     expect(host.querySelector('.shortcut-key-query').textContent).toContain(
       `Runs on ${formatKeystrokes('s')}`
     );
+  });
+
+  it('finds a shortcut with two modifiers, whatever order the keymap writes them in', function () {
+    const commandKey = process.platform === 'darwin' ? { metaKey: true } : { ctrlKey: true };
+    findByKey('r', 82, { ...commandKey, shiftKey: true });
+    expect(rows()).toEqual(['Reply All']);
   });
 
   it('says when nothing runs on the pressed key, and lists everything again once cleared', function () {

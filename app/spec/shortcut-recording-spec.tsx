@@ -26,11 +26,11 @@ describe('bindingFromKeys', function () {
 
 describe('withBinding', function () {
   it('adds the binding after the keys the command already has', function () {
-    expect(withBinding(['e'], 'k')).toEqual(['e', 'k']);
+    expect(withBinding(['e'], 'k', 'linux')).toEqual(['e', 'k']);
   });
 
   it('does not add a key the command already has', function () {
-    expect(withBinding(['e', 'k'], 'k')).toEqual(['e', 'k']);
+    expect(withBinding(['e', 'k'], 'k', 'linux')).toEqual(['e', 'k']);
   });
 });
 

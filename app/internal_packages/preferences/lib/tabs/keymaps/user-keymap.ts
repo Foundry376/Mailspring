@@ -32,13 +32,38 @@ export function bindingFromKeys(keys: string[], modifiers: string[], platform: s
 }
 
 /** The command's keys with `binding` added after them, unless it is already one of them. */
-export function withBinding(bindings: string[], binding: string): string[] {
-  return bindings.includes(binding) ? bindings : [...bindings, binding];
+export function withBinding(bindings: string[], binding: string, platform: string): string[] {
+  const added = pressedKeys(binding, platform);
+  return bindings.some((b) => pressedKeys(b, platform) === added)
+    ? bindings
+    : [...bindings, binding];
 }
 
-/** The keys a binding stands for here: "mod" is Cmd on macOS and Ctrl elsewhere. */
+const MODIFIER_ORDER = ['command', 'ctrl', 'alt', 'shift'];
+
+/**
+ * The keys a binding stands for here, spelled one way: "mod" is Cmd on macOS and Ctrl elsewhere,
+ * "meta" and "command" are one key, and modifiers come in one order. Mousetrap reads every
+ * spelling as the same key, but the recorder writes Cmd+Shift+R as shift+mod+r where the keymaps
+ * have mod+shift+r.
+ */
 export function pressedKeys(binding: string, platform: string): string {
-  return binding.replace(/\bmod\b/g, platform === 'darwin' ? 'command' : 'ctrl');
+  const mod = platform === 'darwin' ? 'command' : 'ctrl';
+  return binding
+    .split(' ')
+    .map((keystroke) => {
+      if (keystroke === '+') {
+        return keystroke;
+      }
+      // As in Mousetrap's _keysFromString, "mod++" is mod and the + key.
+      const parts = keystroke.replace(/\+{2}/g, '+plus').split('+');
+      const key = parts.pop();
+      const modifiers = parts
+        .map((m) => (m === 'mod' ? mod : m === 'meta' ? 'command' : m))
+        .sort((a, b) => MODIFIER_ORDER.indexOf(a) - MODIFIER_ORDER.indexOf(b));
+      return [...modifiers, key].join('+');
+    })
+    .join(' ');
 }
 
 /**
