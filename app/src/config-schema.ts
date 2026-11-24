@@ -9,7 +9,7 @@ export default {
         properties: {
           language: {
             type: 'string',
-            title: 'Interface Langauge',
+            title: 'Interface Language',
             default: '',
           },
         },

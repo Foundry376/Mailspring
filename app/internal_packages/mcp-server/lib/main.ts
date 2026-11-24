@@ -26,7 +26,7 @@ export function activate() {
 export function deactivate() {
   McpServerManager.deactivate();
   if (preferencesTab) {
-    PreferencesUIStore.unregisterPreferencesTab(preferencesTab.sectionId);
+    PreferencesUIStore.unregisterPreferencesTab(preferencesTab.tabId);
     preferencesTab = null;
   }
 }
