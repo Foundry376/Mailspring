@@ -55,53 +55,20 @@
     }
   }
 
-  .container-preference-tabs {
-    width: 100%;
+  .preferences-sidebar {
+    width: 200px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    padding-top: @padding-small-horizontal;
     background-color: @source-list-bg;
-    border-bottom: 1px solid @border-color-divider;
+    border-right: 1px solid @border-color-divider;
 
-    .preferences-tabs {
-      display: flex;
-      flex-direction: row;
-      padding-top: 10px;
-      background-color: @source-list-bg;
-
-      .item {
-        cursor: default;
-        margin: 0 auto;
-        flex: 1.3;
-        min-width: 54px;
-        max-width: 120px;
-        text-align: center;
-        padding-top: 8px;
-
-        &:active {
-          img {
-            filter: brightness(40%);
-          }
-        }
-
-        &.active {
-          background: darken(@background-primary, 10%);
-          border-radius: @border-radius-large @border-radius-large 0 0;
-          box-shadow: @shadow-border;
-        }
-
-        .tab-icon {
-          display: block;
-          margin: auto;
-        }
-
-        .name {
-          padding: @padding-base-vertical * 1.5 @padding-base-horizontal * 0.3
-            @padding-large-vertical @padding-base-horizontal * 0.3;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          font-size: @font-size-small;
-          line-height: @font-size-small;
-        }
-      }
+    // No section has children, so rows keep no slot for the disclosure triangle.
+    .disclosure-triangle {
+      display: none;
+    }
+    .item {
+      padding-left: @padding-small-horizontal;
     }
   }
 
@@ -461,14 +428,6 @@ body.platform-win32 {
     .container-general {
       .two-columns-flexbox {
         flex-direction: column;
-      }
-    }
-    .container-preference-tabs {
-      .preferences-tabs .item img.tab-icon {
-        margin-bottom: 10px;
-      }
-      .preferences-tabs .item .name {
-        display: none;
       }
     }
     .preferences-content > .scroll-region-content {

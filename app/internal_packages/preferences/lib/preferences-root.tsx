@@ -8,7 +8,7 @@ import {
   ConfigPropContainer,
 } from 'mailspring-component-kit';
 import { PreferencesUIStore } from 'mailspring-exports';
-import PreferencesTabsBar from './preferences-tabs-bar';
+import { PreferencesSidebar } from './preferences-sidebar';
 
 const stopPropagation = (e: CustomEvent) => {
   e.stopPropagation();
@@ -78,8 +78,8 @@ class PreferencesRoot extends React.Component<{ tab: any; tabs: any[]; selection
         tabIndex={0}
         localHandlers={this._localHandlers}
       >
-        <Flexbox direction="column">
-          <PreferencesTabsBar tabs={tabs} selection={selection} />
+        <Flexbox direction="row">
+          <PreferencesSidebar tabs={tabs} selection={selection} />
           <ScrollRegion className="preferences-content">
             <ConfigPropContainer
               ref={(el) => {
