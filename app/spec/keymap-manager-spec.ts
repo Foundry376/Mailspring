@@ -165,7 +165,7 @@ describe('KeymapManager', function () {
 
   describe('isCharacterKeyShortcut', function () {
     it('is a key typed without Ctrl, Alt or Cmd, alone or in a sequence', function () {
-      for (const keys of ['e', 'shift+3', '#', 'g i', 'space']) {
+      for (const keys of ['e', 'shift+3', '#', 'g i', 'space', '+']) {
         expect(isCharacterKeyShortcut(keys)).toBe(true);
       }
     });
@@ -176,6 +176,7 @@ describe('KeymapManager', function () {
         'ctrl+e',
         'alt+e',
         'command+e',
+        'mod++',
         'g mod+i',
         'enter',
         'escape',

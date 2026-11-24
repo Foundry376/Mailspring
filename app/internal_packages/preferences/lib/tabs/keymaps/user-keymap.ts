@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { keysFromKeystroke } from '../../../../../src/keymap-manager';
 
 export type UserKeymap = { [command: string]: string | string[] };
 
@@ -52,8 +53,7 @@ export function pressedKeys(binding: string, platform: string): string {
   return binding
     .split(' ')
     .map((keystroke) => {
-      // As in Mousetrap's _keysFromString, "mod++" is mod and the + key.
-      const parts = keystroke.replace(/\+{2}/g, '+plus').split('+');
+      const parts = keysFromKeystroke(keystroke);
       const key = parts.pop();
       const modifiers = parts
         .map((m) => (m === 'mod' ? mod : m === 'meta' ? 'command' : m))

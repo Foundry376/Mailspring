@@ -8,6 +8,10 @@ let suspended = false;
 const templateConfigKey = 'core.keymapTemplate';
 const singleKeysConfigKey = 'core.keymapSingleKeys';
 
+/** A keystroke's modifiers and key, read as Mousetrap's _keysFromString reads "+" and "mod++". */
+export const keysFromKeystroke = (keystroke: string) =>
+  keystroke === '+' ? ['+'] : keystroke.replace(/\+{2}/g, '+plus').split('+');
+
 /**
  * Whether every keystroke of a binding is a character typed without Ctrl, Alt or Cmd ("e",
  * "shift+3", "g i"). WCAG 2.1.4 asks that these can be turned off: someone dictating "e" would
@@ -15,7 +19,7 @@ const singleKeysConfigKey = 'core.keymapSingleKeys';
  */
 export const isCharacterKeyShortcut = (keystrokes: string) =>
   keystrokes.split(' ').every((keystroke) => {
-    const parts = keystroke.split('+');
+    const parts = keysFromKeystroke(keystroke);
     const key = parts.pop();
     return parts.every((modifier) => modifier === 'shift') && (key.length === 1 || key === 'space');
   });
