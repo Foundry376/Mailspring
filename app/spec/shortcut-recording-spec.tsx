@@ -32,6 +32,10 @@ describe('withBinding', function () {
   it('does not add a key the command already has', function () {
     expect(withBinding(['e', 'k'], 'k', 'linux')).toEqual(['e', 'k']);
   });
+
+  it('does not add a key the command has with its modifiers in another order', function () {
+    expect(withBinding(['mod+shift+r'], 'shift+mod+r', 'linux')).toEqual(['mod+shift+r']);
+  });
 });
 
 describe('readUserKeymap', function () {

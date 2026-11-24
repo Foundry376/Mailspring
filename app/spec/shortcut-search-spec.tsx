@@ -28,6 +28,11 @@ describe('matchesQuery', function () {
     expect(matchesQuery('Bold', ['alt+b'], 'option+b', 'darwin')).toBe(true);
     expect(matchesQuery('Reply', ['mod+r'], 'ctrl+r', 'darwin')).toBe(false);
   });
+
+  it('matches a key typed with its modifiers in another order', function () {
+    expect(matchesQuery('Indent', ['shift+command+]'], 'cmd+shift+]', 'darwin')).toBe(true);
+    expect(matchesQuery('Reply All', ['mod+shift+r'], 'shift+ctrl+r', 'linux')).toBe(true);
+  });
 });
 
 describe('runsOnKey', function () {

@@ -18,6 +18,13 @@ describe('pressedKeys', function () {
     expect(pressedKeys('mod+a', 'darwin')).toBe('command+a');
     expect(pressedKeys('mod+a', 'linux')).toBe('ctrl+a');
   });
+
+  it('spells a key one way, whatever the order or name of its modifiers', function () {
+    expect(pressedKeys('shift+mod+r', 'linux')).toBe(pressedKeys('mod+shift+r', 'linux'));
+    expect(pressedKeys('meta+alt+i', 'darwin')).toBe(pressedKeys('mod+alt+i', 'darwin'));
+    expect(pressedKeys('+', 'linux')).toBe('+');
+    expect(pressedKeys('mod++', 'linux')).toBe(pressedKeys('mod+plus', 'linux'));
+  });
 });
 
 describe('withoutBinding', function () {
