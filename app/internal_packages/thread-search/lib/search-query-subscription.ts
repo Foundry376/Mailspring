@@ -14,6 +14,10 @@ import {
 
 type SyncProcess = ReturnType<typeof AppEnv.mailsyncBridge.clients>[string];
 
+// Matched messages per server search whose bodies the sync engine downloads: repeat searches
+// find most of them stored already, and many searches span recent mail.
+const REMOTE_SEARCH_FETCH_LIMIT = 500;
+
 class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
   _searchQuery: string;
   _accountIds: string[];
@@ -24,7 +28,6 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
   _parsedQuery = null;
   // searchId -> the account and the sync process the request went to
   _remoteSearches = new Map<string, { accountId: string; client: SyncProcess }>();
-  _remoteThreadIds = new Set<string>();
   _remoteUnlisteners: (() => void)[] = [];
 
   constructor(searchQuery: string, accountIds: string[]) {
@@ -59,7 +62,7 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
       dbQuery = dbQuery.where({ accountId: this._accountIds[0] });
     }
     if (this._parsedQuery) {
-      dbQuery = dbQuery.structuredSearch(this._parsedQuery, [...this._remoteThreadIds]);
+      dbQuery = dbQuery.structuredSearch(this._parsedQuery);
     } else {
       dbQuery = dbQuery.search(this._searchQuery);
     }
@@ -71,8 +74,10 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
     this.replaceQuery(dbQuery);
   }
 
-  // The local index holds message bodies only for recent mail, so the query also runs on
-  // each account's server, whose matches join the local ones as they arrive.
+  // The local index holds message bodies only for recent mail, so the query also runs on each
+  // account's server, which downloads the bodies of its newest matches into the index. Results
+  // come from the local query alone: the engine saves the thread of each body it stores, and a
+  // saved thread the results lack runs the query again (StructuredSearchMatcher.evaluate).
   performRemoteSearch() {
     if (!this._parsedQuery || !AppEnv.mailsyncBridge) {
       return;
@@ -102,6 +107,7 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
       AppEnv.mailsyncBridge.sendMessageToAccount(accountId, {
         type: 'search-remote',
         searchId,
+        fetchLimit: REMOTE_SEARCH_FETCH_LIMIT,
         ...request,
       });
     }
@@ -112,25 +118,10 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
     return client && client.spawned ? client : null;
   }
 
-  _onRemoteSearchResult = (result: {
-    id: string;
-    done: boolean;
-    threadIds?: string[];
-    error?: string;
-  }) => {
-    if (!this._remoteSearches.has(result.id)) {
-      return;
-    }
-    if (result.done) {
-      this._remoteSearches.delete(result.id);
+  _onRemoteSearchResult = (result: { id: string; done: boolean }) => {
+    if (result.done && this._remoteSearches.delete(result.id)) {
       this._completeWhenAnswered();
     }
-    const added = (result.threadIds || []).filter((id) => !this._remoteThreadIds.has(id));
-    if (added.length === 0) {
-      return;
-    }
-    added.forEach((id) => this._remoteThreadIds.add(id));
-    this.performLocalSearch();
   };
 
   // A process that exited answers none of the searches it was sent, or the searching
@@ -158,11 +149,17 @@ class SearchQuerySubscription extends MutableQuerySubscription<Thread> {
     this._completeWhenAnswered();
   }
 
-  // The searching indicator stays on until the local results are in and every server
-  // asked has answered: a server can take 10 s or more (Yahoo, live 2026-10-25), and its
-  // matches join the list when they arrive.
+  // The searching indicator stays on until the local results are in, with no query running,
+  // and every server asked has answered: a server can take 10 s or more (Yahoo, live
+  // 2026-10-25), and the threads of the last bodies it stores run the query again just before
+  // it reports done.
   _completeWhenAnswered() {
-    if (this._searching && this._haveLocalResults && this._remoteSearches.size === 0) {
+    if (
+      this._searching &&
+      this._haveLocalResults &&
+      !this._updateInFlight &&
+      this._remoteSearches.size === 0
+    ) {
       this._searching = false;
       Actions.searchCompleted();
     }

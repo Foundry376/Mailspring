@@ -44,6 +44,8 @@ interface ComposerViewState {
   quotedTextPresent: boolean;
   isDropping: boolean;
   attachingThreadCount: number;
+  awaitingAddsToSend: boolean;
+  sending: boolean;
 }
 // The ComposerView is a unique React component because it (currently) is a
 // singleton. Normally, the React way to do things would be to re-render the
@@ -53,6 +55,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
 
   _mounted = false;
   _mouseDownTarget: HTMLElement = null;
+  _unlistenDraftStore: () => void = null;
 
   dropzone = React.createRef<DropZone>();
   sendButton = React.createRef<SendActionButton>();
@@ -84,6 +87,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
       attachingThreadCount: 0,
       quotedTextPresent: hasBlockquote(draft.bodyEditorState),
       quotedTextHidden: hideQuotedTextByDefault(draft),
+      ...this._sendStateFromStore(),
     };
   }
 
@@ -91,6 +95,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     const { date, files } = this.props.draft;
 
     this._mounted = true;
+    this._unlistenDraftStore = DraftStore.listen(this._onDraftStoreChanged);
 
     files.forEach((file) => {
       if (Utils.shouldDisplayAsImage(file)) {
@@ -123,6 +128,26 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
 
   componentWillUnmount() {
     this._mounted = false;
+    this._unlistenDraftStore();
+  }
+
+  _sendStateFromStore() {
+    const { headerMessageId } = this.props.session;
+    return {
+      awaitingAddsToSend: DraftStore.isAwaitingAddsToSend(headerMessageId),
+      sending: DraftStore.isSendingDraft(headerMessageId),
+    };
+  }
+
+  _onDraftStoreChanged = (change?: { headerMessageId?: string }) => {
+    if (change && change.headerMessageId === this.props.session.headerMessageId) {
+      this.setState(this._sendStateFromStore());
+    }
+  };
+
+  _sendHasStarted() {
+    const { awaitingAddsToSend, sending } = this._sendStateFromStore();
+    return awaitingAddsToSend || sending;
   }
 
   focus() {
@@ -144,8 +169,10 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
 
   _renderContent() {
     const restrictWidth = AppEnv.config.get('core.reading.restrictMaxWidth');
-    const { quotedTextHidden, quotedTextPresent } = this.state;
+    const { quotedTextHidden, quotedTextPresent, awaitingAddsToSend, sending } = this.state;
     const { draft, session } = this.props;
+    // Send uses the draft as it is once the adds it waits for land, so editing stops at Send.
+    const locked = awaitingAddsToSend || sending;
 
     return (
       <div className={`composer-centered ${restrictWidth && 'restrict-width'}`}>
@@ -160,6 +187,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
               <ComposerEditorPlaintext
                 ref={this.editor as React.RefObject<ComposerEditorPlaintext>}
                 value={draft.body}
+                readOnly={locked}
                 propsForPlugins={{ draft, session }}
                 onFileReceived={this._onFileReceived}
                 onDrop={(e) => this.dropzone.current._onDrop(e as React.DragEvent<HTMLDivElement>)}
@@ -172,6 +200,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
                 <ComposerEditor
                   ref={this.editor as React.RefObject<ComposerEditor>}
                   value={draft.bodyEditorState}
+                  locked={locked}
                   className={quotedTextHidden && 'hiding-quoted-text'}
                   propsForPlugins={{ draft, session }}
                   onFileReceived={this._onFileReceived}
@@ -248,6 +277,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
 
   _onMouseUpComposerBody = (event: React.MouseEvent<HTMLDivElement>) => {
     if (
+      !this._sendHasStarted() &&
       event.target === this._mouseDownTarget &&
       !this._inFooterRegion(event.target as HTMLElement)
     ) {
@@ -271,6 +301,10 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
   };
 
   _shouldAcceptDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    if (this._sendHasStarted()) {
+      return false;
+    }
+
     // If the drag was initiated within Slate, let Slate handle it by falling through
     // and not preventing default. Slate can drag-drop image (void) nodes on it's own.
     if (event.dataTransfer.types.includes('application/x-slate-fragment')) {
@@ -391,7 +425,10 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     }
   };
 
-  _onFileReceived = (filePath: string) => {
+  _onFileReceived = (filePath: string | Promise<string>) => {
+    if (this._sendHasStarted()) {
+      return;
+    }
     // called from onDrop and onFilePaste - assume images should be inline
     Actions.addAttachment({
       filePath: filePath,
@@ -424,7 +461,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
     // immediately and synchronously updated as soon as this function
     // fires. Since `setState` is asynchronous, if we used that as our only
     // check, then we might get a false reading.
-    if (DraftStore.isSendingDraft(this.props.draft.headerMessageId)) {
+    if (this._sendHasStarted()) {
       return false;
     }
 
@@ -506,6 +543,9 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
   };
 
   _onSelectAttachment = () => {
+    if (this._sendHasStarted()) {
+      return;
+    }
     Actions.selectAttachment({ headerMessageId: this.props.draft.headerMessageId });
   };
 
@@ -563,7 +603,10 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
                     isValidDraft={this._isValidDraft}
                   />
                   <DeleteButton onClick={this._onDestroyDraft} />
-                  <AttachFileButton onClick={this._onSelectAttachment} />
+                  <AttachFileButton
+                    disabled={this.state.awaitingAddsToSend || this.state.sending}
+                    onClick={this._onSelectAttachment}
+                  />
 
                   <div style={{ order: 0, flex: 1 }} />
 
@@ -572,6 +615,7 @@ export default class ComposerView extends React.Component<ComposerViewProps, Com
                     ref={this.sendButton}
                     style={{ order: -100 }}
                     draft={this.props.draft}
+                    attaching={this.state.awaitingAddsToSend}
                     isValidDraft={this._isValidDraft}
                   />
                 </RovingTabIndexToolbar>
@@ -593,9 +637,10 @@ const DropToAttachCover = (props: { visible: boolean }) => (
   </div>
 );
 
-const AttachFileButton = (props: { onClick: () => void }) => (
+const AttachFileButton = (props: { disabled: boolean; onClick: () => void }) => (
   <button
     tabIndex={-1}
+    disabled={props.disabled}
     className="btn btn-toolbar btn-attach"
     style={{ order: 0 }}
     title={localized('Attach File')}

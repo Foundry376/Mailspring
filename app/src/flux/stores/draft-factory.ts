@@ -330,25 +330,29 @@ class DraftFactory {
     }
 
     DraftStore = DraftStore || require('./draft-store').default;
-    const isReplyToMessage = (other: Message) =>
-      other && other.draft === true && other.replyToHeaderMessageId === message.headerMessageId;
+    // A draft whose Send has started is not reusable: replacing its session would cancel the send.
+    const isReusableReply = (other: Message) =>
+      other &&
+      other.draft === true &&
+      other.replyToHeaderMessageId === message.headerMessageId &&
+      !DraftStore.isSendingDraft(other.headerMessageId) &&
+      !DraftStore.isAwaitingAddsToSend(other.headerMessageId);
 
     const messages =
       message.threadId === MessageStore.threadId()
         ? MessageStore.items()
         : await DatabaseStore.findAll<Message>(Message, { threadId: message.threadId });
 
-    const candidateDrafts = messages.filter(isReplyToMessage);
+    const candidateDrafts = messages.filter(isReusableReply);
 
     // A reply created moments ago is in no query result until the sync engine reports saving
     // it, so a second Reply in that window must find it through its session.
     for (const headerMessageId of DraftStore._draftsAwaitingFirstSave) {
       const draft = DraftStore._draftSessions[headerMessageId]?.draft();
       if (
-        isReplyToMessage(draft) &&
+        isReusableReply(draft) &&
         draft.accountId === message.accountId &&
         draft.threadId === message.threadId &&
-        !DraftStore.isSendingDraft(headerMessageId) &&
         !candidateDrafts.some((d) => d.headerMessageId === headerMessageId)
       ) {
         candidateDrafts.push(draft);
@@ -414,14 +418,20 @@ class DraftFactory {
   _fromContactForReply(message: Message) {
     const account = AccountStore.accountForId(message.accountId);
     const defaultMe = account.defaultMe();
+    const aliases = account.aliases.map((a) => account.meUsingAlias(a));
+    const recipients = [...message.to, ...message.cc];
+
+    // Addresses are compared without regard to case: mail to Ben@Example.com was delivered to
+    // the alias ben@example.com. Unlike Utils.emailIsEquivalent (Contact.isMe), `+tags` are
+    // significant, since an account can have aliases that differ only by tag.
+    const norm = (email: string) => (email || '').trim().toLowerCase();
 
     let result = defaultMe;
 
-    for (const aliasString of account.aliases) {
-      const alias = account.meUsingAlias(aliasString);
-      for (const recipient of [...message.to, ...message.cc]) {
-        const emailIsNotDefault = alias.email !== defaultMe.email;
-        const emailsMatch = recipient.email === alias.email;
+    for (const alias of aliases) {
+      for (const recipient of recipients) {
+        const emailIsNotDefault = norm(alias.email) !== norm(defaultMe.email);
+        const emailsMatch = norm(recipient.email) === norm(alias.email);
         const nameIsNotDefault = alias.name !== defaultMe.name;
         const namesMatch = recipient.name === alias.name;
 
@@ -438,7 +448,27 @@ class DraftFactory {
         }
       }
     }
-    return result;
+    if (result !== defaultMe) {
+      return result;
+    }
+
+    // Mail to a subaddress of an alias (sales+leads@example.com for the alias
+    // sales@example.com) was delivered to that alias, so reply from it. Reply from the
+    // configured address rather than the tagged one: providers reject or rewrite a From
+    // address that isn't set up for sending.
+    for (const recipient of recipients) {
+      if (!norm(recipient.email).includes('+')) {
+        continue;
+      }
+      const untagged = Utils.toEquivalentEmailForm(recipient.email);
+      const alias = aliases.find(
+        (a) => norm(a.email) === untagged && norm(a.email) !== norm(defaultMe.email)
+      );
+      if (alias) {
+        return alias;
+      }
+    }
+    return defaultMe;
   }
 
   _accountForNewDraft() {

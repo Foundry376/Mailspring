@@ -8,15 +8,22 @@ import {
   isMessageAllowed as grantIsMessageAllowed,
 } from '../../../src/services/mail-access/grant';
 
-type AccessLevel = 'read-only' | 'read-draft' | 'read-write' | 'read-write-send';
-export type AccessCategory = 'read' | 'draft' | 'write' | 'send';
+type AccessLevel = 'read-only' | 'read-write' | 'read-write-send';
+export type AccessCategory = 'read' | 'write' | 'send';
 
 // Ordered from least to most privileged: each level grants every category up to its own.
-const ACCESS_LEVELS: AccessLevel[] = ['read-only', 'read-draft', 'read-write', 'read-write-send'];
+// Sending is the one tier of its own because it is the only action that leaves the mailbox
+// and can't be undone; drafting and organizing stay local and reversible.
+const ACCESS_LEVELS: AccessLevel[] = ['read-only', 'read-write', 'read-write-send'];
+
+export const ACCESS_LEVEL_NAMES: { [L in AccessLevel]: string } = {
+  'read-only': 'Read Only',
+  'read-write': 'Organize & Draft',
+  'read-write-send': 'Full Access',
+};
 
 const REQUIRED_LEVEL: { [C in AccessCategory]: AccessLevel } = {
   read: 'read-only',
-  draft: 'read-draft',
   write: 'read-write',
   send: 'read-write-send',
 };
@@ -42,7 +49,7 @@ export function checkAccessLevel(category: AccessCategory): string | null {
   // An unrecognized stored level ranks as read-only.
   const granted = Math.max(ACCESS_LEVELS.indexOf(accessLevel), 0);
   if (granted >= ACCESS_LEVELS.indexOf(required)) return null;
-  return `Access denied: '${category}' operations require access level '${required}', but current level is '${accessLevel}'.`;
+  return `Access denied: '${category}' operations require the '${ACCESS_LEVEL_NAMES[required]}' access level, but the current level is '${ACCESS_LEVEL_NAMES[ACCESS_LEVELS[granted]]}'. The user can change it in Mailspring's Preferences.`;
 }
 
 // ── Pure predicates ──────────────────────────────────────────────────────

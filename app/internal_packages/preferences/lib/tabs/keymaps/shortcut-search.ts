@@ -21,7 +21,10 @@ export function matchesQuery(
   if (label.toLowerCase().includes(text)) {
     return true;
   }
-  const keyText = KEY_ALIASES.reduce((t, [alias, name]) => t.replace(alias, name), text);
+  const keyText = pressedKeys(
+    KEY_ALIASES.reduce((t, [alias, name]) => t.replace(alias, name), text),
+    platform
+  );
   return bindings.some((b) => pressedKeys(b, platform).toLowerCase().includes(keyText));
 }
 

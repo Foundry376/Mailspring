@@ -48,7 +48,7 @@ function expectSanitized(body: string) {
 
 describe('MCP draft tools', function () {
   beforeEach(function () {
-    AppEnv.config.set('core.mcp.accessLevel', 'read-draft');
+    AppEnv.config.set('core.mcp.accessLevel', 'read-write');
     AppEnv.config.set('core.composing.html', true);
     this.server = new McpServer({ name: 'mailspring-spec', version: '0.0.1' });
     registerTools(this.server);

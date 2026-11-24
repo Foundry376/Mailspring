@@ -4,7 +4,7 @@ import os from 'os';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import React from 'react';
-import { localized } from 'mailspring-exports';
+import { localized, AccountStore } from 'mailspring-exports';
 import { Switch, RetinaImg, CopyButton } from 'mailspring-component-kit';
 import McpServerManager from './mcp-server-manager';
 import PreferencesMcpAccounts from './preferences-mcp-accounts';
@@ -13,6 +13,33 @@ import { writeMailspringClaudeDesktopEntry } from './claude-desktop-config';
 
 const execFileAsync = promisify(execFile);
 const CLAUDE_CODE_MCP_NAME = 'mailspring-mcp';
+
+type EnabledAccounts = State['enabledAccounts'];
+
+// Whether any account is turned off or has excluded folders. An account missing from a
+// non-empty config is off, matching mcpGrant().
+function hasAccountRestrictions(enabledAccounts: EnabledAccounts) {
+  if (Object.keys(enabledAccounts).length === 0) return false;
+  return AccountStore.accounts().some((a) => {
+    const config = enabledAccounts[a.id];
+    return !config?.enabled || (config.excludedFolderIds || []).length > 0;
+  });
+}
+
+// An unrecognized stored level is enforced as read-only, so it is described as read-only.
+function accessLevelDescription(accessLevel: string) {
+  if (accessLevel === 'read-write') {
+    return localized(
+      'Also move, archive, trash, label and flag mail, create and rename folders and labels, and write drafts. AI tools cannot send mail.'
+    );
+  }
+  if (accessLevel === 'read-write-send') {
+    return localized(
+      'Everything in Organize & Draft, plus sending and scheduling mail on your behalf.'
+    );
+  }
+  return localized('Search and read mail. AI tools cannot change anything.');
+}
 
 interface State {
   enabled: boolean;
@@ -28,6 +55,9 @@ interface State {
   // Set true once the user has successfully added Mailspring to any AI tool;
   // reveals the "Try It!" example prompt beneath the Quick Setup buttons.
   tryItVisible: boolean;
+  // The account list starts collapsed unless it already restricts something, and stays
+  // open once shown so it doesn't vanish as the user re-checks the last box.
+  accountListVisible: boolean;
 }
 
 export default class PreferencesMcp extends React.Component<Record<string, never>, State> {
@@ -38,10 +68,15 @@ export default class PreferencesMcp extends React.Component<Record<string, never
 
   constructor(props: Record<string, never>) {
     super(props);
-    // tryItVisible is UI-only and must persist across the manager-driven
-    // setState(this._getState()) updates, so it lives outside _getState() and
-    // is seeded here.
-    this.state = { ...this._getState(), tryItVisible: false };
+    // tryItVisible and accountListVisible are UI-only and must persist across the
+    // manager-driven setState(this._getState()) updates, so they live outside
+    // _getState() and are seeded here.
+    const state = this._getState();
+    this.state = {
+      ...state,
+      tryItVisible: false,
+      accountListVisible: hasAccountRestrictions(state.enabledAccounts),
+    };
   }
 
   componentDidMount() {
@@ -58,7 +93,7 @@ export default class PreferencesMcp extends React.Component<Record<string, never
     }
   }
 
-  _getState(): Omit<State, 'tryItVisible'> {
+  _getState(): Omit<State, 'tryItVisible' | 'accountListVisible'> {
     return {
       enabled: AppEnv.config.get('core.mcp.enabled') || false,
       port: AppEnv.config.get('core.mcp.port') || 2587,
@@ -274,6 +309,7 @@ export default class PreferencesMcp extends React.Component<Record<string, never
       codexStatus,
       claudeCodeStatus,
       tryItVisible,
+      accountListVisible,
     } = this.state;
 
     const setupError = [claudeStatus, codexStatus, claudeCodeStatus].find(
@@ -307,107 +343,113 @@ export default class PreferencesMcp extends React.Component<Record<string, never
 
         {enabled && (
           <>
-            <div className="mcp-columns">
-              <div className="mcp-column">
-                <section>
-                  <h6>{localized('Quick Setup')}</h6>
-                  <p className="mcp-description">
-                    {localized(
-                      "Add Mailspring to your AI tools with one click. This writes the connection details to each tool's config file."
-                    )}
-                  </p>
-                  <div className="mcp-quick-setup">
-                    {this._renderQuickSetupButton(
-                      localized('Add to Claude Desktop'),
-                      claudeStatus,
-                      this._onAddToClaudeDesktop
-                    )}
-                    {this._renderQuickSetupButton(
-                      localized('Add to ChatGPT Desktop'),
-                      codexStatus,
-                      this._onAddToChatGPT
-                    )}
-                    {this._renderQuickSetupButton(
-                      localized('Add to Claude Code'),
-                      claudeCodeStatus,
-                      this._onAddToClaudeCode
-                    )}
-                  </div>
-                  {setupError && <div className="mcp-error">{setupError}</div>}
-                  {tryItVisible && (
-                    <div className="mcp-try-it">
-                      <h6>{localized('Try It!')}</h6>
-                      <p className="mcp-description">
-                        {localized(
-                          'Note: Restart Claude / ChatGPT and start a new chat, existing chats may not see the new connector.'
-                        )}
-                      </p>
-
-                      <div className="mcp-try-it-prompt">
-                        <code>{this._tryItPrompt()}</code>
-                        <CopyButton text={() => this._tryItPrompt()} />
-                      </div>
-                    </div>
-                  )}
-                </section>
-              </div>
-
-              <div className="mcp-column">
-                <section>
-                  <h6>{localized('Connection')}</h6>
-                  <div className="mcp-field-row">
-                    <label>{localized('Port')}</label>
-                    <input
-                      type="number"
-                      value={port}
-                      onChange={this._onPortChange}
-                      min={1}
-                      max={65535}
-                      className="mcp-port-input"
-                    />
-                  </div>
-                  <div className="mcp-field-row">
-                    <label>{localized('Access Level')}</label>
-                    <select value={accessLevel} onChange={this._onAccessLevelChange}>
-                      <option value="read-only">{localized('Read Only')}</option>
-                      <option value="read-draft">{localized('Read & Draft')}</option>
-                      <option value="read-write">{localized('Read & Write')}</option>
-                      <option value="read-write-send">{localized('Read, Write & Send')}</option>
-                    </select>
-                  </div>
-                  <div className="mcp-field-row">
-                    <label>{localized('Endpoint')}</label>
-                    <code className="mcp-endpoint">http://127.0.0.1:{port}/mcp</code>
-                  </div>
-                  <div className="mcp-field-row">
-                    <label>{localized('Bearer Token')}</label>
-                    <div className="mcp-token-row">
-                      <code className="mcp-token">{token}</code>
-                      <CopyButton text={token} />
-                      <button
-                        className="btn btn-small btn-icon"
-                        onClick={this._onRegenerateToken}
-                        title={localized('Regenerate token')}
-                      >
-                        <RetinaImg name="ic-refresh.png" mode={RetinaImg.Mode.ContentIsMask} />
-                      </button>
-                    </div>
-                  </div>
-                </section>
-              </div>
-            </div>
-
             <section>
-              <h6 style={{ marginTop: 0 }}>{localized('Account Access')}</h6>
+              <h6>{localized('Quick Setup')}</h6>
               <p className="mcp-description">
                 {localized(
-                  'Choose which accounts and folders the MCP server can access. All accounts are enabled by default.'
+                  "Add Mailspring to your AI tools with one click. This writes the connection details to each tool's config file."
                 )}
               </p>
-              <PreferencesMcpAccounts
-                enabledAccounts={enabledAccounts}
-                onChange={this._onAccountsChange}
-              />
+              <div className="mcp-quick-setup">
+                {this._renderQuickSetupButton(
+                  localized('Add to Claude Desktop'),
+                  claudeStatus,
+                  this._onAddToClaudeDesktop
+                )}
+                {this._renderQuickSetupButton(
+                  localized('Add to ChatGPT Desktop'),
+                  codexStatus,
+                  this._onAddToChatGPT
+                )}
+                {this._renderQuickSetupButton(
+                  localized('Add to Claude Code'),
+                  claudeCodeStatus,
+                  this._onAddToClaudeCode
+                )}
+              </div>
+              {setupError && <div className="mcp-error">{setupError}</div>}
+              {tryItVisible && (
+                <div className="mcp-try-it">
+                  <h6>{localized('Try It!')}</h6>
+                  <p className="mcp-description">
+                    {localized(
+                      'Note: Restart Claude / ChatGPT and start a new chat, existing chats may not see the new connector.'
+                    )}
+                  </p>
+
+                  <div className="mcp-try-it-prompt">
+                    <code>{this._tryItPrompt()}</code>
+                    <CopyButton text={() => this._tryItPrompt()} />
+                  </div>
+                </div>
+              )}
+            </section>
+
+            <section>
+              <h6>{localized('Access')}</h6>
+              <div className="mcp-access-level">
+                <select
+                  value={accessLevel}
+                  onChange={this._onAccessLevelChange}
+                  aria-label={localized('Access Level')}
+                >
+                  <option value="read-only">{localized('Read Only')}</option>
+                  <option value="read-write">{localized('Organize & Draft')}</option>
+                  <option value="read-write-send">{localized('Full Access')}</option>
+                </select>
+                <span className="mcp-description">{accessLevelDescription(accessLevel)}</span>
+              </div>
+              {accountListVisible ? (
+                <>
+                  <p className="mcp-description">
+                    {localized('Choose which accounts and folders the MCP server can access.')}
+                  </p>
+                  <PreferencesMcpAccounts
+                    enabledAccounts={enabledAccounts}
+                    onChange={this._onAccountsChange}
+                  />
+                </>
+              ) : (
+                <p className="mcp-description">
+                  {localized('AI tools can see every account and folder.')}{' '}
+                  <a onClick={() => this.setState({ accountListVisible: true })}>
+                    {localized('Limit to specific accounts or folders…')}
+                  </a>
+                </p>
+              )}
+            </section>
+
+            <section>
+              <h6>{localized('Connection')}</h6>
+              <div className="mcp-field-row">
+                <label>{localized('Port')}</label>
+                <input
+                  type="number"
+                  value={port}
+                  onChange={this._onPortChange}
+                  min={1}
+                  max={65535}
+                  className="mcp-port-input"
+                />
+              </div>
+              <div className="mcp-field-row">
+                <label>{localized('Endpoint')}</label>
+                <code className="mcp-endpoint">http://127.0.0.1:{port}/mcp</code>
+              </div>
+              <div className="mcp-field-row">
+                <label>{localized('Bearer Token')}</label>
+                <div className="mcp-token-row">
+                  <code className="mcp-token">{token}</code>
+                  <CopyButton text={token} />
+                  <button
+                    className="btn btn-small btn-icon"
+                    onClick={this._onRegenerateToken}
+                    title={localized('Regenerate token')}
+                  >
+                    <RetinaImg name="ic-refresh.png" mode={RetinaImg.Mode.ContentIsMask} />
+                  </button>
+                </div>
+              </div>
             </section>
 
             <section>

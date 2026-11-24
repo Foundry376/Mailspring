@@ -80,9 +80,10 @@ interface ComposerEditorProps {
   onChange: (change: { operations: Immutable.List<Operation>; value: Value }) => void;
   className?: string;
   readOnly?: boolean;
+  locked?: boolean;
   onBlur?: (e: React.FocusEvent) => void;
   onDrop?: (e: React.DragEvent) => void;
-  onFileReceived?: (path: string) => void;
+  onFileReceived?: (path: string | Promise<string>) => void;
   onUpdatedSlateEditor?: (editor: Editor | null) => void;
 }
 
@@ -167,7 +168,7 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
   };
 
   onFocusIfBlurred = (_event: React.MouseEvent<HTMLDivElement>) => {
-    if (!this.props.value.selection.isFocused) {
+    if (!this.props.readOnly && !this.props.locked && !this.props.value.selection.isFocused) {
       this.focus();
     }
   };
@@ -199,6 +200,27 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
 
     // Allow slate to attach it's own data, which it can use to paste nicely
     // if the paste target is the editor.
+    next();
+  };
+
+  // Slate reads its handlers once, when it mounts, so these check `locked` when they run.
+  unlessLocked =
+    <E extends { preventDefault: () => void }>(
+      handler: (event: E, editor: any, next: () => void) => void
+    ) =>
+    (event: E, editor: any, next: () => void) => {
+      if (this.props.locked) {
+        event.preventDefault();
+        return;
+      }
+      handler(event, editor, next);
+    };
+
+  onKeyDown = (event: React.KeyboardEvent, editor: any, next: () => void) => {
+    if (this.props.locked && isEditingKey(event)) {
+      event.preventDefault();
+      return;
+    }
     next();
   };
 
@@ -359,12 +381,16 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
               if (!e.isPropagationStopped()) next();
             }}
             onDrop={(e: any, editor, next) => {
+              if (this.props.locked) return e.preventDefault();
               if (onDrop) onDrop(e as React.DragEvent<any>);
               if (!e.isPropagationStopped()) next();
             }}
-            onCut={this.onCut as any}
+            onCut={this.unlessLocked(this.onCut) as any}
             onCopy={this.onCopy as any}
-            onPaste={this.onPaste as any}
+            onPaste={this.unlessLocked(this.onPaste) as any}
+            onBeforeInput={this.unlessLocked((e, editor, next) => next())}
+            onSelect={this.unlessLocked((e, editor, next) => next())}
+            onKeyDown={this.onKeyDown}
             spellCheck={AppEnv.config.get('core.composing.spellcheck')}
             plugins={plugins as any as Plugin[]}
             propsForPlugins={propsForPlugins}
@@ -376,6 +402,16 @@ export class ComposerEditor extends React.Component<ComposerEditorProps> {
 }
 
 // Helpers
+
+// A locked editor (a draft whose Send is waiting for attachments) keeps focus and its
+// selection but refuses input that would change it. Slate's readOnly can't serve: it removes
+// contenteditable, which sends focus to the page, where plain keys reach mail shortcuts, and an
+// inline image inserted into a read-only editor fails to render. Refusing onSelect keeps the
+// selection where a pending image will be inserted, wherever the user clicks meanwhile.
+function isEditingKey(event: React.KeyboardEvent) {
+  if (['Backspace', 'Delete', 'Enter', 'Tab'].includes(event.key)) return true;
+  return event.metaKey || event.ctrlKey ? /^[zyxvbiu]$/i.test(event.key) : event.key.length === 1;
+}
 
 // Excel, Numbers and LibreOffice Calc put both an HTML table and a rendered image of
 // the selection on the clipboard; the table is what the user wants. Chrome's "Copy Image"
@@ -414,7 +450,12 @@ export function shouldAttachPastedFile(clipboardData: DataTransfer) {
   return hasFileItem && !clipboardHasRichText(clipboardData);
 }
 
-export function handleFilePasted(event: ClipboardEvent, onFileReceived: (path: string) => void) {
+// A pasted blob arrives as a promise for its temp file rather than a path, so the attachment add
+// is queued (and a send waits for it) from the moment of the paste, not once the write finishes.
+export function handleFilePasted(
+  event: ClipboardEvent,
+  onFileReceived: (path: string | Promise<string>) => void
+) {
   // See https://github.com/Foundry376/Mailspring/pull/2104 - if you right-click + Copy Image in Chrome,
   // the image file is item 1, not item 0. Every file item is attached so that copying several
   // files in Finder / Explorer / a Linux file manager pastes all of them.
@@ -432,21 +473,18 @@ export function handleFilePasted(event: ClipboardEvent, onFileReceived: (path: s
       continue;
     }
 
-    const ext = extensionForClipboardMimeType(item.type);
-
-    const reader = new FileReader();
-    reader.addEventListener('loadend', () => {
-      const buffer = Buffer.from(new Uint8Array(reader.result as any));
-      const tmpFolder = path.join(os.tmpdir(), `-mailspring-attachment-${crypto.randomUUID()}`);
-      const tmpPath = path.join(tmpFolder, `Pasted File${ext}`);
-      fs.mkdir(tmpFolder, () => {
-        fs.writeFile(tmpPath, buffer, () => {
-          onFileReceived(tmpPath);
-        });
-      });
-    });
-    reader.readAsArrayBuffer(blob);
+    const filename = `Pasted File${extensionForClipboardMimeType(item.type)}`;
+    onFileReceived(writeBlobToTempFile(blob, filename));
   }
 
   return fileItems.length > 0;
+}
+
+async function writeBlobToTempFile(blob: Blob, filename: string) {
+  const buffer = Buffer.from(await blob.arrayBuffer());
+  const tmpFolder = path.join(os.tmpdir(), `-mailspring-attachment-${crypto.randomUUID()}`);
+  const tmpPath = path.join(tmpFolder, filename);
+  await fs.promises.mkdir(tmpFolder, { recursive: true });
+  await fs.promises.writeFile(tmpPath, buffer);
+  return tmpPath;
 }

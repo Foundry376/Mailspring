@@ -93,6 +93,118 @@ describe('AttachmentStore', function () {
       waitsFor(() => this.files.length === 2);
     });
 
+    describe('waitForPendingAdds', () => {
+      const flushPromises = async () => {
+        for (let i = 0; i < 20; i++) await Promise.resolve();
+      };
+
+      beforeEach(() => {
+        spyOn(AttachmentStore, '_copyToInternalPath').andReturn(Promise.resolve());
+      });
+
+      it('resolves at once when the draft has no adds in flight', async () => {
+        expect(AttachmentStore.hasPendingAdds('draft-idle')).toBe(false);
+        expect(await AttachmentStore.waitForPendingAdds('draft-idle', 20000)).toBe('attached');
+      });
+
+      it('waits for a file that is still being written', async () => {
+        const { promise: tmpPath, resolve: finishWriting } = Promise.withResolvers<string>();
+        AttachmentStore._onAddAttachment({ headerMessageId: 'draft-1', filePath: tmpPath });
+        expect(AttachmentStore.hasPendingAdds('draft-1')).toBe(true);
+
+        let result: string = null;
+        AttachmentStore.waitForPendingAdds('draft-1', 20000).then((r) => (result = r));
+        await flushPromises();
+        expect(result).toBe(null);
+        expect(this.files.length).toBe(0);
+
+        finishWriting('/tmp/Pasted File.png');
+        await AttachmentStore._pendingAddsByDraft['draft-1'];
+        await flushPromises();
+        expect(result).toBe('attached');
+        expect(this.files.map((f: File) => f.filename)).toEqual(['Pasted File.png']);
+      });
+
+      it('reports a failed add in flight, after the user has seen why', async () => {
+        const { promise: tmpPath, reject: failWriting } = Promise.withResolvers<string>();
+        AttachmentStore._onAddAttachment({ headerMessageId: 'draft-1', filePath: tmpPath });
+        AttachmentStore._onAddAttachment({ headerMessageId: 'draft-1', filePath: '/tmp/b.png' });
+
+        const waiting = AttachmentStore.waitForPendingAdds('draft-1', 20000);
+        failWriting(new Error('ENOSPC: no space left on device'));
+
+        expect(await waiting).toBe('failed');
+        expect(AppEnv.showErrorDialog).toHaveBeenCalledWith('ENOSPC: no space left on device');
+        expect(this.files.map((f: File) => f.filename)).toEqual(['b.png']);
+      });
+
+      it('settles after the caller has placed the file, as the composer places an inline image', async () => {
+        let result: string = null;
+        const onCreated = jasmine
+          .createSpy('onCreated')
+          .andCallFake(() => expect(result).toBe(null));
+        AttachmentStore._onAddAttachment({
+          headerMessageId: 'draft-1',
+          filePath: '/tmp/a.png',
+          onCreated,
+        });
+
+        AttachmentStore.waitForPendingAdds('draft-1', 20000).then((r) => (result = r));
+        await flushPromises();
+        expect(onCreated).toHaveBeenCalled();
+        expect(result).toBe('attached');
+      });
+
+      it('gives up on an add that is still running after the timeout', async () => {
+        const { promise: tmpPath, resolve: finishWriting } = Promise.withResolvers<string>();
+        AttachmentStore._onAddAttachment({ headerMessageId: 'draft-1', filePath: tmpPath });
+
+        let result: string = null;
+        AttachmentStore.waitForPendingAdds('draft-1', 20000).then((r) => (result = r));
+        advanceClock(19999);
+        await flushPromises();
+        expect(result).toBe(null);
+        advanceClock(1);
+        await flushPromises();
+        expect(result).toBe('timed-out');
+
+        // The add itself carries on and lands on the draft.
+        finishWriting('/tmp/Pasted File.png');
+        await AttachmentStore._pendingAddsByDraft['draft-1'];
+        expect(this.files.map((f: File) => f.filename)).toEqual(['Pasted File.png']);
+      });
+
+      it('ignores a failure that happened before the wait began', async () => {
+        (AttachmentStore._getFileStats as jasmine.Spy).andReturn(
+          Promise.resolve({ isDirectory: () => true, size: 10 })
+        );
+        await AttachmentStore._onAddAttachment({ headerMessageId: 'draft-1', filePath: '/tmp/a' });
+        expect(AppEnv.showErrorDialog).toHaveBeenCalled();
+
+        expect(await AttachmentStore.waitForPendingAdds('draft-1', 20000)).toBe('attached');
+      });
+    });
+
+    describe('once Send has started for the draft', () => {
+      afterEach(() => {
+        DraftStore._draftsSending = {};
+        DraftStore._draftsAwaitingAddsToSend.clear();
+      });
+
+      it('ignores new files, which the send would not wait for', async () => {
+        spyOn(AttachmentStore, '_copyToInternalPath').andReturn(Promise.resolve());
+
+        DraftStore._draftsAwaitingAddsToSend.add('draft-1');
+        await AttachmentStore._onAddAttachment({ headerMessageId: 'draft-1', filePath: '/a.png' });
+        DraftStore._draftsAwaitingAddsToSend.clear();
+        DraftStore._draftsSending = { 'draft-1': true };
+        await AttachmentStore._onAddAttachment({ headerMessageId: 'draft-1', filePath: '/b.png' });
+
+        expect(AttachmentStore._copyToInternalPath).not.toHaveBeenCalled();
+        expect(this.files.length).toBe(0);
+      });
+    });
+
     it('records the name it writes the file under', () => {
       const targets: string[] = [];
       spyOn(AttachmentStore, '_copyToInternalPath').andCallFake((originPath, targetPath) => {
@@ -110,6 +222,45 @@ describe('AttachmentStore', function () {
         expect(path.basename(targets[0])).toEqual('_CON.txt');
         expect(file.toJSON().localFilename).toEqual('_CON.txt');
       });
+    });
+  });
+
+  describe('_copyToInternalPath', () => {
+    let tmpDir: string;
+    let source: string;
+    let target: string;
+
+    beforeEach(() => {
+      tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mailspring-copy-spec-'));
+      source = path.join(tmpDir, 'source.png');
+      target = path.join(tmpDir, 'target.png');
+      fs.writeFileSync(source, 'image bytes');
+    });
+
+    afterEach(() => {
+      fs.rmSync(tmpDir, { recursive: true, force: true });
+    });
+
+    it('copies the file', async () => {
+      await AttachmentStore._copyToInternalPath(source, target);
+      expect(fs.readFileSync(target, 'utf8')).toEqual('image bytes');
+    });
+
+    it('rejects when the file cannot be written', async () => {
+      let error: Error = null;
+      await AttachmentStore._copyToInternalPath(
+        source,
+        path.join(tmpDir, 'missing', 'target.png')
+      ).catch((e) => (error = e));
+      expect(error.message).toEqual('Could not write target.png to files directory.');
+    });
+
+    it('rejects when the file cannot be read', async () => {
+      let error: Error = null;
+      await AttachmentStore._copyToInternalPath(path.join(tmpDir, 'missing.png'), target).catch(
+        (e) => (error = e)
+      );
+      expect(error.message).toContain('Could not read file at path');
     });
   });
 

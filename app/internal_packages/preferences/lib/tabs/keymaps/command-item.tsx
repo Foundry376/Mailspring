@@ -75,7 +75,7 @@ export default class CommandKeybinding extends React.Component<
   }
 
   _onRecord = (binding: string) => {
-    this._saveBindings(withBinding(this.props.bindings, binding));
+    this._saveBindings(withBinding(this.props.bindings, binding, process.platform));
     this._stopRecording({ refocus: true });
   };
 

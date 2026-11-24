@@ -52,6 +52,14 @@ describe('findConflicts', function () {
       'ctrl+s': ['a'],
     });
   });
+
+  it('matches the same key with its modifiers in another order', function () {
+    const bindings = { 'core:archive-item': ['e', 'shift+mod+f'], 'core:forward': ['mod+shift+f'] };
+    expect(findConflicts(bindings, { 'core:archive-item': ['shift+mod+f'] }, 'linux')).toEqual({
+      'core:archive-item': { 'shift+mod+f': ['core:forward'] },
+      'core:forward': { 'mod+shift+f': ['core:archive-item'] },
+    });
+  });
 });
 
 describe('Shortcut conflicts on the Shortcuts page', function () {
