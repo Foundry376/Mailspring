@@ -8,6 +8,7 @@ import {
   Actions,
   Calendar,
   DatabaseStore,
+  DestroyEventTask,
   Event,
   ICSEventHelpers,
   SyncbackEventTask,
@@ -72,7 +73,14 @@ describe('MCP calendar tools', function () {
       fakeQuery(klass === Calendar ? calendars : this.events, this.wheres)
     );
     spyOn(DatabaseStore, 'find').andCallFake((klass, id) =>
-      Promise.resolve(calendars.find((c) => c.id === id) || null)
+      Promise.resolve(
+        (klass === Calendar ? calendars : this.events).find((c) => c.id === id) || null
+      )
+    );
+    spyOn(DatabaseStore, 'findBy').andCallFake((klass, where) =>
+      Promise.resolve(
+        this.events.find((e) => Object.keys(where).every((k) => e[k] === where[k])) || null
+      )
     );
     spyOn(AccountStore, 'accountForId').andReturn(
       new Account({ id: 'acc-1', emailAddress: 'me@example.com', name: 'Me' } as any)
@@ -294,6 +302,27 @@ describe('MCP calendar tools', function () {
       });
     });
 
+    it('marks an all-day event as having no alert, as the calendar does', function () {
+      waitsForPromise(async () => {
+        await call(this.client, 'create_event', {
+          calendarId: 'cal-family',
+          title: 'Birthday',
+          start: '2026-12-17',
+          end: '2026-12-17',
+        });
+        await call(this.client, 'create_event', {
+          calendarId: 'cal-family',
+          title: 'Call',
+          start: '2026-12-17T10:00',
+          end: '2026-12-17T10:30',
+        });
+        const [allDay, timed] = this.queued.map((t) => t.event.ics);
+        expect(allDay).toContain('ACTION:NONE');
+        expect(ICSEventHelpers.getAlarmTriggers(allDay)).toEqual([]);
+        expect(ICSEventHelpers.getAlarmTriggers(timed)).toEqual(['-PT10M']);
+      });
+    });
+
     it('refuses read-only calendars and calendars MCP may not see', function () {
       AppEnv.config.set('core.mcp.enabledAccounts', {
         'acc-1': { enabled: true },
@@ -356,6 +385,202 @@ describe('MCP calendar tools', function () {
 
         const listed = await call(this.client, 'list_calendars', {});
         expect(listed.length).toBe(3);
+      });
+    });
+  });
+
+  describe('update_event', function () {
+    beforeEach(function () {
+      this.events = [
+        eventRow('ev-dentist', 'cal-family', {
+          summary: 'Dentist',
+          start: new Date('2026-12-03T09:00:00Z'),
+          end: new Date('2026-12-03T09:30:00Z'),
+          location: 'Clinic',
+        }),
+        eventRow('ev-swim', 'cal-family', {
+          summary: 'Swimming',
+          start: new Date('2026-12-02T15:00:00Z'),
+          end: new Date('2026-12-02T16:00:00Z'),
+          recurrenceRule: 'FREQ=WEEKLY;COUNT=10',
+        }),
+      ];
+    });
+
+    const swimOn9th = `ev-swim-e${Date.UTC(2026, 11, 9, 15) / 1000}`;
+
+    it('changes a one-off event, a new start alone keeping its length', function () {
+      waitsForPromise(async () => {
+        const result = await call(this.client, 'update_event', {
+          id: 'ev-dentist',
+          title: 'Dentist (moved)',
+          start: '2026-12-04T11:00:00Z',
+          location: '',
+        });
+        expect(this.queued.length).toBe(1);
+        const task = this.queued[0];
+        expect(task instanceof SyncbackEventTask).toBe(true);
+        const ics = unfold(task.event.ics);
+        expect(ics).toContain('SUMMARY:Dentist (moved)');
+        expect(ics).not.toContain('LOCATION:Clinic');
+        expect(task.event.recurrenceStart).toBe(Date.UTC(2026, 11, 4, 11) / 1000);
+        expect(task.event.recurrenceEnd).toBe(Date.UTC(2026, 11, 4, 11, 30) / 1000);
+
+        expect(result.title).toBe('Dentist (moved)');
+        expect(result.start).toBe(moment('2026-12-04T11:00:00Z').format());
+        expect(result.end).toBe(moment('2026-12-04T11:30:00Z').format());
+      });
+    });
+
+    it('asks which occurrences when the event repeats', function () {
+      waitsForPromise(async () => {
+        const result = await call(this.client, 'update_event', { id: swimOn9th, title: 'X' });
+        expect(result.error).toBe('This event repeats: pass scope');
+        expect(this.queued.length).toBe(0);
+      });
+    });
+
+    it('changes one occurrence of a series as an exception on its master', function () {
+      waitsForPromise(async () => {
+        const result = await call(this.client, 'update_event', {
+          id: swimOn9th,
+          scope: 'occurrence',
+          title: 'Swimming (pool B)',
+        });
+        const ics = unfold(this.queued[0].event.ics);
+        expect(ics).toContain('RRULE:FREQ=WEEKLY;COUNT=10');
+        expect(ics).toContain('RECURRENCE-ID');
+        expect(ics).toContain('SUMMARY:Swimming (pool B)');
+        expect(ics).toMatch(/SUMMARY:Swimming\r?\n/);
+        expect(result.title).toBe('Swimming (pool B)');
+        expect(result.isException).toBe(true);
+      });
+    });
+
+    it('moves a whole series by as much as the occurrence moves', function () {
+      waitsForPromise(async () => {
+        await call(this.client, 'update_event', {
+          id: swimOn9th,
+          scope: 'series',
+          start: '2026-12-09T17:00:00Z',
+        });
+        const event = this.queued[0].event;
+        expect(unfold(event.ics)).not.toContain('RECURRENCE-ID');
+        expect(event.recurrenceStart).toBe(Date.UTC(2026, 11, 2, 17) / 1000);
+        expect(event.recurrenceEnd).toBe(Date.UTC(2026, 11, 2, 18) / 1000);
+      });
+    });
+
+    it('refuses events with guests, on read-only calendars, or out of sight', function () {
+      AppEnv.config.set('core.mcp.enabledAccounts', {
+        'acc-1': { enabled: true },
+        'acc-2': { enabled: false },
+      });
+      const meeting = { start: new Date('2026-12-05T10:00Z'), end: new Date('2026-12-05T11:00Z') };
+      this.events.push(
+        eventRow('ev-meeting', 'cal-family', {
+          ...meeting,
+          summary: 'Meeting',
+          organizer: { email: 'me@example.com' },
+          attendees: [{ email: 'me@example.com' }, { email: 'teacher@example.com' }],
+        }),
+        eventRow('ev-holiday', 'cal-holidays', { ...meeting, summary: 'Holiday' }),
+        eventRow('ev-work', 'cal-work', { ...meeting, summary: 'Standup' })
+      );
+      waitsForPromise(async () => {
+        const guests = await call(this.client, 'update_event', { id: 'ev-meeting', title: 'X' });
+        expect(guests.error).toContain('has guests');
+        const readOnly = await call(this.client, 'update_event', { id: 'ev-holiday', title: 'X' });
+        expect(readOnly.error).toContain('read-only');
+        const hidden = await call(this.client, 'update_event', { id: 'ev-work', title: 'X' });
+        expect(hidden.error).toBe("Event 'ev-work' not found");
+        const nothing = await call(this.client, 'update_event', { id: 'ev-dentist' });
+        expect(nothing.error).toBe('Nothing to change');
+        expect(this.queued.length).toBe(0);
+      });
+    });
+  });
+
+  describe('delete_event', function () {
+    beforeEach(function () {
+      this.events = [
+        eventRow('ev-dentist', 'cal-family', {
+          summary: 'Dentist',
+          start: new Date('2026-12-03T09:00:00Z'),
+          end: new Date('2026-12-03T09:30:00Z'),
+        }),
+        eventRow('ev-swim', 'cal-family', {
+          summary: 'Swimming',
+          start: new Date('2026-12-02T15:00:00Z'),
+          end: new Date('2026-12-02T16:00:00Z'),
+          recurrenceRule: 'FREQ=WEEKLY;COUNT=10',
+        }),
+      ];
+    });
+
+    const swimOn9th = `ev-swim-e${Date.UTC(2026, 11, 9, 15) / 1000}`;
+
+    it('destroys a one-off event', function () {
+      waitsForPromise(async () => {
+        const result = await call(this.client, 'delete_event', { id: 'ev-dentist' });
+        expect(this.queued.length).toBe(1);
+        expect(this.queued[0] instanceof DestroyEventTask).toBe(true);
+        expect(this.queued[0].events.map((e) => e.id)).toEqual(['ev-dentist']);
+        expect(result).toEqual({ deleted: 'event', id: 'ev-dentist', eventId: 'ev-dentist' });
+      });
+    });
+
+    it('cancels one occurrence of a series on its master, undoably', function () {
+      waitsForPromise(async () => {
+        const result = await call(this.client, 'delete_event', {
+          id: swimOn9th,
+          scope: 'occurrence',
+        });
+        const task = this.queued[0];
+        expect(task instanceof SyncbackEventTask).toBe(true);
+        expect(task.canBeUndone).toBe(true);
+        expect(unfold(task.event.ics)).toContain('EXDATE');
+        expect(result.deleted).toBe('occurrence');
+      });
+    });
+
+    it('destroys a whole series, and asks which first', function () {
+      waitsForPromise(async () => {
+        const unscoped = await call(this.client, 'delete_event', { id: swimOn9th });
+        expect(unscoped.error).toBe('This event repeats: pass scope');
+        expect(this.queued.length).toBe(0);
+
+        const result = await call(this.client, 'delete_event', { id: swimOn9th, scope: 'series' });
+        expect(this.queued[0] instanceof DestroyEventTask).toBe(true);
+        expect(this.queued[0].events.map((e) => e.id)).toEqual(['ev-swim']);
+        expect(result.deleted).toBe('series');
+      });
+    });
+
+    it('refuses events with guests', function () {
+      this.events.push(
+        eventRow('ev-meeting', 'cal-family', {
+          summary: 'Meeting',
+          start: new Date('2026-12-05T10:00Z'),
+          end: new Date('2026-12-05T11:00Z'),
+          organizer: { email: 'teacher@example.com' },
+          attendees: [{ email: 'me@example.com' }],
+        })
+      );
+      waitsForPromise(async () => {
+        const result = await call(this.client, 'delete_event', { id: 'ev-meeting' });
+        expect(result.error).toContain('has guests');
+        expect(this.queued.length).toBe(0);
+      });
+    });
+
+    it('is a write: refused at Read Only, and recorded in the activity log', function () {
+      AppEnv.config.set('core.mcp.accessLevel', 'read-only');
+      waitsForPromise(async () => {
+        const result = await call(this.client, 'delete_event', { id: 'ev-dentist' });
+        expect(result.error).toContain("'write' operations require");
+        expect(this.queued.length).toBe(0);
+        expect(getAuditLog().map((e) => e.toolName)).toContain('delete_event');
       });
     });
   });

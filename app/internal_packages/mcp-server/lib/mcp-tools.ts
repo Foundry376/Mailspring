@@ -9,17 +9,20 @@ import {
   CalendarUtils,
   CategoryStore,
   DatabaseStore,
+  DestroyEventTask,
   Thread,
   Message,
   Contact,
   Event,
   File,
   Folder,
+  ICSEventHelpers,
   Label,
   DraftFactory,
   SyncbackDraftTask,
   SendDraftTask,
   SyncbackMetadataTask,
+  SyncbackEventTask,
   SendActionsStore,
   ChangeStarredTask,
   ChangeLabelsTask,
@@ -54,10 +57,19 @@ import {
   serializeEventOccurrence,
 } from './mcp-serializers';
 import {
+  EventOccurrence,
+  occurrenceForRecurrenceId,
   occurrencesForEvents,
+  occurrenceSlot,
   occurrenceStartUnix,
+  occurrenceTimes,
 } from '../../main-calendar/lib/core/calendar-data-source';
-import { queueNewCalendarEvent } from '../../main-calendar/lib/core/calendar-helpers';
+import { hasGuests, queueNewCalendarEvent } from '../../main-calendar/lib/core/calendar-helpers';
+import {
+  deleteOccurrences,
+  EventPropertyEdit,
+  modifyEventChange,
+} from '../../main-calendar/lib/core/recurring-event-actions';
 import {
   type AuditEntry,
   addAuditEntry,
@@ -342,6 +354,71 @@ async function findAllowedCalendar(calendarId: string): Promise<Calendar | null>
 }
 
 const notNull = <T>(value: T | null): value is T => value !== null;
+
+/**
+ * The occurrence an id from list_events names. One moved from a later slot is reached only from
+ * that slot (the expander stops at the first regular occurrence past the range), so its inline
+ * VEVENT is looked up by the start the id carries.
+ */
+function occurrenceById(row: Event, id: string): EventOccurrence | undefined {
+  const { start } = CalendarUtils.parseOccurrenceId(id);
+  if (start === null) {
+    const all = occurrencesForEvents([row], {
+      startUnix: row.recurrenceStart - 86400,
+      endUnix: row.recurrenceEnd + 86400,
+    });
+    return all.length === 1 ? all[0] : undefined;
+  }
+  const near = occurrencesForEvents([row], { startUnix: start - 86400, endUnix: start + 86400 });
+  const found = near.find((o) => o.id === id);
+  if (found) return found;
+  const unix = (time: any) => time.toJSDate().getTime() / 1000;
+  for (const vevent of CalendarUtils.parseICSString(row.ics).root.getAllSubcomponents('vevent')) {
+    const rid = vevent.getFirstPropertyValue('recurrence-id');
+    if (rid && unix(vevent.getFirstPropertyValue('dtstart')) === start) {
+      return occurrenceForRecurrenceId([row], unix(rid));
+    }
+  }
+  return undefined;
+}
+
+interface WritableOccurrence {
+  /** The stored event the id names: a one-off, a series' master, or an exception row. */
+  row: Event;
+  /** The series' master, which holds every occurrence; the row itself for a one-off. */
+  master: Event | null;
+  occurrence: EventOccurrence;
+  isSeries: boolean;
+}
+
+/**
+ * The event behind an occurrence id, if MCP may change it: on a visible, writable calendar, and
+ * with nobody else on it. A change to an event with guests emails them (an update, a
+ * cancellation or, on a guest's copy, a reply), and these tools never send mail.
+ */
+async function findWritableOccurrence(id: string): Promise<WritableOccurrence | string> {
+  const row = await DatabaseStore.find<Event>(Event, CalendarUtils.parseOccurrenceId(id).eventId);
+  const calendar = row && (await findAllowedCalendar(row.calendarId));
+  const occurrence = calendar && occurrenceById(row, id);
+  if (!calendar || !occurrence) return `Event '${id}' not found`;
+  if (calendar.readOnly) return `Calendar '${calendar.name}' is read-only`;
+  if (hasGuests(occurrence)) {
+    return 'This event has guests, and changing it would email them. Change it in Mailspring instead.';
+  }
+  const master = row.isRecurrenceException()
+    ? await DatabaseStore.findBy<Event>(Event, {
+        accountId: row.accountId,
+        calendarId: row.calendarId,
+        icsuid: row.icsuid,
+        recurrenceId: '',
+      })
+    : row;
+  const isSeries = row.isRecurrenceException() || ICSEventHelpers.isRecurringEvent(row.ics);
+  return { row, master, occurrence, isSeries };
+}
+
+const SCOPE_DESCRIPTION =
+  "Required for a recurring event: 'occurrence' for only the one `id` names, 'series' for every occurrence";
 
 export type { AuditEntry };
 export { getAuditLog, clearAuditLog, onAuditLogChanged };
@@ -1560,7 +1637,8 @@ export function registerTools(server: McpServer) {
     }
   );
   // ── Calendar Tools ──
-  // create_event takes no guests, so it never emails anyone and counts as a write, not a send.
+  // The calendar writes take no guests and refuse events that have them, so they never email
+  // anyone and count as writes, not sends.
 
   defineTool(
     server,
@@ -1620,7 +1698,7 @@ export function registerTools(server: McpServer) {
   defineTool(
     server,
     'create_event',
-    "Create an event on a calendar, as the calendar's New Event does: it syncs to the server with the user's default alerts. It has no guests, so no invitations are sent. Give `start` and `end` as ISO 8601 date-times for a timed event (without an offset they are read in the user's time zone), or as dates (YYYY-MM-DD) for an all-day event, whose `end` is exclusive: the day after the last day (an `end` equal to `start` also makes a one-day event).",
+    "Create an event on a calendar, as the calendar's New Event does: a timed event gets an alert 10 minutes before, an all-day event gets none (on Google this overrides the calendar's default reminders). It has no guests, so no invitations are sent. Give `start` and `end` as ISO 8601 date-times for a timed event (without an offset they are read in the user's time zone), or as dates (YYYY-MM-DD) for an all-day event, whose `end` is exclusive: the day after the last day (an `end` equal to `start` also makes a one-day event).",
     {
       calendarId: z.string().describe('Calendar ID from list_calendars; it must not be read-only'),
       title: z.string().min(1).describe('Event title'),
@@ -1674,6 +1752,122 @@ export function registerTools(server: McpServer) {
         endUnix: Math.max(event.recurrenceEnd, event.recurrenceStart + 1),
       });
       return textResult({ ...serializeEventOccurrence(created), icsuid: event.icsuid });
+    }
+  );
+
+  defineTool(
+    server,
+    'update_event',
+    "Change an event's title, times, notes or location, as editing it in the calendar does. `id` is an occurrence `id` from list_events. Give only what changes; new times take the same forms as create_event, and a new `start` alone keeps the duration. For a recurring event, `scope` picks one occurrence or the whole series; new times for the series move every occurrence by as much as this one moves. Events with guests are refused, since changing them would email the guests.",
+    {
+      id: z.string().describe('Occurrence ID from list_events'),
+      scope: z.enum(['occurrence', 'series']).optional().describe(SCOPE_DESCRIPTION),
+      title: z.string().min(1).optional().describe('New title'),
+      start: z.string().optional().describe('New start: an ISO 8601 date-time, or a date'),
+      end: z.string().optional().describe('New end: an ISO 8601 date-time, or a date (exclusive)'),
+      description: z.string().optional().describe('New notes ("" clears them)'),
+      location: z.string().optional().describe('New location ("" clears it)'),
+      allDay: z
+        .boolean()
+        .optional()
+        .describe('Whether the event is all-day (default: true when the new times are dates)'),
+    },
+    'write',
+    async ({ id, scope, title, start, end, description, location, allDay }) => {
+      const found = await findWritableOccurrence(id);
+      if (typeof found === 'string') return errorResult(found);
+      const { row, master, occurrence, isSeries } = found;
+      if (isSeries && !scope) return errorResult('This event repeats: pass scope');
+
+      const edits: EventPropertyEdit[] = [];
+      if (title !== undefined) edits.push({ property: 'summary', value: title });
+      if (description !== undefined) edits.push({ property: 'description', value: description });
+      if (location !== undefined) edits.push({ property: 'location', value: location });
+
+      let times: ReturnType<typeof occurrenceTimes> | undefined;
+      if (start !== undefined || end !== undefined || allDay !== undefined) {
+        const current = occurrenceTimes(occurrence);
+        const startDate =
+          start === undefined ? new Date(current.start * 1000) : parseDateInput(start);
+        const endDate =
+          end !== undefined
+            ? parseDateInput(end)
+            : startDate && new Date(startDate.getTime() + (current.end - current.start) * 1000);
+        if (!startDate || !endDate) return errorResult('start and end must be ISO 8601 dates');
+        const given = [start, end].filter((v) => v !== undefined);
+        const isAllDay =
+          allDay ?? (given.length ? given.every((v) => DATE_ONLY.test(v)) : current.isAllDay);
+        if (isAllDay ? endDate < startDate : endDate <= startDate) {
+          return errorResult('end must be after start');
+        }
+        times = {
+          start: Math.floor(startDate.getTime() / 1000),
+          end: Math.floor(endDate.getTime() / 1000),
+          isAllDay,
+        };
+      }
+      if (!edits.length && !times) return errorResult('Nothing to change');
+
+      const target = scope === 'series' ? master : row;
+      if (!target) return errorResult(`The series of event '${id}' was not found`);
+      const slot = isSeries ? occurrenceSlot(occurrence) : undefined;
+      const task = modifyEventChange(
+        target,
+        { times, edits, slot },
+        scope === 'series' ? 'all-occurrences' : 'this-occurrence'
+      );
+      const performed = await TaskQueue.waitForPerformLocal(task);
+      if (performed.error) {
+        return errorResult(`The event could not be changed: ${JSON.stringify(performed.error)}`);
+      }
+
+      const landed = times ? times.start : occurrenceStartUnix(occurrence);
+      const updated = occurrencesForEvents([target], {
+        startUnix: landed - 86400,
+        endUnix: landed + 86400,
+      }).find((o) => occurrenceStartUnix(o) === landed);
+      return textResult(
+        updated ? serializeEventOccurrence(updated) : { eventId: target.id, updated: true }
+      );
+    }
+  );
+
+  defineTool(
+    server,
+    'delete_event',
+    "Delete an event, as the calendar's Delete does. `id` is an occurrence `id` from list_events. For a recurring event, `scope` picks one occurrence (which can be undone in Mailspring) or the whole series (which can't). Events with guests are refused, since deleting them would email the guests.",
+    {
+      id: z.string().describe('Occurrence ID from list_events'),
+      scope: z.enum(['occurrence', 'series']).optional().describe(SCOPE_DESCRIPTION),
+    },
+    'write',
+    async ({ id, scope }) => {
+      const found = await findWritableOccurrence(id);
+      if (typeof found === 'string') return errorResult(found);
+      const { row, master, occurrence, isSeries } = found;
+      if (isSeries && !scope) return errorResult('This event repeats: pass scope');
+      if (!master) return errorResult(`The series of event '${id}' was not found`);
+
+      // One occurrence is cancelled on its master, a moved one too: its row and the master
+      // share one resource on the server, so destroying the row would take the series.
+      const onlyOccurrence = isSeries && scope === 'occurrence';
+      let task: SyncbackEventTask | DestroyEventTask | null;
+      if (onlyOccurrence) {
+        task = deleteOccurrences(master, [{ occurrence, event: row }]);
+        if (!task) return errorResult(`Event '${id}' was not found in its series`);
+      } else {
+        task = DestroyEventTask.forRemoving({ events: [master] });
+        Actions.queueTask(task);
+      }
+      const performed = await TaskQueue.waitForPerformLocal(task);
+      if (performed.error) {
+        return errorResult(`The event could not be deleted: ${JSON.stringify(performed.error)}`);
+      }
+      return textResult({
+        deleted: onlyOccurrence ? 'occurrence' : isSeries ? 'series' : 'event',
+        id,
+        eventId: master.id,
+      });
     }
   );
 }
