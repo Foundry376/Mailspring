@@ -559,7 +559,7 @@ export async function deleteEvents(occurrences: EventOccurrence[], skipped = 0) 
     }
     for (const group of byMaster.values()) {
       if (isSeries(group[0])) {
-        deleteOccurrences(group[0].master, group);
+        if (!deleteOccurrences(group[0].master, group)) showOccurrenceNotFoundError();
       } else {
         await deleteEntireEvent(group[0]);
       }
@@ -573,7 +573,14 @@ export async function deleteEvents(occurrences: EventOccurrence[], skipped = 0) 
   }
 }
 
-function deleteOccurrences(masterEvent: Event, targets: DeleteTarget[]) {
+/**
+ * Cancels occurrences of one series on its master and queues one syncback task. Null, with
+ * nothing queued, when an occurrence can't be found in the series.
+ */
+export function deleteOccurrences(
+  masterEvent: Event,
+  targets: Pick<DeleteTarget, 'occurrence' | 'event'>[]
+): SyncbackEventTask | null {
   const undoData = captureEventSnapshot(masterEvent);
   let ics = masterEvent.ics;
   for (const { occurrence, event } of targets) {
@@ -593,20 +600,19 @@ function deleteOccurrences(masterEvent: Event, targets: DeleteTarget[]) {
     if (updated === ics) {
       // The row and its master disagree about which occurrence this is. Both live in one
       // resource, so a DELETE would take the series; refuse rather than guess.
-      showOccurrenceNotFoundError();
-      return;
+      return null;
     }
     ics = updated;
   }
 
   masterEvent.ics = ICSEventHelpers.bumpEventSequence(ics);
-  Actions.queueTask(
-    SyncbackEventTask.forUpdating({
-      event: masterEvent,
-      undoData,
-      description: localized('Delete occurrence'),
-    })
-  );
+  const task = SyncbackEventTask.forUpdating({
+    event: masterEvent,
+    undoData,
+    description: localized('Delete occurrence'),
+  });
+  Actions.queueTask(task);
+  return task;
 }
 
 /** On Google a guest's DELETE tells the organizer nothing, but a declined copy does. */
