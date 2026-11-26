@@ -10,11 +10,10 @@ import { isMailspringWindowContents } from './mailspring-window';
 import { cacheKey, DOWNLOADABLE_MODEL_VERSION, ModelSpec } from './local-ai-model';
 import {
   LocalModelController,
-  LocalModelMode,
-  LocalModelProvider,
   LocalModelStatus,
   onSystemModelChange,
   freeBytesOnVolume,
+  removeModelFiles,
 } from './local-model';
 import { appleFMHelper, configureAppleFM, getSystemModel, probeSystemModel } from './apple-fm';
 import {
@@ -35,9 +34,9 @@ import {
  * file. The mail database is read-only outside the sync engine, and a message's body never
  * changes, so an answer is computed once and kept until the model changes.
  *
- * Nothing starts until a renderer first asks (see registerLocalAIIPCHandlers): people who
- * never use a local AI feature never probe the system model, download a model or start the
- * worker.
+ * Nothing starts until the user turns AI on (`core.ai.enabled`) or a renderer asks for the
+ * model's status (see registerLocalAIIPCHandlers): people who leave AI off never probe the
+ * system model, download a model or start the worker.
  */
 
 // Leaves the UI's cores alone; 8 threads measured no faster than 4.
@@ -144,7 +143,7 @@ class LocalAIService {
     const model = this.model.state();
     const backend = this.backend();
     return {
-      available: backend === 'apple-fm' || !!this.model.modelPath(),
+      available: this.model.isActive() && (backend === 'apple-fm' || !!this.model.modelPath()),
       modelVersion: this.modelVersion(backend),
       backend,
       // Apple rate-limits background work on battery; answers are waiting, not failing.
@@ -170,6 +169,8 @@ class LocalAIService {
    * resolve to null.
    */
   async run(req: LocalAIRequest): Promise<(LocalAIAnswer | null)[]> {
+    // With AI off, answers cached while it was on stay unused too.
+    if (!this.model.isActive()) return req.items.map(() => null);
     const db = this.cache();
     const version = this.modelVersion();
     return Promise.all(
@@ -367,7 +368,7 @@ function validRequest(req: any): LocalAIRequest {
 
 interface ConfigLike {
   get: (key: string) => any;
-  set: (key: string, value: any) => void;
+  onDidChange: (keyPath: string, callback: () => void) => unknown;
 }
 
 interface LocalAIDeps {
@@ -401,26 +402,31 @@ function broadcast(channel: string, payload: any) {
   }
 }
 
+const AI_KEY = 'core.ai';
+
+/** AI is on (Preferences > AI); off, the model's files are deleted. */
+function aiEnabled(config: ConfigLike) {
+  return config.get('core.ai.enabled') === true;
+}
+
+/** AI is on and runs on this computer rather than a remote backend. */
+function aiRunsLocally(config: ConfigLike) {
+  return aiEnabled(config) && (config.get('core.ai.backend') || 'local') === 'local';
+}
+
 /**
  * Builds the model controller and service, and starts the system model's availability probe.
  * Until that probe answers the system model reads `checking` and no Qwen download starts, so
  * Macs with Apple Intelligence never fetch a model they don't need.
- *
- * The settings live under `core.views.*` because Views were their first user; renaming them
- * would reset the choice of anyone who turned model downloads off.
  */
 function startLocalAI({ configDirPath, config, devMode }: LocalAIDeps) {
   let service: LocalAIService | null = null;
   const model = new LocalModelController({
     configDirPath,
     spec: modelSpecOverride(config, devMode),
-    getMode: () => (config.get('core.views.localModel') === 'off' ? 'off' : 'auto'),
-    setMode: (mode: LocalModelMode) => config.set('core.views.localModel', mode),
-    getProvider: () => (config.get('core.views.localModelProvider') === 'qwen' ? 'qwen' : 'auto'),
-    setProvider: (provider: LocalModelProvider) =>
-      config.set('core.views.localModelProvider', provider),
-    getAutoStarted: () => !!config.get('core.views.localModelAutoStarted'),
-    setAutoStarted: () => config.set('core.views.localModelAutoStarted', true),
+    isEnabled: () => aiEnabled(config),
+    isActive: () => aiRunsLocally(config),
+    getProvider: () => (config.get('core.ai.local.model') === 'qwen' ? 'qwen' : 'auto'),
     getOverridePath: () => config.get('core.views.extractionModelPath'),
     // Dev mode: `core.views.localModelTestFreeBytes` simulates a nearly full disk.
     freeBytes: (dir: string) => {
@@ -443,13 +449,31 @@ function startLocalAI({ configDirPath, config, devMode }: LocalAIDeps) {
 }
 
 /**
- * Registers the `local-ai:*` channels. Registering is free: the controller, the system-model
- * probe and the cache are created by the first call, and the model is downloaded only when a
- * feature calls `local-ai:prepare` or the user asks.
+ * Registers the `local-ai:*` channels and follows the AI settings. Registering is free while
+ * AI is off: the controller, the system-model probe and the cache are created by the first
+ * call or when the user turns AI on, and the model is downloaded only once AI is on with the
+ * local backend, or when the user asks.
  */
 export function registerLocalAIIPCHandlers(ipcMain: IpcMain, deps: LocalAIDeps) {
+  const { config } = deps;
   let started: ReturnType<typeof startLocalAI> | null = null;
   const localAI = () => started || (started = startLocalAI(deps));
+
+  if (aiEnabled(config)) {
+    localAI().model.reconcile({ startDownload: false });
+  } else {
+    removeModelFiles(deps.configDirPath, modelSpecOverride(config, deps.devMode));
+  }
+  // Only the settings that decide where AI runs: a feature switch under `core.ai` mustn't
+  // restart a download the user cancelled.
+  const placement = () =>
+    [aiEnabled(config), config.get('core.ai.backend'), config.get('core.ai.local.model')].join();
+  let lastPlacement = placement();
+  config.onDidChange(AI_KEY, () => {
+    if (placement() === lastPlacement) return;
+    lastPlacement = placement();
+    if (started || aiEnabled(config)) localAI().model.reconcile({ startDownload: true });
+  });
 
   const handle = <T>(
     channel: string,
@@ -462,10 +486,6 @@ export function registerLocalAIIPCHandlers(ipcMain: IpcMain, deps: LocalAIDeps) 
 
   handle('local-ai:status', ({ service }) => service.status());
   handle('local-ai:model-status', ({ model }) => model.status());
-  handle('local-ai:prepare', ({ model }) => {
-    model.prepare();
-    return model.state();
-  });
   handle('local-ai:download', ({ model }, force: boolean) => {
     model.start({ force: !!force });
     return model.state();
@@ -473,11 +493,6 @@ export function registerLocalAIIPCHandlers(ipcMain: IpcMain, deps: LocalAIDeps) 
   handle('local-ai:cancel-download', ({ model }) => {
     model.cancel();
     return model.state();
-  });
-  handle('local-ai:set-enabled', ({ model }, enabled: boolean) => model.setEnabled(!!enabled));
-  handle('local-ai:set-provider', ({ model }, provider: string) => {
-    model.setProvider(provider === 'qwen' ? 'qwen' : 'auto');
-    return model.status();
   });
   handle('local-ai:delete-downloaded', ({ model }) => model.deleteDownloaded());
   handle('local-ai:run', ({ service }, req) => service.run(validRequest(req)));

@@ -4,7 +4,7 @@ import type { SystemModel } from './local-model';
 /**
  * The model backends behind the local AI service. Apple's on-device model is used where it's
  * available; the downloadable Qwen model everywhere else, or when the user picks it with
- * `core.views.localModelProvider = 'qwen'` (mostly so Mac developers can test what Windows and
+ * `core.ai.local.model = 'qwen'` (mostly so Mac developers can test what Windows and
  * Linux users get).
  *
  * Renderers build every prompt in Qwen's chat template (chatPrompt in

@@ -10,13 +10,13 @@ import {
 } from './local-ai-model';
 
 /**
- * Owns the on-device model behind local AI features: whether one is available, downloading it
- * the first time a feature needs it, and the user's choice to turn model downloads off
- * entirely. Lives in the main process so a download survives window reloads; renderers read it
- * through the `local-ai:*` IPC channels (local-ai-service.ts).
+ * Owns the on-device model behind local AI features: which one is in use and the downloadable
+ * one's files. The model is only fetched once the user turns AI on with the local backend, and
+ * its files are deleted when they turn AI off. Lives in the main process so a download
+ * survives window reloads; renderers read it through the `local-ai:*` IPC channels
+ * (local-ai-service.ts).
  */
 
-export type LocalModelMode = 'auto' | 'off';
 /** `auto` uses the system model when there is one, else the downloadable model. */
 export type LocalModelProvider = 'auto' | 'qwen';
 
@@ -39,6 +39,7 @@ export type LocalModelState =
       totalBytes: number;
     }
   | { kind: 'not-downloaded'; label: string; totalBytes: number }
+  /** AI is off, or uses a backend other than this computer. */
   | { kind: 'disabled'; label: string; totalBytes: number };
 
 /** A system-provided model (Apple's Foundation Models on supported Macs). */
@@ -86,7 +87,7 @@ export interface LocalModelStatus {
   downloadable: { label: string; sizeBytes: number };
 }
 
-/** Free space required before a download starts on its own; the model plus headroom. */
+/** Free space required before a download starts without "Download Anyway"; the model plus headroom. */
 export const MIN_FREE_BYTES_FOR_AUTO_DOWNLOAD = 2 * 1024 * 1024 * 1024;
 
 const PROGRESS_INTERVAL_MS = 250;
@@ -94,12 +95,11 @@ const PROGRESS_INTERVAL_MS = 250;
 export interface LocalModelDeps {
   configDirPath: string;
   spec?: ModelSpec;
-  getMode: () => LocalModelMode;
-  setMode: (mode: LocalModelMode) => void;
+  /** AI is on at all (`core.ai.enabled`). Off means the model's files shouldn't exist. */
+  isEnabled: () => boolean;
+  /** AI is on and runs on this computer, so the model should be available. */
+  isActive: () => boolean;
   getProvider?: () => LocalModelProvider;
-  setProvider?: (provider: LocalModelProvider) => void;
-  getAutoStarted: () => boolean;
-  setAutoStarted: () => void;
   /** `core.views.extractionModelPath`: a local copy used in development instead of downloading. */
   getOverridePath: () => string | undefined;
   freeBytes?: (dir: string) => number | null;
@@ -123,6 +123,16 @@ function unlinkQuietly(filePath: string) {
   } catch (err) {
     // already gone
   }
+}
+
+/**
+ * Deletes the downloadable model's files without starting the controller, for a launch with AI
+ * off: a model left by an earlier version shouldn't linger, and checking for Apple's model
+ * isn't needed to know that.
+ */
+export function removeModelFiles(configDirPath: string, spec: ModelSpec = DOWNLOADABLE_MODEL) {
+  unlinkQuietly(partialModelPath(configDirPath, spec));
+  unlinkQuietly(downloadedModelPath(configDirPath, spec));
 }
 
 export function freeBytesOnVolume(dir: string): number | null {
@@ -153,7 +163,6 @@ export class LocalModelController {
       download: downloadModel,
       detectSystem: detectSystemModel,
       getProvider: () => 'auto',
-      setProvider: () => {},
       ...deps,
     };
     // A caller passing `spec: undefined` (no dev override) must not erase the default.
@@ -182,34 +191,17 @@ export class LocalModelController {
     };
   }
 
-  /**
-   * Switches between the system model and the downloadable one. Choosing the downloadable
-   * model starts its download; going back to the system model stops any download but keeps
-   * finished files until the user deletes them (`deleteDownloaded`).
-   */
-  setProvider(provider: LocalModelProvider) {
-    this.d.setProvider(provider);
-    if (provider === 'qwen') {
-      this.d.setAutoStarted();
-      this.start({ force: false });
-    } else if (this.abort) {
-      this.cancel();
-    }
-    this.emit(true);
-  }
-
   /** Deletes the downloadable model's files, returning the bytes freed. */
   deleteDownloaded(): { bytesFreed: number } {
     const bytesFreed = this.bytesOnDisk();
-    this.cancel();
-    unlinkQuietly(downloadedModelPath(this.d.configDirPath, this.d.spec));
+    this.removeFiles();
     this.emit(true);
     return { bytesFreed };
   }
 
   /** The downloadable model file the worker should load, or null. */
   modelPath(): string | null {
-    if (this.d.getMode() === 'off') return null;
+    if (!this.d.isActive()) return null;
     const override = this.d.getOverridePath();
     if (override && fileSize(override) === this.d.spec.size) return override;
     const downloaded = downloadedModelPath(this.d.configDirPath, this.d.spec);
@@ -220,7 +212,7 @@ export class LocalModelController {
     const { spec } = this.d;
     const label = spec.label;
     const totalBytes = spec.size;
-    if (this.d.getMode() === 'off') return { kind: 'disabled', label, totalBytes };
+    if (!this.d.isActive()) return { kind: 'disabled', label, totalBytes };
     const system = this.d.detectSystem();
     if (this.d.getProvider() === 'auto') {
       if (system.available) return { kind: 'system', label: system.name };
@@ -259,31 +251,52 @@ export class LocalModelController {
     return { kind: 'not-downloaded', label, totalBytes };
   }
 
+  isActive() {
+    return this.d.isActive();
+  }
+
   /**
-   * Called whenever a feature that uses the model is in use. Starts the download the first
-   * time, and resumes one a previous launch left partway; after the user cancels, it waits for
-   * them to ask again.
+   * Brings the model in line with the AI settings. Called when they change, with
+   * `startDownload`, and at launch without it, which only resumes a download a previous launch
+   * left partway; after the user cancels one, it waits for them to ask again.
+   *
+   * - AI off: stops any download and deletes the model's files.
+   * - Another backend: stops any download but keeps a finished model.
+   * - This computer: downloads the model unless the system model is used instead. On a Mac
+   *   that is still checking for Apple's model, systemChanged() decides once it knows.
    */
-  prepare() {
+  reconcile({ startDownload }: { startDownload: boolean }) {
+    this.awaitingSystemCheck = false;
+    if (!this.d.isEnabled()) {
+      if (this.abort || this.bytesOnDisk() > 0) this.removeFiles();
+    } else if (!this.d.isActive() || this.usesSystemModel()) {
+      if (this.abort) this.cancel();
+    } else {
+      this.ensureDownloaded(startDownload);
+    }
+    this.emit(true);
+  }
+
+  private ensureDownloaded(startDownload: boolean) {
     const kind = this.state().kind;
-    // While the system model is being checked, a later systemChanged() decides.
     this.awaitingSystemCheck = kind === 'checking';
     if (kind !== 'not-downloaded' && kind !== 'error') return;
     const hasPartial = fileSize(partialModelPath(this.d.configDirPath, this.d.spec)) !== null;
-    if (this.d.getAutoStarted() && !hasPartial) return;
-    this.d.setAutoStarted();
-    this.start({ force: false });
+    if (startDownload || hasPartial) this.start({ force: false });
   }
 
   /** The system model's availability changed (e.g. its first probe finished). */
   systemChanged() {
-    if (this.awaitingSystemCheck && this.state().kind !== 'checking') this.prepare();
+    if (this.awaitingSystemCheck && this.state().kind !== 'checking') {
+      this.awaitingSystemCheck = false;
+      this.ensureDownloaded(true);
+    }
     this.emit(true);
   }
 
   /** `force` skips the free-space check (the "Download anyway" button). */
   start({ force }: { force: boolean }) {
-    if (this.d.getMode() === 'off' || this.abort) return;
+    if (!this.d.isActive() || this.abort) return;
     if (this.modelPath() || this.usesSystemModel()) return;
     if (!force) {
       const free = this.d.freeBytes(modelDir(this.d.configDirPath));
@@ -346,24 +359,9 @@ export class LocalModelController {
     );
   }
 
-  /**
-   * Turning model downloads off cancels any download and deletes the model files, returning
-   * the bytes freed. Turning them back on starts a download.
-   */
-  setEnabled(enabled: boolean): { bytesFreed: number } {
-    if (!enabled) {
-      const bytesFreed = this.bytesOnDisk();
-      this.cancel();
-      unlinkQuietly(downloadedModelPath(this.d.configDirPath, this.d.spec));
-      this.d.setMode('off');
-      this.emit(true);
-      return { bytesFreed };
-    }
-    this.d.setMode('auto');
-    this.d.setAutoStarted();
-    this.start({ force: false });
-    this.emit(true);
-    return { bytesFreed: 0 };
+  private removeFiles() {
+    this.cancel();
+    unlinkQuietly(downloadedModelPath(this.d.configDirPath, this.d.spec));
   }
 
   private emit(immediate: boolean) {
