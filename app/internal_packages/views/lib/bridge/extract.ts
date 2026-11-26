@@ -235,7 +235,7 @@ async function run(
   const hash = schemaHash(schema, instructions);
   const jsonSchema = compileJsonSchema(schema);
   const targets = ids.slice(0, MAX_MESSAGES);
-  const { available: modelAvailable, modelVersion } = await localAIForViews();
+  const { available: modelAvailable, modelVersion } = await localAIForViews(grant.viewId);
   let processed = 0;
   // Includes the model, so switching between Apple's model and Qwen never reuses answers.
   const key = (id: string) => `${id}:${hash}:${modelVersion}`;
@@ -358,7 +358,7 @@ export async function runEventExtractJob(
     const jsonSchema = compileJsonSchema(schema);
     const targets = events.slice(0, MAX_EVENTS);
     const total = targets.length;
-    const { available: modelAvailable, modelVersion } = await localAIForViews();
+    const { available: modelAvailable, modelVersion } = await localAIForViews(grant.viewId);
     const key = (e: ExtractEvent) => {
       const text = crypto.createHash('sha256').update(eventBlock(e)).digest('hex').slice(0, 16);
       return `event:${e.eventId}:${text}:${hash}:${modelVersion}`;

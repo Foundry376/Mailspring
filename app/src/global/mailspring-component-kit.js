@@ -76,6 +76,7 @@ lazyLoad('RetinaImg', 'retina-img');
 lazyLoad('NavRailItem', 'nav-rail');
 lazyLoadFrom('LocalModelSettings', 'local-model-settings');
 lazyLoadFrom('AIEnabledSwitch', 'ai-enabled-switch');
+lazyLoadFrom('EnableAIPrompt', 'enable-ai-prompt');
 lazyLoad('NavRailSection', 'nav-rail');
 lazyLoad('SwipeContainer', 'swipe-container');
 lazyLoad('FluxContainer', 'flux-container');

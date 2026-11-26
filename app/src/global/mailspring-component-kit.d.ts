@@ -16,6 +16,7 @@ export * from '../components/retina-img';
 export { NavRailItem, NavRailSection } from '../components/nav-rail';
 export { LocalModelSettings } from '../components/local-model-settings';
 export { AIEnabledSwitch } from '../components/ai-enabled-switch';
+export { EnableAIPrompt } from '../components/enable-ai-prompt';
 export const SwipeContainer: typeof import('../components/swipe-container').default;
 export const FluxContainer: typeof import('../components/flux-container').default;
 export const FocusContainer: typeof import('../components/focus-container').default;

@@ -6,6 +6,7 @@ import {
 } from '../../../src/browser/view-sandbox-policy';
 import { ViewManifest, allViews } from './view-registry';
 import { removeAllCredentials } from './credentials/store';
+import { forgetAIPromptDismissal } from './local-model/view-status';
 
 /**
  * Consent for what a View can do beyond reading mail summaries. The user approves a View's
@@ -121,6 +122,7 @@ export function narrowApprovalToCurrent(viewId: string) {
 /** Drops everything the user granted a View that no longer exists. */
 export function forgetView(viewId: string) {
   if (hasApproval(viewId)) saveApproval(viewId, null);
+  forgetAIPromptDismissal(viewId);
   removeAllCredentials(viewId).catch((err) => console.warn(`Views: ${err.message}`));
 }
 

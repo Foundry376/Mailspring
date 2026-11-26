@@ -177,6 +177,15 @@ class AIStore extends MailspringStore {
     );
   }
 
+  /**
+   * Asks the user to turn AI on, in a modal, for a feature that needs it. Resolves with
+   * whether AI is on afterwards. Prefer rendering EnableAIPrompt where there's room for it.
+   */
+  requestEnable(opts: { reason: string; requires?: AICapability[] }): Promise<boolean> {
+    // Required lazily: the prompt is a component, and it reads this store.
+    return require('../../components/enable-ai-prompt').requestAIEnabled(opts);
+  }
+
   run(req: AIRequest) {
     return this.backend().run(req);
   }

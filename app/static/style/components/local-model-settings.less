@@ -84,3 +84,48 @@
     margin: 0;
   }
 }
+
+// Asks to turn AI on where a feature needs it (components/enable-ai-prompt.tsx).
+.enable-ai-prompt {
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.45;
+  color: @text-color;
+
+  .enable-ai-prompt-title {
+    font-size: 15px;
+    font-weight: @font-weight-semi-bold;
+    color: @text-color-heading;
+    margin-bottom: 8px;
+  }
+
+  .enable-ai-prompt-reason {
+    margin: 0 0 8px;
+  }
+
+  .enable-ai-prompt-plan {
+    margin: 0 0 14px;
+    color: @text-color-subtle;
+  }
+
+  .enable-ai-prompt-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .enable-ai-prompt-more {
+    display: block;
+    margin: 10px 0 0 auto;
+    border: 0;
+    padding: 0;
+    background: none;
+    color: @text-color-link;
+    font-size: 12px;
+    cursor: pointer;
+  }
+}
+
+.enable-ai-prompt-modal {
+  padding: 20px 22px;
+}
