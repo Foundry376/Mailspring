@@ -60,6 +60,7 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
   static displayName = 'ModelBadge';
 
   _unlisten: () => void;
+  _unlistenAI: () => void;
   _root = React.createRef<HTMLDivElement>();
 
   state: ModelBadgeState = { status: LocalModelStore.status(), open: false, enabling: false };
@@ -68,11 +69,13 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
     this._unlisten = LocalModelStore.listen(() =>
       this.setState({ status: LocalModelStore.status() })
     );
+    this._unlistenAI = AIStore.listen(() => this.forceUpdate());
     document.addEventListener('mousedown', this._onDocumentMouseDown);
   }
 
   componentWillUnmount() {
     this._unlisten();
+    this._unlistenAI();
     document.removeEventListener('mousedown', this._onDocumentMouseDown);
   }
 
@@ -94,6 +97,27 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
             onNotNow={() => this.setState({ open: false })}
             onDone={() => this.setState({ open: false, enabling: false })}
           />
+        </div>
+      );
+    }
+    if (AIStore.backend().remote) {
+      return (
+        <div className="model-badge-popover" role="dialog">
+          <div className="model-badge-title">{localized('AI inside your Views')}</div>
+          <div className="model-badge-model">
+            {localized('OpenRouter (remote) · %@', AIStore.openRouterModel())}
+          </div>
+          <p className="local-model-intro">
+            {localized(
+              'Views you allow send the text of the messages they ask about to OpenRouter. Each View asks first.'
+            )}
+          </p>
+          <button className="local-model-link" onClick={() => AIStore.openSettings()}>
+            {localized('AI Settings…')}
+          </button>
+          <div className="model-badge-switch">
+            <AIEnabledSwitch id="model-badge-ai-enabled" />
+          </div>
         </div>
       );
     }
@@ -122,18 +146,21 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
 
   render() {
     const { status, open } = this.state;
-    const kind = status ? status.state.kind : 'checking';
+    const remote = AIStore.isEnabled() && AIStore.backend().remote;
+    const kind = remote ? 'remote' : status ? status.state.kind : 'checking';
     return (
       <div className="model-badge" ref={this._root}>
         <button
           className={classnames('model-badge-pill', kind, { open })}
           onClick={() => this.setState({ open: !open, enabling: !open && !AIStore.isEnabled() })}
-          title={localized('The AI that Views use on this computer')}
+          title={localized('The AI that Views use')}
         >
           <span className="model-badge-dot" />
           <span className="model-badge-name">{badgePrefix(status)}</span>
           <span className="model-badge-sep">·</span>
-          <span className="model-badge-state">{badgeLabel(status)}</span>
+          <span className="model-badge-state">
+            {remote ? localized('OpenRouter (remote)') : badgeLabel(status)}
+          </span>
         </button>
         {open && status && this._renderPopover(status)}
       </div>

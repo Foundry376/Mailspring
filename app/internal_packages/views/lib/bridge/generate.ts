@@ -252,7 +252,11 @@ function track<P extends { status: string }>(
   host.jobs.set(jobId, job);
   const progress = (p: P) => {
     if (job.cancelled) return;
-    ctx.emit('ai.progress', { jobId, ...p, ...modelStatusForViews(LocalModelStore.status()) });
+    ctx.emit('ai.progress', {
+      jobId,
+      ...p,
+      ...modelStatusForViews(LocalModelStore.status(), ctx.viewId),
+    });
     if (p.status !== 'running') host.jobs.delete(jobId);
   };
   const fail = (err: Error) => {

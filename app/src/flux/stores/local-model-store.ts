@@ -1,5 +1,6 @@
 import { ipcRenderer } from 'electron';
 import MailspringStore from 'mailspring-store';
+import { AI_CONFIG } from '../../browser/ai-config';
 import type { LocalAIAnswer, LocalAIRequest, LocalAIStatus } from '../../browser/local-ai-service';
 import type {
   LocalModelProvider,
@@ -28,6 +29,7 @@ export type {
  */
 class LocalModelStore extends MailspringStore {
   private _status: LocalModelStatus | null = null;
+  private _remoteError: string | null = null;
   private _listening = false;
 
   /** The last status received; null until the main process first answers. */
@@ -54,6 +56,19 @@ class LocalModelStore extends MailspringStore {
     return ipcRenderer.invoke('local-ai:cancel', ownerId);
   }
 
+  /** Why the last OpenRouter prompt failed, e.g. a revoked key; null once one succeeds. */
+  remoteError() {
+    this._listen();
+    return this._remoteError;
+  }
+
+  /** Checks an OpenRouter key: its label and spending, or why OpenRouter refused it. */
+  openRouterKeyInfo(
+    apiKey: string
+  ): Promise<{ info?: { label?: string; usage?: number; limit?: number | null }; error?: string }> {
+    return ipcRenderer.invoke('local-ai:openrouter-key-info', apiKey);
+  }
+
   /** `force` skips the free-space check. */
   startDownload(force: boolean) {
     return this._invoke('local-ai:download', force);
@@ -65,7 +80,7 @@ class LocalModelStore extends MailspringStore {
 
   /** `auto` uses Apple's model when this Mac has it; the main process downloads Qwen if needed. */
   setProvider(provider: LocalModelProvider) {
-    AppEnv.config.set('core.ai.local.model', provider);
+    AppEnv.config.set(AI_CONFIG.localModel, provider);
   }
 
   deleteDownloaded(): Promise<{ bytesFreed: number }> {
@@ -99,6 +114,10 @@ class LocalModelStore extends MailspringStore {
     ipcRenderer.on('local-ai:model-status', (_event, status: LocalModelStatus) =>
       this._set(status)
     );
+    ipcRenderer.on('local-ai:remote-error', (_event, message: string | null) => {
+      this._remoteError = message;
+      this.trigger();
+    });
     this.refresh();
   }
 }

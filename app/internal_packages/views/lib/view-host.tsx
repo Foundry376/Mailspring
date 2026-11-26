@@ -29,6 +29,7 @@ import {
   aiPromptDismissed,
   dismissAIPrompt,
   modelStatusForViews,
+  setRemoteAIDecision,
 } from './local-model/view-status';
 
 export type ViewPlacement = 'page' | 'thread-sidebar';
@@ -63,6 +64,8 @@ interface ViewHostState {
   consent: { pending: ViewGrants; widening: boolean; declined: boolean } | null;
   /** The View asked for AI while it was off; shown until the user answers. */
   aiPrompt: boolean;
+  /** AI runs on OpenRouter and the View asked for it; shown until the user allows or not. */
+  remoteAIPrompt: boolean;
 }
 
 // Plain-language consent copy. Every View can read message envelopes without consent, so the
@@ -104,6 +107,7 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
   _visible = true;
   _killedByWatchdog = false;
   _unlistenModel: () => void;
+  _unlistenAI: () => void;
   /** The View asked for AI and got none; it reloads once the model is ready. */
   _wantsAI = false;
 
@@ -114,6 +118,7 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     compat: { result: 'ok', version: CURRENT_API_VERSION },
     consent: null,
     aiPrompt: false,
+    remoteAIPrompt: false,
   };
 
   get bridge() {
@@ -147,7 +152,9 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     ViewRegistryEvents.on('changed', this._onViewsChanged);
     ConsentEvents.on('changed', this._onConsentChanged);
     ViewAIEvents.on('wants-ai', this._onWantsAI);
+    ViewAIEvents.on('wants-remote-ai', this._onWantsRemoteAI);
     this._unlistenModel = LocalModelStore.listen(this._onModelChanged);
+    this._unlistenAI = AIStore.listen(this._onModelChanged);
     this._mount();
   }
 
@@ -224,7 +231,9 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     ViewRegistryEvents.removeListener('changed', this._onViewsChanged);
     ConsentEvents.removeListener('changed', this._onConsentChanged);
     ViewAIEvents.removeListener('wants-ai', this._onWantsAI);
+    ViewAIEvents.removeListener('wants-remote-ai', this._onWantsRemoteAI);
     this._unlistenModel();
+    this._unlistenAI();
     this._unmount();
   }
 
@@ -442,6 +451,51 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     this.reloadView();
   };
 
+  _onWantsRemoteAI = (viewId: string) => {
+    if (viewId !== this.props.viewId || this.props.mock) return;
+    this.setState({ remoteAIPrompt: true });
+  };
+
+  _onRemoteAIDecision = (allowed: boolean) => {
+    setRemoteAIDecision(this.props.viewId, allowed ? 'allowed' : 'declined');
+    this.setState({ remoteAIPrompt: false });
+    if (allowed) this.reloadView();
+  };
+
+  _renderRemoteAIPrompt() {
+    if (!this.state.remoteAIPrompt) return null;
+    const view = allViews().find((v) => v.id === this.props.viewId);
+    const name = view ? view.name : this.props.viewId;
+    return (
+      <div className="view-host-cover view-host-ai-prompt">
+        <div className="enable-ai-prompt">
+          <div className="enable-ai-prompt-title">
+            {localized('Allow “%@” to use OpenRouter?', name)}
+          </div>
+          <p className="enable-ai-prompt-reason">
+            {localized(
+              'AI in Mailspring runs on OpenRouter. To use it, this View sends the text of the messages it asks about to OpenRouter and to the provider of %@.',
+              AIStore.openRouterModel()
+            )}
+          </p>
+          <p className="enable-ai-prompt-plan">
+            {localized(
+              'Once mail leaves this computer, Mailspring can’t keep it private. Without AI, parts of this View may be missing.'
+            )}
+          </p>
+          <div className="enable-ai-prompt-actions">
+            <button className="btn" onClick={() => this._onRemoteAIDecision(false)}>
+              {localized('Don’t Allow')}
+            </button>
+            <button className="btn btn-emphasis" onClick={() => this._onRemoteAIDecision(true)}>
+              {localized('Allow')}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   _onAINotNow = () => {
     dismissAIPrompt(this.props.viewId);
     this.setState({ aiPrompt: false });
@@ -521,6 +575,13 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
             </li>
           </ul>
         </div>
+        {AIStore.isEnabled() && AIStore.backend().remote && (
+          <div className="view-host-cover-detail">
+            {localized(
+              'AI runs on OpenRouter. If this View uses AI, Mailspring asks before it sends your mail there.'
+            )}
+          </div>
+        )}
         {consent.declined && (
           <div className="view-host-cover-detail">
             {localized('Not allowed. The View stays closed until you allow it.')}
@@ -634,6 +695,7 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
         {this._renderVersionCard() ||
           this._renderConsentCard() ||
           this._renderAIPrompt() ||
+          this._renderRemoteAIPrompt() ||
           this._renderCover()}
       </div>
     );

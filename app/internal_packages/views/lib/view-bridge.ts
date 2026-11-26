@@ -452,7 +452,7 @@ export class ViewBridge {
             this.emit('ai.progress', {
               jobId,
               ...progress,
-              ...modelStatusForViews(LocalModelStore.status()),
+              ...modelStatusForViews(LocalModelStore.status(), this.grant.viewId),
             });
             if (progress.status !== 'running') this.jobs.delete(jobId);
           },
@@ -565,7 +565,7 @@ export class ViewBridge {
         this.emit('ai.progress', {
           jobId,
           ...progress,
-          ...modelStatusForViews(LocalModelStore.status()),
+          ...modelStatusForViews(LocalModelStore.status(), this.grant.viewId),
         });
         if (progress.status !== 'running') this.jobs.delete(jobId);
       },
