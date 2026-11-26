@@ -413,6 +413,114 @@
       margin-bottom: 6px;
     }
 
+    .ai-backends {
+      display: flex;
+      gap: 12px;
+    }
+
+    .ai-backend {
+      flex: 1;
+      text-align: left;
+      padding: 12px 14px;
+      border: 1px solid @border-color-primary;
+      border-radius: 8px;
+      background: @background-primary;
+      color: @text-color;
+      cursor: default;
+
+      &.selected {
+        border-color: @accent-primary;
+        box-shadow: 0 0 0 1px @accent-primary;
+      }
+    }
+
+    .ai-backend-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: @font-weight-semi-bold;
+      margin-bottom: 4px;
+    }
+
+    .ai-backend-radio {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 1px solid fade(@text-color, 40%);
+    }
+
+    .ai-backend.selected .ai-backend-radio {
+      border: 4px solid @accent-primary;
+    }
+
+    .ai-backend-remote {
+      margin-left: auto;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: fade(#d29922, 18%);
+      color: darken(#d29922, 10%);
+      font-size: 11px;
+      font-weight: @font-weight-semi-bold;
+      text-transform: uppercase;
+    }
+
+    .ai-backend-detail {
+      color: @text-color-subtle;
+      font-size: 12px;
+      line-height: 1.4;
+      margin-left: 20px;
+    }
+
+    .ai-remote-warning {
+      padding: 10px 12px;
+      margin-bottom: 14px;
+      border-left: 3px solid #d29922;
+      border-radius: 4px;
+      background: fade(#d29922, 10%);
+      line-height: 1.45;
+
+      .local-model-link {
+        display: inline;
+        margin: 0;
+        font-size: inherit;
+      }
+    }
+
+    .ai-field-label {
+      display: block;
+      font-weight: @font-weight-semi-bold;
+      margin: 12px 0 6px;
+    }
+
+    .ai-openrouter-key,
+    .ai-openrouter-model {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+
+      input {
+        flex: 1;
+        min-width: 220px;
+      }
+
+      .local-model-link {
+        margin: 0;
+      }
+
+      p {
+        flex-basis: 100%;
+        margin: 2px 0 0;
+        color: @text-color-subtle;
+        font-size: 12px;
+      }
+    }
+
+    .ai-openrouter-message {
+      margin-top: 10px;
+      color: @text-color;
+    }
+
     .ai-features {
       p {
         margin: 2px 0 0 20px;

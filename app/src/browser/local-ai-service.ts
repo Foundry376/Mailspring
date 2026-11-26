@@ -22,12 +22,15 @@ import {
   ModelBackendId,
   selectBackend,
 } from './local-model-provider';
+import { OpenRouterEngine } from './openrouter';
+import { AI_CONFIG, DEFAULT_OPENROUTER_MODEL, OPENROUTER_KEY_NAME } from './ai-config';
 
 /**
- * Main-process owner of on-device AI: prompts from any renderer feature (Views' ai.extract,
- * ai.summarize and ai.generate today) run here, one at a time, on Apple's system model or the
- * downloadable model in a utility process (local-ai-worker.js). The model is memory-bound, and
- * parallel sequences measured no faster per prompt.
+ * Main-process owner of AI: prompts from any renderer feature (Views' ai.extract, ai.summarize
+ * and ai.generate today) run here, on the backend the user picked in Preferences > AI. On this
+ * computer that's Apple's system model or the downloadable model in a utility process
+ * (local-ai-worker.js), one prompt at a time: the model is memory-bound, and parallel sequences
+ * measured no faster per prompt. Remotely it's OpenRouter (openrouter.ts), a few at a time.
  *
  * Callers build prompts and validate answers; this service decides what runs when and
  * remembers answers. Answers are cached by (item id, prompt key, model) in their own SQLite
@@ -49,6 +52,7 @@ const MAX_REQUESTED_OUTPUT_TOKENS = 600;
 const IDLE_SHUTDOWN_MS = 5 * 60 * 1000;
 const MAX_ITEMS_PER_REQUEST = 50;
 const MAX_PROMPT_CHARS = 16000;
+const REMOTE_CONCURRENCY = 4;
 // Named for the first feature that used it; renaming it would discard every cached answer.
 const CACHE_FILE = 'extraction-cache.db';
 
@@ -104,32 +108,66 @@ interface QueuedItem {
   resolve: (answer: LocalAIAnswer | null) => void;
 }
 
+export type AIEngineId = ModelBackendId | 'openrouter';
+
+/** What the service needs to know about the user's choice of remote backend. */
+export interface RemoteSettings {
+  /** AI is on and runs on OpenRouter. */
+  selected: () => boolean;
+  model: () => string;
+  /** The user saved a key; reading it may still fail (a locked keyring). */
+  hasKey: () => boolean;
+  apiKey: () => Promise<string | null>;
+}
+
 class LocalAIService {
   private configDirPath: string;
   private model: LocalModelController;
+  private remote: RemoteSettings;
+  private openrouter: OpenRouterEngine;
+  /** The last remote failure, shown in Preferences so a bad key or model isn't silent. */
+  private remoteError: string | null = null;
   private worker: UtilityProcess | null = null;
   private workerReady: Promise<{ gpu: string }> | null = null;
   private workerCalls = new Map<number, { resolve: (v: any) => void; reject: (e: any) => void }>();
   private nextCallId = 1;
   private queue: QueuedItem[] = [];
   private nextOrder = 0;
-  private running = false;
+  private active = 0;
   private idleTimer: NodeJS.Timeout | null = null;
   private db: any = null;
   private apple: AppleFMBackend | null = null;
-  constructor(configDirPath: string, model: LocalModelController) {
+  constructor(
+    configDirPath: string,
+    model: LocalModelController,
+    remote: RemoteSettings,
+    openrouter = new OpenRouterEngine()
+  ) {
     this.configDirPath = configDirPath;
     this.model = model;
+    this.remote = remote;
+    this.openrouter = openrouter;
   }
 
-  /** Apple's model when it's available and the user hasn't picked Qwen; Qwen otherwise. */
-  backend(): ModelBackendId {
+  /**
+   * OpenRouter when the user picked it; otherwise Apple's model when it's available and the
+   * user hasn't picked Qwen, and Qwen after that.
+   */
+  backend(): AIEngineId {
+    if (this.remote.selected()) return 'openrouter';
     return selectBackend(this.model.status().provider, getSystemModel());
   }
 
-  /** Part of every cache key, so switching backends or updating macOS never reuses answers. */
+  /** Part of every cache key, so switching backends or models never reuses answers. */
   modelVersion(backend = this.backend()) {
+    if (backend === 'openrouter') return `openrouter:${this.remote.model()}`;
     return backendModelVersion(backend, DOWNLOADABLE_MODEL_VERSION, getSystemModel());
+  }
+
+  /** AI is on, and the selected backend could answer. */
+  private canRun(backend = this.backend()) {
+    if (backend === 'openrouter') return this.remote.hasKey();
+    return this.model.isActive() && (backend === 'apple-fm' || !!this.model.modelPath());
   }
 
   private appleBackend() {
@@ -143,7 +181,9 @@ class LocalAIService {
     const model = this.model.state();
     const backend = this.backend();
     return {
-      available: this.model.isActive() && (backend === 'apple-fm' || !!this.model.modelPath()),
+      available: this.canRun(backend),
+      remote: backend === 'openrouter',
+      remoteError: backend === 'openrouter' ? this.remoteError : null,
       modelVersion: this.modelVersion(backend),
       backend,
       // Apple rate-limits background work on battery; answers are waiting, not failing.
@@ -170,7 +210,7 @@ class LocalAIService {
    */
   async run(req: LocalAIRequest): Promise<(LocalAIAnswer | null)[]> {
     // With AI off, answers cached while it was on stay unused too.
-    if (!this.model.isActive()) return req.items.map(() => null);
+    if (!this.canRun()) return req.items.map(() => null);
     const db = this.cache();
     const version = this.modelVersion();
     return Promise.all(
@@ -223,48 +263,84 @@ class LocalAIService {
     return this.db;
   }
 
-  private async pump() {
-    if (this.running) return;
-    this.running = true;
-    try {
-      while (this.queue.length) {
-        this.queue.sort((a, b) => a.priority - b.priority || a.order - b.order);
-        const next = this.queue.shift();
-        let answer: LocalAIAnswer | null = null;
-        try {
-          const backend = this.backend();
-          const result =
-            backend === 'apple-fm'
-              ? // A guardrail refusal comes back as `value: null`, the same "no value" callers
-                // already handle for an email that doesn't state a field.
-                await this.appleBackend().run({
-                  prompt: next.item.prompt,
-                  jsonSchema: next.jsonSchema,
-                  maxTokens: next.maxTokens,
-                })
-              : await this.runOnWorker(next);
-          answer = { id: next.item.id, value: result.value, cached: false, ms: result.ms };
-          if (result.value) {
-            this.cache()
-              .prepare('INSERT OR REPLACE INTO answers (key, value, createdAt) VALUES (?, ?, ?)')
-              .run(
-                cacheKey(next.item.id, next.promptKey, this.modelVersion(backend)),
-                JSON.stringify(result.value),
-                Date.now()
-              );
-          }
-        } catch (err) {
-          // Callers treat a failed prompt as "no value"; the code (e.g. Apple's `rateLimited`)
-          // only shows up here.
-          console.warn(`Local AI prompt failed: ${(err && (err.code || err.message)) || err}`);
-          answer = { id: next.item.id, value: null, cached: false, ms: 0 };
-        }
-        next.resolve(answer);
-      }
-    } finally {
-      this.running = false;
-      this.scheduleIdleShutdown();
+  /** Starts queued prompts up to the backend's concurrency: one locally, a few remotely. */
+  private pump() {
+    const limit = this.backend() === 'openrouter' ? REMOTE_CONCURRENCY : 1;
+    while (this.active < limit && this.queue.length) {
+      this.queue.sort((a, b) => a.priority - b.priority || a.order - b.order);
+      const next = this.queue.shift();
+      this.active++;
+      this.answer(next).finally(() => {
+        this.active--;
+        if (this.queue.length) this.pump();
+        else if (this.active === 0) this.scheduleIdleShutdown();
+      });
     }
+  }
+
+  private async answer(next: QueuedItem) {
+    let answer: LocalAIAnswer | null = null;
+    try {
+      const backend = this.backend();
+      const result =
+        backend === 'openrouter'
+          ? await this.runRemote(next)
+          : backend === 'apple-fm'
+            ? // A guardrail refusal comes back as `value: null`, the same "no value" callers
+              // already handle for an email that doesn't state a field.
+              await this.appleBackend().run({
+                prompt: next.item.prompt,
+                jsonSchema: next.jsonSchema,
+                maxTokens: next.maxTokens,
+              })
+            : await this.runOnWorker(next);
+      answer = { id: next.item.id, value: result.value, cached: false, ms: result.ms };
+      if (result.value) {
+        this.cache()
+          .prepare('INSERT OR REPLACE INTO answers (key, value, createdAt) VALUES (?, ?, ?)')
+          .run(
+            cacheKey(next.item.id, next.promptKey, this.modelVersion(backend)),
+            JSON.stringify(result.value),
+            Date.now()
+          );
+      }
+    } catch (err) {
+      // Callers treat a failed prompt as "no value"; the code (e.g. Apple's `rateLimited`)
+      // only shows up here.
+      console.warn(`AI prompt failed: ${(err && (err.code || err.message)) || err}`);
+      answer = { id: next.item.id, value: null, cached: false, ms: 0 };
+    }
+    next.resolve(answer);
+  }
+
+  private async runRemote(next: QueuedItem) {
+    const apiKey = await this.remote.apiKey();
+    if (!apiKey) throw new Error('No OpenRouter key is saved.');
+    try {
+      const result = await this.openrouter.run({
+        apiKey,
+        model: this.remote.model(),
+        prompt: next.item.prompt,
+        jsonSchema: next.jsonSchema,
+        maxTokens: next.maxTokens,
+      });
+      this.setRemoteError(null);
+      return result;
+    } catch (err) {
+      this.setRemoteError(err.message);
+      throw err;
+    }
+  }
+
+  private setRemoteError(message: string | null) {
+    if (message === this.remoteError) return;
+    this.remoteError = message;
+    broadcast('local-ai:remote-error', message);
+  }
+
+  /** Checks a key before the user saves it: its label and spending, or why it failed. */
+  keyInfo(apiKey: string) {
+    return this.openrouter.keyInfo(apiKey);
   }
 
   private async runOnWorker(next: QueuedItem) {
@@ -281,7 +357,7 @@ class LocalAIService {
   private scheduleIdleShutdown() {
     if (this.idleTimer) clearTimeout(this.idleTimer);
     this.idleTimer = setTimeout(() => {
-      if (this.queue.length === 0 && !this.running && this.worker) {
+      if (this.queue.length === 0 && this.active === 0 && this.worker) {
         this.worker.kill();
       }
     }, IDLE_SHUTDOWN_MS);
@@ -406,12 +482,40 @@ const AI_KEY = 'core.ai';
 
 /** AI is on (Preferences > AI); off, the model's files are deleted. */
 function aiEnabled(config: ConfigLike) {
-  return config.get('core.ai.enabled') === true;
+  return config.get(AI_CONFIG.enabled) === true;
 }
 
 /** AI is on and runs on this computer rather than a remote backend. */
 function aiRunsLocally(config: ConfigLike) {
-  return aiEnabled(config) && (config.get('core.ai.backend') || 'local') === 'local';
+  return aiEnabled(config) && (config.get(AI_CONFIG.backend) || 'local') === 'local';
+}
+
+/**
+ * Reads one secret the renderer saved with KeyManager (key-manager.ts), which keeps them all
+ * in one blob encrypted with safeStorage. Decrypting again only when the blob changes avoids
+ * a keychain round trip per prompt.
+ */
+function secretReader(config: ConfigLike, name: string) {
+  let cached: { blob: string; value: string | null } | null = null;
+  return async () => {
+    const blob = config.get('credentials');
+    if (!blob || blob === 'null') return null;
+    if (cached && cached.blob === blob) return cached.value;
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { safeStorage } = require('electron');
+    const { result } = await safeStorage.decryptStringAsync(Buffer.from(blob, 'utf-8'));
+    cached = { blob, value: JSON.parse(result)[name] || null };
+    return cached.value;
+  };
+}
+
+function remoteSettings(config: ConfigLike): RemoteSettings {
+  return {
+    selected: () => aiEnabled(config) && config.get(AI_CONFIG.backend) === 'openrouter',
+    model: () => config.get(AI_CONFIG.openRouterModel) || DEFAULT_OPENROUTER_MODEL,
+    hasKey: () => config.get(AI_CONFIG.openRouterHasKey) === true,
+    apiKey: secretReader(config, OPENROUTER_KEY_NAME),
+  };
 }
 
 /**
@@ -426,7 +530,7 @@ function startLocalAI({ configDirPath, config, devMode }: LocalAIDeps) {
     spec: modelSpecOverride(config, devMode),
     isEnabled: () => aiEnabled(config),
     isActive: () => aiRunsLocally(config),
-    getProvider: () => (config.get('core.ai.local.model') === 'qwen' ? 'qwen' : 'auto'),
+    getProvider: () => (config.get(AI_CONFIG.localModel) === 'qwen' ? 'qwen' : 'auto'),
     getOverridePath: () => config.get('core.views.extractionModelPath'),
     // Dev mode: `core.views.localModelTestFreeBytes` simulates a nearly full disk.
     freeBytes: (dir: string) => {
@@ -438,7 +542,7 @@ function startLocalAI({ configDirPath, config, devMode }: LocalAIDeps) {
       broadcast('local-ai:model-status', status);
     },
   });
-  service = new LocalAIService(configDirPath, model);
+  service = new LocalAIService(configDirPath, model, remoteSettings(config));
   onSystemModelChange(() => model.systemChanged());
   configureAppleFM({
     resourcePath: path.resolve(__dirname, '..', '..'),
@@ -467,7 +571,7 @@ export function registerLocalAIIPCHandlers(ipcMain: IpcMain, deps: LocalAIDeps) 
   // Only the settings that decide where AI runs: a feature switch under `core.ai` mustn't
   // restart a download the user cancelled.
   const placement = () =>
-    [aiEnabled(config), config.get('core.ai.backend'), config.get('core.ai.local.model')].join();
+    [aiEnabled(config), config.get(AI_CONFIG.backend), config.get(AI_CONFIG.localModel)].join();
   let lastPlacement = placement();
   config.onDidChange(AI_KEY, () => {
     if (placement() === lastPlacement) return;
@@ -495,6 +599,12 @@ export function registerLocalAIIPCHandlers(ipcMain: IpcMain, deps: LocalAIDeps) 
     return model.state();
   });
   handle('local-ai:delete-downloaded', ({ model }) => model.deleteDownloaded());
+  handle('local-ai:openrouter-key-info', ({ service }, apiKey: string) =>
+    service.keyInfo(String(apiKey)).then(
+      (info) => ({ info }),
+      (err) => ({ error: err.message })
+    )
+  );
   handle('local-ai:run', ({ service }, req) => service.run(validRequest(req)));
   // Nothing can be queued before the service starts, so cancelling doesn't start it.
   ipcMain.handle('local-ai:cancel', (event, ownerId: string) => {

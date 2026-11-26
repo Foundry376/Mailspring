@@ -1,5 +1,8 @@
 import MailspringStore from 'mailspring-store';
 import { localized } from '../../intl';
+import KeyManager from '../../key-manager';
+import * as Actions from '../actions';
+import { AI_CONFIG, DEFAULT_OPENROUTER_MODEL, OPENROUTER_KEY_NAME } from '../../browser/ai-config';
 import LocalModelStore from './local-model-store';
 import { chatPrompt } from './local-model-prompt';
 import type { LocalAIAnswer } from './local-model-store';
@@ -63,6 +66,15 @@ export interface AIFeature {
   requires: AICapability[];
 }
 
+// Both backends run in the main process's AI service, which routes each prompt to the one
+// selected in config; the descriptors below tell features what each can do.
+function runInService({ system, items, ...rest }: AIRequest) {
+  return LocalModelStore.run({
+    ...rest,
+    items: items.map(({ id, user }) => ({ id, prompt: chatPrompt(system, user) })),
+  });
+}
+
 /**
  * Apple's on-device model on supported Macs, else the downloadable Qwen model. Both are small:
  * on our eval sets they answered faithfully about one message at a time and mixed up details
@@ -75,32 +87,55 @@ export const LocalBackend: AIBackend = {
   },
   remote: false,
   capabilities: new Set<AICapability>(['summarize', 'classify', 'extract']),
-  run({ system, items, ...rest }) {
-    return LocalModelStore.run({
-      ...rest,
-      items: items.map(({ id, user }) => ({ id, prompt: chatPrompt(system, user) })),
-    });
-  },
+  run: runInService,
   cancel(ownerId) {
     return LocalModelStore.cancel(ownerId);
   },
 };
 
-const ENABLED_KEY = 'core.ai.enabled';
-const BACKEND_KEY = 'core.ai.backend';
+/**
+ * OpenRouter, with the user's own key and the model they pick. Prompts and the mail in them
+ * leave this computer, for OpenRouter and the provider serving the model. Large hosted models
+ * can write and reason across a thread, which the local models can't do well.
+ */
+export const OpenRouterBackend: AIBackend = {
+  id: 'openrouter',
+  displayName: 'OpenRouter',
+  remote: true,
+  capabilities: new Set<AICapability>([
+    'summarize',
+    'classify',
+    'extract',
+    'rewrite',
+    'draft',
+    'multi-message',
+    'agent',
+  ]),
+  run: runInService,
+  cancel(ownerId) {
+    return LocalModelStore.cancel(ownerId);
+  },
+};
+
+const ENABLED_KEY = AI_CONFIG.enabled;
+const BACKEND_KEY = AI_CONFIG.backend;
 const featureKey = (id: string) => `core.ai.features.${id}`;
 
 /**
  * The one switch for AI in Mailspring, in the mailbox and inside Views, and the backend it
- * runs on. AI is off until the user turns it on in Preferences > AI. Turning it on with the
- * local backend downloads the model where the system has none, and turning it off deletes it;
- * the main process does both when this config changes (local-ai-service.ts).
+ * runs on: this computer, or OpenRouter. AI is off until the user turns it on in
+ * Preferences > AI. Turning it on with the local backend downloads the model where the system
+ * has none, and turning it off deletes it; the main process does both when this config
+ * changes (local-ai-service.ts).
  *
  * Mailbox features ask `isFeatureOn` before showing any UI and send prompts through `run`,
  * which goes to the selected backend. Preferences lists them with their own switches.
  */
 class AIStore extends MailspringStore {
-  private _backends = new Map<string, AIBackend>([[LocalBackend.id, LocalBackend]]);
+  private _backends = new Map<string, AIBackend>([
+    [LocalBackend.id, LocalBackend],
+    [OpenRouterBackend.id, OpenRouterBackend],
+  ]);
   private _features = new Map<string, AIFeature>();
 
   constructor() {
@@ -130,6 +165,29 @@ class AIStore extends MailspringStore {
 
   setBackend(id: string) {
     AppEnv.config.set(BACKEND_KEY, id);
+  }
+
+  openRouterModel(): string {
+    return AppEnv.config.get(AI_CONFIG.openRouterModel) || DEFAULT_OPENROUTER_MODEL;
+  }
+
+  setOpenRouterModel(model: string) {
+    AppEnv.config.set(AI_CONFIG.openRouterModel, model.trim() || null);
+  }
+
+  hasOpenRouterKey(): boolean {
+    return AppEnv.config.get(AI_CONFIG.openRouterHasKey) === true;
+  }
+
+  /** The key goes to the system keychain via KeyManager; config only records that one exists. */
+  async setOpenRouterKey(key: string | null) {
+    if (key) {
+      await KeyManager.replacePassword(OPENROUTER_KEY_NAME, key.trim());
+      AppEnv.config.set(AI_CONFIG.openRouterHasKey, true);
+    } else {
+      await KeyManager.deletePassword(OPENROUTER_KEY_NAME);
+      AppEnv.config.set(AI_CONFIG.openRouterHasKey, false);
+    }
   }
 
   can(...capabilities: AICapability[]) {
@@ -175,6 +233,12 @@ class AIStore extends MailspringStore {
     return (
       !!feature && this.isEnabled() && this.isFeatureEnabled(id) && this.can(...feature.requires)
     );
+  }
+
+  /** Opens Preferences > AI, where the user picks a backend. */
+  openSettings() {
+    Actions.openPreferences();
+    Actions.switchPreferencesTab('AI');
   }
 
   /**

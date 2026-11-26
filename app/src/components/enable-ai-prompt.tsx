@@ -5,11 +5,6 @@ import AIStore, { AICapability, LocalBackend } from '../flux/stores/ai-store';
 import LocalModelStore, { LocalModelStatus } from '../flux/stores/local-model-store';
 import { LocalModelSettings, formatModelBytes } from './local-model-settings';
 
-export function openAIPreferences() {
-  Actions.openPreferences();
-  Actions.switchPreferencesTab('AI');
-}
-
 /** What turning AI on will do here: use the system model, or download one. */
 function localModelPlan(status: LocalModelStatus | null) {
   if (!status || status.system.reason === 'checking') {
@@ -35,6 +30,12 @@ function localModelPlan(status: LocalModelStatus | null) {
     formatModelBytes(downloadable.sizeBytes),
     downloadable.label
   );
+}
+
+/** The prompt describes AI on this computer, so that's what it turns on. */
+function turnOnLocalAI() {
+  AIStore.setBackend(LocalBackend.id);
+  AIStore.setEnabled(true);
 }
 
 function useStores() {
@@ -102,17 +103,17 @@ export function EnableAIPrompt({ reason, requires = [], onNotNow, onDone }: Enab
           {localized('Not Now')}
         </button>
         {localCan ? (
-          <button className="btn btn-emphasis" onClick={() => AIStore.setEnabled(true)}>
+          <button className="btn btn-emphasis" onClick={turnOnLocalAI}>
             {localized('Turn On AI')}
           </button>
         ) : (
-          <button className="btn btn-emphasis" onClick={openAIPreferences}>
+          <button className="btn btn-emphasis" onClick={() => AIStore.openSettings()}>
             {localized('Open AI Settings')}
           </button>
         )}
       </div>
       {localCan && (
-        <button className="enable-ai-prompt-more" onClick={openAIPreferences}>
+        <button className="enable-ai-prompt-more" onClick={() => AIStore.openSettings()}>
           {localized('More options in Settings…')}
         </button>
       )}
