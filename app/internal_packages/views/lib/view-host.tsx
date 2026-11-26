@@ -1,6 +1,7 @@
 import React from 'react';
 import { ipcRenderer } from 'electron';
-import { localized } from 'mailspring-exports';
+import { AIStore, LocalModelStore, localized } from 'mailspring-exports';
+import { EnableAIPrompt } from 'mailspring-component-kit';
 import { ViewBridge } from './view-bridge';
 import { registerHost } from './authoring/hosts';
 import { ViewDiagnostics, isFailure, reportFromGuest } from './authoring/diagnostics';
@@ -23,6 +24,12 @@ import {
 } from './consent';
 import { credentialsFromManifest } from '../../../src/browser/view-credential-policy';
 import { MockSource } from './mock/mock-bridge';
+import {
+  ViewAIEvents,
+  aiPromptDismissed,
+  dismissAIPrompt,
+  modelStatusForViews,
+} from './local-model/view-status';
 
 export type ViewPlacement = 'page' | 'thread-sidebar';
 
@@ -54,6 +61,8 @@ interface ViewHostState {
   hovering: boolean;
   /** What the View asks for that the user hasn't allowed; the View doesn't load until they do. */
   consent: { pending: ViewGrants; widening: boolean; declined: boolean } | null;
+  /** The View asked for AI while it was off; shown until the user answers. */
+  aiPrompt: boolean;
 }
 
 // Plain-language consent copy. Every View can read message envelopes without consent, so the
@@ -94,6 +103,9 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
   _guestId: number = null;
   _visible = true;
   _killedByWatchdog = false;
+  _unlistenModel: () => void;
+  /** The View asked for AI and got none; it reloads once the model is ready. */
+  _wantsAI = false;
 
   state: ViewHostState = {
     status: 'running',
@@ -101,6 +113,7 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     hovering: false,
     compat: { result: 'ok', version: CURRENT_API_VERSION },
     consent: null,
+    aiPrompt: false,
   };
 
   get bridge() {
@@ -133,6 +146,8 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     this._visibilityObserver.observe(this._container);
     ViewRegistryEvents.on('changed', this._onViewsChanged);
     ConsentEvents.on('changed', this._onConsentChanged);
+    ViewAIEvents.on('wants-ai', this._onWantsAI);
+    this._unlistenModel = LocalModelStore.listen(this._onModelChanged);
     this._mount();
   }
 
@@ -208,6 +223,8 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     ipcRenderer.removeListener(WATCHDOG_KILL_CHANNEL, this._onWatchdogKill);
     ViewRegistryEvents.removeListener('changed', this._onViewsChanged);
     ConsentEvents.removeListener('changed', this._onConsentChanged);
+    ViewAIEvents.removeListener('wants-ai', this._onWantsAI);
+    this._unlistenModel();
     this._unmount();
   }
 
@@ -410,6 +427,44 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
     );
   }
 
+  _onWantsAI = (viewId: string) => {
+    if (viewId !== this.props.viewId || this.props.mock) return;
+    this._wantsAI = true;
+    if (!AIStore.isEnabled() && !aiPromptDismissed(viewId)) this.setState({ aiPrompt: true });
+  };
+
+  // Views don't ask again on their own when the model becomes ready, so the host reloads them.
+  _onModelChanged = () => {
+    if (!this._wantsAI) return;
+    if (modelStatusForViews(LocalModelStore.status()).modelStatus !== 'ready') return;
+    this._wantsAI = false;
+    this.setState({ aiPrompt: false });
+    this.reloadView();
+  };
+
+  _onAINotNow = () => {
+    dismissAIPrompt(this.props.viewId);
+    this.setState({ aiPrompt: false });
+  };
+
+  _renderAIPrompt() {
+    if (!this.state.aiPrompt) return null;
+    const view = allViews().find((v) => v.id === this.props.viewId);
+    const name = view ? view.name : this.props.viewId;
+    return (
+      <div className="view-host-cover view-host-ai-prompt">
+        <EnableAIPrompt
+          reason={localized(
+            '“%@” uses AI to summarize your mail or pull out details. Without it, parts of it may be missing or not work as intended.',
+            name
+          )}
+          onNotNow={this._onAINotNow}
+          onDone={() => this.setState({ aiPrompt: false })}
+        />
+      </div>
+    );
+  }
+
   _onAllow = () => {
     approveView(this.props.viewId);
   };
@@ -576,7 +631,10 @@ export class ViewHost extends React.Component<ViewHostProps, ViewHostState> {
       >
         <div className="view-host-webview" ref={(el) => (this._container = el)} />
         {this._renderDevControls()}
-        {this._renderVersionCard() || this._renderConsentCard() || this._renderCover()}
+        {this._renderVersionCard() ||
+          this._renderConsentCard() ||
+          this._renderAIPrompt() ||
+          this._renderCover()}
       </div>
     );
   }

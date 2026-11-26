@@ -1,7 +1,7 @@
 import React from 'react';
 import classnames from 'classnames';
-import { LocalModelStatus, LocalModelStore, localized } from 'mailspring-exports';
-import { AIEnabledSwitch, LocalModelSettings } from 'mailspring-component-kit';
+import { AIStore, LocalModelStatus, LocalModelStore, localized } from 'mailspring-exports';
+import { AIEnabledSwitch, EnableAIPrompt, LocalModelSettings } from 'mailspring-component-kit';
 
 /**
  * The pill's prefix. The badge is about running Views, not building them (that uses cloud AI),
@@ -47,6 +47,8 @@ export function badgeLabel(status: LocalModelStatus | null) {
 interface ModelBadgeState {
   status: LocalModelStatus | null;
   open: boolean;
+  /** AI was off when the popover opened; it keeps showing the prompt's progress until closed. */
+  enabling: boolean;
 }
 
 /**
@@ -60,7 +62,7 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
   _unlisten: () => void;
   _root = React.createRef<HTMLDivElement>();
 
-  state: ModelBadgeState = { status: LocalModelStore.status(), open: false };
+  state: ModelBadgeState = { status: LocalModelStore.status(), open: false, enabling: false };
 
   componentDidMount() {
     this._unlisten = LocalModelStore.listen(() =>
@@ -82,6 +84,19 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
 
   _renderPopover(status: LocalModelStatus) {
     const enabled = status.state.kind !== 'disabled';
+    if (!AIStore.isEnabled() || this.state.enabling) {
+      return (
+        <div className="model-badge-popover" role="dialog">
+          <EnableAIPrompt
+            reason={localized(
+              'Some Views summarize mail or pull out details like prices and tracking numbers.'
+            )}
+            onNotNow={() => this.setState({ open: false })}
+            onDone={() => this.setState({ open: false, enabling: false })}
+          />
+        </div>
+      );
+    }
     return (
       <div className="model-badge-popover" role="dialog">
         <div className="model-badge-title">{localized('AI inside your Views')}</div>
@@ -112,7 +127,7 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
       <div className="model-badge" ref={this._root}>
         <button
           className={classnames('model-badge-pill', kind, { open })}
-          onClick={() => this.setState({ open: !open })}
+          onClick={() => this.setState({ open: !open, enabling: !open && !AIStore.isEnabled() })}
           title={localized('The AI that Views use on this computer')}
         >
           <span className="model-badge-dot" />

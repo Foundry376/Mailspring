@@ -90,7 +90,7 @@ export async function runSummarizeJob(
   );
   if (job.cancelled) return;
   const total = messages.length;
-  const { available } = await localAIForViews();
+  const { available } = await localAIForViews(grant.viewId);
   if (!available) {
     onProgress({
       results: messages.map((m) => summaryResult(m, null)),
@@ -199,7 +199,7 @@ export async function runGenerateJob(
   priority: number,
   onProgress: (p: GenerateProgress) => void
 ) {
-  const { available } = await localAIForViews();
+  const { available } = await localAIForViews(grant.viewId);
   if (job.cancelled) return;
   if (!available) {
     onProgress({ status: 'done', text: null, value: null, modelAvailable: false });
