@@ -464,7 +464,14 @@ export function registerLocalAIIPCHandlers(ipcMain: IpcMain, deps: LocalAIDeps) 
   } else {
     removeModelFiles(deps.configDirPath, modelSpecOverride(config, deps.devMode));
   }
+  // Only the settings that decide where AI runs: a feature switch under `core.ai` mustn't
+  // restart a download the user cancelled.
+  const placement = () =>
+    [aiEnabled(config), config.get('core.ai.backend'), config.get('core.ai.local.model')].join();
+  let lastPlacement = placement();
   config.onDidChange(AI_KEY, () => {
+    if (placement() === lastPlacement) return;
+    lastPlacement = placement();
     if (started || aiEnabled(config)) localAI().model.reconcile({ startDownload: true });
   });
 
