@@ -10,7 +10,7 @@ export function formatModelBytes(bytes: number) {
   return `${Math.round(bytes / (1024 * 1024))} MB`;
 }
 
-function confirm(message: string, detail: string, action: string) {
+export function confirm(message: string, detail: string, action: string) {
   const choice = require('@electron/remote').dialog.showMessageBoxSync({
     type: 'question',
     buttons: [action, localized('Cancel')],
@@ -22,29 +22,8 @@ function confirm(message: string, detail: string, action: string) {
   return choice === 0;
 }
 
-async function onToggleEnabled(status: LocalModelStatus) {
-  if (status.state.kind === 'disabled') {
-    await LocalModelStore.setEnabled(true);
-    return;
-  }
-  const freed = status.bytesOnDisk;
-  const ok = confirm(
-    localized('Turn off on-device AI?'),
-    freed
-      ? localized(
-          'This stops any download and deletes the model, freeing %@. Views and Mailspring keep working without AI summaries and smart extraction.',
-          formatModelBytes(freed)
-        )
-      : localized(
-          'Views and Mailspring keep working without AI summaries and smart extraction. Nothing will be downloaded.'
-        ),
-    localized('Turn Off')
-  );
-  if (ok) await LocalModelStore.setEnabled(false);
-}
-
 async function onUseSystemModel(status: LocalModelStatus) {
-  await LocalModelStore.setProvider('auto');
+  LocalModelStore.setProvider('auto');
   if (status.bytesOnDisk === 0) return;
   const ok = confirm(
     localized('Delete the downloaded model?'),
@@ -187,7 +166,7 @@ function StateDetails({ status, intro }: { status: LocalModelStatus; intro: Reac
       return (
         <p className="local-model-intro">
           {localized(
-            'On-device AI is off. Views and Mailspring work without AI summaries and smart extraction, and nothing is downloaded.'
+            'AI is off. Views and Mailspring work without AI summaries and smart extraction, and nothing is downloaded.'
           )}
         </p>
       );
@@ -211,10 +190,10 @@ function ProviderChoice({ status }: { status: LocalModelStatus }) {
 }
 
 /**
- * Controls for the on-device model: its state, the first download, the choice between Apple's
- * system model and the downloadable one, and the switch that turns on-device AI off. Shown in
- * Preferences > AI and in the Views home's model badge. `intro` explains what the model is
- * used for in that place.
+ * Controls for the on-device model: its state, its download, and the choice between Apple's
+ * system model and the downloadable one. Shown in Preferences > AI and in the Views home's
+ * model badge, below AIEnabledSwitch. `intro` explains what the model is used for in that
+ * place.
  */
 export function LocalModelSettings({
   status,
@@ -227,14 +206,6 @@ export function LocalModelSettings({
     <div className="local-model-settings">
       <StateDetails status={status} intro={intro} />
       <ProviderChoice status={status} />
-      <label className="local-model-switch">
-        <input
-          type="checkbox"
-          checked={status.state.kind !== 'disabled'}
-          onChange={() => onToggleEnabled(status)}
-        />
-        <span>{localized('Use on-device AI')}</span>
-      </label>
     </div>
   );
 }

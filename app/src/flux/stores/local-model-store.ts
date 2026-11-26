@@ -19,12 +19,12 @@ export type {
 /**
  * The on-device model, for any feature that wants to run prompts locally. A renderer mirror of
  * the main process's local AI service (app/src/browser/local-ai-service.ts): which model is in
- * use (Apple's system model or the downloadable one), its download, the user's choice to turn
- * model downloads off, and the prompt queue.
+ * use (Apple's system model or the downloadable one), its download, and the prompt queue.
  *
- * Nothing runs until a feature asks. `status()` starts listening for changes; `prepare()`
- * starts the first download when no model is available yet. Build prompts with
- * `chatPrompt` (local-model-prompt.ts), which both backends understand.
+ * The main process follows the AI settings on its own: turning AI on with the local backend
+ * (AIStore) starts the download, and turning AI off deletes the model. `status()` starts
+ * listening for changes. Build prompts with `chatPrompt` (local-model-prompt.ts), which both
+ * backends understand.
  */
 class LocalModelStore extends MailspringStore {
   private _status: LocalModelStatus | null = null;
@@ -34,16 +34,6 @@ class LocalModelStore extends MailspringStore {
   status() {
     this._listen();
     return this._status;
-  }
-
-  /**
-   * A feature that uses the model is in use: starts the first download in the background, and
-   * resumes one a previous launch left partway. After the user cancels a download, it waits
-   * for them to ask again.
-   */
-  prepare() {
-    this._listen();
-    return this._invoke('local-ai:prepare');
   }
 
   /** Whether prompts can run now, and the model version to key any caller-side caches by. */
@@ -73,13 +63,9 @@ class LocalModelStore extends MailspringStore {
     return this._invoke('local-ai:cancel-download');
   }
 
-  /** Turning downloads off deletes the downloaded model; resolves with the bytes freed. */
-  setEnabled(enabled: boolean): Promise<{ bytesFreed: number }> {
-    return ipcRenderer.invoke('local-ai:set-enabled', enabled).finally(() => this.refresh());
-  }
-
+  /** `auto` uses Apple's model when this Mac has it; the main process downloads Qwen if needed. */
   setProvider(provider: LocalModelProvider) {
-    return this._invoke('local-ai:set-provider', provider);
+    AppEnv.config.set('core.ai.local.model', provider);
   }
 
   deleteDownloaded(): Promise<{ bytesFreed: number }> {

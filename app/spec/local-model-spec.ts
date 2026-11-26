@@ -3,10 +3,10 @@ import os from 'os';
 import path from 'path';
 import {
   LocalModelController,
-  LocalModelMode,
   LocalModelProvider,
   MIN_FREE_BYTES_FOR_AUTO_DOWNLOAD,
   SystemModel,
+  removeModelFiles,
 } from '../src/browser/local-model';
 import { ModelSpec } from '../src/browser/local-ai-model';
 
@@ -21,9 +21,9 @@ const spec: ModelSpec = {
 
 function setup(
   opts: {
-    mode?: LocalModelMode;
+    enabled?: boolean;
+    backend?: 'local' | 'remote';
     provider?: LocalModelProvider;
-    autoStarted?: boolean;
     free?: number | null;
     override?: string;
     system?: SystemModel;
@@ -31,9 +31,9 @@ function setup(
 ) {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'local-model-'));
   const config: any = {
-    mode: opts.mode || 'auto',
+    enabled: opts.enabled !== false,
+    backend: opts.backend || 'local',
     provider: opts.provider || 'auto',
-    autoStarted: !!opts.autoStarted,
   };
   let system: SystemModel = opts.system || {
     available: false,
@@ -61,12 +61,9 @@ function setup(
   const controller = new LocalModelController({
     configDirPath: dir,
     spec,
-    getMode: () => config.mode,
-    setMode: (m) => (config.mode = m),
+    isEnabled: () => config.enabled,
+    isActive: () => config.enabled && config.backend === 'local',
     getProvider: () => config.provider,
-    setProvider: (p) => (config.provider = p),
-    getAutoStarted: () => config.autoStarted,
-    setAutoStarted: () => (config.autoStarted = true),
     getOverridePath: () => opts.override,
     freeBytes: () => (opts.free === undefined ? 50e9 : opts.free),
     download: download as any,
@@ -77,31 +74,60 @@ function setup(
     system = s;
     controller.systemChanged();
   };
+  const modelFile = path.join(dir, 'models', spec.fileName);
+  const partialFile = `${modelFile}.partial`;
+  const writeModel = () => {
+    fs.mkdirSync(path.join(dir, 'models'), { recursive: true });
+    fs.writeFileSync(modelFile, Buffer.alloc(spec.size));
+  };
   const writePartial = () => {
     fs.mkdirSync(path.join(dir, 'models'), { recursive: true });
-    fs.writeFileSync(path.join(dir, 'models', `${spec.fileName}.partial`), 'abc');
+    fs.writeFileSync(partialFile, 'abc');
   };
-  return { dir, config, controller, download, downloads, changes, setSystem, writePartial };
+  const change = (next: Partial<typeof config>) => {
+    Object.assign(config, next);
+    controller.reconcile({ startDownload: true });
+  };
+  return {
+    dir,
+    config,
+    controller,
+    download,
+    downloads,
+    changes,
+    setSystem,
+    writeModel,
+    writePartial,
+    modelFile,
+    partialFile,
+    change,
+  };
 }
 
 describe('LocalModelController', () => {
-  it('starts the download the first time a feature prepares the model, and only once', () => {
-    const { controller, download, config } = setup();
-    expect(controller.state().kind).toBe('not-downloaded');
-    controller.prepare();
+  it('downloads nothing while AI is off', () => {
+    const { controller, download } = setup({ enabled: false });
+    controller.reconcile({ startDownload: true });
+    controller.start({ force: true });
+    expect(controller.state().kind).toBe('disabled');
+    expect(download.callCount).toBe(0);
+  });
+
+  it('starts the download when AI is turned on, and only once', () => {
+    const { controller, download, change } = setup({ enabled: false });
+    change({ enabled: true });
     expect(download.callCount).toBe(1);
-    expect(config.autoStarted).toBe(true);
     const state = controller.state() as any;
     expect(state.kind).toBe('downloading');
     expect(state.receivedBytes).toBe(4);
     expect(state.totalBytes).toBe(spec.size);
-    controller.prepare();
+    change({});
     expect(download.callCount).toBe(1);
   });
 
   it('becomes ready when the download finishes', async () => {
-    const { controller, downloads } = setup();
-    controller.prepare();
+    const { controller, downloads, change } = setup({ enabled: false });
+    change({ enabled: true });
     downloads[0].resolve();
     await Promise.resolve();
     await Promise.resolve();
@@ -109,44 +135,59 @@ describe('LocalModelController', () => {
     expect(controller.modelPath()).toContain(spec.fileName);
   });
 
-  it("doesn't auto-start again after the user cancels, but resumes a partial download", () => {
-    const { controller, download, writePartial } = setup({ autoStarted: true });
-    controller.prepare();
+  it('at launch, resumes a partial download but starts no new one', () => {
+    const { controller, download, writePartial } = setup();
+    controller.reconcile({ startDownload: false });
     expect(download.callCount).toBe(0);
+    expect(controller.state().kind).toBe('not-downloaded');
     writePartial();
-    controller.prepare();
+    controller.reconcile({ startDownload: false });
     expect(download.callCount).toBe(1);
   });
 
   it('cancels a download and deletes the partial file', () => {
-    const { controller, dir, writePartial } = setup();
-    controller.prepare();
+    const { controller, change, writePartial, partialFile } = setup({ enabled: false });
+    change({ enabled: true });
     writePartial();
     controller.cancel();
     expect(controller.state().kind).toBe('not-downloaded');
-    expect(fs.existsSync(path.join(dir, 'models', `${spec.fileName}.partial`))).toBe(false);
+    expect(fs.existsSync(partialFile)).toBe(false);
   });
 
-  it('turning it off persists, deletes files, reports bytes freed and blocks downloads', () => {
-    const { controller, config, dir, download } = setup();
-    fs.mkdirSync(path.join(dir, 'models'), { recursive: true });
-    fs.writeFileSync(path.join(dir, 'models', spec.fileName), Buffer.alloc(spec.size));
+  it('turning AI off stops the download and deletes the model', () => {
+    const { controller, change, writeModel, writePartial, modelFile, partialFile, downloads } =
+      setup();
+    writeModel();
     expect(controller.state().kind).toBe('ready');
-    expect(controller.setEnabled(false)).toEqual({ bytesFreed: spec.size });
-    expect(config.mode).toBe('off');
+    change({ enabled: false });
     expect(controller.state().kind).toBe('disabled');
     expect(controller.modelPath()).toBe(null);
-    controller.prepare();
-    controller.start({ force: true });
-    expect(download.callCount).toBe(0);
-    controller.setEnabled(true);
-    expect(config.mode).toBe('auto');
-    expect(download.callCount).toBe(1);
+    expect(fs.existsSync(modelFile)).toBe(false);
+
+    change({ enabled: true });
+    writePartial();
+    change({ enabled: false });
+    expect(downloads[0].signal.aborted).toBe(true);
+    expect(fs.existsSync(partialFile)).toBe(false);
   });
 
-  it("doesn't auto-start with little free disk, but Download Anyway does", () => {
-    const { controller, download } = setup({ free: MIN_FREE_BYTES_FOR_AUTO_DOWNLOAD - 1 });
-    controller.prepare();
+  it('a remote backend stops the download but keeps a finished model', () => {
+    const { controller, change, writeModel, modelFile, downloads } = setup({ enabled: false });
+    change({ enabled: true });
+    change({ backend: 'remote' });
+    expect(downloads[0].signal.aborted).toBe(true);
+    expect(controller.state().kind).toBe('disabled');
+    writeModel();
+    change({});
+    expect(fs.existsSync(modelFile)).toBe(true);
+  });
+
+  it("doesn't start with little free disk, but Download Anyway does", () => {
+    const { controller, download, change } = setup({
+      enabled: false,
+      free: MIN_FREE_BYTES_FOR_AUTO_DOWNLOAD - 1,
+    });
+    change({ enabled: true });
     expect(download.callCount).toBe(0);
     expect(controller.state().kind).toBe('insufficient-disk');
     controller.start({ force: true });
@@ -156,19 +197,21 @@ describe('LocalModelController', () => {
   it('treats a valid development override as ready and never downloads', () => {
     const file = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'override-')), 'm.gguf');
     fs.writeFileSync(file, Buffer.alloc(spec.size));
-    const { controller, download } = setup({ override: file });
+    const { controller, download, change } = setup({ override: file });
     const state = controller.state() as any;
     expect(state.kind).toBe('ready');
     expect(state.source).toBe('dev');
-    controller.prepare();
+    change({});
     controller.start({ force: true });
     expect(download.callCount).toBe(0);
     expect(controller.modelPath()).toBe(file);
+    change({ enabled: false });
+    expect(fs.existsSync(file)).toBe(true);
   });
 
   it('reports a failed download and resumes on request', async () => {
-    const { controller, downloads, download } = setup();
-    controller.prepare();
+    const { controller, downloads, download, change } = setup({ enabled: false });
+    change({ enabled: true });
     downloads[0].reject(new Error('HTTP 503'));
     await Promise.resolve();
     const state = controller.state() as any;
@@ -178,21 +221,32 @@ describe('LocalModelController', () => {
     expect(download.callCount).toBe(2);
   });
 
+  it('removeModelFiles deletes a model left on disk', () => {
+    const { dir, writeModel, writePartial, modelFile, partialFile } = setup({ enabled: false });
+    writeModel();
+    writePartial();
+    removeModelFiles(dir, spec);
+    expect(fs.existsSync(modelFile)).toBe(false);
+    expect(fs.existsSync(partialFile)).toBe(false);
+  });
+
   describe('with a system model', () => {
     it('uses the system model and never downloads', () => {
-      const { controller, download } = setup({
+      const { controller, download, change } = setup({
+        enabled: false,
         system: { available: true, name: 'Apple Intelligence' },
       });
-      controller.prepare();
+      change({ enabled: true });
       expect(controller.state()).toEqual({ kind: 'system', label: 'Apple Intelligence' });
       expect(download.callCount).toBe(0);
     });
 
     it('waits for the first availability check before deciding to download', () => {
-      const { controller, download, setSystem } = setup({
+      const { controller, download, setSystem, change } = setup({
+        enabled: false,
         system: { available: false, reason: 'checking', name: 'AI' },
       });
-      controller.prepare();
+      change({ enabled: true });
       expect(controller.state().kind).toBe('checking');
       expect(download.callCount).toBe(0);
       setSystem({ available: false, reason: 'unsupportedOS', name: 'AI' });
@@ -201,16 +255,18 @@ describe('LocalModelController', () => {
 
     it("doesn't download while the system model prepares, or when Apple Intelligence is off", () => {
       const preparing = setup({
+        enabled: false,
         system: { available: false, reason: 'modelNotReady', name: 'AI' },
       });
-      preparing.controller.prepare();
+      preparing.change({ enabled: true });
       expect(preparing.controller.state().kind).toBe('system-preparing');
       expect(preparing.download.callCount).toBe(0);
 
       const off = setup({
+        enabled: false,
         system: { available: false, reason: 'appleIntelligenceNotEnabled', name: 'AI' },
       });
-      off.controller.prepare();
+      off.change({ enabled: true });
       expect(off.controller.state().kind).toBe('system-disabled');
       expect(off.download.callCount).toBe(0);
       off.controller.start({ force: false });
@@ -218,17 +274,15 @@ describe('LocalModelController', () => {
     });
 
     it('can switch to the downloadable model and back', () => {
-      const { controller, download, config, dir } = setup({
+      const { controller, download, change, writeModel } = setup({
         system: { available: true, name: 'Apple Intelligence' },
       });
-      controller.setProvider('qwen');
-      expect(config.provider).toBe('qwen');
+      change({ provider: 'qwen' });
       expect(download.callCount).toBe(1);
       expect(controller.state().kind).toBe('downloading');
-      controller.setProvider('auto');
+      change({ provider: 'auto' });
       expect(controller.state().kind).toBe('system');
-      fs.mkdirSync(path.join(dir, 'models'), { recursive: true });
-      fs.writeFileSync(path.join(dir, 'models', spec.fileName), Buffer.alloc(spec.size));
+      writeModel();
       expect(controller.deleteDownloaded()).toEqual({ bytesFreed: spec.size });
       expect(controller.status().bytesOnDisk).toBe(0);
     });

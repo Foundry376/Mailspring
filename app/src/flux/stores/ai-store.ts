@@ -51,8 +51,6 @@ export interface AIBackend {
   /** True when prompts, and the mail in them, leave this computer. */
   remote: boolean;
   capabilities: ReadonlySet<AICapability>;
-  /** The user turned AI features on: get ready to answer, e.g. by downloading a model. */
-  prepare(): void;
   /** Resolves with one answer per item, in order; null where an item failed or was cancelled. */
   run(req: AIRequest): Promise<(AIAnswer | null)[]>;
   cancel(ownerId: string): Promise<number>;
@@ -77,9 +75,6 @@ export const LocalBackend: AIBackend = {
   },
   remote: false,
   capabilities: new Set<AICapability>(['summarize', 'classify', 'extract']),
-  prepare() {
-    LocalModelStore.prepare().catch(() => {});
-  },
   run({ system, items, ...rest }) {
     return LocalModelStore.run({
       ...rest,
@@ -96,12 +91,13 @@ const BACKEND_KEY = 'core.ai.backend';
 const featureKey = (id: string) => `core.ai.features.${id}`;
 
 /**
- * AI features in the mailbox, as opposed to inside Views, which use the on-device model on
- * their own. Everything here is opt-in: nothing runs until the user turns on AI features in
- * Preferences > AI, which also lets them switch off individual features.
+ * The one switch for AI in Mailspring, in the mailbox and inside Views, and the backend it
+ * runs on. AI is off until the user turns it on in Preferences > AI. Turning it on with the
+ * local backend downloads the model where the system has none, and turning it off deletes it;
+ * the main process does both when this config changes (local-ai-service.ts).
  *
- * Features ask `isFeatureOn` before showing any UI and send prompts through `run`, which goes
- * to the selected backend.
+ * Mailbox features ask `isFeatureOn` before showing any UI and send prompts through `run`,
+ * which goes to the selected backend. Preferences lists them with their own switches.
  */
 class AIStore extends MailspringStore {
   private _backends = new Map<string, AIBackend>([[LocalBackend.id, LocalBackend]]);
@@ -134,7 +130,6 @@ class AIStore extends MailspringStore {
 
   setBackend(id: string) {
     AppEnv.config.set(BACKEND_KEY, id);
-    if (this.isEnabled()) this.backend().prepare();
   }
 
   can(...capabilities: AICapability[]) {
@@ -148,7 +143,6 @@ class AIStore extends MailspringStore {
 
   setEnabled(enabled: boolean) {
     AppEnv.config.set(ENABLED_KEY, enabled);
-    if (enabled) this.backend().prepare();
   }
 
   registerFeature(feature: AIFeature) {

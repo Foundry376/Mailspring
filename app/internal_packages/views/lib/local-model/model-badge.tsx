@@ -1,7 +1,7 @@
 import React from 'react';
 import classnames from 'classnames';
 import { LocalModelStatus, LocalModelStore, localized } from 'mailspring-exports';
-import { LocalModelSettings } from 'mailspring-component-kit';
+import { AIEnabledSwitch, LocalModelSettings } from 'mailspring-component-kit';
 
 /**
  * The pill's prefix. The badge is about running Views, not building them (that uses cloud AI),
@@ -50,8 +50,9 @@ interface ModelBadgeState {
 }
 
 /**
- * The Views home's on-device AI badge: which model Views use, that it runs locally, the first
- * download's progress, and the switch to turn model downloads off.
+ * The Views home's AI badge: whether AI is on, which model Views use, and the download's
+ * progress, with the same AI switch as Preferences > AI. Opening the Views home never starts a
+ * download; only turning AI on does.
  */
 export class ModelBadge extends React.Component<Record<string, never>, ModelBadgeState> {
   static displayName = 'ModelBadge';
@@ -65,7 +66,6 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
     this._unlisten = LocalModelStore.listen(() =>
       this.setState({ status: LocalModelStore.status() })
     );
-    LocalModelStore.prepare();
     document.addEventListener('mousedown', this._onDocumentMouseDown);
   }
 
@@ -98,6 +98,9 @@ export class ModelBadge extends React.Component<Record<string, never>, ModelBadg
             </p>
           }
         />
+        <div className="model-badge-switch">
+          <AIEnabledSwitch id="model-badge-ai-enabled" />
+        </div>
       </div>
     );
   }

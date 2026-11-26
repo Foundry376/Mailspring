@@ -26,8 +26,7 @@ export function modelStatusForViews(status: LocalModelStatus | null): {
   }
 }
 
-/** A View asking for the model counts as using it, so the first ask starts the download. */
+/** Whether a View's prompts can run now. Asking never starts a download; turning AI on does. */
 export function localAIForViews(): Promise<LocalAIStatus> {
-  LocalModelStore.prepare().catch(() => {});
   return LocalModelStore.availability();
 }

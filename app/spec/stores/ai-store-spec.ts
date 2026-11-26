@@ -21,7 +21,6 @@ function remoteBackend(): AIBackend {
     displayName: 'Remote',
     remote: true,
     capabilities: new Set(['summarize', 'draft'] as const),
-    prepare: jasmine.createSpy('prepare'),
     run: () => Promise.resolve([]),
     cancel: () => Promise.resolve(0),
   };
@@ -38,7 +37,6 @@ describe('AIStore', function () {
     spyOn(AppEnv.config, 'set').andCallFake((key: string, value: any) => {
       config[key] = value;
     });
-    spyOn(LocalModelStore, 'prepare').andReturn(Promise.resolve());
     AIStore.registerFeature(SUMMARIES);
     AIStore.registerFeature(DRAFTING);
   });
@@ -83,14 +81,6 @@ describe('AIStore', function () {
     it('falls back to the on-device backend when the selected one is not installed', function () {
       config['core.ai.backend'] = 'uninstalled';
       expect(AIStore.backend()).toBe(LocalBackend);
-    });
-
-    it('prepares the backend when AI features are turned on', function () {
-      AIStore.registerBackend(backend);
-      AIStore.setBackend(backend.id);
-      expect(backend.prepare).not.toHaveBeenCalled();
-      AIStore.setEnabled(true);
-      expect(backend.prepare).toHaveBeenCalled();
     });
 
     it('keeps the on-device backend registered', function () {
