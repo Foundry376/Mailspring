@@ -455,13 +455,16 @@ export const composeNewDraftToRecipient = create('composeNewDraftToRecipient', A
   */
 export const sendDraft = create('sendDraft', ActionScopeWindow);
 /*
-  Public: Fired when a draft is successfully sent
+  Public: Fired when a draft is successfully sent, or could not be sent. The send task finishes
+  in the main window, but the draft may have been sent from a thread popout, which shows the
+  message as sending until it hears one of these.
+
   *Scope: Global*
 
   Recieves the id of the message that was sent
   */
-export const draftDeliverySucceeded = create('draftDeliverySucceeded', ActionScopeMainWindow);
-export const draftDeliveryFailed = create('draftDeliveryFailed', ActionScopeMainWindow);
+export const draftDeliverySucceeded = create('draftDeliverySucceeded', ActionScopeGlobal);
+export const draftDeliveryFailed = create('draftDeliveryFailed', ActionScopeGlobal);
 
 /*
   Public: Destroys the draft with the given ID. This Action is handled by the {DraftStore},
