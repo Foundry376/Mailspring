@@ -31,6 +31,15 @@ describe('FocusedContentStore', function () {
       FocusedContentStore._onFocus({ collection: 'thread', item: testThread });
       expect(FocusedContentStore.triggerAfterAnimationFrame).toHaveBeenCalled();
     });
+
+    it('should remember whether the app moved the focus or the user chose the item', function () {
+      const otherThread = new Thread({ id: '456', accountId: TEST_ACCOUNT_ID });
+      FocusedContentStore._onFocus({ collection: 'thread', item: null });
+      FocusedContentStore._onFocus({ collection: 'thread', item: testThread, automatic: true });
+      expect(FocusedContentStore.didFocusAutomatically('thread')).toBe(true);
+      FocusedContentStore._onFocus({ collection: 'thread', item: otherThread });
+      expect(FocusedContentStore.didFocusAutomatically('thread')).toBe(false);
+    });
   });
 
   describe('threadId', () =>

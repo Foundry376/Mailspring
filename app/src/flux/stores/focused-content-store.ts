@@ -56,6 +56,9 @@ class FocusedContentStore extends MailspringStore {
   _focusedUsingClick: {
     [view: string]: boolean;
   };
+  _focusedAutomatically: {
+    [view: string]: boolean;
+  };
   _keyboardCursor: {
     [view: string]: Model | null;
   };
@@ -78,6 +81,7 @@ class FocusedContentStore extends MailspringStore {
   _resetInstanceVars() {
     this._focused = {};
     this._focusedUsingClick = {};
+    this._focusedAutomatically = {};
     this._keyboardCursor = {};
     this._keyboardCursorEnabled = WorkspaceStore.layoutMode() === 'list';
   }
@@ -139,10 +143,12 @@ class FocusedContentStore extends MailspringStore {
     collection,
     item,
     usingClick,
+    automatic,
   }: {
     collection: string;
     item: Model;
     usingClick?: boolean;
+    automatic?: boolean;
   }) => {
     if (item && !(item instanceof Model)) {
       throw new Error('focus() requires a Model or null');
@@ -163,6 +169,7 @@ class FocusedContentStore extends MailspringStore {
 
     this._focused[collection] = item;
     this._focusedUsingClick[collection] = usingClick;
+    this._focusedAutomatically[collection] = automatic;
     if (item) {
       this._keyboardCursor[collection] = item;
     }
@@ -264,6 +271,17 @@ class FocusedContentStore extends MailspringStore {
   */
   didFocusUsingClick(collection: string) {
     return this._focusedUsingClick[collection] || false;
+  }
+
+  /**
+  Public: Returns true if the item was focused for the user rather than by them, as when
+  the thread they had open leaves the list and the next one takes its place.
+
+  - `collection` The {String} name of a collection. Standard collections are
+    listed above.
+  */
+  didFocusAutomatically(collection: string) {
+    return this._focusedAutomatically[collection] || false;
   }
 
   /**
