@@ -26,6 +26,17 @@ describe('ActionBridge', function () {
       expect(this.bridge.onRebroadcast).toHaveBeenCalled();
     });
 
+    it('tells the other windows how a send ended, so a popout stops showing it as sending', function () {
+      spyOn(this.bridge, 'onRebroadcast');
+      Actions.draftDeliverySucceeded({ headerMessageId: 'h-1' });
+      expect(this.bridge.onRebroadcast).toHaveBeenCalledWith(
+        ActionBridge.TargetWindows.ALL,
+        'draftDeliverySucceeded',
+        [{ headerMessageId: 'h-1' }]
+      );
+      expect(Actions.globalActions).toContain(Actions.draftDeliveryFailed);
+    });
+
     it('should not rebroadcast mainWindow actions since it is the main window', function () {
       spyOn(this.bridge, 'onRebroadcast');
       const testAction = Actions.queueTask;

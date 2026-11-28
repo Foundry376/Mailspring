@@ -53,9 +53,12 @@ class AttachmentStore extends MailspringStore {
     this.listenTo(Actions.destroyDraft, (draft: Message) =>
       this.deleteFilesOwnedByDraft(draft.files || [])
     );
-    this.listenTo(Actions.draftDeliverySucceeded, ({ files }: { files: File[] }) =>
-      this.deleteFilesOwnedByDraft(files || [])
-    );
+    // Every window hears that the draft was delivered; one of them deletes its files.
+    this.listenTo(Actions.draftDeliverySucceeded, ({ files }: { files: File[] }) => {
+      if (AppEnv.isMainWindow()) {
+        this.deleteFilesOwnedByDraft(files || []);
+      }
+    });
 
     fs.mkdirSync(this._filesDirectory, { recursive: true });
   }

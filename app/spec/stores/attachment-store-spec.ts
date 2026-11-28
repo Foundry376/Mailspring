@@ -414,6 +414,7 @@ describe('AttachmentStore', function () {
 
       it('runs when a draft is discarded and when it is sent', () => {
         spyOn(Actions, 'queueTask');
+        spyOn(AppEnv, 'isMainWindow').andReturn(true);
         spyOn(AttachmentStore, 'deleteFilesOwnedByDraft');
 
         Actions.destroyDraft({ id: 'draft-1', headerMessageId: 'h-1', files: [pdf] });
@@ -421,6 +422,14 @@ describe('AttachmentStore', function () {
 
         Actions.draftDeliverySucceeded({ headerMessageId: 'h-2', files: [inline] });
         expect(AttachmentStore.deleteFilesOwnedByDraft).toHaveBeenCalledWith([inline]);
+      });
+
+      it("leaves a sent draft's files to the main window", () => {
+        spyOn(AppEnv, 'isMainWindow').andReturn(false);
+        spyOn(AttachmentStore, 'deleteFilesOwnedByDraft');
+
+        Actions.draftDeliverySucceeded({ headerMessageId: 'h-2', files: [inline] });
+        expect(AttachmentStore.deleteFilesOwnedByDraft).not.toHaveBeenCalled();
       });
     });
   });
