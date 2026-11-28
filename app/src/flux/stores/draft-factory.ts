@@ -54,8 +54,13 @@ class DraftFactory {
     return transformed;
   }
 
-  async createDraft(fields = {}) {
-    const account = this._accountForNewDraft();
+  async createDraft(fields: { accountId?: string; [key: string]: any } = {}) {
+    // A caller that names an account means that account is the sender: both the draft's
+    // `accountId` and its `from` identity come from it. Resolving only `accountId` left `from`
+    // pinned to the default account's identity, and SendDraftTask then refused to send the draft
+    // with "The from address has changed since you started sending this draft." (#3080)
+    const requested = fields.accountId ? AccountStore.accountForId(fields.accountId) : null;
+    const account = requested || this._accountForNewDraft();
     const rich = this.useHTML();
     const defaults = {
       body: rich ? '<br/>' : '',

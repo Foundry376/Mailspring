@@ -1231,4 +1231,24 @@ describe('DraftFactory', function draftFactory() {
       expect(draft.from[0].email).toEqual(secondAccount.defaultMe().email);
     });
   });
+
+  describe('createDraft with an explicit accountId', () => {
+    // Regression for https://github.com/Foundry376/Mailspring/issues/3080: the MCP create_draft
+    // tool passes only `accountId`. The draft must take both `accountId` and its From identity from
+    // that account, otherwise SendDraftTask refuses to send it ("the from address has changed").
+    it('uses the requested account as the From identity', () => {
+      const otherAccount = AccountStore.accounts()[1];
+
+      waitsForPromise(async () => {
+        const draft = await DraftFactory.createDraft({
+          accountId: otherAccount.id,
+          subject: 'Hello',
+          body: 'Body',
+        });
+        expect(draft.accountId).toEqual(otherAccount.id);
+        expect(draft.from[0].email).toEqual(otherAccount.defaultMe().email);
+        expect(draft.from[0].email).not.toEqual(account.emailAddress);
+      });
+    });
+  });
 });
