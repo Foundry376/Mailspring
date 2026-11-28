@@ -49,6 +49,32 @@ describe('Keymap templates', function () {
     expect(templates).toContain('Outlook');
   });
 
+  // Marking spam is a daily triage action, so no preset should leave it to the mouse.
+  for (const template of templates) {
+    it(`${template} gives Mark as Spam a keystroke of its own on every platform`, function () {
+      const problems: string[] = [];
+
+      for (const platform of platforms) {
+        const normalize = normalizeFor(platform);
+        const bindings = bindingsFor(platform, template);
+        const spam = (bindings['core:report-as-spam'] || []).map(normalize);
+        if (spam.length === 0) {
+          problems.push(`no keystroke on ${platform}`);
+        }
+        for (const command of Object.keys(bindings)) {
+          if (command === 'core:report-as-spam') continue;
+          for (const keystroke of bindings[command].map(normalize)) {
+            if (spam.includes(keystroke)) {
+              problems.push(`${keystroke} also runs ${command} on ${platform}`);
+            }
+          }
+        }
+      }
+
+      expect(problems).toEqual([]);
+    });
+  }
+
   for (const template of templates) {
     for (const platform of platforms) {
       it(`${template} on ${platform} keeps every base keystroke it does not intentionally drop, base first`, function () {

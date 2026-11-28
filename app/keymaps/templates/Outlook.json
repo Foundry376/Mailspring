@@ -16,6 +16,7 @@
   "core:focus-item": ["enter", "ctrl+o"],
   "core:mark-as-read": "ctrl+q",
   "core:mark-as-unread": "ctrl+u",
+  "core:report-as-spam": "mod+shift+j",
   "core:star-item": "ctrl+shift+g",
   "core:snooze-item": ["z", "ctrl+h"],
 
