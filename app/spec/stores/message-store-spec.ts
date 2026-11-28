@@ -7,6 +7,7 @@ import FocusedPerspectiveStore from '../../src/flux/stores/focused-perspective-s
 import { MessageStore } from '../../src/flux/stores/message-store';
 import DatabaseStore from '../../src/flux/stores/database-store';
 import { ChangeUnreadTask } from '../../src/flux/tasks/change-unread-task';
+import { DatabaseChangeRecord } from '../../src/flux/stores/database-change-record';
 import CategoryStore from '../../src/flux/stores/category-store';
 import * as Actions from '../../src/flux/actions';
 
@@ -301,6 +302,102 @@ describe('MessageStore', function () {
         MessageStore._fetchFromCache();
         advanceClock(500);
         expect(Actions.queueTask).not.toHaveBeenCalled();
+      });
+
+      describe('when it opens because the thread before it left the list', function () {
+        beforeEach(function () {
+          spyOn(FocusedContentStore, 'didFocusAutomatically').andReturn(true);
+        });
+
+        afterEach(function () {
+          MessageStore._keptUnreadThreadIds.clear();
+        });
+
+        it('should mark it as read, as when the user opens it', function () {
+          this.focus = testThread;
+          MessageStore._onApplyFocusChange();
+          advanceClock(1000);
+          expect(Actions.queueTask).toHaveBeenCalled();
+        });
+
+        it('should leave it unread if the user marked it unread', function () {
+          MessageStore._onQueueTasks(new ChangeUnreadTask({ threads: [testThread], unread: true }));
+          this.focus = testThread;
+          MessageStore._onApplyFocusChange();
+          advanceClock(1000);
+          expect(Actions.queueTask).not.toHaveBeenCalled();
+        });
+
+        it('should mark it as read if it has been marked read since', function () {
+          MessageStore._onQueueTasks([
+            new ChangeUnreadTask({ threads: [testThread], unread: true }),
+          ]);
+          MessageStore._onQueueTasks(
+            new ChangeUnreadTask({ threads: [testThread], unread: false })
+          );
+          this.focus = testThread;
+          MessageStore._onApplyFocusChange();
+          advanceClock(1000);
+          expect(Actions.queueTask).toHaveBeenCalled();
+        });
+
+        describe('when the database reports the thread the user marked unread', function () {
+          beforeEach(function () {
+            MessageStore._onQueueTasks(
+              new ChangeUnreadTask({ threads: [testThread], unread: true })
+            );
+            this.report = (unread: boolean, type = 'persist') =>
+              MessageStore._onDataChanged(
+                new DatabaseChangeRecord({
+                  type,
+                  objectClass: Thread.name,
+                  objects: [new Thread({ id: testThread.id, accountId: TEST_ACCOUNT_ID, unread })],
+                  objectsRawJSON: [],
+                })
+              );
+            this.openAutomatically = () => {
+              this.focus = testThread;
+              MessageStore._onApplyFocusChange();
+              advanceClock(1000);
+            };
+          });
+
+          it('should leave it unread while it is reported unread', function () {
+            this.report(true);
+            this.report(true);
+            this.openAutomatically();
+            expect(Actions.queueTask).not.toHaveBeenCalled();
+          });
+
+          it('should mark it as read if it was read elsewhere and is unread again', function () {
+            this.report(true);
+            this.report(false);
+            this.report(true);
+            this.openAutomatically();
+            expect(Actions.queueTask).toHaveBeenCalled();
+          });
+
+          it('should leave it unread after a report from before the task ran', function () {
+            this.report(false);
+            this.report(true);
+            this.openAutomatically();
+            expect(Actions.queueTask).not.toHaveBeenCalled();
+          });
+
+          it('should forget it when it is deleted', function () {
+            this.report(true, 'unpersist');
+            expect(MessageStore._keptUnreadThreadIds.size).toBe(0);
+          });
+        });
+      });
+
+      it('should mark a thread the user marked unread as read when they open it themselves', function () {
+        MessageStore._onQueueTasks(new ChangeUnreadTask({ threads: [testThread], unread: true }));
+        this.focus = testThread;
+        MessageStore._onApplyFocusChange();
+        advanceClock(1000);
+        expect(Actions.queueTask).toHaveBeenCalled();
+        MessageStore._keptUnreadThreadIds.clear();
       });
     });
   });

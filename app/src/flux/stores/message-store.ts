@@ -4,6 +4,8 @@ import { Message } from '../models/message';
 import { Thread } from '../models/thread';
 import DatabaseStore from './database-store';
 import { TaskFactory } from '../tasks/task-factory';
+import { Task } from '../tasks/task';
+import { ChangeUnreadTask } from '../tasks/change-unread-task';
 import FocusedPerspectiveStore from './focused-perspective-store';
 import FocusedContentStore from './focused-content-store';
 import * as ExtensionRegistry from '../../registries/extension-registry';
@@ -22,6 +24,12 @@ class _MessageStore extends MailspringStore {
   _itemsExpanded: { [messageId: string]: 'explicit' | 'default' };
   _itemsLoading: boolean;
   _lastMarkedAsReadThreadId?: string;
+  _threadFocusedAutomatically = false;
+  // Threads marked unread from this window, each with whether the database has shown it
+  // unread since. One of them stays unread when it opens only because the thread before it
+  // left the list (archived, trashed, marked as spam). Opening it yourself marks it read as
+  // usual.
+  _keptUnreadThreadIds = new Map<string, boolean>();
   _onFocusChangedTimer?: NodeJS.Timeout;
 
   constructor() {
@@ -112,6 +120,8 @@ class _MessageStore extends MailspringStore {
     this.listenTo(Actions.toggleAllMessagesExpanded, this._onToggleAllMessagesExpanded);
     this.listenTo(Actions.toggleHiddenMessages, this._onToggleHiddenMessages);
     this.listenTo(Actions.popoutThread, this._onPopoutThread);
+    this.listenTo(Actions.queueTask, this._onQueueTasks);
+    this.listenTo(Actions.queueTasks, this._onQueueTasks);
     return this.listenTo(Actions.focusThreadMainWindow, this._onFocusThreadMainWindow);
   }
 
@@ -120,6 +130,10 @@ class _MessageStore extends MailspringStore {
   }
 
   _onDataChanged(change: DatabaseChangeRecord<any>) {
+    if (change.objectClass === Thread.name) {
+      this._forgetKeptThreadsNowRead(change);
+    }
+
     if (!this._thread) return;
 
     if (change.objectClass === Message.name) {
@@ -193,6 +207,7 @@ class _MessageStore extends MailspringStore {
     if (this.threadId() === (focused || {}).id) return;
 
     this._thread = focused;
+    this._threadFocusedAutomatically = FocusedContentStore.didFocusAutomatically('thread');
     this._items = [];
     this._itemsLoading = true;
     this._showingHiddenItems = false;
@@ -209,6 +224,37 @@ class _MessageStore extends MailspringStore {
     require('@electron/remote').getCurrentWindow().setTitle(title);
   }
 
+  _onQueueTasks(taskOrTasks: Task | Task[]) {
+    const tasks = taskOrTasks instanceof Array ? taskOrTasks : [taskOrTasks];
+    for (const task of tasks) {
+      if (!(task instanceof ChangeUnreadTask)) continue;
+      for (const threadId of task.threadIds || []) {
+        if (task.unread) {
+          this._keptUnreadThreadIds.set(threadId, false);
+        } else {
+          this._keptUnreadThreadIds.delete(threadId);
+        }
+      }
+    }
+  }
+
+  // A kept thread that turns up read was read somewhere else (another device, say), so the
+  // user is no longer keeping it: a later reply that makes it unread again is new mail. It has
+  // to have been seen unread first, or a change from before the task ran would undo the mark.
+  _forgetKeptThreadsNowRead(change: DatabaseChangeRecord<Thread>) {
+    for (const thread of change.objects) {
+      if (!this._keptUnreadThreadIds.has(thread.id)) continue;
+
+      if (change.type === 'unpersist') {
+        this._keptUnreadThreadIds.delete(thread.id);
+      } else if (thread.unread) {
+        this._keptUnreadThreadIds.set(thread.id, true);
+      } else if (this._keptUnreadThreadIds.get(thread.id)) {
+        this._keptUnreadThreadIds.delete(thread.id);
+      }
+    }
+  }
+
   _markAsRead() {
     // Mark the thread as read if necessary. Make sure it's still the
     // current thread after the timeout.
@@ -221,6 +267,9 @@ class _MessageStore extends MailspringStore {
     this._lastMarkedAsReadThreadId = this._thread.id;
 
     if (this._thread.unread) {
+      if (this._threadFocusedAutomatically && this._keptUnreadThreadIds.has(this._thread.id)) {
+        return;
+      }
       const markAsReadDelay = AppEnv.config.get('core.reading.markAsReadDelay');
       const markAsReadId = this._thread.id;
       if (markAsReadDelay < 0) return;

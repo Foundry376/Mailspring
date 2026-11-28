@@ -249,6 +249,9 @@ export const setCursorPosition = create('setCursorPosition', ActionScopeWindow);
   ```
   Actions.setFocus(collection: 'thread', item: <Thread>)
   ```
+
+  Pass `automatic: true` when the app moves the focus itself rather than the user choosing
+  the item. See {FocusedContentStore::didFocusAutomatically}.
   */
 export const setFocus = create('setFocus', ActionScopeWindow);
 
